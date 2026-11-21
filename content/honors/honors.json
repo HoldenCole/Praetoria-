@@ -1,0 +1,38 @@
+{
+  // HONORIFICS & ORDERS (GDD §13 "Merit payoff, birth-independent"): prestige distinctions earned by personal
+  // excellence, cutting across the title ladder. Each is a condition list over `self` (the whole event vocabulary)
+  // and an effect list applied once when first met; the engine writes the char flag honor:<id>, which events can
+  // read, and logs the investiture. A risen admiral may never be granted a Dukedom — but as a Knight of the Burning
+  // Lance, no one questions the right to command.
+  "honors": [
+    { "id": "burning_lance", "name": "Order of the Burning Lance",
+      "description": "The highest martial honor: three victories under one's own command.",
+      "when": [ { "type": "counter", "key": "battles_won", "op": "gte", "value": 3 } ],
+      "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 10 }, { "type": "adjustCounter", "key": "standing", "delta": 3 }, { "type": "adjustCounter", "key": "navy_influence", "delta": 2 } ] },
+    { "id": "iron_ledger", "name": "Keeper of the Iron Ledger",
+      "description": "Imperial Treasurer, or a steward whose house treasury never ran dry through a long tenure.",
+      "when": [ { "type": "track", "role": "self", "track": "stewardship" }, { "type": "rank", "role": "self", "op": "gte", "value": 4 } ],
+      "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 8 }, { "type": "adjustCounter", "key": "treasury_influence", "delta": 2 } ] },
+    { "id": "silver_tongue", "name": "Voice of the Chambers",
+      "description": "A High Justice whose rulings the realm quotes.",
+      "when": [ { "type": "track", "role": "self", "track": "law" }, { "type": "rank", "role": "self", "op": "gte", "value": 4 } ],
+      "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 8 }, { "type": "adjustCounter", "key": "senate_influence", "delta": 2 } ] },
+    { "id": "shield_of_the_people", "name": "Shield of the People",
+      "description": "Goodwill banked by mercy, hoarded by no one.",
+      "when": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 8 } ],
+      "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 6 }, { "type": "adjustCounter", "key": "unrest", "delta": -2 } ] },
+    { "id": "grand_admiral", "name": "The Grand Admiralty",
+      "description": "The top of the Navy's ladder — the post that frightens the old aristocracy.",
+      "when": [ { "type": "track", "role": "self", "track": "military" }, { "type": "rank", "role": "self", "op": "gte", "value": 6 } ],
+      "effects": [ { "type": "adjustCounter", "key": "navy_influence", "delta": 3 }, { "type": "adjustCounter", "key": "standing", "delta": 2 } ] }
+    ,
+    { "id": "peacemaker", "name": "Peacemaker of the Reach",
+      "description": "Two houses bound to yours by marriage, and no war declared in your name.",
+      "when": [ { "type": "counter", "key": "marriages", "op": "gte", "value": 2 }, { "type": "counter", "key": "wars_begun", "op": "eq", "value": 0 } ],
+      "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 8 }, { "type": "adjustCounter", "key": "goodwill", "delta": 2 } ] },
+    { "id": "lord_protector", "name": "Protector of the Reach",
+      "description": "Three worlds taken and held — the Reach fears you, and calls it respect.",
+      "when": [ { "type": "counter", "key": "conquests", "op": "gte", "value": 3 } ],
+      "effects": [ { "type": "adjustCounter", "key": "navy_influence", "delta": 3 }, { "type": "adjustCounter", "key": "standing", "delta": 3 }, { "type": "adjustCounter", "key": "seizures", "delta": 1 } ] }
+  ]
+}

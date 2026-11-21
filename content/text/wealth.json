@@ -1,0 +1,174 @@
+{
+  "texts": [
+    {
+      "id": "a_debt_in_the_family",
+      "title": "A Debt In The Family",
+      "body": "{debtor.name} owes money. Not a ruinous sum yet, but the kind that grows, to the kind of people who are patient only while it does. {debtor.name} has not asked {self.name} for anything. The steward thought {self.name} ought to know all the same.",
+      "choices": {
+        "have_it_out_with_them": "Have it out with them.",
+        "say_the_house_stands_behind_its_own": "Say the house stands behind its own.",
+        "it_is_their_affair": "It is their own affair."
+      }
+    },
+    {
+      "id": "out_of_their_own_pocket",
+      "title": "Out Of Their Own Pocket",
+      "body": "The treasury was short, and then it was a little less short, and nobody had been asked for anything. It turns out {giver.name} put in money of their own, quietly, through the steward, and asked that nothing be made of it.",
+      "choices": {
+        "thank_them_before_the_family": "Thank them before the family.",
+        "repay_it_when_you_can": "Write it down as a debt of the house.",
+        "accept_it_as_owed": "Accept it as no more than was owed."
+      }
+    },
+    {
+      "id": "a_mean_house",
+      "title": "A Mean House",
+      "body": "{kin.name} has come to ask, with visible effort, whether there is anything more to be had. The house gives its own almost nothing, and {kin.name} has reached the end of it. It is being said, {kin.name} adds, that the house of {self.name} keeps its people shorter than houses half as rich.",
+      "choices": {
+        "the_house_cannot_afford_more": "The house cannot afford more.",
+        "something_from_your_own_purse": "Give them something now.",
+        "they_may_earn_it": "They may earn it, like anyone."
+      }
+    },
+    {
+      "id": "the_will_is_read",
+      "title": "The Will Is Read",
+      "body": "The house is {self.name}'s; nobody disputes that. But the dead head's own money, the will says, is to go in great part to {legatee.name}. It is read out in front of the family. Everyone looks at {self.name}.",
+      "choices": {
+        "honour_it": "Honour it, and say so.",
+        "ask_them_to_give_it_up": "Ask them to give it up.",
+        "say_nothing_and_remember": "Say nothing, and remember."
+      }
+    },
+    {
+      "id": "sold_out_of_the_family",
+      "title": "Sold Out Of The Family",
+      "body": "It had been in the family longer than anyone could say, and now it is in a dealer's window with a price on it. The sale was {self.name}'s to make. The family is taking it as though something had died.",
+      "choices": {
+        "it_was_only_a_thing": "It was only a thing.",
+        "promise_to_buy_it_back": "Promise to buy it back one day.",
+        "the_house_needed_the_money": "The house needed the money."
+      }
+    },
+    {
+      "id": "the_loan_that_sits_between_you",
+      "title": "The Loan That Sits Between You",
+      "body": "{kin.name} has owed {self.name} money for six years. Neither of them has spoken of it in four. It is there all the same, at every table the two of them sit at, and it has begun to change how {kin.name} looks at the head of the house.",
+      "choices": {
+        "say_it_is_forgotten": "Tell them it is forgotten.",
+        "speak_of_it_plainly": "Speak of it plainly: it is owed.",
+        "leave_it_where_it_is": "Leave it where it is."
+      }
+    },
+    {
+      "id": "what_you_owe_your_own",
+      "title": "What You Owe Your Own",
+      "body": "Six years ago {kin.name} lent {self.name} money out of their own purse, because the head of the house asked and it is not easy to refuse the head of the house. It has not been paid. {kin.name} has not asked for it. They have begun to be absent from the table on the days the accounts are read.",
+      "choices": {
+        "name_a_day": "Name a day by which it will be paid.",
+        "say_the_house_has_had_it": "Say the house has had the good of it, and so have they.",
+        "let_them_raise_it": "Wait for them to raise it."
+      }
+    },
+    {
+      "id": "one_of_them_lent_the_other",
+      "title": "One of Them Lent the Other",
+      "body": "{kin.name} is one of two people of the house who have settled a debt between themselves without a word to its head: the one was in trouble with creditors, the other had money put by, and it was done in an afternoon. {self.name} heard of it from the steward's clerk.",
+      "choices": {
+        "make_it_good_yourself": "Make the sum good from the house's money, so that neither owes the other.",
+        "say_it_was_well_done": "Say that it was well done.",
+        "stay_out_of_it": "Stay out of it. It is between them."
+      }
+    },
+    {
+      "id": "the_entail_is_broken",
+      "title": "The Entail Is Broken",
+      "body": "The court has set aside the entail, and a thing that was to go with the house for ever is now simply {self.name}'s to sell. The advocates were civil about it. The family has been told, and has understood exactly what a head of a house breaks an entail for.",
+      "choices": {
+        "say_why": "Tell them why, with the figures.",
+        "say_it_was_yours_to_do": "Say that it was yours to do.",
+        "promise_to_restore_it": "Give your word that it will be made again."
+      }
+    },
+    {
+      "id": "a_standard_comes_home",
+      "title": "A Standard Comes Home",
+      "body": "{kin.name} won the battle and came away with the other side's standard. It is theirs: they took it, and the fleet saw them take it. What the head of the house says about it will be repeated.",
+      "choices": {
+        "it_is_theirs": "It is theirs. Let it fly from their flagship.",
+        "show_it_in_the_forum": "Have it carried through the forum first.",
+        "say_little_of_it": "A battle won is a duty done."
+      }
+    },
+    {
+      "id": "plate_for_the_wedding",
+      "title": "Plate For The Wedding",
+      "body": "{giver.name} has sent plate for the wedding: good work, with both houses' marks on it. It belongs to the one who married, not to the house. A gift like this asks for an answer, and the answer will be weighed.",
+      "choices": {
+        "write_and_thank_them": "Write and thank them.",
+        "send_something_back": "Send something back, worth a little more.",
+        "take_it_as_due": "Take it as no more than was due."
+      }
+    },
+    {
+      "id": "one_of_yours_buys_shares",
+      "title": "Shares Of Their Own",
+      "body": "{kin.name} has bought shares on the Exchange with their own money, in their own name. They are not the house's: what they pay goes into {kin.name}'s purse, and they give the house no say in the company. {kin.name} has told you because they would rather you heard it from them.",
+      "choices": {
+        "it_is_their_money": "It is their money.",
+        "tell_them_what_you_know": "Tell them what the house knows of the Exchange.",
+        "the_house_comes_first": "The house comes first: buy in its name."
+      }
+    },
+    {
+      "id": "they_ask_for_their_standard",
+      "title": "They Ask For Their Standard",
+      "body": "{asker.name} has written, civilly, about the standard one of yours took from their house. The war is over. They would like it home, and they have not said what they would give for it. It is the holder's own, but nobody in either house doubts that the answer is yours.",
+      "choices": {
+        "send_it_home": "Send it home, and ask nothing.",
+        "name_a_price": "They may have it for a price.",
+        "it_was_fairly_taken": "It was fairly taken. It stays."
+      }
+    },
+    {
+      "id": "one_of_yours_has_a_thing_made",
+      "title": "Made In Their Own Name",
+      "body": "{kin.name} has had something made for the house with their own money: saved, ordered and paid for without a word to you until it was done. It bears the house's name. It is {kin.name}'s.",
+      "choices": {
+        "it_does_the_house_credit": "It does the house credit.",
+        "add_to_it": "Put the house's money beside theirs.",
+        "it_should_have_been_the_houses": "It should have been the house's to give."
+      }
+    },
+    {
+      "id": "a_gift_to_mend_a_quarrel",
+      "title": "A Gift, Unasked",
+      "body": "A gift has come from {giver.name}: plate, well made, with a short letter that mentions no quarrel. There has been ill feeling between you, and this is how a head of a house says they would rather there were not. What you do with it will be known by the end of the week.",
+      "choices": {
+        "take_it_as_it_is_meant": "Take it as it is meant.",
+        "answer_in_kind": "Answer in kind, to the credit.",
+        "send_it_back": "Send it back."
+      }
+    },
+    {
+      "id": "a_thing_of_the_house_is_carried_off",
+      "title": "Carried Off",
+      "body": "The world fell, and with it something of the house's own: taken from the governor's hall by the commander who stormed it, and kept. It is theirs now by the only title a war gives. The house that has it will be thought of accordingly, and so will the house that lost it.",
+      "choices": {
+        "swear_to_have_it_back": "It will come home, if it takes a fleet.",
+        "it_can_be_bought": "What is taken in a war is sold in a peace.",
+        "a_thing_is_a_thing": "A house is its people, not its plate."
+      }
+    },
+    {
+      "id": "a_gift_that_asks_a_favour",
+      "title": "A Gift That Asks",
+      "body": "{giver.name} has sent an orrery: brass and glass, the Reach in miniature, the work of a year. There is no letter with it beyond compliments. There is also a motion of {giver.name}'s before the Senate, and nobody sends a thing like this for nothing. Keep it, and you will be expected to vote for it.",
+      "choices": {
+        "keep_it_and_remember": "Keep it, and remember what it is for.",
+        "keep_it_and_promise_nothing": "Keep it, and say plainly that it buys nothing.",
+        "send_it_back": "Send it back unopened."
+      }
+    }
+  ]
+}

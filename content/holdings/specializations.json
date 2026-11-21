@@ -1,0 +1,74 @@
+{
+  // Holding specializations (GDD §17). Code provides the accrual mechanism; these data files
+  // provide the instances. yield/upkeep are per-turn resource bundles; slots = build capacity;
+  // popGrowth > 0 marks a populated world (grows to maxPopulation, and carries unrest); popManpower =
+  // population per +1 Manpower/turn ("people are soldiers"). Tuned for medium baseline,
+  // NOT for uniformity — a forge-world and an agri-world are meant to play different economic games
+  // (GDD §17 variable emphasis).
+  "specializations": [
+    {
+      "id": "agri_world", "name": "Agri-World",
+      "yield":  { "manpower": 3, "credits": 2 },
+      "upkeep": { "credits": 1 },
+      "slots": 2, "popGrowth": 2, "maxPopulation": 60, "popManpower": 10
+    },
+    {
+      "id": "forge_world", "name": "Forge-World",
+      "yield":  { "materials": 4, "credits": 1 },
+      "upkeep": { "credits": 2 },
+      "slots": 3, "popGrowth": 1, "maxPopulation": 40, "popManpower": 20
+    },
+    {
+      "id": "trade_hub", "name": "Trade Hub",
+      "yield":  { "credits": 5 },
+      "upkeep": { "credits": 1 },
+      "slots": 2, "popGrowth": 1, "maxPopulation": 50, "popManpower": 25
+    },
+    {
+      "id": "fortress", "name": "Fortress World",
+      "yield":  { "credits": 1, "manpower": 1 },
+      "upkeep": { "credits": 1, "materials": 1 },
+      "slots": 2, "popGrowth": 0, "defense": 0.5
+    },
+    {
+      "id": "research_station", "name": "Research Station",
+      "yield":  { "influence": 1 },
+      "upkeep": { "credits": 1 },
+      "slots": 2, "popGrowth": 0
+    },
+    {
+      "id": "mining_belt", "name": "Mining Belt",
+      "yield":  { "materials": 3, "exotics": 1 },
+      "upkeep": { "credits": 1 },
+      "slots": 2, "popGrowth": 1, "maxPopulation": 20, "popManpower": 20
+    },
+    {
+      "id": "frontier_colony", "name": "Frontier Colony",
+      "yield":  { "manpower": 2, "credits": 1 },
+      "upkeep": { },
+      "slots": 1, "popGrowth": 2, "maxPopulation": 30, "popManpower": 10
+    },
+    {
+      "id": "orbital_yard", "name": "Orbital Yard",
+      "yield":  { "credits": 2 },
+      "upkeep": { "materials": 1 },
+      "slots": 1, "popGrowth": 0
+    },
+    {
+      "id": "customs_post", "name": "Customs Post",
+      "yield":  { "credits": 3 },
+      "upkeep": { "credits": 1 },
+      "slots": 1, "popGrowth": 0
+    }
+      ,
+    {
+      "id": "belt_claim",
+      "name": "Belt Claim",
+      "yield": { "materials": 2 },
+      "upkeep": { "credits": 1 },
+      "slots": 0,
+      "popGrowth": 0,
+      "//": "ASTEROIDS (GDD §17). The smallest holding there is: a staked claim in a system's belt. Materials by the belt's richness (the engine adds +richness, and an exotic a turn from a rich belt). Sterile, cheap, and the landless house's first rung."
+    }
+]
+}

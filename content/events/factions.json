@@ -1,0 +1,62 @@
+{
+  "//": "SENATE FACTIONS (GDD §6.1 'voting blocs'; GAP §12 item 8). These read FactionSystem's flags: faction_formed / faction_joined / faction_dissolved / broke_the_whip (one turn), in_faction and faction_leader while so, faction_against_me while a bench's leader has a motion on the docket against you.",
+  "events": [
+    {
+      "id": "an_invitation_to_the_benches", "tier": "situation", "weight": 8, "repeatable": true,
+      "when": [ { "type": "not", "of": { "type": "worldFlag", "flag": "in_faction" } }, { "type": "counter", "key": "factions", "op": "gte", "value": 1 }, { "type": "turn", "op": "gte", "value": 4 } ],
+      "roles": [ { "name": "whip", "when": [ { "type": "rank", "role": "whip", "op": "gte", "value": 1 }, { "type": "relationship", "from": "whip", "to": "self", "op": "gte", "value": -10 } ] } ],
+      "choices": [
+        { "id": "hear_them_out", "effects": [ { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 5 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} heard {whip.name} out over a long dinner. The benches want a vote they can count on; {self.house} wants to know what it is worth." } ] },
+        { "id": "my_vote_is_my_own", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": -5 },
+            { "type": "log", "text": "{self.name} told {whip.name} that {self.house}'s vote was its own. The chamber likes an independent. The benches do not." } ] }
+      ]
+    },
+    {
+      "id": "the_bench_forms", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "faction_formed" } ],
+      "choices": [
+        { "id": "a_dinner_for_the_bench", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -5 }, { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} gave the new bench a dinner. Five credits, and houses that now owe {self.house} an evening." } ] },
+        { "id": "set_the_terms", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 2 },
+            { "type": "log", "text": "{self.name} stood up at the bench's first meeting and said what it was for. Nobody had asked; everybody remembered." } ] }
+      ]
+    },
+    {
+      "id": "the_whips_displeasure", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "broke_the_whip" } ],
+      "choices": [
+        { "id": "apologise", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": -1 }, { "type": "adjustCounter", "key": "stress", "delta": 3 },
+            { "type": "log", "text": "{self.name} went to the leader of the bench and apologised for the vote. It was accepted, in the way such things are." } ] },
+        { "id": "stand_by_it", "requires": [ { "type": "trait", "role": "self", "trait": "Proud", "kind": "nature", "present": true } ],
+          "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} stood by the vote and said so to the bench's face. Half of them wished they had the nerve." } ] },
+        { "id": "say_nothing", "effects": [ { "type": "log", "text": "{self.name} said nothing about the vote, and let the bench decide what the silence meant." } ] }
+      ]
+    },
+    {
+      "id": "the_bench_breaks", "tier": "situation", "weight": 9, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "faction_dissolved" } ],
+      "choices": [
+        { "id": "gather_the_remnant", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} gathered what was left of the bench and kept them talking. Benches are made of talk." } ] },
+        { "id": "sit_apart", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} let the bench break and sat apart. Independence has a dignity; it has no votes." } ] }
+      ]
+    },
+    {
+      "id": "across_the_aisle", "tier": "setpiece", "weight": 11, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "faction_against_me" } ],
+      "choices": [
+        { "id": "offer_a_deal", "cost": { "influence": 2 }, "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
+            { "type": "log", "text": "{self.name} crossed the aisle before the vote with an offer. The bench's leader listened, which is more than the motion deserved." } ] },
+        { "id": "split_the_bench", "requires": [ { "type": "skill", "role": "self", "skill": "intrigue", "op": "gte", "value": 2 } ], "cost": { "agents": 1 },
+          "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "threat", "delta": 1 },
+            { "type": "log", "text": "{self.name} spent the night finding the bench's weakest member and what they wanted. By morning the whip count had changed." } ] },
+        { "id": "face_them", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} faced the bench in open session and let the Reach see who had moved against the house, and why." } ] }
+      ]
+    }
+  ]
+}

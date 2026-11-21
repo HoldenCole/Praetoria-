@@ -1,0 +1,80 @@
+{
+  "//": "THE STRATEGIC THREE (GDD §17 'not every world has everything; decisions gated behind wealth and resources'). Helium-3 fuels the fleet, rare earths build the clever things, isotopes arm the heavy hulls. These events read the engine's deposit:<res>, strategic:<res> and fuel_short flags, the wealth tier, and the resource stocks — so a rich house without a deposit buys its way in, a poor house with one sells, and a dry navy is a decision.",
+  "events": [
+    {
+      "id": "dry_tanks", "tier": "situation", "weight": 10, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "fuel_short" } ],
+      "choices": [
+        { "id": "buy_dear", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 18 } ],
+          "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -18 }, { "type": "adjustResource", "resource": "helium3", "delta": 4 },
+            { "type": "log", "text": "{self.name} paid a broker's price for four tanks of helium-3. The fleet sailed on the morning tide; the ledger did not." } ] },
+        { "id": "strip_the_merchantmen", "effects": [ { "type": "adjustResource", "resource": "helium3", "delta": 2 }, { "type": "adjustCounter", "key": "unrest", "delta": 2 }, { "type": "adjustResource", "resource": "credits", "delta": -2 },
+            { "type": "log", "text": "{self.name} requisitioned the fuel of every merchantman in port. Two tanks for the navy, and a harbour that remembers who took them." } ] },
+        { "id": "ride_at_anchor", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
+            { "type": "log", "text": "{self.name} let the fleet ride at anchor. Lanterns lit, guns cold, and the rivals counting the days." } ] }
+      ]
+    },
+    {
+      "id": "the_skimmer_barons", "tier": "situation", "weight": 7, "repeatable": false,
+      "when": [ { "type": "worldFlag", "flag": "deposit:helium3" }, { "type": "turn", "op": "gte", "value": 2 } ],
+      "choices": [
+        { "id": "raise_skimmers", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 8 }, { "type": "resource", "resource": "materials", "op": "gte", "value": 4 } ],
+          "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -8 }, { "type": "adjustResource", "resource": "materials", "delta": -4 }, { "type": "adjustResource", "resource": "helium3", "delta": 6 },
+            { "type": "log", "text": "{self.name} put the house's own scoops into the giant's clouds. The first six tanks came up before the season turned." } ] },
+        { "id": "sell_the_concession", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 14 }, { "type": "adjustResource", "resource": "influence", "delta": -1 },
+            { "type": "log", "text": "{self.name} sold the skimming concession to a consortium for fourteen credits down. Their ramscoops, their fuel, the house's clouds." } ] },
+        { "id": "leave_it", "effects": [ { "type": "log", "text": "{self.name} left the giant alone. The clouds will keep." } ] }
+      ]
+    },
+    {
+      "id": "a_vein_of_rare_earths", "tier": "situation", "weight": 7, "repeatable": false,
+      "when": [ { "type": "worldFlag", "flag": "deposit:rare_earths" }, { "type": "worldFlag", "flag": "claim_holder" } ],
+      "choices": [
+        { "id": "refine_it", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 10 } ],
+          "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -10 }, { "type": "adjustResource", "resource": "rare_earths", "delta": 3 },
+            { "type": "log", "text": "{self.name} paid for separators and a chemist who asked no questions. Three crates of rare earths, and the beginning of a trade." } ] },
+        { "id": "sell_raw", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 9 },
+            { "type": "log", "text": "{self.name} sold the ore raw to a refinery off-world. Nine credits now, and someone else's sensors later." } ] }
+      ]
+    },
+    {
+      "id": "the_arms_broker", "tier": "situation", "weight": 6, "repeatable": true,
+      "when": [ { "type": "wealth", "role": "self", "op": "gte", "tier": "rich" }, { "type": "resource", "resource": "isotopes", "op": "lte", "value": 0 }, { "type": "turn", "op": "gte", "value": 4 } ],
+      "choices": [
+        { "id": "buy_two", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 24 } ],
+          "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -24 }, { "type": "adjustResource", "resource": "isotopes", "delta": 2 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
+            { "type": "log", "text": "{self.name} bought two cases of weapons-grade isotopes from a broker who used a false name. The Senate's inspectors did not look; the Senate's gossips did." } ] },
+        { "id": "report_him", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} turned the broker over to the Senate's inspectors. The house's name was read out as the one that would not buy." } ] },
+        { "id": "send_him_away", "effects": [ { "type": "log", "text": "{self.name} sent the broker away unanswered. He will find a buyer; he always does." } ] }
+      ]
+    },
+    {
+      "id": "the_fuel_contract", "tier": "situation", "weight": 6, "repeatable": true,
+      "when": [ { "type": "worldFlag", "flag": "strategic:helium3" }, { "type": "resource", "resource": "helium3", "op": "gte", "value": 8 }, { "type": "turn", "op": "gte", "value": 3 } ],
+      "roles": [ { "name": "buyer", "when": [ { "type": "not", "of": { "type": "atWar", "role": "buyer", "present": true } } ] } ],
+      "choices": [
+        { "id": "sell_four", "effects": [ { "type": "adjustResource", "resource": "helium3", "delta": -4 }, { "type": "adjustResource", "resource": "credits", "delta": 16 }, { "type": "adjustRelationship", "from": "buyer", "to": "self", "delta": 10 },
+            { "type": "log", "text": "{self.name} sold four tanks to {buyer.house} at sixteen credits and a kind word. Their fleet sails on the house's fuel this season." } ] },
+        { "id": "sell_dear", "requires": [ { "type": "skill", "role": "self", "skill": "economics", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustResource", "resource": "helium3", "delta": -4 }, { "type": "adjustResource", "resource": "credits", "delta": 24 }, { "type": "adjustRelationship", "from": "buyer", "to": "self", "delta": -8 },
+            { "type": "log", "text": "{self.name} named a price that made {buyer.name} wince, and got it. Twenty-four credits, and a buyer who will remember the wince." } ] },
+        { "id": "refuse", "effects": [ { "type": "adjustRelationship", "from": "buyer", "to": "self", "delta": -5 },
+            { "type": "log", "text": "{self.name} kept the fuel. {buyer.house} will buy elsewhere, dearer, and say so." } ] }
+      ]
+    },
+    {
+      "id": "the_embargo", "tier": "situation", "weight": 8, "repeatable": false,
+      "when": [ { "type": "worldFlag", "flag": "strategic:isotopes" }, { "type": "worldFlag", "flag": "at_war_any" } ],
+      "choices": [
+        { "id": "arm_the_fleet", "requires": [ { "type": "resource", "resource": "isotopes", "op": "gte", "value": 2 } ],
+          "effects": [ { "type": "adjustResource", "resource": "isotopes", "delta": -2 }, { "type": "adjustCounter", "key": "war_score_bonus", "delta": 1 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
+            { "type": "log", "text": "{self.name} broke open the isotope stores for the fleet's magazines. The next broadside will be the one the enemy remembers." } ] },
+        { "id": "embargo_them", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
+            { "type": "log", "text": "{self.name} declared an embargo: no isotopes leave the house's worlds while the war lasts. The Senate noted who could afford to say it." } ] },
+        { "id": "sell_to_both", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 18 }, { "type": "adjustResource", "resource": "isotopes", "delta": -2 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -3 },
+            { "type": "log", "text": "{self.name} sold isotopes to both sides through a factor in a neutral port. Eighteen credits, and a thing the chronicle will not forget." } ] }
+      ]
+    }
+  ]
+}

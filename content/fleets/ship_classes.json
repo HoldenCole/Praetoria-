@@ -1,0 +1,15 @@
+{
+  // SHIP CLASSES (GDD §6 "fleet composition"; §17 Materials → shipyard → fleet). Attack is what a hull brings
+  // to an assault, defense what it brings holding a system; both are scaled by readiness, the admiral, and
+  // veterancy. A fleet is a composition {class: count}; "strength" (hull count) is kept as the quick measure the
+  // intel/threat layers use. minTitleRank gates the heavy hulls to houses with a seat big enough to build them
+  // (§13 — a landless captain does not lay down battleships); `requires` pins a class to a specialization. The heavy hulls want rare earths
+  // (drives, sensors) and the battleship weapons-grade isotopes (GDD §17 "special materials needed for weapons").
+  "classes": [
+    { "id": "corvette",   "name": "Corvette",   "attack": 1, "defense": 1, "cost": { "materials": 3, "manpower": 1, "credits": 1 }, "upkeep": { "credits": 1 } },
+    { "id": "frigate",    "name": "Frigate",    "attack": 2, "defense": 2, "cost": { "materials": 6, "manpower": 3, "credits": 2 }, "upkeep": { "credits": 1 } },
+    { "id": "cruiser",    "name": "Cruiser",    "attack": 4, "defense": 3, "cost": { "materials": 10, "manpower": 5, "credits": 4, "rare_earths": 1 }, "upkeep": { "credits": 2 }, "minTitleRank": 2 },
+    { "id": "carrier",    "name": "Carrier",    "attack": 5, "defense": 5, "cost": { "materials": 14, "manpower": 8, "credits": 6, "rare_earths": 2 }, "upkeep": { "credits": 3 }, "minTitleRank": 3, "requires": "shipyard_world" },
+    { "id": "battleship", "name": "Battleship", "attack": 8, "defense": 6, "cost": { "materials": 20, "manpower": 9, "credits": 9, "exotics": 1, "rare_earths": 2, "isotopes": 2 }, "upkeep": { "credits": 4 }, "minTitleRank": 3 }
+  ]
+}

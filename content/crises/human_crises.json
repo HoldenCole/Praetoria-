@@ -1,0 +1,187 @@
+{
+  // HUMAN CRISES — Milestone 5 gate/cascade/damper pool (GDD §16). Crises are gated, buildable
+  // states, NOT random events: while any gate is un-cleared the crisis cannot fire. Gates reuse the
+  // condition vocabulary; onTrigger/damper effects reuse the effect vocabulary (no new mini-language).
+  //
+  // THE CASCADE (emergent, not scripted): a local revolt raises `unrest` and drops `legitimacy` and
+  // sets `realm_unstable` — and *crushing* it raises unrest further. Those very writes clear the
+  // civil-war gates. So brutal suppression of a small crisis arms a galaxy-spanning one.
+  //
+  // THE DAMPERS are scaled by prior play: the loyalist rally that arrests a civil war needs banked
+  // `goodwill` — the ruler who clawed up through brutality spent that goodwill and cannot rally.
+  //
+  // onResolve un-arms what onTrigger armed (realm_unstable / civil_war_active) when a civil or coalition
+  // war subsides, so the §16 web cools once the great crises pass instead of staying warm forever.
+  // Crises here are recurring by design (a realm can revolt twice); mark a true one-off with "once": true.
+  // Counters used (fed by the steward/academy event pools): unrest, legitimacy, goodwill, corruption, standing.
+  // RECOVERY: with no crisis active, these counters drift toward rest. Closes the "imperial legitimacy is
+  // unbounded negative" hole and lets unrest cool between storms.
+  "recovery": [
+    { "counter": "legitimacy", "toward": 0, "perTurn": 1 },
+    { "counter": "unrest", "toward": 0, "perTurn": 1 }
+  ],
+  "crises": [
+    {
+      "id": "local_revolt",
+      "name": "Local Revolt",
+      "tier": "regional",
+      "weight": 3,
+      "severity": 2,
+      "gates": [
+        { "type": "counter", "key": "unrest", "op": "gte", "value": 5 }
+      ],
+      "onTrigger": [
+        { "type": "adjustCounter", "key": "unrest", "delta": 2 },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": -2 },
+        { "type": "setWorldFlag", "flag": "realm_unstable", "value": true }
+      ],
+      // No onResolve here on purpose: a revolt that is CRUSHED leaves the realm unstable (that is the
+      // cascade into civil war). Only concessions — addressing the cause — restore stability.
+      "dampers": [
+        {
+          "id": "concessions", "name": "Grant Concessions", "relief": 2,
+          "available": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 2 } ],
+          "effects": [
+            { "type": "adjustCounter", "key": "unrest", "delta": -3 },
+            { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
+            { "type": "setWorldFlag", "flag": "realm_unstable", "value": false }
+          ]
+        },
+        {
+          "id": "crush_it", "name": "Crush the Revolt", "relief": 2,
+          "effects": [
+            { "type": "adjustCounter", "key": "unrest", "delta": 1 },
+            { "type": "adjustCounter", "key": "legitimacy", "delta": -1 }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "civil_war",
+      "name": "Civil War",
+      "tier": "imperial",
+      "weight": 2,
+      "severity": 3,
+      "gates": [
+        { "type": "worldFlag", "flag": "realm_unstable", "value": true },
+        { "type": "counter", "key": "legitimacy", "op": "lte", "value": -3 },
+        { "type": "counter", "key": "unrest", "op": "gte", "value": 6 }
+      ],
+      "onTrigger": [
+        { "type": "setWorldFlag", "flag": "civil_war_active", "value": true },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": -2 }
+      ],
+      "onResolve": [
+        { "type": "setWorldFlag", "flag": "civil_war_active", "value": false },
+        { "type": "setWorldFlag", "flag": "realm_unstable", "value": false },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }
+      ],
+      "dampers": [
+        {
+          "id": "rally_loyalists", "name": "Rally the Loyalists", "relief": 3,
+          "available": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 4 } ],
+          "cost": { "influence": 2 },
+          "effects": [
+            { "type": "adjustCounter", "key": "unrest", "delta": -2 },
+            { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }
+          ]
+        }
+      ]
+    },
+
+    {
+      // POWER-BALANCE CASCADE (GDD §7→§16): when the protagonist's house grows over-mighty, the
+      // SphereSystem accumulates `coalition_pressure`. At 3 the rivals coordinate — a coalition war.
+      // Its writes (unrest, legitimacy, realm_unstable) feed the SAME gates the civil war reads, so
+      // an over-mighty house's coalition can itself cascade into open civil war.
+      "id": "coalition_war",
+      "name": "Coalition Against the House",
+      "tier": "imperial",
+      "weight": 2,
+      "severity": 3,
+      "gates": [
+        { "type": "counter", "key": "coalition_pressure", "op": "gte", "value": 3 }
+      ],
+      "onTrigger": [
+        { "type": "adjustCounter", "key": "unrest", "delta": 2 },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": -2 },
+        { "type": "adjustCounter", "key": "coalition_pressure", "delta": -6 },
+        { "type": "setWorldFlag", "flag": "realm_unstable", "value": true }
+      ],
+      "onResolve": [
+        { "type": "setWorldFlag", "flag": "realm_unstable", "value": false }
+      ],
+      "dampers": [
+        {
+          "id": "appease_rivals", "name": "Appease the Coalition", "relief": 2,
+          "available": [ { "type": "counter", "key": "goodwill", "op": "gte", "value": 3 } ],
+          "cost": { "influence": 2 },
+          "effects": [
+            { "type": "adjustCounter", "key": "coalition_pressure", "delta": -3 },
+            { "type": "adjustCounter", "key": "goodwill", "delta": -1 }
+          ]
+        }
+      ]
+    },
+
+    {
+      // SOFT-LOCK CASCADE (GDD §13→§16): holding a title above your legitimacy accrues
+      // `title_instability` (set each turn by the progression system). At 20 the contest turns open —
+      // rivals press their own claims. A Military usurper (legitimacy ignored) lands here fastest.
+      "id": "contested_title",
+      "name": "Contested Title",
+      "tier": "house",
+      "weight": 3,
+      "severity": 2,
+      "gates": [
+        { "type": "counter", "key": "title_instability", "op": "gte", "value": 20 }
+      ],
+      "onTrigger": [
+        { "type": "adjustCounter", "key": "unrest", "delta": 1 },
+        { "type": "adjustCounter", "key": "legitimacy", "delta": -1 }
+      ],
+      "dampers": [
+        {
+          "id": "marry_up", "name": "Marry Into Legitimacy", "relief": 2,
+          "available": [ { "type": "counter", "key": "house_legitimacy", "op": "gte", "value": 20 } ],
+          "cost": { "influence": 2 },
+          "effects": [ { "type": "adjustCounter", "key": "title_instability", "delta": -10 } ]
+        },
+        {
+          "id": "buy_silence", "name": "Buy the Doubters' Silence", "relief": 1,
+          "available": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 4 } ],
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": -4 },
+            { "type": "adjustCounter", "key": "corruption", "delta": 1 }
+          ]
+        }
+      ]
+    },
+
+    {
+      "id": "court_scandal",
+      "name": "Court Scandal",
+      "tier": "house",
+      "weight": 3,
+      "severity": 1,
+      "gates": [
+        { "type": "counter", "key": "corruption", "op": "gte", "value": 4 }
+      ],
+      "onTrigger": [
+        { "type": "adjustCounter", "key": "standing", "delta": -2 }
+      ],
+      "dampers": [
+        {
+          "id": "bury_it", "name": "Bury the Story", "relief": 1,
+          "available": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 3 } ],
+          "cost": { "agents": 1 },
+          "effects": [
+            { "type": "adjustResource", "resource": "credits", "delta": -3 },
+            { "type": "adjustCounter", "key": "corruption", "delta": -2 }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "texts": [
+    {
+      "id": "exchange_crash",
+      "title": "The Exchange Falls",
+      "body": "The index has lost a tenth of its value in a year. Houses short of coin are selling their paper for what it will fetch, and each sale sinks the price for the next. Nothing has changed in the mines or the yards. What has changed is what people will pay for a share of them.",
+      "choices": {
+        "hold_your_nerve": "Sell nothing. The mines are where they were.",
+        "stand_before_the_floor": "Go down to the floor and be seen to buy.",
+        "buy_what_others_sell": "Send a factor with a full purse."
+      }
+    },
+    {
+      "id": "exchange_boom",
+      "title": "A Rising Board",
+      "body": "Every price on the Exchange is up. Factors who have never met a payroll are explaining the Reach's prospects to anyone who will stand still. The earnings behind the prices have not risen as far as the prices have.",
+      "choices": {
+        "say_nothing": "Let them enjoy it.",
+        "warn_the_house": "Tell the household what a rising board is.",
+        "give_a_dinner": "Give a dinner while everyone feels rich."
+      }
+    },
+    {
+      "id": "dividend_passed",
+      "title": "No Dividend",
+      "body": "A company whose shares the house holds has declared no dividend this year. It earned too little, or its board kept what it earned. The price of the share will say which the Exchange believes.",
+      "choices": {
+        "accept_it": "File the letter.",
+        "write_to_the_board": "Write to the board as a holder."
+      }
+    },
+    {
+      "id": "the_board_changes_hands",
+      "title": "The Board Changes Hands",
+      "body": "Another house now holds more than half the shares of a company {self.name} directed. The ventures answer to its board from today. The house keeps whatever shares it still holds, and their dividend.",
+      "choices": {
+        "concede_with_grace": "Send the keys and a civil note.",
+        "call_it_theft": "Call it theft, in public."
+      }
+    },
+    {
+      "id": "a_company_taken",
+      "title": "A Company Taken",
+      "body": "The house now holds more than half of a company another house founded. Its ventures are {self.name}'s to direct, its cash the board's to spend, and its founder a minority holder in what was theirs.",
+      "choices": {
+        "keep_its_people": "Keep its people. Change only the signature.",
+        "put_in_your_own": "Put the house's own people on the board."
+      }
+    },
+    {
+      "id": "a_stake_in_your_company",
+      "title": "A Name on the Register",
+      "body": "A rival house now holds a tenth or more of a company {self.name} directs. A stake that size is public. It may be an investment. It may be the first tenth of six.",
+      "choices": {
+        "watch_them": "Have the register read each quarter.",
+        "ask_what_they_want": "Ask their factor to dinner."
+      }
+    },
+    {
+      "id": "the_company_fails",
+      "title": "Wound Up",
+      "body": "A company in which the house held shares could not pay its way. Its ventures have been broken up and sold on the open market, and its holders have been paid what the sale fetched.",
+      "choices": {
+        "take_the_loss": "Write the paper off.",
+        "look_after_its_people": "Find places for the people who worked it."
+      }
+    },
+    {
+      "id": "a_rival_lists",
+      "title": "New Paper",
+      "body": "Another house has floated shares in one of its companies. The coin goes into the company, to build with. The house that floated them holds a smaller part of a larger thing, and anyone with credits may now hold the rest.",
+      "choices": {
+        "note_it": "Read the prospectus.",
+        "send_a_factor": "Send a factor to see who buys."
+      }
+    },
+    {
+      "id": "the_founders_share",
+      "title": "The Founder's Share",
+      "body": "An order that would have passed control of a company was turned away by its board: the founder invoked the one refusal a founder is allowed. It cost the founder standing. It cannot be done again.",
+      "choices": {
+        "let_it_stand": "So be it.",
+        "remember_it": "Enter it in the house's books, with the date."
+      }
+    },
+    {
+      "id": "war_bonds_offered",
+      "title": "The Reach Borrows",
+      "body": "The chair is selling bonds to pay for the war beyond the Reach. A bond pays a coupon each year the war lasts and is repaid when it ends: a tenth over if the nation is subdued, at a discount if the war ends any other way. They are sold on the Exchange.",
+      "choices": {
+        "consider_it": "Consider it.",
+        "urge_the_houses": "Speak for the loan."
+      }
+    },
+    {
+      "id": "bonds_repaid",
+      "title": "The Loan Repaid",
+      "body": "The war beyond the Reach has ended and the chair has settled its bonds. The house's are paid.",
+      "choices": {
+        "bank_it": "Count it and enter it.",
+        "lend_it_again": "Let it be known the house would lend again."
+      }
+    },
+    {
+      "id": "shares_forfeit",
+      "title": "Forfeit by Edict",
+      "body": "The throne has proscribed the house's holdings. Every share it held on the Exchange has passed to the crown by edict. The ventures the house owns outright are untouched. The paper is gone.",
+      "choices": {
+        "bow_to_the_edict": "Bow to it.",
+        "protest_at_court": "Protest at court, register in hand."
+      }
+    },
+    {
+      "id": "purse_opened",
+      "title": "The Purse Opened",
+      "body": "The Reach's purse has been opened under a falling market. The chair paid, companies in the red were made whole, and for a year or two the Exchange will believe that someone stands behind it.",
+      "choices": {
+        "approve": "Approve.",
+        "ask_who_pays": "Ask whose credits, and whose shares."
+      }
+    }
+  ]
+}

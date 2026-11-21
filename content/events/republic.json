@@ -1,0 +1,325 @@
+{
+  "//": "THE CONSULSHIP (docs/REPUBLIC.md stage 2). These read ElectionSystem's flags: election_near, consul_elected, consul_lost, vetoed_mine.",
+  "events": [
+    {
+      "id": "the_hustings",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "election_near"
+        }
+      ],
+      "choices": [
+        {
+          "id": "promise_the_commons",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke at the hustings for the squares: a lighter tithe, an open hall. The commons cheered; the old blood made notes."
+            }
+          ]
+        },
+        {
+          "id": "promise_the_old_blood",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke at the hustings for order and the old families. The salons approved; the squares went quiet."
+            }
+          ]
+        },
+        {
+          "id": "buy_the_hall",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} hired the hall, the wine and the band for the hustings. Eight credits, and a chamber that remembers a good evening."
+            }
+          ]
+        },
+        {
+          "id": "stay_away",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stayed away from the hustings and let the record speak. The record was listened to, by those who read."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_consulship",
+      "tier": "setpiece",
+      "weight": 14,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "consul_elected"
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_programme",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the consul's chair with a programme read aloud: the laws the house would move, the wars it would end. The chamber listened, for once."
+            }
+          ]
+        },
+        {
+          "id": "reward_the_party",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the chair and spent the first session rewarding the houses that voted the house in. Loyal benches; a programme later."
+            }
+          ]
+        },
+        {
+          "id": "a_quiet_term",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the chair quietly and meant to keep it quietly. Consuls who want nothing are rare, and watched."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_veto_falls",
+      "tier": "situation",
+      "weight": 9,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "vetoed_mine"
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_it_to_the_squares",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the vetoed motion to the squares and read it there. The commons liked the gesture; the consul did not."
+            }
+          ]
+        },
+        {
+          "id": "wait_for_the_term",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the veto stand and marked the calendar for the consul's term to end. Patience is a motion too."
+            }
+          ]
+        },
+        {
+          "id": "court_the_other_consul",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} dined with the other consul and found the two did not agree. A friend in one chair is worth a veto in the other."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_term_ends",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "consul_lost"
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_triumph_of_sorts",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "legitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left the consul's chair with a procession through the capital. Five credits; a name the chronicle keeps."
+            }
+          ]
+        },
+        {
+          "id": "back_to_the_benches",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left the chair and sat down among the benches as if nothing had happened. The chamber respected it."
+            }
+          ]
+        },
+        {
+          "id": "keep_the_lictors",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the lictors on after the term, out of habit. The old blood called it what it was."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

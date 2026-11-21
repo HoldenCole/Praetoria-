@@ -1,0 +1,1324 @@
+{
+  "//": "THE RINGS (GDD §19): what the core, the middle and the rim bring to the player's door. Engine flags: holds_capital, rebellion, region_lawless, secession_tempting, free_march, ring:<core|middle|rim>, lost_a_world_to_rebellion. Decree flags the engine consumes next tick: declare_free_march, concede_to_rebels, purge_rebels.",
+  "events": [
+    {
+      "id": "raiders_on_the_lanes",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "region_lawless"
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_the_toll",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the raiders' toll and called it a convoy fee. The crates arrived. So did the next demand."
+            }
+          ]
+        },
+        {
+          "id": "arm_the_freighters",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put guns on the freighters and veterans behind them. The raiders found easier prey, and the lanes remembered who made them."
+            }
+          ]
+        },
+        {
+          "id": "hire_the_raiders",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought the raiders instead of fighting them. They fly the house's colours now, when it suits them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_world_in_revolt",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "rebellion"
+        }
+      ],
+      "choices": [
+        {
+          "id": "concede",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "concede_to_rebels"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went down to the square without a guard and listened until dark. The tithe was forgiven. The ringleaders went home as councillors, and the house went home smaller."
+            }
+          ]
+        },
+        {
+          "id": "break_them",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "purge_rebels"
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the order. The square was quiet by morning, and the Reach took note of what {self.house} was willing to do."
+            }
+          ]
+        },
+        {
+          "id": "wait_for_the_fleet",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent for the fleet and waited. A world in revolt yields nothing while it waits; a garrison ends it when it comes."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "whispers_of_secession",
+      "tier": "setpiece",
+      "weight": 8,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "secession_tempting"
+        }
+      ],
+      "choices": [
+        {
+          "id": "declare_the_march",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "declare_free_march"
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood on the balcony and said the words. The region roared. Somewhere in the Core, a clerk began a new file."
+            }
+          ]
+        },
+        {
+          "id": "stay_loyal",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the delegation home with gifts and a refusal. The Core heard of it and was pleased. The region heard of it and was not."
+            }
+          ]
+        },
+        {
+          "id": "keep_them_guessing",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} promised the region everything and the Core nothing, and was paid by both for the silence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_courts_favour",
+      "tier": "ambient",
+      "weight": 5,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "holds_capital"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "hold_court",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} {era:held open audience|held court} in the marble halls of the capital, and every house that wanted something sent someone to want it in person."
+            }
+          ]
+        },
+        {
+          "id": "close_the_doors",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "coalition_pressure",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} {era:closed the doors|closed the court} and kept the coin. The houses that came to be heard went home with opinions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_rim_remembers",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "ring:rim"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "ride_out",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "leadership",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rode the frontier for a season and slept in halls that had never seen a {era:senator|lord}. The rim does not forget who came."
+            }
+          ]
+        },
+        {
+          "id": "send_a_steward",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a steward with a ledger. The tithe came in. The hall stayed cold."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_enemys_envoy",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "at_war_any"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "hear_terms",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} heard the enemy's envoy out and sent him back with wine and no answer. The chamber called it statesmanship."
+            }
+          ]
+        },
+        {
+          "id": "send_him_back",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 2
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "leadership",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the envoy's terms read aloud to the household and then burned. Nobody present forgot which side they stood on."
+            }
+          ]
+        },
+        {
+          "id": "buy_him",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought the envoy before he left orbit. The enemy's next council sat with a friend of {self.house} at the table."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_knife_traced_home",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "assassin_any"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "name_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "assassin_any",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} laid the assassin's seal before the chamber and named the house that sent it. Some believed it. The rest remembered it."
+            }
+          ]
+        },
+        {
+          "id": "keep_the_proof",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "assassin_any",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the knife, the seal and the letter, and said nothing. A proof is worth more on the day it is needed."
+            }
+          ]
+        },
+        {
+          "id": "answer_in_kind",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "assassin_any",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent an answer the same way the question had come. Two houses now knew what the other was willing to do."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_coalition_gathers",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "coalition_forming"
+        }
+      ],
+      "choices": [
+        {
+          "id": "divide_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "coalition_pressure",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found the weakest seam in the coalition and paid for it. One house went home before the meeting ended."
+            }
+          ]
+        },
+        {
+          "id": "show_strength",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} held a review of the fleet within sight of the coalition's envoys. They were impressed, and afraid, which was the point and also the problem."
+            }
+          ]
+        },
+        {
+          "id": "bend",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "coalition_pressure",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the coalition a concession large enough to be seen from orbit. The fear ebbed. So did the respect."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_keys_of_the_capital",
+      "tier": "setpiece",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "capital_taken"
+        }
+      ],
+      "choices": [
+        {
+          "id": "open_court",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_taken",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} {era:opened the capital|opened the court} to every house that would come, and most came. The capital had a master again, and the master had witnesses."
+            }
+          ]
+        },
+        {
+          "id": "garrison_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_taken",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the household troops on every gate of the capital before the first envoy arrived. The envoys noticed the gates before they noticed {era:the chamber|the court}."
+            }
+          ]
+        },
+        {
+          "id": "tax_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_taken",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} levied the capital's tithe within the week. The counting-houses paid; the squares remembered."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_capital_falls",
+      "tier": "setpiece",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "capital_lost"
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_to_return",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_lost",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood on the deck as the capital fell astern and swore, before the household, to see it again. Some of them believed it; all of them repeated it."
+            }
+          ]
+        },
+        {
+          "id": "salvage_the_treasury",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_lost",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} emptied what could be emptied before the gates closed. The house left the capital richer and smaller."
+            }
+          ]
+        },
+        {
+          "id": "leave_with_grace",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "capital_lost",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} handed over the keys in person and walked out through the great doors. The Reach has long memories for grace, and longer ones for its absence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_free_hold_sends_word",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "freehold_of_ours"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "hear_their_price",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} received the free hold's envoy as an equal and heard the price of their return. It was high. It was also a price, which is more than a rebellion usually offers."
+            }
+          ]
+        },
+        {
+          "id": "send_the_fleet",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 2
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the envoy home with a date and a fleet to follow it. The free hold began to drill its militia."
+            }
+          ]
+        },
+        {
+          "id": "let_them_go",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} recognised the free hold and asked only for trade. The Reach called it weakness and then, quietly, wisdom."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raiders_at_the_gate",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "pirates_near"
+        }
+      ],
+      "choices": [
+        {
+          "id": "sail_against_them",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the squadron out against the raiders and came back with prizes and a story. The lanes nearest home were quiet for a season."
+            }
+          ]
+        },
+        {
+          "id": "buy_them_off",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the raiders to work another house's lanes. They did, for a while, and told everyone who had paid them."
+            }
+          ]
+        },
+        {
+          "id": "arm_the_towns",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put guns on the orbital towns and let the raiders learn the range. They learned it, and moved on."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_pirate_kings_offer",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "pirates_near"
+        },
+        {
+          "type": "worldFlag",
+          "flag": "ring:rim"
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_tithe",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the raiders' tithe and asked no questions about where it had been earned. The Reach asked them instead."
+            }
+          ]
+        },
+        {
+          "id": "hang_the_envoy",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} hanged the raiders' envoy from the customs mast. The raiders took it personally; so did everyone who had ever paid them."
+            }
+          ]
+        },
+        {
+          "id": "offer_a_letter_of_marque",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": -1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the raiders a letter and a list of enemy lanes. Piracy became policy, which is the oldest trick on the rim."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_governors_petition",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "governor_petition"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_coin",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent what the governor asked for and a letter that did not say what it had cost. The world's markets opened a little wider."
+            }
+          ]
+        },
+        {
+          "id": "send_a_steward",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a steward instead of coin, with authority to find where the world's money went. The governor was not pleased; the ledger was."
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "unrest",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote that the house had its own debts. The governor read it aloud in the market, which was not what the letter had meant."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_governors_revolt",
+      "tier": "setpiece",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "governor_revolt"
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_vengeance",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "governor_revolt",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} swore before the household that the governor's house would not outlive the year. The household wrote it down."
+            }
+          ]
+        },
+        {
+          "id": "name_the_price",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "governor_revolt",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent word that the world could be bought back and named a figure the governor could not meet yet. It was a door left open."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "governor_revolt",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} recognised the new house and asked only for the tithe owed to the day of the revolt. The Reach called it weakness, and then precedent."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_fief",
+      "tier": "setpiece",
+      "weight": 12,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "fief_granted"
+        }
+      ],
+      "choices": [
+        {
+          "id": "kneel_gladly",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "fief_granted",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} {era:took the oath for the prefecture in the great hall and rose a Prefect|knelt for the fief in the great hall and rose a baron}. {era:The chair|The court} remembered the grace; the house remembered the knee."
+            }
+          ]
+        },
+        {
+          "id": "kneel_and_plan",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "fief_granted",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "threat",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} {era:took the oath for the prefecture and counted the chair's guards while doing it|knelt for the fief and counted the court's guards while doing it}."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_terms_of_peace",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "won_a_world"
+        }
+      ],
+      "choices": [
+        {
+          "id": "garrison_the_prize",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "won_a_world",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "manpower",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put a garrison on the ceded world before the ink dried. Its people learned the new banner the hard way, and quickly."
+            }
+          ]
+        },
+        {
+          "id": "leave_its_customs",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "won_a_world",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left the ceded world its customs, its governor and its grudges, and taxed it lightly. It stayed quiet, which is all a prize needs to do."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_ceded_world",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "ceded_a_world"
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_to_retake_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "ceded_a_world",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} signed the cession and swore, in the same breath, to unsign it. The chancellor wrote both down."
+            }
+          ]
+        },
+        {
+          "id": "bear_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "ceded_a_world",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} signed the cession and said nothing. The Reach respects a house that can lose a world without losing its temper."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

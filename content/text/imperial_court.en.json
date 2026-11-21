@@ -1,0 +1,34 @@
+{
+  "texts": [
+    {
+      "id": "the_emperors_favor",
+      "title": "The Emperor's Eye",
+      "body": "The court moves in orbits, and the sun it circles is {sovereign.name} of {sovereign.house}. Today the orbit has brought you close — a petition heard, a case argued in the Imperial presence, a moment in which the most powerful person alive is looking at you and deciding what you are. Houses have been made in such moments. Houses have also learned exactly how little they are.",
+      "choices": {
+        "serve_well": "Do the work in front of the throne, and do it flawlessly. Let the service speak.",
+        "flatter": "Find the words {sovereign.name} wants and say them better than anyone has.",
+        "keep_distance": "Stand apart from the crowd at the Emperor's elbow. Be noticed by not reaching."
+      }
+    },
+    {
+      "id": "the_court_of_whispers",
+      "title": "The Corridors",
+      "body": "The Imperial court does its real business between the rooms, and {whisperer.name} of {whisperer.house} has caught your sleeve with something heard. A minister's debt. A duke's daughter's travels. The real reason a fleet was recalled. Everything at court is known by someone, and the only question is what it costs to be that someone.",
+      "choices": {
+        "listen": "Listen. Remember everything. Owe a little.",
+        "repeat_it": "Carry it to the ear that will pay best for it.",
+        "ignore_it": "Let it pass. There are a thousand whispers a day."
+      }
+    },
+    {
+      "id": "the_imperial_levy",
+      "title": "The Levy",
+      "body": "{collector.name} of {collector.house} arrives with the Imperial assessment, sealed and itemised, and the particular courtesy of someone who knows you cannot refuse. The levy is lawful. The levy is also a fifth of what your fief will earn this year, and the crown that demands it has never once seen Lesser Marrow's fields.",
+      "choices": {
+        "pay_the_levy": "Pay in full, on the day. A loyal house pays and is seen to pay.",
+        "haggle_it_down": "Argue the assessment down with ledgers and law.",
+        "refuse_the_levy": "Send the collector away with a promise. Keep the coin one more season."
+      }
+    }
+  ]
+}

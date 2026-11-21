@@ -1,0 +1,19 @@
+{
+  "texts": [
+    { "id": "the_commission", "title": "The Commission",
+      "body": "The Senate has commissioned {self.house} to an office of the Reach. The seals are heavy, the oath is short, and the thing the office commands is not the house's — it is the state's, lent to a hand the chamber trusts for now.",
+      "choices": { "swear_it_gladly": "Swear the oath and mean it.", "swear_it_and_count": "Swear it, and count what the office commands. Ambitious." } },
+    { "id": "the_office_lost", "title": "Relieved of Office",
+      "body": "The Senate has commissioned another to the office {self.house} held. The seals are to be handed over at the session's end. The successor is already in the anteroom.",
+      "choices": { "hand_over_the_seals": "Hand over the seals with a bow.", "take_what_you_can": "Leave the ledgers thinner. Eight credits.", "remember_the_vote": "Say nothing. Write down who moved it." } },
+    { "id": "the_admirals_temptation", "title": "The Admiral's Temptation",
+      "body": "{self.house} is at war, and {self.house} holds the Admiralty. The Reach Squadron rides at anchor under the state's colours with the chair paying its crews. The admirals ask, carefully, whose quarrel it is not allowed to join.",
+      "choices": { "the_fleet_is_the_reachs": "The fleet is the Reach's. Keep it out of the house's war.", "the_guns_are_in_my_hand": "The guns are in my hand. Send it in." } },
+    { "id": "the_treasurers_books", "title": "The Treasurer's Books",
+      "body": "The Reach's books are open on {self.name}'s desk, because {self.house} holds the Treasury. There is a margin in them that only a careful eye would find.",
+      "choices": { "keep_them_honest": "Keep them honest and open.", "a_quiet_margin": "Keep the margin. Seven credits. Economics." } },
+    { "id": "the_vacant_admiralty", "title": "The Vacant Admiralty",
+      "body": "No one holds the Admiralty of the Reach, and the Reach Squadron sits at the capital under the chair's colours, commanded by no one in particular. {self.name} is an officer of rank. Officers of rank are being talked about.",
+      "choices": { "put_your_name_forward": "Let the right colonnades hear whose hand wants it.", "let_it_lie": "Let it lie. A fleet nobody commands threatens nobody." } }
+  ]
+}

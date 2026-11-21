@@ -1,0 +1,69 @@
+{
+  "texts": [
+    {
+      "id": "blood_between_houses",
+      "title": "Blood Between Houses",
+      "body": "One of yours is dead and the house knows whose doing it was: {blamed.name} of {blamed.house}. Nobody has said the word yet. They are waiting to hear what you will say, because whatever you say now the house is bound by: blood, a meeting in the open, a price, or nothing.",
+      "choices": {
+        "swear_it": "Say before the house that it will be answered.",
+        "counsel_patience": "It will be answered in the house's time, not in its anger.",
+        "say_nothing": "Say nothing yet."
+      }
+    },
+    {
+      "id": "blood_on_our_hands",
+      "title": "A Death Counted Against Us",
+      "body": "Another house has a death to lay at your door, and has laid it there. From now on they owe you nothing in the Senate, their sons and daughters will not marry yours, and one day someone of theirs will come: with a challenge, with a price, or without warning.",
+      "choices": {
+        "double_the_watch": "Double the watch.",
+        "send_word": "Send word that you will answer for it in the open.",
+        "shrug": "Go on with the day."
+      }
+    },
+    {
+      "id": "the_price_asked",
+      "title": "The Price of Blood",
+      "body": "{asker.name} of {asker.house} has come about their dead. They do not ask for blood. They name a sum, as their grandfathers would have, and say that if it is paid there is an end of it.",
+      "choices": {
+        "pay_it": "Pay it, and have an end.",
+        "refuse_it": "Refuse. To pay is to admit it."
+      }
+    },
+    {
+      "id": "the_price_offered",
+      "title": "An Offer for the Dead",
+      "body": "{asker.name} of {asker.house} has sent to offer money for your dead: a fair sum, counted out, and with it an end to the matter. The house is watching to see whether you take it.",
+      "choices": {
+        "take_it": "Take it. It ends here.",
+        "spurn_it": "This house does not sell its dead."
+      }
+    },
+    {
+      "id": "called_out",
+      "title": "Called Out",
+      "body": "{challenger.name} of {challenger.house} has called you out by name for their dead: one against one, in the open, before witnesses. If you go, it ends on that ground whoever leaves it. If you do not, everyone will know that you did not, and what they do next will be on you.",
+      "choices": {
+        "take_the_field": "Name the ground.",
+        "do_not_come": "Do not come."
+      }
+    },
+    {
+      "id": "the_dead_unanswered",
+      "title": "The Dead Unanswered",
+      "body": "{kin.name} has come to you again about the dead. It has been years. The other house walks about as it pleases, and yours is beginning to be spoken of as a house that can be struck.",
+      "choices": {
+        "promise_it": "It will be answered. You give your word.",
+        "times_change": "Tell them that times change."
+      }
+    },
+    {
+      "id": "after_the_field",
+      "title": "After the Field",
+      "body": "It was settled on open ground, before witnesses, and it is over. What is said about it in the next few days is what will be remembered.",
+      "choices": {
+        "speak_well_of_them": "Say they came as they should, and that it is ended.",
+        "say_it_is_done": "Say only that it is done."
+      }
+    }
+  ]
+}

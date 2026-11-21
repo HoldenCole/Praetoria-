@@ -1,0 +1,2582 @@
+{
+ "//": "WHAT A SOLAR SYSTEM HOLDS, AND WHAT CAN BE BUILT IN IT (docs/BUILDINGS.md, docs/SYSTEMS.md). A system is a sun, everything that goes round it, and the open space between. THREE KINDS OF THING ARE BUILT. (1) BUILDINGS go in a place's SLOTS and can be upgraded. A place starts with `slots` by its kind (a rock or ice-dwarf of size 1 has `smallSlots`; the system's own world, its HOME WORLD, has its specialization's) and gains more three ways (`slotRules`): by the system's DEVELOPMENT (a slot at each level named in `developmentWorld` for the home world and `developmentBody` for every other place), by the RANK of the house that holds it (`rankWorld`, `rankBody`: title ranks), and by PAYING to clear ground (`clearCost` times the number cleared plus one, up to `clearMax`). `maxWorld` and `maxBody` are the most a place can ever show. The home world takes its own buildings (buildings.json, holdings_ext.json, and the works here with `on: world`) AND the ordinary buildings of its kind, in the same slots; `notHome` keeps a colony off it. A building's level may rise to 3; `upgradeAt` is the development level each level needs, and a level costs the building's cost times the level it leaves. (2) GREAT WORKS (`megastructure: true`) take no slot: every place, the sun and open space included, has ONE SITE for one great work. They cost far more, take many years and are gated by rank. How many a house may raise at once is `greatWorks.capacity`: one for any house, two for the leader of a region, three for a head of state (a consul, the holder of the capital, the head of a state that has left, an archduke), five for an emperor. A great work may be HASTENED: it then goes two years in one, and each year pays both instalments and `hastenPct` in the hundred more. A work with a `feature` can be raised only where that feature is. `on: world` means only the home world. (3) INFRASTRUCTURE is the system's own, not any place's: `infrastructure` lists the tracks, each bought a level at a time (level N costs N times `cost` and takes `years[N-1]`), each level doing `perLevel`. Laying a level adds `development.perLevel` to the system's development at once and raises how far it can grow. DEVELOPMENT is a figure from 0 to 100 for each system (its level is a tenth of it): it creeps up a point a year toward a ceiling (`development.ceiling` and what infrastructure, people and prosperity add), faster on a prosperous world, and falls under siege or revolt. `features` are what make one system unlike another. `bodies` lists the kinds a work suits (terran, ocean, arid, forge, frozen, barren, gas, belt, moon, comet, star, space). `deposit` says what the body must carry. `limit`: body (default), system, house, galaxy. `yield`/`upkeep` are a year's and are multiplied by the building's level; a work on a deposit brings up richness-many. `defense` adds to the system's; `prosperity` moves where the world's prosperity heads; `unrest` is added to its unrest every year; `population` raises the most its world can hold; `legitimacy` and `glory` are given once, when it is finished; `depot` supplies fleets. `colony` is what it takes to settle a system nobody holds.",
+ "colony": {
+  "cost": {
+   "credits": 30,
+   "materials": 20,
+   "manpower": 8,
+   "influence": 2
+  },
+  "buildTurns": 3,
+  "population": 6,
+  "specialization": "frontier_colony"
+ },
+ "slots": {
+  "terran": 3,
+  "ocean": 3,
+  "arid": 2,
+  "forge": 2,
+  "frozen": 2,
+  "barren": 2,
+  "gas": 2,
+  "belt": 2,
+  "moon": 1,
+  "comet": 1,
+  "space": 2,
+  "star": 0
+ },
+ "smallSlots": 1,
+ "slotRules": {
+  "maxWorld": 10,
+  "maxBody": 5,
+  "developmentWorld": [
+   2,
+   4,
+   6,
+   8,
+   10
+  ],
+  "developmentBody": [
+   3,
+   6,
+   9
+  ],
+  "rankWorld": [
+   2,
+   4,
+   6
+  ],
+  "rankBody": [
+   3,
+   5
+  ],
+  "clearMax": {
+   "world": 3,
+   "body": 2
+  },
+  "clearCost": {
+   "credits": 14,
+   "materials": 10
+  },
+  "upgradeAt": [
+   0,
+   3,
+   6
+  ],
+  "undivided": 1
+ },
+ "development": {
+  "perLevel": 3,
+  "ceiling": 30,
+  "ceilingPerLevel": 4,
+  "ceilingPerPeople": 3,
+  "prosperous": 65,
+  "siege": -2,
+  "seed": 6,
+  "seedPerPeople": 2
+ },
+ "greatWorks": {
+  "capacity": {
+   "house": 1,
+   "regionLeader": 2,
+   "headOfState": 3,
+   "emperor": 5
+  },
+  "hastenPct": 50,
+  "gangManpower": 5
+ },
+ "infrastructure": [
+  {
+   "id": "civil_works",
+   "name": "Civil Works",
+   "description": "Roads, power and water on the home world. The first thing a system needs before it can grow.",
+   "maxLevel": 5,
+   "cost": {
+    "credits": 10,
+    "materials": 8
+   },
+   "years": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "perLevel": {
+    "prosperity": 1
+   }
+  },
+  {
+   "id": "habitats",
+   "name": "Habitats",
+   "description": "Air, water and room: what lets more people live round this sun than its world alone would hold.",
+   "maxLevel": 5,
+   "cost": {
+    "credits": 8,
+    "materials": 10,
+    "manpower": 1
+   },
+   "years": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "perLevel": {
+    "population": 6
+   },
+   "calmAt": [
+    3,
+    5
+   ]
+  },
+  {
+   "id": "orbital_traffic",
+   "name": "Orbital Traffic",
+   "description": "Lifts, tugs, pilots and traffic control. Everything that moves in the system moves faster and pays a fee.",
+   "maxLevel": 5,
+   "cost": {
+    "credits": 12,
+    "materials": 6
+   },
+   "years": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "perLevel": {
+    "yield": {
+     "credits": 1
+    }
+   },
+   "depotAt": 3
+  },
+  {
+   "id": "outworks",
+   "name": "Outworks",
+   "description": "Survey, supply runs and life support for the far bodies: what lets the rest of the system be worked.",
+   "maxLevel": 4,
+   "cost": {
+    "credits": 10,
+    "materials": 12
+   },
+   "years": [
+    1,
+    2,
+    2,
+    3
+   ],
+   "perLevel": {
+    "yield": {
+     "materials": 1
+    }
+   }
+  },
+  {
+   "id": "defence_grid",
+   "name": "Defence Grid",
+   "description": "Pickets, sensors and guns between the worlds, so an enemy is fought before he reaches one.",
+   "maxLevel": 5,
+   "cost": {
+    "credits": 10,
+    "materials": 12
+   },
+   "years": [
+    1,
+    1,
+    2,
+    2,
+    3
+   ],
+   "perLevel": {
+    "defense": 0.2
+   }
+  }
+ ],
+ "features": [
+  {
+   "id": "great_rings",
+   "name": "Great rings",
+   "bodies": [
+    "gas"
+   ],
+   "weight": 5,
+   "description": "Rings of ice a hundred thousand miles across. Whole towns could be strung along them."
+  },
+  {
+   "id": "eternal_storm",
+   "name": "An eternal storm",
+   "bodies": [
+    "gas"
+   ],
+   "weight": 4,
+   "description": "One storm, older than the Reach, that never moves and never ends. What it dredges up from the deep is found nowhere else."
+  },
+  {
+   "id": "wreck_field",
+   "name": "A wreck field",
+   "bodies": [
+    "belt"
+   ],
+   "weight": 4,
+   "description": "The hulks of a battle nobody won, drifting among the rocks. Good steel, for whoever will cut it."
+  },
+  {
+   "id": "mother_lode",
+   "name": "The mother lode",
+   "bodies": [
+    "belt"
+   ],
+   "weight": 4,
+   "description": "One rock in ten thousand is nearly pure metal. This belt has a hundred of them."
+  },
+  {
+   "id": "old_ruins",
+   "name": "Ruins older than the Reach",
+   "bodies": [
+    "barren",
+    "arid",
+    "moon"
+   ],
+   "weight": 4,
+   "description": "Walls under the dust, cut by hands nobody can name. The scholars would pay to be let in."
+  },
+  {
+   "id": "deep_vaults",
+   "name": "Deep vaults",
+   "bodies": [
+    "barren",
+    "frozen",
+    "moon"
+   ],
+   "weight": 3,
+   "description": "Caverns a mile down, dry and still: nothing put there would ever spoil, or ever be found."
+  },
+  {
+   "id": "buried_sea",
+   "name": "A buried sea",
+   "bodies": [
+    "frozen",
+    "moon"
+   ],
+   "weight": 4,
+   "description": "Under the ice, a warm black ocean. People could live there who never saw a sky."
+  },
+  {
+   "id": "singing_ice",
+   "name": "Singing ice",
+   "bodies": [
+    "frozen",
+    "comet"
+   ],
+   "weight": 3,
+   "description": "The ice here rings when the sun strikes it. Pilgrims come to hear it, and go home quieter."
+  },
+  {
+   "id": "garden_country",
+   "name": "A garden country",
+   "bodies": [
+    "terran"
+   ],
+   "weight": 4,
+   "description": "A valley a thousand miles long where everything grows. The great houses have always wanted a villa here."
+  },
+  {
+   "id": "old_capital",
+   "name": "A capital of the old kings",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid"
+   ],
+   "weight": 2,
+   "description": "A city that ruled before the Reach did, half fallen and wholly remembered. Whoever restores it wears some of its name."
+  },
+  {
+   "id": "great_reefs",
+   "name": "The great reefs",
+   "bodies": [
+    "ocean"
+   ],
+   "weight": 4,
+   "description": "Living stone from pole to pole, with room in it for cities."
+  },
+  {
+   "id": "the_rift",
+   "name": "The Rift",
+   "bodies": [
+    "arid",
+    "barren"
+   ],
+   "weight": 3,
+   "description": "A canyon that splits the world. One road in, and a wall of rock on either hand."
+  },
+  {
+   "id": "open_mantle",
+   "name": "An open mantle",
+   "bodies": [
+    "forge"
+   ],
+   "weight": 4,
+   "description": "The crust is thin and the fire is close. A forge built over it would never want for heat."
+  },
+  {
+   "id": "one_face",
+   "name": "One face to its world",
+   "bodies": [
+    "moon"
+   ],
+   "weight": 4,
+   "description": "It never turns away. From here every ship that comes or goes is seen."
+  },
+  {
+   "id": "hollow_moon",
+   "name": "A hollow moon",
+   "bodies": [
+    "moon"
+   ],
+   "weight": 2,
+   "description": "Mined out long ago, or never solid. A fleet could hide inside it."
+  },
+  {
+   "id": "long_comet",
+   "name": "The long comet",
+   "bodies": [
+    "comet"
+   ],
+   "weight": 5,
+   "description": "Once in a lifetime it comes in from the dark. The house that greets it is remembered with it."
+  },
+  {
+   "id": "flare_star",
+   "name": "A flare star",
+   "bodies": [
+    "star"
+   ],
+   "weight": 2,
+   "description": "The sun here throws fire. What it throws can be caught."
+  },
+  {
+   "id": "companion_sun",
+   "name": "A companion sun",
+   "bodies": [
+    "star"
+   ],
+   "weight": 2,
+   "description": "A second, smaller sun, far out. Two dawns, and twice the light to harvest."
+  }
+ ],
+ "works": [
+  {
+   "id": "outpost",
+   "name": "Outpost",
+   "category": "colony",
+   "bodies": [
+    "barren",
+    "frozen",
+    "arid",
+    "forge",
+    "moon",
+    "comet"
+   ],
+   "cost": {
+    "credits": 8,
+    "materials": 6,
+    "manpower": 2
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 1,
+    "manpower": 1
+   },
+   "population": 4,
+   "description": "A few domes and a landing field: the first thing put on any rock.",
+   "notHome": true
+  },
+  {
+   "id": "domed_colony",
+   "name": "Domed Colony",
+   "category": "colony",
+   "bodies": [
+    "barren",
+    "frozen",
+    "arid",
+    "moon"
+   ],
+   "cost": {
+    "credits": 22,
+    "materials": 16,
+    "manpower": 6
+   },
+   "requires": "outpost",
+   "buildTurns": 3,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 3,
+    "manpower": 2
+   },
+   "population": 12,
+   "prosperity": 2,
+   "description": "A town under glass. Its people are the house's people, and its sons the house's soldiers.",
+   "notHome": true
+  },
+  {
+   "id": "second_world",
+   "name": "Settled Sister-World",
+   "category": "colony",
+   "bodies": [
+    "terran",
+    "ocean"
+   ],
+   "cost": {
+    "credits": 26,
+    "materials": 14,
+    "manpower": 8
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 3,
+    "manpower": 3
+   },
+   "population": 16,
+   "prosperity": 3,
+   "description": "A second living world in the same sun's light, settled from the first.",
+   "notHome": true
+  },
+  {
+   "id": "terrace_farms",
+   "name": "Terrace Farms",
+   "category": "colony",
+   "bodies": [
+    "terran"
+   ],
+   "cost": {
+    "credits": 12,
+    "materials": 8,
+    "manpower": 3
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 2,
+    "credits": 2
+   },
+   "population": 6,
+   "description": "Hillsides cut into steps and planted to the sky. Grain for the system, and sons for its levies."
+  },
+  {
+   "id": "game_parks",
+   "name": "Game Parks",
+   "category": "orbital",
+   "bodies": [
+    "terran"
+   ],
+   "cost": {
+    "credits": 16,
+    "materials": 6,
+    "influence": 1
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "prosperity": 3,
+   "description": "A continent left wild for the great to hunt across. Who is asked, and who is not, is noticed."
+  },
+  {
+   "id": "sea_farms",
+   "name": "Sea Farms",
+   "category": "colony",
+   "bodies": [
+    "ocean"
+   ],
+   "cost": {
+    "credits": 12,
+    "materials": 8,
+    "manpower": 3
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 2,
+    "credits": 2
+   },
+   "population": 6,
+   "description": "Kelp and shoals penned by the square mile."
+  },
+  {
+   "id": "tidal_mills",
+   "name": "Tidal Mills",
+   "category": "extraction",
+   "bodies": [
+    "ocean"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 12
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 2,
+    "credits": 2
+   },
+   "description": "A sea that rises forty feet twice a day, put to work."
+  },
+  {
+   "id": "deep_harbour",
+   "name": "Deep Harbour",
+   "category": "orbital",
+   "bodies": [
+    "ocean"
+   ],
+   "cost": {
+    "credits": 18,
+    "materials": 12
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "prosperity": 2,
+   "description": "A roadstead where a hull can come down to the water itself and load at a quay."
+  },
+  {
+   "id": "sun_fields",
+   "name": "Sun Fields",
+   "category": "extraction",
+   "bodies": [
+    "arid"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 10
+   },
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "description": "Collectors to the horizon under a sky that never clouds."
+  },
+  {
+   "id": "caravanserai",
+   "name": "Caravanserai",
+   "category": "orbital",
+   "bodies": [
+    "arid"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 8
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 2
+   },
+   "prosperity": 3,
+   "description": "Wells, walls and a market where the desert roads meet."
+  },
+  {
+   "id": "strip_mine",
+   "name": "Strip Mine",
+   "category": "extraction",
+   "bodies": [
+    "barren",
+    "arid",
+    "forge",
+    "moon"
+   ],
+   "cost": {
+    "credits": 12,
+    "materials": 8,
+    "manpower": 2
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 3
+   },
+   "description": "The crust taken off in sheets and sent up the well."
+  },
+  {
+   "id": "smelter_row",
+   "name": "Smelter Row",
+   "category": "extraction",
+   "bodies": [
+    "forge"
+   ],
+   "cost": {
+    "credits": 16,
+    "materials": 10,
+    "manpower": 2
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 4
+   },
+   "description": "Furnaces fed straight from the pit, a mile of them."
+  },
+  {
+   "id": "geothermal_tap",
+   "name": "Geothermal Tap",
+   "category": "extraction",
+   "bodies": [
+    "forge"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 12
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "description": "Heat for nothing, for whoever drills deep enough to reach it."
+  },
+  {
+   "id": "ice_works",
+   "name": "Ice Works",
+   "category": "extraction",
+   "bodies": [
+    "frozen",
+    "comet"
+   ],
+   "cost": {
+    "credits": 10,
+    "materials": 6
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 2,
+    "materials": 1
+   },
+   "description": "Water and air for every station in the system, cut from the ice and sold by the ton."
+  },
+  {
+   "id": "cold_granaries",
+   "name": "Cold Granaries",
+   "category": "orbital",
+   "bodies": [
+    "frozen"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 10
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "unrest": -1,
+   "population": 4,
+   "description": "Seven years' grain laid down where nothing rots. A world that cannot be starved is a quieter world."
+  },
+  {
+   "id": "penal_colony",
+   "name": "Penal Colony",
+   "category": "extraction",
+   "bodies": [
+    "frozen",
+    "barren"
+   ],
+   "cost": {
+    "credits": 10,
+    "materials": 8
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 2,
+    "manpower": 1
+   },
+   "unrest": -1,
+   "prosperity": -1,
+   "description": "Where the house sends those it will not hang. They dig, and the world they came from remembers where they went."
+  },
+  {
+   "id": "proving_ground",
+   "name": "Proving Ground",
+   "category": "military",
+   "bodies": [
+    "barren"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 10,
+    "manpower": 2
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 2
+   },
+   "defense": 0.25,
+   "description": "A dead plain to shell, storm and march across until the levies are soldiers."
+  },
+  {
+   "id": "skimmer_fleet",
+   "name": "Skimmer Fleet",
+   "category": "extraction",
+   "bodies": [
+    "gas"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 10
+   },
+   "deposit": "helium3",
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "helium3": 1
+   },
+   "description": "Scoops that dive the giant's clouds for helium-3 and come up again, most of them."
+  },
+  {
+   "id": "cloud_habitat",
+   "name": "Cloud Habitat",
+   "category": "colony",
+   "bodies": [
+    "gas"
+   ],
+   "cost": {
+    "credits": 24,
+    "materials": 18,
+    "manpower": 4,
+    "exotics": 1
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 4,
+    "manpower": 1
+   },
+   "population": 8,
+   "description": "A city that floats where the air is thick enough to hold it.",
+   "notHome": true
+  },
+  {
+   "id": "aerostat_refinery",
+   "name": "Aerostat Refinery",
+   "category": "extraction",
+   "bodies": [
+    "gas"
+   ],
+   "cost": {
+    "credits": 16,
+    "materials": 14
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 2,
+    "credits": 2
+   },
+   "description": "Cracking towers hung under balloons the size of towns."
+  },
+  {
+   "id": "belt_foundry",
+   "name": "Belt Foundry",
+   "category": "extraction",
+   "bodies": [
+    "belt"
+   ],
+   "cost": {
+    "credits": 16,
+    "materials": 10,
+    "manpower": 2
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 4
+   },
+   "description": "Rock goes in one end and plate comes out the other, without ever touching a world."
+  },
+  {
+   "id": "prospectors_exchange",
+   "name": "Prospectors' Exchange",
+   "category": "orbital",
+   "bodies": [
+    "belt"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 8
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "description": "Where every claim in the belt is bought, sold, mortgaged and fought over."
+  },
+  {
+   "id": "hidden_dock",
+   "name": "Hidden Dock",
+   "category": "orbital",
+   "bodies": [
+    "belt"
+   ],
+   "cost": {
+    "credits": 12,
+    "materials": 8
+   },
+   "yield": {
+    "credits": 4
+   },
+   "unrest": 1,
+   "description": "A berth among the rocks where no customs man comes. It pays well, and it teaches a world to break the law."
+  },
+  {
+   "id": "rare_earth_diggings",
+   "name": "Rare-Earth Diggings",
+   "category": "extraction",
+   "bodies": [
+    "belt",
+    "barren",
+    "arid",
+    "moon"
+   ],
+   "cost": {
+    "credits": 16,
+    "materials": 10,
+    "manpower": 2
+   },
+   "deposit": "rare_earths",
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "rare_earths": 1
+   },
+   "description": "Narrow seams, followed a long way down."
+  },
+  {
+   "id": "isotope_pits",
+   "name": "Isotope Pits",
+   "category": "extraction",
+   "bodies": [
+    "barren",
+    "frozen",
+    "moon"
+   ],
+   "cost": {
+    "credits": 20,
+    "materials": 12,
+    "manpower": 3
+   },
+   "deposit": "isotopes",
+   "minTitleRank": 1,
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "isotopes": 1
+   },
+   "description": "What is dug here goes into warheads. The Senate likes to know who is digging."
+  },
+  {
+   "id": "mass_driver",
+   "name": "Mass Driver",
+   "category": "extraction",
+   "bodies": [
+    "moon"
+   ],
+   "cost": {
+    "credits": 16,
+    "materials": 12
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 3
+   },
+   "description": "A rail five miles long that throws ore into orbit, a load a minute."
+  },
+  {
+   "id": "moon_fort",
+   "name": "Moon Fort",
+   "category": "military",
+   "bodies": [
+    "moon"
+   ],
+   "cost": {
+    "credits": 18,
+    "materials": 16,
+    "manpower": 2
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "defense": 0.5,
+   "description": "Batteries dug into a moon's near face, looking down the throat of anything that comes for the world."
+  },
+  {
+   "id": "hermitage",
+   "name": "Hermitage",
+   "category": "orbital",
+   "bodies": [
+    "comet",
+    "moon",
+    "frozen"
+   ],
+   "cost": {
+    "credits": 10,
+    "materials": 6,
+    "influence": 1
+   },
+   "limit": "system",
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "unrest": -1,
+   "description": "A few cells and a chapel a long way from anywhere. The great come here to be seen to repent."
+  },
+  {
+   "id": "observatory",
+   "name": "Observatory",
+   "category": "orbital",
+   "bodies": [
+    "moon",
+    "frozen",
+    "comet",
+    "barren"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 8,
+    "exotics": 1
+   },
+   "limit": "system",
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "description": "Far from any lamp, the sky is clear. Learned men come, and they talk."
+  },
+  {
+   "id": "listening_post",
+   "name": "Listening Post",
+   "category": "military",
+   "bodies": [
+    "moon",
+    "barren",
+    "frozen",
+    "comet",
+    "space"
+   ],
+   "cost": {
+    "credits": 10,
+    "materials": 6
+   },
+   "limit": "system",
+   "upkeep": {
+    "credits": 1
+   },
+   "defense": 0.25,
+   "description": "Ears turned on the lanes. Nothing comes into the system unannounced."
+  },
+  {
+   "id": "orbital_batteries",
+   "name": "Orbital Batteries",
+   "category": "military",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas"
+   ],
+   "cost": {
+    "credits": 18,
+    "materials": 14
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1,
+    "materials": 1
+   },
+   "defense": 0.5,
+   "description": "Guns in high orbit over a sister-world, pointed outward."
+  },
+  {
+   "id": "fleet_anchorage",
+   "name": "Fleet Anchorage",
+   "category": "military",
+   "bodies": [
+    "gas",
+    "moon",
+    "belt",
+    "space"
+   ],
+   "cost": {
+    "credits": 22,
+    "materials": 18
+   },
+   "limit": "system",
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 2
+   },
+   "depot": true,
+   "defense": 0.25,
+   "description": "Fuel, stores and a safe berth. A fleet may sail further from an anchorage than from a bare world."
+  },
+  {
+   "id": "waystation",
+   "name": "Waystation",
+   "category": "orbital",
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 16,
+    "materials": 12
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 2
+   },
+   "prosperity": 3,
+   "description": "A wheel hung where the lanes meet the system, where caravans rest, refit and gossip."
+  },
+  {
+   "id": "customs_cordon",
+   "name": "Customs Cordon",
+   "category": "orbital",
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 14,
+    "materials": 10
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 4
+   },
+   "prosperity": -1,
+   "description": "Cutters across every approach. Nothing lands that has not paid, and the factors grumble."
+  },
+  {
+   "id": "relay_beacon",
+   "name": "Relay Beacon",
+   "category": "orbital",
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 12,
+    "materials": 8,
+    "exotics": 1
+   },
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "description": "The Reach's news passes through it, and is read on the way."
+  },
+  {
+   "id": "patrol_base",
+   "name": "Patrol Base",
+   "category": "military",
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 16,
+    "materials": 14,
+    "manpower": 2
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "defense": 0.5,
+   "unrest": -1,
+   "description": "Corvettes on station out beyond the last world. Raiders go round."
+  },
+  {
+   "id": "minefields",
+   "name": "Minefields",
+   "category": "military",
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 12,
+    "materials": 16
+   },
+   "upkeep": {
+    "materials": 1
+   },
+   "defense": 0.75,
+   "prosperity": -2,
+   "description": "The approaches sown with things that wait. An enemy comes in slowly; so does everyone else."
+  },
+  {
+   "id": "governors_palace",
+   "name": "Governor's Palace",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 24,
+    "materials": 14,
+    "influence": 1
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "unrest": -1,
+   "legitimacy": 2,
+   "description": "A seat fit to govern from: audience halls, archives, a guard. The world knows where its master lives."
+  },
+  {
+   "id": "forum",
+   "name": "Forum",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 18,
+    "materials": 12
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 2,
+    "influence": 1
+   },
+   "prosperity": 3,
+   "description": "A square where the world does its business and its talking, with the house's name over the colonnade."
+  },
+  {
+   "id": "academy",
+   "name": "Academy",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 20,
+    "materials": 10,
+    "influence": 1
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "influence": 2
+   },
+   "prosperity": 2,
+   "description": "Schools of law, engineering and war. Its graduates serve the house first, and remember who taught them."
+  },
+  {
+   "id": "great_temple",
+   "name": "Great Temple",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 22,
+    "materials": 16
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "unrest": -2,
+   "legitimacy": 1,
+   "description": "The feasts are kept here, and the house keeps them. A quiet world is a world that is prayed for."
+  },
+  {
+   "id": "barracks_quarter",
+   "name": "Barracks Quarter",
+   "category": "military",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 16,
+    "materials": 14,
+    "manpower": 2
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 2
+   },
+   "defense": 0.25,
+   "description": "A standing garrison, its drill fields and its armouries, inside the walls."
+  },
+  {
+   "id": "spaceport",
+   "name": "Spaceport",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 20,
+    "materials": 16
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "prosperity": 2,
+   "population": 6,
+   "description": "Pads, warehouses and a customs house on the ground. Everything the world sells leaves through it."
+  },
+  {
+   "id": "hospital",
+   "name": "Hospital Quarter",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "system",
+   "cost": {
+    "credits": 16,
+    "materials": 10
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "unrest": -1,
+   "population": 10,
+   "description": "Physicians, clean water and a place to be ill in. Fewer children die, and their parents know whom to thank."
+  },
+  {
+   "id": "mint",
+   "name": "Mint",
+   "category": "civil",
+   "on": "world",
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren",
+    "gas",
+    "belt"
+   ],
+   "limit": "house",
+   "minTitleRank": 3,
+   "cost": {
+    "credits": 26,
+    "materials": 16,
+    "influence": 2
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 5
+   },
+   "description": "The right to strike coin, and the building to do it in. A house has one, and guards it."
+  },
+  {
+   "id": "orbital_ring",
+   "name": "The Orbital Ring",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren"
+   ],
+   "cost": {
+    "credits": 60,
+    "materials": 110,
+    "exotics": 4
+   },
+   "buildTurns": 8,
+   "on": "world",
+   "minTitleRank": 3,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "credits": 8,
+    "materials": 3
+   },
+   "prosperity": 4,
+   "glory": 6,
+   "description": "A ring round the whole world, with yards, docks and towns along it. The first thing a great house builds to be seen building."
+  },
+  {
+   "id": "great_stair",
+   "name": "The Great Stair",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren"
+   ],
+   "cost": {
+    "credits": 50,
+    "materials": 90,
+    "exotics": 3
+   },
+   "buildTurns": 7,
+   "on": "world",
+   "minTitleRank": 2,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "credits": 6
+   },
+   "prosperity": 6,
+   "population": 10,
+   "glory": 4,
+   "description": "A cable from the ground to the sky. What cost a ship to lift costs a lift ticket."
+  },
+  {
+   "id": "the_aegis",
+   "name": "The Aegis",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid",
+    "forge",
+    "frozen",
+    "barren"
+   ],
+   "cost": {
+    "credits": 70,
+    "materials": 120,
+    "exotics": 6
+   },
+   "buildTurns": 9,
+   "on": "world",
+   "minTitleRank": 3,
+   "upkeep": {
+    "credits": 3,
+    "materials": 1
+   },
+   "defense": 2.0,
+   "glory": 6,
+   "description": "A shield over the whole world. A fleet that means to take it must first sit under its guns for years."
+  },
+  {
+   "id": "spire_city",
+   "name": "The Spire City",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid"
+   ],
+   "cost": {
+    "credits": 70,
+    "materials": 100,
+    "manpower": 10
+   },
+   "buildTurns": 8,
+   "minTitleRank": 2,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "credits": 6,
+    "manpower": 3
+   },
+   "population": 30,
+   "prosperity": 3,
+   "glory": 5,
+   "description": "One city, a mile high, with a million rooms. Everyone in the system has a cousin in it."
+  },
+  {
+   "id": "dyson_lattice",
+   "name": "The Dyson Lattice",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "star"
+   ],
+   "cost": {
+    "credits": 80,
+    "materials": 160,
+    "exotics": 8
+   },
+   "buildTurns": 12,
+   "minTitleRank": 4,
+   "upkeep": {
+    "materials": 2
+   },
+   "yield": {
+    "credits": 16
+   },
+   "glory": 12,
+   "description": "A lattice round the sun that drinks its light. The work of a lifetime, and the purse of a dynasty."
+  },
+  {
+   "id": "sun_foundry",
+   "name": "The Sun Foundry",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "star"
+   ],
+   "cost": {
+    "credits": 50,
+    "materials": 110,
+    "exotics": 4
+   },
+   "buildTurns": 8,
+   "minTitleRank": 3,
+   "upkeep": {
+    "materials": 2
+   },
+   "yield": {
+    "credits": 6,
+    "materials": 8
+   },
+   "glory": 6,
+   "description": "Mirrors by the square mile, turned on a furnace that hangs in the sun's own light."
+  },
+  {
+   "id": "sky_harbour",
+   "name": "The Sky Harbour",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "gas"
+   ],
+   "cost": {
+    "credits": 50,
+    "materials": 90,
+    "exotics": 3
+   },
+   "buildTurns": 7,
+   "minTitleRank": 2,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "credits": 7,
+    "helium3": 1
+   },
+   "population": 10,
+   "glory": 4,
+   "description": "A port that rides the giant's high winds, where the tankers fill and the fleets water."
+  },
+  {
+   "id": "hollowed_world",
+   "name": "The Hollowed World",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "belt"
+   ],
+   "cost": {
+    "credits": 50,
+    "materials": 80,
+    "manpower": 6
+   },
+   "buildTurns": 7,
+   "minTitleRank": 2,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "materials": 5,
+    "manpower": 2
+   },
+   "population": 12,
+   "defense": 0.5,
+   "glory": 4,
+   "description": "The largest rock in the belt, mined out and spun: a city with the stone of a mountain for its walls."
+  },
+  {
+   "id": "fortress_moon",
+   "name": "The Fortress Moon",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "moon"
+   ],
+   "cost": {
+    "credits": 50,
+    "materials": 80,
+    "manpower": 6
+   },
+   "buildTurns": 6,
+   "minTitleRank": 2,
+   "upkeep": {
+    "credits": 2,
+    "materials": 1
+   },
+   "defense": 1.5,
+   "glory": 4,
+   "description": "A moon tunnelled through and armed. A besieger must take it before he may so much as look at the world."
+  },
+  {
+   "id": "house_mausoleum",
+   "name": "The Mausoleum of the House",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "moon",
+    "barren",
+    "frozen"
+   ],
+   "cost": {
+    "credits": 50,
+    "materials": 50,
+    "influence": 4
+   },
+   "buildTurns": 6,
+   "limit": "house",
+   "minTitleRank": 1,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "legitimacy": 5,
+   "glory": 6,
+   "description": "Where the heads of the house will lie, under a dome that can be seen from its world. A house that buries its dead like kings begins to be taken for one."
+  },
+  {
+   "id": "gate_anchor",
+   "name": "The Lane Gate Anchor",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 60,
+    "materials": 110,
+    "exotics": 6
+   },
+   "buildTurns": 9,
+   "minTitleRank": 4,
+   "upkeep": {
+    "credits": 3
+   },
+   "yield": {
+    "influence": 4
+   },
+   "defense": 0.5,
+   "glory": 8,
+   "description": "It anchors a gate on the lanes. Everyone who passes asks leave, and the approach is a fortress."
+  },
+  {
+   "id": "grand_arsenal",
+   "name": "The Grand Arsenal",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 60,
+    "materials": 120,
+    "manpower": 6
+   },
+   "buildTurns": 9,
+   "limit": "house",
+   "minTitleRank": 3,
+   "upkeep": {
+    "credits": 3,
+    "materials": 1
+   },
+   "defense": 1.0,
+   "depot": true,
+   "glory": 6,
+   "description": "Docks, magazines and barracks for a whole navy, hung in the dark where no world's guns reach it."
+  },
+  {
+   "id": "long_cylinder",
+   "name": "The Long Cylinder",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 60,
+    "materials": 110,
+    "manpower": 8
+   },
+   "buildTurns": 8,
+   "minTitleRank": 2,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "credits": 5,
+    "manpower": 3
+   },
+   "population": 24,
+   "glory": 5,
+   "description": "A valley rolled into a tube and set turning, with fields on the inside and stars at either end."
+  },
+  {
+   "id": "lighthouse",
+   "name": "The Lighthouse of the Lanes",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "space"
+   ],
+   "cost": {
+    "credits": 80,
+    "materials": 100,
+    "exotics": 6,
+    "influence": 5
+   },
+   "buildTurns": 10,
+   "limit": "galaxy",
+   "chokepoint": true,
+   "minTitleRank": 3,
+   "upkeep": {
+    "credits": 3
+   },
+   "yield": {
+    "credits": 6,
+    "influence": 4
+   },
+   "legitimacy": 6,
+   "glory": 12,
+   "description": "A beacon at a key of the lanes, by which every ship in the Reach sets its course. There is one, and whoever keeps it is asked leave by everyone."
+  },
+  {
+   "id": "ring_habitat",
+   "name": "The Ring Habitat",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "gas"
+   ],
+   "feature": "great_rings",
+   "minTitleRank": 2,
+   "cost": {
+    "credits": 56,
+    "materials": 90,
+    "exotics": 4
+   },
+   "buildTurns": 7,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "credits": 8,
+    "manpower": 4
+   },
+   "population": 20,
+   "prosperity": 3,
+   "glory": 5,
+   "description": "Towns strung along the rings like beads, each with the giant filling half its sky."
+  },
+  {
+   "id": "storm_tap",
+   "name": "The Storm Tap",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "gas"
+   ],
+   "feature": "eternal_storm",
+   "minTitleRank": 2,
+   "cost": {
+    "credits": 50,
+    "materials": 80,
+    "exotics": 3
+   },
+   "buildTurns": 6,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "helium3": 4,
+    "exotics": 2
+   },
+   "glory": 4,
+   "description": "A tether let down into the eye, to draw up what the storm has been keeping."
+  },
+  {
+   "id": "breakers_yard",
+   "name": "The Breaker's Yard",
+   "category": "megastructure",
+   "bodies": [
+    "belt"
+   ],
+   "feature": "wreck_field",
+   "cost": {
+    "credits": 40,
+    "materials": 50,
+    "manpower": 4
+   },
+   "buildTurns": 5,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 8,
+    "credits": 4
+   },
+   "description": "The dead fleets cut up for their steel, hull by hull.",
+   "megastructure": true,
+   "glory": 4,
+   "minTitleRank": 1
+  },
+  {
+   "id": "lode_works",
+   "name": "The Lode Works",
+   "category": "megastructure",
+   "bodies": [
+    "belt"
+   ],
+   "feature": "mother_lode",
+   "cost": {
+    "credits": 44,
+    "materials": 56,
+    "manpower": 4
+   },
+   "buildTurns": 5,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "materials": 7,
+    "rare_earths": 2,
+    "exotics": 2
+   },
+   "description": "A whole asteroid of metal, eaten from the inside.",
+   "megastructure": true,
+   "glory": 4,
+   "minTitleRank": 1
+  },
+  {
+   "id": "great_dig",
+   "name": "The Great Dig",
+   "category": "megastructure",
+   "bodies": [
+    "barren",
+    "arid",
+    "moon"
+   ],
+   "feature": "old_ruins",
+   "cost": {
+    "credits": 50,
+    "materials": 40,
+    "influence": 3
+   },
+   "buildTurns": 6,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "influence": 4,
+    "exotics": 2
+   },
+   "glory": 6,
+   "description": "The ruins opened, room by room. What comes out of them is talked of in every court.",
+   "megastructure": true,
+   "minTitleRank": 1
+  },
+  {
+   "id": "vault_archive",
+   "name": "The Vault Archive",
+   "category": "megastructure",
+   "bodies": [
+    "barren",
+    "frozen",
+    "moon"
+   ],
+   "feature": "deep_vaults",
+   "cost": {
+    "credits": 46,
+    "materials": 50,
+    "influence": 3
+   },
+   "buildTurns": 6,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 3,
+    "credits": 4
+   },
+   "prosperity": 4,
+   "legitimacy": 2,
+   "description": "Every deed, charter and debt of the house, kept where no fire or fleet will ever reach it. Others pay to keep theirs here too.",
+   "megastructure": true,
+   "glory": 4,
+   "minTitleRank": 1
+  },
+  {
+   "id": "undersea_colony",
+   "name": "The Sunless Cities",
+   "category": "megastructure",
+   "bodies": [
+    "frozen",
+    "moon"
+   ],
+   "feature": "buried_sea",
+   "cost": {
+    "credits": 50,
+    "materials": 70,
+    "manpower": 8
+   },
+   "buildTurns": 6,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 6,
+    "manpower": 4
+   },
+   "population": 18,
+   "description": "Cities on the floor of a sea no light has touched, warm and crowded and loyal to whoever keeps the ice whole above them.",
+   "megastructure": true,
+   "glory": 4,
+   "minTitleRank": 1
+  },
+  {
+   "id": "ice_choir",
+   "name": "The Ice Choir",
+   "category": "megastructure",
+   "bodies": [
+    "frozen",
+    "comet"
+   ],
+   "feature": "singing_ice",
+   "cost": {
+    "credits": 40,
+    "materials": 36,
+    "influence": 3
+   },
+   "buildTurns": 5,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 3
+   },
+   "unrest": -1,
+   "legitimacy": 2,
+   "description": "A hall cut into the ice to hold its sound. The pilgrims' road runs through the house's own world.",
+   "megastructure": true,
+   "glory": 4,
+   "minTitleRank": 1
+  },
+  {
+   "id": "garden_estates",
+   "name": "The Garden Estates",
+   "category": "megastructure",
+   "bodies": [
+    "terran"
+   ],
+   "feature": "garden_country",
+   "cost": {
+    "credits": 50,
+    "materials": 40,
+    "influence": 3
+   },
+   "buildTurns": 5,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 7,
+    "influence": 2
+   },
+   "prosperity": 6,
+   "description": "Villas let to the great of the Reach. They come for the summer, and they bring their business with them.",
+   "megastructure": true,
+   "glory": 4,
+   "minTitleRank": 1
+  },
+  {
+   "id": "old_capital_restored",
+   "name": "The Old Capital Restored",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "terran",
+    "ocean",
+    "arid"
+   ],
+   "feature": "old_capital",
+   "minTitleRank": 2,
+   "cost": {
+    "credits": 80,
+    "materials": 80,
+    "influence": 6
+   },
+   "buildTurns": 8,
+   "upkeep": {
+    "credits": 3
+   },
+   "yield": {
+    "influence": 4,
+    "credits": 5
+   },
+   "prosperity": 5,
+   "legitimacy": 8,
+   "glory": 8,
+   "description": "The palace roofed again and the old roads opened. Whoever sits here sits where kings sat, and is seen to."
+  },
+  {
+   "id": "reef_cities",
+   "name": "The Reef Cities",
+   "category": "megastructure",
+   "bodies": [
+    "ocean"
+   ],
+   "feature": "great_reefs",
+   "cost": {
+    "credits": 46,
+    "materials": 60,
+    "manpower": 6
+   },
+   "buildTurns": 6,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 6,
+    "manpower": 3
+   },
+   "population": 14,
+   "prosperity": 3,
+   "description": "Towns grown into the living stone, a new street every year.",
+   "megastructure": true,
+   "glory": 4,
+   "minTitleRank": 1
+  },
+  {
+   "id": "rift_citadel",
+   "name": "The Rift Citadel",
+   "category": "megastructure",
+   "bodies": [
+    "arid",
+    "barren"
+   ],
+   "feature": "the_rift",
+   "minTitleRank": 1,
+   "cost": {
+    "credits": 50,
+    "materials": 80,
+    "manpower": 6
+   },
+   "buildTurns": 6,
+   "upkeep": {
+    "credits": 2
+   },
+   "defense": 1.0,
+   "yield": {
+    "manpower": 3
+   },
+   "glory": 4,
+   "description": "A fortress built across the canyon's mouth. It has one gate, and the gate has never been forced.",
+   "megastructure": true
+  },
+  {
+   "id": "mantle_forge",
+   "name": "The Mantle Forge",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "forge"
+   ],
+   "feature": "open_mantle",
+   "minTitleRank": 3,
+   "cost": {
+    "credits": 50,
+    "materials": 110,
+    "exotics": 4
+   },
+   "buildTurns": 8,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "materials": 11
+   },
+   "glory": 5,
+   "description": "A foundry sunk through the crust to the fire itself. It will be pouring steel when the house that built it is a name in a chronicle."
+  },
+  {
+   "id": "moon_port",
+   "name": "The Moon-Port",
+   "category": "megastructure",
+   "bodies": [
+    "moon"
+   ],
+   "feature": "one_face",
+   "cost": {
+    "credits": 44,
+    "materials": 60
+   },
+   "buildTurns": 5,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 6
+   },
+   "depot": true,
+   "defense": 0.25,
+   "description": "A harbour on the face that always watches the world. Every cargo passes under its guns and through its customs house.",
+   "megastructure": true,
+   "glory": 4,
+   "minTitleRank": 1
+  },
+  {
+   "id": "hollow_arsenal",
+   "name": "The Hollow Arsenal",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "moon"
+   ],
+   "feature": "hollow_moon",
+   "minTitleRank": 2,
+   "cost": {
+    "credits": 50,
+    "materials": 90,
+    "manpower": 4
+   },
+   "buildTurns": 7,
+   "upkeep": {
+    "credits": 2,
+    "materials": 1
+   },
+   "defense": 1.25,
+   "depot": true,
+   "glory": 4,
+   "description": "Docks, magazines and barracks inside the moon, behind miles of rock. Nobody outside can count what is in it.",
+   "yield": {}
+  },
+  {
+   "id": "comet_watch",
+   "name": "The Comet Watch",
+   "category": "megastructure",
+   "bodies": [
+    "comet"
+   ],
+   "feature": "long_comet",
+   "cost": {
+    "credits": 34,
+    "materials": 30,
+    "influence": 2
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 3
+   },
+   "legitimacy": 3,
+   "glory": 4,
+   "description": "A chapel that rides the comet out into the dark and back. Its return is kept as a feast, in the house's name.",
+   "megastructure": true,
+   "minTitleRank": 1
+  },
+  {
+   "id": "flare_harvesters",
+   "name": "The Flare Harvesters",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "star"
+   ],
+   "feature": "flare_star",
+   "minTitleRank": 2,
+   "cost": {
+    "credits": 50,
+    "materials": 90,
+    "exotics": 4
+   },
+   "buildTurns": 7,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "helium3": 3,
+    "exotics": 2,
+    "credits": 5
+   },
+   "glory": 4,
+   "description": "Nets flung across the sun's reach to catch what it throws off."
+  },
+  {
+   "id": "twin_crown",
+   "name": "The Twin Crown",
+   "category": "megastructure",
+   "megastructure": true,
+   "bodies": [
+    "star"
+   ],
+   "feature": "companion_sun",
+   "minTitleRank": 3,
+   "cost": {
+    "credits": 70,
+    "materials": 130,
+    "exotics": 6
+   },
+   "buildTurns": 10,
+   "upkeep": {
+    "materials": 2
+   },
+   "yield": {
+    "credits": 14
+   },
+   "prosperity": 3,
+   "glory": 7,
+   "description": "Collectors round both suns, and a beam between them that lights the system's sky. It can be seen from the next star."
+  },
+  {
+   "id": "guild_halls",
+   "name": "Guild Halls",
+   "category": "orbital",
+   "city": "craftsmen",
+   "cost": {
+    "credits": 14,
+    "materials": 8
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 2
+   },
+   "prosperity": 2,
+   "description": "The trades keep their halls, their marks and their secrets here. Only a city of craftsmen has them."
+  },
+  {
+   "id": "pleasure_gardens",
+   "name": "Pleasure Gardens",
+   "category": "orbital",
+   "city": "resort",
+   "cost": {
+    "credits": 16,
+    "materials": 6
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "prosperity": 3,
+   "description": "Terraces, baths and a season that half the region saves for. Only a resort has them."
+  },
+  {
+   "id": "bonded_warehouses",
+   "name": "Bonded Warehouses",
+   "category": "orbital",
+   "city": "port",
+   "cost": {
+    "credits": 16,
+    "materials": 10
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 4
+   },
+   "description": "Goods lie here under seal until the duty is paid, and the duty is paid here. Only a great port has them."
+  },
+  {
+   "id": "citadel",
+   "name": "Citadel",
+   "category": "military",
+   "city": "garrison",
+   "cost": {
+    "credits": 14,
+    "materials": 14,
+    "manpower": 3
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 1
+   },
+   "defense": 0.6,
+   "description": "The fortress the city grew up under. Only a garrison city has one."
+  },
+  {
+   "id": "collegium",
+   "name": "Collegium",
+   "category": "orbital",
+   "city": "university",
+   "cost": {
+    "credits": 18,
+    "materials": 8
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "prosperity": 2,
+   "unrest": -1,
+   "description": "The old schools, endowed and enlarged. Only a university town has one."
+  },
+  {
+   "id": "pilgrim_basilica",
+   "name": "Pilgrims' Basilica",
+   "category": "orbital",
+   "city": "shrine",
+   "cost": {
+    "credits": 16,
+    "materials": 12
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "prosperity": 1,
+   "unrest": -2,
+   "description": "What the pilgrims come for. Only a holy city has one."
+  },
+  {
+   "id": "deep_workings",
+   "name": "Deep Workings",
+   "category": "extraction",
+   "city": "mining",
+   "cost": {
+    "credits": 14,
+    "materials": 10,
+    "manpower": 2
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 4
+   },
+   "description": "Shafts sunk past where anyone else would stop. Only a company town has them."
+  },
+  {
+   "id": "covered_market",
+   "name": "Covered Market",
+   "category": "orbital",
+   "city": "market",
+   "cost": {
+    "credits": 14,
+    "materials": 8
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "materials": 1
+   },
+   "yield": {
+    "credits": 3
+   },
+   "prosperity": 2,
+   "description": "A hall big enough for the whole fair, whatever the weather. Only a market city has one."
+  },
+  {
+   "id": "great_granaries",
+   "name": "Great Granaries",
+   "category": "colony",
+   "city": "granary",
+   "cost": {
+    "credits": 12,
+    "materials": 10
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "manpower": 1,
+    "credits": 1
+   },
+   "population": 6,
+   "unrest": -1,
+   "description": "Seven years' corn under one roof. Only a breadbasket city has them."
+  },
+  {
+   "id": "slipways",
+   "name": "Slipways",
+   "category": "military",
+   "city": "shipwrights",
+   "cost": {
+    "credits": 16,
+    "materials": 14
+   },
+   "buildTurns": 3,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "materials": 2
+   },
+   "defense": 0.2,
+   "description": "Ways long enough for a cruiser's keel. Only a yard city has them."
+  },
+  {
+   "id": "old_quarter",
+   "name": "Old Quarter",
+   "category": "orbital",
+   "city": "old_city",
+   "cost": {
+    "credits": 14,
+    "materials": 6
+   },
+   "buildTurns": 2,
+   "upkeep": {
+    "credits": 1
+   },
+   "yield": {
+    "influence": 1
+   },
+   "prosperity": 2,
+   "description": "The streets as they were, kept so: archives, tombs and the houses of the first families. Only an old city has one."
+  },
+  {
+   "id": "great_exchange",
+   "name": "The Great Exchange",
+   "category": "orbital",
+   "city": "exchange_city",
+   "cost": {
+    "credits": 30,
+    "materials": 16
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "credits": 7
+   },
+   "prosperity": 3,
+   "description": "The floor itself, rebuilt to hold everyone who wants to stand on it. There is one, in the commerce city of the Reach."
+  },
+  {
+   "id": "lode_pit",
+   "name": "The Great Pit",
+   "category": "extraction",
+   "city": "lode_city",
+   "cost": {
+    "credits": 26,
+    "materials": 18,
+    "manpower": 4
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "materials": 8
+   },
+   "description": "The pit taken down another mile. There is one, in the Lode."
+  },
+  {
+   "id": "institute_halls",
+   "name": "The Institute's Halls",
+   "category": "military",
+   "city": "academy_city",
+   "cost": {
+    "credits": 28,
+    "materials": 16
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "influence": 2,
+    "manpower": 2
+   },
+   "prosperity": 2,
+   "description": "New halls for the Institute, with the builder's name over the door. There is one, in the Academy city."
+  },
+  {
+   "id": "senate_precinct",
+   "name": "The Senate's Precinct",
+   "category": "orbital",
+   "city": "reach_capital",
+   "on": "world",
+   "cost": {
+    "credits": 34,
+    "materials": 20
+   },
+   "buildTurns": 4,
+   "upkeep": {
+    "credits": 2
+   },
+   "yield": {
+    "influence": 3,
+    "credits": 3
+   },
+   "prosperity": 3,
+   "defense": 0.4,
+   "description": "The hill the Senate sits on, walled, paved and garrisoned as the capital of the Reach should be. There is one, and it stands in that capital."
+  }
+ ]
+}

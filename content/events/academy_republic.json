@@ -1,0 +1,1520 @@
+{
+  "//": "THE ACADEMY OF THE REACH — the Republic's register (docs/ACADEMY.md). A school: lectures, societies, a regatta, a war game on the tactical table, examinations. Rivalry is friendly; nobody is hurt, nobody is wounded, nobody dies; nothing here touches the world outside the gates. Every event carries an `academy` condition (register republic) and binds its cadet roles from the cohort.",
+  "events": [
+    {
+      "id": "matriculation",
+      "tier": "setpiece",
+      "weight": 40,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 1,
+          "termLte": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "find_the_library",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "On the first day {self.name} found the library before the mess hall. The librarian noticed. So did the two cadets already there."
+            }
+          ]
+        },
+        {
+          "id": "introduce_yourself",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "charisma",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went down the matriculation line shaking hands and learning names. By supper half the year knew who {self.house} had sent."
+            }
+          ]
+        },
+        {
+          "id": "walk_the_square",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked the drill square alone before the bell, counting the paces. It would be a long year, and a good one."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_first_lecture",
+      "tier": "ambient",
+      "weight": 6,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 1,
+          "termLte": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_notes",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the first lecture down word for word. The notes were borrowed by four people before the week was out."
+            }
+          ]
+        },
+        {
+          "id": "argue_the_point",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "oratory",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put up a hand in the first lecture and argued the point. The lecturer argued back, and seemed pleased to."
+            }
+          ]
+        },
+        {
+          "id": "sit_at_the_back",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat at the back of the first lecture and watched who sat where. That is also a kind of study."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_study_circle",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "friend",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "friend"
+            },
+            {
+              "type": "relationship",
+              "from": "friend",
+              "to": "self",
+              "op": "gte",
+              "value": -10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 1,
+          "termLte": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "join_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "friend",
+              "delta": 15
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "friend",
+              "bond": "sworn",
+              "strength": 25
+            },
+            {
+              "type": "addBond",
+              "from": "friend",
+              "to": "self",
+              "bond": "sworn",
+              "strength": 25
+            },
+            {
+              "type": "log",
+              "text": "{self.name} joined {friend.name}'s study circle. They met three nights a week for the rest of the year and were friends by the end of the first."
+            }
+          ]
+        },
+        {
+          "id": "lead_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "friend",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} joined {friend.name}'s study circle and was running it within a fortnight. {friend.name} of {friend.house} did not seem to mind."
+            }
+          ]
+        },
+        {
+          "id": "decline_kindly",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {friend.name} of {friend.house} and kept to a private timetable."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_house_question",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "other",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "other"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 1,
+          "termLte": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "answer_plainly",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "other",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "other",
+              "delta": 10
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "oratory",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{other.name} of {other.house} asked what {self.house} stood for, and {self.name} said it plainly. They disagreed about most of it and liked each other better for knowing."
+            }
+          ]
+        },
+        {
+          "id": "make_a_joke_of_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "other",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "charisma",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{other.name} of {other.house} asked what {self.house} stood for. {self.name} said: supper, mostly. The table laughed, and the question waited for another year."
+            }
+          ]
+        },
+        {
+          "id": "ask_them_first",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{other.name} of {other.house} asked what {self.house} stood for. {self.name} asked what {other.house} did, and listened for a long time."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_fencing_salle",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "rival"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 1,
+          "termLte": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "win_gracefully",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "Buttons on the points and masks down. {self.name} took the bout from {rival.name} of {rival.house} five touches to three and offered a hand before the mask was off."
+            }
+          ]
+        },
+        {
+          "id": "lose_gracefully",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 12
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{rival.name} of {rival.house} took the bout five touches to four. {self.name} saluted, laughed, and asked to be shown the last one again."
+            }
+          ]
+        },
+        {
+          "id": "demand_a_rematch",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} lost the bout to {rival.name} of {rival.house}, asked for another at once, and won it. The salle thought the second one mattered more to one of them than the other."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_debating_society",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "rival"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 2,
+          "termLte": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_for_the_motion",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "oratory",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "The motion before the society was that the franchise be widened. {self.name} spoke for it against {rival.name} of {rival.house} and carried the room by eleven."
+            }
+          ]
+        },
+        {
+          "id": "speak_against_it",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "oratory",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "The motion before the society was that the franchise be widened. {self.name} spoke against it, against {rival.name} of {rival.house}, and lost by four with the best speech of the night."
+            }
+          ]
+        },
+        {
+          "id": "second_your_rival",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 18
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 18
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "law",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose to second {rival.name} of {rival.house}, to the surprise of both benches. They wrote the summing-up together."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_regatta",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "rival"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 2,
+          "termLte": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "race_to_win",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "The pinnace race round the outer marker. {self.name}'s boat cut inside {rival.name}'s at the turn, within the rules and only just, and won by a length."
+            }
+          ]
+        },
+        {
+          "id": "race_fair_and_wide",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "The pinnace race round the outer marker. {self.name} gave {rival.name}'s boat room at the turn and lost by half a length. Both crews dined together."
+            }
+          ]
+        },
+        {
+          "id": "cheer_from_the_bank",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "charisma",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} watched the pinnace race from the gallery with the rest of the year and lost a small bet cheerfully."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_prank",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "target",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "target"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 2,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "join_in",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "target",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "Someone had moved every stick of furniture in {target.name}'s study onto the chapel roof, arranged exactly as it had been. {self.name} carried the desk. {target.name} of {target.house} was not amused until the following term."
+            }
+          ]
+        },
+        {
+          "id": "talk_them_out_of_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "target",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "target",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "The plan was {target.name}'s furniture and the chapel roof. {self.name} talked the others out of it, and never told {target.name} of {target.house}, who found out anyway."
+            }
+          ]
+        },
+        {
+          "id": "own_up_for_everyone",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "When the proctor asked who had put {target.name}'s study on the chapel roof, {self.name} stepped forward alone. A week of extra drill, and the regard of everyone who had kept quiet."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_tutors_hour",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 2,
+          "termLte": 4
+        },
+        {
+          "type": "counter",
+          "key": "standing",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "extra_tactics",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "The senior tutor offered {self.name} an hour a week on the tactical table. {self.name} took it, and lost every game until the last three."
+            }
+          ]
+        },
+        {
+          "id": "extra_law",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "law",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "The senior tutor offered {self.name} an hour a week on the Senate's Acts. {self.name} took it, and began to read the docket for pleasure."
+            }
+          ]
+        },
+        {
+          "id": "extra_economy",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "economics",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "The senior tutor offered {self.name} an hour a week on the exchange. {self.name} took it, and stopped being surprised by prices."
+            }
+          ]
+        },
+        {
+          "id": "thank_them_and_decline",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked the senior tutor and kept the hour for sleep."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_visiting_senator",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "senator",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "senator",
+              "present": false
+            },
+            {
+              "type": "age",
+              "role": "senator",
+              "op": "gte",
+              "value": 35
+            },
+            {
+              "type": "rank",
+              "role": "senator",
+              "op": "gte",
+              "value": 2
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 2,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "ask_about_the_fleets",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "senator",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{senator.name} of {senator.house} came to address the year. {self.name} asked why the Reach keeps so few hulls, and got an honest answer and a second look."
+            }
+          ]
+        },
+        {
+          "id": "ask_about_the_law",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "senator",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "law",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{senator.name} of {senator.house} came to address the year. {self.name} asked which Act the Senate most regrets, and got a longer answer than the proctors had allowed time for."
+            }
+          ]
+        },
+        {
+          "id": "listen_and_remember",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{senator.name} of {senator.house} came to address the year. {self.name} said nothing and remembered all of it, including what was not said."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_war_game",
+      "tier": "setpiece",
+      "weight": 8,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "rival"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 3,
+          "termLte": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "command_the_van",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "The war game: two fleets of counters on the great table and the whole year watching. {self.name} took the van, pressed {rival.name}'s line where it bent, and broke it. Nobody was hurt but {rival.name}'s marks."
+            }
+          ]
+        },
+        {
+          "id": "hold_the_reserve",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "leadership",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "The war game: two fleets of counters on the great table. {self.name} asked for the reserve, held it until {rival.name} of {rival.house} had committed, and then decided it. The umpires gave it as a draw. The year did not."
+            }
+          ]
+        },
+        {
+          "id": "accept_the_umpires_ruling",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "The war game turned on a ruling. The umpire gave it against {self.name}, wrongly, and {self.name} accepted it and played on. {rival.name} of {rival.house} said afterward that it had been wrong."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_borrowed_notes",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "friend",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "friend"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 3,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "lend_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "friend",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes a week before the papers. {self.name} handed them over and did not ask for them back until after."
+            }
+          ]
+        },
+        {
+          "id": "study_together",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "friend",
+              "delta": 10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes. {self.name} said: come at eight, bring coffee. They went through all of it twice."
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes a week before the papers. {self.name} said no. It was a fair answer and it cost what fair answers cost."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_examinations",
+      "tier": "setpiece",
+      "weight": 10,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 4,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "pour_everything_in",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 7
+            },
+            {
+              "type": "log",
+              "text": "Three papers in three days. {self.name} did not sleep before any of them, and it showed in the marks and in the mirror."
+            }
+          ]
+        },
+        {
+          "id": "steady_across_all_three",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "Three papers in three days. {self.name} wrote all three at the same even pace and walked out of the last one early."
+            }
+          ]
+        },
+        {
+          "id": "sleep_and_trust_the_year",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "Three papers in three days. {self.name} closed the books at ten each night on the theory that the year was already in there or it was not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_rivals_hand",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "rival"
+            },
+            {
+              "type": "relationship",
+              "from": "rival",
+              "to": "self",
+              "op": "lte",
+              "value": 5
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 4,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 30
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 30
+            },
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "rival",
+              "bond": "sworn",
+              "strength": 25
+            },
+            {
+              "type": "addBond",
+              "from": "rival",
+              "to": "self",
+              "bond": "sworn",
+              "strength": 25
+            },
+            {
+              "type": "log",
+              "text": "On the last evening {rival.name} of {rival.house} crossed the hall and held out a hand. {self.name} took it. A year of trying to beat each other had been the making of both."
+            }
+          ]
+        },
+        {
+          "id": "a_nod_will_do",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "rival",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "On the last evening {rival.name} of {rival.house} crossed the hall. {self.name} nodded, and {rival.name} nodded back, and that was understood by both to be a good deal."
+            }
+          ]
+        },
+        {
+          "id": "not_yet",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "On the last evening {rival.name} of {rival.house} crossed the hall and held out a hand. {self.name} said: ask me in ten years. It was said without malice and heard without any."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "passing_out_eve",
+      "tier": "ambient",
+      "weight": 6,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "friend",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "friend"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 4,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_with_friends",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "friend",
+              "delta": 10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "The night before passing out, {self.name} sat up on the chapel roof with {friend.name} of {friend.house} and the rest, saying very little. Nobody had moved any furniture."
+            }
+          ]
+        },
+        {
+          "id": "write_home",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The night before passing out, {self.name} wrote home: the order of merit, the names worth knowing, and a request for a decent coat."
+            }
+          ]
+        },
+        {
+          "id": "walk_the_square_once_more",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "The night before passing out, {self.name} walked the drill square alone and counted the paces. The same number as the first morning."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_library_late",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 1,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "read_ahead",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read ahead by lamplight until the librarian put the lamp out."
+            }
+          ]
+        },
+        {
+          "id": "close_the_book",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} closed the book at a sensible hour. There would be other nights."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_mess_table",
+      "tier": "ambient",
+      "weight": 4,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "friend",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "friend"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "academy",
+          "register": "republic",
+          "termGte": 1,
+          "termLte": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "trade_stories",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "friend",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "friend",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "At the mess table {self.name} and {friend.name} of {friend.house} traded stories of home, each improving on the truth at about the same rate."
+            }
+          ]
+        },
+        {
+          "id": "listen",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "At the mess table {self.name} let {friend.name} of {friend.house} talk, and learned how {friend.house} sees the Reach."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

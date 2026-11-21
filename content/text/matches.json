@@ -1,0 +1,24 @@
+{
+  "texts": [
+    {
+      "id": "the_patrons_match",
+      "title": "The Patron's Match",
+      "body": "The patron has been thinking about {self.name}'s future, which is to say the patron's own. A house with no heir is a poor investment. There is a young person of {match.house}, {match.name}, of good sense and suitable age, whose family owes the patron a courtesy. It could be arranged within the year.",
+      "choices": {
+        "accept_the_match": "Accept. The house needs a future.",
+        "ask_to_meet_first": "Ask to meet first.",
+        "decline_with_thanks": "Decline, with thanks."
+      }
+    },
+    {
+      "id": "a_match_is_proposed",
+      "title": "A Match Is Proposed",
+      "body": "A go-between calls with a proposal: {match.name} of {match.house}. The families are of a kind that can sit at one table, the ages suit, and there is no blood between them. {self.name} is unmarried, and a house whose head has no heir is one illness from its end.",
+      "choices": {
+        "marry": "Marry.",
+        "marry_for_affection": "Marry, and mean it.",
+        "not_yet": "Not yet."
+      }
+    }
+  ]
+}

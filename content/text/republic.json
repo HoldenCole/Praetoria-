@@ -1,0 +1,45 @@
+{
+  "texts": [
+    {
+      "id": "the_hustings",
+      "title": "The Hustings",
+      "body": "The consuls are elected at the turn's end and the Reach's houses are speaking in the colonnade: promises to the squares, promises to the salons, wine for the undecided. {self.name} is asked what {self.house} stands for.",
+      "choices": {
+        "promise_the_commons": "Speak for the squares.",
+        "promise_the_old_blood": "Speak for order and the old families.",
+        "buy_the_hall": "Hire the hall, the wine and the band (8 credits).",
+        "stay_away": "Stay away and let the record speak."
+      }
+    },
+    {
+      "id": "the_consulship",
+      "title": "The Consulship",
+      "body": "The Senate has elected {self.name} consul. The lictors — such as the Reach has — fall in at the door; the clerk brings the seal; the parties that did not vote for {self.house} are already composing their objections.",
+      "choices": {
+        "a_programme": "Read a programme aloud (1 influence).",
+        "reward_the_party": "Spend the first session rewarding your voters.",
+        "a_quiet_term": "Take the chair quietly."
+      }
+    },
+    {
+      "id": "the_veto_falls",
+      "title": "The Veto Falls",
+      "body": "A consul has struck {self.house}'s motion from the docket before the vote. The clerk is apologetic; the consul is not. The chamber is watching to see how {self.name} takes it.",
+      "choices": {
+        "take_it_to_the_squares": "Read the vetoed motion in the squares.",
+        "wait_for_the_term": "Wait for the consul's term to end.",
+        "court_the_other_consul": "Dine with the other consul (1 influence)."
+      }
+    },
+    {
+      "id": "the_term_ends",
+      "title": "The Term Ends",
+      "body": "{self.house}'s consulship is over: the seal goes back to the clerk and the chair to whoever the parties have chosen. A consul who leaves well is remembered; one who leaves badly is remembered longer.",
+      "choices": {
+        "a_triumph_of_sorts": "A procession through the capital (5 credits).",
+        "back_to_the_benches": "Sit down among the benches.",
+        "keep_the_lictors": "Keep the lictors on, out of habit."
+      }
+    }
+  ]
+}

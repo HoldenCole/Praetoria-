@@ -1,0 +1,149 @@
+{
+  "//": "THE §8 CONTROLLED VOCABULARIES AS DATA (docs/PRAETORIA_VOCAB.md v1.1 — LOCKED). Nature traits constrain and bear stress; aptitude traits gate and flavour; ambitions drive NPC AI and personal-story events. Character creation offers exactly these; the Python pre-flight asserts this file matches the locked lists. Add a trait here AND in the vocab doc, then author content that reads it.",
+  "nature": [
+    {
+      "id": "Ambitious",
+      "name": "Ambitious",
+      "description": "Reaches always for the next rung; unlocks bold, self-advancing options."
+    },
+    {
+      "id": "Arrogant",
+      "name": "Arrogant",
+      "description": "Overrates self, underrates others; aggressive and contemptuous of rivals."
+    },
+    {
+      "id": "Cruel",
+      "name": "Cruel",
+      "description": "Inflicts more than the situation requires; comfortable with others' pain as a tool."
+    },
+    {
+      "id": "Honorable",
+      "name": "Honorable",
+      "description": "Keeps oaths and the rules of the game; breaking one spikes stress."
+    },
+    {
+      "id": "Just",
+      "name": "Just",
+      "description": "Weighs fairness over advantage; pays stress to do right when wrong would be easier."
+    },
+    {
+      "id": "Loyal",
+      "name": "Loyal",
+      "description": "Holds to people and bonds past self-interest; betrayal is near-unthinkable."
+    },
+    {
+      "id": "Proud",
+      "name": "Proud",
+      "description": "Will not be slighted; defends standing even at cost; struggles to yield or apologize."
+    },
+    {
+      "id": "Ruthless",
+      "name": "Ruthless",
+      "description": "Removes obstacles by any means; ends justify means without hesitation."
+    },
+    {
+      "id": "Vengeful",
+      "name": "Vengeful",
+      "description": "Remembers every wrong; carries grudges into debts that must be repaid."
+    }
+  ],
+  "aptitude": [
+    {
+      "id": "Administrator",
+      "name": "Administrator",
+      "description": "Delegation and institutional options; running things efficiently."
+    },
+    {
+      "id": "Brilliant",
+      "name": "Brilliant",
+      "description": "Insight options — study, invent, see what others miss."
+    },
+    {
+      "id": "Diplomat",
+      "name": "Diplomat",
+      "description": "Negotiation, alliance, de-escalation paths."
+    },
+    {
+      "id": "Duelist",
+      "name": "Duelist",
+      "description": "Personal-combat options; the blade as answer."
+    },
+    {
+      "id": "Greedy",
+      "name": "Greedy",
+      "description": "Tempting corrupt or profitable options others don't see, usually with a corruption cost."
+    },
+    {
+      "id": "Orator",
+      "name": "Orator",
+      "description": "Persuasion of crowds and chambers; winning on the popular, not the sound, argument."
+    },
+    {
+      "id": "Paranoid",
+      "name": "Paranoid",
+      "description": "Surveillance, distrust, watch-your-back options."
+    },
+    {
+      "id": "Quartermaster",
+      "name": "Quartermaster",
+      "description": "Supply, logistics, keeping a force fed and equipped."
+    },
+    {
+      "id": "Schemer",
+      "name": "Schemer",
+      "description": "Indirect, manipulative options; winning by arranging rather than confronting."
+    },
+    {
+      "id": "Strategist",
+      "name": "Strategist",
+      "description": "Large-scale planning; doing more with less."
+    },
+    {
+      "id": "Tactician",
+      "name": "Tactician",
+      "description": "Battlefield and immediate-engagement cleverness."
+    }
+  ],
+  "ambitions": [
+    {
+      "id": "amass_a_fortune",
+      "name": "Amass a Fortune",
+      "description": "Wealth above all — credits, holdings, leverage."
+    },
+    {
+      "id": "command_a_fleet",
+      "name": "Command a Fleet",
+      "description": "A fleet of their own to command — the military dream made concrete."
+    },
+    {
+      "id": "earn_a_command",
+      "name": "Earn a Command",
+      "description": "A real command of their own, won by merit."
+    },
+    {
+      "id": "master_the_senate",
+      "name": "Master the Senate",
+      "description": "Political dominance in the chambers of power."
+    },
+    {
+      "id": "outshine_all_rivals",
+      "name": "Outshine All Rivals",
+      "description": "Being recognized as the best, relative to peers."
+    },
+    {
+      "id": "restore_house_fortunes",
+      "name": "Restore the House",
+      "description": "Returning a fallen or diminished house to greatness."
+    },
+    {
+      "id": "seize_the_throne",
+      "name": "Seize the Throne",
+      "description": "Ultimate power — rule itself."
+    },
+    {
+      "id": "win_a_great_love",
+      "name": "Win a Great Love",
+      "description": "A personal, romantic, or familial bond above ambition."
+    }
+  ]
+}

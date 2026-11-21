@@ -1,0 +1,877 @@
+{
+"faces": {
+"faf00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
+"faf01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
+"faf02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
+"faf03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
+"fea00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
+"fea01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
+"fea02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
+"fea03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
+"fea04": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
+"fea05": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "female"
+},
+"fle00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
+"fle01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
+"fle02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
+"fle03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
+"fme00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
+"fme01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
+"fme02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
+"fno00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "female"
+},
+"fno01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "female"
+},
+"fno02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "female"
+},
+"fr00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
+"fr01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
+"fr02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
+"fr03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
+"fr04": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "female"
+},
+"fr05": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
+"fr06": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
+"fr07": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "female"
+},
+"fr08": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "female"
+},
+"fr09": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "female"
+},
+"fr10": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "female"
+},
+"fr11": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "female"
+},
+"fsa00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
+"fsa01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
+"fsa02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
+"fsa03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "female"
+},
+"fst00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "female"
+},
+"fst01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "female"
+},
+"fst02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "female"
+},
+"fst03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "female"
+},
+"maf00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"maf01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"maf02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"maf03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"maf04": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"mea00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
+"mea01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
+"mea02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
+"mea03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
+"mea04": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
+"mea05": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "east_asian",
+"sex": "male"
+},
+"mle00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
+"mle01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
+"mle02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
+"mle03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
+"mme00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "male"
+},
+"mme01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "male"
+},
+"mme02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "male"
+},
+"mno00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "male"
+},
+"mno01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "male"
+},
+"mr00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "male"
+},
+"mr01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "male"
+},
+"mr02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
+"mr03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "male"
+},
+"mr04": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "male"
+},
+"mr05": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "african",
+"sex": "male"
+},
+"mr06": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "male"
+},
+"mr07": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
+"mr08": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "northern",
+"sex": "male"
+},
+"mr09": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "levantine",
+"sex": "male"
+},
+"mr10": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
+"mr11": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "mediterranean",
+"sex": "male"
+},
+"msa00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
+"msa01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
+"msa02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
+"msa03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth",
+"child"
+],
+"ancestry": "south_asian",
+"sex": "male"
+},
+"mst00": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "male"
+},
+"mst01": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "male"
+},
+"mst02": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "male"
+},
+"mst03": {
+"ages": [
+"adult",
+"older",
+"elder",
+"youth"
+],
+"ancestry": "steppe",
+"sex": "male"
+}
+},
+"note": "AI-generated with an openly licensed model; see tools/art/portraits.py"
+}

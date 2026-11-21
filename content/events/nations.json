@@ -1,0 +1,2869 @@
+{
+  "//": "THE NATIONS BEYOND THE REACH (docs/FOREIGN_NATIONS.md): the Senate's war vote, the fleet's sailing, word of victory and defeat abroad, the broken expedition, the homecoming, the triumph, raids from beyond, the lost war, the tribute. Every one hangs on a one-turn flag the NationSystem raises.",
+  "events": [
+    {
+      "id": "the_war_beyond_the_reach",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "foreign_war_declared"
+        }
+      ],
+      "choices": [
+        {
+          "id": "raise_the_banner",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose in the chamber for the war beyond the Reach: the fleets would sail, and {self.house} would be seen to want it."
+            }
+          ]
+        },
+        {
+          "id": "count_the_cost",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked the chamber what the war would cost and who would pay. The exchanges took note; the officers did not forgive it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the war vote pass without a word. Others would own it, for good or ill."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_fleet_sails_beyond",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "fleet_sailed_abroad"
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_the_crews_forward",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the crews a season's wage before they sailed beyond the Reach. Four credits, and a fleet that sang on the way out."
+            }
+          ]
+        },
+        {
+          "id": "a_word_to_the_admiral",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw the admiral off with a public word about glory and the Reach. The chamber heard of it before the fleet cleared the lanes."
+            }
+          ]
+        },
+        {
+          "id": "watch_them_go",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} watched the fleet go from the harbour gallery and said nothing. There would be time for words when it came home — or did not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "word_of_a_victory_abroad",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "expedition_victory"
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_it_be_known",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the dispatch read in the chamber: a victory beyond the Reach under the colours of {self.house}. The benches stood for it."
+            }
+          ]
+        },
+        {
+          "id": "share_the_plunder",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent four credits of the plunder's promise to the squares at home. The commons drank the fleet's health and the house's."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_close",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read the dispatch alone and filed it. Victories abroad are followed by defeats; the house would not be seen to crow."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "word_of_a_defeat_abroad",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "expedition_defeat"
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_by_the_admiral",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood by the admiral in the chamber: the sea is wide and the enemy was at home. The officers remembered it; the benches thought it weak."
+            }
+          ]
+        },
+        {
+          "id": "relieve_the_admiral_in_words",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the chamber the defeat was a commander's failing, not the Reach's. The chamber liked it; the wardrooms did not."
+            }
+          ]
+        },
+        {
+          "id": "send_what_can_be_spared",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "materials",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent four materials' worth of stores after the beaten fleet, to patch what could be patched far from any yard."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_broken_expedition",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "expedition_lost"
+        }
+      ],
+      "choices": [
+        {
+          "id": "mourn_them",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went down to the harbour when the broken fleet was sighted and stood with the families. The squares saw it. The house slept badly for a season."
+            }
+          ]
+        },
+        {
+          "id": "blame_the_senate",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the chamber the fleet was sent too small and too far because the Senate would not pay. The officers agreed loudly; the chamber did not thank the house for it."
+            }
+          ]
+        },
+        {
+          "id": "rebuild_quietly",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put six credits toward new hulls before the broken fleet had made port, and said nothing about why."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_fleet_comes_home",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "expedition_returned"
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_parade",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the returning fleet a parade through the harbour town: five credits of bunting and wine, and a house the squares cheered for."
+            }
+          ]
+        },
+        {
+          "id": "pay_off_the_crews",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the crews off in full on the quay, six credits, before a single word was said about where they had been."
+            }
+          ]
+        },
+        {
+          "id": "back_to_stations",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} had the fleet back on station within the week. There would be another season."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_triumph",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "triumph"
+        }
+      ],
+      "choices": [
+        {
+          "id": "the_laurel",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the triumph as the Reach gives it: the laurel, the procession, the chamber on its feet. The house's name will be said with it for a generation."
+            }
+          ]
+        },
+        {
+          "id": "the_modest_general",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declined the procession and gave the laurel to the fleet. The old families approved of the modesty; the wardrooms approved of the gesture."
+            }
+          ]
+        },
+        {
+          "id": "a_share_of_the_tribute",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked the chamber for a share of the tribute as the price of the triumph, and got eight credits and a reputation for asking."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "raiders_from_beyond",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "raided_by_nation"
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_for_war",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:frontier",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood in the chamber with the raid's tally and called for war beyond the Reach. The frontier cheered; the benches shifted."
+            }
+          ]
+        },
+        {
+          "id": "arm_the_world",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "materials",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "materials",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:frontier",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent arms and a garrison's pay to the raided world. Four materials, three credits, and a town that will fight next time."
+            }
+          ]
+        },
+        {
+          "id": "bear_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} counted the raid's cost and bore it. The rim remembers who came and who did not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_war_abroad_is_lost",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "war_lost_abroad"
+        }
+      ],
+      "choices": [
+        {
+          "id": "blame_the_consuls",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} laid the lost war at the consuls' door in open chamber: too few hulls sent, too late. The chamber murmured assent; the officers heard themselves blamed too."
+            }
+          ]
+        },
+        {
+          "id": "call_for_the_fleet",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called for a real fleet of the Reach, paid for by the chamber, so the next war would not be lost. The officers stood; the exchanges did the sums."
+            }
+          ]
+        },
+        {
+          "id": "let_it_lie",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing of the lost war. Peace is peace, and the chair had paid for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_tribute_comes_in",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_subdued"
+        },
+        {
+          "type": "not",
+          "of": {
+            "type": "worldFlag",
+            "flag": "triumph"
+          }
+        }
+      ],
+      "choices": [
+        {
+          "id": "move_to_share_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "senate_influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} moved that the tribute be shared beyond the chair's coffers. The squares liked the idea; the chair did not."
+            }
+          ]
+        },
+        {
+          "id": "move_to_build_with_it",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:merchants",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} moved that the tribute lay down hulls and lanes. The wardrooms and the exchanges, for once, agreed."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} let the chair keep its tribute and its gratitude."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "met_at_the_march",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "raid_met_at_the_march",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_the_station",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the fleet on station at the march and sent the crews their pay early. The raiders had come expecting an open door. Word of what they found will cross the border faster than they did."
+            }
+          ]
+        },
+        {
+          "id": "make_it_known",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} saw to it that the Senate heard whose fleet had turned the raiders back at the march, and whose worlds had slept through it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The raiders came through the march and found {self.name}'s fleet there. They left. Nothing was said about it; it is what the fleet is there for."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_new_hand_beyond_the_rim",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_succession",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_an_envoy",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A nation beyond the rim has a new ruler. {self.name} sent an envoy with a gift and instructions to listen. A new ruler remembers who came first, and what they wanted."
+            }
+          ]
+        },
+        {
+          "id": "watch_the_march",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A nation beyond the rim has a new ruler. {self.name} had the captains at the march told to keep their watches doubled until it was clear what kind."
+            }
+          ]
+        },
+        {
+          "id": "let_it_pass",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A ruler beyond the rim is dead and another sits in the chair. {self.name} read the dispatch and turned to the next."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "their_commander_falls",
+      "tier": "setpiece",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_commander_fallen",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "honour_the_dead",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The commander of their fleets was killed in the rout. {self.name} had the body sent home across the border under a flag of truce, with its arms. It was noticed on both sides."
+            }
+          ]
+        },
+        {
+          "id": "take_the_name",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The commander of their fleets was killed in the rout, and {self.name} let the Reach know whose fleet had done it. A dead general with a name is worth more than a beaten fleet without one."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_host_is_through_the_march",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_host_sails",
+          "value": true
+        },
+        {
+          "type": "not",
+          "of": {
+            "type": "worldFlag",
+            "flag": "nation_host_sails:concord",
+            "value": true
+          }
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_word",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Word came that their host was through the march. {self.name} wrote that night to every house with a world near it, offering what was known of its numbers and its road. Some of them had not heard yet."
+            }
+          ]
+        },
+        {
+          "id": "see_to_our_own",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "Word came that their host was through the march. {self.name} looked to the house's own orbits first, and let the houses nearer the march look to theirs."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_world_of_the_reach_is_taken",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "reach_world_occupied",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_for_its_house",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A world of the Reach was in foreign hands, and its house was asking who would help. {self.name} said in the Senate that a world taken from one house was taken from all of them, and was remembered for saying it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A world of the Reach was in foreign hands. {self.name} said nothing in public. It was another house's world, and another house's garrison that had not been there."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "our_world_is_taken",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "our_world_occupied",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "appeal_to_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Their host took a world of the house's own. {self.name} stood in the Senate and asked the Reach to remember whose war this was. A world they hold is held until someone frees it or the peace is made."
+            }
+          ]
+        },
+        {
+          "id": "swear_to_take_it_back",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "Their host took a world of the house's own. {self.name} swore before the household that it would be taken back by the house's own fleet, and that nobody else would be asked."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_world_freed_for_us",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_freed_for_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_them_handsomely",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "Another house's fleet freed the world that had been taken, and it came home to the house. {self.name} sent the commander a gift and the thanks of the house, in public, where it would be heard."
+            }
+          ]
+        },
+        {
+          "id": "take_it_as_owed",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "Another house's fleet freed the world that had been taken, and it came home to the house. {self.name} took it as what one house of the Reach owes another, and said so. The other house had expected more."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "we_freed_a_world",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_freed_by_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "hand_it_back_with_grace",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet freed a world they had taken, and it went home to the house it was taken from. {self.name} asked nothing for it. A thing like that is repeated."
+            }
+          ]
+        },
+        {
+          "id": "ask_the_cost_of_the_fleet",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet freed a world they had taken, and it went home to the house it was taken from. {self.name} sent that house the bill for the fuel and the hulls. It was paid, without a word."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "their_host_is_beaten",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "host_beaten_by_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "give_the_crews_their_due",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet met their host and beat it. {self.name} paid the crews a bounty out of the house's own purse before the Senate had finished congratulating itself."
+            }
+          ]
+        },
+        {
+          "id": "let_the_reach_know",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet met their host and beat it. {self.name} saw to it that the Reach knew whose colours had been in front."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ceded_at_the_peace",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "reach_world_ceded",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_a_shame",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The peace was made, and a world of the Reach stayed in foreign hands. {self.name} called it a shame in the Senate, and named no one. Everyone knew who was meant."
+            }
+          ]
+        },
+        {
+          "id": "say_it_will_be_taken_back",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The peace was made, and a world of the Reach stayed in foreign hands. {self.name} said that a world ceded in one war is taken back in the next, and meant to be there for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_camps_are_restless",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steppe_world_restless:vashti",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "order_a_fleet_there",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The world the house holds beyond the march was restless: no fleet had stood over it. {self.name} gave orders for hulls to be sent. Three, at the least, or it would not hold."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go_if_it_goes",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The world the house holds beyond the march was restless: no fleet had stood over it. {self.name} would not tie a squadron to a camp on the grass. If it went, it went."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_camps_rise",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steppe_world_lost:vashti",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "shrug_it_off",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The world the house held beyond the march is theirs again. {self.name} said it had been easy to take and was never going to be easy to keep, and turned to other business."
+            }
+          ]
+        },
+        {
+          "id": "take_it_hard",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The world the house held beyond the march is theirs again. {self.name} took it hard, and the house's officers were asked, one after another, where the garrison had been."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "their_capital_falls",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_capital_taken",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "mark_the_day",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The world where their ruler sat was taken by a fleet of the Reach. {self.name} had the day marked in the house's own records, whoever's fleet it had been."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_comes_after",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The world where their ruler sat was taken by a fleet of the Reach. {self.name} asked in the Senate who would hold it, and with what, and for how long. Nobody had an answer ready."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_cities_are_hiring",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_hires:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_strike_now",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities were hiring: a hull a year into their harbours for as long as the war lasted. {self.name} said in the Senate that every year's delay was a ship the Reach would have to sink, and that the time to go was now."
+            }
+          ]
+        },
+        {
+          "id": "let_them_spend",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities were hiring: a hull a year into their harbours for as long as the war lasted. {self.name} thought sellswords fought like men who meant to be paid again, and let the Cities spend."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_cities_offer_a_ransom",
+      "tier": "setpiece",
+      "weight": 90,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "ransom_offered:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_money",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "ransom_answer_take",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities offered a price for the city the house held. {self.name} took it. A city on the Shore needs a squadron over it for ever; the money needs nothing."
+            }
+          ]
+        },
+        {
+          "id": "keep_the_city",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "ransom_answer_keep",
+              "value": true
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities offered a price for the city the house held. {self.name} sent the envoy home. What the house's fleet had taken, the house would keep, and the Cities could learn what that cost them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_city_is_bought_back",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "city_ransomed:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_their_way_of_war",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A city of the Shore that a house of the Reach had taken was bought back for coin, and the house was glad of it. {self.name} remarked that the Cities lost their wars the way they did everything else, at a price they had worked out beforehand."
+            }
+          ]
+        },
+        {
+          "id": "say_it_should_have_been_kept",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A city of the Shore that a house of the Reach had taken was bought back for coin. {self.name} said in the Senate that what the Reach's fleets take should stay taken, and that a house which sells its conquests has only hired itself out."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_cities_stop_paying",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "tribute_stopped:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "move_for_a_fleet_at_the_march",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities stopped paying. No fleet of the Reach had stood at their march in three years, and they had counted. {self.name} said the Reach had been taught the price of tribute: a squadron at Wintermoor, every year, for as long as it wanted the money."
+            }
+          ]
+        },
+        {
+          "id": "shrug",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Free Cities stopped paying. No fleet of the Reach had stood at their march in three years, and they had counted. {self.name} had never expected otherwise."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_plunder_of_a_city",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_plundered_by_us:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "share_it_with_the_crews",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took a city of the Shore, and what was in its counting-houses. {self.name} had a share paid out to every crew before the ships left orbit. They would follow that flag again."
+            }
+          ]
+        },
+        {
+          "id": "keep_it_for_the_house",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took a city of the Shore, and what was in its counting-houses. {self.name} had it all entered in the house's books, to the last strongbox. The crews noticed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_city_is_restless",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steppe_world_restless:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "order_a_squadron_there",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The city the house holds on the Shore was restless: no fleet had stood over it. {self.name} gave orders for a squadron. A city of merchants keeps faith with whoever is in its sky."
+            }
+          ]
+        },
+        {
+          "id": "let_it_be",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The city the house holds on the Shore was restless: no fleet had stood over it. {self.name} let it be. It would take the council years to find its courage, and the squadron was wanted elsewhere."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_city_shuts_its_gates",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "steppe_world_lost:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "shrug_it_off",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The city the house held on the Shore is the Cities' again. Its council voted, shut the harbour to the house's factors, and sent the garrison's pay home with them. {self.name} called it a fair account of a merchant's loyalty."
+            }
+          ]
+        },
+        {
+          "id": "take_it_hard",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The city the house held on the Shore is the Cities' again. {self.name} took it hard: six years, and nobody had thought to keep a squadron there."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_cities_buy_their_peace",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_bought_peace:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_good_business",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Senate had voted a war on the Free Cities and nobody had fought it. The Cities paid to be rid of it. {self.name} called it good business on both sides: the Reach had its money and had lost no ships getting it."
+            }
+          ]
+        },
+        {
+          "id": "call_it_a_war_unfought",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted a war on the Free Cities and nobody had fought it. The Cities paid to be rid of it. {self.name} said in the Senate that a Reach which votes a war and then sells it has taught its neighbours what its wars are worth."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_concord_crosses_the_gate",
+      "tier": "setpiece",
+      "weight": 80,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_strikes:concord",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_the_houses_to_the_east",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war on the Reach while the Reach was fighting itself. {self.name} stood in the Senate and said that whatever the houses owed each other could wait; what they owed the Valmont Anvils could not. Some of them listened."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_always_coming",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war on the Reach while the Reach was fighting itself. {self.name} had said for years that a council of admirals does not keep a fleet that size to look at, and took no pleasure in having been right."
+            }
+          ]
+        },
+        {
+          "id": "look_to_our_own_quarrel",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war on the Reach while the Reach was fighting itself. {self.name} had a quarrel nearer home, and left the east to the houses that live there."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_concord_comes_back",
+      "tier": "setpiece",
+      "weight": 80,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_comes_back:concord",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_hold_what_was_won",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war to take back a world it had lost. {self.name} said in the Senate that a world taken from the Concord was the only argument the Concord had ever answered, and that it should be held."
+            }
+          ]
+        },
+        {
+          "id": "say_it_was_never_worth_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Ardent Concord made war to take back a world it had lost. {self.name} said the house that took it had bought the whole Reach a war for one forge-world, and asked who had been consulted."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "two_fleets_through_the_marches",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_host_sails:concord",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_what_is_known",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Concord's divisions were through the Gate. They do not go home with one world: they stay, and take the next. {self.name} sent every house east of the core what was known of their numbers and their roads."
+            }
+          ]
+        },
+        {
+          "id": "keep_our_fleet_where_it_is",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The Concord's divisions were through the Gate. {self.name} kept the house's fleet where it was. A fleet that goes east alone meets two divisions, one after the other."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_isotope_fields",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_yields_to_us:compact",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "work_them_hard",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house held a world of the Outer Compact, and the fields under it. {self.name} had the refinery run in three shifts. Every arsenal in the Reach wants what comes out of that ground, and for as long as the house keeps a fleet over it, the house has it."
+            }
+          ]
+        },
+        {
+          "id": "leave_the_miners_their_ways",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house held a world of the Outer Compact, and the fields under it. {self.name} left the miners their own foremen and their own hours, and took what they dug. They had sworn an oath to each other, not to the house; it seemed wise not to test which they would keep."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_vaults_of_the_crown",
+      "tier": "setpiece",
+      "weight": 90,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "treasure_taken_by_us:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "bring_it_home_in_state",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took Porphyra and opened the vaults under the Purple Palace. {self.name} had the regalia of an empire carried through the capital on open decks, where every house could count it. Some of them counted it more than once."
+            }
+          ]
+        },
+        {
+          "id": "pay_the_fleet_first",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -20
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took Porphyra and opened the vaults under the Purple Palace. {self.name} paid every crew a year's wages out of the first strongroom before a single chest was carried aboard. They will not forget who took them there."
+            }
+          ]
+        },
+        {
+          "id": "say_little_and_bank_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet took Porphyra and opened the vaults under the Purple Palace. {self.name} said little, had it weighed, and banked it. A house that grows that rich that fast is watched; there was no need to help the watchers."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_crown_is_broken",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "treasure_taken:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "note_who_grew_rich",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Another house's fleet took Porphyra and came home with the treasury of an empire. {self.name} made a note of how much, and of what a house can do with that much, and with the name of having done it."
+            }
+          ]
+        },
+        {
+          "id": "salute_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "Another house's fleet took Porphyra and came home with the treasury of an empire. {self.name} sent congratulations, and meant most of them. It was the kind of thing a general's name is made of."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "another_hull_from_the_lists",
+      "tier": "ambient",
+      "weight": 25,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_decays:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "mark_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "Word came that the Hollow Crown had struck another ship from its lists: not lost, only unpaid for. {self.name} had the house's clerks keep the count. It goes one way."
+            }
+          ]
+        },
+        {
+          "id": "pity_them",
+          "effects": [
+            {
+              "type": "log",
+              "text": "Word came that the Hollow Crown had struck another ship from its lists: not lost, only unpaid for. {self.name} thought of a court still performing every ceremony of an empire, and found it hard to hate them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_last_of_the_crown",
+      "tier": "setpiece",
+      "weight": 70,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_fallen:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_an_age_is_over",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The last world of the Hollow Crown was taken, and there is no Autokrator. {self.name} said in the Senate that something older than the Reach had ended, and that the Reach should mark it, having ended it."
+            }
+          ]
+        },
+        {
+          "id": "ask_who_holds_its_worlds",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The last world of the Hollow Crown was taken, and there is no Autokrator. {self.name} asked the Senate which houses now held four worlds beyond the rim, by what right, and what the rest of the Reach was owed for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_long_dark",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "foreign_war:compact",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "foreign_war_declared",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_what_it_will_cost",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted a war on the Outer Compact. {self.name} told it what lay between: Sorrow, which nobody holds, and the Long Dark, which nobody can; a fleet that crosses both arrives hungry at worlds dug in to receive it. The Senate had not asked."
+            }
+          ]
+        },
+        {
+          "id": "say_the_fields_are_worth_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted a war on the Outer Compact. {self.name} said the isotopes under those four worlds would arm the Reach for a generation, and that distance was a reason to go properly, not a reason to stay."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_great_khan",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_raised:vashti",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "warn_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A Great Khan had been raised over the Vashti. {self.name} told the Senate what that meant: not a raid, the next time, but a host that would stay. Some of the benches listened."
+            }
+          ]
+        },
+        {
+          "id": "see_to_the_house",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A Great Khan had been raised over the Vashti. {self.name} said nothing in the Senate and had the house's own fleets counted. Whoever the host came for, it would not find this house asleep."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_great_khan_comes",
+      "tier": "situation",
+      "weight": 70,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_strikes:vashti",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_every_house",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Great Khan's host was through the march, and nobody had voted a war. {self.name} stood in the Senate and said that a war the Khan began was every house's to answer, and named the houses that had fleets and had not sent them."
+            }
+          ]
+        },
+        {
+          "id": "hold_what_is_ours",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Great Khan's host was through the march. {self.name} sent no speeches to the Senate: the house's fleets were ordered to its own worlds, and the Reach could look to the rest."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_great_khan_is_dead",
+      "tier": "ambient",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_dead:vashti",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "mark_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Great Khan was dead, and the khans who had ridden behind him were khans again, each with his own camp. {self.name} had it noted. What the host had taken it still held; but nobody was holding the host."
+            }
+          ]
+        },
+        {
+          "id": "give_thanks",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The Great Khan was dead. {self.name} slept better than in some years. They would raid again, and go home again, and that could be lived with."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_basileus",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_raised:hollow_crown",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "warn_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Hollow Crown had a ruler who meant to be an emperor. {self.name} told the Senate that an old empire with one good ruler is not an old empire for as long as the ruler lives."
+            }
+          ]
+        },
+        {
+          "id": "wait_him_out",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Hollow Crown had a ruler who meant to be an emperor. {self.name} judged that emperors die and debts do not, and advised nobody of anything."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_senate_votes_peace",
+      "tier": "setpiece",
+      "weight": 95,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "peace_awaits_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "come_home",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "peace_answer_obey",
+              "value": true
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted peace, and {self.name}'s fleets were beyond the rim with the war unfinished. The order went out to come home. The Senate cannot command a fleet; it was obeyed all the same."
+            }
+          ]
+        },
+        {
+          "id": "fight_on",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "peace_answer_defy",
+              "value": true
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted peace, and {self.name}'s fleets were beyond the rim with the war unfinished. The answer sent back was that the war was not finished. From that day it was the house's own war, against the Senate's word."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_general_does_not_listen",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "peace_defied",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_for_recall",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Senate had voted peace and a general had not come home. {self.name} said in the chamber what everyone was thinking: a fleet that does not answer the Senate answers to one man, and the Reach has seen where that road goes."
+            }
+          ]
+        },
+        {
+          "id": "let_him_win_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Senate had voted peace and a general had not come home. {self.name} said nothing against him. If he won, there would be plunder and a quiet border; if he lost, it would be his house that paid."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_house_makes_its_own_war",
+      "tier": "ambient",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "private_war",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_piracy",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A house of the Reach had made war beyond the rim with no vote of the Senate. {self.name} called it what it was: a raid for money under a house's colours, which the whole Reach would answer for if it went wrong."
+            }
+          ]
+        },
+        {
+          "id": "wish_them_luck",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A house of the Reach had made war beyond the rim with no vote of the Senate. {self.name} noted that the border has always been raided from both sides, and that the Senate has never yet stopped a raid by disapproving of it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_sack",
+      "tier": "ambient",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_sacked_by_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "share_it_out",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house's fleet had sacked a world beyond the rim and come away with what it could carry. {self.name} had a share of it given to the crews before the house's clerks had finished counting."
+            }
+          ]
+        },
+        {
+          "id": "bank_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The house's fleet had sacked a world beyond the rim and come away with what it could carry. {self.name} had it counted, and banked."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_client_of_the_reach",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_client",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "praise_the_settlement",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A nation beyond the rim had been beaten so thoroughly that it was left its own ruler and made a client. {self.name} said in the Senate that a neighbour who pays every year is worth more than a province that must be garrisoned every year."
+            }
+          ]
+        },
+        {
+          "id": "ask_whose_client",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A nation beyond the rim had been made a client of the Reach, and of the house whose fleets had beaten it. {self.name} asked the Senate which of the two it thought the client would remember when the envoys had gone home."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_client_breaks_away",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "client_breaks",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_for_the_fleets",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A client of the Reach had sent the envoys home and stopped paying. {self.name} told the Senate that a treaty nobody enforces is a letter, and moved that it be enforced."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A client of the Reach had sent the envoys home and stopped paying. {self.name} judged that it had paid for longer than anyone had expected, and that the next war could wait for a better reason."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_reach_pays_tribute",
+      "tier": "situation",
+      "weight": 55,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "reach_pays_tribute",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_it_what_it_is",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Reach had lost a war beyond the rim and was paying for it by the year. {self.name} had the sum read out in the Senate at the first session, and promised to have it read out at every session until the payments stopped or a fleet stopped them."
+            }
+          ]
+        },
+        {
+          "id": "pay_and_rebuild",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Reach had lost a war beyond the rim and was paying for it by the year. {self.name} said the money bought ten years, and that ten years was long enough to build the fleet that would not lose the next one."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_white_peace",
+      "tier": "ambient",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "white_peace",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "count_the_cost",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The war beyond the rim had ended with neither side ahead: a white peace. Every world went back to whoever had held it before. {self.name} had the house's clerks add up what the years had cost, and found nothing to set against it."
+            }
+          ]
+        },
+        {
+          "id": "be_glad_of_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The war beyond the rim had ended with neither side ahead: a white peace. Every world went back to whoever had held it before. {self.name} thought there were worse ways for a war to end, and most wars found them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_navarch_at_thessar",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_raised:thessar",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "warn_the_factors",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Free Cities had given one captain every hired hull and the title of Navarch. {self.name} warned the houses that trade with Thessar that a city which pays for a fleet means to use it, and that the bill would be sent to someone."
+            }
+          ]
+        },
+        {
+          "id": "doubt_it_lasts",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Free Cities had given one captain every hired hull and the title of Navarch. {self.name} doubted the Cities would pay a Navarch's wages for long, and said so."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_high_warden",
+      "tier": "situation",
+      "weight": 50,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "great_ruler_raised:compact",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "warn_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Outer Compact had chosen a High Warden, and the militia that never left home was being fitted out to. {self.name} told the Senate that the Long Dark is as wide for them as for us, and that they had decided to cross it."
+            }
+          ]
+        },
+        {
+          "id": "watch_sorrow",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The Outer Compact had chosen a High Warden. {self.name} sent no speech to the Senate, and a picket to Sorrow."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "terms_of_our_own",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "peace_negotiated_by_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "tell_the_senate",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house had made its own peace beyond the rim, on its own terms. {self.name} had the terms read to the Senate before anyone could ask what they were. The war had not been the Senate's, and neither was the treaty; but it is as well to be the one who tells them."
+            }
+          ]
+        },
+        {
+          "id": "tell_nobody",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The house had made its own peace beyond the rim, on its own terms. {self.name} told the Senate nothing. It had voted no war, and was owed no account of the peace."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

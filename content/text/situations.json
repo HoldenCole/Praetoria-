@@ -1,0 +1,256 @@
+{
+  "texts": [
+    {
+      "id": "the_motion_thrown_out",
+      "title": "The Motion Thrown Out",
+      "body": "{self.house}'s motion has been thrown out by the Senate. The clerk reads the tally without expression; the benches that beat it are already talking about something else. {self.name} has the evening to decide what kind of loser to be.",
+      "choices": {
+        "take_it_well": "Thank the chamber for its attention.",
+        "note_who_voted": "Write down every name that voted it down.",
+        "buy_the_house_a_round": "Stand the chamber a round (3 credits)."
+      }
+    },
+    {
+      "id": "the_act_falls",
+      "title": "The Act Falls",
+      "body": "An Act of the Senate has been thrown out, and the estates that wanted it are reading the tally in every square of {self.house}'s worlds. They will remember who spoke for it and who did not; they are less clear on what {self.name} did.",
+      "choices": {
+        "console_the_estates": "Tell the estates it will come again (1 influence).",
+        "let_it_lie": "Say nothing."
+      }
+    },
+    {
+      "id": "the_closed_exchanges",
+      "title": "The Closed Exchanges",
+      "body": "The Senate's embargo stands and the exchanges of the Reach are closed to {self.house}. The factors have stopped calling. A cousin with a ship and a rim port has started.",
+      "choices": {
+        "smuggle": "Run goods through a cousin's name.",
+        "petition_the_senate": "Ask the chamber how long, politely (1 influence).",
+        "ride_it_out": "Ride it out on stores and pride."
+      }
+    },
+    {
+      "id": "the_speakers_gavel",
+      "title": "The Speaker's Gavel",
+      "body": "The gavel is {self.name}'s this session and the docket is a list in {self.name}'s hand. Three houses have asked, with varying subtlety, where their business falls on it.",
+      "choices": {
+        "order_of_the_day": "Set the order of the day to suit the house (1 influence).",
+        "favour_a_friend": "Let a friend's motion jump the queue.",
+        "fair_dealing": "Run the docket in the order it came."
+      }
+    },
+    {
+      "id": "the_leaders_table",
+      "title": "The Leader's Table",
+      "body": "{self.house} leads a bench, and a bench wants leading. The members are at the door with grievances, requests, and a quarrel about who sits nearest the leader at the vote.",
+      "choices": {
+        "a_dinner": "Feed the bench at the house's table (4 credits).",
+        "the_whip": "Remind them, one by one, who leads.",
+        "let_them_talk": "Let them argue it out and take the sense of the room."
+      }
+    },
+    {
+      "id": "the_commons_feast",
+      "title": "The Commons' Feast",
+      "body": "The commons of {self.house}'s worlds are holding a feast in the house's honour and have sent up an invitation written in a careful hand. The old blood think the head of a house does not eat in the square.",
+      "choices": {
+        "attend": "Go down and eat what is put in front of you.",
+        "send_wine": "Send wine (3 credits).",
+        "stay_home": "Stay home. A {era:senator|lord} does not eat in the square."
+      }
+    },
+    {
+      "id": "the_officers_toast",
+      "title": "The Officers' Toast",
+      "body": "The officers of {self.house}'s fleet have asked {self.name} to the wardroom to drink the house's health. They will also, inevitably, mention hulls.",
+      "choices": {
+        "raise_the_cup": "Drink the toast standing.",
+        "promise_hulls": "Promise the wardroom new hulls, and mean it (5 credits).",
+        "decline": "Send regrets."
+      }
+    },
+    {
+      "id": "the_merchants_gift",
+      "title": "The Merchants' Gift",
+      "body": "The factors of {self.house}'s worlds have sent a purse and a letter. The letter is about gratitude. The purse is about six credits. Neither mentions what they will want later.",
+      "choices": {
+        "accept": "Accept the purse.",
+        "refuse": "Send it back unopened.",
+        "accept_and_declare": "Accept it and enter it in the public ledger (1 influence)."
+      }
+    },
+    {
+      "id": "the_old_bloods_invitation",
+      "title": "The Old Blood's Invitation",
+      "body": "The old families of {self.house}'s worlds have asked {self.name} to a dinner where the silver is older than the house. It is an honour. It is also, the commons will say, a side.",
+      "choices": {
+        "attend": "Dine with the old blood.",
+        "decline": "Decline."
+      }
+    },
+    {
+      "id": "the_press_gang",
+      "title": "The Press Gang",
+      "body": "Under {self.house}'s conscription law the levy sergeants have the right to take, and the harvest is in. The villages have sent word, carefully phrased, about who can be spared.",
+      "choices": {
+        "let_the_gang_work": "Let the gang take its quota.",
+        "exempt_the_harvest": "Exempt the harvest hands.",
+        "pay_bounties": "Pay bounties instead (4 credits)."
+      }
+    },
+    {
+      "id": "the_runaway",
+      "title": "The Runaway",
+      "body": "Under {self.house}'s bonded-labour law a dozen quarry hands have broken their bonds and gone into the hills. The quarry master wants riders. The villages want {self.name} to find something better to do.",
+      "choices": {
+        "hunt_them": "Send riders after them.",
+        "let_them_go": "Let them go.",
+        "free_them_publicly": "Free them in the square and say why."
+      }
+    },
+    {
+      "id": "the_barred_door",
+      "title": "The Barred Door",
+      "body": "{self.house} keeps closed doors, and a deputation of townsfolk has been standing at the barred door since dawn with a grievance about water rights. The steward asks whether the law has a side door.",
+      "choices": {
+        "hear_them_privately": "Hear them through the side door.",
+        "turn_them_away": "The doors are closed. Turn them away."
+      }
+    },
+    {
+      "id": "the_open_hall",
+      "title": "The Open Hall",
+      "body": "{self.house} keeps an open hall, and this morning it is full to the doors: a boundary, a dowry, a well, a dog. Every one of them wants {self.name} and no one else.",
+      "choices": {
+        "the_long_queue": "Sit until the last petitioner.",
+        "cut_it_short": "Close the hall at noon."
+      }
+    },
+    {
+      "id": "the_ballot_box",
+      "title": "The Ballot Box",
+      "body": "Under {self.house}'s open ballot a town has elected its council, and the wrong people have won. The returning officer is loyal and has asked, delicately, how loyal {self.name} wants him to be.",
+      "choices": {
+        "certify_the_result": "Certify the result as it fell.",
+        "lean_on_the_count": "Lean on the count."
+      }
+    },
+    {
+      "id": "the_iron_law_bites",
+      "title": "The Iron Law Bites",
+      "body": "Under {self.house}'s iron law three granary thieves have been sentenced to hang, and the sentence is {self.name}'s to confirm. The magistrates want consistency. The square wants mercy. Both are watching.",
+      "choices": {
+        "hang_them": "Let the law take its course.",
+        "commute": "Commute the sentence.",
+        "review_the_case": "Reopen the case and read the file (1 influence)."
+      }
+    },
+    {
+      "id": "the_marque_captains",
+      "title": "The Marque Captains",
+      "body": "The letters of marque {self.house} sanctions as chair have attracted the kind of captain who reads them loosely. One has taken a hull that was, by most accounts, friendly. The prize money is on the table.",
+      "choices": {
+        "take_your_cut": "Take the house's share.",
+        "hang_the_worst": "Hang the worst of them.",
+        "look_away": "Look away."
+      }
+    },
+    {
+      "id": "the_siege_bell",
+      "title": "The Siege Bell",
+      "body": "A world of {self.house}'s is under siege and the bell has not stopped since dawn. The garrison commander wants to sally; the steward wants the grain locked; the clerk wants a letter sent to the chair.",
+      "choices": {
+        "sally": "Sally from the walls.",
+        "hoard_the_grain": "Lock the granaries for the siege.",
+        "appeal_to_the_chair": "Send word to the chair, in the Senate's hearing (1 influence)."
+      }
+    },
+    {
+      "id": "after_the_raid",
+      "title": "After the Raid",
+      "body": "Raiders have plundered {self.house}'s shipping and the harbour is counting what is left. The harbour-master has three requests and the courtesy to make only one of them a demand.",
+      "choices": {
+        "rebuild": "Pay to rebuild what was burned (5 credits).",
+        "post_a_bounty": "Post a bounty on the raiders (4 credits).",
+        "let_it_lie": "Let it lie."
+      }
+    },
+    {
+      "id": "the_lost_province",
+      "title": "The Lost Province",
+      "body": "A world has risen and thrown off {self.house}'s banner. The news arrived with the governor, who arrived with very little else. The household is waiting to hear what the house means to do about it.",
+      "choices": {
+        "vow_reconquest": "Swear it will come back.",
+        "let_them_go": "Let them go.",
+        "blame_the_governor": "Lay it at the governor's door."
+      }
+    },
+    {
+      "id": "the_free_march",
+      "title": "The Free March",
+      "body": "{self.house} rides under the free march's banner — no {era:senator|lord} above it and every {era:senator|lord} against it. The disaffected of the old houses' worlds are drifting in. So are the old houses' letters.",
+      "choices": {
+        "recruit_the_disaffected": "Take in the disaffected.",
+        "court_the_court": "Send the chair compliments and ask nothing (1 influence).",
+        "hold_the_lanes": "Put the hulls on the lanes."
+      }
+    },
+    {
+      "id": "the_isotope_broker",
+      "title": "The Isotope Broker",
+      "body": "A broker has come for {self.house}'s isotopes with a purse and no questions about where they go. The fleet's magazines want them too, and the chair's arsenal pays less and asks more.",
+      "choices": {
+        "sell": "Sell to the broker, no questions.",
+        "refuse": "Keep them for the magazines.",
+        "sell_to_the_chair": "Sell to the chair's arsenal at the chair's price."
+      }
+    },
+    {
+      "id": "the_helium_glut",
+      "title": "The Helium Glut",
+      "body": "{self.house}'s tanks are full and the exchanges are paying less for helium-3 than they did last year. The steward wants to sell before it falls further; the admiral wants it kept; the officers would simply like some.",
+      "choices": {
+        "sell_cheap": "Sell four tanks into the glut.",
+        "stockpile": "Keep the tanks full.",
+        "gift_the_fleet": "Give three tanks to the fleet."
+      }
+    },
+    {
+      "id": "the_empty_hall",
+      "title": "The Empty Hall",
+      "body": "A house has passed out of the rolls of the Reach, and its retainers have come to {self.house}'s gate with a cart, a crest they no longer have the right to, and the house's archive in a chest.",
+      "choices": {
+        "take_them_in": "Take them in (2 credits).",
+        "take_the_archive": "Buy the archive from the last clerk.",
+        "turn_them_away": "Turn them from the gate."
+      }
+    },
+    {
+      "id": "the_portrait",
+      "title": "The Portrait",
+      "body": "A painter of some reputation has offered to take {self.name}'s likeness for the hall. Four credits and three afternoons. The hall, the painter observes, has a gap.",
+      "choices": {
+        "sit_for_it": "Sit for it (4 credits).",
+        "refuse": "Refuse. The gap can wait."
+      }
+    },
+    {
+      "id": "the_comet",
+      "title": "The Comet",
+      "body": "A comet hangs over {self.house}'s worlds and everyone has an opinion about what it means. The astronomers say nothing. The squares are waiting to be told.",
+      "choices": {
+        "proclaim_an_omen": "Proclaim it a sign of the house's favour (1 influence).",
+        "ignore_it": "Read nothing into it."
+      }
+    },
+    {
+      "id": "the_old_retainer",
+      "title": "The Old Retainer",
+      "body": "The steward's steward, who has served {self.house} since before {self.name} was born, has asked to be let go. He has a cottage in mind. He has also, he mentions, a friend at the capital who owes him a favour.",
+      "choices": {
+        "a_pension": "Pension him (3 credits).",
+        "a_last_task": "Give him one last task: the letter to the capital."
+      }
+    }
+  ]
+}

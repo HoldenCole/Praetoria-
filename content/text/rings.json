@@ -1,0 +1,179 @@
+{
+  "texts": [
+    {
+      "id": "raiders_on_the_lanes",
+      "title": "Raiders on the Lanes",
+      "body": "The lanes around the house's holdings have gone bad. Freighters arrive late, or light, or not at all, and the ones that do carry a polite note naming a price for the next run. No fleet has been seen in the region for a season. The raiders know it; so does everyone who ships through it.",
+      "choices": {
+        "pay_the_toll": "Pay the toll and call it a convoy fee.",
+        "arm_the_freighters": "Put guns on the freighters and veterans behind them.",
+        "hire_the_raiders": "Buy the raiders. Better they fly your colours than no one's."
+      }
+    },
+    {
+      "id": "a_world_in_revolt",
+      "title": "A World in Revolt",
+      "body": "A world of {self.house} has stopped paying. The governor's writ ends at the palace gate; beyond it the square is full every night and the tithe-houses are shuttered. The region has not loved the Core in years and does not love the house now. Nothing comes off that world until the rising ends — by gift, by steel, or by a fleet in orbit.",
+      "choices": {
+        "concede": "Go down to the square unguarded. Forgive the tithe. Make councillors of the ringleaders.",
+        "break_them": "Give the order. The square will be quiet by morning.",
+        "wait_for_the_fleet": "Send for the fleet and wait. A garrison ends a rising."
+      }
+    },
+    {
+      "id": "whispers_of_secession",
+      "title": "Whispers of Secession",
+      "body": "A delegation from the region's towns waits in the hall: merchants, a guild-master, two priests and a very old soldier. They have come to say what everyone already knows. The region holds {self.house} in a way it has never held the Core, and if the house were to declare a Free March tonight the squares would fill in its favour. The Core would not forget it. Neither would the region, either way.",
+      "choices": {
+        "declare_the_march": "Stand on the balcony and say the words.",
+        "stay_loyal": "Send them home with gifts and a refusal.",
+        "keep_them_guessing": "Promise the region everything and the Core nothing."
+      }
+    },
+    {
+      "id": "the_courts_favour",
+      "title": "{era:The Chair Receives|The Court Convenes}",
+      "body": "The capital is {self.house}'s, and the capital is where the Reach comes to be seen. Envoys, petitioners, cousins and creditors fill the marble halls, each with a request and a gift of carefully calculated size. {era:To hold open audience|To hold court} costs coin and buys influence. To close the doors keeps the coin and buys something else.",
+      "choices": {
+        "hold_court": "{era:Hold open audience.|Hold court.} Let them come and be heard.",
+        "close_the_doors": "Close the doors. Keep the coin."
+      }
+    },
+    {
+      "id": "the_rim_remembers",
+      "title": "The Rim Remembers",
+      "body": "The house's seat is on the Rim, where the lanes end and the law thins. Out here a {era:senator|lord} is a rumour unless they come in person, and a tithe is an insult unless it is collected by someone who has shared the hall's bread. The season is right for a ride along the frontier; the ledger says a steward would do.",
+      "choices": {
+        "ride_out": "Ride the frontier yourself. Sleep in their halls.",
+        "send_a_steward": "Send a steward with a ledger."
+      }
+    },
+    {
+      "id": "the_enemys_envoy",
+      "title": "The Enemy's Envoy",
+      "body": "An envoy from the house {self.house} is at war with waits in the antechamber under a flag of parley. The terms are in a sealed case; the smile is unsealed. To hear him is to admit the war could end on someone else's words; to refuse him is to say it will end on yours; and the man himself, it is whispered, has a price.",
+      "choices": {
+        "hear_terms": "Hear the terms. Send him back with wine and no answer.",
+        "send_him_back": "Read the terms aloud to the household, then burn them.",
+        "buy_him": "Buy the envoy. Have a friend at the enemy's table."
+      }
+    },
+    {
+      "id": "the_knife_traced_home",
+      "title": "The Knife Traced Home",
+      "body": "The assassin is dead and the household is counting its blessings, but the steward has done more than count. A seal on the hilt, a letter in a lining, a payment through a counting-house that keeps records: the knife has been traced to a house, and {self.name} now holds a proof that could be read aloud in the chamber, kept for a better day, or answered in the only language its senders respect.",
+      "choices": {
+        "name_them": "Lay the proof before the chamber and name them.",
+        "keep_the_proof": "Keep it. A proof is worth most on the day it is needed.",
+        "answer_in_kind": "Answer in kind."
+      }
+    },
+    {
+      "id": "the_coalition_gathers",
+      "title": "The Coalition Gathers",
+      "body": "The envoys of four houses have taken the same inn on the same world and are not pretending otherwise. The rise of {self.house} has frightened them into each other's company. {self.name} can break the seam before it sets, show them the fleet and let fear do the rest, or give them something large enough to send them home satisfied and the house diminished.",
+      "choices": {
+        "divide_them": "Find the weakest seam and pay for it.",
+        "show_strength": "Hold a fleet review within sight of their envoys.",
+        "bend": "Concede something they can see from orbit."
+      }
+    },
+    {
+      "id": "the_keys_of_the_capital",
+      "title": "The Keys of the Capital",
+      "body": "The capital is {self.house}'s. The marble is older than the title, the counting-houses older than the marble, and every house in the Reach is already composing the letter it will send. What {self.name} does in the first week will be the first thing anyone says about {era:the new holder of the chair|the new master of the court}.",
+      "choices": {
+        "open_court": "{era:Open the capital|Open the court} to every house that will come.",
+        "garrison_it": "Put the household troops on every gate first.",
+        "tax_it": "Levy the capital's tithe within the week."
+      }
+    },
+    {
+      "id": "the_capital_falls",
+      "title": "The Capital Falls",
+      "body": "The capital is lost. Whether by siege, by rising or by a treaty signed in a hurry, {era:the chair|the court} is someone else's now, and {self.house} is a house that used to hold it. There is a ship waiting, a treasury half-emptied, and a household watching {self.name} to learn how this is to be borne.",
+      "choices": {
+        "swear_to_return": "Swear, before the household, to see it again.",
+        "salvage_the_treasury": "Empty what can be emptied before the gates close.",
+        "leave_with_grace": "Hand over the keys in person and walk out the great doors."
+      }
+    },
+    {
+      "id": "the_free_hold_sends_word",
+      "title": "The Free Hold Sends Word",
+      "body": "A world that was {self.house}'s has sent an envoy: not a rebel's defiance but a free hold's terms. They will swear again, for a price that reflects how they were governed; or they will keep their militia drilling and their market open to anyone but you. The envoy is polite, unarmed, and entirely unafraid.",
+      "choices": {
+        "hear_their_price": "Receive the envoy as an equal and hear the price.",
+        "send_the_fleet": "Send them home with a date, and a fleet to follow it.",
+        "let_them_go": "Recognise the free hold and ask only for trade."
+      }
+    },
+    {
+      "id": "raiders_at_the_gate",
+      "title": "Raiders at the Gate",
+      "body": "The raiders have come within a lane of {self.house}'s worlds. Freighters are running dark, the orbital towns are asking for guns, and the squadron's captains are asking for orders. Raiders are not an enemy that can be made peace with; they can be fought, paid, or made someone else's problem.",
+      "choices": {
+        "sail_against_them": "Take the squadron out against them.",
+        "buy_them_off": "Pay them to work another house's lanes.",
+        "arm_the_towns": "Put guns on the orbital towns."
+      }
+    },
+    {
+      "id": "the_pirate_kings_offer",
+      "title": "The Pirate King's Offer",
+      "body": "A raider captain who calls himself a king has sent an envoy to {self.house}'s seat. The offer is the oldest on the rim: a tithe from his takings for a blind eye, a letter of marque if the house prefers to point him at an enemy, and a hanging if the house prefers to make an example. The envoy seems content with any of the three.",
+      "choices": {
+        "take_the_tithe": "Take the tithe and ask no questions.",
+        "hang_the_envoy": "Hang the envoy from the customs mast.",
+        "offer_a_letter_of_marque": "Give him a letter and a list of enemy lanes."
+      }
+    },
+    {
+      "id": "the_governors_petition",
+      "title": "The Governor's Petition",
+      "body": "A world of {self.house}'s is languishing, and its governor has written to say so: the markets are thin, the roads unmended, and a little coin from the house would go a long way. The letter is respectful. It is also, read a second time, a note of what the governor will say if nothing comes.",
+      "choices": {
+        "send_coin": "Send the coin and a kind letter.",
+        "send_a_steward": "Send a steward with authority to look at the books.",
+        "refuse": "Write that the house has its own debts."
+      }
+    },
+    {
+      "id": "the_governors_revolt",
+      "title": "The Governor's Revolt",
+      "body": "A governor of {self.house}'s has declared a world for themselves. The proclamation was read from the palace steps, the garrison swore to the new banner, and the house's tithe went into a treasury with another name on the door. Ambition, long nursed and poorly watched, has done what no enemy fleet managed.",
+      "choices": {
+        "swear_vengeance": "Swear before the household that the new house will not outlive the year.",
+        "name_the_price": "Send word the world can be bought back, and name a figure.",
+        "let_it_go": "Recognise the new house and ask only for the tithe owed to the day of the revolt."
+      }
+    },
+    {
+      "id": "the_fief",
+      "title": "{era:The Prefecture|The Fief}",
+      "body": "{era:The chair|The court} has {era:given|granted} {self.house} a world. It is the least of {era:the chair's|the court's} worlds and the whole of yours, and the ceremony requires {era:an oath|a knee}. The hall is full; every house that ever called {self.house} landless is watching to see how the knee is bent.",
+      "choices": {
+        "kneel_gladly": "{era:Swear gladly, and rise a Prefect.|Kneel gladly, and rise a baron.}",
+        "kneel_and_plan": "{era:Swear, and count the chair's guards while doing it.|Kneel, and count the court's guards while doing it.}"
+      }
+    },
+    {
+      "id": "the_terms_of_peace",
+      "title": "The Terms of Peace",
+      "body": "The war is over and the terms are signed: a world has changed hands, and it is now {self.house}'s. Its people did not ask for a new banner. Its governor is still the old {era:senator|lord}'s man. Its customs house has already written to ask whose tithe it collects this season.",
+      "choices": {
+        "garrison_the_prize": "Put a garrison on it before the ink dries.",
+        "leave_its_customs": "Leave it its customs and its governor, and tax it lightly."
+      }
+    },
+    {
+      "id": "the_ceded_world",
+      "title": "The Ceded World",
+      "body": "The war is over and the terms are signed: a world of {self.house}'s has gone to the victor. The chancellor presents the instrument for a seal. The household is watching to see what kind of {era:senator|lord} signs away a world.",
+      "choices": {
+        "swear_to_retake_it": "Sign, and swear in the same breath to unsign it.",
+        "bear_it": "Sign, and say nothing."
+      }
+    }
+  ]
+}

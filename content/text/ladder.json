@@ -1,0 +1,283 @@
+{
+  "texts": [
+    {
+      "id": "the_canvass",
+      "title": "The Canvass",
+      "body": "{self.name}'s name is down for the election, and now it must be carried round: to the houses, to the benches, to the men who are owed and the men who owe. A candidate who does not ask is assumed not to want it.",
+      "choices": {
+        "shake_every_hand": "Go to every door.",
+        "let_the_record_speak": "Let the record speak.",
+        "spend_a_little": "Spend a little where it will be remembered."
+      }
+    },
+    {
+      "id": "the_count_goes_your_way",
+      "title": "The Count Goes Your Way",
+      "body": "The tellers have finished. {self.name} is elected, and for five years will hold an office of the Reach in {self.name}'s own name and not the house's. It is one rung. There are others above it, and people already asking which {self.name} will want next.",
+      "choices": {
+        "thank_those_who_carried_it": "Thank those who carried it.",
+        "begin_the_work_at_once": "Begin the work at once.",
+        "mark_it_with_the_family": "Mark it with the family."
+      }
+    },
+    {
+      "id": "the_count_goes_against_you",
+      "title": "The Count Goes Against You",
+      "body": "The tellers have finished, and it is not {self.name}. The houses were asked and chose someone else. There will be another election in five years, and {self.name} will be five years older at it.",
+      "choices": {
+        "congratulate_the_winner": "Congratulate the winner.",
+        "learn_who_did_not_vote": "Learn who did not vote as they promised.",
+        "say_you_never_wanted_it": "Say you never much wanted it."
+      }
+    },
+    {
+      "id": "one_of_yours_is_elected",
+      "title": "One Of Yours Is Elected",
+      "body": "{kin.name} stood, on {kin.name}'s own decision, and the houses have chosen {kin.name}. For five years one of {self.name}'s own will sit as a magistrate of the Reach. {kin.name} did the asking, and {kin.name} won it.",
+      "choices": {
+        "be_seen_to_be_proud": "Be seen to be proud.",
+        "remind_them_whose_name_they_carry": "Remind them whose name they carry.",
+        "leave_it_theirs": "Leave it theirs."
+      }
+    },
+    {
+      "id": "the_aediles_games",
+      "title": "The Aedile's Games",
+      "body": "The city expects games of its aediles, and remembers for a generation which were good. {self.name} has the office, the season is coming, and the contractors are waiting to hear what kind of games these are to be.",
+      "choices": {
+        "something_the_city_has_not_seen": "Something the city has not seen.",
+        "the_old_shows_done_well": "The old shows, done well.",
+        "spend_it_on_the_drains": "Spend it on the drains instead."
+      }
+    },
+    {
+      "id": "the_one_you_did_not_speak_for",
+      "title": "The One You Did Not Speak For",
+      "body": "{kin.name} stood for office, and lost, and has come to say what the whole house already knows: that {self.name} did not go to one door for them. Others had their head at their shoulder all through the canvass. {kin.name} had a name on a list.",
+      "choices": {
+        "say_you_will_next_time": "Say you will speak for them next time, and mean it.",
+        "tell_them_an_office_is_earned": "Tell them an office is earned, not handed down.",
+        "make_it_up_to_them": "Make it up to them out of your own purse."
+      }
+    },
+    {
+      "id": "your_name_in_the_scandal",
+      "title": "Your Name in the Scandal",
+      "body": "It has come out. What {self.name} did in office has been followed back to its author, and the Senate has taken away what office there was to take. For five years {self.name} may not stand for anything. What remains is what is said about it.",
+      "choices": {
+        "say_nothing_and_wait": "Say nothing, and wait for it to pass.",
+        "pay_it_back_in_the_open": "Pay it back in the open.",
+        "say_they_all_do_it": "Say that they all do it."
+      }
+    },
+    {
+      "id": "one_of_yours_is_removed",
+      "title": "One of Yours Is Removed",
+      "body": "What {kin.name} did in office has come out, and the Senate has taken the office away. It was {kin.name}'s office and {kin.name}'s doing. It is the house's name in the mouths of the benches all the same.",
+      "choices": {
+        "stand_beside_them": "Stand beside them where it can be seen.",
+        "say_it_was_theirs_alone": "Say it was theirs alone, and that the house condemns it.",
+        "pay_it_back_for_them": "Pay it back for them, quietly."
+      }
+    },
+    {
+      "id": "the_court_finds_for_you",
+      "title": "The Court Finds for You",
+      "body": "The praetor has ruled, and the ruling is for the house. Damages have been paid over. It is a small sum and a larger satisfaction, and the other house will remember who sat on the bench.",
+      "choices": {
+        "take_it_gracefully": "Take it gracefully.",
+        "let_them_hear_about_it": "Let them hear about it."
+      }
+    },
+    {
+      "id": "the_court_finds_against_you",
+      "title": "The Court Finds Against You",
+      "body": "The praetor has ruled against the house, and damages have been paid out of the treasury. Whether the law was read straight or bent is a thing the house may have its own opinion about. The ruling stands either way.",
+      "choices": {
+        "pay_and_say_nothing": "Pay, and say nothing.",
+        "say_the_bench_was_bought": "Say in the Senate that the bench was bought.",
+        "remember_it": "Remember it."
+      }
+    },
+    {
+      "id": "the_audit_names_a_name",
+      "title": "The Audit Names a Name",
+      "body": "{self.name} read the year's accounts through, which few senators do, and followed a sum that should not have moved to the magistrate who moved it. The magistrate is out of office. What {self.name} does with having been the one who found it is another matter.",
+      "choices": {
+        "say_it_was_only_the_accounts": "Say it was only the accounts, and that anyone could have read them.",
+        "make_a_speech_of_it": "Make a speech of it.",
+        "let_it_be_known_what_else_you_read": "Let it be known, privately, what else you read."
+      }
+    },
+    {
+      "id": "the_appeal_goes_your_way",
+      "title": "The Appeal Goes Your Way",
+      "body": "A praetor ruled against the house last year, and against the law as it is written. A justice has now struck the ruling from the rolls and the money has come back, with as much again. It is seldom that the courts mend what the courts have broken.",
+      "choices": {
+        "thank_the_justice_in_public": "Thank the justice in public.",
+        "say_it_should_never_have_been_needed": "Say it should never have been needed.",
+        "take_the_money_and_let_it_lie": "Take the money and let it lie."
+      }
+    },
+    {
+      "id": "not_seen_in_the_senate",
+      "title": "Not Seen in the Senate",
+      "body": "It has been three years since {self.name} did anything with the house's seat but hold it. The benches have noticed. A seat is a thing a house is given to use, and one that is never used begins to look like one that could be given to somebody else.",
+      "choices": {
+        "go_back_and_be_seen": "Go back, and be seen there.",
+        "say_the_house_has_had_other_work": "Say the house has had other work.",
+        "let_them_talk": "Let them talk."
+      }
+    },
+    {
+      "id": "the_levy_is_forgiven",
+      "title": "The Levy Is Forgiven",
+      "body": "The Treasurer of the Reach has forgiven the house's own region its levy for the year. Nobody asked the house. It is the Treasurer who will be thanked for it in the region's squares, unless somebody else is seen to have had a hand in it.",
+      "choices": {
+        "thank_the_treasurer": "Thank the Treasurer, and mean it.",
+        "let_it_be_thought_your_doing": "Let it be thought your doing.",
+        "say_it_was_owed": "Say it was no more than was owed."
+      }
+    },
+    {
+      "id": "no_day_in_the_senate",
+      "title": "No Day in the Senate",
+      "body": "The Speaker has drawn up the year's order of business, and the house's is not on it. Nothing has been refused. It has simply not been reached, and will not be. The Speaker is no friend of the house and has found the cheapest way to say so.",
+      "choices": {
+        "say_so_from_the_floor": "Say so from the floor, on somebody else's motion.",
+        "wait_out_the_year": "Wait out the year.",
+        "send_a_gift_to_the_speaker": "Send the Speaker a gift."
+      }
+    },
+    {
+      "id": "the_returns_are_reopened",
+      "title": "The Returns Are Reopened",
+      "body": "The year's returns that crossed {self.name}'s desk have been gone through again by somebody with no reason to be kind, and a share of them is found to have stopped there. {self.name} has been broken a grade. The rank can be won back. What is said in the meantime is another matter.",
+      "choices": {
+        "take_the_grade_and_work_it_back": "Take the grade, and work it back.",
+        "pay_back_what_was_kept": "Pay back what was kept.",
+        "say_the_figures_were_always_soft": "Say the figures were always soft."
+      }
+    },
+    {
+      "id": "the_squares_turn_on_the_magistrates",
+      "title": "The Squares Turn on the Magistrates",
+      "body": "It is no longer whispered. In the markets and on the docks it is said in a plain voice that a ruling of the Reach is a thing with a price, and that the price is known. Nobody much cares which magistrate. They are all spoken of together now, and so are the houses that sent them.",
+      "choices": {
+        "call_for_the_accounts_to_be_opened": "Call, in the Senate, for every magistrate's accounts to be opened.",
+        "say_your_house_has_nothing_to_hide": "Say only that your own house has nothing to hide.",
+        "keep_out_of_the_weather": "Keep out of the weather until it passes."
+      }
+    },
+    {
+      "id": "the_magistrates_are_believed_again",
+      "title": "The Magistrates Are Believed Again",
+      "body": "It took years. A ruling is once again a thing people expect to be able to read without asking who paid for it. Nobody announced the change. It is only that the jokes have stopped, and that a magistrate crossing the square is no longer watched by everyone who has ever lost a case.",
+      "choices": {
+        "say_it_was_the_work_of_many": "Say it was the work of a good many honest people.",
+        "remind_them_who_stood_where": "Remind the Senate who stood where when it was otherwise.",
+        "let_it_pass_unremarked": "Let it pass unremarked."
+      }
+    },
+    {
+      "id": "the_padded_account",
+      "title": "The Padded Account",
+      "body": "Somebody above {self.name} has read the ledgers after all. One account does not come out, and the difference is three credits, and the hand is {self.name}'s. It is a small sum and an old trick. It has been written against {self.name}'s name where such things are written, and the senior clerk is waiting to hear what {self.name} has to say.",
+      "choices": {
+        "own_it_and_put_it_right": "Own it, and put it right.",
+        "say_it_was_a_slip_of_the_pen": "Say it was a slip of the pen.",
+        "take_the_reprimand_in_silence": "Take the reprimand in silence."
+      }
+    },
+    {
+      "id": "one_of_yours_is_spoken_for",
+      "title": "One of Yours Is Spoken For",
+      "body": "{kin.name} has gone up a step in the service sooner than their years would have taken them. Somebody above them, who has watched their work for some time and owes this house nothing, said a word in the right room. Nobody asked the head of the house.",
+      "choices": {
+        "say_they_earned_it": "Tell them they earned it.",
+        "write_to_the_one_who_spoke": "Write to the one who spoke for them.",
+        "let_it_pass": "Let it pass. It is the service's business."
+      }
+    },
+    {
+      "id": "the_charge_is_proved",
+      "title": "The Charge Is Proved",
+      "body": "The praetor read the record back to the court, which took some time, and found it proved. A man who sat in an office of the Reach and took money in it may not stand for anything for five years, and his house has paid. It was {self.name}'s house that brought the charge, and the Reach knows it.",
+      "choices": {
+        "say_it_was_the_law": "Say it was the law, and nothing more.",
+        "press_the_advantage": "Let it be known there are other names on the record.",
+        "offer_the_family_a_way_back": "Send a private word to the family."
+      }
+    },
+    {
+      "id": "the_court_lets_them_go",
+      "title": "The Court Lets Them Go",
+      "body": "The house brought its charge and the praetor heard it out and let the accused go. The record says what it said before. The court says something else. {self.name} is left holding a case that will not be heard again, and the man it was against is dining out on it.",
+      "choices": {
+        "accept_the_verdict": "Accept the verdict in public.",
+        "say_what_the_court_was_worth": "Say what that court's verdict is worth.",
+        "keep_the_papers": "Have the papers kept."
+      }
+    },
+    {
+      "id": "the_praetor_is_not_for_sale",
+      "title": "The Praetor Is Not for Sale",
+      "body": "The offer was put with every delicacy and nothing in writing. The praetor heard it through, and the next morning repeated it from the bench, with the sum, and the name of the house that had named it. Nothing changed hands. The whole of the capital has now heard what {self.name} thought a judgment would cost.",
+      "choices": {
+        "deny_it": "Deny it flatly.",
+        "say_it_was_a_test": "Let it be said that it was a test of the bench.",
+        "own_it_and_be_done": "Own it, and say no more."
+      }
+    },
+    {
+      "id": "the_chair_of_the_committee",
+      "title": "The Chair of the Committee",
+      "body": "After enough years of turning up, reading the papers and being right about small things, {self.name} has the chair. Nothing in the law gives a committee's chair any power at all. The chair decides what is discussed, in what order, and when the sitting ends.",
+      "choices": {
+        "run_it_by_the_book": "Run it by its own rules.",
+        "use_it": "Use it.",
+        "share_the_work": "Share out the work, and keep the last word."
+      }
+    },
+    {
+      "id": "my_motion_held_over",
+      "title": "Not Reached",
+      "body": "The house's motion was on the order paper and the Senate did not come to it. The Speaker has held it over: it will be voted next year, and cannot be put off a second time. Nothing has been refused. A year has been taken, by somebody who had the right to take it and a reason to.",
+      "choices": {
+        "protest_from_the_floor": "Ask the Speaker, from the floor, when it will be reached.",
+        "use_the_year": "Use the year to whip it.",
+        "let_it_be_known": "Let it be known in the squares."
+      }
+    },
+    {
+      "id": "one_of_yours_is_taken_up",
+      "title": "One of Yours Is Taken Up",
+      "body": "{kin.name} has a patron. A senior in the service has had three years' work of them, found nothing to fault, and taken them up: from now on they are that senior's, wherever either is posted, and when the patron rises they will be taken along. It was {kin.name}'s own doing. Nobody asked the house.",
+      "choices": {
+        "be_glad_of_it": "Tell them it was well done.",
+        "warn_them_whose_they_are": "Remind them whose name they carry.",
+        "send_the_patron_a_gift": "Send the patron something."
+      }
+    },
+    {
+      "id": "one_of_yours_falls_out",
+      "title": "One of Yours Falls Out",
+      "body": "{kin.name} and the senior above them are no longer speaking. Whatever had been built there, the years of work that had been seen and remembered, counts for nothing now, and that senior will not be over them again. If there was a patron, there is not one any more.",
+      "choices": {
+        "hear_their_side": "Hear their side of it.",
+        "tell_them_to_mend_it": "Tell them to go back and mend it.",
+        "speak_to_someone_else_for_them": "Speak to somebody else for them."
+      }
+    },
+    {
+      "id": "one_of_yours_is_taken_along",
+      "title": "One of Yours Is Taken Along",
+      "body": "{kin.name}'s patron has risen, and has taken {kin.name} along to the new post. It is a place nearer to where things are decided, it pays a little, and there is more to learn there than where they were.",
+      "choices": {
+        "see_them_off": "See them off.",
+        "ask_what_they_hear": "Ask them to write home about what they hear.",
+        "let_them_go_their_way": "Let them go their own way."
+      }
+    }
+  ]
+}

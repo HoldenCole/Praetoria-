@@ -1,0 +1,61 @@
+{
+  "texts": [
+    {
+      "id": "the_hold_is_shaken",
+      "title": "The Hold Is Shaken",
+      "body": "Your hold on the throne is not what it was. Nothing has happened yet. But the houses can count as well as you can: standing, hulls, the capital, the years. When the count has been low for two years running, someone of rank who has no love for you will raise a standard.",
+      "choices": {
+        "show_the_fleet": "Pass the fleet in review above the capital.",
+        "open_the_treasury": "Open the treasury.",
+        "carry_on": "Carry on."
+      }
+    },
+    {
+      "id": "a_standard_is_raised",
+      "title": "A Standard Is Raised",
+      "body": "{pretender.name} of {pretender.house} has raised a standard against the throne. It is a war for the throne itself, and it does not end in a treaty: one of them sits there at the end of it. Some houses have gone over already and some have sent their oaths to the capital. Yours has done neither yet.",
+      "choices": {
+        "go_over": "Go over to {pretender.name}.",
+        "stand_by_the_throne": "Stand by the throne.",
+        "stand_aside": "Stand aside."
+      }
+    },
+    {
+      "id": "a_standard_against_you",
+      "title": "A Standard Against You",
+      "body": "{pretender.name} of {pretender.house} has raised a standard against your throne. To take it they must be winning the war, outmatch your fleet, and bring ships to the capital. If the war goes against them, or their fleet is spent, or eight years pass, they are broken, and you are the firmer for it.",
+      "choices": {
+        "call_the_houses": "Call the houses to renew their oaths.",
+        "name_them_traitor": "Proclaim them a traitor.",
+        "say_nothing": "Answer with fleets only."
+      }
+    },
+    {
+      "id": "the_pretender_is_broken",
+      "title": "The Pretender Is Broken",
+      "body": "The rising of {broken.name} of {broken.house} is over. The house has lost standing and whatever claim it had, those who went over with it are remembered at the capital, and the throne holds.",
+      "choices": {
+        "be_seen_to_be_glad": "Be seen to be glad of it.",
+        "say_little": "Say little."
+      }
+    },
+    {
+      "id": "a_new_house_on_the_throne",
+      "title": "A New House on the Throne",
+      "body": "The throne has changed houses. The old house is cast down a rung, keeps its worlds and a claim, and is still there. The new one took the throne by force, is new to it, and knows exactly how that is done.",
+      "choices": {
+        "send_the_oath_early": "Send your oath before it is asked for.",
+        "wait_and_see": "Wait and see."
+      }
+    },
+    {
+      "id": "cast_down",
+      "title": "Cast Down",
+      "body": "The throne is another house's. Yours has dropped a rung and keeps what it held before, and one thing more: a claim. A house with a claim may raise its own standard one day, whatever its rank, when the hold of whoever sits there is weak.",
+      "choices": {
+        "go_home": "Go home, and keep the claim.",
+        "swear_to_return": "Say that the house will be back."
+      }
+    }
+  ]
+}

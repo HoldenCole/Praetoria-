@@ -1,0 +1,27 @@
+{
+  // FAVOURS FOR COIN (GDD §17 conversion chains). Goods are bought and sold on the commodity market now (content/market/goods.json;
+  // docs/ECONOMY_MARKET.md); what is left here is the one thing no market prices: influence. A house with a market-type holding can convert resources at these
+  // rates through the Exchange command: `give` units of the first resource buy `get` units of the second. Rates are
+  // deliberately lossy and asymmetric (variable emphasis): coin buys materials dearly; influence is the hardest to
+  // acquire and the easiest to spend. `requiresBuilding` lists buildings any of which open the exchange.
+  "exchange": {
+    "requiresBuilding": ["market", "free_port", "patronage_office"],
+    "rates": [
+      { "give": "credits",   "get": "influence", "giveAmount": 6, "getAmount": 1 },
+      { "give": "influence", "get": "credits",   "giveAmount": 1, "getAmount": 4 }
+    ]
+  },
+
+  // TAX POLICY (GDD §17 Steward decisions as a standing posture, not just events). creditsBonus is added to each
+  // holding's net credits a turn; unrestDrift is applied to each populated holding a turn, on top of the solvent decay
+  // of −3 — so the harsh tithe nets +2 unrest a turn even on a calm world, and the lenient one calms twice as fast.
+  "taxPolicies": [
+    { "id": "lenient", "name": "Lenient tithe", "creditsBonus": -1, "unrestDrift": -2, "legitimacyPerTurn": 0 },
+    { "id": "normal",  "name": "Customary tithe", "creditsBonus": 0,  "unrestDrift": 0,  "legitimacyPerTurn": 0 },
+    { "id": "harsh",   "name": "Harsh tithe",   "creditsBonus": 2,  "unrestDrift": 5,  "legitimacyPerTurn": 0 }
+  ],
+
+  // TERRITORY (GDD §19 "territory matters"): each holding earns `contiguityBonus` credits a turn per neighbouring
+  // system the same house holds — a compact realm is richer than a scattered one.
+  "contiguityBonus": 1
+}

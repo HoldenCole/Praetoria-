@@ -1,0 +1,629 @@
+{
+  "//": "THE INSTITUTE REMEMBERED (docs/ACADEMY.md, 'What is remembered'). Later-life events that read what AcademySystem.Remember wrote at passing out: primus and first_of_the_year (the_year_sends_for_its_first), lost_the_banner_to_you on a classmate (the_banner_you_took), won_the_institute on the player and a classmate (the_ranks_that_won), second_of_the_year on a classmate (second_of_the_year), primus on a classmate (the_captain_calls_the_year), passed_out_low (where_you_passed_out). Each bumps the institute_recalled counter.",
+  "events": [
+    {
+      "id": "the_year_sends_for_its_first",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": false,
+      "roles": [],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "charFlag",
+              "role": "self",
+              "flag": "primus",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "self",
+              "flag": "first_of_the_year",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_and_speak",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went back and stood where the instructors stand, and told a year of sixteen-year-olds what the place had been. They listened as one listens to a name already on the wall."
+            }
+          ]
+        },
+        {
+          "id": "send_a_letter",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the new year a letter to be read at muster. It was read, and pinned up, and by the second term it had been written over."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent word that the year was a long time ago. The instructors asked the cadet who came second."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_banner_you_took",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "fallen",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "fallen",
+              "flag": "lost_the_banner_to_you",
+              "value": true
+            },
+            {
+              "type": "cohort",
+              "role": "fallen",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "won_the_institute",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 5
+        }
+      ],
+      "choices": [
+        {
+          "id": "offer_a_hand",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "fallen",
+              "to": "self",
+              "delta": 14
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "fallen",
+              "flag": "lost_the_banner_to_you",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said to {fallen.name} of {fallen.house}, before others, that the banner had been well kept and hard to take. It cost a little. {fallen.name} had waited years to hear it from that mouth."
+            }
+          ]
+        },
+        {
+          "id": "remind_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "fallen",
+              "to": "self",
+              "delta": -12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "fallen",
+              "flag": "lost_the_banner_to_you",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be remembered, in company, whose Standard had taken whose. The room laughed. {fallen.name} of {fallen.house} did not, and will not."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "fallen",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {fallen.name} of {fallen.house} met as people meet who were cadets together, and neither spoke of the night the banner came down. It was in the room all the same."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_ranks_that_won",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "comrade",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "comrade",
+              "flag": "won_the_institute",
+              "value": true
+            },
+            {
+              "type": "cohort",
+              "role": "comrade",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "won_the_institute",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 7
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_by_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{comrade.name} of {comrade.house} came to {self.name} in a bad year and asked for nothing by name. {self.name} gave what was needed. They had held the last banner together, and that is a kind of kinship."
+            }
+          ]
+        },
+        {
+          "id": "call_on_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "comrade",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} reminded {comrade.name} of {comrade.house} who had stood beside whom when the last banner was held, and asked for a thing in return. It was given, and counted."
+            }
+          ]
+        },
+        {
+          "id": "let_the_year_lie",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} heard that {comrade.name} of {comrade.house} was in difficulty, and remembered the Institute, and did nothing in particular."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "second_of_the_year",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "second",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "second",
+              "flag": "second_of_the_year",
+              "value": true
+            },
+            {
+              "type": "cohort",
+              "role": "second",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "first_of_the_year",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "give_them_their_due",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "second",
+              "flag": "second_of_the_year",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said, where it would be repeated, that the board could as well have put {second.name} of {second.house} first. {second.name} has spent years proving exactly that, and was disarmed to hear it agreed."
+            }
+          ]
+        },
+        {
+          "id": "stay_first",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "second",
+              "flag": "second_of_the_year",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{second.name} of {second.house} has measured every year since against {self.name}'s. {self.name} made sure the measure still came out the same way."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_captain_calls_the_year",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "captain",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "captain",
+              "flag": "primus",
+              "value": true
+            },
+            {
+              "type": "cohort",
+              "role": "captain",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "primus",
+          "value": false
+        },
+        {
+          "type": "worldFlag",
+          "flag": "academy_graduated",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "answer",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "captain",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{captain.name} of {captain.house}, who held the last banner, sent round to the year for support, as one who expects it. {self.name} gave it. The year is still, in some sense, {captain.name}'s."
+            }
+          ]
+        },
+        {
+          "id": "refuse",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "captain",
+              "to": "self",
+              "delta": -12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{captain.name} of {captain.house} sent round to the year as its captain. {self.name} answered that the Institute ended when they passed out of it. Not everyone in the year thought that well said."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "where_you_passed_out",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "roles": [
+        {
+          "name": "senior",
+          "when": [
+            {
+              "type": "rank",
+              "role": "senior",
+              "op": "gt",
+              "vsRole": "self"
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "passed_out_low",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "prove_them_wrong",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "standing",
+              "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "passed_out_low",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "senior",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "institute_recalled",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{senior.name} of {senior.house} looked up {self.name}'s place in the order of merit and said so. {self.name} spent the year making the figure look like a clerk's mistake. Nobody mentions it now."
+            }
+          ]
+        },
+        {
+          "id": "laugh",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "senior",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{senior.name} of {senior.house} had {self.name}'s place in the order of merit by heart. {self.name} agreed it was a poor year for the board's judgement, and the joke did for the moment."
+            }
+          ]
+        },
+        {
+          "id": "resent_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "senior",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{senior.name} of {senior.house} brought up where {self.name} had passed out. {self.name} did not forget who had brought it up."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

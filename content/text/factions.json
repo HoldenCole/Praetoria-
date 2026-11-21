@@ -1,0 +1,19 @@
+{
+  "texts": [
+    { "id": "an_invitation_to_the_benches", "title": "An Invitation to the Benches",
+      "body": "{whip.name} of {whip.house} asks {self.name} to dinner, and over the second course asks whether {self.house} has considered sitting with a bench. There are benches now in the Senate — houses that vote together and are counted together. A house alone has a vote. A bench has a say.",
+      "choices": { "hear_them_out": "Hear them out. A bench is a thing to be courted by.", "my_vote_is_my_own": "My vote is my own. The chamber likes an independent." } },
+    { "id": "the_bench_forms", "title": "A Bench Takes Shape",
+      "body": "The Senate's clerks have a new name on their rolls, and {self.house} is on it: a bench of houses that have voted together often enough to be counted as one. It has a leader, a record to make, and a whip that will expect {self.name}'s vote.",
+      "choices": { "a_dinner_for_the_bench": "Give the bench a dinner. Five credits.", "set_the_terms": "Stand up and say what the bench is for. Oratory." } },
+    { "id": "the_whips_displeasure", "title": "The Whip's Displeasure",
+      "body": "{self.house} voted against its bench. The leader's note is short and the leader's regard is shorter. The bench will remember it at the next count.",
+      "choices": { "apologise": "Apologise for the vote. One influence, a little pride.", "stand_by_it": "Stand by it to the bench's face. Proud.", "say_nothing": "Say nothing. Let them decide what the silence means." } },
+    { "id": "the_bench_breaks", "title": "The Bench Breaks",
+      "body": "The bench {self.house} sat with is no more — its houses have drifted, quarrelled or been counted on the other side too often. {self.name} sits alone again in a chamber that remembers who sat where.",
+      "choices": { "gather_the_remnant": "Gather what is left and keep them talking (1 influence).", "sit_apart": "Sit apart. Independence has a dignity." } },
+    { "id": "across_the_aisle", "title": "Across the Aisle",
+      "body": "A motion against {self.house} stands on the docket, and it was moved by the leader of a bench: the whole bench will vote as its leader does. The arithmetic is against {self.name} unless something changes before the session.",
+      "choices": { "offer_a_deal": "Cross the aisle with an offer (2 influence).", "split_the_bench": "Find the bench's weakest member and what they want. Intrigue, 1 agent.", "face_them": "Face the bench in open session." } }
+  ]
+}

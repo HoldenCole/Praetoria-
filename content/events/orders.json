@@ -1,0 +1,949 @@
+{
+  "events": [
+    {
+      "id": "a_seat_by_the_purse",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "seat_bought"
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_seat_quietly",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} was enrolled by the census and took a seat on the back benches without a word. The old names looked at the ceiling. The clerk wrote the name in the roll all the same."
+            }
+          ]
+        },
+        {
+          "id": "give_a_dinner_for_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} marked the enrolment with a dinner the capital talked about for a month. Half the old names came, to see what a bought seat ate."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_doorkeeper",
+      "tier": "situation",
+      "weight": 3,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "no_seat"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "wait_outside",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} stood at the doors of the chamber while the houses with seats went in. A house may vote from the gallery. It may not rise to speak."
+            }
+          ]
+        },
+        {
+          "id": "ask_the_price",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked the census clerk what a seat costs a house with no land. The clerk named the fee, and added that the census enrols only houses of some account in trade."
+            }
+          ]
+        },
+        {
+          "id": "ask_a_seated_friend",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked a seated house to raise the matter in its own name. It cost a favour. That is what friends with seats are for."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_client_at_the_door",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "client_taken"
+        }
+      ],
+      "choices": [
+        {
+          "id": "receive_him_well",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The head of the new client house came to {self.name}'s door at first light, as clients do. {self.name} received him in the hall, not the yard."
+            }
+          ]
+        },
+        {
+          "id": "set_out_what_is_owed",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} set out plainly what the house would do for its client, and what the client would do in the chamber and at the election. Both sides preferred it plain."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "under_protection",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "became_client"
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_a_good_client",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on the patron at first light with the other clients, and was seen to. It is not a dignified thing. It is how half the great careers in the Reach began."
+            }
+          ]
+        },
+        {
+          "id": "keep_your_own_counsel",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the patron's protection and kept a private ledger of what it cost. A client who means to be a patron counts both."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_patrons_request",
+      "tier": "ambient",
+      "weight": 2,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "is_client"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "oblige",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The patron asked a small thing of {self.name}: a loan to a third house, on easy terms. {self.name} obliged. The patron noticed."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "id": "plead_poverty",
+          "effects": [
+            {
+              "type": "log",
+              "text": "The patron asked a small thing of {self.name}, and {self.name} pleaded an empty purse. It was believed, this once."
+            }
+          ]
+        },
+        {
+          "id": "ask_something_back",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did what the patron asked and named a thing wanted in return. Patronage runs both ways or it is only service."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_client_asks",
+      "tier": "ambient",
+      "weight": 2,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "is_patron"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "help_him",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A client came to {self.name} with a lawsuit he could not afford. {self.name} paid the advocate. The client's vote was never in doubt afterwards."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ]
+        },
+        {
+          "id": "send_him_to_the_steward",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A client came to {self.name} with his troubles and was sent to the steward, who listened. Sometimes that is all a client wants."
+            }
+          ]
+        },
+        {
+          "id": "make_an_example_of_generosity",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} settled a client's debt in the open forum, where every poor house in the capital could see what the house does for its own."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_client_goes",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "client_left"
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_him_go",
+          "effects": [
+            {
+              "type": "log",
+              "text": "A client of the house has grown past needing it, or found it wanting. {self.name} let the tie lapse without comment."
+            }
+          ]
+        },
+        {
+          "id": "remind_him",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} reminded the departing client, before witnesses, whose coin had paid his debts. He went all the same. The witnesses stayed."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "without_a_patron",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "patron_lost"
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_alone",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house has no patron now. {self.name} found the chamber colder for it, and the house's own name a little louder."
+            }
+          ]
+        },
+        {
+          "id": "look_for_another",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} began calling on the great houses again within the week. A new name without a patron is a new name nobody has to answer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_name_in_arms",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "order_great:arms"
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_the_fleet_speak",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The Reach now counts the house great in arms. {self.name} said nothing about it. The hulls in the roads said enough."
+            }
+          ]
+        },
+        {
+          "id": "claim_the_hearing",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that a house the Reach calls on in war expects to be heard in peace. The chamber made room."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_name_in_commerce",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "order_great:commerce"
+        }
+      ],
+      "choices": [
+        {
+          "id": "stay_in_the_counting_house",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "The Reach now counts the house great in commerce. {self.name} went on as before. Coin is quietest when there is most of it."
+            }
+          ]
+        },
+        {
+          "id": "lend_where_it_matters",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} began lending to houses with seats and no coin, at terms nobody else would give. None of them will vote against the hand that holds the note."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_name_in_the_senate",
+      "tier": "situation",
+      "weight": 4,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "order_great:senate"
+        }
+      ],
+      "choices": [
+        {
+          "id": "wear_it_lightly",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house is now great in the Senate: when {self.name} rises, the chamber quiets. {self.name} rose seldom, which is why."
+            }
+          ]
+        },
+        {
+          "id": "gather_the_benches",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} began holding the house's own morning, as the leaders of benches do. Senators with business came to it before they went to the chamber."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "two_orders",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "house_of_two_orders"
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house is now great in two of the Republic's three orders. Families are known for one thing. {self.name} let the capital work out for itself what that made this one."
+            }
+          ]
+        },
+        {
+          "id": "reassure_the_chamber",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the chamber that the house's fleets and its coin were the Republic's to call on. Nobody asked what would happen if the Republic did not call."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "three_orders",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "house_of_three_orders"
+        }
+      ],
+      "choices": [
+        {
+          "id": "deny_any_ambition",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "Great in the Senate, in arms and in commerce at once: the capital has a word for that, and it is not 'citizen'. {self.name} denied any ambition, at length, in the forum."
+            }
+          ]
+        },
+        {
+          "id": "let_them_wonder",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} was asked in the chamber what a house wants with a party, a fleet and a bank. {self.name} said the house wanted nothing it did not already have. The chamber did not sleep well."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "first_of_the_name",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "new_man_consul"
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_the_voters",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} is the first of the name to sit in a consul's chair. The thanks went to the voters, in the forum, by name where the names were known."
+            }
+          ]
+        },
+        {
+          "id": "remember_the_sneers",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the consul's chair and looked along the front bench at every old name that had looked through the house for years. None of them looked through it now."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_corner",
+      "tier": "situation",
+      "weight": 5,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "cornered_a_good"
+        }
+      ],
+      "choices": [
+        {
+          "id": "sell_to_all_comers",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "A quarter of what the Reach brings up of a strategic good now comes from the house. {self.name} sold to every yard that asked, at the market's price."
+            }
+          ]
+        },
+        {
+          "id": "remember_who_asks",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept a list of which houses' fleets burn the house's fuel and arm from the house's ore. It is a useful list to have when the chamber divides."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_old_names",
+      "tier": "ambient",
+      "weight": 2,
+      "repeatable": false,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "new_name"
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "endure_it",
+          "effects": [
+            {
+              "type": "log",
+              "text": "An old name remarked at dinner, in {self.name}'s hearing, that one used to know every family in the chamber. {self.name} passed the salt."
+            }
+          ]
+        },
+        {
+          "id": "answer_with_figures",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "An old name asked {self.name} where the family was from. {self.name} said from the same place as the old name's mortgage, and named the interest."
+            }
+          ]
+        },
+        {
+          "id": "marry_into_one",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} began to be seen at the tables of the old families who have daughters and debts. A new name is cured in one generation, at a price."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_patron_noticed",
+      "tier": "situation",
+      "weight": 7,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "defied_patron"
+        }
+      ],
+      "choices": [
+        {
+          "id": "explain_yourself",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on the patron the morning after the vote and explained it. The patron listened to all of it and said the next vote would be explanation enough."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "stand_by_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} voted against the patron's wishes and did not pretend otherwise. The chamber noted a client with a mind. So did the patron."
+            }
+          ]
+        },
+        {
+          "id": "send_a_gift",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the patron a gift and no note. It was accepted, which is not the same as forgiven."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_patron_is_pleased",
+      "tier": "ambient",
+      "weight": 3,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "obliged_patron"
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} voted as the patron wished. Nothing was said. A credit's worth of goodwill was entered on a ledger nobody keeps on paper."
+            }
+          ]
+        },
+        {
+          "id": "mention_a_need",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} voted as the patron wished, and mentioned in passing a matter of the house's own that would come before the chamber soon."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
