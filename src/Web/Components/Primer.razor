@@ -1,14 +1,16 @@
 @inject GameClient G
 @{
-    var w = G.World!; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var c = G.Content!;
-    var cards = new[]
+    // on the title there is no saga yet: the primer speaks to the head of a house, so only the glossary and the lectures are offered
+    var w = G.World; var p = w?.Protagonist; var house = p != null ? w!.House(p.HouseId) : null; var c = G.Content!;
+    bool imperium = w?.IsImperium == true;
+    var cards = p == null || house == null ? Array.Empty<(string, string)>() : new[]
     {
         ("The house and you", $"You are {p.Name}, head of {house.Name}. The dynasty is what survives you: its title, its worlds, its fleet, its name. You are one life in it. When you die, you play the heir — and the heir starts their career from the bottom."),
         ("The briefing", "Each turn your advisors bring reports — the cards on the desk. Some are decisions with choices that cost from your pools; some are news. Reading is free. Acting is not. Unanswered reports are set aside when the turn ends."),
         ("The three pools", "Influence (plots, the Senate, favours), Treasury actions (builds, fleet orders, the market) and Agents (schemes, training). They refill a little each turn and cap at six. The strip at the top shows what you have left."),
         ("Coin, hulls and the strategic three", "The ledger is in the House screen: worlds, ventures, claims, loans. Credits are the thing you run out of. Helium-3 fuels the fleet, rare earths build the heavy hulls, isotopes arm them — and not every world has them."),
         ("The laws and the estates", "The Chancery holds the laws in your gift — as head of a house, holder of worlds, dominant in a region, chair, or an officer of the Reach. Six estates watch what you set and warm or sour; a loyal estate pays, a hostile one costs, and one hostile across the Reach will petition the Senate itself. Acts of the Senate bind every house."),
-        ("The climb", (w.IsImperium ? "Titles are a ladder: knight, baron, count, duke, archduke, and the throne." : "The Republic has no nobles. A house rises by what it holds and what it is trusted with: Citizen, Warden, Prefect, Legate, Proconsul, First Citizen. A person rises by rank, in the Navy, the Administration or the Courts.") + " Take a rung by force, by merit, or by marriage and claim. The Senate votes motions by weight; the War of the Reach is the storm every house is sailing toward. Survive it with the name intact."),
+        ("The climb", (imperium ? "Titles are a ladder: knight, baron, count, duke, archduke, and the throne." : "The Republic has no nobles. A house rises by what it holds and what it is trusted with: Citizen, Warden, Prefect, Legate, Proconsul, First Citizen. A person rises by rank, in the Navy, the Administration or the Courts.") + " Take a rung by force, by merit, or by marriage and claim. The Senate votes motions by weight; the War of the Reach is the storm every house is sailing toward. Survive it with the name intact."),
         ("The keys", "Enter ends the year (when no report is open). Esc closes the window in front and goes back to the map. The windows on the left open by number in the order they are listed: 1 to 9, then 0, - and = for the last three; each one's tooltip shows its key. ? opens this primer. On the map, drag to move and the wheel to zoom; the buttons at its corner go home and fit the whole Reach."),
         ("Three things to do first", "One: open the report at the top of the list on the right, read what each answer costs and gives, and answer it. Two: open House, then the ledger, and look at the last line: where the treasury will stand when the year ends. Three: click your own world on the map and raise one building. Then press End Turn. A year passes, and the list on the right tells you what happened in it.")
     };
@@ -16,13 +18,13 @@
 <div class="overlay" data-handbook>
     <div class="epilogue primer wide handbook">
         <div class="hb-tabs" role="tablist">
-            @foreach (var (id, label) in new[] { ("primer", "The primer"), ("glossary", "Glossary"), ("lectures", "The lectures") })
+            @foreach (var (id, label) in new[] { ("primer", "The primer"), ("glossary", "Glossary"), ("lectures", "The lectures") }.Where(t => t.Item1 != "primer" || cards.Length > 0))
             {
                 <button class="hb-tab @(_tab == id ? "on" : "")" role="tab" aria-selected="@(_tab == id)" data-hb-tab="@id" @onclick="() => _tab = id">@label</button>
             }
             <button class="win-x hb-x" @onclick="() => OnClose.InvokeAsync()" title="Close (Esc)" aria-label="Close">×</button>
         </div>
-        @if (_tab == "primer")
+        @if (_tab == "primer" && cards.Length > 0)
         {
             <div class="tier"><span class="glyph">◆</span> A PRIMER · @(_i + 1) of @cards.Length</div>
             <h2>@cards[_i].Item1</h2>
@@ -35,7 +37,7 @@
             </div>
             <div class="muted small">You can reopen this from the ? in the top bar. The glossary and the Academy's lectures are on the other two tabs.</div>
         }
-        else if (_tab == "glossary")
+        else if (_tab is "glossary" or "primer")
         {
             var found = c.Academy.Find(_find);
             <div class="hb-find"><input type="search" placeholder="Find a word: legitimacy, bench, purse…" @bind="_find" @bind:event="oninput" data-hb-find aria-label="Find a word" />
@@ -57,11 +59,11 @@
         }
         else
         {
-            <div class="muted small">The lectures of @(w.IsImperium ? c.Academy.Imperium.Name : c.Academy.Republic.Name), term by term. They can be read at any time, whether or not you sat them.</div>
+            <div class="muted small">The lectures of @(imperium ? c.Academy.Imperium.Name : c.Academy.Republic.Name), term by term. They can be read at any time, whether or not you sat them.</div>
             <div class="hb-scroll" data-hb-lectures>
                 @foreach (var l in c.Academy.Lessons.OrderBy(l => l.Term))
                 {
-                    var (title, paras) = Praetoria.Core.Data.AcademyCatalog.Read(l, w.IsImperium);
+                    var (title, paras) = Praetoria.Core.Data.AcademyCatalog.Read(l, imperium);
                     <details class="ac-lesson" data-lecture="@l.Id"><summary><b>@title</b> <span class="muted small">term @l.Term</span></summary>
                         @foreach (var para in paras) { <p>@para</p> }
                     </details>

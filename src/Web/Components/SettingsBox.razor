@@ -1,0 +1,73 @@
+@inject IJSRuntime JS
+@* Settings kept in this browser (docs/WEB_CLIENT.md, "Settings"; docs/PLAYTHROUGH.md, a first game: N47, N3). Opened from the top
+   bar and from the title. What is here works; what the game does not have (sound) is said, not shown as a dead switch. *@
+<div class="overlay" data-settings-box>
+    <div class="epilogue wide settings">
+        <div class="hb-tabs"><span class="tier" style="margin:0"><span class="glyph">◆</span> SETTINGS</span><button class="win-x hb-x" @onclick="() => OnClose.InvokeAsync()" title="Close" aria-label="Close">×</button></div>
+        <div class="set-row">
+            <div><b>Text size</b><div class="muted small">Every word and figure in the game follows this. The map does not.</div></div>
+            <div class="set-pick" data-set="text">
+                @foreach (var (id, label) in new[] { ("small", "Small"), ("normal", "Normal"), ("large", "Large"), ("larger", "Larger") })
+                {
+                    <button class="opt inline @(_text == id ? "on" : "")" data-text-size="@id" aria-pressed="@(_text == id)" @onclick="() => Set(nameof(_text), id)">@label</button>
+                }
+            </div>
+        </div>
+        <div class="set-row">
+            <div><b>Enter ends the year</b><div class="muted small">With this off, a year ends only by the End Turn button.</div></div>
+            <div class="set-pick"><button class="opt inline @(_enterEnds ? "on" : "")" data-set-enter aria-pressed="@_enterEnds" @onclick="() => Set(nameof(_enterEnds), !_enterEnds)">@(_enterEnds ? "On" : "Off")</button></div>
+        </div>
+        <div class="set-row">
+            <div><b>Number keys open windows</b><div class="muted small">1 to 9, then 0, - and =, in the order of the buttons at the left.</div></div>
+            <div class="set-pick"><button class="opt inline @(_numberKeys ? "on" : "")" data-set-numbers aria-pressed="@_numberKeys" @onclick="() => Set(nameof(_numberKeys), !_numberKeys)">@(_numberKeys ? "On" : "Off")</button></div>
+        </div>
+        <div class="set-row">
+            <div><b>The year in brief</b><div class="muted small">A card as each year opens, saying what the last one did to the house.</div></div>
+            <div class="set-pick"><button class="opt inline @(_brief ? "on" : "")" data-set-brief aria-pressed="@_brief" @onclick="ToggleBrief">@(_brief ? "Every year" : "Only when asked")</button></div>
+        </div>
+        <div class="set-row">
+            <div><b>The keys</b>
+                <div class="set-keys">
+                    <kbd>Enter</kbd><span>End the year, when no report is open@(_enterEnds ? "" : " (switched off above)")</span>
+                    <kbd>Esc</kbd><span>Close whatever is in front; from a window, back to the map</span>
+                    <kbd>1</kbd><span>to <kbd>9</kbd>, <kbd>0</kbd>, <kbd>-</kbd>, <kbd>=</kbd>: the windows, in the order at the left@(_numberKeys ? "" : " (switched off above)")</span>
+                    <kbd>?</kbd><span>The primer, the glossary and the lectures</span>
+                    <kbd>drag</kbd><span>Move the map; the wheel zooms it</span>
+                </div>
+                <div class="muted small" style="margin-top:.4rem">The keys cannot be changed to others yet.</div>
+            </div>
+        </div>
+        <div class="set-row" data-set-sound>
+            <div><b>Sound</b><div class="muted small">The game has no music or sound yet, so there is nothing here to turn up or down.</div></div>
+        </div>
+        <div class="muted small" style="margin-top:.8rem">These are kept in this browser and apply to every saga played in it.</div>
+    </div>
+</div>
+@code {
+    [Parameter] public EventCallback OnClose { get; set; }
+    /// <summary>A setting changed: whoever reads the settings should read them again.</summary>
+    [Parameter] public EventCallback OnChanged { get; set; }
+    private string _text = "normal"; private bool _enterEnds = true, _numberKeys = true, _brief = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { Read(await JS.InvokeAsync<string>("praetoriaSettings.get")); _brief = await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.brief.every") != "0"; } catch { }
+    }
+    private void Read(string json)
+    {
+        var s = Praetoria.Web.Services.ClientSettings.Parse(json);
+        _text = s.Text; _enterEnds = s.EnterEnds; _numberKeys = s.NumberKeys;
+    }
+    private async Task Set(string field, object value)
+    {
+        string key = field switch { nameof(_text) => "text", nameof(_enterEnds) => "enterEnds", _ => "numberKeys" };
+        try { Read(await JS.InvokeAsync<string>("praetoriaSettings.set", key, value)); } catch { }
+        await OnChanged.InvokeAsync();
+    }
+    private async Task ToggleBrief()
+    {
+        _brief = !_brief;
+        try { await JS.InvokeVoidAsync("localStorage.setItem", "praetoria.brief.every", _brief ? "1" : "0"); } catch { }
+        await OnChanged.InvokeAsync();
+    }
+}

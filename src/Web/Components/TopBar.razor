@@ -44,6 +44,7 @@
         <button class="btn ghost sm" data-save title="Save the game as it stands now, with what you have done this year. It is also kept by itself as each year opens." @onclick="OnSave">@(SavedFlash ? "Saved ✓" : "Save")</button>
         <button class="btn ghost sm" data-saves title="The saved sagas in this browser: the running one and three you can keep, to load or to save over" @onclick="OnSaves">Saves</button>
         <button class="btn ghost sm" title="Download the save as a file" @onclick="OnExport">Export</button>
+        <button class="btn ghost sm" data-settings title="Settings: the size of the text, which keys act, the yearly brief" @onclick="OnSettings">Options</button>
         <button class="btn ghost sm" title="The primer, the glossary of the words the screens use, and the Academy's lectures (key ?)" @onclick="OnPrimer">?</button>
         <button class="btn ghost sm" title="Leave to the title screen. The saga is saved as it stands first." @onclick="OnQuit">Quit</button>
     </div>
@@ -53,6 +54,7 @@
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnSaves { get; set; }
     [Parameter] public EventCallback OnUndo { get; set; }
+    [Parameter] public EventCallback OnSettings { get; set; }
     [Parameter] public EventCallback OnExport { get; set; }
     [Parameter] public EventCallback OnQuit { get; set; }
     [Parameter] public EventCallback OnPrimer { get; set; }

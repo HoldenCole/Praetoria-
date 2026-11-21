@@ -51,6 +51,30 @@ sound because commands name things by id and take their dice from the world's ow
 come out the same, and a test holds it. It follows that undo is no way to throw the dice twice: an act taken back and
 done again has the same result. It does let a player see what an act did and then not do it.
 
+## Settings
+
+Built 2026-11-21 from the playthroughs (docs/PLAYTHROUGH.md, "A first game": N47, N3). **Options** in the top bar and on
+the title opens them. They are kept in the browser (`localStorage`, key `praetoria.settings`) and apply to every saga
+played in it; the page reads them before the game starts, so the title is already at the chosen size.
+
+| setting | what it does |
+|---|---|
+| Text size | Small, Normal, Large, Larger: the root size is 13.5, 15, 16.5 or 18 pixels. Every size in the stylesheet is in `rem`, and so are the widths of the rail, the windows and the outliner, so the layout grows with the words. The map does not change. |
+| Enter ends the year | On by default. Off, a year ends only by the End Turn button. |
+| Number keys open windows | On by default. |
+| The year in brief | Every year, or only when asked (the same choice the card itself offers). |
+
+The window also lists the keys. They cannot be changed to others; that is not built.
+
+**Sound.** The game has no music and no sound, so the window says so and offers no switch. A dead slider would be a lie.
+
+**A top bar too short for its content** (a narrow screen, or the larger sizes on a 1600-pixel one): the house, the stores
+and the year's pools keep their room; the gaps close first, then the era's name gives way, then the year's label is cut
+short. Before this the stores ran over the house's name.
+
+The title has three more buttons for the same reason (the newcomer looked there first): **Saved sagas**, **Options**, and
+**Glossary and lectures** (the handbook without the primer, which speaks to the head of a house and needs a saga).
+
 ## Running and testing it locally
 
 ```bash
