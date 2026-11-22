@@ -83,6 +83,19 @@ public sealed class DelegateCommand : ICommand
     public void Execute(CommandContext ctx) { var w = ctx.World; HouseholdSystem.Assign(w, w.Char(ActorId)!, _role, _holderId.Length == 0 ? null : w.Char(_holderId), _reserve); }
 }
 
+/// <summary>Tell whoever holds a post of the council what to do with it (<see cref="HouseholdSystem.Instructions"/>): whom the envoy
+/// calls on, whom the spymaster watches, how the chancellor votes, what the advocate settles.</summary>
+public sealed class PostInstructionCommand : ICommand
+{
+    private readonly string _role, _instruction;
+    public PostInstructionCommand(string actorId, string role, string instruction) { ActorId = actorId; _role = role; _instruction = instruction ?? ""; }
+    public string ActorId { get; }
+    public string Describe() => $"tell the {_role}: {(_instruction.Length == 0 ? "as they judge" : _instruction)}";
+    public string? Refusal(CommandContext ctx) => HouseholdSystem.InstructRefusal(ctx.World, ctx.World.Char(ActorId), _role, _instruction);
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) => HouseholdSystem.Instruct(ctx.World, ctx.World.Char(ActorId)!, _role, _instruction);
+}
+
 /// <summary>Tell the steward what to favour (<see cref="HouseholdSystem.Favours"/>).</summary>
 public sealed class StewardFavourCommand : ICommand
 {

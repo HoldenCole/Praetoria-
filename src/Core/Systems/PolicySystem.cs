@@ -72,6 +72,7 @@ public static class PolicySystem
         if (scope == "emperor") return w.House(houseId)?.Title == Progression.Title.Emperor;
         if (scope == "bench") return FactionSystem.Leads(w, houseId);
         if (scope.StartsWith("office:")) return OfficeSystem.Holds(w, houseId, scope["office:".Length..]);
+        if (scope.StartsWith("post:")) return w.House(houseId)?.Duty(scope["post:".Length..]) != null;   // a law that goes with a post of the house's council: in force while somebody holds it
         return false;
     }
     /// <summary>The pseudo-house that holds the Senate's laws: Acts carried by motion (SenateSystem).</summary>
@@ -80,7 +81,8 @@ public static class PolicySystem
     {
         "senate" => "the Senate, by an Act carried",
         "house" => "the head of a house", "world" => "the holder of a world", "region" => "the dominant house of a region", "chair" => "the chair",
-        "emperor" => "the Emperor", "bench" => "the leader of a bench", _ when scope.StartsWith("office:") => "the " + scope["office:".Length..].Replace('_', ' '), _ => scope
+        "emperor" => "the Emperor", "bench" => "the leader of a bench", _ when scope.StartsWith("office:") => "the " + scope["office:".Length..].Replace('_', ' '),
+        _ when scope.StartsWith("post:") => "a house that has " + (scope["post:".Length..] is var post && "aeiou".Contains(post[0]) ? "an " : "a ") + post, _ => scope
     };
 
     /// <summary>A house's own modifier: its non-reach laws in force where it holds the scope, plus the estates' effects if it is the player's house.

@@ -153,6 +153,48 @@
         { "id": "no_common_levy", "name": "No common levy", "effects": { "manpower_per_world": -1 }, "opinions": { "commons": 10, "officers": -10 } },
         { "id": "customary", "name": "The customary levy", "default": true },
         { "id": "common_levy", "name": "The Reach's levy", "effects": { "manpower_per_world": 1, "unrest_drift": 1 }, "opinions": { "officers": 15, "commons": -15 } }
-      ] }
-]
+      ] },
+    {
+      "id": "informers",
+      "name": "Informers",
+      "category": "The council",
+      "scope": "post:spymaster",
+      "cost": 1,
+      "cooldown": 6,
+      "description": "What the spymaster is given to work with. More ears reach more houses, cost more each year, and are liked by nobody who finds out. It is in force while the house has a spymaster.",
+      "options": [
+        { "id": "few", "name": "A few trusted ears", "default": true },
+        { "id": "paid", "name": "A paid network", "effects": { "informers_reach": 1, "informers_cost": 2 }, "opinions": { "commons": -5, "magistrates": -5 } },
+        { "id": "everywhere", "name": "Ears in every household", "effects": { "informers_reach": 3, "informers_cost": 5 }, "opinions": { "commons": -15, "magistrates": -10, "old_blood": -5 } }
+      ]
+    },
+    {
+      "id": "embassy",
+      "name": "The Envoy's Table",
+      "category": "The council",
+      "scope": "post:envoy",
+      "cost": 1,
+      "cooldown": 6,
+      "description": "How the house's envoy keeps company. A better table and better gifts are remembered longer and cost more each year. It is in force while the house has an envoy.",
+      "options": [
+        { "id": "plain", "name": "A plain call", "default": true },
+        { "id": "open_table", "name": "An open table", "effects": { "envoy_gain": 2, "envoy_cost": 2 }, "opinions": { "merchants": 5 } },
+        { "id": "gifts_of_state", "name": "Gifts of state", "effects": { "envoy_gain": 4, "envoy_cost": 5 }, "opinions": { "old_blood": 10, "commons": -5 } }
+      ]
+    },
+    {
+      "id": "counsel",
+      "name": "The House's Counsel",
+      "category": "The council",
+      "scope": "post:advocate",
+      "cost": 1,
+      "cooldown": 6,
+      "description": "Who stands behind the house's advocate in court. A bar retained argues a doubtful case better and is paid whether or not there is one. It is in force while the house has an advocate.",
+      "options": [
+        { "id": "alone", "name": "The advocate alone", "default": true },
+        { "id": "retained", "name": "A bar retained", "effects": { "counsel_edge": 2, "counsel_cost": 2 }, "opinions": { "magistrates": 5 } },
+        { "id": "every_clerk", "name": "Every clerk in the courts", "effects": { "counsel_edge": 4, "counsel_cost": 5 }, "opinions": { "magistrates": -10, "merchants": -5 } }
+      ]
+    }
+  ]
 }

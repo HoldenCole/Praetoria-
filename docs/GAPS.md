@@ -299,6 +299,16 @@ Measured by `upstart` (three services, four seeds, sixty years). U8 to U11 are c
 | U12 | Every belt is claimed out from the first year: a new house can never stake a claim. | S | |
 | U13 | One founder in twelve was still at the bottom of a service at year 20. Not traced. | S | |
 
+## The council (docs/HOUSEHOLD.md, "The council", 2026-11-22)
+
+| | Gap | Size | Needs |
+|---|---|---|---|
+| C1 | Only the player's house has a council. Other houses' envoys never call on you, their spymasters never watch you, and nobody's informer is ever found in your household. | M | |
+| C2 | A post-holder serves faithfully except for a steward's hand in the till: a chancellor never votes their own interest, a spymaster never keeps something back or sells it, an envoy never makes a friend for themselves. | M | the owner: how far relatives may work against the head |
+| C3 | The marshal takes no instruction, and there is no post for the family itself (matches, upbringing, the heir) or for works and building apart from the steward. | S | the owner: which further roles |
+| C4 | The chancellor votes; they do not lobby, whip or speak, and cannot move a motion in the head's name. | S | |
+| C5 | Each new post has two events. Nothing is written for a post left empty for years, for two post-holders who fall out, or for a post-holder who is also a magistrate or a commander. | M | |
+
 ## Older, from docs/ROADMAP.md section 3
 
 Kept there in full. In short: the state gives commerce nothing (no tax-farming or contracts), callings lean to commerce,
@@ -421,3 +431,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | V20 | Tooltips could not hold a tooltip, followed the pointer so they could not be entered, and the map's own note on a star stayed up for good once shown. | 2026-11-22 | docs/WEB_CLIENT.md, "Tooltips": the game's words are underlined inside a tooltip and open their own, four deep, placed by Floating UI. The map's note goes when the pointer does. |
 | V21 | From far off every star carried rings too small to read, lanes ran through the suns, and every line had stepped edges. | 2026-11-22 | docs/GALAXY.md, "The chart at three distances". |
 | V22 | About 170 lines wrote a count as "4 hull(s)". | 2026-11-22 | `Counted` says "1 hull", "4 hulls", and the verb agrees. A test keeps the brackets out. |
+| V23 | The council (admiral, chancellor, steward) was listed beside the map all the time, and there were three seats. | 2026-11-22 | docs/HOUSEHOLD.md, "The council": it has its own page under House; beside the map a seat speaks only when something wants doing now. Six posts, three laws, seven events, one command. |

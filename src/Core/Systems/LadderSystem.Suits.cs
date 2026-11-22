@@ -17,6 +17,8 @@ public static partial class LadderSystem
     public const int AdvocateEdge = 2, AdvocateHolds = 8;
 
     public static int Craft(Character? c) => c == null ? 0 : c.Skill("law") + c.Skill("oratory");
+    /// <summary>Whether the law in a suit is plain: the kind an advocate told to settle what is lost will settle.</summary>
+    public static bool PlainlyRead(OfficeBusiness b) => WeightOf(b) == Plain;
     public static string OtherIn(OfficeBusiness b, string houseId) => b.HouseA == houseId ? b.HouseB : b.HouseA;
 
     /// <summary>The suits naming a house that wait to be heard.</summary>
@@ -45,7 +47,7 @@ public static partial class LadderSystem
             string choice = Inclination(w, judge, b); string other = OtherIn(b, mine); var adv = w.Char(b.AdvocateId) is { Alive: true } a && a.HouseId == mine ? a : null;
             if (adv != null)
             {
-                int ours = Craft(adv), theirs = Craft(Advocate(w, other));
+                int ours = Craft(adv) + (HouseholdSystem.IsAdvocateOf(w, mine, adv.Id) ? w.Counter(HouseholdSystem.CounselEdgeKey(mine)) : 0), theirs = Craft(Advocate(w, other));   // the house's own advocate, with a bar retained behind them
                 if (WeightOf(b) == Doubtful && b.RightId == other && ours >= theirs + AdvocateEdge)
                 { b.RightId = mine; w.Log($"{adv.Name} argues the suit over {MatterOf(b)} better than {w.House(other)?.Name}'s pleader, and where the law was doubtful it now leans to {w.House(mine)?.Name}."); LifeSystem.Note(w, adv, "office", "Pleaded for the house and turned a doubtful case."); }
                 if (choice is Friend or Gift && b.RightId == mine && ours >= AdvocateHolds && BoughtWinner(w, b, judge) == null)
@@ -53,6 +55,7 @@ public static partial class LadderSystem
             }
             // Decide reads the holder's waiting business: this one, since this year's has not been made yet
             Decide(w, offices, judge, choice);
+            if (adv != null && HouseholdSystem.IsAdvocateOf(w, mine, adv.Id) && b.WinnerId.Length > 0) HouseholdSystem.AdvocateHeard(w, b.WinnerId == mine);
         }
     }
 

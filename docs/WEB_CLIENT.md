@@ -108,6 +108,11 @@ there is. They close when the pointer leaves, on a click elsewhere, on scrolling
 `tools/browser/tooltips.js` checks it in a real browser: a tooltip, one inside it and one inside that, all wholly on the
 screen, closed on leaving, turned upward at the foot of the screen.
 
+## The council's page
+
+House, *The council*: six posts as cards (docs/HOUSEHOLD.md, "The council"). The outliner has one line that opens it,
+and shows a seat among the alerts only when it is urgent (`AdvisorReport.Urgent`). Picture: `tools/browser/shots/council.png`.
+
 ## Words
 
 A count is said as a person says it. `Counted` (in the core) writes "1 hull" and "4 hulls", "3 more years", and gives

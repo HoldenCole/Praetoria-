@@ -1,0 +1,75 @@
+{
+  "//": "Text for content/events/council.json.",
+  "texts": [
+    {
+      "id": "the_spymasters_report",
+      "title": "The Spymaster's Report",
+      "body": "{spymaster.name} does not write things down. The report on {watched.name} is given standing, in a low voice, in the time it takes to cross the room: what they have under sail, what they have banked, who dines with them, and one thing besides that {watched.name} would pay a good deal to keep where it is.",
+      "choices": {
+        "keep_it": "Keep it for the day it is needed.",
+        "sell_it": "Sell it to whoever wants it most.",
+        "tell_them": "Tell them what is being said in their own house."
+      }
+    },
+    {
+      "id": "the_informer_found",
+      "title": "The Informer Found",
+      "body": "He was a clerk in the household of {watched.name}, and for some years he was also {spymaster.name}'s. He has been found. {watched.name} has not said so in public, and has sent no word, which is its own kind of word.",
+      "choices": {
+        "deny_it": "Deny he was ever ours.",
+        "send_a_gift": "Send a gift and admit nothing.",
+        "stand_by_your_man": "Tell the spymaster to send another."
+      }
+    },
+    {
+      "id": "the_envoys_friend",
+      "title": "A Friend at Another Table",
+      "body": "{our_envoy.name} has been calling on {host.name} for long enough that the calls are no longer announced. This year {host.name} sent the servants out of the room and asked, as one asks a friend, what the house wanted.",
+      "choices": {
+        "ask_for_a_vote": "A vote, when the time comes.",
+        "talk_trade": "Talk about cargoes.",
+        "leave_it_warm": "Nothing. Let it be a friendship."
+      }
+    },
+    {
+      "id": "the_envoy_turned_away",
+      "title": "The Envoy Turned Away",
+      "body": "{our_envoy.name} was kept in the outer hall of {host.name} for the length of an afternoon and then told the head of the house was not at home. The gifts were taken in. The envoy was not.",
+      "choices": {
+        "go_yourself": "Go to that door yourself.",
+        "send_them_again": "Send them again next season.",
+        "let_it_lie": "Let it lie."
+      }
+    },
+    {
+      "id": "the_advocates_day",
+      "title": "The Advocate's Day",
+      "body": "The praetor found for the house. {advocate.name} had pleaded it, and by the account of those who sat through it had pleaded it well. The other side's lawyer was seen afterwards reading the judgment a second time.",
+      "choices": {
+        "reward_them": "Pay them as a stranger would have been paid.",
+        "take_the_credit": "Let the benches know whose judgment it was.",
+        "say_nothing": "A nod across the hall."
+      }
+    },
+    {
+      "id": "the_advocate_loses",
+      "title": "The Advocate Loses",
+      "body": "The praetor found against the house. {advocate.name} had pleaded it and came home without a word, and has been in the library since.",
+      "choices": {
+        "stand_by_them": "Stand by them.",
+        "pay_for_teaching": "Pay for a year under a better lawyer.",
+        "say_what_you_think": "Say exactly how it was lost."
+      }
+    },
+    {
+      "id": "the_chancellors_voice",
+      "title": "The Chancellor's Voice",
+      "body": "{chancellor.name} declared the house on the year's business in the Senate, as you had left them to. One of the votes has been remarked on, by people who would have expected the house to go the other way.",
+      "choices": {
+        "let_it_stand": "Let it stand.",
+        "make_it_yours": "Say in the chamber that the votes were yours.",
+        "ask_to_be_asked": "Ask to be asked, next time."
+      }
+    }
+  ]
+}

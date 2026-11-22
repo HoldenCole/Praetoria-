@@ -5,12 +5,24 @@ using Praetoria.Core.Systems;
 
 namespace Praetoria.Core.Presentation;
 
-public sealed record AdvisorReport(string Seat, string? AdvisorName, string Line, bool Warning);
+public sealed record AdvisorReport(string Seat, string? AdvisorName, string Line, bool Warning)
+{
+    /// <summary>The post of the house's council this seat is (HouseholdSystem.Roles), and whether the head has given it to anybody.</summary>
+    public string Role { get; init; } = "";
+    public bool Vacant { get; init; }
+    public string? AdvisorId { get; init; }
+    /// <summary>Something that wants doing now, and can be: the only thing a seat says beside the map (the owner, 2026-11-22: the
+    /// council is not to be on the screen all the time). A standing worry, such as a neighbour with a larger fleet, is a
+    /// <see cref="Warning"/> on the council's own page and no more.</summary>
+    public bool Urgent { get; init; }
+}
 
 /// <summary>
-/// The advisor briefing (GDD §3 "information is filtered", §6 one advisor per pillar). Three seats — Steward, Admiral,
-/// Chancellor — each filled by the house member on the matching career track (or vacant). Each speaks one line a
-/// turn about its pillar. The Admiral's line is built from the house's <em>intel</em>, not the truth, so it is biased
+/// The advisor briefing (GDD §3 "information is filtered", §6 one advisor per pillar). Six seats: Steward, Admiral and
+/// Chancellor, each filled by whoever the head has given the post, or failing that by the ablest relative of the matching
+/// service; and Spymaster, Envoy and Advocate, which speak only for what they see and stand empty until somebody is named
+/// (docs/HOUSEHOLD.md, "The council"). Each speaks one line a turn about its pillar. The council is not on the screen all
+/// the time: a seat is shown beside the map only when it warns. The Admiral's line is built from the house's <em>intel</em>, not the truth, so it is biased
 /// exactly as the GDD wants: confident when the picture is fresh, hedged when it is stale, wrong when it is wrong.
 /// </summary>
 public static class AdvisorReports
@@ -26,7 +38,7 @@ public static class AdvisorReports
            speak for the house (docs/PLAYTHROUGH.md, Easy, N40 and F73) */
         Character? Seat(string track)
         {
-            string duty = track == "stewardship" ? HouseholdSystem.Steward : track == "military" ? HouseholdSystem.Marshal : "";
+            string duty = track == "stewardship" ? HouseholdSystem.Steward : track == "military" ? HouseholdSystem.Marshal : HouseholdSystem.Chancellor;
             if (duty.Length > 0 && house.Duty(duty) is { } d && w.Char(d.HolderId) is { Alive: true } named) return named;
             return w.LivingCharacters().Where(c => c.HouseId == house.Id && c.CareerTrack == track && c.Id != p.Id && c.Age >= DynastySystem.AgeOfMajority && !c.Flags.Contains(FamilySystem.DefiantFlag))
                 .OrderByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault()
@@ -44,7 +56,7 @@ public static class AdvisorReports
             : house.Debt > 0 ? $"We owe {house.Debt} credits{(house.LenderId.Length > 0 ? $" to the bank of {w.House(house.LenderId)?.Name}" : "")}; the instalments fall due each turn. {t.Credits} credits banked."
             : w.HoldingsOf(house.Id).Any(h => h.IsPlanet && h.Prosperity < 35) ? $"{w.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.Prosperity < 35).OrderBy(h => h.Prosperity).First().Name} languishes; coin invested there would lift it. {t.Credits} credits banked."
             : $"The domain yields; {t.Credits} credits banked, {t.Materials} materials, {t.Manpower} manpower. We stand {Wealth.RankOf(w, house.Id)}{(Wealth.RankOf(w, house.Id) == 1 ? "st" : Wealth.RankOf(w, house.Id) == 2 ? "nd" : Wealth.RankOf(w, house.Id) == 3 ? "rd" : "th")} in wealth among {w.Houses.Keys.Count(h => !World.Outsider(h))} houses. The {house.TaxPolicy} tithe stands.";
-        list.Add(new AdvisorReport("Steward", steward?.Name, stewardLine, t.Credits < 5));
+        list.Add(new AdvisorReport("Steward", steward?.Name, stewardLine, t.Credits < 5) { Role = HouseholdSystem.Steward, Vacant = house.Duty(HouseholdSystem.Steward) == null, AdvisorId = steward?.Id, Urgent = t.Credits < 0 || (upkeepHint > 0 && t.Credits < 5) });
 
         // Admiral — from intel, not truth (GDD §19 mixed visibility)
         var admiral = Seat("military");
@@ -60,7 +72,7 @@ public static class AdvisorReports
         if (enemies.Count > 0) admiralLine += $" We are at war with {string.Join(", ", enemies)}.";
         if (w.HasFlag("fuel_short")) admiralLine += " The tanks are dry: no fleet of ours can sail until we find helium-3 — a skimmer, the exchange, or the open market.";
         else if (ours >= 2 && house.Treasury.Helium3 <= FleetSystem.FuelBillFor(w, house.Id, 3) * 2) admiralLine += $" The tanks hold {house.Treasury.Helium3} helium-3 — two turns at most. Buy or skim.";
-        list.Add(new AdvisorReport("Admiral", admiral?.Name, admiralLine, enemies.Count > 0 || (biggest.name != null && biggest.hulls > ours * 2)));
+        list.Add(new AdvisorReport("Admiral", admiral?.Name, admiralLine, enemies.Count > 0 || (biggest.name != null && biggest.hulls > ours * 2)) { Role = HouseholdSystem.Marshal, Vacant = house.Duty(HouseholdSystem.Marshal) == null, AdvisorId = admiral?.Id, Urgent = w.HasFlag("fuel_short") || (ours == 0 && enemies.Count > 0) });
 
         // Chancellor — standing and the realm
         var chancellor = Seat("law");
@@ -76,7 +88,36 @@ public static class AdvisorReports
         else if (w.Motions.Any(x => x.Open && x.ProposedTurn < w.Turn && !x.Votes.ContainsKey(house.Id))) chanLine += " A motion is decided this session and our vote is not yet declared.";
         else if (w.HasFlag("petition_open")) chanLine += " An estate petitions the Senate; turned away, it will remember every house.";
         else if (w.HasFlag("motion_open") && !w.HasFlag("motion_against_me")) chanLine += " A motion is before the Senate; our vote has weight.";
-        list.Add(new AdvisorReport("Chancellor", chancellor?.Name, chanLine, inst > 0 || pressure >= 3 || w.Crises.Count > 0 || w.HasFlag("motion_against_me") || w.HasFlag("embargoed")));
+        list.Add(new AdvisorReport("Chancellor", chancellor?.Name, chanLine, inst > 0 || pressure >= 3 || w.Crises.Count > 0 || w.HasFlag("motion_against_me") || w.HasFlag("embargoed")) { Role = HouseholdSystem.Chancellor, Vacant = house.Duty(HouseholdSystem.Chancellor) == null, AdvisorId = chancellor?.Id, Urgent = w.HasFlag("motion_against_me") || w.HasFlag("embargoed") });
+
+        // The three that follow speak only if somebody holds the post: nobody keeps watch, calls or pleads for a house by default.
+        Character? Post(string role) => house.Duty(role) is { } pd && w.Char(pd.HolderId) is { Alive: true } named ? named : null;
+
+        // Spymaster — what the house knows of the others, and how old it is
+        var spy = Post(HouseholdSystem.Spymaster);
+        int stale = seen.Count(f => f.Confidence < 50), atWarStale = seen.Count(f => f.Confidence < 50 && w.AtWar(house.Id, f.OwnerHouseId));
+        string spyLine = spy == null ? (seen.Count == 0 ? "Nobody keeps watch for the house, and we have no report of any fleet but our own." : $"Nobody keeps watch for the house. Of {Counted.Fleets(seen.Count)} we have reports of, {stale} {(stale == 1 ? "is" : "are")} old.")
+            : atWarStale > 0 ? $"Our reports on {Counted.Fleets(atWarStale)} of a house we are at war with are old. Watch that house, and they will be exact."
+            : house.Duty(HouseholdSystem.Spymaster)!.LastReport.Length > 0 ? house.Duty(HouseholdSystem.Spymaster)!.LastReport
+            : "The watch is set. The first reports come when the year turns.";
+        list.Add(new AdvisorReport("Spymaster", spy?.Name, spyLine, atWarStale > 0) { Role = HouseholdSystem.Spymaster, Vacant = spy == null, AdvisorId = spy?.Id, Urgent = atWarStale > 0 && spy != null });
+
+        // Envoy — who thinks ill of the head
+        var envoy = Post(HouseholdSystem.Envoy);
+        var coldest = HouseholdSystem.EnvoyChoice(w, house, p); var coldHead = coldest != null ? Economy.HeadOf(w, coldest) : null; int cold = coldHead != null ? w.GetRelationship(coldHead.Id, p.Id)?.Disposition ?? 0 : 0;
+        int illWishers = w.Houses.Values.Count(h => h.Id != house.Id && !World.Outsider(h.Id) && Economy.HeadOf(w, h) is { } oh && (w.GetRelationship(oh.Id, p.Id)?.Disposition ?? 0) <= -30);
+        string envoyLine = coldest == null ? "There is no house to call on."
+            : (cold <= -30 ? $"{coldHead!.Name} of {coldest.Name} thinks worst of you ({cold:+0;-0;0}){(illWishers > 1 ? $", and {Counted.Houses(illWishers - 1)} more think ill of you" : "")}." : $"No head of a house thinks very ill of you. The coolest is {coldHead!.Name} of {coldest.Name} ({cold:+0;-0;0}).")
+              + (envoy == null ? " Nobody calls on anybody for the house." : house.Duty(HouseholdSystem.Envoy)!.LastReport.Length > 0 ? " " + house.Duty(HouseholdSystem.Envoy)!.LastReport : "");
+        list.Add(new AdvisorReport("Envoy", envoy?.Name, envoyLine, cold <= -50 && envoy == null) { Role = HouseholdSystem.Envoy, Vacant = envoy == null, AdvisorId = envoy?.Id });
+
+        // Advocate — the suits that name the house
+        var advocate = Post(HouseholdSystem.Advocate);
+        var suits = LadderSystem.SuitsNaming(w, house.Id); int unpleaded = suits.Count(b => w.Char(b.AdvocateId) is not { Alive: true }), stake = suits.Sum(b => LadderSystem.StakeOf(b));
+        string advLine = suits.Count == 0 ? (advocate == null ? "No suit names the house. Nobody is retained to plead for it." : "No suit names the house.")
+            : $"{Counted.Of(suits.Count, "suit")} {(suits.Count == 1 ? "names" : "name")} the house, and {Counted.Of(stake, "credit")} {(stake == 1 ? "turns" : "turn")} on {(suits.Count == 1 ? "it" : "them")}. "
+              + (unpleaded == 0 ? "Each has somebody to plead it." : advocate == null ? $"{unpleaded} {(unpleaded == 1 ? "has" : "have")} nobody to plead {(unpleaded == 1 ? "it" : "them")}: send someone, or come to terms." : $"{unpleaded} will be taken up when the year turns.");
+        list.Add(new AdvisorReport("Advocate", advocate?.Name, advLine, unpleaded > 0 && advocate == null) { Role = HouseholdSystem.Advocate, Vacant = advocate == null, AdvisorId = advocate?.Id, Urgent = unpleaded > 0 && advocate == null });
         return list;
     }
 }

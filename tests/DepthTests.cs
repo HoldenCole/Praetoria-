@@ -158,7 +158,7 @@ public class DepthTests
     {
         var (content, w) = Fresh("academy_crucible");
         var reports = AdvisorReports.Build(w, content);
-        Assert.Equal(3, reports.Count);
+        Assert.Equal(6, reports.Count);
         Assert.Contains(reports, r => r.Seat == "Admiral" && r.Line.Contains("no reliable picture"));   // nothing seen yet
         new FleetSystem(content.Fleets).UpdateIntel(w);
         reports = AdvisorReports.Build(w, content);

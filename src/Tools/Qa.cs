@@ -504,7 +504,7 @@ internal static class Qa
             foreach (var f in HouseholdSystem.Found(w, house.Id)) { if (decisions.NextInt(0, 6) == 0) cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.Adopt, f.Id)); if (decisions.NextInt(0, 12) == 0) cands.Add(new HouseholdCommand(p.Id, HouseholdCommand.Release, f.Id)); }
             if (decisions.NextInt(0, 20) == 0) cands.Add(new MentorCommand(p.Id, ""));
             var grown = HouseholdSystem.Eligible(w, house);
-            foreach (var role in HouseholdSystem.Roles) { if (grown.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new DelegateCommand(p.Id, role, grown[decisions.NextInt(0, grown.Count)].Id, new[] { 0, 20, 100 }[decisions.NextInt(0, 3)])); if (decisions.NextInt(0, 15) == 0) cands.Add(new DelegateCommand(p.Id, role, "")); }
+            foreach (var role in HouseholdSystem.Roles) { if (house.Duty(role) != null && role != HouseholdSystem.Marshal && decisions.NextInt(0, 5) == 0) { var told = HouseholdSystem.Instructions(w, house, role); if (told.Count > 0) cands.Add(new PostInstructionCommand(p.Id, role, told[decisions.NextInt(0, told.Count)])); } if (grown.Count > 0 && decisions.NextInt(0, 4) == 0) cands.Add(new DelegateCommand(p.Id, role, grown[decisions.NextInt(0, grown.Count)].Id, new[] { 0, 20, 100 }[decisions.NextInt(0, 3)])); if (decisions.NextInt(0, 15) == 0) cands.Add(new DelegateCommand(p.Id, role, "")); }
         }
         if (tc.Companies is { Open: true } cx)   // the Exchange: list, trade, and sit on the board
         {

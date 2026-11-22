@@ -131,7 +131,7 @@ public sealed class TurnController
         _ambitions = new AmbitionSystem(content.Businesses, content.Holdings, content.Titles, content.Careers);
         if (world.Counter("health_opened") == 0) { world.WorldCounters["health_opened"] = 1; foreach (var c in world.Characters.Values) c.Health = Math.Min(c.Health, LifeSystem.Cap(c.Age)); }   // nobody opens a saga haler than their years allow
         WealthSystem.Seed(world);   // the old names come with something handed down, once
-        _household = new HouseholdSystem(content.Holdings, content.Businesses, content.Titles, content.Trade, content.Fleets.FuelHullsPerUnit);
+        _household = new HouseholdSystem(content.Holdings, content.Businesses, content.Titles, content.Trade, content.Fleets.FuelHullsPerUnit) { Policies = content.Policies, Lean = (lw, m, id) => _senate.Lean(lw, m, id) };
         // Every marriage the world opens with gets its record, without fanfare. Once only: a save resumed mid-year must not
         // quietly record a wedding the year's own reckoning would have announced.
         if (world.Counter(CourtshipSystem.OpenedCounter) == 0) { CourtshipSystem.Sync(world, announce: false); world.WorldCounters[CourtshipSystem.OpenedCounter] = 1; }

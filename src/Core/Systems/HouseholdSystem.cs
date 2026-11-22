@@ -17,11 +17,12 @@ namespace Praetoria.Core.Systems;
 /// reserve the head sets, learn the work, and may not be honest. Nothing has to be delegated.</para>
 /// Only the player's house is run by it. RNG-free.
 /// </summary>
-public sealed class HouseholdSystem
+public sealed partial class HouseholdSystem
 {
     public const string Ward = "ward", Protege = "protege", Companion = "companion";
     public const string Steward = "steward", Marshal = "marshal";
-    public static readonly string[] Roles = { Steward, Marshal };
+    /// <summary>The posts of a house's council (docs/HOUSEHOLD.md, "The council"): the two that were there first, and four more in HouseholdSystem.Posts.cs.</summary>
+    public static readonly string[] Roles = { Steward, Marshal, Chancellor, Spymaster, Envoy, Advocate };
     /// <summary>One who asked at the door and was not answered (or was refused) does not ask again for this long.</summary>
     public const int AskAgainYears = 12;
     public static string AskedKey(string personId) => "door_asked:" + personId;
@@ -33,7 +34,8 @@ public sealed class HouseholdSystem
     // world flags raised by a deed, kept through the next events phase
     public const string TookInFlag = "took_someone_in", AdoptedFlag = "adopted_an_heir", WardStayedFlag = "ward_stayed", WardLeftFlag = "ward_went_home", SkimsFlag = "steward_skims", MentorLostFlag = "mentor_lost", MentorTaughtFlag = "mentor_taught";
     private static readonly string[] TickFlags = { FoundFamilyFlag, HasMentorFlag, HasProtegeFlag, HasWardFlag, PetitionFlag, DelegatedFlag, UnpaidFlag };
-    private static readonly string[] DeedFlags = { TookInFlag, AdoptedFlag, WardStayedFlag, WardLeftFlag, SkimsFlag, MentorLostFlag, MentorTaughtFlag, "kin_found_a_mentor", LeftUnpaidFlag };
+    private static readonly string[] DeedFlags = { TookInFlag, AdoptedFlag, WardStayedFlag, WardLeftFlag, SkimsFlag, MentorLostFlag, MentorTaughtFlag, "kin_found_a_mentor", LeftUnpaidFlag,
+        SpyReportFlag, SpyCaughtFlag, EnvoyWarmFlag, EnvoyColdFlag, AdvocateWonFlag, AdvocateLostFlag, ChancellorVotedFlag };
 
     private readonly HoldingCatalog _holdings; private readonly BusinessCatalog _ventures; private readonly TitleCatalog? _titles; private readonly TradeRules _trade; private readonly int _fuelHullsPerUnit;
     public HouseholdSystem(HoldingCatalog holdings, BusinessCatalog ventures, TitleCatalog? titles, TradeRules trade, int fuelHullsPerUnit = 3)
@@ -220,9 +222,35 @@ public sealed class HouseholdSystem
     // ---------------- delegation ----------------
 
     /// <summary>How good this person is at a duty: their best relevant skill.</summary>
-    public static int Fit(Character c, string role) => role == Steward ? Math.Max(c.Skill("administration"), c.Skill("economics")) : Math.Max(c.Skill("logistics"), Math.Max(c.Skill("leadership"), c.Skill("tactics")));
-    public static string RoleName(string role) => role == Steward ? "Steward" : "Marshal";
-    public static string RoleDoes(string role) => role == Steward ? "builds on the house's worlds and enlarges its ventures" : "keeps the fleets fuelled and in repair";
+    public static int Fit(Character c, string role) => role switch
+    {
+        Steward => Math.Max(c.Skill("administration"), c.Skill("economics")),
+        Chancellor => Math.Max(c.Skill("oratory"), Math.Max(c.Skill("law"), c.Skill("charisma"))),
+        Spymaster => c.Skill("intrigue"),
+        Envoy => Math.Max(c.Skill("diplomacy"), c.Skill("charisma")),
+        Advocate => Math.Max(c.Skill("law"), c.Skill("oratory")),
+        _ => Math.Max(c.Skill("logistics"), Math.Max(c.Skill("leadership"), c.Skill("tactics")))
+    };
+    public static string RoleName(string role) => role switch { Steward => "Steward", Chancellor => "Chancellor", Spymaster => "Spymaster", Envoy => "Envoy", Advocate => "Advocate", _ => "Marshal" };
+    public static string RoleDoes(string role) => role switch
+    {
+        Steward => "builds on the house's worlds and enlarges its ventures",
+        Chancellor => "declares the house's vote on what the Senate decides this year, where you have not",
+        Spymaster => "keeps the house's reports on other houses' fleets fresh, watches one house closely, or watches your own",
+        Envoy => "calls on a house or a nation with gifts, and leaves it thinking better of you",
+        Advocate => "pleads every suit that names the house, and comes to terms where you have said so",
+        _ => "keeps the fleets fuelled and in repair"
+    };
+    /// <summary>The skill a post teaches whoever holds it, one step every few years.</summary>
+    private static string Learns(Character c, string role) => role switch
+    {
+        Steward => c.Skill("administration") >= c.Skill("economics") ? "administration" : "economics",
+        Chancellor => c.Skill("oratory") >= c.Skill("law") ? "oratory" : "law",
+        Spymaster => "intrigue",
+        Envoy => c.Skill("diplomacy") >= c.Skill("charisma") ? "diplomacy" : "charisma",
+        Advocate => c.Skill("law") >= c.Skill("oratory") ? "law" : "oratory",
+        _ => c.Skill("logistics") >= c.Skill("leadership") ? "logistics" : "leadership"
+    };
 
     public static List<Character> Eligible(World w, House house) =>
         w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != w.ProtagonistId && c.Age >= Adult && !c.Flags.Contains(DynastySystem.HiddenFlag))
@@ -427,7 +455,8 @@ public sealed class HouseholdSystem
             }
         }
 
-        // the duties the head has handed out
+        // the duties the head has handed out. Whoever holds one carries its mark, so that what is written for a post can find them
+        foreach (var c in w.Characters.Values) if (c.HouseId == house.Id) foreach (var role in Roles) c.Flags.Remove(PostFlag(role));
         foreach (var d in house.Duties.OrderBy(d => d.Role, StringComparer.Ordinal).ToList())
         {
             var holder = w.Char(d.HolderId);
@@ -436,11 +465,20 @@ public sealed class HouseholdSystem
             { house.Duties.Remove(d); w.Log($"{house.Name} has no {RoleName(d.Role).ToLowerInvariant()}: the work is the head's again."); continue; }
             if (holder.Flags.Contains(FamilySystem.DefiantFlag) || (w.GetRelationship(holder.Id, p.Id)?.Disposition ?? 0) < FamilySystem.DefyBelow)
             { house.Duties.Remove(d); w.Log($"{holder.Name} lays down the {RoleName(d.Role).ToLowerInvariant()}'s work and will not serve {p.Name}."); continue; }
-            if (d.Role == Steward) StewardActs(w, house, holder, d, executor, ctx); else MarshalActs(w, house, holder, d, executor, ctx);
+            holder.Flags.Add(PostFlag(d.Role));
+            switch (d.Role)
+            {
+                case Steward: StewardActs(w, house, holder, d, executor, ctx); break;
+                case Chancellor: ChancellorActs(w, house, holder, d); break;
+                case Spymaster: SpymasterActs(w, house, p, holder, d); break;
+                case Envoy: EnvoyActs(w, house, p, holder, d); break;
+                case Advocate: AdvocateActs(w, house, p, holder, d); break;
+                default: MarshalActs(w, house, holder, d, executor, ctx); break;
+            }
             // they learn the work, and being trusted with it counts for something
             if (w.Turn > d.Since && (w.Turn - d.Since) % PostYearsPerSkill == 0)
             {
-                string key = d.Role == Steward ? (holder.Skill("administration") >= holder.Skill("economics") ? "administration" : "economics") : (holder.Skill("logistics") >= holder.Skill("leadership") ? "logistics" : "leadership");
+                string key = Learns(holder, d.Role);
                 if (holder.Skill(key) < Math.Min(SkillFromPostCap, EducationSystem.Ceiling(holder, key))) { holder.Skills[key] = holder.Skill(key) + 1; w.Log($"{holder.Name} has grown into the {RoleName(d.Role).ToLowerInvariant()}'s work."); }
             }
             if ((w.GetRelationship(holder.Id, p.Id)?.Disposition ?? 0) < 60) Regard(w, holder, p, 1);

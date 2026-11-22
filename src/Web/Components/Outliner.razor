@@ -3,6 +3,10 @@
     var m = Model; var w = G.World!; var house = w.House(w.Protagonist!.HouseId)!;
     var open = m.Briefing.Where(b => !b.Resolved).ToList();
     var alerts = new List<(string cls, string text, string? go)>();
+    /* the council is not on the screen all the time (the owner, 2026-11-22: "it doesn't need to show admiral, chancellor, and steward
+       off to the right all the time because that's confusing"). A seat speaks here only when it warns; all six, with who holds each
+       and what they did, are under House, the Household. */
+    foreach (var seat in m.Advisors.Where(a => a.Urgent)) alerts.Add(("warn", seat.Seat + ": " + seat.Line.Split(". ")[0].TrimEnd('.'), "house:council"));
     if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {m.Treasury.Credits} credits" + (w.Protagonist!.Purse > 0 ? $". Your own purse holds {w.Protagonist.Purse}: it can be put into the treasury" : ""), w.Protagonist!.Purse > 0 ? "house:purse" : "house:ledger"));
     foreach (var bt in w.Battles.Where(b => b.Turn == w.Turn - 1 && b.Involves(w.Protagonist!.HouseId)).Take(3)) alerts.Add((bt.WinnerId == w.Protagonist!.HouseId ? "good" : "warn", $"{(bt.WinnerId == w.Protagonist!.HouseId ? "Won" : "Lost")}: the battle of {bt.Place} ({Counted.Hulls(bt.AttackerHulls)} against {bt.DefenderHulls})", "military:battles"));
     // what a player should not have to find by looking (docs/PLAYTHROUGH.md, "New alerts where there are none")
@@ -153,11 +157,7 @@
         <h4><Icon Name="alert" Size="13" /> Alerts <span class="count">@alerts.Count</span></h4>
         @if (alerts.Count == 0) { <div class="ol-empty">Nothing presses.</div> }
         @foreach (var a in alerts) { <button class="ol-alert @a.cls" @onclick='() => OnGo.InvokeAsync(a.go ?? "office")'>@a.text</button> }
-    </section>
-    <section class="ol-block">
-        <h4><Icon Name="claim" Size="13" /> Council</h4>
-        @foreach (var a in m.Advisors.OrderBy(a => { var o = RoleTheme.AdvisorOrder(RoleTheme.Of(w)); int i = o.ToList().IndexOf(a.Seat); return i < 0 ? 9 : i; })) { string seatGo = a.Seat.ToLowerInvariant() switch { "steward" or "admiral" => "house:household", _ => "senate:duties" };
-            <button class="ol-adv @(a.Warning ? "warn" : "")" title="@(a.Line + (a.Seat.ToLowerInvariant() is "steward" or "admiral" ? " The seat is whoever you have made " + (a.Seat.ToLowerInvariant() == "steward" ? "Steward" : "Marshal") + " under House, the Household; with nobody named, the ablest relative of that service who will serve." : " The seat is the ablest relative at the law who will serve."))" @onclick="() => OnGo.InvokeAsync(seatGo)"><b>@a.Seat</b> <span class="muted">@(a.AdvisorName ?? "vacant: name one ▸")</span><div class="line">@a.Line</div></button> }
+        <button class="ol-row ol-council" data-ol-council title="The six posts of the house's council: who holds each, what they did this year, and what you have told them." @onclick='() => OnGo.InvokeAsync("house:council")'><b>The council</b> <span class="muted">@m.Advisors.Count(a => !a.Vacant) of @m.Advisors.Count posts filled ▸</span></button>
     </section>
     <section class="ol-block">
         <h4><Icon Name="fleet" Size="13" /> Fleets <span class="count">@m.Fleets.Count</span></h4>

@@ -79,6 +79,62 @@ anything is built; or begin nothing new. `HouseholdSystem.StewardPlan` says what
 and what it costs, or why nothing. The plan and the year's turn read the same list (`StewardChoices`), so what is shown
 is what is done unless the treasury changes in between.
 
+## The council
+
+What the owner asked (2026-11-22): *"I don't think it needs to show admiral, chancellor, and steward off to the right
+all the time because that's confusing. There should also be a few more roles, which will mean more content, laws, and
+actions."* I took "roles" to mean seats of the house's council, like those three.
+
+**Where it is.** The council is no longer listed beside the map. It has a page of its own: House, *The council*. Beside
+the map there is one line ("The council · 2 of 6 posts filled") that opens it, and a seat speaks among the alerts only
+when something **wants doing now and can be done**: the treasury nearly empty, no fuel, a motion against the house, an
+embargo, a suit with nobody to plead it, reports gone stale on a house you are at war with. A standing worry (a
+neighbour with a larger fleet, a rank ahead of your standing) is said on the council's page and nowhere else.
+
+**Six posts**, each built as the steward and the marshal already were: given to anyone grown of the house, done once a
+year by the holder's own skill, paid 2 credits a year, spending only what the treasury holds above the reserve, told
+one thing by the head, saying in a line what it did, and learning its skill a step every four years.
+
+| Post | Skill | What it does in a year | What you can tell it | Its law |
+|---|---|---|---|---|
+| Steward | administration, economics | builds, and enlarges ventures | what to favour (as before) | |
+| Marshal | logistics, leadership, tactics | keeps the fleets fuelled and in repair | | |
+| **Chancellor** | oratory, law, charisma | declares the house's vote on what the Senate decides this year, where you have not voted | as the house leans · as our patron votes · declare nothing | |
+| **Spymaster** | intrigue | fresh reports on the fleets of the strongest houses; or one house known exactly, with its purse and what its head thinks of you; or the books of your own post-holders read | the Reach at large · one house · our own house | *Informers* |
+| **Envoy** | diplomacy, charisma | calls on a head of a house, or a nation's court, with gifts, and leaves them thinking better of you | whoever thinks worst of us · our patron · one house · one nation | *The Envoy's Table* |
+| **Advocate** | law, oratory | pleads every suit that names the house, at no cost in influence | plead every suit · come to terms where the law is plainly against us | *The House's Counsel* |
+
+The chancellor was a seat before and nobody's post: now it is given like the others. With nobody named, the ablest
+relative at the law still speaks for the seat, and votes nothing. The other three stand empty until somebody is named.
+
+**What can go wrong.** An informer in another house may be found (one year in five, fewer with a better spymaster,
+more against a head who knows the work): its head knows whose he was, and thinks 12 the worse of you. An envoy with
+no gift for it, sent to a head who thinks ill of the house, is one year in three not received, and the gifts are kept.
+A spymaster watching the house's own finds what a steward has taken years before the accounts would have shown it.
+
+**Three laws** (content/politics/laws.json), each in force only while the house has somebody in the post, and set in
+the Laws window like any other:
+
+| Law | Options |
+|---|---|
+| Informers | a few trusted ears · a paid network (+1 house watched, 2 credits a year) · ears in every household (+3, 5 credits; the commons and the magistrates think the worse of it) |
+| The Envoy's Table | a plain call · an open table (+2 regard a call, 2 credits more) · gifts of state (+4, 5 credits more) |
+| The House's Counsel | the advocate alone · a bar retained (+2 to the advocate's craft in court, 2 credits a year) · every clerk in the courts (+4, 5 credits; the magistrates think the worse of it) |
+
+**Seven events** (content/events/council.json), each raised by something a post did: the spymaster's report, the
+informer found, a friend at another table, the envoy turned away, the advocate's day, the advocate loses, the
+chancellor's voice.
+
+**One new command**, `PostInstructionCommand`: tell a post its one thing.
+
+**The numbers are mine**: an envoy's call is worth 2 regard plus the envoy's skill, to +60 at most, and costs 2 credits
+in gifts; a nation's regard for the Reach rises 1 plus half the envoy's skill, to +40 at most; a spymaster watches 2
+houses plus half their skill; the laws' figures above.
+
+**Not in this piece.** Other houses have no council: only the player's posts act. The marshal takes no instruction. A
+post-holder cannot betray the house except by taking money (the steward). Nothing is spoken for the Imperium's court
+beyond the same six. docs/GAPS.md lists these.
+
 ## Events
 
 Six, in `content/events/found_family.json`: a child with nowhere to go; the ward comes of age; the accounts do not add

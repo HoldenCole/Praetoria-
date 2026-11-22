@@ -1119,6 +1119,8 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .ev-body .facts { border-left: 2px solid var(--brass); padding-left: .6rem; color: var(--ink-2, #b9b3a3); margin-top: .5rem; }
 .mark-word { border-bottom: 1px dotted var(--line); cursor: help; } .mark-word + .mark-word::before { content: " · "; }
 .law-open { margin-left: .45rem; white-space: nowrap; color: var(--brass2); border: 1px solid var(--brass3); border-radius: 3px; padding: 0 .4rem; font-size: .72rem; letter-spacing: .04em; } .law-head:hover .law-open { background: rgba(200,160,80,.15); }
+.council-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr)); gap: .9rem 1.4rem; } .council-grid .duty { border-top: 1px solid var(--line2); padding-top: .5rem; }
+.duty-says { margin: .15rem 0 .35rem; padding-left: .55rem; border-left: 2px solid var(--line2); color: #cfc8b6; } .duty-says.bad { border-left-color: var(--warn, #d9a441); } .duty select { background: rgba(5,7,12,.6); border: 1px solid var(--line2); color: var(--ink); border-radius: 3px; padding: .2rem .35rem; font-size: .8rem; max-width: 22rem; }
 button.ol-adv { display: block; width: 100%; text-align: left; background: none; border: 0; border-top: 1px dotted var(--line); color: inherit; font-family: inherit; cursor: pointer; } button.ol-adv:hover { background: rgba(200,160,80,.08); }
 .chip.full { opacity: .45; cursor: not-allowed; }
 /* the top bar is a solid plate over the map: nothing of the map shows through it, and the map's labels are drawn under it (docs/PLAYTHROUGH.md, Easy, N15 and B36) */
