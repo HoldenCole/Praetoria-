@@ -170,7 +170,7 @@ public static class ProvinceSystem
         if (w.EnemiesOf(planet.OwnerId).Any()) return by.Id == planet.OwnerId ? "you are at war: you need its levy" : "the house over you is at war and wants its levy";
         if (by.Id == holderId) return holder.Treasury.CanAfford(cost) ? null : !explain ? "needs more" : $"{holder.Treasury.Short(cost)}";
         var cushion = cost.Clone(); cushion.Credits += 20;
-        return holder.Treasury.CanAfford(cushion) ? null : $"{holder.Name} cannot find it: commuting takes {Presentation.CourtProjection.Bundle(cost)} and a house keeps 20 credits back, and it holds {Presentation.CourtProjection.Bundle(holder.Treasury)}";
+        return holder.Treasury.CanAfford(cushion) ? null : $"{holder.Name} cannot find it: commuting takes {Presentation.CourtProjection.Bundle(cost)} and a house keeps {Money.Credits(20)} back, and it holds {Presentation.CourtProjection.Bundle(holder.Treasury)}";
     }
     public static void Commute(World w, HoldingCatalog cat, Holding planet, int index)
     {
@@ -445,11 +445,11 @@ public static class ProvinceSystem
             case Coin:
                 int regard = RegardOf(w, asker, mine);
                 if (regard <= CoinRegardFloor) return $"{asker.Name} wants it, not your coin: its head thinks {regard:+0;-0} of you";
-                int price = BuyOffPrice(planet, d); return mine.Treasury.Credits >= price ? null : $"needs {price} credits";
+                int price = BuyOffPrice(planet, d); return mine.Treasury.Credits >= price ? null : $"needs {Money.Credits(price)}";
             case Court:
                 if (w.IsImperium) return "there is no praetor's court to take it to";
                 if ((pools?.Influence ?? 0) < CourtInfluence) return $"needs {CourtInfluence} influence";
-                return mine.Treasury.Credits >= CourtFee ? null : $"needs {CourtFee} credits for the court's fees";
+                return mine.Treasury.Credits >= CourtFee ? null : $"needs {Money.Credits(CourtFee)} for the court's fees";
             case Bench:
                 var bench = FactionSystem.Of(w, mine.Id); if (bench == null) return "you sit on no bench";
                 if (bench.Members.Contains(asker.Id)) return $"{asker.Name} sits on your own bench: it will not stand against one of its own";
@@ -464,9 +464,9 @@ public static class ProvinceSystem
         var planet = w.Holding(d.HoldingId)!; var asker = w.House(d.ById)!; string what = What(planet, d.Province); int years = cat.Provinces.SettleYears;
         switch (how)
         {
-            case Coin: return $"{asker.Name} is paid {BuyOffPrice(planet, d)} credits and lets it lie. {what} is yours, and may not be asked for again for {years} years.";
+            case Coin: return $"{asker.Name} is paid {Money.Credits(BuyOffPrice(planet, d))} and lets it lie. {what} is yours, and may not be asked for again for {years} years.";
             case Court:
-                var (forHolder, why) = CourtFinds(w, planet, d); string cost = $"It costs {CourtInfluence} influence and {CourtFee} credits in fees. ";
+                var (forHolder, why) = CourtFinds(w, planet, d); string cost = $"It costs {CourtInfluence} influence and {Money.Credits(CourtFee)} in fees. ";
                 if (!forHolder) return cost + $"But {why}, and you would have to step down as if you had been asked and agreed.";
                 return cost + Cap(why) + ". " + (Abides(w, asker, mine)
                     ? $"{asker.Name} would abide by it: {what} is yours and may not be asked for again for {years} years, and {asker.Name} loses {CourtLegitimacy} legitimacy for asking what the law would not give."
@@ -487,7 +487,7 @@ public static class ProvinceSystem
             case Coin:
                 int price = BuyOffPrice(planet, d); mine.Treasury.Credits -= price; asker.Treasury.Credits += price; Closed(w, d); Settled(w, cat, planet, d);
                 w.WorldCounters[BoughtOffCounter] = w.Counter(BoughtOffCounter) + 1;
-                w.Log($"{mine.Name} pays {asker.Name} {price} credits to let the matter of {what} lie."); return "kept";
+                w.Log($"{mine.Name} pays {asker.Name} {Money.Credits(price)} to let the matter of {what} lie."); return "kept";
             case Court:
                 pools?.Spend(new Dictionary<string, int> { [Pool.Influence] = CourtInfluence }); mine.Treasury.Credits -= CourtFee; w.WorldCounters[CourtCounter] = w.Counter(CourtCounter) + 1;
                 if (!CourtFinds(w, planet, d).forHolder) { w.Log($"The praetor's court hears the matter of {what} and finds for {asker.Name}: {mine.Name} had given cause."); return Resolve(w, cat, d, true); }

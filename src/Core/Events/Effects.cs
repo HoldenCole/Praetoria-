@@ -174,6 +174,7 @@ public sealed class AdjustResourceEffect : IEffect
     {
         var c = ctx.Actor(Role);
         if (c == null || !ctx.World.Houses.TryGetValue(c.HouseId, out var house)) return;
+        if (ResourceKey == Resource.Coin) { house.Treasury.AddCoin(Delta); return; }   // single credits: a servant's purse, not a house's (docs/MONEY.md)
         house.Treasury.Add(ResourceKey, Delta);
         if (ResourceKey != Resource.Credits) house.Treasury.ClampNonCredit();
     }

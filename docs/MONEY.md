@@ -1,0 +1,60 @@
+# Money
+
+What the owner said (2026-11-22): *"We need to scale credits better. If you're paying a commoner for a position 1-3 for a
+position, but your house total is like 24 that math doesn't make sense. Not saying pay them less, but the costs and
+economy for credits needs to be rescaled."*
+
+## What changed
+
+**A house keeps its books in hundreds of credits.** A treasury that read 28 reads **2,800**. A hull that cost 12 costs
+1,200. A purse of 6 is 600. A house that took in 8 a year takes in 800. A servant of the house's court is still paid
+**1 to 3 credits a year**, so a court of seven costs about 14 credits a year against a great house's thousands, and
+weighs on a house that clears fifty.
+
+Every amount on every screen, in every report and in every line of the chronicle is 100 times what it was, except
+what is truly small.
+
+## How it is done, and why this way
+
+There were two ways to do it.
+
+1. **Multiply every number in the rules by 100**: about 1,100 lines of rules, 900 numbers in the content and 700 lines
+   of tests. The economy is reckoned in small whole numbers that round down (a yield of 3 at 85% is 2). At a hundred
+   times the size the same sum gives 255, not 200: every house would have been richer by a different amount, and the
+   balance tuned over the last months would have moved everywhere at once.
+2. **Leave every rule as it is and change what a unit means.** This is what was done.
+
+So in the rules, the content files and the tests, `credits` is a count of **hundreds**. No rule, cost, yield, price or
+threshold changed. What a player reads is written by one helper, `Money` (`src/Core/Presentation/Money.cs`), which
+shows the books' 28 as "2,800". A test reads the source and fails if a line writes an amount of credits without it.
+
+Below a hundred there are **single credits**: `Resources.Coin`, from 0 to 99 in a treasury. A hundred is broken when
+the coin runs out and made when it fills, so the treasury on screen is exact to the credit (2,794 after the court is
+paid). Single credits are used only for what is truly small:
+
+| Paid in single credits | Amount |
+|---|---|
+| A year's wage of one of the commons in the house's court | 1 to 3 (docs/COURT.md) |
+| What the scenes of the court cost: a purse for the physician, a year's wage over again for the guard, a pension set aside | 2 to 40 |
+
+A scene pays single credits with `adjustResource` on the resource `coin`.
+
+## What this means when reading the files
+
+| Where | A number of credits is |
+|---|---|
+| The screens, the reports, the chronicle, tool output | credits, as written |
+| `content/**/*.json` (`"credits": 3`, a `delta` on credits) | hundreds: 3 is 300 credits |
+| The rules (`Treasury.Credits`, `Purse`, `Debt`, `Wealth`, a cost, a price) | hundreds |
+| `Treasury.Coin`, `Retainer.Wage`, an effect on `coin` | single credits |
+| The docs written before this page | were in the old figures; the amounts in them have been multiplied through, and a figure given "in the books" is in hundreds |
+
+## What I chose
+
+- **The scale is 100.** Ten would have left a tutor at a hundredth of a great house's whole treasury a year. A thousand
+  made every figure five digits.
+- **Only the house's court is paid in single credits.** A relative who holds a post of the council is still paid in
+  the books' units (200 credits a year), a physician sent for from a purse still costs what it did (now shown ×100),
+  and so do tutors paid for one child, bribes, gifts and dowries. Those are what people of rank pay each other.
+- **House-level amounts still move in whole hundreds.** A yield is 300 or 400, never 350, because the rules were not
+  rewritten. See M1 in docs/GAPS.md.

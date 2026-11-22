@@ -114,7 +114,7 @@ public static class CitySystem
     public static string Says(CityKind k)
     {
         var parts = new List<string>();
-        var y = Resource.All.Where(r => k.Yield.Get(r) != 0).Select(r => $"+{k.Yield.Get(r)} {Resource.Label(r)}").ToList();
+        var y = Resource.All.Where(r => k.Yield.Get(r) != 0).Select(r => $"+{Money.Of(r, k.Yield.Get(r))} {Resource.Label(r)}").ToList();
         if (y.Count > 0) parts.Add(string.Join(", ", y) + " a year to the house that holds the province");
         if (k.Prosperity != 0) parts.Add($"the world's prosperity heads {Math.Abs(k.Prosperity)} {(k.Prosperity > 0 ? "higher" : "lower")}");
         if (k.Unrest != 0) parts.Add(k.Unrest < 0 ? $"unrest {k.Unrest} a year" : $"unrest +{k.Unrest} a year");

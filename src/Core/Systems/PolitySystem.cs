@@ -116,7 +116,7 @@ public sealed class PolitySystem
         if (how == Threat && Cowed(w, target, house)) return "they are afraid of you already";
         if (RegionSystem.CapitalHolder(w)?.Id == target.Id) return $"{target.Name} holds the capital, and will never leave it";
         if (w.Counter(WorkedKey(target.Id, house.Id)) == w.Turn + 1) return "you have approached them this year";
-        return how == Gift && house.Treasury.Credits < GiftCredits ? $"a gift takes {GiftCredits} credits" : null;
+        return how == Gift && house.Treasury.Credits < GiftCredits ? $"a gift takes {Money.Credits(GiftCredits)}" : null;
     }
 
     /// <summary>A house of the Reach a state's ruler might court: one that holds a world in the state's regions, or in a region that borders them.</summary>
@@ -188,7 +188,7 @@ public sealed class PolitySystem
         if (_economy != null)
         {
             int net = gone.Sum(id => _economy.Forecast(w, id, _fleets).Credits), held = gone.Sum(id => w.House(id)?.Treasury.Credits ?? 0);
-            pays = net >= 0 && held >= 0; paysSays = pays ? $"its houses take in {net} credits a year more than they spend" : net < 0 ? $"its houses spend {-net} credits a year more than they take in" : "its houses are in debt";
+            pays = net >= 0 && held >= 0; paysSays = pays ? $"its houses take in {Money.Credits(net)} a year more than they spend" : net < 0 ? $"its houses spend {Money.Credits(-net)} a year more than they take in" : "its houses are in debt";
         }
         tests.Add(("A treasury that pays its way", pays, paysSays)); if (!pays) temper += 1;
         var held2 = new List<string>(); bool other = false;
@@ -456,7 +456,7 @@ public sealed class PolitySystem
         if (GreatCrisisSystem.AtWar(w)) return "the war has come: there is nothing left to stir";
         if (w.HasFlag(GreatCrisisSystem.ResolvedFlag)) return "the Reach has had its war, and will not be stirred to another for years";
         if (Stirring(w)) return $"the camps are being stirred already (until year {w.Counter(StirKey)})";
-        return house.Treasury.Credits < StirCredits ? $"it takes {StirCredits} credits, to the right people" : null;
+        return house.Treasury.Credits < StirCredits ? $"it takes {Money.Credits(StirCredits)}, to the right people" : null;
     }
     /// <summary>The house sets the great houses against one another on purpose: money and words in the right places, for three years.
     /// It pushes the Reach toward its great war. One time in three the capital hears whose money it was.</summary>

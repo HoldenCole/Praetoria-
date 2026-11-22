@@ -58,7 +58,7 @@ public static class AskAbove
         {
             case Coin:
                 int coin = CoinOf(of!);
-                return coin < 3 || of!.Treasury.Credits - coin < CoinKeeps ? $"{of!.Name} has no coin to spare: it holds {of.Treasury.Credits}, and keeps {CoinKeeps} by" : null;
+                return coin < 3 || of!.Treasury.Credits - coin < CoinKeeps ? $"{of!.Name} has no coin to spare: it holds {Money.Held(of.Treasury)}, and keeps {Money.Show(CoinKeeps)} by" : null;
             case Backing:
                 if (!w.HasFlag(ElectionSystem.StandFlag(by.Id))) return "you are not standing for consul: declare first";
                 if (w.HasFlag(ElectionSystem.StandFlag(of!.Id)) || ElectionSystem.Nominees(w, offices, weight).Any(n => n.houseId == of.Id)) return $"{of.Name} stands itself";
@@ -68,7 +68,7 @@ public static class AskAbove
     }
     /// <summary>What would be given, said before the asking.</summary>
     public static string Says(World w, Func<string, int> weight, House by, House of, string what) =>
-        (what == Coin ? $"{of.Name} gives you {CoinOf(of)} credits." : $"{of.Name} pledges its {Counted.Seats(weight(of.Id))} to you for the consulship: they are counted for you, and inside the bench as well.")
+        (what == Coin ? $"{of.Name} gives you {Money.Credits(CoinOf(of))}." : $"{of.Name} pledges its {Counted.Seats(weight(of.Id))} to you for the consulship: they are counted for you, and inside the bench as well.")
         + $" You owe it a favour: vote for the next motion it moves and the account is even; vote otherwise and its head remembers. You may not ask it again for {EveryYears} years.";
 
     private static void Asked(World w, House by, House of)
@@ -77,7 +77,7 @@ public static class AskAbove
     }
     public static void Grant(World w, Func<string, int> weight, House by, House of, string what)
     {
-        if (what == Coin) { int coin = CoinOf(of); of.Treasury.Credits -= coin; by.Treasury.Credits += coin; w.Log($"{by.Name} asks {of.Name} for coin, and is given {coin} credits. It is a favour owed."); }
+        if (what == Coin) { int coin = CoinOf(of); of.Treasury.Credits -= coin; by.Treasury.Credits += coin; w.Log($"{by.Name} asks {of.Name} for coin, and is given {Money.Credits(coin)}. It is a favour owed."); }
         else { w.WorldFlags.Add(ElectionSystem.PledgePrefix + of.Id + ">" + by.Id); w.Log($"{by.Name} asks {of.Name} for its backing, and {of.Name} pledges its seats to it for the consulship. It is a favour owed."); }
         Asked(w, by, of);
     }

@@ -47,7 +47,7 @@ public static class ClaimSystem
         if (regard <= WontAt) return $"{owner.Name} will not sell to you: its head thinks {regard:+0;-0} of you";
         if (w.HoldingsOf(owner.Id).Count() <= 1 && !w.BusinessesOf(owner.Id).Any()) return $"it is all {owner.Name} has: it will not sell";
         int price = Price(w, ventures, claim, buyer);
-        return buyer.Treasury.Credits >= price ? null : $"needs {price} credits";
+        return buyer.Treasury.Credits >= price ? null : $"needs {Money.Credits(price)}";
     }
     /// <summary>The claim changes hands for the price; a buyer with a claim in that belt already closes this one down.</summary>
     public static void BuyOut(World w, BusinessCatalog ventures, House buyer, Holding claim)
@@ -64,6 +64,6 @@ public static class ClaimSystem
             w.Holdings[claim.Id] = claim;
         }
         w.HoldingsChanged(); w.WorldCounters[BoughtOutCounter] = w.Counter(BoughtOutCounter) + 1;
-        w.Log($"{buyer.Name} buys out the claim of {owner.Name} in the {(sys?.Name ?? claim.SystemId)} belt for {price} credits{(closes ? ", and closes it down" : "")}.");
+        w.Log($"{buyer.Name} buys out the claim of {owner.Name} in the {(sys?.Name ?? claim.SystemId)} belt for {Money.Credits(price)}{(closes ? ", and closes it down" : "")}.");
     }
 }

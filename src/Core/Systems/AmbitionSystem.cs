@@ -93,7 +93,7 @@ public sealed class AmbitionSystem
         return u.Request switch
         {
             Command => $"asks for the command of {(w.Fleets.TryGetValue(u.RequestArg, out var f) ? f.Name : "a fleet")}",
-            Stake => $"asks the house to stake them {u.RequestArg} credits to found a venture",
+            Stake => $"asks the house to stake them {(int.TryParse(u.RequestArg, out int staked) ? Money.Credits(staked) : u.RequestArg + " credits")} to found a venture",
             Word => "asks you to speak for their promotion",
             Heir => "asks to be named your heir",
             _ => ""
@@ -102,7 +102,7 @@ public sealed class AmbitionSystem
     public static string GrantCosts(World w, Character c) => c.Pursuit?.Request switch
     {
         Command => "the admiral who has it now will not thank you",
-        Stake => $"{c.Pursuit.RequestArg} credits from the treasury",
+        Stake => $"{(int.TryParse(c.Pursuit.RequestArg, out int staked) ? Money.Credits(staked) : c.Pursuit.RequestArg + " credits")} from the treasury",
         Word => $"{WordInfluence} influence",
         Heir => "the house's standing, a little, and the regard of whoever would have had it",
         _ => ""
@@ -198,8 +198,8 @@ public sealed class AmbitionSystem
         return u.Goal switch
         {
             "command_a_fleet" or "earn_a_command" => "A fleet to command: under Military, a fleet's Command. A rank in the navy and skill at tactics bring them nearer without one.",
-            "amass_a_fortune" => $"It is their own purse that counts: {c.Purse} of the {FortuneAt} they call a fortune. An allowance or a gift, under Purses and the will, or a venture settled on them.",
-            "restore_house_fortunes" => $"It is reckoned by what they have put into the house themselves: {u.Given} of {GivenAt}. A fuller purse of their own lets them give more.",
+            "amass_a_fortune" => $"It is their own purse that counts: {Money.Show(c.Purse)} of the {Money.Show(FortuneAt)} they call a fortune. An allowance or a gift, under Purses and the will, or a venture settled on them.",
+            "restore_house_fortunes" => $"It is reckoned by what they have put into the house themselves: {Money.Show(u.Given)} of {Money.Show(GivenAt)}. A fuller purse of their own lets them give more.",
             "master_the_senate" => "An office, or a rise in their service: back them when they stand (Senate, the ladder), or speak for their promotion when they ask.",
             "outshine_all_rivals" => "They measure themselves against the best of the house: a tutor or a course of study (Dynasty, learning) and a higher rank close the gap.",
             "seize_the_throne" => house != null && house.NamedHeirId == c.Id ? "They are your named heir." : "Only standing to inherit satisfies it: name them heir, in this panel, or do not.",
@@ -398,7 +398,7 @@ public sealed class AmbitionSystem
                     {
                         // one who means to see the house rich again keeps little back while it is poor, and a third while it is only thin
                         int spare = c.Purse - RestoreKeeps; int gift = house.Treasury.Credits < PoorAt ? spare : Math.Max(1, spare / 3);
-                        c.Purse -= gift; house.Treasury.Credits += gift; u.Given += gift; u.Note = $"Put {gift} credit{(gift == 1 ? "" : "s")} of their own into the house.";
+                        c.Purse -= gift; house.Treasury.Credits += gift; u.Given += gift; u.Note = $"Put {Money.Credits(gift)} of their own into the house.";
                     }
                     // what they founded goes on bringing in money, and they count that as theirs to have given
                     if (restore) u.Given += w.BusinessesOf(house.Id).Where(b => b.FounderId == c.Id).Sum(b => Math.Max(1, b.Level) * VentureCounts);

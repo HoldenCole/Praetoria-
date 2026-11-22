@@ -466,7 +466,7 @@ public sealed class CaesarSystem
         if (w.House(cw.SwordHouseId) is { } sword && sword.Treasury.Credits > 0)
         {
             int fine = sword.Treasury.Credits * 3 / 10; sword.Treasury.Credits -= fine; house.Treasury.Credits += fine;
-            w.Log($"{sword.Name}, which carried the Senate's war, is proscribed: {fine} credits of its estate go to the new throne.");
+            w.Log($"{sword.Name}, which carried the Senate's war, is proscribed: {Money.Credits(fine)} of its estate go to the new throne.");
         }
         if (house.Id == mine) Mark(w, CrownedFlag);
         else { Mark(w, FallenFlag); if (mine != null && cw.Declared.TryGetValue(mine, out var side)) Mark(w, side == General ? ServedFlag : OpposedFlag); }
@@ -481,7 +481,7 @@ public sealed class CaesarSystem
         if (house != null)
         {
             house.Legitimacy = Math.Clamp(house.Legitimacy - 25, 0, 100); w.WorldCounters[EnemyKey(house.Id)] = w.Turn + 10;
-            if (house.Treasury.Credits > 0) { int fine = house.Treasury.Credits * 4 / 10; house.Treasury.Credits -= fine; if (sword != null) sword.Treasury.Credits += fine; w.Log($"{house.Name} is declared an enemy of the Reach and fined {fine} credits."); }
+            if (house.Treasury.Credits > 0) { int fine = house.Treasury.Credits * 4 / 10; house.Treasury.Credits -= fine; if (sword != null) sword.Treasury.Credits += fine; w.Log($"{house.Name} is declared an enemy of the Reach and fined {Money.Credits(fine)}."); }
             foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) { f.DevotedTo = ""; f.Devotion = 0; f.Loyalty = Math.Max(0, f.Loyalty - 10); }
             OfficeSystem.Vacate(w, _offices, house.Id);
             if (house.Id == mine) Mark(w, BrokenFlag);
@@ -510,7 +510,7 @@ public sealed class CaesarSystem
         if (house == null || f == null || f.OwnerId != house.Id || f.Office) return "not a fleet of the house";
         if (f.AdmiralId.Length == 0) return "it has no commander for the crews to thank";
         if (w.Counter("donative:" + f.Id) == w.Turn + 1) return "they have had one this year";
-        return house.Treasury.Credits >= DonativeCost(f) ? null : $"it takes {DonativeCost(f)} credits";
+        return house.Treasury.Credits >= DonativeCost(f) ? null : $"it takes {Money.Credits(DonativeCost(f))}";
     }
     /// <summary>A gift to the crews in their commander's name: they take to him, and to the house a little.</summary>
     public void Donative(World w, House house, Fleet f)

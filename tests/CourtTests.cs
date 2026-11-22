@@ -62,6 +62,22 @@ public class CourtTests
     }
 
     [Fact]
+    public void A_wage_is_single_credits_out_of_a_treasury_kept_in_hundreds()
+    {
+        // docs/MONEY.md: the books are in hundreds, and a servant is paid 1 to 3 credits a year, not 1 to 3 hundred
+        var (_, w, house, me, _) = Start(); house.Treasury.Credits = 5; house.Treasury.Coin = 0;
+        CourtSystem.Hire(w, Content.Names, me, CourtSystem.Guard, CourtSystem.Offers(w, Content.Names, house, CourtSystem.Guard)[0].Id); var r = house.Position(CourtSystem.Guard)!;
+        Assert.InRange(r.Wage, 1, 3); CourtSystem.Tick(w, Content.Policies);
+        Assert.Equal(500 - r.Wage, house.Treasury.Total); Assert.Equal(4, house.Treasury.Credits); Assert.Equal(100 - r.Wage, house.Treasury.Coin); Assert.Equal(0, r.UnpaidYears);
+        Assert.Equal("4" + (100 - r.Wage), Money.Held(house.Treasury));
+        // a house with nothing at all cannot find even that
+        house.Treasury.Credits = 0; house.Treasury.Coin = 0; w.Turn++; CourtSystem.Tick(w, Content.Policies); Assert.Equal(1, r.UnpaidYears); Assert.Equal(0, house.Treasury.Total);
+        // and a scene of the court pays in single credits too
+        var purse = Content.Events.First(e => e.Id == "the_physicians_cure").Choices.First(c => c.Id == "thank_the_physician").Effects.OfType<Praetoria.Core.Events.AdjustResourceEffect>().Single();
+        Assert.Equal(Resource.Coin, purse.ResourceKey); Assert.Equal(-5, purse.Delta);
+    }
+
+    [Fact]
     public void Unpaid_for_two_years_one_who_is_not_yet_the_houses_own_goes()
     {
         var (_, w, house, me, _) = Start(); house.Treasury.Credits = 500;
@@ -149,7 +165,7 @@ public class CourtTests
         {
             var (_, w, house, me, _) = Start(); house.Treasury.Credits = 500; if (option.Length > 0) PolicySystem.Enact(w, Content.Policies, house.Id, "household_wages", option);
             CourtSystem.Hire(w, Content.Names, me, CourtSystem.Guard, CourtSystem.Offers(w, Content.Names, house, CourtSystem.Guard)[0].Id); var r = house.Position(CourtSystem.Guard)!;
-            int had = house.Treasury.Credits; CourtSystem.Tick(w, Content.Policies); return (had - house.Treasury.Credits) * 1000 + r.Loyalty;
+            long had = house.Treasury.Total; CourtSystem.Tick(w, Content.Policies); return (int)(had - house.Treasury.Total) * 1000 + r.Loyalty;
         }
         int mean = Run("mean"), usual = Run(""), open = Run("open_handed");
         Assert.True(mean / 1000 < usual / 1000 && usual / 1000 < open / 1000, $"{mean} {usual} {open}"); Assert.True(mean % 1000 < usual % 1000 && usual % 1000 < open % 1000, $"{mean} {usual} {open}");

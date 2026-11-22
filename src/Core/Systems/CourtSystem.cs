@@ -69,6 +69,7 @@ public static class CourtSystem
     }
     public static int TutorPoints(World w, string houseId) { int s = Skill(w, houseId, Tutor); return s >= 4 ? 2 : s >= 1 ? 1 : 0; }
     public static int ShipwrightPct(World w, string houseId) => Skill(w, houseId, Shipwright) * ShipwrightPctPerSkill;
+    /// <summary>A year's wage, in single credits (docs/MONEY.md): not in the hundreds a house's books are kept in.</summary>
     public static int WageOf(int skill) => 1 + skill / 2;
     public static int Wages(World w, House house) => house.Court.Where(r => r.KinId.Length == 0).Sum(r => r.Wage);
 
@@ -176,7 +177,7 @@ public static class CourtSystem
                 continue;
             }
             r.Age++; int wage = Math.Max(0, r.Wage + Law("court_wage"));
-            if (house.Treasury.Credits >= wage) { house.Treasury.Credits -= wage; r.UnpaidYears = 0; r.Loyalty = Math.Clamp(r.Loyalty + PaidLoyalty + Law("court_loyalty") + goodwill * GoodwillLoyalty, 0, 100); }
+            if (house.Treasury.Total >= wage) { house.Treasury.AddCoin(-wage); r.UnpaidYears = 0; r.Loyalty = Math.Clamp(r.Loyalty + PaidLoyalty + Law("court_loyalty") + goodwill * GoodwillLoyalty, 0, 100); }
             else { r.UnpaidYears++; r.Loyalty = Math.Clamp(r.Loyalty + UnpaidLoyalty, 0, 100); }
             if (r.UnpaidYears >= LeavesUnpaidAfter && r.Loyalty < StaysAtLoyalty)
             { house.Court.Remove(r); Mark(w, LeftFlag); w.Log($"{r.Name}, unpaid for {Counted.Years(r.UnpaidYears)}, leaves the service of {house.Name}."); w.Tell("warn", $"{r.Name}, your {Name(r.Role).ToLowerInvariant()}, has gone: unpaid for {Counted.Years(r.UnpaidYears)}", "house:court", ""); continue; }

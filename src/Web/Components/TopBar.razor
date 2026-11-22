@@ -8,10 +8,10 @@
     /* manpower stops at what the house's worlds can muster: the small figure is what the year will really add */
     int muster = Economy.MusterCap(w, house.Id, G.Content!.Holdings); int cityMuster = CitySystem.Muster(w, G.Content.Holdings, house.Id);
     if (fc != null) fc.Manpower = Economy.MusterSettle(t.Manpower, fc.Manpower, muster) - t.Manpower;
-    string outTip = outs.Count == 0 ? "" : "\n\nAlso going out this year:\n" + string.Join("\n", outs.Select(o => o.what + ": " + string.Join(", ", Resource.All.Where(k => o.cost.Get(k) != 0).Select(k => "-" + o.cost.Get(k) + " " + Resource.Label(k)))));
-    string purseTip = "Your own purse, apart from the house's treasury: " + p.Purse + " credits. Physicians, gifts and bribes \"of your own\" are paid from it. Move coin between the two in House, under Purses and the will.";
+    string outTip = outs.Count == 0 ? "" : "\n\nAlso going out this year:\n" + string.Join("\n", outs.Select(o => o.what + ": " + string.Join(", ", Resource.All.Where(k => o.cost.Get(k) != 0).Select(k => "-" + Money.Of(k, o.cost.Get(k)) + " " + Resource.Label(k)))));
+    string purseTip = "Your own purse, apart from the house's treasury: " + Money.Credits(p.Purse) + ". Physicians, gifts and bribes \"of your own\" are paid from it. Move coin between the two in House, under Purses and the will.";
     var pools = G.Turn.PlayerPools;
-    var ledgerTip = G.Turn.Economy == null ? "" : string.Join("\n", G.Turn.Economy.Compute(w, house.Id, G.Turn.Fleets).Lines.Take(12).Select(l => l.Source + ": " + string.Join(", ", Resource.All.Where(k => l.Delta.Get(k) != 0).Select(k => (l.Delta.Get(k) > 0 ? "+" : "") + l.Delta.Get(k) + " " + k))));
+    var ledgerTip = G.Turn.Economy == null ? "" : string.Join("\n", G.Turn.Economy.Compute(w, house.Id, G.Turn.Fleets).Lines.Take(12).Select(l => l.Source + ": " + string.Join(", ", Resource.All.Where(k => l.Delta.Get(k) != 0).Select(k => Money.SignedOf(k, l.Delta.Get(k)) + " " + k))));
 }
 <header class="topbar" style="--accent:@house.AccentColor">
     <div class="tb-house" title="@house.Name · @(G.Content!.Titles.NameOf(house.Title, G.World!.Era))">
@@ -19,8 +19,8 @@
         <div><div class="tb-name">@house.Name</div><div class="tb-sub">@(G.Content!.Titles.NameOf(house.Title, G.World!.Era)) · <span title="Legitimacy, from 0 to 100: how rightful the Reach holds your house's place to be. It is asked for at every step up in rank, and it falls when the house is caught doing what it should not.">legitimacy @house.Legitimacy</span></div></div>
     </div>
     <div class="tb-res" title="@(ledgerTip + outTip)">
-        @Res("credits", t.Credits, fc?.Credits, "Credits — the one you run out of. Upkeep, hulls, bribes. The small figure is what the year will add or take, the shares of what is being built counted.")
-        <span class="res purse" title="@purseTip" data-purse="@p.Purse"><small class="pl">purse</small><b>@p.Purse</b></span>
+        @Res("credits", t.Credits, fc?.Credits, "Credits — the one you run out of. Upkeep, hulls, bribes. The small figure is what the year will add or take, the shares of what is being built counted.", Money.Held(t))
+        <span class="res purse" title="@purseTip" data-purse="@p.Purse"><small class="pl">purse</small><b>@Money.Show(p.Purse)</b></span>
         @Res("materials", t.Materials, fc?.Materials, "Materials — building and shipbuilding.")
         @Res("manpower", t.Manpower, fc?.Manpower, $"Manpower: {t.Manpower} of the {muster} your worlds can muster: {Census.Say(Census.CitizensOf(w, house.Id))} citizens, reckoned on the rules' scale of their people{(cityMuster > 0 ? $", and {cityMuster} more for their garrison and breadbasket cities" : "")}, and never fewer than {Economy.MusterFloor}. A point of manpower is about a thousand trained hands. It crews hulls, founds colonies and can be put to work as a gang to hasten what is building. It is not sold." + (t.Manpower > muster ? $" You hold more than they can keep: a quarter of the excess stands down each year." : t.Manpower == muster ? " It is full: it grows only as your worlds' people do." : ""))
         <span class="res cap muted" data-muster="@muster" title="What your worlds can muster">/ @muster</span>
@@ -62,11 +62,11 @@
     [Parameter] public bool SavedFlash { get; set; }
 
     private static string Nth(int n) => n % 100 is 11 or 12 or 13 ? n + "th" : (n % 10) switch { 1 => n + "st", 2 => n + "nd", 3 => n + "rd", _ => n + "th" };
-    private static RenderFragment Res(string name, int value, int? delta, string tip) => __builder =>
+    private static RenderFragment Res(string name, int value, int? delta, string tip, string? held = null) => __builder =>
     {
         <span class="res" title="@tip">
-            <Icon Name="@name" Size="16" Class="ri" /><b>@value</b>
-            @if (delta != null && delta != 0) { <small class="@(delta > 0 ? "up" : "down")">@(delta > 0 ? "+" : "")@delta</small> }
+            <Icon Name="@name" Size="16" Class="ri" /><b>@(held ?? Money.Of(name, value))</b>
+            @if (delta != null && delta != 0) { <small class="@(delta > 0 ? "up" : "down")">@Money.SignedOf(name, delta.Value)</small> }
         </span>
     };
 }

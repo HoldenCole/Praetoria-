@@ -218,7 +218,7 @@ public sealed class OrderSystem
         if (w.IsImperium) return "the throne, not the census, seats a house now";
         if (h.Enrolled || seated) return "the house sits in the Senate already";
         if (Tier(h, Commerce) < 1) return $"the census enrols only a house notable in commerce: that is a standing of {NotableAt}, and the house has {h.Order(Commerce)}";
-        return h.Treasury.Credits >= CensusFee ? null : $"the census asks {CensusFee} credits";
+        return h.Treasury.Credits >= CensusFee ? null : $"the census asks {Money.Credits(CensusFee)}";
     }
     public void Enroll(World w, House h)
     {
@@ -246,7 +246,7 @@ public sealed class OrderSystem
         bool needy = client.Debt > 0 || client.Treasury.Credits < 20 || Wealth.TierIndex(Wealth.TierFor(w, client.Id)) <= 1 || !w.HoldingsOf(client.Id).Any(x => x.IsPlanet);
         if (!needy) return "it has no need of a patron";
         if (Regard(w, client, patron) <= -30) return "its head would not take your coin";
-        return patron.Treasury.Credits >= ClientCost(client) ? null : $"needs {ClientCost(client)} credits: its debts and a gift";
+        return patron.Treasury.Credits >= ClientCost(client) ? null : $"needs {Money.Credits(ClientCost(client))}: its debts and a gift";
     }
 
     /// <summary>The patron pays the client's debts and a gift; the client is the patron's from now on: its votes, its gratitude.</summary>
@@ -294,14 +294,14 @@ public sealed class OrderSystem
         if (w.IsImperium) return "there are no elections under the throne";
         if (!nominees.Contains(nomineeId)) return "not a nominee";
         if (w.Counter(CanvassedKey(h.Id)) >= CanvassCap) return $"the house has canvassed all it decently can this election ({CanvassCap})";
-        return h.Treasury.Credits >= CanvassCredits ? null : $"needs {CanvassCredits} credits";
+        return h.Treasury.Credits >= CanvassCredits ? null : $"needs {Money.Credits(CanvassCredits)}";
     }
     /// <summary>Largesse in the candidate's name: games, grain, debts forgiven. A vote's weight at the next election.</summary>
     public void Canvass(World w, House h, string nomineeId)
     {
         h.Treasury.Credits -= CanvassCredits; w.WorldCounters[CanvassKey(nomineeId)] = w.Counter(CanvassKey(nomineeId)) + 1; w.WorldCounters[CanvassedKey(h.Id)] = w.Counter(CanvassedKey(h.Id)) + 1;
         if (nomineeId != h.Id && w.House(nomineeId) is { } n) Warm(w, n, h, 5);
-        w.Log(nomineeId == h.Id ? $"{h.Name} spends {CanvassCredits} credits on the voters in its own name." : $"{h.Name} spends {CanvassCredits} credits on the voters in the name of {w.House(nomineeId)?.Name}.");
+        w.Log(nomineeId == h.Id ? $"{h.Name} spends {Money.Credits(CanvassCredits)} on the voters in its own name." : $"{h.Name} spends {Money.Credits(CanvassCredits)} on the voters in the name of {w.House(nomineeId)?.Name}.");
     }
     public static void SweepCanvass(World w) { foreach (var k in w.WorldCounters.Keys.Where(k => k.StartsWith("canvass:") || k.StartsWith("canvassed:")).ToList()) w.WorldCounters.Remove(k); }
 }

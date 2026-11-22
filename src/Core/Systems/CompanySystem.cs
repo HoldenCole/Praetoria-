@@ -161,7 +161,7 @@ public sealed partial class CompanySystem
         co.Holders[house.Id] = co.Shares; co.Holders[Company.Public] = 0;
         w.Companies.Add(co); b.CompanyId = co.Id;
         co.LastEarnings = Earnings(w, co); co.Price = Fundamental(w, co); co.History.Add(co.Price); co.Cause = "newly listed";
-        w.Log($"{house.Name} incorporates the {b.Name} as {co.Name}: {co.Shares} shares at {co.Price:0.00} credits.");
+        w.Log($"{house.Name} incorporates the {b.Name} as {co.Name}: {co.Shares} shares at {Money.Show(co.Price)} credits.");
         return co;
     }
 
@@ -191,7 +191,7 @@ public sealed partial class CompanySystem
         if (co.ControllerId.Length > 0 && co.ControllerId != houseId && w.AtWar(houseId, co.ControllerId)) return new ShareQuote(0, 0, 0, "you are at war with the house that directs it");
         double cost = co.Price * (n + Rules.ImpactPct / 100.0 * (n * (double)already + n * n / 2.0) / Math.Max(1, co.Shares));
         int credits = Math.Max(1, (int)Math.Ceiling(cost - 1e-9)); int levy = (int)Math.Ceiling(credits * LevyPct(w) / 100.0);
-        return new ShareQuote(credits + levy, levy, cost / n, house.Treasury.Credits < credits + levy ? $"needs {credits + levy} credits" : null);
+        return new ShareQuote(credits + levy, levy, cost / n, house.Treasury.Credits < credits + levy ? $"needs {Money.Credits(credits + levy)}" : null);
     }
 
     public ShareQuote QuoteSell(World w, string houseId, Company? co, int n)
@@ -265,7 +265,7 @@ public sealed partial class CompanySystem
         int cash = FloatProceeds(co, n); co.Cash += cash; co.Shares += n; co.Holders[Company.Public] = co.HeldBy(Company.Public) + n; co.LastFloat = w.Turn; co.Flow -= n / 2.0;
         var by = w.House(co.ControllerId);
         if (co.ControllerId != w.Protagonist?.HouseId && co.HeldBy(Company.Public) == n) Mark(w, FloatedFlag);
-        w.Log($"{co.Name} floats {n} new shares and raises {cash} credits{(by != null ? $"; {by.Name} now holds {StakePct(co, by.Id)}%" : "")}.");
+        w.Log($"{co.Name} floats {n} new shares and raises {Money.Credits(cash)}{(by != null ? $"; {by.Name} now holds {StakePct(co, by.Id)}%" : "")}.");
         Recontrol(w, co);
         return cash;
     }

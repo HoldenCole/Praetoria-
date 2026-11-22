@@ -20,6 +20,9 @@ public static class Resource
     public const string RareEarths = "rare_earths";  // sensors, drives, electronics — the heavy hulls and the clever buildings
     public const string Isotopes = "isotopes";       // weapons-grade — warheads, bastion guns, battleships; never on the open market
 
+    /// <summary>Single credits (docs/MONEY.md): not one of <see cref="All"/>. A scene may pay or take them with adjustResource.</summary>
+    public const string Coin = "coin";
+
     public static readonly string[] All = { Credits, Materials, Manpower, Influence, Exotics, Helium3, RareEarths, Isotopes };
     /// <summary>The resources that come only from deposits.</summary>
     public static readonly string[] Strategic = { Helium3, RareEarths, Isotopes };
@@ -42,7 +45,19 @@ public static class Resource
 /// </summary>
 public sealed class Resources
 {
+    /// <summary>Hundreds of credits: the unit a house's books are kept in, and the one every rule reckons with (docs/MONEY.md).</summary>
     public int Credits { get; set; }
+    /// <summary>Single credits below a hundred (docs/MONEY.md): what a servant's wage is paid in. Not one of <see cref="Resource.All"/>,
+    /// so no rule that walks the resources sees it. Changed only through <see cref="AddCoin"/>, which keeps it from 0 to 99.</summary>
+    public int Coin { get; set; }
+    /// <summary>All the credits held, to the single credit.</summary>
+    [System.Text.Json.Serialization.JsonIgnore] public long Total => (long)Credits * Money.PerUnit + Coin;
+    /// <summary>Pay out or take in single credits. A hundred is broken when the coin runs out, and made when it fills.</summary>
+    public void AddCoin(int credits)
+    {
+        long total = Total + credits; int units = (int)Math.Floor(total / (double)Money.PerUnit);
+        Credits = units; Coin = (int)(total - (long)units * Money.PerUnit);
+    }
     public int Materials { get; set; }
     public int Manpower { get; set; }
     public int Influence { get; set; }
@@ -99,7 +114,7 @@ public sealed class Resources
     /// wrong thing": a refusal used to quote the whole price, leaving the player to work out which part was missing).</summary>
     public string Short(Resources cost)
     {
-        var lacks = Resource.All.Where(r => Get(r) < cost.Get(r)).Select(r => $"{cost.Get(r) - Get(r)} {Resource.Label(r)}").ToList();
+        var lacks = Resource.All.Where(r => Get(r) < cost.Get(r)).Select(r => $"{Money.Of(r, cost.Get(r) - Get(r))} {Resource.Label(r)}").ToList();
         return lacks.Count == 0 ? "" : string.Join(" and ", lacks) + " short";
     }
     public bool CanAfford(Resources cost)
@@ -140,7 +155,7 @@ public sealed class Resources
 
     public Resources Clone() => new()
     {
-        Credits = Credits, Materials = Materials, Manpower = Manpower,
+        Credits = Credits, Coin = Coin, Materials = Materials, Manpower = Manpower,
         Influence = Influence, Exotics = Exotics, Helium3 = Helium3, RareEarths = RareEarths, Isotopes = Isotopes
     };
 }

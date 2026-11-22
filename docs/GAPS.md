@@ -321,6 +321,15 @@ Measured by `upstart` (three services, four seeds, sixty years). U8 to U11 are c
 | H6 | One scene for each position but the tutor and the shipwright, which have none. Nothing for two of the household who fall out, for one of the commons who knows too much, or for a rival's offer to one of them. | M | |
 | H7 | The court is not carried into the Godot client. | S | |
 
+## Money (docs/MONEY.md, 2026-11-22)
+
+| # | The gap | Size | Waits on |
+|---|---|---|---|
+| M1 | The books are in hundreds and only shown in credits: a house-level amount (a yield, a cost, a price, a purse) moves in whole hundreds, and the rules still round down at that size. Rewriting every rule in single credits would fix it and would move the whole balance. | L | the owner: is whole hundreds enough |
+| M2 | Only the house's court is paid in single credits. Other things that are small by nature are still in hundreds: a council post's pay (200 a year), a physician sent for from a purse, a tutor paid for one child, a client's stipend. | M | the owner: which of these should be small |
+| M3 | The court's wages are not a line in the house's ledger or in the year's forecast beside the treasury: they are paid at the year's end and seen on the court's page. | S | |
+| M4 | The older Godot client and saved games made before this show and hold the same figures; nothing in a save needed changing, but a chronicle written before the change quotes the old figures. | S | |
+
 ## Older, from docs/ROADMAP.md section 3
 
 Kept there in full. In short: the state gives commerce nothing (no tax-farming or contracts), callings lean to commerce,

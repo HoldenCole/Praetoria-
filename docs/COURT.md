@@ -42,7 +42,9 @@ and a line on where they came from (a sergeant of marines paid off at one of the
 whose school closed). The same three offer for two
 years and then others do. One taken on is **sworn to the house**:
 
-- They are paid a wage each year from the treasury: 1 credit at skill 1, 2 at skills 2 and 3, 3 at 4 and 5.
+- They are paid a wage each year from the treasury, in **single credits** (docs/MONEY.md: a house's books are in
+  hundreds, and a servant's wage is far below one): 1 credit at skill 1, 2 at skills 2 and 3, 3 at 4 and 5. A full
+  court costs about 14 credits a year. A great house does not notice it; a house that clears fifty does.
 - Loyalty begins at 40. A paid year adds 3. An unpaid year takes 15.
 - Unpaid for two years running, one whose loyalty is under 60 leaves. At 60 and over they stay.
 - Every six years in the place they grow a point better, to 5.
@@ -72,7 +74,9 @@ The place is empty again if they die, leave the house or defy the head.
 Seven scenes (`content/events/court.json`), each for something the court did that year: the physician's cure, the guard
 between one of the house and a knife, the nurse at a new cradle, one grown old in the house's service, the duel
 master's pupil, a wedding well ordered, and one who left unpaid. Most have an answer that the rest of the household
-sees: it adds or takes 8 loyalty from every sworn member of the court at the year's end, for each point.
+sees: it adds or takes 8 loyalty from every sworn member of the court at the year's end, for each point. What they
+cost is in single credits, as the wages are (a purse of 5 for the physician, 20 set aside for a pension), except the
+wedding feast, which is a house's expense (300 credits).
 
 ## Where it is on the screen
 

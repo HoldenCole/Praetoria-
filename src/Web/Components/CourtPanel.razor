@@ -12,7 +12,7 @@
 }
 <section class="panel household council court" data-court-panel>
     <div class="hh-head" data-court><b>The house's court</b> <span class="muted small">Seven small positions that belong to the house and not to any rank or office it holds: they go with you whatever you rise to, and stay if you fall. Each is held by one of the commons sworn to the house, who is paid, or by one of the family, who is not. Nothing has to be filled.</span></div>
-    <div class="small court-sum" data-court-sum>@house.Court.Count of @CourtSystem.Positions.Length filled · wages <b>@Counted.Of(paid, "credit")</b> a year@(wageLaw != null ? $" · {wageLaw.Name}: {wageNow?.Name ?? "unset"}, set in the Laws window" : "")</div>
+    <div class="small court-sum" data-court-sum>@house.Court.Count of @CourtSystem.Positions.Length filled · wages <b>@Money.Coin(paid)</b> a year@(wageLaw != null ? $" · {wageLaw.Name}: {wageNow?.Name ?? "unset"}, set in the Laws window" : "")</div>
     <div class="council-grid">
     @foreach (var role in CourtSystem.Positions)
     {

@@ -1,5 +1,5 @@
 {
-  "//": "THE HOUSE'S COURT (docs/COURT.md; the owner, 2026-11-22). Scenes for the small positions of a house's own court: tutor, wet nurse, physician, captain of the guard, duel master, shipwright, master of ceremonies. Each reads a world flag the court raises (court_physician_cured, court_guard_held, court_nurse_at_the_cradle, court_retainer_grown_old, court_duel_masters_pupil, court_feast_well_ordered, court_retainer_left) and clears it. Those of the court are of the commons and are not persons a scene can name; one of the family touched by it carries a char flag (physician_cured, guard_held_for, duel_masters_pupil). The counter court_goodwill is read at the year's end: the household sees how one of its own was treated.",
+  "//": "THE HOUSE'S COURT (docs/COURT.md; the owner, 2026-11-22). Scenes for the small positions of a house's own court: tutor, wet nurse, physician, captain of the guard, duel master, shipwright, master of ceremonies. Each reads a world flag the court raises (court_physician_cured, court_guard_held, court_nurse_at_the_cradle, court_retainer_grown_old, court_duel_masters_pupil, court_feast_well_ordered, court_retainer_left) and clears it. Those of the court are of the commons and are not persons a scene can name; one of the family touched by it carries a char flag (physician_cured, guard_held_for, duel_masters_pupil). The counter court_goodwill is read at the year's end: the household sees how one of its own was treated. What the scenes cost is in single credits (resource 'coin', docs/MONEY.md), as the wages are: only the feast is a house's expense and is in the books' hundreds.",
   "events": [
     {
       "id": "the_physicians_cure",
@@ -37,8 +37,8 @@
             },
             {
               "type": "adjustResource",
-              "resource": "credits",
-              "delta": -2
+              "resource": "coin",
+              "delta": -5
             },
             {
               "type": "adjustCounter",
@@ -81,8 +81,8 @@
             },
             {
               "type": "adjustResource",
-              "resource": "credits",
-              "delta": -4
+              "resource": "coin",
+              "delta": -40
             },
             {
               "type": "adjustCounter",
@@ -138,8 +138,8 @@
             },
             {
               "type": "adjustResource",
-              "resource": "credits",
-              "delta": -5
+              "resource": "coin",
+              "delta": -3
             },
             {
               "type": "adjustCounter",
@@ -162,8 +162,8 @@
             },
             {
               "type": "adjustResource",
-              "resource": "credits",
-              "delta": -3
+              "resource": "coin",
+              "delta": -10
             },
             {
               "type": "adjustStress",
@@ -172,7 +172,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} doubled the watch on every door {spared.name} used. It cost three credits and bought a little sleep."
+              "text": "{self.name} doubled the watch on every door {spared.name} used. It cost ten credits and bought a little sleep."
             }
           ]
         },
@@ -225,7 +225,7 @@
             },
             {
               "type": "adjustResource",
-              "resource": "credits",
+              "resource": "coin",
               "delta": -2
             },
             {
@@ -297,8 +297,8 @@
             },
             {
               "type": "adjustResource",
-              "resource": "credits",
-              "delta": -6
+              "resource": "coin",
+              "delta": -20
             },
             {
               "type": "adjustCounter",
@@ -312,7 +312,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let it be known that nobody who had given the house their working life would be turned out at the end of it. Six credits were set aside. The whole household heard."
+              "text": "{self.name} let it be known that nobody who had given the house their working life would be turned out at the end of it. Twenty credits were set aside. The whole household heard."
             }
           ]
         },
@@ -479,7 +479,7 @@
             {
               "type": "adjustResource",
               "resource": "credits",
-              "delta": -8
+              "delta": -3
             },
             {
               "type": "adjustLegitimacy",
@@ -517,7 +517,7 @@
             {
               "type": "adjustResource",
               "resource": "credits",
-              "delta": 3
+              "delta": 1
             },
             {
               "type": "adjustCounter",
@@ -526,7 +526,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had two courses struck from the table and the musicians sent home early. Three credits were saved. The old families counted the courses."
+              "text": "{self.name} had two courses struck from the table and the musicians sent home early. A hundred credits were saved. The old families counted the courses."
             }
           ]
         }
@@ -555,8 +555,8 @@
             },
             {
               "type": "adjustResource",
-              "resource": "credits",
-              "delta": -4
+              "resource": "coin",
+              "delta": -10
             },
             {
               "type": "adjustCounter",
