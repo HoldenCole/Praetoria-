@@ -163,7 +163,7 @@ public partial class CreationScreen : Control
         var b = _state.Content.Backgrounds.Defs[i];
         var bits = new List<string>();
         if (b.Legitimacy != 0) bits.Add($"legitimacy {b.Legitimacy:+#;-#;0}");
-        foreach (var r in Praetoria.Core.State.Resource.All) if (b.Treasury.Get(r) != 0) bits.Add($"{r} {b.Treasury.Get(r):+#;-#;0}");
+        foreach (var r in Praetoria.Core.State.Resource.All) if (b.Treasury.Get(r) != 0) bits.Add($"{r} {Praetoria.Core.Money.SignedOf(r, b.Treasury.Get(r))}");
         foreach (var t in b.Nature) bits.Add("+" + t);
         foreach (var t in b.Aptitude) bits.Add("+" + t);
         foreach (var kv in b.Skills) bits.Add($"{kv.Key} {kv.Value:+#;-#;0}");

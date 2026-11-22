@@ -115,7 +115,7 @@ public partial class CourtView : HBoxContainer
         _left.AddChild(Panel(era, true, out var dv));
         dv.AddChild(CourtTheme.Heading("The Steward — domain", CourtTheme.Gilt(era), 15));
         var t = m.Treasury;
-        dv.AddChild(CourtTheme.Body($"Credits {t.Credits} · Materials {t.Materials} · Manpower {t.Manpower}\nInfluence {t.Influence} · Exotics {t.Exotics}", t.Insolvent ? CourtTheme.Danger : ink, 13));
+        dv.AddChild(CourtTheme.Body($"Credits {Praetoria.Core.Money.Show(t.Credits)} · Materials {t.Materials} · Manpower {t.Manpower}\nInfluence {t.Influence} · Exotics {t.Exotics}", t.Insolvent ? CourtTheme.Danger : ink, 13));
         foreach (var h in m.Holdings)
         {
             dv.AddChild(CourtTheme.Rule());
