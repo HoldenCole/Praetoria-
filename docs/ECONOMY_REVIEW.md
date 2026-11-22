@@ -258,6 +258,134 @@ I recommend the second.
 4. The first or the second way in section 8?
 5. Is there to be "somewhere to live": a seat or a town house a relative buys with their own purse?
 
+## 10. The owner's answers (2026-11-22)
+
+*"I think investments should have a range, that's good. I don't know about salaries. Let's test a few. Great works can
+make money depending on what you use them for and what building they are. We can have places to live eventually. I
+think maybe certain resources pay more than others and certain investments do as well, like the real world. So
+technically it's possible to get 30-40% ROIC if you pick a growing area."*
+
+| Question | Answer |
+|---|---|
+| Should returns be brought down to something like the real world? | Yes, as a **range**: some resources and some investments pay more than others, and 30 to 40% is possible in a growing area |
+| Great works | They can earn, by what they are and what they are used for |
+| Salaries | Not decided: test a few |
+| Somewhere to live | Eventually, not now |
+| Which way to retune (inside the hundreds, or the rules in single credits) | Not answered |
+
+## 11. Trials
+
+Two things were tried, apart and together, without changing the game anybody plays. `dotnet run --project src/Tools --
+econ --seeds 3` prints all of it again.
+
+### Ranged returns
+
+Everything that returns more than its kind is meant to has its **cost raised** until it returns that, at usual prices.
+Nothing is made cheaper and no yield is changed. The kinds, and what each is meant to return a year (these are mine):
+
+| Kind | Return a year at usual prices |
+|---|---|
+| Markets, ports, power (credits only) | 7% |
+| Farming and manpower | 8% |
+| Finance | 9% |
+| Common extraction (materials), trade, services, clout | 10% |
+| Shipping | 12% |
+| The strategic goods: helium-3, rare earths, isotopes, exotics | 15% |
+| Speculative (the Salvage Guild) | 20% |
+| A great work that makes materials | 10% |
+| A great work that brings up a strategic good | 12% |
+| A great work for show | what it pays now, and never above 5% |
+| War ventures, the Insurance House, the Commodity Warehouse | left alone: thin at peace, rich in a war or a spike |
+
+**The growing area is already in the game.** A good's price moves with what the houses make and burn, up to three
+times its usual price. A venture that brings up a strategic good at 15% in an ordinary year returns up to 45% while
+that good is short. That is the owner's 30 to 40%, and it lasts until others pile in and the price falls.
+
+What it does to prices (a sample):
+
+| | Returned | Now returns | Cost before | Cost after |
+|---|---|---|---|---|
+| Deep Mine | 88% | 10% | 400 credits | 3,500 credits |
+| Hydroponic Complex | 67% | 8% | 5 materials | 42 materials |
+| Power Plant | 22% | 7% | 6 materials | 20 materials |
+| Rare-Earth Refinery | 47% | 15% | 1,000 credits, 6 materials | 3,200 credits, 19 materials |
+| Shipping Line | 35% | 12% | 1,400 credits, 6 materials | 4,100 credits, 18 materials |
+| Merchant Bank | 33% | 9% | 2,400 credits | 8,900 credits |
+| Spice Syndicate | 47% | 15% | 1,600 credits, 2 materials | 5,100 credits, 7 materials |
+| Salvage Guild | 82% | 19% | 800 credits, 2 materials | 3,300 credits, 9 materials |
+| The Lode Works | 30% | 12% | 4,400 credits, 56 materials, 4 manpower | 11,000 credits, 139 materials, 10 manpower |
+
+### Salaries
+
+Four schemes of yearly pay, in single credits (`PayrollSystem`). They are off in every game that is played.
+
+| Paid to | Light | Standard | Heavy | Crews as a navy pays them |
+|---|---|---|---|---|
+| A hull's crew, for each unit of manpower it was laid down with (a third if laid up) | 3 | 8 | 12 | 30 |
+| A world's officials, for each ten of its people | 5 | 10 | 20 | 10 |
+| A governor | 5 | 20 | 30 | 20 |
+| An admiral | 5 | 20 | 30 | 20 |
+| A venture's staff, a level | 2 | 5 | 10 | 5 |
+| The hands of a building | 1 | 3 | 5 | 3 |
+
+### What was measured
+
+*The Old Lion*, three seeds, every house, nobody steering the player's house. Figures are the middle house, in credits.
+"Kept" is what is left of the year's income after upkeep and wages, before anything is built with it.
+
+| Returns | Salaries | Year | Takes in | Upkeep | Wages | Wages of income | Kept | Treasury | In the red | Hulls in the Reach | Buildings | Venture levels |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| today's | none | 1 | 600 | 200 | 0 | 0% | 64% | 400 | 0 of 90 | 24 | 4 | 5 |
+| | | 10 | 800 | 300 | 0 | 0% | 68% | 900 | 0 of 90 | 52 | 87 | 27 |
+| | | 30 | 5,300 | 800 | 0 | 0% | 83% | 26,600 | 0 of 88 | 107 | 143 | 215 |
+| today's | standard | 1 | 600 | 200 | 50 | 11% | 53% | 550 | 0 of 90 | 25 | 4 | 5 |
+| | | 30 | 4,200 | 700 | 178 | 5% | 76% | 11,482 | 0 of 87 | 110 | 138 | 188 |
+| today's | heavy | 1 | 600 | 200 | 80 | 18% | 46% | 520 | 0 of 90 | 26 | 4 | 5 |
+| | | 30 | 3,800 | 600 | 272 | 7% | 76% | 9,365 | 0 of 87 | 95 | 137 | 162 |
+| today's | crews | 1 | 600 | 200 | 50 | 20% | 44% | 550 | 0 of 90 | 26 | 4 | 5 |
+| | | 30 | 3,300 | 600 | 244 | 9% | 72% | 6,159 | 1 of 87 | 94 | 136 | 155 |
+| ranged | none | 1 | 600 | 200 | 0 | 0% | 65% | 200 | 0 of 90 | 23 | 4 | 5 |
+| | | 10 | 700 | 200 | 0 | 0% | 58% | 1,000 | 0 of 90 | 53 | 62 | 14 |
+| | | 30 | 2,400 | 500 | 0 | 0% | 80% | 2,900 | 0 of 87 | 86 | 109 | 122 |
+| ranged | standard | 1 | 600 | 200 | 50 | 11% | 54% | 270 | 0 of 90 | 23 | 4 | 5 |
+| | | 30 | 2,000 | 400 | 139 | 6% | 72% | 2,252 | 0 of 87 | 78 | 108 | 100 |
+| ranged | heavy | 1 | 600 | 200 | 80 | 18% | 47% | 290 | 0 of 90 | 23 | 4 | 5 |
+| | | 30 | 1,400 | 400 | 226 | 10% | 70% | 1,916 | 0 of 87 | 71 | 101 | 96 |
+| ranged | crews | 1 | 600 | 200 | 50 | 19% | 46% | 270 | 0 of 90 | 23 | 4 | 5 |
+| | | 30 | 1,300 | 400 | 196 | 11% | 67% | 2,122 | 0 of 87 | 76 | 103 | 92 |
+
+(The light scheme and the other years are in the tool's output. Light is 2 to 5% of income throughout.)
+
+### What it shows
+
+1. **Ranged returns end the pile by themselves.** After 30 years the middle treasury is 2,900, about one year's
+   income, where today it is 26,600, about five. The surplus goes into dearer buildings.
+2. **They also slow the game.** By year 10 there are 62 buildings standing where today there are 87, and half the
+   ventures. By year 30 incomes are less than half today's (2,400 against 5,300). Whether that is right is a question
+   of pace: with these prices a house's first building takes several years to afford.
+3. **No scheme of salaries tried is heavy enough to shape anything.** The heaviest is 18 to 20% of income at the
+   start and 7 to 11% after 30 years, because incomes grow faster than what is paid. Nobody was ruined (two houses of
+   90 in the red at the worst), and the navies are about a tenth smaller under the heavier ones.
+4. **Flat rates fall behind.** A wage fixed per hull or per building shrinks beside an income that grows sevenfold.
+   Pay that is to stay a third of spending has to follow what the thing earns (a share of a building's yield, a
+   share of a hull's cost) and not be a fixed sum.
+5. **Paying crews "as a navy pays them" does not empty the yards**: 94 hulls against 107. The yearly upkeep a hull
+   already carries is the larger cost.
+
+### What this cannot say
+
+- The other houses decide what to build with rules written for today's prices. They were not taught the new ones.
+- Nobody played the player's house: it took the first answer to every report and built nothing.
+- One start, three seeds. The middle house's treasury moves by thousands between runs; the direction did not.
+
+### What I would do next
+
+1. Put the ranged returns into the game, with starting treasuries raised so that a first building is two or three
+   years away and not seven. This is a real change to every game, so it waits on the owner.
+2. Try salaries again as **shares**: staff at a fifth to a third of what a building or venture yields, a crew at a
+   tenth of its hull's cost a year, and measure the same way.
+3. Then the prices of single acts (section 4), against the new incomes.
+
 ## Sources
 
 - Return on capital: McKinsey, *A long-term look at ROIC* (https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/a-long-term-look-at-roic)
