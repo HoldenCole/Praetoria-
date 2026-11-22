@@ -259,7 +259,7 @@ public sealed class GameClient
             var lines = new List<string>();
             if (house != null && before != null)
             {
-                var changed = Resource.All.Select(k => (k, d: house.Treasury.Get(k) - before.Get(k))).Where(x => x.d != 0).Select(x => (x.d > 0 ? "+" : "−") + Praetoria.Core.Money.Of(x.k, Math.Abs(x.d)) + " " + Resource.Label(x.k)).ToList();
+                var changed = Praetoria.Core.Money.Changed(before, house.Treasury);
                 if (house.Legitimacy != legit) changed.Add("legitimacy " + (house.Legitimacy > legit ? "+" : "−") + Math.Abs(house.Legitimacy - legit));
                 if (me != null && me.Stress != stress) changed.Add("stress " + (me.Stress > stress ? "+" : "−") + Math.Abs(me.Stress - stress));
                 if (changed.Count > 0) lines.Add(string.Join(" · ", changed));
@@ -282,7 +282,7 @@ public sealed class GameClient
         var pools = me != null ? World.PoolsFor(me.Id) : null; int pi = pools?.Influence ?? 0, pt = pools?.Treasury ?? 0, pa = pools?.Agents ?? 0;
         if (!Execute(command)) return false;
         var changed = new List<string>();
-        if (house != null && before != null) changed.AddRange(Resource.All.Select(k => (k, d: house.Treasury.Get(k) - before.Get(k))).Where(x => x.d != 0).Select(x => (x.d > 0 ? "+" : "−") + Praetoria.Core.Money.Of(x.k, Math.Abs(x.d)) + " " + Resource.Label(x.k)));
+        if (house != null && before != null) changed.AddRange(Praetoria.Core.Money.Changed(before, house.Treasury));
         if (pools != null) foreach (var (name, was, now) in new[] { ("influence this year", pi, pools.Influence), ("treasury this year", pt, pools.Treasury), ("agents this year", pa, pools.Agents) }) if (now != was) changed.Add((now > was ? "+" : "−") + Math.Abs(now - was) + " " + name);
         if (house != null && house.Legitimacy != legit) changed.Add("legitimacy " + (house.Legitimacy > legit ? "+" : "−") + Math.Abs(house.Legitimacy - legit));
         if (me != null && me.Stress != stress) changed.Add("stress " + (me.Stress > stress ? "+" : "−") + Math.Abs(me.Stress - stress));

@@ -34,7 +34,7 @@ one of the other's hold two debts, one each way. The debt is the house's, so it 
 | **Blood, the wrong blood** | Anyone else of the owing house dies by it | The debt is paid, and the other house now holds one in its turn |
 | **A duel** | The wronged house's head, or a champion of the house, calls the one to blame out. Odds come from what each knows of fighting, their service, health and years. The loser dies four times in ten and is otherwise wounded; the winner is sometimes wounded | It ends there whoever falls, and a death in it is nobody's to avenge |
 | **The field refused** | The one called out does not come | Their house loses three standing, it is written against them, and what the wronged house does next is on them. The debt stands |
-| **The price** | A sum fixed by who the dead person was (20, ten more for each rank, thirty more for the head of a house), asked by the house that is owed or offered once by the house that owes | The owing house pays and loses a point of standing: to pay is to admit it. The dead person's near kin think less of a head who took money |
+| **The price** | A sum fixed by who the dead person was (2,000, a thousand more for each rank, 3,000 more for the head of a house), asked by the house that is owed or offered once by the house that owes | The owing house pays and loses a point of standing: to pay is to admit it. The dead person's near kin think less of a head who took money |
 | **Let lie** | The head of the wronged house says so, or eight years pass | Three standing if said (less what the years have already taken), the near kin take it hard, and the other house had not expected it |
 
 A knife is the ordinary assassination; the feud is settled by who dies.

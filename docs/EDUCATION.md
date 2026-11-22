@@ -130,8 +130,8 @@ Closed straight off the register on 2026-11-15 (docs/GAPS.md E5, E6).
 
 ### A price that is not money (E7, the same day)
 
-The same bargain can be paid in a word said for them in the right place: 1 influence where the sum would have been 4,
-2 where it would have been 8. An empty purse is no bar. They turn to it and think 2 better of the head, because it was
+The same bargain can be paid in a word said for them in the right place: 1 influence where the sum would have been 400,
+2 where it would have been 800. An empty purse is no bar. They turn to it and think 2 better of the head, because it was
 something done for them and not something paid.
 
 ## Not in this piece

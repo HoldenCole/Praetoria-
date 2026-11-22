@@ -32,6 +32,15 @@ public static class Money
     public static string SignedOf(string resource, long n) => (n > 0 ? "+" : "") + Of(resource, n);
     /// <summary>What a treasury holds, to the single credit: its hundreds and its odd coin.</summary>
     public static string Held(Resources t) => N(t.Total);
+    /// <summary>What moved between two states of a treasury, a part for each resource: "−205 credits", "+3 materials". Credits are to the
+    /// single credit, so a scene that paid a servant's purse says so.</summary>
+    public static List<string> Changed(Resources before, Resources after)
+    {
+        var parts = new List<string>(); long d = after.Total - before.Total;
+        if (d != 0) parts.Add((d > 0 ? "+" : "−") + N(Math.Abs(d)) + " credits");
+        foreach (var k in Resource.All) { if (k == Resource.Credits) continue; int by = after.Get(k) - before.Get(k); if (by != 0) parts.Add((by > 0 ? "+" : "−") + Math.Abs(by).ToString(CultureInfo.InvariantCulture) + " " + Resource.Label(k)); }
+        return parts;
+    }
     /// <summary>An amount that is already in single credits (a servant's wage): "1 credit", "6 credits".</summary>
     public static string Coin(long credits) => credits == 1 ? "1 credit" : N(credits) + " credits";
 }

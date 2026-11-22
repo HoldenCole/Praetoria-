@@ -43,7 +43,7 @@ and chokepoints. Everything built off-map (nations, expeditions, tribute, sway) 
   fleet has no system: it is out of every battle, siege, supply line and map marker at home, and still costs upkeep.
 - **`NationSystem.Tick`** (BeginTurn, after the fleets at home; RNG-free): strength regrows every five turns; regard drifts
   by temper (aggressive sour, mercantile warm) and falls two a turn at war; **raids** — an aggressive or decaying nation
-  at regard −20 or worse hits a rim world about one turn in six (unrest +8, five credits from its holder, a point to its
+  at regard −20 or worse hits a rim world about one turn in six (unrest +8, five hundred credits from its holder, a point to its
   war tally; three hulls in orbit turn it back); **expeditions** sail the distance, fight a season of four battles, come
   home with plunder paid into the treasury; **the war ends** when the Reach's score clears the nation's by its threshold
   (or the nation's fleets are gone) — subdued twenty turns, tribute a turn to the chair, the house with most wins takes
@@ -73,7 +73,7 @@ and chokepoints. Everything built off-map (nations, expeditions, tribute, sway) 
   `raided_by:<id>`. **Counters**: `foreign_wars`, `foreign_wars_lost`, `nations_subdued`, `expeditions`,
   `foreign_battles`, `foreign_raids`, `tribute_received`, `expedition_wins:<house>:<nation>`, `raided_turn:<house>`.
 - **Measured** (probe, four scenarios, 60 turns): 1–2 wars abroad a run, 1–5 expeditions, 2–13 battles abroad, 12–17
-  raids, one subdual (84 tribute to the chair) and one lost war across the four.
+  raids, one subdual (8,400 tribute to the chair) and one lost war across the four.
 
 ## Still off-map
 The province and the claim a conquest yields (a title to press), the consuls' prerogative to make war without a vote,

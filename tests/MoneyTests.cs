@@ -37,6 +37,32 @@ public class MoneyTests
     }
 
     [Fact]
+    public void What_moved_in_a_treasury_is_said_to_the_single_credit()
+    {
+        var before = new Resources { Credits = 28, Materials = 5 }; var after = before.Clone(); after.Credits -= 2; after.AddCoin(-5); after.Materials += 3;
+        Assert.Equal(new[] { "−205 credits", "+3 materials" }, Money.Changed(before, after)); Assert.Empty(Money.Changed(before, before.Clone()));
+    }
+
+    [Fact]
+    public void Nothing_writes_an_amount_beside_the_word_credits_without_going_through_Money()
+    {
+        // docs/MONEY.md: the books are in hundreds. A line that writes "{cost} credits" would show the books' own figure, a hundredth of the truth.
+        string root = Path.GetFullPath(Path.Combine(ContentLocator.FindContentDir(), "..", "src")); char sep = Path.DirectorySeparatorChar; var bad = new List<string>();
+        var inBraces = new Regex(@"\{([^{}]*)\}(:[^}]*)?\s*credits?\b"); var inPage = new Regex(@"@\(?([A-Za-z_][\w\.\(\)\[\]\?!]*)\)?\s+credits?\b");
+        foreach (var f in Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories))
+        {
+            if (!(f.EndsWith(".cs") || f.EndsWith(".razor")) || f.Contains(sep + "obj" + sep) || f.Contains(sep + "bin" + sep) || f.EndsWith("Money.cs")) continue;
+            int n = 0; foreach (var line in File.ReadLines(f))
+            {
+                n++; var found = inBraces.Matches(line).Concat(f.EndsWith(".razor") ? inPage.Matches(line) : Enumerable.Empty<Match>());
+                if (found.Any(m => !m.Groups[1].Value.Contains("Money.") && !m.Groups[1].Value.Contains("Counted."))) bad.Add($"{Path.GetFileName(f)}:{n}");
+                if (line.Contains("Counted.Of(") && line.Contains("\"credit\"")) bad.Add($"{Path.GetFileName(f)}:{n} (counts credits)");
+            }
+        }
+        Assert.True(bad.Count == 0, "an amount of credits written without Money: " + string.Join(", ", bad));
+    }
+
+    [Fact]
     public void A_shortfall_is_said_in_credits()
     {
         var t = new Resources { Credits = 2, Materials = 1 }; var cost = new Resources { Credits = 5, Materials = 4 };

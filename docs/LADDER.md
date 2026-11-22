@@ -10,9 +10,9 @@ by a person and not by a house, and nobody is consul who has not climbed.
 
 | Rung | Seats | From the age of | Must have been | Pays (a year, to the holder's own purse) | Teaches | Standing |
 |---|---|---|---|---|---|---|
-| Quaestor | 4 | 25 | nothing, but a place in a service | 1 | economics | 3 |
-| Aedile | 2 | 30 | quaestor | 1 | administration | 5 |
-| Praetor | 2 | 34 | quaestor | 2 | law | 8 |
+| Quaestor | 4 | 25 | nothing, but a place in a service | 100 | economics | 3 |
+| Aedile | 2 | 30 | quaestor | 100 | administration | 5 |
+| Praetor | 2 | 34 | quaestor | 200 | law | 8 |
 | Consul | 2 | 40 | praetor | (the consul offices, docs/REPUBLIC.md) | | |
 
 - **Aedile is optional**, as it was. It is the rung that gives games.

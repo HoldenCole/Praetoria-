@@ -26,9 +26,9 @@
             <span class="muted small">Into it</span>
             @foreach (int a in Sums) { int amt = a; var no = new WealthCommand(pid, WealthCommand.Move, string.Empty, (-amt).ToString()).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@no" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, (-amt).ToString()))">put @Money.Show(a)</button> }
         </div>
-        <div class="suit-acts" data-purse-any="1"><span class="muted small">Or any sum, in hundreds</span>
-            <input type="number" min="1" class="qty" style="width:5rem" @bind="_moveSum" @bind:event="oninput" />
-            @{ int moveSum = Math.Max(1, _moveSum); var noTake = new WealthCommand(pid, WealthCommand.Move, string.Empty, moveSum.ToString()).Refusal(G.Ctx); var noPut = new WealthCommand(pid, WealthCommand.Move, string.Empty, (-moveSum).ToString()).Refusal(G.Ctx); }
+        <div class="suit-acts" data-purse-any="1"><span class="muted small" title="The house's books are kept in hundreds of credits, so a sum moved is a whole number of hundreds.">Or any sum</span>
+            <input type="number" min="100" step="100" class="qty" style="width:6rem" @bind="_moveCredits" @bind:event="oninput" />
+            @{ int moveSum = Math.Max(1, _moveCredits / Money.PerUnit); var noTake = new WealthCommand(pid, WealthCommand.Move, string.Empty, moveSum.ToString()).Refusal(G.Ctx); var noPut = new WealthCommand(pid, WealthCommand.Move, string.Empty, (-moveSum).ToString()).Refusal(G.Ctx); }
             <button class="opt inline tiny" disabled="@(noTake != null)" title="@noTake" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, moveSum.ToString()))">take @Money.Show(moveSum) from the treasury</button>
             <button class="opt inline tiny" disabled="@(noPut != null)" title="@noPut" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, (-moveSum).ToString()))">put @Money.Show(moveSum) into the treasury</button>
         </div>
@@ -241,7 +241,7 @@
     private const string ForgiveTip = "They owe you nothing more, and will not forget it.";
     private const string DowryTreasuryTip = "The house pays, as is usual.";
     private const string DowryPurseTip = "You pay what your purse holds and the treasury the rest. A bride whose portion came mostly from your own hand thinks the better of you for it.";
-    private int _moveSum = 10;
+    private int _moveCredits = 1000;   // typed in credits; the command is given hundreds (docs/MONEY.md)
     private static readonly int[] Sums = { 5, 20 }; private static readonly int[] Shares = { 25, 50, 100 };
     private static string First(string name) => name.Split(' ')[0];
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

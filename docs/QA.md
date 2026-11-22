@@ -118,8 +118,8 @@ owner's.
   person. See "What I got wrong" below.
 - **Trust in the magistrates is a problem in two starts only**: low in nine runs of ten in one, five in another,
   and never in the other four.
-- **The Academy start's private economy is a tenth of the others**: 101 shares bought against 805, 100 credits paid
-  into purses against 2,318.
+- **The Academy start's private economy is a tenth of the others**: 101 shares bought against 805, 10,000 credits paid
+  into purses against 231,800.
 - **Recalls almost never pass**: 5 voted of 38 moved.
 
 ## 4. Screens

@@ -47,7 +47,7 @@ and a house that takes the world takes it all.
 ## Settling
 
 A system nobody holds can be settled (`FoundColonyCommand`): it must lie a lane from a world of the house, or have a
-fleet of the house standing in it, and not lie in a nation's space. The colony costs 30 credits, 20 materials, 8
+fleet of the house standing in it, and not lie in a nation's space. The colony costs 3,000 credits, 20 materials, 8
 manpower and 2 influence, paid over three years on the way; when it lands the system's world is a small holding of the
 house, and its bodies are the house's to build on. The larger maps leave systems empty for this.
 

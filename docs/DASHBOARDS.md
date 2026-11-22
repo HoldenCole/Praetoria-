@@ -41,7 +41,7 @@ cd tools/browser && node audit.js "The Old Lion" 10
 
 **The Command Deck**, which the owner named, has every fault at once:
 
-- **Seven numbers with nothing to read them against.** "Hulls 4": of how many, against whom? "Upkeep 6 a turn": can
+- **Seven numbers with nothing to read them against.** "Hulls 4": of how many, against whom? "Upkeep 600 a turn": can
   the house afford it? "Isotopes 0": does that matter? They sit left-aligned with half the bar empty beside them.
 - **A map nobody can read.** Thirty unlabelled dots joined by lines. The lines are lanes, drawn all alike, so they say
   nothing; the two things a commander wants from a plot (where are mine, where is the danger) are the smallest marks.

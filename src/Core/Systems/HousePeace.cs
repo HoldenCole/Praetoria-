@@ -30,7 +30,8 @@ public static class HousePeace
         return (credits, goods, left);
     }
     private static string Paid((int credits, List<(string good, int n)> goods, int unpaid) p) =>
-        string.Join(", ", new[] { p.credits > 0 ? Money.Credits(p.credits) : "" }.Concat(p.goods.Select(g => g.n + " " + Resource.Label(g.good))).Where(x => x.Length > 0));
+        string.Join(", ", new[] { p.credits > 0 ? Money.Credits(p.credits) : "" }.Concat(p.goods.Select(g => g.n + " " + Resource.Label(g.good))).Where(x => x.Length > 0))
+        + (p.goods.Count > 0 ? $" (goods stand at {Money.Credits(1)} each)" : "");   // tribute is reckoned in the books' hundreds, and a good stands for one of them
 
     /// <summary>The worlds of <paramref name="loser"/> that could change hands at a peace: never the capital of the Reach, never its last.</summary>
     public static List<Holding> Cedable(World w, string loser)

@@ -20,7 +20,7 @@
         else if (askNo == null && ask > 1)
         {
             <span class="muted small">or offer</span>
-            <input class="qty" type="number" min="1" max="@(ask - 1)" value="@offer" @onchange="e => _offer = int.TryParse(e.Value?.ToString(), out var v) ? v : 0" />
+            <input class="qty" type="number" min="@Money.PerUnit" step="@Money.PerUnit" max="@((ask - 1) * Money.PerUnit)" value="@(offer * Money.PerUnit)" style="width:6rem" title="In credits. The books are in hundreds, so an offer is a whole number of hundreds." @onchange="e => _offer = int.TryParse(e.Value?.ToString(), out var v) ? v / Money.PerUnit : 0" />
             <button class="opt inline tiny" data-offer="@bid" disabled="@(offerNo != null)"
                     title="@(offerNo ?? $"{owner?.Name} asks {Money.Show(ask)} and would take less; how much less follows what its head thinks of you and whether it is short of coin, and you are not told. One offer a year. An offer they like is taken at your price. One they do not is answered with a price between yours and theirs, and that is their last word until the year turns. Under {Money.Show(insult)} (half the asking) is an insult: no answer, and its head thinks {VentureSystem.InsultRegard} the worse of you.")"
                     @onclick="() => G.Execute(cmd)">Offer @Money.Show(offer)</button>

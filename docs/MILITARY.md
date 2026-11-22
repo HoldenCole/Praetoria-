@@ -42,7 +42,7 @@ Lieutenant 8, a Captain 14); a fleet above its commander's cap fights at ×0.9. 
 
 ## Supply lines and campaigns
 Every fleet carries **supply** (0–100). Within one lane of a world of its house it is in supply and recovers 25 a turn;
-a **Fleet Supply Depot** (building, 6 materials and 4 credits) reaches two lanes. Beyond that the fleet drains 15 a turn
+a **Fleet Supply Depot** (building, 6 materials and 400 credits) reaches two lanes. Beyond that the fleet drains 15 a turn
 (8 within two lanes of home). Under 40 it fights at ×0.8 and loses readiness; a fleet that begins a turn at nought
 loses a hull to desertion. Raiders live off the lanes.
 

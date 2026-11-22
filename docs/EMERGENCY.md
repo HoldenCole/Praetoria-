@@ -30,7 +30,7 @@ For three years:
 - **The other consul has no veto**, and the holder may strike one motion every year (a consul otherwise has one veto
   a term).
 - **The Senate defers**: two points of lean toward anything the holder's house moves.
-- **A levy without a vote**, once a year while the danger lasts: every other house pays up to three credits to the
+- **A levy without a vote**, once a year while the danger lasts: every other house pays up to three hundred credits to the
   holder's house. Each head thinks the worse of the holder, and the Reach a little less of its magistrates.
 - **No election is held.** One that falls due is held the year after the powers end.
 
