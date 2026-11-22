@@ -77,7 +77,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let it be known, to the right buyer, what {watched.name} would rather was not. Six credits, and one more person who knows where it came from."
+              "text": "{self.name} let it be known, to the right buyer, what {watched.name} would rather was not. Six hundred credits, and one more person who knows where it came from."
             }
           ]
         },
@@ -301,7 +301,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {our_envoy.name} turn the talk at {host.name}'s table to cargoes. It came to six credits and a standing arrangement."
+              "text": "{self.name} let {our_envoy.name} turn the talk at {host.name}'s table to cargoes. It came to six hundred credits and a standing arrangement."
             }
           ]
         },

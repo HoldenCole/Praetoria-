@@ -62,7 +62,7 @@
                     bool closes = w.Holdings.Values.Any(x => x.IsClaim && x.SystemId == sys.Id && x.OwnerId == house.Id);
                     <div class="sw-cost" data-claim="@clid">
                         <span><b>@(co?.Name ?? "A house")</b> <span class="muted small">· brings it @(brings == null || brings.IsEmpty() ? "nothing this year" : Bundle(brings) + " a year") · owes you nothing</span></span>
-                        <button class="opt inline" disabled="@(buyNo != null)" title="@(buyNo != null ? Cap(buyNo) : closes ? "You have a claim in this belt already: this one would be closed down, and the belt has room for another." : "The claim and what it brings up are yours from this year.")" @onclick="() => AskBuyOut(buy, co?.Name ?? string.Empty, price, closes)">Buy it out for @price</button>
+                        <button class="opt inline" disabled="@(buyNo != null)" title="@(buyNo != null ? Cap(buyNo) : closes ? "You have a claim in this belt already: this one would be closed down, and the belt has room for another." : "The claim and what it brings up are yours from this year.")" @onclick="() => AskBuyOut(buy, co?.Name ?? string.Empty, price, closes)">Buy it out for @Money.Show(price)</button>
                     </div>
                     @if (buyNo != null && !buyNo.StartsWith("needs")) { <div class="sw-no">@Cap(buyNo)</div> }
                 }
@@ -304,7 +304,7 @@
                                                 @foreach (var (how, label) in new[] { (ProvinceSystem.Coin, "Buy them off"), (ProvinceSystem.Court, "Take it to the praetor's court"), (ProvinceSystem.Bench, "Have your bench stand behind you") })
                                                 {
                                                     var other = new AnswerDemandOtherwiseCommand(me.Id, did2, how, cat, G.Turn!.Senate); string? otherNo = other.Refusal(ctx); string lab = label;
-                                                    <button class="opt inline" data-demand-answer="@how" disabled="@(otherNo != null)" title="@(otherNo != null ? Cap(otherNo) : other.Says(w))" @onclick='() => G.Ask(lab + "?", other.Says(w), lab, () => G.Execute(other))'>@label@(how == ProvinceSystem.Coin ? " · " + ProvinceSystem.BuyOffPrice(planet, pending) + " credits" : "")</button>
+                                                    <button class="opt inline" data-demand-answer="@how" disabled="@(otherNo != null)" title="@(otherNo != null ? Cap(otherNo) : other.Says(w))" @onclick='() => G.Ask(lab + "?", other.Says(w), lab, () => G.Execute(other))'>@label@(how == ProvinceSystem.Coin ? " · " + Money.Credits(ProvinceSystem.BuyOffPrice(planet, pending)) : "")</button>
                                                 }
                                             </div>
                                         </div>
@@ -337,7 +337,7 @@
                                 <div class="suit-acts" data-site="@pid">
                                     <button class="opt inline tiny" @onclick="() => G.Execute(new PauseProjectCommand(me.Id, pid))">@(p.Paused ? "Resume" : "Pause")</button>
                                     @if (p.Stalled) { <button class="opt inline tiny" disabled="@(payNo != null)" title="@(payNo ?? "Pay the instalment that was missed now: the work goes on and the lost year is made up")" @onclick="() => G.Execute(new PayInstalmentCommand(me.Id, pid))">Pay the instalment now · @Bundle(ProjectSystem.NextInstalment(p))</button> }
-                                    @if (!isGreat && p.TurnsLeft > 1) { <button class="opt inline tiny" disabled="@(rushNo != null)" title="@(rushNo != null ? Cap(rushNo) : "Everything still owed is paid now, and " + rushMore + " credits more for the haste: it is done next year")" @onclick="() => G.Execute(new RushProjectCommand(me.Id, pid))">Rush · @Bundle(ProjectSystem.Remaining(p)) and @rushMore credits more</button> }
+                                    @if (!isGreat && p.TurnsLeft > 1) { <button class="opt inline tiny" disabled="@(rushNo != null)" title="@(rushNo != null ? Cap(rushNo) : "Everything still owed is paid now, and " + Money.Show(rushMore) + " credits more for the haste: it is done next year")" @onclick="() => G.Execute(new RushProjectCommand(me.Id, pid))">Rush · @Bundle(ProjectSystem.Remaining(p)) and @Money.Show(rushMore) credits more</button> }
                                     <button class="opt inline tiny" title="half of what was paid comes back" @onclick='() => G.AskDo("Abandon " + p.Name + "?", "The site is cleared. Of the " + Bundle(p.Paid) + " paid so far, " + Bundle(ProjectSystem.Refund(p)) + " comes back and the rest is lost.", "Abandon it", new AbandonProjectCommand(me.Id, pid))'>Abandon · get back @Bundle(ProjectSystem.Refund(p))</button>
                                 </div>
                             }
@@ -536,7 +536,7 @@
         <div class="sw-pull"><button class="opt inline tiny" data-pull-down="@(target + "|" + defId)" disabled="@(no != null)" title="@(no != null ? Cap(no) : cmd.Says(w))" @onclick="() => AskPullDown(cmd, name)">Pull down</button></div>
     };
     private void AskBuyOut(BuyOutClaimCommand cmd, string owner, int price, bool closes) =>
-        G.Ask("Buy out the claim of " + owner + "?", owner + " is paid " + price + " credits. " + (closes ? "You have a claim in this belt already, so this one is closed down and the belt has room for another." : "The claim is yours, with what it brings up each year.") + " It cannot be undone.", "Buy it out", () => G.Execute(cmd));
+        G.Ask("Buy out the claim of " + owner + "?", owner + " is paid " + Money.Credits(price) + ". " + (closes ? "You have a claim in this belt already, so this one is closed down and the belt has room for another." : "The claim is yours, with what it brings up each year.") + " It cannot be undone.", "Buy it out", () => G.Execute(cmd));
     private void AskPullDown(PullDownCommand cmd, string name) => G.Ask("Pull down " + name + "?", cmd.Says(G.World!), "Pull it down", () => G.Execute(cmd));
 
     /// <summary>One thing that could be built on a body: its picture, what it does, what it costs, and the button or why not.</summary>

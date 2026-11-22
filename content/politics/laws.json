@@ -16,7 +16,7 @@
         { "id": "conscription", "name": "Conscription", "effects": { "manpower_per_world": 2, "unrest_drift": 1 }, "opinions": { "commons": -20, "officers": 15 } }
       ] },
     { "id": "court_etiquette", "name": "The Hall", "category": "Order", "scope": "house", "cost": 1, "cooldown": 6,
-      "description": "How the house receives those who come to it. An open hall is loved below and sneered at above; closed doors are the reverse, and cost a credit a world in ceremony.",
+      "description": "How the house receives those who come to it. An open hall is loved below and sneered at above; closed doors are the reverse, and cost a hundred credits a world in ceremony.",
       "options": [
         { "id": "open_hall", "name": "An open hall", "opinions": { "commons": 10, "old_blood": -10 } },
         { "id": "customary", "name": "The customary hall", "default": true },

@@ -276,7 +276,7 @@ public sealed partial class CompanySystem
         if (co.ControllerId != houseId) return "you do not direct it";
         if (n <= 0 || co.HeldBy(Company.Public) < n) return co?.HeldBy(Company.Public) == 0 ? "no shares on the float" : $"only {co!.HeldBy(Company.Public)} on the float";
         int cost = BuybackCost(co, n);
-        return co.Cash >= cost ? null : $"the company needs {cost} credits in hand (it has {co.Cash})";
+        return co.Cash >= cost ? null : $"the company needs {Money.Credits(cost)} in hand (it has {Money.Show(co.Cash)})";
     }
     public int BuybackCost(Company co, int n) => (int)Math.Ceiling(co.Price * (n + Rules.ImpactPct / 100.0 * n * n / 2.0 / Math.Max(1, co.Shares)));
 
@@ -301,7 +301,7 @@ public sealed partial class CompanySystem
     {
         int pot = co.Cash - Reserve; if (pot <= 0) return; co.Cash -= pot;
         foreach (var kv in co.Holders.Where(kv => kv.Key != Company.Public).OrderBy(kv => kv.Key, StringComparer.Ordinal)) PayHolder(w, kv.Key, pot * kv.Value / Math.Max(1, co.Shares));
-        w.Log($"{co.Name} pays a special dividend of {pot} credits.");
+        w.Log($"{co.Name} pays a special dividend of {Money.Credits(pot)}.");
     }
 
     public string? PrivateRefusal(World w, string houseId, Company? co)
@@ -353,7 +353,7 @@ public sealed partial class CompanySystem
         if (pot > 0) foreach (var kv in co.Holders.Where(kv => kv.Key != Company.Public).OrderBy(kv => kv.Key, StringComparer.Ordinal)) PayHolder(w, kv.Key, pot * kv.Value / Math.Max(1, co.Shares));
         if (w.Protagonist is { } pc && co.HeldBy(pc.HouseId) > 0) w.WorldFlags.Add(FailedFlag);
         w.Companies.Remove(co);
-        w.Log($"{co.Name} is wound up: {why}.{(pot > 0 ? $" Its holders share {pot} credits." : " Its holders get nothing.")}");
+        w.Log($"{co.Name} is wound up: {why}.{(pot > 0 ? $" Its holders share {Money.Credits(pot)}." : " Its holders get nothing.")}");
     }
 
     // ---------------------------------------------------------------- the Reach's hand (stage D)
@@ -366,7 +366,7 @@ public sealed partial class CompanySystem
         if (chair != null) chair.Treasury.Credits -= cost;
         m.SteadiedTurn = w.Turn; m.Confidence = Math.Min(Rules.ConfidenceCapPct / 100.0, m.Confidence + Rules.SteadyPct / 200.0);
         Mark(w, SteadiedFlag);
-        w.Log($"{char.ToUpperInvariant(how[0])}{how[1..]}: {cost} credits from {(chair != null ? chair.Name : "the Reach")}. Confidence steadies at {m.Confidence * 100:0}.");
+        w.Log($"{char.ToUpperInvariant(how[0])}{how[1..]}: {Money.Credits(cost)} from {(chair != null ? chair.Name : "the Reach")}. Confidence steadies at {m.Confidence * 100:0}.");
     }
 
     public string? SteadyRefusal(World w, string houseId)
@@ -377,7 +377,7 @@ public sealed partial class CompanySystem
         bool falling = m.Confidence < 0.95 || (m.IndexHistory.Count >= 2 && m.Index < m.IndexHistory[^2] * 0.97) || w.WorldFlags.Contains(CrashFlag);
         if (!falling) return "the market is not falling";
         var chair = RegionSystem.CapitalHolder(w);
-        return chair == null || chair.Treasury.Credits < Rules.SteadyCost ? $"the Reach's purse does not hold {Rules.SteadyCost} credits" : null;
+        return chair == null || chair.Treasury.Credits < Rules.SteadyCost ? $"the Reach's purse does not hold {Money.Credits(Rules.SteadyCost)}" : null;
     }
 
     // ---- war bonds: credits lent to the chair for a war beyond the Reach, a coupon a year, repaid when it ends
@@ -395,14 +395,14 @@ public sealed partial class CompanySystem
         if (chair == null) return "no house holds the chair to borrow";
         if (chair.Id == houseId) return "the chair does not lend to itself";
         if (w.Bonds.Count(b => b.HolderId == houseId && b.NationId == n.Id) >= Rules.BondCap) return $"no house may hold more than {Rules.BondCap} bonds of one war";
-        return house.Treasury.Credits >= Rules.BondFace ? null : $"needs {Rules.BondFace} credits";
+        return house.Treasury.Credits >= Rules.BondFace ? null : $"needs {Money.Credits(Rules.BondFace)}";
     }
     public void BuyBond(World w, string houseId)
     {
         var house = w.House(houseId)!; var n = NationSystem.AtWar(w)!; var chair = RegionSystem.CapitalHolder(w)!; int k = w.Counter(BondsSoldCounter) + 1; w.WorldCounters[BondsSoldCounter] = k;
         house.Treasury.Credits -= Rules.BondFace; chair.Treasury.Credits += Rules.BondFace;
         w.Bonds.Add(new Bond { Id = $"bond_{k}", HolderId = houseId, NationId = n.Id, Face = Rules.BondFace, YieldPct = BondYield(w), Bought = w.Turn });
-        w.Log($"{house.Name} lends {Rules.BondFace} credits to the Reach for the war with {Nations?.Def(n.Id)?.Name ?? "the nation"} at {BondYield(w)}% a year.");
+        w.Log($"{house.Name} lends {Money.Credits(Rules.BondFace)} to the Reach for the war with {Nations?.Def(n.Id)?.Name ?? "the nation"} at {BondYield(w)}% a year.");
     }
 
     /// <summary>A war abroad that has ended is settled: its bonds are repaid from the chair's purse, with a tenth over if the nation was
@@ -470,7 +470,7 @@ public sealed partial class CompanySystem
         var eh = Economy.HeadOf(w, emperor); var th = Economy.HeadOf(w, target); if (eh != null && th != null) Sour(w, th.Id, eh.Id, -40);
         var m = Market(w); m.Confidence = Math.Max(Rules.ConfidenceFloorPct / 100.0, m.Confidence - 0.05); w.WorldCounters["seized_turn"] = w.Turn;
         Mark(w, targetId == w.Protagonist?.HouseId ? SeizedMineFlag : SeizedFlag);
-        w.Log($"By edict of the throne, the shares of {target.Name} are forfeit: paper worth {taken} credits passes to {emperor.Name}.");
+        w.Log($"By edict of the throne, the shares of {target.Name} are forfeit: paper worth {Money.Credits(taken)} passes to {emperor.Name}.");
     }
 
     // ---------------------------------------------------------------- the yearly reckoning

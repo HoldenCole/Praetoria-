@@ -65,7 +65,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} declared a holiday and paid for the bread. Eight credits, and a square that sang the house's name for a season."
+              "text": "{self.name} declared a holiday and paid for the bread. Eight hundred credits, and a square that sang the house's name for a season."
             }
           ]
         },
@@ -127,7 +127,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave the factors a concession on the customs house and lost four credits of duty. The lanes reopened by the week's end."
+              "text": "{self.name} gave the factors a concession on the customs house and lost four hundred credits of duty. The lanes reopened by the week's end."
             }
           ]
         },
@@ -185,7 +185,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} dined the wardroom and listened to every grievance twice. Five credits of wine, and captains who stopped drafting letters."
+              "text": "{self.name} dined the wardroom and listened to every grievance twice. Five hundred credits of wine, and captains who stopped drafting letters."
             }
           ]
         },
@@ -266,7 +266,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} held a ceremony of the old form and sat the old houses in the old order. Six credits, and letters that stopped."
+              "text": "{self.name} held a ceremony of the old form and sat the old houses in the old order. Six hundred credits, and letters that stopped."
             }
           ]
         },
@@ -323,7 +323,7 @@
             },
             {
               "type": "log",
-              "text": "The magistrates found six credits the collectors had missed and brought them to {self.name} with a bow. The commons wondered whose six credits they had been."
+              "text": "The magistrates found six hundred credits the collectors had missed and brought them to {self.name} with a bow. The commons wondered whose six hundred credits they had been."
             }
           ]
         },
@@ -431,7 +431,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} stood the free companies a night's drinking. Three credits, and a frontier that would remember the house kindly for a while."
+              "text": "{self.name} stood the free companies a night's drinking. Three hundred credits, and a frontier that would remember the house kindly for a while."
             }
           ]
         }
@@ -528,7 +528,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sold the exiles passage onward at a price. Six credits, and a port that remembered the price."
+              "text": "{self.name} sold the exiles passage onward at a price. Six hundred credits, and a port that remembered the price."
             }
           ]
         }

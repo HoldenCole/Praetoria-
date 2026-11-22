@@ -19,7 +19,7 @@
         { "id": "hand_over_the_seals", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 },
             { "type": "log", "text": "{self.name} handed over the seals of office with a bow. The Senate noted the grace; the successor noted the bow." } ] },
         { "id": "take_what_you_can", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 8 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -3 },
-            { "type": "log", "text": "{self.name} left the office with its ledgers thinner by eight credits and its archive thinner by a drawer." } ] },
+            { "type": "log", "text": "{self.name} left the office with its ledgers thinner by eight hundred credits and its archive thinner by a drawer." } ] },
         { "id": "remember_the_vote", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
             { "type": "log", "text": "{self.name} said nothing at the handover and wrote down who had moved the commission." } ] }
       ]

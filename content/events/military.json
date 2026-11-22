@@ -508,7 +508,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sold the prizes to the yards. Eight credits, and a smaller fleet."
+              "text": "{self.name} sold the prizes to the yards. Eight hundred credits, and a smaller fleet."
             }
           ]
         },
@@ -527,7 +527,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} ransomed the prizes and their crews back to the enemy. Five credits, and a courtesy the other side remembered."
+              "text": "{self.name} ransomed the prizes and their crews back to the enemy. Five hundred credits, and a courtesy the other side remembered."
             }
           ]
         }
@@ -568,7 +568,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} bought stores from the local factors at the far end of the lane. Six credits; the fleet ate."
+              "text": "{self.name} bought stores from the local factors at the far end of the lane. Six hundred credits; the fleet ate."
             }
           ]
         },
@@ -649,7 +649,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid the crews' arrears from the house's own coin. Six credits; the grumbling stopped."
+              "text": "{self.name} paid the crews' arrears from the house's own coin. Six hundred credits; the grumbling stopped."
             }
           ]
         },
@@ -903,7 +903,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave the fleet a triumph through the capital of the house. Five credits of wine; a name that will outlast the war."
+              "text": "{self.name} gave the fleet a triumph through the capital of the house. Five hundred credits of wine; a name that will outlast the war."
             }
           ]
         },
@@ -1018,7 +1018,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sold two lots of isotopes to a house that hates the same enemy. Twelve credits; a question no one asked aloud."
+              "text": "{self.name} sold two lots of isotopes to a house that hates the same enemy. Twelve hundred credits; a question no one asked aloud."
             }
           ]
         }

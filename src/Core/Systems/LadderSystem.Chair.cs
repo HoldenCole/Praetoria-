@@ -147,8 +147,8 @@ public static partial class LadderSystem
     public static string BudgetSays(OfficeBusiness b)
     {
         if (BudgetOf(b) is not { } f) return "";
-        string came = f.Lost > 0 ? $"{f.Assessed} credits were assessed on the landed houses and {f.Collected} came in: the lawless lanes lost {f.Lost}." : $"{f.Collected} credits came in from the levy on the landed houses.";
-        string calls = $"The Reach's own hulls call for {f.Fleet}, its lanes for {f.Lanes} and its loose regions for {f.Relief}: {f.Wanted} in all.";
-        return $" {came} {calls} " + (f.Surplus > 0 ? $"That leaves {f.Surplus} over." : f.Surplus < 0 ? $"That is {-f.Surplus} short." : "It comes out even.");
+        string came = f.Lost > 0 ? $"{Money.Credits(f.Assessed)} were assessed on the landed houses and {Money.Show(f.Collected)} came in: the lawless lanes lost {Money.Show(f.Lost)}." : $"{Money.Credits(f.Collected)} came in from the levy on the landed houses.";
+        string calls = $"The Reach's own hulls call for {Money.Show(f.Fleet)}, its lanes for {Money.Show(f.Lanes)} and its loose regions for {Money.Show(f.Relief)}: {Money.Show(f.Wanted)} in all.";
+        return $" {came} {calls} " + (f.Surplus > 0 ? $"That leaves {Money.Show(f.Surplus)} over." : f.Surplus < 0 ? $"That is {Money.Show(-f.Surplus)} short." : "It comes out even.");
     }
 }

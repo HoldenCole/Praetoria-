@@ -23,7 +23,7 @@
     {
       "id": "the_accounts_do_not_add_up",
       "title": "The Accounts Do Not Add Up",
-      "body": "It is not much. A few credits a year, for some years, in a column that {steward.name} keeps and nobody else reads. {self.name} has read it now. {steward.name} was given the house's purse on trust, and has been treating a little of it as their own.",
+      "body": "It is not much. A few hundred credits a year, for some years, in a column that {steward.name} keeps and nobody else reads. {self.name} has read it now. {steward.name} was given the house's purse on trust, and has been treating a little of it as their own.",
       "choices": {
         "dismiss_them": "Dismiss them from the work.",
         "make_them_repay_it": "Make them repay it, and keep them.",

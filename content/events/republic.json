@@ -84,7 +84,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} hired the hall, the wine and the band for the hustings. Eight credits, and a chamber that remembers a good evening."
+              "text": "{self.name} hired the hall, the wine and the band for the hustings. Eight hundred credits, and a chamber that remembers a good evening."
             }
           ]
         },
@@ -277,7 +277,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} left the consul's chair with a procession through the capital. Five credits; a name the chronicle keeps."
+              "text": "{self.name} left the consul's chair with a procession through the capital. Five hundred credits; a name the chronicle keeps."
             }
           ]
         },

@@ -87,7 +87,7 @@ public sealed class ExchangeCommand : ICommand
     private readonly HoldingCatalog _catalog;
     public ExchangeCommand(string actorId, ExchangeRate rate, HoldingCatalog catalog, int times = 1) { ActorId = actorId; _rate = rate; _catalog = catalog; _times = Math.Max(1, times); }
     public string ActorId { get; }
-    public string Describe() => $"exchange {_rate.GiveAmount * _times} {_rate.Give} → {_rate.GetAmount * _times} {_rate.Get}";
+    public string Describe() => $"exchange {Money.Of(_rate.Give, _rate.GiveAmount * _times)} {_rate.Give} → {Money.Of(_rate.Get, _rate.GetAmount * _times)} {_rate.Get}";
 
     public static bool HasExchange(World w, string houseId, HoldingCatalog catalog) =>
         catalog.ExchangeBuildings.Count == 0 || w.HoldingsOf(houseId).Any(h => h.Buildings.Any(b => catalog.ExchangeBuildings.Contains(b)));

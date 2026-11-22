@@ -25,13 +25,13 @@
     string story, storyTone;
     if (m.Treasury.Insolvent) { story = "The house cannot pay its way. Unrest climbs on every populated world and unpaid crews will desert until the treasury is above nought."; storyTone = "bad"; }
     else if (besieged != null) { story = $"{besieged.Name} is under siege. Nothing it yields reaches the house until the siege is lifted."; storyTone = "bad"; }
-    else if (net < 0 && lasts >= 10) { story = $"The house does not quite pay its way: {-net} more goes out each year than comes in{(drain != null ? $", the most of it on {drain.Source}" : "")}. The treasury would bear that for {lasts} years."; storyTone = "warn"; }
-    else if (net < 0) { story = $"The house spends {-net} more than it takes in each year{(drain != null ? $", the most of it on {drain.Source}" : "")}. The treasury lasts {(lasts == 0 ? "less than a year" : lasts == 1 ? "one more year" : lasts + " years")} at this rate."; storyTone = "warn"; }
-    else if (weakest is { Unrest: >= 50 }) { story = $"{weakest.Name} is restless, at loyalty {100 - weakest.Unrest}. A restless world yields less and may rise; the house otherwise clears {net} a year."; storyTone = "warn"; }
-    else if (lg is { Debt: > 0 }) { story = $"The house owes {lg.Debt}{(lg.LenderName != null ? $" to the bank of {lg.LenderName}" : " to the counting-houses")}, and pays {lg.LoanInstalment} of it a year. After that it clears {net} a year."; storyTone = "warn"; }
+    else if (net < 0 && lasts >= 10) { story = $"The house does not quite pay its way: {Money.Show(-net)} more goes out each year than comes in{(drain != null ? $", the most of it on {drain.Source}" : "")}. The treasury would bear that for {lasts} years."; storyTone = "warn"; }
+    else if (net < 0) { story = $"The house spends {Money.Show(-net)} more than it takes in each year{(drain != null ? $", the most of it on {drain.Source}" : "")}. The treasury lasts {(lasts == 0 ? "less than a year" : lasts == 1 ? "one more year" : lasts + " years")} at this rate."; storyTone = "warn"; }
+    else if (weakest is { Unrest: >= 50 }) { story = $"{weakest.Name} is restless, at loyalty {100 - weakest.Unrest}. A restless world yields less and may rise; the house otherwise clears {Money.Show(net)} a year."; storyTone = "warn"; }
+    else if (lg is { Debt: > 0 }) { story = $"The house owes {Money.Show(lg.Debt)}{(lg.LenderName != null ? $" to the bank of {lg.LenderName}" : " to the counting-houses")}, and pays {Money.Show(lg.LoanInstalment)} of it a year. After that it clears {Money.Show(net)} a year."; storyTone = "warn"; }
     else if (lands.Count == 0) { story = "The house holds no land. What it has is its purse, its ventures and its name; a fief is won, granted, or married into."; storyTone = ""; }
-    else if (lg != null) { story = $"The house clears {net} a year{(top != null ? $", the most of it from {top.Source}" : "")}, and is the {Ordinal(lg.Rank)} richest of {lg.Houses} houses{(above != null ? $", {above.Wealth - lg.Wealth} behind {above.Name}" : below != null ? $", {lg.Wealth - below.Wealth} ahead of {below.Name}" : "")}."; storyTone = net > 0 ? "good" : ""; }
-    else { story = $"The house clears {net} a year."; storyTone = net > 0 ? "good" : ""; }
+    else if (lg != null) { story = $"The house clears {Money.Show(net)} a year{(top != null ? $", the most of it from {top.Source}" : "")}, and is the {Ordinal(lg.Rank)} richest of {lg.Houses} houses{(above != null ? $", {Money.Show(above.Wealth - lg.Wealth)} behind {above.Name}" : below != null ? $", {Money.Show(lg.Wealth - below.Wealth)} ahead of {below.Name}" : "")}."; storyTone = net > 0 ? "good" : ""; }
+    else { story = $"The house clears {Money.Show(net)} a year."; storyTone = net > 0 ? "good" : ""; }
 }
 <div class="dash keep" style="--accent:@m.HouseAccent">
     <header class="dash-head picture">
@@ -39,19 +39,19 @@
             <span class="muted">@titleName · @house.Culture culture · @Counted.Worlds(planets)@(stations > 0 ? $" · {Counted.Stations(stations)}" : "")@(claims > 0 ? $" · {Counted.Claims(claims)}" : "") · <span data-house-citizens="@citizens" title="The citizens of every world and station of the house. On the scale the rules reckon by, they come to @pop.">@Census.Say(citizens) citizens</span> · tithe @(m.Standing?.TaxPolicy ?? "customary")</span></div>
         <p class="headline @storyTone">@story</p>
         <div class="tiles">
-            <Tile Label="In the treasury" Value="@($"{credits} credits")" Tone="@(m.Treasury.Insolvent ? "bad" : net < 0 ? "warn" : net > 0 ? "good" : "")"
-                  Note="@(net > 0 ? $"+{net} a year" : net < 0 ? $"−{-net} a year · {(lasts <= 0 ? "gone within the year" : Counted.Years(lasts) + " left")}" : "neither growing nor shrinking")"
+            <Tile Label="In the treasury" Value="@($"{Money.Held(house.Treasury)} credits")" Tone="@(m.Treasury.Insolvent ? "bad" : net < 0 ? "warn" : net > 0 ? "good" : "")"
+                  Note="@(net > 0 ? $"+{Money.Show(net)} a year" : net < 0 ? $"−{Money.Show(-net)} a year · {(lasts <= 0 ? "gone within the year" : Counted.Years(lasts) + " left")}" : "neither growing nor shrinking")"
                   Title="What the house has in hand, and what a year adds to it or takes from it." />
-            <Tile Label="Takes in" Value="@($"+{gross} a year")" Tone="@(spend > gross ? "warn" : "")" Share="@(gross > 0 ? 100 * spend / gross : spend > 0 ? 100 : 0)"
-                  Note="@(gross == 0 ? (spend > 0 ? $"nothing, and spends {spend}" : "nothing, and spends nothing") : (spend > gross ? $"spends {spend}, which is {spend - gross} more" : $"spends {spend} of it ({100 * spend / gross}%)") + (drain != null ? $" · most on {drain.Source}" : ""))"
-                  Title="@(lg == null ? "" : string.Join(" · ", lg.Lines.Where(l => l.Delta.Credits != 0).OrderByDescending(l => l.Delta.Credits).Select(l => $"{l.Source} {(l.Delta.Credits > 0 ? "+" : "")}{l.Delta.Credits}")))" />
+            <Tile Label="Takes in" Value="@($"+{Money.Show(gross)} a year")" Tone="@(spend > gross ? "warn" : "")" Share="@(gross > 0 ? 100 * spend / gross : spend > 0 ? 100 : 0)"
+                  Note="@(gross == 0 ? (spend > 0 ? $"nothing, and spends {Money.Show(spend)}" : "nothing, and spends nothing") : (spend > gross ? $"spends {Money.Show(spend)}, which is {Money.Show(spend - gross)} more" : $"spends {Money.Show(spend)} of it ({100 * spend / gross}%)") + (drain != null ? $" · most on {drain.Source}" : ""))"
+                  Title="@(lg == null ? "" : string.Join(" · ", lg.Lines.Where(l => l.Delta.Credits != 0).OrderByDescending(l => l.Delta.Credits).Select(l => $"{l.Source} {Money.Signed(l.Delta.Credits)}")))" />
             @if (lg != null)
             {
-                <Tile Label="Wealth" Value="@lg.Wealth.ToString()" Share="@(100 * Math.Max(0, lg.Wealth) / richest)" Tone="@(lg.Rank * 3 <= lg.Houses ? "good" : "")"
+                <Tile Label="Wealth" Value="@Money.Show(lg.Wealth)" Share="@(100 * Math.Max(0, lg.Wealth) / richest)" Tone="@(lg.Rank * 3 <= lg.Houses ? "good" : "")"
                       Note="@($"{Ordinal(lg.Rank)} of {lg.Houses} houses · {lg.Tier}")"
-                      Title="@(above != null ? $"{above.Name} is next above, at {above.Wealth}. The bar is your wealth against the richest house's." : "The richest house of the Reach.")" />
-                <Tile Label="Debt" Value="@(lg.Debt > 0 ? lg.Debt.ToString() : "none")" Tone="@(lg.Debt > 0 ? "warn" : "good")"
-                      Note="@(lg.Debt > 0 ? $"{lg.LoanInstalment} a year to {(lg.LenderName != null ? "the bank of " + lg.LenderName : "the counting-houses")}" : lg.Loan.Refusal == null ? "nothing owed · the counting-houses would lend" : "nothing owed")"
+                      Title="@(above != null ? $"{above.Name} is next above, at {Money.Show(above.Wealth)}. The bar is your wealth against the richest house's." : "The richest house of the Reach.")" />
+                <Tile Label="Debt" Value="@(lg.Debt > 0 ? Money.Show(lg.Debt) : "none")" Tone="@(lg.Debt > 0 ? "warn" : "good")"
+                      Note="@(lg.Debt > 0 ? $"{Money.Show(lg.LoanInstalment)} a year to {(lg.LenderName != null ? "the bank of " + lg.LenderName : "the counting-houses")}" : lg.Loan.Refusal == null ? "nothing owed · the counting-houses would lend" : "nothing owed")"
                       Title="@(lg.Debt > 0 ? "" : lg.Loan.Refusal ?? lg.Loan.Label)" />
             }
             @if (lands.Count > 0)
@@ -245,8 +245,8 @@
         @if (_view == "ledger") {
         <section class="panel">
             <h3><Icon Name="houses" Size="13" /> The wealth of the houses <span class="muted">the eight richest@(lg.Rank > 8 ? ", and you" : "")</span></h3>
-                @foreach (var wl in lg.Table.Take(8)) { <div class="wealth-row @(wl.Mine ? "mine" : "")"><Sigil HouseId="@wl.HouseId" Accent="@wl.Accent" Size="14" /> <span>@wl.Name</span><span class="bar"><i style="width:@(Math.Max(2, 100 * Math.Max(0, wl.Wealth) / Math.Max(1, lg.Table[0].Wealth)))%; background:@wl.Accent"></i></span><b>@wl.Wealth</b></div> }
-            @if (lg.Rank > 8 && lg.Table.FirstOrDefault(x => x.Mine) is { } mine) { <div class="wealth-row mine"><Sigil HouseId="@mine.HouseId" Accent="@mine.Accent" Size="14" /> <span>@Ordinal(lg.Rank) · @mine.Name</span><span class="bar"><i style="width:@(Math.Max(2, 100 * Math.Max(0, mine.Wealth) / richest))%; background:@mine.Accent"></i></span><b>@mine.Wealth</b></div> }
+                @foreach (var wl in lg.Table.Take(8)) { <div class="wealth-row @(wl.Mine ? "mine" : "")"><Sigil HouseId="@wl.HouseId" Accent="@wl.Accent" Size="14" /> <span>@wl.Name</span><span class="bar"><i style="width:@(Math.Max(2, 100 * Math.Max(0, wl.Wealth) / Math.Max(1, lg.Table[0].Wealth)))%; background:@wl.Accent"></i></span><b>@Money.Show(wl.Wealth)</b></div> }
+            @if (lg.Rank > 8 && lg.Table.FirstOrDefault(x => x.Mine) is { } mine) { <div class="wealth-row mine"><Sigil HouseId="@mine.HouseId" Accent="@mine.Accent" Size="14" /> <span>@Ordinal(lg.Rank) · @mine.Name</span><span class="bar"><i style="width:@(Math.Max(2, 100 * Math.Max(0, mine.Wealth) / richest))%; background:@mine.Accent"></i></span><b>@Money.Show(mine.Wealth)</b></div> }
         </section>
         }
         }
@@ -263,18 +263,18 @@
                         int v = l.Delta.Credits;
                         <div class="lb" title="@Delta(l.Delta)"><span class="src"><Icon Name="@(l.Kind == "world" ? "planet" : l.Kind == "station" || l.Kind == "claim" || l.Kind == "work" ? "station" : l.Kind == "fleet" ? "fleet" : l.Kind == "loan" || l.Kind == "interest" ? "treasury_pool" : "trade_hub")" Size="11" /> @l.Source</span>
                             <span class="track"><i class="neg" style="width:@(v < 0 ? 50.0 * -v / maxAbs : 0)%"></i><i class="pos" style="width:@(v > 0 ? 50.0 * v / maxAbs : 0)%"></i></span>
-                            <b class="@(v > 0 ? "good" : v < 0 ? "warn" : "muted")">@(v > 0 ? "+" : "")@v</b></div>
+                            <b class="@(v > 0 ? "good" : v < 0 ? "warn" : "muted")">@Money.Signed(v)</b></div>
                     }
-                    <div class="lb net"><span class="src"><b>What is left</b></span><span class="track"><i class="neg" style="width:@(net < 0 ? Math.Min(50.0, 50.0 * -net / maxAbs) : 0)%"></i><i class="pos" style="width:@(net > 0 ? Math.Min(50.0, 50.0 * net / maxAbs) : 0)%"></i></span><b class="@(net > 0 ? "good" : net < 0 ? "warn" : "muted")">@(net > 0 ? "+" : "")@net</b></div>
+                    <div class="lb net"><span class="src"><b>What is left</b></span><span class="track"><i class="neg" style="width:@(net < 0 ? Math.Min(50.0, 50.0 * -net / maxAbs) : 0)%"></i><i class="pos" style="width:@(net > 0 ? Math.Min(50.0, 50.0 * net / maxAbs) : 0)%"></i></span><b class="@(net > 0 ? "good" : net < 0 ? "warn" : "muted")">@Money.Signed(net)</b></div>
                 </div>
                 @if (Goods(lg.Net) is { Length: > 0 } goods) { <div class="muted small">And in goods, each year: @goods</div> }
                 @if (YearInBrief.Accounts(w, Resource.Credits) is { } acc)
                 {
-                    <details class="why" data-last-year open="@(acc.close < 0)"><summary>Last year's accounts: the treasury opened at @acc.open credits and closed at @acc.close (@(acc.close - acc.open >= 0 ? "+" : "−")@Math.Abs(acc.close - acc.open))</summary>
+                    <details class="why" data-last-year open="@(acc.close < 0)"><summary>Last year's accounts: the treasury opened at @Money.Show(acc.open) credits and closed at @Money.Show(acc.close) (@(acc.close - acc.open >= 0 ? "+" : "−")@Money.Show(Math.Abs(acc.close - acc.open)))</summary>
                         <div class="why-col">
-                            <div class="why-line"><span>Opened the year at</span><em>@acc.open</em></div>
-                            @foreach (var a in acc.lines) { <div class="why-line" title="@a.Says"><span>@a.What</span><em class="@(a.By > 0 ? "good" : a.By < 0 ? "bad" : "")">@(a.By > 0 ? "+" : a.By < 0 ? "−" : "")@Math.Abs(a.By)</em></div> }
-                            <div class="why-line sum"><span>Closed the year at</span><em>@acc.close</em></div>
+                            <div class="why-line"><span>Opened the year at</span><em>@Money.Show(acc.open)</em></div>
+                            @foreach (var a in acc.lines) { <div class="why-line" title="@a.Says"><span>@a.What</span><em class="@(a.By > 0 ? "good" : a.By < 0 ? "bad" : "")">@(a.By > 0 ? "+" : a.By < 0 ? "−" : "")@Money.Show(Math.Abs(a.By))</em></div> }
+                            <div class="why-line sum"><span>Closed the year at</span><em>@Money.Show(acc.close)</em></div>
                         </div>
                         <div class="muted small">The three lines add up to the change. Hover each for what is in it. The same for the goods: @string.Join("; ", new[] { Resource.Materials, Resource.Manpower, Resource.Helium3 }.Select(r => YearInBrief.Accounts(w, r) is { } g ? $"{Resource.Label(r).ToLowerInvariant()} {g.open} → {g.close}" : "").Where(x => x.Length > 0)).</div>
                     </details>
@@ -287,21 +287,21 @@
                         @foreach (var o in outs) { <div class="kv"><span>@Cap(o.what)</span><b class="warn">−@CourtProjection.Bundle(o.cost)</b></div> }
                     </div>
                 }
-                <div class="kv @(yearEnd < 0 ? "warn" : "")" data-yearend="@yearEnd"><span>The treasury at the year's end, if nothing else is done</span><b>@yearEnd credits <i class="muted">· it holds @house.Treasury.Credits now@(w.Protagonist!.Purse > 0 ? ", and your own purse " + w.Protagonist.Purse : "")</i></b></div>
-                @foreach (var su in LadderSystem.SuitsNaming(w, house.Id)) { bool forUs = su.RightId == house.Id; <div class="kv @(forUs ? "" : "warn")" data-atrisk="@su.Id"><span>@(forUs ? "May come in from the courts" : "At risk in the courts")</span><b>@LadderSystem.StakeOf(su) credits <i class="muted">· @(w.House(LadderSystem.OtherIn(su, house.Id))?.Name)'s suit over @LadderSystem.MatterOf(su), heard at the year's end: Senate, Ladder and courts</i></b></div> }
+                <div class="kv @(yearEnd < 0 ? "warn" : "")" data-yearend="@yearEnd"><span>The treasury at the year's end, if nothing else is done</span><b>@Money.Show(yearEnd) credits <i class="muted">· it holds @Money.Held(house.Treasury) now@(w.Protagonist!.Purse > 0 ? ", and your own purse " + Money.Show(w.Protagonist.Purse) : "")</i></b></div>
+                @foreach (var su in LadderSystem.SuitsNaming(w, house.Id)) { bool forUs = su.RightId == house.Id; <div class="kv @(forUs ? "" : "warn")" data-atrisk="@su.Id"><span>@(forUs ? "May come in from the courts" : "At risk in the courts")</span><b>@Money.Show(LadderSystem.StakeOf(su)) credits <i class="muted">· @(w.House(LadderSystem.OtherIn(su, house.Id))?.Name)'s suit over @LadderSystem.MatterOf(su), heard at the year's end: Senate, Ladder and courts</i></b></div> }
                 @{ var lastRulings = w.Judgments.Where(j => j.Turn == w.Turn - 1).ToList(); }
-                @foreach (var jr in lastRulings) { bool won = jr.WinnerId == house.Id; <div class="kv @(won ? "good" : "warn")"><span>Last year, by order of the court</span><b>@(won ? "+" : "−")@jr.Sum credits <i class="muted">· @(won ? "from" : "to") @(w.House(won ? jr.LoserId : jr.WinnerId)?.Name)</i></b></div> }
+                @foreach (var jr in lastRulings) { bool won = jr.WinnerId == house.Id; <div class="kv @(won ? "good" : "warn")"><span>Last year, by order of the court</span><b>@(won ? "+" : "−")@Money.Show(jr.Sum) credits <i class="muted">· @(won ? "from" : "to") @(w.House(won ? jr.LoserId : jr.WinnerId)?.Name)</i></b></div> }
                 @{ var fin = c.Businesses.Finance; int instal = Lending.InstalmentOf(house, fin); var lenders = Lending.Lenders(w, house.Id, c.Businesses); }
                 @if (lg.Debt > 0)
                 {
                     int left = Lending.Years(lg.Debt, instal);
-                    <div class="kv warn" data-debt="@lg.Debt"><span>Debt</span><b>@lg.Debt credits to @Lending.LenderName(w, house.LenderId) <i class="muted">· @instal a year, and @(left == 1 ? "this year clears it" : left + " years clear it")</i></b></div>
+                    <div class="kv warn" data-debt="@lg.Debt"><span>Debt</span><b>@Money.Show(lg.Debt) credits to @Lending.LenderName(w, house.LenderId) <i class="muted">· @Money.Show(instal) a year, and @(left == 1 ? "this year clears it" : left + " years clear it")</i></b></div>
                     <div class="row" data-repay>
                         <span class="muted small" title="What is owed is the whole of it, interest and all, from the day it is borrowed: paying sooner saves no interest. It shortens the years, ends the instalments, and a house that owes nothing is not sold up by its creditors.">Pay down</span>
                         @foreach (int part in new[] { 5, 10, 20, 50 }.Where(x => x < lg.Debt))
                         {
                             int pt = part; var payPart = new RepayLoanCommand(pid, pt); var partNo = payPart.Refusal(G.Ctx);
-                            <button class="opt inline tiny" data-repay-part="@pt" disabled="@(partNo != null)" title="@(partNo ?? $"{lg.Debt - pt} would be owed: {Counted.Years(Lending.Years(lg.Debt - pt, instal))} at {instal} a year.")" @onclick="() => G.Execute(payPart)">@pt</button>
+                            <button class="opt inline tiny" data-repay-part="@pt" disabled="@(partNo != null)" title="@(partNo ?? $"{Money.Show(lg.Debt - pt)} would be owed: {Counted.Years(Lending.Years(lg.Debt - pt, instal))} at {Money.Show(instal)} a year.")" @onclick="() => G.Execute(payPart)">@Money.Show(pt)</button>
                         }
                         <button class="opt inline" disabled="@(lg.Repay.Refusal != null)" title="@lg.Repay.Refusal" @onclick="() => G.Execute(new RepayLoanCommand(pid))">@lg.Repay.Label</button>
                     </div>
@@ -316,18 +316,18 @@
                         var take = new TakeLoanCommand(pid, c.Businesses, lid, amt); var takeNo = take.Refusal(G.Ctx);
                         int owedNew = Lending.Owed(amt, lt.RatePct), owedAll = (house.LenderId == lid ? house.Debt : 0) + owedNew, instNew = Lending.Instalment(fin, owedAll);
                         <div class="lender @(lt.Refusal != null ? "off" : "")" data-lender="@(lid.Length == 0 ? "counting-houses" : lid)" title="@lt.Why">
-                            <div class="lender-top"><b>@Cap(lt.Lender)</b> <span class="muted small">up to @lt.Limit credits · @lt.RatePct in the hundred@(house.LenderId == lid && house.Debt > 0 ? $" · you owe it {house.Debt}, so {room} more" : "")</span></div>
+                            <div class="lender-top"><b>@Cap(lt.Lender)</b> <span class="muted small">up to @Money.Show(lt.Limit) credits · @lt.RatePct in the hundred@(house.LenderId == lid && house.Debt > 0 ? $" · you owe it {Money.Show(house.Debt)}, so {Money.Show(room)} more" : "")</span></div>
                             @if (lt.Refusal != null) { <div class="small warn">@Cap(lt.Refusal).</div> }
                             else if (room < Lending.Step) { <div class="small warn">It will lend you no more until some of what is owed is paid.</div> }
                             else
                             {
                                 <div class="row">
-                                    <button class="opt inline tiny" disabled="@(amt <= Lending.Step)" @onclick="() => _borrow[lid] = amt - Lending.Step">−@Lending.Step</button>
-                                    <b class="lender-amt" data-amount="@amt">@amt</b>
-                                    <button class="opt inline tiny" disabled="@(amt >= room)" @onclick="() => _borrow[lid] = amt + Lending.Step">+@Lending.Step</button>
-                                    <button class="opt inline tiny" disabled="@(amt >= room)" @onclick="() => _borrow[lid] = room">all @room</button>
-                                    <button class="opt inline" data-take-loan disabled="@(takeNo != null)" title="@(takeNo ?? lt.Why)" @onclick="() => G.Execute(take)">Borrow @amt</button>
-                                    <span class="muted small" data-loan-terms>owe @owedNew for it@(owedAll != owedNew ? $" ({owedAll} in all)" : ""): @instNew a year for @Counted.Years(Lending.Years(owedAll, instNew))</span>
+                                    <button class="opt inline tiny" disabled="@(amt <= Lending.Step)" @onclick="() => _borrow[lid] = amt - Lending.Step">−@Money.Show(Lending.Step)</button>
+                                    <b class="lender-amt" data-amount="@amt">@Money.Show(amt)</b>
+                                    <button class="opt inline tiny" disabled="@(amt >= room)" @onclick="() => _borrow[lid] = amt + Lending.Step">+@Money.Show(Lending.Step)</button>
+                                    <button class="opt inline tiny" disabled="@(amt >= room)" @onclick="() => _borrow[lid] = room">all @Money.Show(room)</button>
+                                    <button class="opt inline" data-take-loan disabled="@(takeNo != null)" title="@(takeNo ?? lt.Why)" @onclick="() => G.Execute(take)">Borrow @Money.Show(amt)</button>
+                                    <span class="muted small" data-loan-terms>owe @Money.Show(owedNew) for it@(owedAll != owedNew ? $" ({Money.Show(owedAll)} in all)" : ""): @Money.Show(instNew) a year for @Counted.Years(Lending.Years(owedAll, instNew))</span>
                                 </div>
                             }
                         </div>
@@ -341,7 +341,7 @@
             <h3><Icon Name="materials" Size="13" /> In the stores <span class="muted">what the house holds, and what a year adds</span></h3>
             <div class="res-grid">
                 @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics), ("helium3", m.Treasury.Helium3, fc?.Helium3), ("rare_earths", m.Treasury.RareEarths, fc?.RareEarths), ("isotopes", m.Treasury.Isotopes, fc?.Isotopes) })
-                { <div class="res-cell @(Resource.IsStrategic(name) ? "strat" : "")"><span class="muted"><Icon Name="@name" Size="12" /> @Resource.Label(name)</span><b>@val</b>@if (d != null && d != 0) { <small class="@(d > 0 ? "up" : "down")">@(d > 0 ? "+" : "")@d /turn</small> }</div> }
+                { <div class="res-cell @(Resource.IsStrategic(name) ? "strat" : "")"><span class="muted"><Icon Name="@name" Size="12" /> @Resource.Label(name)</span><b>@(name == Resource.Credits ? Money.Held(house.Treasury) : Money.Of(name, val))</b>@if (d != null && d != 0) { <small class="@(d > 0 ? "up" : "down")">@Money.SignedOf(name, d.Value) /turn</small> }</div> }
             </div>
             @if (w.HasFlag("fuel_short")) { <div class="flag">The tanks are dry: readiness slides fifteen a turn and no fleet of yours may sail until helium-3 is found — a skimmer, or the Exchange.</div> }
             @if (m.Treasury.Insolvent) { <div class="flag">Insolvent: unrest climbs on every populated world and unpaid crews will desert.</div> }
@@ -355,15 +355,15 @@
             <h3><Icon Name="trade_hub" Size="13" /> Ventures <span class="muted">@(m.Businesses?.Count ?? 0) · @Counted.Sites(m.Assets?.Projects.Count ?? 0) under construction</span></h3>
             @if (m.Businesses is { Count: > 0 } bz)
             {
-                foreach (var b in bz) { <div class="line small"><b>@b.Name</b> <span class="muted">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")</span> <span class="pill small @(b.Earnings <= 0 ? "warn" : "good")">@(b.Earnings >= 0 ? "+" : "")@b.Earnings a year · worth @b.Value</span></div> }
+                foreach (var b in bz) { <div class="line small"><b>@b.Name</b> <span class="muted">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")</span> <span class="pill small @(b.Earnings <= 0 ? "warn" : "good")">@(b.Earnings >= 0 ? "+" : "")@Money.Show(b.Earnings) a year · worth @Money.Show(b.Value)</span></div> }
             }
             else { <div class="muted small">The house owns no venture. Coin that is not land still counts.</div> }
             <div class="row"><button class="opt inline tiny" @onclick="@(() => OnGo.InvokeAsync("exchange:ventures"))">Found, enlarge, buy and sell ventures: the Exchange ▸</button></div>
             @if (m.Claims is { Count: > 0 } cl)
             {
-                <details><summary>Stake a belt claim <span class="muted">@c.Businesses.Finance.ClaimCredits credits, @c.Businesses.Finance.ClaimMaterials materials</span></summary>
+                <details><summary>Stake a belt claim <span class="muted">@Money.Show(c.Businesses.Finance.ClaimCredits) credits, @c.Businesses.Finance.ClaimMaterials materials</span></summary>
                     @{ var cspec = c.Holdings.Spec(StakeClaimCommand.Spec); int cbase = cspec?.BaseYield.Materials ?? 0, ckeep = cspec?.Upkeep.Credits ?? 0; }
-                    <div class="muted small" data-claim-yield>A claim brings up @cbase materials a year and one more for each ● of the belt's richness, with some of any rare earths the belt holds and an exotic a year from the richest (●●●). It costs @ckeep credit@(ckeep == 1 ? "" : "s") a year to keep, and a belt takes as many claims as it has ●.</div>
+                    <div class="muted small" data-claim-yield>A claim brings up @cbase materials a year and one more for each ● of the belt's richness, with some of any rare earths the belt holds and an exotic a year from the richest (●●●). It costs @Money.Credits(ckeep) a year to keep, and a belt takes as many claims as it has ●.</div>
                     @foreach (var k in cl) { <button class="opt" disabled="@(k.Refusal != null)" title="@k.Refusal" @onclick="() => G.Execute(new StakeClaimCommand(pid, k.SystemId, c.Holdings, c.Businesses))">@k.SystemName belt @(new string('●', k.Belt)) · +@(cbase + k.Belt) materials a year · @k.Staked/@k.Belt staked@(k.Refusal != null ? $" — {k.Refusal}" : "")</button> }
                 </details>
             }
@@ -395,6 +395,6 @@
     private static string GovTitle(HoldingCard h) => "disposition toward you " + h.GovernorDisposition + (h.GovernorAmbitious ? " · ambitious" : "");
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
     private static string Goods(Resources r) => string.Join(" · ", Resource.All.Where(k => k != "credits" && r.Get(k) != 0).Select(k => $"{(r.Get(k) > 0 ? "+" : "−")}{Math.Abs(r.Get(k))} {Resource.Label(k)}"));
-    private static string Delta(Resources r) { var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{(r.Get(k) > 0 ? "+" : "")}{r.Get(k)} {k}").ToList(); return parts.Count == 0 ? "—" : string.Join(" · ", parts); }
+    private static string Delta(Resources r) { var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{Money.SignedOf(k, r.Get(k))} {k}").ToList(); return parts.Count == 0 ? "—" : string.Join(" · ", parts); }
     private ICommand Household(string optionId, string childId) => optionId == "recall" ? new RecallCommand(G.World!.ProtagonistId, childId) : new FosterCommand(G.World!.ProtagonistId, childId);
 }

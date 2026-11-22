@@ -142,7 +142,7 @@ public static class FeudSystem
         owing.Treasury.Credits -= price; wronged.Treasury.Credits += price; owing.Legitimacy = Math.Max(0, owing.Legitimacy - PriceAdmits);
         var head = Economy.HeadOf(w, wronged); var victim = w.Char(f.VictimId);
         if (head != null && victim != null) foreach (var kin in w.LivingCharacters().Where(c => c.HouseId == wronged.Id && c.Id != head.Id && CloseKin(c, victim)).ToList()) Regard(w, kin, head, LetLieKin / 2);
-        w.Log($"{owing.Name} pays {wronged.Name} {price} credits for {f.VictimName}. The blood between them is bought off.");
+        w.Log($"{owing.Name} pays {wronged.Name} {Money.Credits(price)} for {f.VictimName}. The blood between them is bought off.");
         End(w, f, "price"); Bump(w, PriceKey);
     }
 
@@ -248,7 +248,7 @@ public static class FeudSystem
         var head = Head(w, f.OwingId); var owing = w.House(f.OwingId); if (head == null || owing == null || owing.Treasury.Credits < f.Price) return;
         if (!head.NatureTraits.Contains("Just") && !head.NatureTraits.Contains("Honorable") && Hulls(w, f.WrongedId) <= Hulls(w, f.OwingId)) return;
         f.Offered = true; Ask(w, f, "offer", head, PriceOfferedFlag);
-        w.Log($"{head.Name} of {owing.Name} offers {f.Price} credits for the death of {f.VictimName}, to have an end of it.");
+        w.Log($"{head.Name} of {owing.Name} offers {Money.Credits(f.Price)} for the death of {f.VictimName}, to have an end of it.");
     }
 
     private static void Ask(World w, BloodFeud f, string what, Character asker, string flag)
@@ -290,7 +290,7 @@ public static class FeudSystem
             }
             return;
         }
-        if (toPlayer) { if (!w.HasFlag(PriceAskedFlag)) { Ask(w, f, "price", head, PriceAskedFlag); w.Log($"{head.Name} of {w.House(f.WrongedId)?.Name} asks {f.Price} credits for the death of {f.VictimName}."); } return; }
+        if (toPlayer) { if (!w.HasFlag(PriceAskedFlag)) { Ask(w, f, "price", head, PriceAskedFlag); w.Log($"{head.Name} of {w.House(f.WrongedId)?.Name} asks {Money.Credits(f.Price)} for the death of {f.VictimName}."); } return; }
         if (WouldPay(w, f)) PayPrice(w, f); else { f.Refused = true; w.Log($"{w.House(f.WrongedId)?.Name} asks a price for {f.VictimName}, and {w.House(f.OwingId)?.Name} will not pay it."); }
     }
 
@@ -338,7 +338,7 @@ public static class FeudSystem
         var blamed = Blamed(w, f);
         switch (what)
         {
-            case FeudCommand.Pay: case FeudCommand.Refuse: return owe && f.Asked == "price" ? what == FeudCommand.Pay && w.House(me.HouseId)!.Treasury.Credits < f.Price ? $"the house has not the {f.Price} credits" : null : "nobody has asked you for a price";
+            case FeudCommand.Pay: case FeudCommand.Refuse: return owe && f.Asked == "price" ? what == FeudCommand.Pay && w.House(me.HouseId)!.Treasury.Credits < f.Price ? $"the house has not the {Money.Credits(f.Price)}" : null : "nobody has asked you for a price";
             case FeudCommand.Take: case FeudCommand.Spurn: return owed && f.Asked == "offer" ? null : "nobody has offered you a price";
             case FeudCommand.Fight: case FeudCommand.Decline: return owe && f.Asked == "duel" ? what == FeudCommand.Fight && me.Health < LifeSystem.Frail ? "you are in no state to take the field" : null : "nobody has called you out";
         }
@@ -358,7 +358,7 @@ public static class FeudSystem
             case FeudCommand.Demand:
                 return !owed ? "it is for the house that is owed to ask a price" : f.Refused ? "they have refused once already" : null;
             case FeudCommand.Offer:
-                return !owe ? "it is for the house that owes to offer a price" : f.Offered ? "you have offered once already" : w.House(me.HouseId)!.Treasury.Credits < f.Price ? $"the house has not the {f.Price} credits" : null;
+                return !owe ? "it is for the house that owes to offer a price" : f.Offered ? "you have offered once already" : w.House(me.HouseId)!.Treasury.Credits < f.Price ? $"the house has not the {Money.Credits(f.Price)}" : null;
             case FeudCommand.LetLie:
                 return owed ? null : "it is not yours to forgive";
         }
@@ -383,12 +383,12 @@ public static class FeudSystem
                 Duel(w, f, who, blamed!, rng.NextInt(0, 100), rng.NextInt(0, 100)); return;
             case FeudCommand.Demand:
                 if (WouldPay(w, f)) PayPrice(w, f);
-                else { f.Refused = true; Regard(w, me, Head(w, f.OwingId), -10); w.Log($"{w.House(f.WrongedId)?.Name} asks {f.Price} credits for {f.VictimName}, and {w.House(f.OwingId)?.Name} will not pay it."); }
+                else { f.Refused = true; Regard(w, me, Head(w, f.OwingId), -10); w.Log($"{w.House(f.WrongedId)?.Name} asks {Money.Credits(f.Price)} for {f.VictimName}, and {w.House(f.OwingId)?.Name} will not pay it."); }
                 return;
             case FeudCommand.Offer:
                 f.Offered = true;
                 if (TakesAPrice(w, f)) PayPrice(w, f);
-                else w.Log($"{w.House(f.OwingId)?.Name} offers {f.Price} credits for {f.VictimName}. {w.House(f.WrongedId)?.Name} will not take money for their dead.");
+                else w.Log($"{w.House(f.OwingId)?.Name} offers {Money.Credits(f.Price)} for {f.VictimName}. {w.House(f.WrongedId)?.Name} will not take money for their dead.");
                 return;
             case FeudCommand.LetLie: LetLie(w, f, chosen: true); return;
         }

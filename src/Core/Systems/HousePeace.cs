@@ -30,7 +30,7 @@ public static class HousePeace
         return (credits, goods, left);
     }
     private static string Paid((int credits, List<(string good, int n)> goods, int unpaid) p) =>
-        string.Join(", ", new[] { p.credits > 0 ? p.credits + " credits" : "" }.Concat(p.goods.Select(g => g.n + " " + Resource.Label(g.good))).Where(x => x.Length > 0));
+        string.Join(", ", new[] { p.credits > 0 ? Money.Credits(p.credits) : "" }.Concat(p.goods.Select(g => g.n + " " + Resource.Label(g.good))).Where(x => x.Length > 0));
 
     /// <summary>The worlds of <paramref name="loser"/> that could change hands at a peace: never the capital of the Reach, never its last.</summary>
     public static List<Holding> Cedable(World w, string loser)
@@ -55,7 +55,7 @@ public static class HousePeace
             if (lead > 0)
             {
                 var p = Payable(w, other, owed); string got = Paid(p);
-                terms.Add(new Term(Tribute, "", $"Peace for tribute ({owed})", $"{them} owes {owed} ({lead} ahead × {rules.TributePerScore}). " + (p.unpaid == 0 ? $"It pays {got}." : got.Length > 0 ? $"It can pay {got}; the other {p.unpaid} it does not have." : "Its treasury is empty: it has nothing to pay with. Ask a world instead, or fight on."),
+                terms.Add(new Term(Tribute, "", $"Peace for tribute ({Money.Show(owed)})", $"{them} owes {Money.Show(owed)} ({lead} ahead × {Money.Show(rules.TributePerScore)}). " + (p.unpaid == 0 ? $"It pays {got}." : got.Length > 0 ? $"It can pay {got}; the other {Money.Show(p.unpaid)} it does not have." : "Its treasury is empty: it has nothing to pay with. Ask a world instead, or fight on."),
                     listens && got.Length > 0, !listens ? deaf : got.Length > 0 ? "" : them + " has nothing to pay with"));
             }
             var worlds = Cedable(w, other);

@@ -60,7 +60,7 @@ public sealed class BoardCommand : ICommand
     private readonly string _companyId, _act; private readonly int _n; private readonly CompanySystem _cs;
     public BoardCommand(string actorId, string companyId, string act, int amount, CompanySystem cs) { ActorId = actorId; _companyId = companyId; _act = act; _n = amount; _cs = cs; }
     public string ActorId { get; }
-    public string Describe() => $"{_act} {_companyId} {_n}";
+    public string Describe() => $"{_act} {_companyId} {(_act == PayIn ? Money.Show(_n) : _n.ToString())}";
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; if (w.Char(ActorId) is not { Alive: true } a) return "no such company"; var co = w.Company(_companyId);
@@ -72,7 +72,7 @@ public sealed class BoardCommand : ICommand
             Private => _cs.PrivateRefusal(w, a.HouseId, co),
             Special => _cs.SpecialRefusal(w, a.HouseId, co),
             /* capital paid in: the house's coin into the company's chest, for no new shares. Every shareholder is the richer for it by their share, which is the price of doing it. */
-            PayIn => co == null || co.Chartered ? "no such company" : co.ControllerId != a.HouseId ? "you do not direct it" : _n <= 0 ? "name a sum" : (w.House(a.HouseId)?.Treasury.Credits ?? 0) < _n ? $"the treasury holds {w.House(a.HouseId)?.Treasury.Credits ?? 0} credits" : null,
+            PayIn => co == null || co.Chartered ? "no such company" : co.ControllerId != a.HouseId ? "you do not direct it" : _n <= 0 ? "name a sum" : (w.House(a.HouseId)?.Treasury.Credits ?? 0) < _n ? $"the treasury holds {(w.House(a.HouseId) is { } paying ? Money.Held(paying.Treasury) : "0")} credits" : null,
             _ => "no such order"
         };
     }
@@ -87,7 +87,7 @@ public sealed class BoardCommand : ICommand
             case Payout: co.PayoutPct = _n; w.Log($"{co.Name} will pay out {_n}% of what it earns."); break;
             case Private: _cs.TakePrivate(w, co); break;
             case Special: _cs.SpecialDividend(w, co); break;
-            case PayIn: { var h = w.House(w.Char(ActorId)!.HouseId)!; h.Treasury.Credits -= _n; co.Cash += _n; w.Log($"{h.Name} pays {_n} credits of its own into {co.Name}."); break; }
+            case PayIn: { var h = w.House(w.Char(ActorId)!.HouseId)!; h.Treasury.Credits -= _n; co.Cash += _n; w.Log($"{h.Name} pays {Money.Credits(_n)} of its own into {co.Name}."); break; }
         }
     }
 }

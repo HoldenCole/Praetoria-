@@ -33,7 +33,7 @@ public static partial class LadderSystem
     private static void HoldOver(World w, Character judge, OfficeBusiness b, string mine)
     {
         b.Held = true; var other = w.House(OtherIn(b, mine));
-        w.Log($"{other?.Name ?? "A house"} brings a suit against {w.House(mine)?.Name} over {MatterOf(b)}: {StakeOf(b)} credits turn on it. {judge.Name}, praetor, hears it at the year's end. {LawFor(w, b, mine)}");
+        w.Log($"{other?.Name ?? "A house"} brings a suit against {w.House(mine)?.Name} over {MatterOf(b)}: {Money.Credits(StakeOf(b))} turn on it. {judge.Name}, praetor, hears it at the year's end. {LawFor(w, b, mine)}");
     }
 
     /// <summary>The suits held from last year are heard, before this year's business is made.</summary>
@@ -72,7 +72,7 @@ public static partial class LadderSystem
         var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of a house comes to terms for it";
         if (b == null || !b.Held || b.Choice.Length > 0 || (b.HouseA != house.Id && b.HouseB != house.Id)) return "no such suit is waiting";
         var other = w.House(OtherIn(b, house.Id)); int half = StakeOf(b) / 2;
-        if (b.RightId != house.Id) return house.Treasury.Credits >= half ? null : $"the house has {house.Treasury.Credits} credits and terms would take {half}";
+        if (b.RightId != house.Id) return house.Treasury.Credits >= half ? null : $"the house has {Money.Held(house.Treasury)} credits and terms would take {Money.Show(half)}";
         return WeightOf(b) == Doubtful ? $"the law is doubtful: {other?.Name} would rather be heard than pay" : null;
     }
     /// <summary>Come to terms before the hearing: the side the law is against pays half of what was asked, now, and the suit is over.</summary>
@@ -82,7 +82,7 @@ public static partial class LadderSystem
         int half = Math.Min(StakeOf(b) / 2, Math.Max(0, wrong?.Treasury.Credits ?? 0));
         if (wrong != null && right != null) { wrong.Treasury.Credits -= half; right.Treasury.Credits += half; }
         b.Choice = SettledOut; b.WinnerId = b.RightId; Shift(w, other, house, 4);
-        w.Log($"{house.Name} and {other?.Name} come to terms over {MatterOf(b)} before it is heard. {wrong?.Name} pays {half} credits, and the suit is withdrawn.");
+        w.Log($"{house.Name} and {other?.Name} come to terms over {MatterOf(b)} before it is heard. {wrong?.Name} pays {Money.Credits(half)}, and the suit is withdrawn.");
         Judged(w, "", b.RightId, wrong?.Id ?? "", half, b, "settled between the two houses before the hearing");
     }
 

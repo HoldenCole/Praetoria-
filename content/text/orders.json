@@ -22,7 +22,7 @@
     {
       "id": "a_client_at_the_door",
       "title": "A Client at the Door",
-      "body": "The house has paid another's debts and taken it as a client. Its head will call at first light with the others, will vote for the house at an election whatever his party says, and will lean the house's way when the chamber divides. He costs a credit a year to keep, and he expects to be kept.",
+      "body": "The house has paid another's debts and taken it as a client. Its head will call at first light with the others, will vote for the house at an election whatever his party says, and will lean the house's way when the chamber divides. He costs a hundred credits a year to keep, and he expects to be kept.",
       "choices": {
         "receive_him_well": "Receive him in the hall.",
         "set_out_what_is_owed": "Set out plainly what each owes the other."
@@ -31,7 +31,7 @@
     {
       "id": "under_protection",
       "title": "Under Protection",
-      "body": "The house has put itself under a greater one's protection. The patron and the patron's other clients will lean the house's way in the chamber, and there is a credit a year in it. In return the house's vote is the patron's at an election, and the patron will ask for things.",
+      "body": "The house has put itself under a greater one's protection. The patron and the patron's other clients will lean the house's way in the chamber, and there are a hundred credits a year in it. In return the house's vote is the patron's at an election, and the patron will ask for things.",
       "choices": {
         "be_a_good_client": "Call at first light with the others.",
         "keep_your_own_counsel": "Take the protection and keep your own ledger."

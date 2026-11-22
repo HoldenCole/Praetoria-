@@ -6,7 +6,7 @@
       "body": "The square below {self.name}'s windows is full and it is not a feast day. The commons of {self.house}'s worlds have a petition and a grievance — the tithe, the levies, the courts, the labour laws — and they have brought both to the gate.",
       "choices": {
         "hear_the_petition": "Go down and hear the petition read to the end.",
-        "bread_and_a_holiday": "Declare a holiday and pay for the bread. Eight credits.",
+        "bread_and_a_holiday": "Declare a holiday and pay for the bread. Eight hundred credits.",
         "clear_the_square": "Have the guard clear the square."
       }
     },
@@ -15,7 +15,7 @@
       "title": "The Merchants' Delegation",
       "body": "The factors of {self.house}'s worlds have sent a delegation, and they have brought their ledgers. The tariffs, the tolls, the labour law — something the house has set is costing them, and they have closed the warehouses to say so.",
       "choices": {
-        "a_concession": "A concession on the customs house. Four credits of duty.",
+        "a_concession": "A concession on the customs house. Four hundred credits of duty.",
         "show_them_the_law": "Read them the law and show them the door."
       }
     },
@@ -24,7 +24,7 @@
       "title": "The Officers' Grievance",
       "body": "The wardroom has drafted a letter, and the admiral has quietly let {self.name} see it before it is sent. The officers of {self.house}'s hulls want a guard kept, pay that arrives, and a house that values the men who crew its guns.",
       "choices": {
-        "dine_the_wardroom": "Dine the wardroom and listen. Five credits.",
+        "dine_the_wardroom": "Dine the wardroom and listen. Five hundred credits.",
         "promote_the_loudest": "Promote the loudest of them over an old-blood captain.",
         "remind_them_who_pays": "Remind them who pays for the hulls."
       }
@@ -34,16 +34,16 @@
       "title": "The Old Blood's Letter",
       "body": "A letter signed by the oldest houses of the Reach, in the oldest form, regrets that {self.house} has set aside the customs a house of standing should keep — an open hall, an open ballot, courts too lenient, a franchise too wide. It is copied to the Senate.",
       "choices": {
-        "a_ceremony": "A ceremony of the old form, with the old houses in the old order. Six credits.",
+        "a_ceremony": "A ceremony of the old form, with the old houses in the old order. Six hundred credits.",
         "let_them_write": "Let them write. The commons like a house the old blood dislikes."
       }
     },
     {
       "id": "the_magistrates_bench",
       "title": "The Magistrates' Find",
-      "body": "The magistrates of {self.house}'s worlds, who approve of how the house keeps its law, have found six credits the collectors missed, and bring them to {self.name} with a bow and a question in their eyes.",
+      "body": "The magistrates of {self.house}'s worlds, who approve of how the house keeps its law, have found six hundred credits the collectors missed, and bring them to {self.name} with a bow and a question in their eyes.",
       "choices": {
-        "take_the_gift": "Take the gift. Six credits.",
+        "take_the_gift": "Take the gift. Six hundred credits.",
         "return_it": "Send it back to the worlds it came from."
       }
     },
@@ -54,7 +54,7 @@
       "choices": {
         "ease_the_patrols": "Ease the patrols for a season.",
         "hang_a_few": "Hang a few of the loudest. Ruthless.",
-        "buy_them_a_drink": "Stand them a night's drinking. Three credits."
+        "buy_them_a_drink": "Stand them a night's drinking. Three hundred credits."
       }
     },
     {

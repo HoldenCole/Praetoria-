@@ -102,7 +102,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid the crews a season's wage before they sailed beyond the Reach. Four credits, and a fleet that sang on the way out."
+              "text": "{self.name} paid the crews a season's wage before they sailed beyond the Reach. Four hundred credits, and a fleet that sang on the way out."
             }
           ]
         },
@@ -185,7 +185,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent four credits of the plunder's promise to the squares at home. The commons drank the fleet's health and the house's."
+              "text": "{self.name} sent four hundred credits of the plunder's promise to the squares at home. The commons drank the fleet's health and the house's."
             }
           ]
         },
@@ -346,7 +346,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put six credits toward new hulls before the broken fleet had made port, and said nothing about why."
+              "text": "{self.name} put six hundred credits toward new hulls before the broken fleet had made port, and said nothing about why."
             }
           ]
         }
@@ -391,7 +391,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave the returning fleet a parade through the harbour town: five credits of bunting and wine, and a house the squares cheered for."
+              "text": "{self.name} gave the returning fleet a parade through the harbour town: five hundred credits of bunting and wine, and a house the squares cheered for."
             }
           ]
         },
@@ -418,7 +418,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid the crews off in full on the quay, six credits, before a single word was said about where they had been."
+              "text": "{self.name} paid the crews off in full on the quay, six hundred credits, before a single word was said about where they had been."
             }
           ]
         },
@@ -502,7 +502,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked the chamber for a share of the tribute as the price of the triumph, and got eight credits and a reputation for asking."
+              "text": "{self.name} asked the chamber for a share of the tribute as the price of the triumph, and got eight hundred credits and a reputation for asking."
             }
           ]
         }
@@ -567,7 +567,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent arms and a garrison's pay to the raided world. Four materials, three credits, and a town that will fight next time."
+              "text": "{self.name} sent arms and a garrison's pay to the raided world. Four materials, three hundred credits, and a town that will fight next time."
             }
           ]
         },

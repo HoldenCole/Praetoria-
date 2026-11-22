@@ -16,7 +16,7 @@ public static class SkillWords
         "diplomacy" => "Brings a family round in a courtship, where the better of diplomacy and oratory is what counts.",
         "charisma" => "Two votes in an election for each point; three points of favour on the first day of a courtship for each, and more for every year of paying court; and it keeps a marriage warm.",
         "intrigue" => "Seven points in the hundred on a knife in the dark for each point; in a courtship it does a rival more harm and is less often found out.",
-        "administration" => "The governor's skill: each point lifts what a world's prosperity settles at by 4, and a governor of 3 or more brings in a credit more a year. It makes a steward fit for the post, and is what a governor is picked by.",
+        "administration" => "The governor's skill: each point lifts what a world's prosperity settles at by 4, and a governor of 3 or more brings in a hundred credits more a year. It makes a steward fit for the post, and is what a governor is picked by.",
         "economics" => "Makes a steward fit for the post (3 or more does two things a year, not one), and a head who has 2 will always see to a failing venture before it folds.",
         "engineering" => "Read at the Institute for its marks. Nothing else in the Reach turns on it yet.",
         _ => "",

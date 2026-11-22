@@ -64,13 +64,13 @@
     },
     {
       "id": "commodity_warehouse", "name": "Commodity Warehouse", "buildTurns": 1, "sector": "trade", "spikeCredits": 2,
-      "description": "Sheds, scales and patience. It buys when the exchanges are full and sells into a shortage: two credits a level for every good that is spiking.",
+      "description": "Sheds, scales and patience. It buys when the exchanges are full and sells into a shortage: two hundred credits a level for every good that is spiking.",
       "cost": { "credits": 14, "materials": 6 }, "yield": { "credits": 1 }, "expandCost": { "credits": 10, "materials": 4 }, "maxLevel": 2, "charter": 1,
       "requires": { "populated": true }
     },
     {
       "id": "arsenal_concern", "name": "Arsenal Concern", "buildTurns": 2, "sector": "arms", "warCredits": 2,
-      "description": "Shell-filling sheds and a proving ground. It pays a little in peace and two credits a level for every war in the Reach, four at most.",
+      "description": "Shell-filling sheds and a proving ground. It pays a little in peace and two hundred credits a level for every war in the Reach, four at most.",
       "cost": { "credits": 18, "materials": 8 }, "yield": { "credits": 1 }, "expandCost": { "credits": 14, "materials": 6 }, "maxLevel": 2, "charter": 2,
       "requires": { "populated": true, "minTitleRank": 1 }
     },
@@ -82,7 +82,7 @@
     },
     {
       "id": "insurance_house", "name": "Insurance House", "buildTurns": 1, "sector": "finance", "peaceCredits": 3, "warCredits": -1,
-      "description": "It sells the lanes' safety by the voyage. Three credits a level in a year without a war; every war costs it one.",
+      "description": "It sells the lanes' safety by the voyage. Three hundred credits a level in a year without a war; every war costs it a hundred.",
       "cost": { "credits": 18 }, "yield": { "credits": 1 }, "expandCost": { "credits": 12 }, "maxLevel": 2, "charter": 1,
       "requires": { "populated": true }
     }

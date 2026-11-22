@@ -411,7 +411,7 @@ public sealed class FleetSystem
             w.Fleets.Remove(victim.Id); w.Intel.Remove(victim.Id);
             w.Log($"Unpaid for too long, the last crews of {victim.Name} desert; {house.Name} has no fleet left there.");
         }
-        else w.Log($"Unpaid crews desert {victim.Name}: {house.Name} owes {-house.Treasury.Credits} credits it does not have.");
+        else w.Log($"Unpaid crews desert {victim.Name}: {house.Name} owes {Money.Held(house.Treasury).TrimStart('-')} credits it does not have.");
     }
 
     private static void Arrive(World w, Fleet f)

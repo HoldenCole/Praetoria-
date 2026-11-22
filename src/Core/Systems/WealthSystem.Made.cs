@@ -27,7 +27,7 @@ public static partial class WealthSystem
         if (!Commissions.Contains(kind)) return "nobody can make that to order";
         if (who.Age < Adult) return "too young to order it";
         if (w.Heirlooms.Any(h => h.Kind == kind && h.OfHouseId == house.Id)) return $"your house has a {kind} already";
-        return who.Purse >= CommissionCost(kind) ? null : $"your purse holds {who.Purse} and it costs {CommissionCost(kind)}: move coin in House, under Purses and the will";
+        return who.Purse >= CommissionCost(kind) ? null : $"your purse holds {Money.Show(who.Purse)} and it costs {Money.Show(CommissionCost(kind))}: move coin in House, under Purses and the will";
     }
 
     public static Heirloom Commission(World w, Character who, string kind)
@@ -156,7 +156,7 @@ public static partial class WealthSystem
         if (item.Kind == Standard) item.Name = $"the {(home != null ? Bare(home) : "old")} standard, come home"; if (from?.Will != null) from.Will.Items.Remove(item.Id);
         Regard(w, to, from, paid > 0 ? RansomRegard : ReturnRegard); Count(w, paid > 0 ? RansomedKey : ReturnedKey); w.WorldCounters.Remove(AskedKey(item.Id));
         if (from?.HouseId == w.Protagonist?.HouseId || to.HouseId == w.Protagonist?.HouseId)
-            w.Log(paid > 0 ? $"{item.Name}: {to.Name} pays {paid} credits and has it back." : $"{from?.Name} sends {to.Name} {(item.Kind == Standard ? "their standard" : item.Name)} back, and asks nothing for it.");
+            w.Log(paid > 0 ? $"{item.Name}: {to.Name} pays {Money.Credits(paid)} and has it back." : $"{from?.Name} sends {to.Name} {(item.Kind == Standard ? "their standard" : item.Name)} back, and asks nothing for it.");
     }
 
     /// <summary>Your house's standard is flown by another. Its holder's house will sell it home if its head can bear you; at war
@@ -167,7 +167,7 @@ public static partial class WealthSystem
         var holder = w.Char(item.HolderId); var theirs = holder != null ? w.House(holder.HouseId) : null; if (holder?.Alive != true || theirs == null || theirs.Id == me.HouseId) return "nobody else holds it";
         if (w.AtWar(me.HouseId, theirs.Id)) return "you are at war with them: it is taken back in battle or not at all";
         var head = Economy.HeadOf(w, theirs); if (head != null && (w.GetRelationship(head.Id, me.Id)?.Disposition ?? 0) < RansomWillNot) return $"{head.Name} will not hear of it";
-        return me.Purse >= RansomPrice(item) ? null : $"your purse holds {me.Purse} and they would ask {RansomPrice(item)}: move coin in House, under Purses and the will";
+        return me.Purse >= RansomPrice(item) ? null : $"your purse holds {Money.Show(me.Purse)} and they would ask {Money.Show(RansomPrice(item))}: move coin in House, under Purses and the will";
     }
     public static void Ransom(World w, Character me, Heirloom item)
     {
@@ -389,7 +389,7 @@ public static partial class WealthSystem
     public static void Call(World w, Character me, House theirs, string what)
     {
         var mine = w.House(me.HouseId)!; w.WorldCounters.Remove(FavourKey(theirs.Id, mine.Id));
-        if (what == ForMoney) { theirs.Treasury.Credits -= FavourCredits; mine.Treasury.Credits += FavourCredits; Count(w, FavoursForMoneyKey); w.Log($"{me.Name} calls in what {theirs.Name} owes: {FavourCredits} credits, paid without a word."); }
+        if (what == ForMoney) { theirs.Treasury.Credits -= FavourCredits; mine.Treasury.Credits += FavourCredits; Count(w, FavoursForMoneyKey); w.Log($"{me.Name} calls in what {theirs.Name} owes: {Money.Credits(FavourCredits)}, paid without a word."); }
         else { var suit = SuitBetween(w, mine.Id, theirs.Id)!; suit.Consent = Math.Clamp(suit.Consent + FavourConsent, 0, 100); Count(w, FavoursForMatchKey); w.Log($"{me.Name} calls in what {theirs.Name} owes: the family looks more kindly on the match."); }
     }
 

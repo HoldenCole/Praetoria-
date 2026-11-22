@@ -33,7 +33,7 @@ public static class ReportFacts
         {
             bool won = flags.Contains("case_won");
             var j = w.Judgments.LastOrDefault(x => x.Kind == "suit" && (won ? x.WinnerId == mine : x.LoserId == mine));
-            return j == null ? "" : $"The case: {Nm(j.WinnerId)} against {Nm(j.LoserId)}{(j.Matter.Length > 0 ? " over " + j.Matter : "")}, year {j.Turn}. {(j.Judge.Length > 0 ? j.Judge + ", praetor, " + j.How : char.ToUpperInvariant(j.How[0]) + j.How[1..])}. {Nm(j.LoserId)} paid {j.Sum} credits.";
+            return j == null ? "" : $"The case: {Nm(j.WinnerId)} against {Nm(j.LoserId)}{(j.Matter.Length > 0 ? " over " + j.Matter : "")}, year {j.Turn}. {(j.Judge.Length > 0 ? j.Judge + ", praetor, " + j.How : char.ToUpperInvariant(j.How[0]) + j.How[1..])}. {Nm(j.LoserId)} paid {Money.Credits(j.Sum)}.";
         }
         if (flags.Contains("battle_won") || flags.Contains("battle_lost"))
         {
@@ -59,7 +59,7 @@ public static class ReportFacts
         {
             /* which offence it was: the charge a praetor found proved, or the money an audit followed (docs/PLAYTHROUGH.md, Easy, P101) */
             var j = w.Judgments.LastOrDefault(x => x.Kind == "charge" && x.LoserId == mine && x.Turn >= w.Turn - 1);
-            if (j != null) return $"The charge, year {j.Turn}: {j.Matter}. {(j.Judge.Length > 0 ? j.Judge + ", praetor, heard it. " : "")}{Nm(j.WinnerId)} brought it{(j.Sum > 0 ? $", and {j.Sum} credits were paid" : "")}.";
+            if (j != null) return $"The charge, year {j.Turn}: {j.Matter}. {(j.Judge.Length > 0 ? j.Judge + ", praetor, heard it. " : "")}{Nm(j.WinnerId)} brought it{(j.Sum > 0 ? $", and {Money.Credits(j.Sum)} were paid" : "")}.";
             string me = Nm(mine);
             return w.History.LastOrDefault(h => h.Turn >= w.Turn - 1 && h.Text.StartsWith("It comes out that") && h.Text.Contains(me))?.Text ?? "";
         }

@@ -475,20 +475,20 @@ public static class CourtshipSystem
             int due = DowryAmount(w, from.Id, dowry), own = 0; agreed = due; var giver = from.DowryFromPurse && from.Id == mine ? w.Protagonist : null;
             // a bride with a purse of her own puts half of it toward her portion, up to half of what is due
             int hers = from.Id == mine && bride.Id != w.ProtagonistId ? Math.Clamp(bride.Purse / 2, 0, due / 2) : 0; bride.Purse -= hers;
-            if (hers > 0 && log) w.Log($"{bride.Name} puts {hers} credits of her own toward her portion.");
+            if (hers > 0 && log) w.Log($"{bride.Name} puts {Money.Credits(hers)} of her own toward her portion.");
             if (giver is { Alive: true }) { own = Math.Clamp(giver.Purse, 0, due - hers); giver.Purse -= own; }
             paid = hers + own + Math.Min(due - hers - own, Math.Max(0, from.Treasury.Credits));
             from.Treasury.Credits -= paid - own - hers; to.Treasury.Credits += paid;
             if (paid < due)
             {
                 /* what was agreed and what could be found are two sums, and both are said (docs/PLAYTHROUGH.md, Easy, F9 and F82) */
-                if (log) w.Log($"{from.Name} agreed a dowry of {due} credits with {bride.Name} and could raise {paid}.");
-                if (log && (from.Id == mine || to.Id == mine)) w.Tell("warn", from.Id == mine ? $"Your house agreed a dowry of {due} credits with {bride.Name} and the treasury could find {paid}." : $"{from.Name} agreed a dowry of {due} credits with {bride.Name} and could raise only {paid}: that is all that came.", "dynasty:marriages");
+                if (log) w.Log($"{from.Name} agreed a dowry of {Money.Credits(due)} with {bride.Name} and could raise {Money.Show(paid)}.");
+                if (log && (from.Id == mine || to.Id == mine)) w.Tell("warn", from.Id == mine ? $"Your house agreed a dowry of {Money.Credits(due)} with {bride.Name} and the treasury could find {Money.Show(paid)}." : $"{from.Name} agreed a dowry of {Money.Credits(due)} with {bride.Name} and could raise only {Money.Show(paid)}: that is all that came.", "dynasty:marriages");
             }
             if (giver != null && own > 0 && own * 2 >= paid && bride.Id != giver.Id)
             {
                 var r = w.Relationship(bride.Id, giver.Id); r.Disposition = Math.Clamp(r.Disposition + WealthSystem.DowryRegard, -100, 100);
-                if (log) w.Log($"{giver.Name} pays {own} credits of {bride.Name}'s dowry out of their own purse.");
+                if (log) w.Log($"{giver.Name} pays {Money.Credits(own)} of {bride.Name}'s dowry out of their own purse.");
             }
         }
         bool first = string.CompareOrdinal(a.Id, b.Id) < 0;
@@ -498,7 +498,7 @@ public static class CourtshipSystem
         // every other suit for either hand is over
         w.Courtships.RemoveAll(c => c.SuitorId == a.Id || c.SuitorId == b.Id || c.TargetId == a.Id || c.TargetId == b.Id);
         foreach (var c in w.Courtships.Where(c => c.RivalId == a.Id || c.RivalId == b.Id)) { c.RivalId = ""; c.RivalStanding = 0; }
-        if (log) w.Log($"{a.Name} of {ha?.Name} weds {b.Name} of {hb?.Name}{(kind == Love ? ", and by every account gladly" : "")}.{(paid > 0 ? $" {paid} credits pass with the bride." : "")}");
+        if (log) w.Log($"{a.Name} of {ha?.Name} weds {b.Name} of {hb?.Name}{(kind == Love ? ", and by every account gladly" : "")}.{(paid > 0 ? $" {Money.Credits(paid)} pass with the bride." : "")}");
         LifeSystem.Note(w, a, kind == Love ? "love" : "wed", $"Married {b.Name} of {hb?.Name}{(kind == Love ? ", for love" : "")}."); LifeSystem.Note(w, b, kind == Love ? "love" : "wed", $"Married {a.Name} of {ha?.Name}{(kind == Love ? ", for love" : "")}.");
         if (ourWedding)
         {

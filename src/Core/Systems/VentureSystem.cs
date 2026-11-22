@@ -123,10 +123,10 @@ public sealed class VentureSystem
     {
         var buyer = w.House(buyerId); if (b == null || buyer == null) return "no such venture";
         var (ask, refusal) = Ask(w, b, buyerId); if (refusal != null) return refusal;
-        if (LastWord(w, b, buyerId) is > 0 and var last) return $"they have given their last word this year: {last} credits";
+        if (LastWord(w, b, buyerId) is > 0 and var last) return $"they have given their last word this year: {Money.Credits(last)}";
         if (price < 1) return "offer something";
-        if (price >= ask) return $"they ask {ask}: that is the price, not an offer";
-        return buyer.Treasury.Credits >= price ? null : $"needs {price} credits";
+        if (price >= ask) return $"they ask {Money.Show(ask)}: that is the price, not an offer";
+        return buyer.Treasury.Credits >= price ? null : $"needs {Money.Credits(price)}";
     }
     /// <summary>Make the offer. Returns what came of it, as it is told to the house that made it.</summary>
     public string Offer(World w, Business b, string buyerId, int price)
@@ -138,20 +138,20 @@ public sealed class VentureSystem
         {
             LastWordIs(ask);
             if (sellerHead != null && buyerHead != null && sellerHead.Id != buyerHead.Id) { var r = w.Relationship(sellerHead.Id, buyerHead.Id); r.Disposition = Math.Clamp(r.Disposition - InsultRegard, -100, 100); }
-            w.Log($"{buyer.Name} offers {price} credits for the {name}, which {seller.Name} asks {ask} for. {seller.Name} does not answer.");
-            return $"{seller.Name} takes {price} for the {name} as an insult and does not answer: {sellerHead?.Name ?? "its head"} thinks {InsultRegard} the worse of you. It is {ask} or nothing this year.";
+            w.Log($"{buyer.Name} offers {Money.Credits(price)} for the {name}, which {seller.Name} asks {Money.Show(ask)} for. {seller.Name} does not answer.");
+            return $"{seller.Name} takes {Money.Show(price)} for the {name} as an insult and does not answer: {sellerHead?.Name ?? "its head"} thinks {InsultRegard} the worse of you. It is {Money.Show(ask)} or nothing this year.";
         }
         if (price >= least)
         {
             LastWordIs(price); Bump(w, OffersTakenCounter);
             bool bought = BuyAt(w, b, buyerId);
-            if (bought && b.OwnerId == buyerId) return $"{seller.Name} takes {price} credits for the {name}, {ask - price} under what it asked. It is yours.";
-            if (bought) return $"{seller.Name} would have taken {price} for the {name}, but {w.House(b.OwnerId)?.Name} holds the world it works, matched the price and took it first. You keep your coin.";
-            return $"{seller.Name} would take {price} for the {name}, but the sale did not go through.";
+            if (bought && b.OwnerId == buyerId) return $"{seller.Name} takes {Money.Credits(price)} for the {name}, {Money.Show(ask - price)} under what it asked. It is yours.";
+            if (bought) return $"{seller.Name} would have taken {Money.Show(price)} for the {name}, but {w.House(b.OwnerId)?.Name} holds the world it works, matched the price and took it first. You keep your coin.";
+            return $"{seller.Name} would take {Money.Show(price)} for the {name}, but the sale did not go through.";
         }
         int counter = Math.Min(ask, Math.Max(least, (price + ask + 1) / 2)); LastWordIs(counter); Bump(w, OffersCounteredCounter);
-        w.Log($"{buyer.Name} offers {price} credits for the {name}; {seller.Name} answers {counter}.");
-        return $"{seller.Name} will not take {price} for the {name}. It answers {counter}, {ask - counter} under what it asked, and that is its last word this year.";
+        w.Log($"{buyer.Name} offers {Money.Credits(price)} for the {name}; {seller.Name} answers {Money.Show(counter)}.");
+        return $"{seller.Name} will not take {Money.Show(price)} for the {name}. It answers {Money.Show(counter)}, {Money.Show(ask - counter)} under what it asked, and that is its last word this year.";
     }
 
     /// <summary>The holder of the world, if it is neither party and would match the price: it has first refusal on anything sold there.</summary>
@@ -173,7 +173,7 @@ public sealed class VentureSystem
         foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
         w.WorldCounters[SoldCounter] = w.Counter(SoldCounter) + 1;
         if (to.Id == w.Protagonist?.HouseId) w.WorldFlags.Add(BoughtFlag);
-        w.Log($"{to.Name} {how} the {b.Name} from {from.Name} for {price} credits.");
+        w.Log($"{to.Name} {how} the {b.Name} from {from.Name} for {Money.Credits(price)}.");
     }
 
     /// <summary>Sold to the open market: the caravaneers pay four-fifths of value and break it up.</summary>
@@ -184,7 +184,7 @@ public sealed class VentureSystem
         from.Treasury.Credits += price; Proceeds(w, b, from, price); w.Businesses.Remove(b.Id);
         foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
         w.WorldCounters[SoldCounter] = w.Counter(SoldCounter) + 1;
-        w.Log($"{from.Name} sells the {b.Name} on the open market for {price} credits; the caravaneers break it up.");
+        w.Log($"{from.Name} sells the {b.Name} on the open market for {Money.Credits(price)}; the caravaneers break it up.");
     }
 
     /// <summary>Sold to a named house at its bid — unless the world's holder matches it first.</summary>
@@ -212,7 +212,7 @@ public sealed class VentureSystem
             int n = w.Counter("offers_made") + 1; w.WorldCounters["offers_made"] = n;
             w.Offers.Add(new VentureOffer { Id = $"offer_{n}", BusinessId = b.Id, FromHouseId = b.OwnerId, ToHouseId = mine, Price = price, Expires = w.Turn + 1, Reason = $"{buyer.Name} has offered for it, and it works your world: you have first refusal at their price" });
             b.OfferedUntil = w.Turn + 1; w.WorldFlags.Add(OfferedFlag);
-            w.Log($"{buyer.Name} offers {price} credits for the {b.Name}; it works a world of {w.House(mine)?.Name}, which has a year to match it.");
+            w.Log($"{buyer.Name} offers {Money.Credits(price)} for the {b.Name}; it works a world of {w.House(mine)?.Name}, which has a year to match it.");
             return false;
         }
         if (FirstRefuser(w, b, buyerId, price) is { } holder) { Transfer(w, b, holder, price, "takes up its first refusal and buys"); if (buyerId == w.Protagonist?.HouseId) w.WorldFlags.Add(RefusedFirstFlag); return true; }
@@ -232,7 +232,7 @@ public sealed class VentureSystem
             w.Offers.Add(new VentureOffer { Id = $"offer_{n}", BusinessId = b.Id, FromHouseId = seller.Id, ToHouseId = mine.Id, Price = fair, Expires = w.Turn + 1,
                 Reason = Holder(w, b) == mine.Id ? "it works your world: you have first refusal" : "they would rather it went to a friend" });
             b.OfferedUntil = w.Turn + 1; w.WorldFlags.Add(OfferedFlag);
-            w.Log($"{seller.Name}, short of coin, offers {mine.Name} the {b.Name} for {fair} credits.");
+            w.Log($"{seller.Name}, short of coin, offers {mine.Name} the {b.Name} for {Money.Credits(fair)}.");
             return;
         }
         var best = Bidders(w, b, except: mine?.Id).FirstOrDefault();
@@ -295,7 +295,7 @@ public sealed class VentureSystem
         var head = Economy.HeadOf(w, from); if (head == null || head.Id == founder.Id) return;
         int cut = price * FounderCutPct / 100; from.Treasury.Credits -= cut; founder.Purse += cut; Bump(w, FounderCutCounter, cut);
         var r = w.Relationship(founder.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition - (b.LosingYears > 0 ? SoldFailingRegard : SoldOverRegard), -100, 100);
-        w.Log($"{founder.Name} founded the {b.Name}; {cut} credits of its price are theirs, and they are {(b.LosingYears > 0 ? "sorry" : "not glad")} to see it go.");
+        w.Log($"{founder.Name} founded the {b.Name}; {Money.Credits(cut)} of its price are theirs, and they are {(b.LosingYears > 0 ? "sorry" : "not glad")} to see it go.");
     }
     /// <summary>The year's earnings of every venture that is someone's own are paid over to them, as far as the treasury goes.
     /// One whose holder is dead or has left the house is the house's again unless a will has said otherwise.</summary>
@@ -333,9 +333,9 @@ public sealed class VentureSystem
             string key = ClaimKey(x, y); int claim = w.Counter(key); if (claim <= 0) continue; w.WorldCounters.Remove(key);
             var claimant = w.House(x); var payer = w.House(y); if (claimant == null || payer == null) continue;
             bool ours = x == w.Protagonist?.HouseId || y == w.Protagonist?.HouseId;
-            if (war.Lead(x) <= -beatenBy) { Bump(w, ClaimsForfeitCounter, claim); if (ours) w.Log($"{claimant.Name}'s bill of {claim} credits for what was sacked is struck out of the peace: the beaten do not present bills."); continue; }
+            if (war.Lead(x) <= -beatenBy) { Bump(w, ClaimsForfeitCounter, claim); if (ours) w.Log($"{claimant.Name}'s bill of {Money.Credits(claim)} for what was sacked is struck out of the peace: the beaten do not present bills."); continue; }
             int pay = Math.Min(claim, Math.Max(0, payer.Treasury.Credits)); payer.Treasury.Credits -= pay; claimant.Treasury.Credits += pay; Bump(w, ClaimsPaidCounter, pay);
-            if (ours) w.Log($"By the peace, {payer.Name} pays {claimant.Name} {pay} credits for the ventures sacked in the war{(pay < claim ? $", of {claim} claimed" : "")}.");
+            if (ours) w.Log($"By the peace, {payer.Name} pays {claimant.Name} {Money.Credits(pay)} for the ventures sacked in the war{(pay < claim ? $", of {Money.Show(claim)} claimed" : "")}.");
         }
     }
     public const int SiegeClaimATurn = 3; public const string SiegeClaimsCounter = "siege_claims";
@@ -368,7 +368,7 @@ public sealed class VentureSystem
         if (takes) { holder!.Treasury.Credits -= price; b.CompanyId = ""; b.OwnerId = holder.Id; b.LosingYears = 0; b.HeldById = ""; }
         else w.Businesses.Remove(b.Id);
         bool ours = mine != null && (co.HeldBy(mine) > 0 || co.ControllerId == mine || w.ProtagonistId.Length > 0 && co.HeldBy(Company.PersonKey(w.ProtagonistId)) > 0);
-        if (ours) w.Log($"{co.Name} sells the {b.Name}{(takes ? $" to {holder!.Name}" : " on the open market")} for {price} credits: it had earned nothing for {FailsAfter} years.");
+        if (ours) w.Log($"{co.Name} sells the {b.Name}{(takes ? $" to {holder!.Name}" : " on the open market")} for {Money.Credits(price)}: it had earned nothing for {FailsAfter} years.");
         return true;
     }
 
@@ -404,7 +404,7 @@ public sealed class VentureSystem
         w.WorldCounters[BadNameKey(house.Id)] = w.Turn + BadNameYears; if (house.PledgedId == thing.Id) house.PledgedId = "";
         if (w.Char(thing.HolderId)?.Will is { } will) will.Items.Remove(thing.Id);
         if (takes) { lender!.Treasury.Credits -= price - owed; thing.HolderId = keeper!.Id; thing.OfHouseId = lender.Id; thing.FromHouseId = ""; } else w.Heirlooms.Remove(thing);
-        if (house.Id == mine) { w.WorldFlags.Add(ForeclosedFlag); w.Log($"The house owes money and has no venture left to give. {(takes ? lender!.Name + " takes" : "Its creditors sell")} {thing.Name}: {owed + overdrawn} credits of what is owed are paid."); }
+        if (house.Id == mine) { w.WorldFlags.Add(ForeclosedFlag); w.Log($"The house owes money and has no venture left to give. {(takes ? lender!.Name + " takes" : "Its creditors sell")} {thing.Name}: {Money.Credits(owed + overdrawn)} of what is owed are paid."); }
         else if (takes && lender!.Id == mine) w.Log($"{house.Name} cannot pay what it owes you, and has no venture left. {thing.Name} is yours.");
         return true;
     }
@@ -450,8 +450,8 @@ public sealed class VentureSystem
             foreach (var o in w.Offers.Where(o => o.BusinessId == b.Id).ToList()) w.Offers.Remove(o);
             if (takes) { lender!.Treasury.Credits -= price - owed; b.OwnerId = lender.Id; b.OfferedUntil = 0; b.LosingYears = 0; if (lender.Id == mine) w.WorldFlags.Add(BoughtFlag); }
             else w.Businesses.Remove(b.Id);
-            if (house.Id == mine) { w.WorldFlags.Add(ForeclosedFlag); w.Log($"The house owes money and has none. {(takes ? lender!.Name + " takes" : "Its creditors sell")} the {b.Name} against what is owed: {owed + overdrawn} credits of it are paid{(price > owed + overdrawn ? $", and {price - owed - overdrawn} come back" : "")}."); }
-            else if (takes && lender!.Id == mine) w.Log($"{house.Name} cannot pay what it owes you. The {b.Name} is yours, against {owed} credits of the debt.");
+            if (house.Id == mine) { w.WorldFlags.Add(ForeclosedFlag); w.Log($"The house owes money and has none. {(takes ? lender!.Name + " takes" : "Its creditors sell")} the {b.Name} against what is owed: {Money.Credits(owed + overdrawn)} of it are paid{(price > owed + overdrawn ? $", and {Money.Show(price - owed - overdrawn)} come back" : "")}."); }
+            else if (takes && lender!.Id == mine) w.Log($"{house.Name} cannot pay what it owes you. The {b.Name} is yours, against {Money.Credits(owed)} of the debt.");
         }
     }
 
@@ -479,13 +479,13 @@ public sealed class VentureSystem
         if (house == null || b == null || b.OwnerId != house.Id) return "not a venture of yours";
         if (b.CompanyId.Length > 0) return "it is a company's, and the company carries it";
         if (b.LosingYears == 0) return "it is paying its way";
-        return house.Treasury.Credits < PropCost(w, b) ? $"needs {PropCost(w, b)} credits" : null;
+        return house.Treasury.Credits < PropCost(w, b) ? $"needs {Money.Credits(PropCost(w, b))}" : null;
     }
     /// <summary>The house puts money in: the losing years are wiped out, and it has three more to come right.</summary>
     public void Prop(World w, House house, Business b)
     {
         int cost = PropCost(w, b); house.Treasury.Credits -= cost; b.LosingYears = 0; w.WorldCounters[ProppedCounter] = w.Counter(ProppedCounter) + 1;
-        w.Log($"{house.Name} puts {cost} credits into the {b.Name} to keep it going.");
+        w.Log($"{house.Name} puts {Money.Credits(cost)} into the {b.Name} to keep it going.");
     }
     /// <summary>The year's reckoning of every venture a house owns outright: a year in which it earned nothing or lost money counts
     /// against it, and a year of profit wipes the count out. Three such years running and it is wound up: the house gets half its
@@ -549,7 +549,7 @@ public sealed class VentureSystem
             var founder = b.FounderId.Length > 0 ? w.Char(b.FounderId) : null; bool theirs = founder is { Alive: true } && owner != null && founder.HouseId == owner.Id;
             if (theirs) { AmbitionSystem.Setback(w, founder!, $"The {b.Name}, which they founded, was sacked when its world fell."); w.WorldCounters[FailedFounderKey(founder!.Id)] = w.Turn; }
             if (owner?.Id == mine) { w.WorldFlags.Add(SackedFlag); w.Log($"The {b.Name} is sacked as its world falls to {taker?.Name ?? "the enemy"}. Nothing of it comes back."); }
-            else if (conquerorId == mine) w.Log($"Your people sack the {b.Name} of {owner?.Name}: {SackPlunder * Math.Max(1, b.Level)} credits are carried off.");
+            else if (conquerorId == mine) w.Log($"Your people sack the {b.Name} of {owner?.Name}: {Money.Credits(SackPlunder * Math.Max(1, b.Level))} are carried off.");
         }
         return sacked;
     }
@@ -569,7 +569,7 @@ public sealed class VentureSystem
         if (owner.Id == mine)
         {
             w.WorldFlags.Add(FailedFlag); if (theirs && founder!.Id != w.ProtagonistId) founder.Flags.Add(FounderFailedChar);
-            w.Log($"The {b.Name} has earned nothing for {FailsAfter} years and is wound up. {left} credits come back to {owner.Name}{(owed > 0 ? $", after {owed} to those the house owes" : "")}{(theirs ? $"; it was {founder!.Name} who founded it" : "")}.");
+            w.Log($"The {b.Name} has earned nothing for {FailsAfter} years and is wound up. {Money.Credits(left)} come back to {owner.Name}{(owed > 0 ? $", after {Money.Show(owed)} to those the house owes" : "")}{(theirs ? $"; it was {founder!.Name} who founded it" : "")}.");
         }
         else if (b.SystemId.Length > 0 && w.PlanetHolder(b.SystemId) == mine) w.Log($"The {b.Name} of {owner.Name}, on a world of yours, is wound up after {FailsAfter} years without a profit.");
     }

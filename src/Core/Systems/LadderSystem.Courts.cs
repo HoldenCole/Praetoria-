@@ -135,7 +135,7 @@ public static partial class LadderSystem
         if (praetor?.Alive != true || Seat(w, praetor.Id)?.OfficeId != Praetor) return "they are not a sitting praetor";
         if (praetor.HouseId == house.Id) return "they are of your own house";
         if (BoughtBy(w, praetor) != null) return "they are spoken for";
-        return (house.Id == w.Protagonist?.HouseId ? head.Purse : house.Treasury.Credits) >= BribeCredits ? null : $"needs {BribeCredits} credits of your own";
+        return (house.Id == w.Protagonist?.HouseId ? head.Purse : house.Treasury.Credits) >= BribeCredits ? null : $"needs {Money.Credits(BribeCredits)} of your own";
     }
     /// <summary>Would they take it? The upright never; one who is for sale always; the rest only from a house they do not think ill of.</summary>
     public static bool WouldTake(World w, Character head, Character praetor)

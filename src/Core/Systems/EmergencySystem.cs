@@ -214,7 +214,7 @@ public static class EmergencySystem
             if (h.Id == mine && pay > 0) Mark(w, LeviedFlag);
         }
         house.Treasury.Credits += raised; e.LevyTurn = w.Turn; Trust(w, -1); Bump(w, LeviesKey);
-        w.Log($"{holder.Name} levies on the houses by the emergency powers, without a vote: {raised} credits for the fleets.");
+        w.Log($"{holder.Name} levies on the houses by the emergency powers, without a vote: {Money.Credits(raised)} for the fleets.");
         return raised;
     }
 

@@ -36,7 +36,7 @@ public sealed partial class CompanySystem
         if (held + n > cap) return new ShareQuote(0, 0, 0, $"one person may hold no more than {cap} shares of it{(held > 0 ? $" (you hold {held})" : "")}");
         double cost = co.Price * (n + Rules.ImpactPct / 100.0 * (n * n / 2.0) / Math.Max(1, co.Shares));
         int credits = Math.Max(1, (int)Math.Ceiling(cost - 1e-9)); int levy = (int)Math.Ceiling(credits * LevyPct(w) / 100.0);
-        return new ShareQuote(credits + levy, levy, cost / n, who.Purse < credits + levy ? $"the purse does not hold the {credits + levy} credits" : null);
+        return new ShareQuote(credits + levy, levy, cost / n, who.Purse < credits + levy ? $"the purse does not hold the {Money.Credits(credits + levy)}" : null);
     }
 
     public ShareQuote QuotePrivateSell(World w, Character? who, Company? co, int n)

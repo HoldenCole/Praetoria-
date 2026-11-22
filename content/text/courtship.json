@@ -105,7 +105,7 @@
     {
       "id": "the_in_laws_ask_a_favour",
       "title": "The In-Laws Ask A Favour",
-      "body": "{spouse.name}'s family is short this season and has asked, through {spouse.name}, whether {self.name}'s house could see its way to a loan. Fifteen credits. They are family now, as {spouse.name} does not quite say.",
+      "body": "{spouse.name}'s family is short this season and has asked, through {spouse.name}, whether {self.name}'s house could see its way to a loan. Fifteen hundred credits. They are family now, as {spouse.name} does not quite say.",
       "choices": {
         "lend_it": "Lend it, and say nothing of when.",
         "lend_it_on_terms": "Lend it, on proper terms.",

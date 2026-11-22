@@ -134,7 +134,7 @@ public static partial class WealthSystem
             "signet" => home && of != null && Economy.HeadOf(w, of)?.Id == holder!.Id ? $"On the head's hand, the house's name mends a point a year while its standing is under {SignetMendsBelow}." : "Does nothing off the hand of the head of its own house.",
             "sword" => holder?.CareerTrack == "military" ? "Carried in the fleet, it is something to live up to: its holder learns discipline faster." : "Does nothing on a wall: it wants carrying by someone in the fleet.",
             "library" => "Everyone of its holder's house who has set themselves a study learns it a little faster.",
-            "estate" => "Brings its holder 2 credits a year.",
+            "estate" => "Brings its holder 200 credits a year.",
             Regalia => holder != null && w.House(holder.HouseId) is { } wornBy && Economy.HeadOf(w, wornBy)?.Id == holder.Id ? $"Kept by the head of a house, the house's name mends a point a year while its standing is under {RegaliaMendsBelow}." : "Does nothing in a relative's keeping: it wants the head of a house.",
             Shrine => $"The commons think a point better of its holder's house each year, while they think less than {ShrineCeiling} of it.",
             Standard => (holder != null && FlagshipOf(w, holder.Id) != null ? $"Flown from a flagship, the fleet under it is a point more loyal each year, up to {StandardCeiling}." : "Does nothing in a hall: it wants flying from the flagship of whoever holds it."),
@@ -179,7 +179,7 @@ public static partial class WealthSystem
             foreach (var k in Members(w, house).Where(k => k.Id != seller.Id && !HouseholdSystem.IsFound(k))) Regard(w, k, seller, -8);
         }
         Mark(w, HeirloomSoldFlag); SoldAGift(w, seller, item);
-        w.Log($"{seller.Name} sells {item.Name} for {item.Value} credits.");
+        w.Log($"{seller.Name} sells {item.Name} for {Money.Credits(item.Value)}.");
     }
 
     // ---------------- the head's own dealings ----------------
@@ -198,7 +198,7 @@ public static partial class WealthSystem
         // a head who helps themselves while the family goes without is watched doing it
         if (amount > 0 && house.Allowance == Mean)
             foreach (var k in Members(w, house).Where(k => k.Id != head.Id)) Regard(w, k, head, -2, floor: -40);
-        w.Log(amount > 0 ? $"{head.Name} takes {amount} credits from the treasury of {house.Name} for their own purse." : $"{head.Name} puts {-amount} credits of their own into the treasury of {house.Name}.");
+        w.Log(amount > 0 ? $"{head.Name} takes {Money.Credits(amount)} from the treasury of {house.Name} for their own purse." : $"{head.Name} puts {Money.Credits(-amount)} of their own into the treasury of {house.Name}.");
     }
 
     public static string? SettleRefusal(World w, Character? head, Character? debtor, bool fromPurse)
@@ -213,7 +213,7 @@ public static partial class WealthSystem
     {
         int owed = -debtor.Purse; if (fromPurse) head.Purse -= owed; else w.House(head.HouseId)!.Treasury.Credits -= owed;
         debtor.Purse = 0; debtor.Flags.Remove(InDebtChar); Regard(w, debtor, head, fromPurse ? 15 : 10);
-        w.Log($"{head.Name} pays the {owed} credits {debtor.Name} owed{(fromPurse ? ", out of their own purse" : "")}.");
+        w.Log($"{head.Name} pays the {Money.Credits(owed)} {debtor.Name} owed{(fromPurse ? ", out of their own purse" : "")}.");
     }
 
     // ---------------- a sum to a relative: given, or lent ----------------
@@ -234,20 +234,20 @@ public static partial class WealthSystem
     public static void Gift(World w, Character head, Character to, int amount)
     {
         head.Purse -= amount; to.Purse += amount; w.WorldCounters[GiftKey(to.Id)] = w.Turn; if (to.Purse > DebtAt) to.Flags.Remove(InDebtChar);
-        Regard(w, to, head, Math.Min(10, 2 + amount / 2)); w.Log($"{head.Name} gives {to.Name} {amount} credits of their own.");
+        Regard(w, to, head, Math.Min(10, 2 + amount / 2)); w.Log($"{head.Name} gives {to.Name} {Money.Credits(amount)} of their own.");
     }
     /// <summary>The head lends one of the house a sum. They pay it back as they can; a debt that sits too long sits between the two.</summary>
     public static void Lend(World w, Character head, Character to, int amount)
     {
         head.Purse -= amount; to.Purse += amount; to.OwesHead = amount; to.OwesSince = w.Turn; if (to.Purse > DebtAt) to.Flags.Remove(InDebtChar);
-        Regard(w, to, head, 3); w.Log($"{head.Name} lends {to.Name} {amount} credits.");
+        Regard(w, to, head, 3); w.Log($"{head.Name} lends {to.Name} {Money.Credits(amount)}.");
     }
     /// <summary>The same loan with a fifth on top. It is business, and is taken as business.</summary>
     public static int WithInterest(int amount) => amount + Math.Max(1, amount / InterestPart);
     public static void LendAtInterest(World w, Character head, Character to, int amount)
     {
         head.Purse -= amount; to.Purse += amount; to.OwesHead = WithInterest(amount); to.OwesSince = w.Turn; if (to.Purse > DebtAt) to.Flags.Remove(InDebtChar);
-        Regard(w, to, head, -1); w.Log($"{head.Name} lends {to.Name} {amount} credits, to be paid back as {to.OwesHead}.");
+        Regard(w, to, head, -1); w.Log($"{head.Name} lends {to.Name} {Money.Credits(amount)}, to be paid back as {Money.Show(to.OwesHead)}.");
     }
 
     public const int InterestPart = 5, LendsAtRegard = 20, KeepsBack = 2, KinLendsAtRegard = 30, KinLendsFrom = 6;
@@ -270,7 +270,7 @@ public static partial class WealthSystem
     public static void Borrow(World w, Character head, Character from, int amount)
     {
         from.Purse -= amount; head.Purse += amount; from.LentHead = BorrowOwed(from, amount); from.LentSince = w.Turn;
-        w.Log($"{from.Name} lends {head.Name} {amount} credits of their own{(from.LentHead > amount ? $", to be paid back as {from.LentHead}" : "")}.");
+        w.Log($"{from.Name} lends {head.Name} {Money.Credits(amount)} of their own{(from.LentHead > amount ? $", to be paid back as {Money.Show(from.LentHead)}" : "")}.");
     }
     public static string? RepayRefusal(World w, Character? head, Character? to) =>
         head?.Alive != true || to?.Alive != true || to.HouseId != head.HouseId ? "not of your house" : to.LentHead <= 0 ? "you owe them nothing" : head.Purse <= 0 ? "your purse is empty" : null;
@@ -279,14 +279,14 @@ public static partial class WealthSystem
     {
         int pay = Math.Min(to.LentHead, head.Purse); head.Purse -= pay; to.Purse += pay; to.LentHead -= pay;
         if (to.LentHead == 0) { bool late = w.Turn - to.LentSince >= LoanSoursAfter; to.LentSince = -1; to.Flags.Remove(HeadOwesChar); Regard(w, to, head, late ? 2 : 5); w.Log($"{head.Name} pays {to.Name} back the last of what they lent."); }
-        else w.Log($"{head.Name} pays {to.Name} back {pay} credits, and owes {to.LentHead} still.");
+        else w.Log($"{head.Name} pays {to.Name} back {Money.Credits(pay)}, and owes {Money.Show(to.LentHead)} still.");
     }
 
     public static string? ForgiveRefusal(World w, Character? head, Character? to) =>
         head?.Alive != true || to?.Alive != true || to.HouseId != head.HouseId ? "not of your house" : to.OwesHead <= 0 ? "they owe you nothing" : null;
     public static void Forgive(World w, Character head, Character to)
     {
-        int owed = to.OwesHead; to.OwesHead = 0; to.OwesSince = -1; Regard(w, to, head, 8); w.Log($"{head.Name} forgives {to.Name} the {owed} credits they owed.");
+        int owed = to.OwesHead; to.OwesHead = 0; to.OwesSince = -1; Regard(w, to, head, 8); w.Log($"{head.Name} forgives {to.Name} the {Money.Credits(owed)} they owed.");
     }
 
     // ---------------- the will, and what happens when a head dies ----------------
@@ -323,20 +323,20 @@ public static partial class WealthSystem
         {
             int fromPurse = Math.Clamp(dead.Purse, 0, c.LentHead), fromHouse = c.Id == heir.Id ? 0 : Math.Clamp(house.Treasury.Credits, 0, c.LentHead - fromPurse);
             dead.Purse -= fromPurse; house.Treasury.Credits -= fromHouse; c.Purse += fromPurse + fromHouse;
-            if (fromPurse + fromHouse < c.LentHead && c.Id != heir.Id) { Regard(w, c, heir, -5); w.Log($"{dead.Name} died owing {c.Name} {c.LentHead - fromPurse - fromHouse} credits that nobody will see now."); }
+            if (fromPurse + fromHouse < c.LentHead && c.Id != heir.Id) { Regard(w, c, heir, -5); w.Log($"{dead.Name} died owing {c.Name} {Money.Credits(c.LentHead - fromPurse - fromHouse)} that nobody will see now."); }
             c.LentHead = 0; c.LentSince = -1; c.Flags.Remove(HeadOwesChar);
         }
         CompanySystem.Leave(w, dead, heir, legatee, will.SharePct);   // shares in the dead head's own name go as the purse goes
         VentureSystem.Leave(w, dead, legatee != null && will.SharePct >= 50 ? legatee : heir);   // and a venture that was their own goes to whoever has the larger part
         int purse = dead.Purse; dead.Purse = 0;
-        if (purse < 0) { house.Treasury.Credits += purse; w.Log($"{dead.Name} died owing {-purse} credits. {house.Name} must pay it."); }
+        if (purse < 0) { house.Treasury.Credits += purse; w.Log($"{dead.Name} died owing {Money.Credits(-purse)}. {house.Name} must pay it."); }
         else if (purse > 0)
         {
             int toLegatee = legatee != null ? purse * will.SharePct / 100 : 0;
             if (legatee != null && toLegatee > 0)
             {
                 legatee.Purse += toLegatee; legatee.Flags.Add(LegateeChar);
-                w.Log($"By {dead.Name}'s will, {toLegatee} credits go to {legatee.Name}.");
+                w.Log($"By {dead.Name}'s will, {Money.Credits(toLegatee)} go to {legatee.Name}.");
                 if (will.SharePct >= 50) { Regard(w, heir, legatee, -15); Mark(w, WillContestedFlag); }
             }
             /* the smaller legacies, each out of the whole purse as it stood, in the order of their names */
@@ -346,7 +346,7 @@ public static partial class WealthSystem
                 if (w.Char(id) is not { Alive: true } other || other.Id == heir.Id || other.Id == legatee?.Id) continue;
                 int part = Math.Min(purse * pct / 100, purse - toLegatee - toOthers); if (part <= 0) continue;
                 other.Purse += part; other.Flags.Add(LegateeChar); toOthers += part;
-                w.Log($"By {dead.Name}'s will, {part} credits go to {other.Name}.");
+                w.Log($"By {dead.Name}'s will, {Money.Credits(part)} go to {other.Name}.");
             }
             heir.Purse += purse - toLegatee - toOthers;
         }
@@ -362,7 +362,7 @@ public static partial class WealthSystem
         {
             int each = house.Treasury.Credits * PortionPct / 100;
             foreach (var c in others) { if (each <= 0) break; house.Treasury.Credits -= each; c.Purse += each; Regard(w, c, heir, 5); }
-            if (others.Count > 0 && each > 0) w.Log($"By the custom of {house.Name}, {dead.Name}'s other grown children take {each} credits each from the treasury.");
+            if (others.Count > 0 && each > 0) w.Log($"By the custom of {house.Name}, {dead.Name}'s other grown children take {Money.Credits(each)} each from the treasury.");
         }
         // kept whole, the grown children passed over already resent the new head (the succession sees to that); one the will
         // remembered minds it less
@@ -406,18 +406,18 @@ public static partial class WealthSystem
             // what they do with it is their own business
             int h = (int)(Hash(c.Id + ":purse:" + w.Turn) % 100); int regard = w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0;
             bool steady = c.NatureTraits.Contains("Honorable") || c.NatureTraits.Contains("Loyal");
-            if (c.Purse < 0) { c.Purse -= Math.Max(1, -c.Purse / 10); c.LastSpend = $"Owes {-c.Purse} credits, and it grows."; }
+            if (c.Purse < 0) { c.Purse -= Math.Max(1, -c.Purse / 10); c.LastSpend = $"Owes {Money.Credits(-c.Purse)}, and it grows."; }
             else if (house.Treasury.Credits < 0 && regard >= 30 && c.Purse >= 6 && (steady || h < 40))
             {
                 int gift = Math.Min(c.Purse / 2, -house.Treasury.Credits); c.Purse -= gift; house.Treasury.Credits += gift;
                 c.Flags.Add(GaveChar); Mark(w, KinGaveFlag); Regard(w, p, c, 3);
-                c.LastSpend = $"Put {gift} credit{(gift == 1 ? "" : "s")} of their own into the house."; w.Log($"{c.Name} puts {gift} credits of their own into the treasury of {house.Name}, unasked.");
+                c.LastSpend = $"Put {Money.Credits(gift)} of their own into the house."; w.Log($"{c.Name} puts {Money.Credits(gift)} of their own into the treasury of {house.Name}, unasked.");
             }
             else if (KinCommission(w, c, h) != null) { }
-            else if (!steady && c.Skill("discipline") < 2 && h < 12) { int lost = 5 + h % 8; c.Purse -= lost; c.LastSpend = $"Lost {lost} credits at the tables."; }
+            else if (!steady && c.Skill("discipline") < 2 && h < 12) { int lost = 5 + h % 8; c.Purse -= lost; c.LastSpend = $"Lost {Money.Credits(lost)} at the tables."; }
             else if ((c.NatureTraits.Contains("Proud") || c.NatureTraits.Contains("Arrogant") || c.Ambition == "outshine_all_rivals") && c.Purse >= 4)
             {
-                int spent = Math.Min(c.Purse, 3 + h % 4) + (h >= 85 ? 6 : 0); c.Purse -= spent; c.LastSpend = $"Spent {spent} credits on being seen.";
+                int spent = Math.Min(c.Purse, 3 + h % 4) + (h >= 85 ? 6 : 0); c.Purse -= spent; c.LastSpend = $"Spent {Money.Credits(spent)} on being seen.";
             }
             else if (c.AptitudeTraits.Contains("Greedy") || c.Ambition == "amass_a_fortune") c.LastSpend = "Put it by.";
             else { c.Purse = Math.Min(c.Purse, ComfortablePurse); c.LastSpend = "Lived within their means."; }
@@ -435,7 +435,7 @@ public static partial class WealthSystem
                 else if (w.Turn - c.OwesSince >= LoanSoursAfter)
                 {
                     Regard(w, c, p, -1, floor: -30); Regard(w, p, c, -1, floor: -30);
-                    if (w.Turn - c.OwesSince == LoanSoursAfter) { Mark(w, LoanSouredFlag); c.Flags.Add(OwesTooLongChar); w.Log($"{c.Name} has owed {p.Name} {c.OwesHead} credits for {LoanSoursAfter} years, and neither of them mentions it."); }
+                    if (w.Turn - c.OwesSince == LoanSoursAfter) { Mark(w, LoanSouredFlag); c.Flags.Add(OwesTooLongChar); w.Log($"{c.Name} has owed {p.Name} {Money.Credits(c.OwesHead)} for {LoanSoursAfter} years, and neither of them mentions it."); }
                 }
             }
 
@@ -443,7 +443,7 @@ public static partial class WealthSystem
             if (c.LentHead > 0 && w.Turn - c.LentSince >= LoanSoursAfter)
             {
                 Regard(w, c, p, -2, floor: -30);
-                if (w.Turn - c.LentSince == LoanSoursAfter) { Mark(w, HeadOwesFlag); c.Flags.Add(HeadOwesChar); w.Log($"{p.Name} has owed {c.Name} {c.LentHead} credits for {LoanSoursAfter} years."); }
+                if (w.Turn - c.LentSince == LoanSoursAfter) { Mark(w, HeadOwesFlag); c.Flags.Add(HeadOwesChar); w.Log($"{p.Name} has owed {c.Name} {Money.Credits(c.LentHead)} for {LoanSoursAfter} years."); }
             }
             else if (c.LentHead == 0 || !w.HasFlag(HeadOwesFlag)) c.Flags.Remove(HeadOwesChar);
 
@@ -467,7 +467,7 @@ public static partial class WealthSystem
                 {
                     int sum = Math.Min(-c.Purse, lender.Purse / 2); lender.Purse -= sum; c.Purse += sum; c.OwesKinId = lender.Id; c.OwesKin = Grasping(lender) ? WithInterest(sum) : sum;
                     Regard(w, c, lender, 6); c.Flags.Add(KinLentChar); lender.Flags.Add(KinLentChar); Mark(w, KinLentFlag);
-                    w.Log($"{lender.Name} lends {c.Name} {sum} credits of their own, without being asked to.");
+                    w.Log($"{lender.Name} lends {c.Name} {Money.Credits(sum)} of their own, without being asked to.");
                 }
             }
 
@@ -479,7 +479,7 @@ public static partial class WealthSystem
                     // the creditors come to the house
                     int taken = Math.Min(-c.Purse, Math.Max(0, house.Treasury.Credits)); house.Treasury.Credits -= taken; c.Purse += taken; house.Legitimacy -= 2;
                     w.WorldCounters["scandal:" + c.Id] = w.Turn; Mark(w, DebtScandalFlag);
-                    w.Log($"{c.Name}'s creditors come to {house.Name} itself{(taken > 0 ? $" and are paid {taken} credits from its treasury" : "")}. It is talked of.");
+                    w.Log($"{c.Name}'s creditors come to {house.Name} itself{(taken > 0 ? $" and are paid {Money.Credits(taken)} from its treasury" : "")}. It is talked of.");
                 }
             }
             else c.Flags.Remove(InDebtChar);

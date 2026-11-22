@@ -66,8 +66,8 @@
       "body": "The boarding parties have done their work and enemy hulls ride under {self.house}'s guard, crews under hatches. The prize-master wants to know what they are for.",
       "choices": {
         "keep_the_prizes": "Keep them under the house's colours.",
-        "sell_them": "Sell them to the yards (8 credits).",
-        "return_them_for_ransom": "Ransom hulls and crews back (5 credits)."
+        "sell_them": "Sell them to the yards (800 credits).",
+        "return_them_for_ransom": "Ransom hulls and crews back (500 credits)."
       }
     },
     {
@@ -75,7 +75,7 @@
       "title": "The Long Supply Line",
       "body": "A fleet of {self.house}'s has outrun its supply. The quartermaster's signal is brief: no stores, no spares, crews on half rations. The lane home is long.",
       "choices": {
-        "buy_from_the_locals": "Buy stores from the local factors (6 credits).",
+        "buy_from_the_locals": "Buy stores from the local factors (600 credits).",
         "forage": "Let the fleet forage.",
         "fall_back": "Order the fleet back toward supply."
       }
@@ -85,7 +85,7 @@
       "title": "The Restive Crews",
       "body": "The crews of a fleet of {self.house}'s are muttering. Pay is late, or the tanks are dry, or the officers' estate has been telling them whose fault it is. The captains report that orders are being obeyed slowly.",
       "choices": {
-        "pay_arrears": "Pay the arrears from the house's coin (6 credits).",
+        "pay_arrears": "Pay the arrears from the house's coin (600 credits).",
         "address_the_fleet": "Address the fleet. Leadership.",
         "hang_the_ringleaders": "Hang the ringleaders."
       }
@@ -115,7 +115,7 @@
       "title": "The Campaign Ends",
       "body": "The season's campaign is over: the fleet is recalled to its stations and the object either taken or not. The crews want a triumph. The squares want the crews home.",
       "choices": {
-        "a_triumph": "Give the fleet a triumph (5 credits).",
+        "a_triumph": "Give the fleet a triumph (500 credits).",
         "stand_down": "Stand the fleet down.",
         "plan_the_next": "Have the next campaign on the plot table."
       }

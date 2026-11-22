@@ -7,7 +7,7 @@
       "choices": {
         "promise_the_commons": "Speak for the squares.",
         "promise_the_old_blood": "Speak for order and the old families.",
-        "buy_the_hall": "Hire the hall, the wine and the band (8 credits).",
+        "buy_the_hall": "Hire the hall, the wine and the band (800 credits).",
         "stay_away": "Stay away and let the record speak."
       }
     },
@@ -36,7 +36,7 @@
       "title": "The Term Ends",
       "body": "{self.house}'s consulship is over: the seal goes back to the clerk and the chair to whoever the parties have chosen. A consul who leaves well is remembered; one who leaves badly is remembered longer.",
       "choices": {
-        "a_triumph_of_sorts": "A procession through the capital (5 credits).",
+        "a_triumph_of_sorts": "A procession through the capital (500 credits).",
         "back_to_the_benches": "Sit down among the benches.",
         "keep_the_lictors": "Keep the lictors on, out of habit."
       }

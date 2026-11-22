@@ -85,7 +85,7 @@ public sealed class SueForPeaceCommand : ICommand
         {
             w.House(actor.HouseId)!.Treasury.Add(Resource.Credits, -tribute);
             w.House(_targetHouseId)!.Treasury.Add(Resource.Credits, tribute);
-            w.Log($"{w.House(actor.HouseId)?.Name} pays {tribute} credits in tribute.");
+            w.Log($"{w.House(actor.HouseId)?.Name} pays {Money.Credits(tribute)} in tribute.");
         }
         fleets.MakePeace(w, actor.HouseId, _targetHouseId);
         foreach (var head in w.LivingCharacters().Where(c => c.HouseId == _targetHouseId))
@@ -121,7 +121,7 @@ public sealed class ReclaimFreeholdCommand : ICommand
         if (w.AtWar(house.Id, free.Id)) return "not while you make war on them";
         if (h.InRebellion) return "it is in revolt";
         if (h.Unrest >= 70) return "its people would not have you back";
-        return house.Treasury.Credits >= Price(w, h, house.Id) ? null : $"needs {Price(w, h, house.Id)} credits";
+        return house.Treasury.Credits >= Price(w, h, house.Id) ? null : $"needs {Money.Credits(Price(w, h, house.Id))}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
 
@@ -146,7 +146,7 @@ public sealed class ReclaimFreeholdCommand : ICommand
             w.Wars.RemoveAll(x => x.Involves(free.Id)); w.Houses.Remove(free.Id);
         }
         house.Legitimacy += 2; w.WorldCounters["reclaimed"] = w.Counter("reclaimed") + 1;
-        w.Log($"{house.Name} buys {h.Name} back for {price} credits; {(leader != null ? leader.Name + (folded ? " keeps the governor's chair under the old banner" : " takes the coin and keeps the rest") : "the free hold")} swears again.");
+        w.Log($"{house.Name} buys {h.Name} back for {Money.Credits(price)}; {(leader != null ? leader.Name + (folded ? " keeps the governor's chair under the old banner" : " takes the coin and keeps the rest") : "the free hold")} swears again.");
         Systems.FleetSystem.RefreshWarFlags(w);
     }
 }

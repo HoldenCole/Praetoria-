@@ -49,13 +49,13 @@ public static class AdvisorReports
         var steward = Seat("stewardship");
         var t = house.Treasury;
         int upkeepHint = w.HoldingsOf(house.Id).Count();
-        string stewardLine = upkeepHint == 0 ? $"We hold no land. The house lives on what it has banked — {t.Credits} credits — until a {(w.IsImperium ? "fief" : "world")} is won, granted or married into."
-            : t.Credits < 0 ? $"We are insolvent — {t.Credits} credits. Unrest climbs on every populated world until the ledger turns."
-            : t.Credits < 5 ? $"The coffers are thin ({t.Credits} credits). One bad season and we borrow."
+        string stewardLine = upkeepHint == 0 ? $"We hold no land. The house lives on what it has banked — {Money.Held(t)} credits — until a {(w.IsImperium ? "fief" : "world")} is won, granted or married into."
+            : t.Credits < 0 ? $"We are insolvent — {Money.Held(t)} credits. Unrest climbs on every populated world until the ledger turns."
+            : t.Credits < 5 ? $"The coffers are thin ({Money.Held(t)} credits). One bad season and we borrow."
             : w.Sieges.Values.Any(s => w.Holding(s.HoldingId)?.OwnerId == house.Id) ? "A world of ours is blockaded; its yield reaches us halved."
-            : house.Debt > 0 ? $"We owe {house.Debt} credits{(house.LenderId.Length > 0 ? $" to the bank of {w.House(house.LenderId)?.Name}" : "")}; the instalments fall due each turn. {t.Credits} credits banked."
-            : w.HoldingsOf(house.Id).Any(h => h.IsPlanet && h.Prosperity < 35) ? $"{w.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.Prosperity < 35).OrderBy(h => h.Prosperity).First().Name} languishes; coin invested there would lift it. {t.Credits} credits banked."
-            : $"The domain yields; {t.Credits} credits banked, {t.Materials} materials, {t.Manpower} manpower. We stand {Wealth.RankOf(w, house.Id)}{(Wealth.RankOf(w, house.Id) == 1 ? "st" : Wealth.RankOf(w, house.Id) == 2 ? "nd" : Wealth.RankOf(w, house.Id) == 3 ? "rd" : "th")} in wealth among {w.Houses.Keys.Count(h => !World.Outsider(h))} houses. The {house.TaxPolicy} tithe stands.";
+            : house.Debt > 0 ? $"We owe {Money.Credits(house.Debt)}{(house.LenderId.Length > 0 ? $" to the bank of {w.House(house.LenderId)?.Name}" : "")}; the instalments fall due each turn. {Money.Held(t)} credits banked."
+            : w.HoldingsOf(house.Id).Any(h => h.IsPlanet && h.Prosperity < 35) ? $"{w.HoldingsOf(house.Id).Where(h => h.IsPlanet && h.Prosperity < 35).OrderBy(h => h.Prosperity).First().Name} languishes; coin invested there would lift it. {Money.Held(t)} credits banked."
+            : $"The domain yields; {Money.Held(t)} credits banked, {t.Materials} materials, {t.Manpower} manpower. We stand {Wealth.RankOf(w, house.Id)}{(Wealth.RankOf(w, house.Id) == 1 ? "st" : Wealth.RankOf(w, house.Id) == 2 ? "nd" : Wealth.RankOf(w, house.Id) == 3 ? "rd" : "th")} in wealth among {w.Houses.Keys.Count(h => !World.Outsider(h))} houses. The {house.TaxPolicy} tithe stands.";
         list.Add(new AdvisorReport("Steward", steward?.Name, stewardLine, t.Credits < 5) { Role = HouseholdSystem.Steward, Vacant = house.Duty(HouseholdSystem.Steward) == null, AdvisorId = steward?.Id, Urgent = t.Credits < 0 || (upkeepHint > 0 && t.Credits < 5) });
 
         // Admiral — from intel, not truth (GDD §19 mixed visibility)
@@ -115,7 +115,7 @@ public static class AdvisorReports
         var advocate = Post(HouseholdSystem.Advocate);
         var suits = LadderSystem.SuitsNaming(w, house.Id); int unpleaded = suits.Count(b => w.Char(b.AdvocateId) is not { Alive: true }), stake = suits.Sum(b => LadderSystem.StakeOf(b));
         string advLine = suits.Count == 0 ? (advocate == null ? "No suit names the house. Nobody is retained to plead for it." : "No suit names the house.")
-            : $"{Counted.Of(suits.Count, "suit")} {(suits.Count == 1 ? "names" : "name")} the house, and {Counted.Of(stake, "credit")} {(stake == 1 ? "turns" : "turn")} on {(suits.Count == 1 ? "it" : "them")}. "
+            : $"{Counted.Of(suits.Count, "suit")} {(suits.Count == 1 ? "names" : "name")} the house, and {Money.Credits(stake)} turn on {(suits.Count == 1 ? "it" : "them")}. "
               + (unpleaded == 0 ? "Each has somebody to plead it." : advocate == null ? $"{unpleaded} {(unpleaded == 1 ? "has" : "have")} nobody to plead {(unpleaded == 1 ? "it" : "them")}: send someone, or come to terms." : $"{unpleaded} will be taken up when the year turns.");
         list.Add(new AdvisorReport("Advocate", advocate?.Name, advLine, unpleaded > 0 && advocate == null) { Role = HouseholdSystem.Advocate, Vacant = advocate == null, AdvisorId = advocate?.Id, Urgent = unpleaded > 0 && advocate == null });
         return list;

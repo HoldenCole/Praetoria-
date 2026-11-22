@@ -7,7 +7,7 @@
       "roles": [ { "name": "whip", "when": [ { "type": "rank", "role": "whip", "op": "gte", "value": 2 } ] } ],
       "choices": [
         { "id": "take_the_coin", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 6 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 8 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 },
-            { "type": "log", "text": "{self.name} took {whip.name}'s purse and promised a vote. Six credits, a friend in the chamber, and a story the benches will tell." } ] },
+            { "type": "log", "text": "{self.name} took {whip.name}'s purse and promised a vote. Six hundred credits, a friend in the chamber, and a story the benches will tell." } ] },
         { "id": "name_your_price", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
           "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 2 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 3 },
             { "type": "log", "text": "{self.name} wanted no coin from {whip.name} — a favour, to be named later. The whip agreed; whips always do." } ] },
@@ -45,7 +45,7 @@
       "when": [ { "type": "worldFlag", "flag": "recognised" } ],
       "choices": [
         { "id": "a_feast", "cost": { "treasury": 1 }, "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -6 }, { "type": "adjustCounter", "key": "goodwill", "delta": 2 },
-            { "type": "log", "text": "{self.name} gave a feast for the houses that voted the recognition. Six credits, and a Senate that remembers the wine." } ] },
+            { "type": "log", "text": "{self.name} gave a feast for the houses that voted the recognition. Six hundred credits, and a Senate that remembers the wine." } ] },
         { "id": "bank_it", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
             { "type": "log", "text": "{self.name} accepted the recognition with a nod and went back to work. Standing is a thing you spend later." } ] }
       ]
@@ -110,7 +110,7 @@
       "when": [ { "type": "worldFlag", "flag": "petition_refused" } ],
       "choices": [
         { "id": "hold_the_squares", "cost": { "treasury": 1 }, "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -4 }, { "type": "adjustCounter", "key": "unrest", "delta": -4 },
-            { "type": "log", "text": "The Senate turned the petition away and {self.name} put the guard in the squares before the news did. Four credits of overtime; no fires." } ] },
+            { "type": "log", "text": "The Senate turned the petition away and {self.name} put the guard in the squares before the news did. Four hundred credits of overtime; no fires." } ] },
         { "id": "blame_the_senate", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
           "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": -2 }, { "type": "adjustCounter", "key": "senate_influence", "delta": -1 }, { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
             { "type": "log", "text": "{self.name} stood on the steps and blamed the Senate by name for the petition's refusal. The crowd went home; the chamber did not forget the speech." } ] },

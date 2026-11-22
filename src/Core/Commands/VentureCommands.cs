@@ -45,7 +45,7 @@ public sealed class BuyVentureCommand : ICommand
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null; var b = w.Business(_id);
         if (actor?.Alive != true || house == null || b == null) return "no such venture";
         var (price, refusal) = _ventures.Ask(w, b, house.Id); if (refusal != null) return refusal;
-        return house.Treasury.Credits >= price ? null : $"needs {price} credits";
+        return house.Treasury.Credits >= price ? null : $"needs {Money.Credits(price)}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx) { var w = ctx.World; _ventures.BuyAt(w, w.Business(_id)!, w.Char(ActorId)!.HouseId); }
@@ -58,7 +58,7 @@ public sealed class OfferForVentureCommand : ICommand
     private readonly string _id; private readonly int _price; private readonly VentureSystem _ventures;
     public OfferForVentureCommand(string actorId, string businessId, int price, VentureSystem ventures) { ActorId = actorId; _id = businessId; _price = price; _ventures = ventures; }
     public string ActorId { get; }
-    public string Describe() => $"offer {_price} for {_id}";
+    public string Describe() => $"offer {Money.Show(_price)} for {_id}";
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId); var house = actor != null ? w.House(actor.HouseId) : null;
@@ -87,7 +87,7 @@ public sealed class AcceptVentureOfferCommand : ICommand
         if (actor?.Alive != true || house == null || o == null || o.ToHouseId != house.Id) return "no such offer";
         if (w.Business(o.BusinessId) is not { } b || b.OwnerId != o.FromHouseId) return "the venture is no longer theirs to sell";
         if (w.Businesses.Values.Any(x => x.OwnerId == house.Id && x.Kind == b.Kind && x.SystemId == b.SystemId)) return "you already have one here";
-        return house.Treasury.Credits >= o.Price ? null : $"needs {o.Price} credits";
+        return house.Treasury.Credits >= o.Price ? null : $"needs {Money.Credits(o.Price)}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)

@@ -15,7 +15,7 @@
       "title": "The Fleet Sails",
       "body": "The fleet of {self.house} clears the last beacon and turns beyond the Reach. It will be years before it fights and more before word comes back. The crews are on deck; the harbour is on the gallery; the admiral is waiting to be seen off.",
       "choices": {
-        "pay_the_crews_forward": "Pay the crews a season forward (4 credits).",
+        "pay_the_crews_forward": "Pay the crews a season forward (400 credits).",
         "a_word_to_the_admiral": "A public word about glory.",
         "watch_them_go": "Watch them go, and say nothing."
       }
@@ -26,7 +26,7 @@
       "body": "A dispatch, two years old by the time it reaches the Reach: the fleet of {self.house} met the enemy in their own space and beat them. Hulls lost, plunder taken, the tally turned a point. The chamber has not heard yet.",
       "choices": {
         "let_it_be_known": "Have it read in the chamber.",
-        "share_the_plunder": "Send a share of it to the squares (4 credits).",
+        "share_the_plunder": "Send a share of it to the squares (400 credits).",
         "keep_it_close": "File it. Victories are followed by defeats."
       }
     },
@@ -47,7 +47,7 @@
       "choices": {
         "mourn_them": "Go down to the harbour and stand with the families.",
         "blame_the_senate": "Tell the chamber it sent them too few, too far.",
-        "rebuild_quietly": "Lay down new hulls, and say nothing (6 credits)."
+        "rebuild_quietly": "Lay down new hulls, and say nothing (600 credits)."
       }
     },
     {
@@ -55,8 +55,8 @@
       "title": "The Fleet Comes Home",
       "body": "The fleet of {self.house} is home from beyond the Reach, with its plunder and its dead and its stories. The harbour town has turned out; the crews want paying; the admiral wants to be seen.",
       "choices": {
-        "a_parade": "Give them a parade (5 credits).",
-        "pay_off_the_crews": "Pay the crews in full on the quay (6 credits).",
+        "a_parade": "Give them a parade (500 credits).",
+        "pay_off_the_crews": "Pay the crews in full on the quay (600 credits).",
         "back_to_stations": "Back on station within the week."
       }
     },
@@ -76,7 +76,7 @@
       "body": "They came out of the dark beyond the rim, took cargo and crews from a world of {self.house}, and were gone before any fleet could answer. The town is in uproar; the frontier wants to know what the Reach will do; the chamber has not yet heard.",
       "choices": {
         "call_for_war": "Stand in the chamber and call for war.",
-        "arm_the_world": "Arm the world and pay a garrison (4 materials, 3 credits).",
+        "arm_the_world": "Arm the world and pay a garrison (4 materials, 300 credits).",
         "bear_it": "Count the cost and bear it."
       }
     },

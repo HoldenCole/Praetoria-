@@ -34,13 +34,13 @@ public static class OwnAim
             case "amass_a_fortune":
             {
                 int near = Math.Clamp(p.Purse * 100 / AmbitionSystem.FortuneAt, 0, 100);
-                return new Aim(wants, near, near >= 100, $"Your own purse holds {p.Purse} credits; {AmbitionSystem.FortuneAt} is a fortune. The house's treasury is not counted: it is the house's.",
+                return new Aim(wants, near, near >= 100, $"Your own purse holds {Money.Credits(p.Purse)}; {Money.Show(AmbitionSystem.FortuneAt)} is a fortune. The house's treasury is not counted: it is the house's.",
                     near >= 100 ? "" : "Pay yourself an allowance from the treasury, or have a venture of the house settled on you.", "house:purse");
             }
             case "restore_house_fortunes":
             {
                 int near = Math.Clamp(house.Wealth * 100 / AmbitionSystem.RestoredAt, 0, 100);
-                return new Aim(wants, near, near >= 100, $"The house is worth {house.Wealth}; at {AmbitionSystem.RestoredAt} it is rich again. Its worth is its treasury, its stores, its worlds and its ventures, less what it owes.",
+                return new Aim(wants, near, near >= 100, $"The house is worth {Money.Show(house.Wealth)}; at {Money.Show(AmbitionSystem.RestoredAt)} it is rich again. Its worth is its treasury, its stores, its worlds and its ventures, less what it owes.",
                     near >= 100 ? "" : house.Debt > 0 ? "Clear the house's debt: what is owed is taken straight off its worth." : "Found or enlarge a venture, or build on a world: what yields is counted in the house's worth.", "house:ledger");
             }
             case "master_the_senate":

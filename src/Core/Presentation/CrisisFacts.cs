@@ -36,7 +36,7 @@ public static class CrisisFacts
             {
                 case AdjustCounterEffect a when a.Delta != 0: parts.Add($"{Word(a.Key)} {Signed(a.Delta)}"); break;
                 case SetWorldFlagEffect f: parts.Add(f.Value ? $"the Reach is marked \"{Word(f.Flag)}\"" : $"the mark \"{Word(f.Flag)}\" is lifted"); break;
-                case AdjustResourceEffect r when r.Delta != 0: parts.Add($"{Signed(r.Delta)} {Resource.Label(r.ResourceKey)} to your treasury"); break;
+                case AdjustResourceEffect r when r.Delta != 0: parts.Add($"{(r.Delta > 0 ? "+" : "−")}{Money.Of(r.ResourceKey, Math.Abs(r.Delta))} {Resource.Label(r.ResourceKey)} to your treasury"); break;
             }
         return parts.Count == 0 ? "nothing that is counted" : string.Join(", ", parts);
     }

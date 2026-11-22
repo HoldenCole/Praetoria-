@@ -93,7 +93,7 @@ public static class AcademyProjection
         var yours = new List<AcademyFact>
         {
             new("Rank", $"{content.Titles.NameOf(house.Title, w.Era)}, legitimacy {house.Legitimacy}. {senate.Weight(w, house.Id)} seat{(senate.Weight(w, house.Id) == 1 ? "" : "s")} in the Senate."),
-            new("Domain", $"{Worlds(house.Id)} world{(Worlds(house.Id) == 1 ? "" : "s")}, {Hulls(house.Id)} hull{(Hulls(house.Id) == 1 ? "" : "s")}, {house.Treasury.Credits} credits banked."),
+            new("Domain", $"{Worlds(house.Id)} world{(Worlds(house.Id) == 1 ? "" : "s")}, {Hulls(house.Id)} hull{(Hulls(house.Id) == 1 ? "" : "s")}, {Money.Held(house.Treasury)} credits banked."),
             new("Party", FactionSystem.Of(w, house.Id) is { } fp ? $"{fp.Name}. {fp.Description}" : "None."),
             new("What waits for you", "The house is yours when you pass out. Until then it keeps itself, and nothing you do here can reach it.")
         };

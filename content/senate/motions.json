@@ -8,7 +8,7 @@
       "description": "{proposer} moves that the Senate recognise the title and standing of {target}.",
       "legitimacyTarget": 6 },
     { "id": "levy", "name": "The Levy", "target": "none", "interest": "levy", "proposeInfluence": 2,
-      "description": "{proposer} moves that every landed house pay a levy of three credits to the chair for the common defence.",
+      "description": "{proposer} moves that every landed house pay a levy of three hundred credits to the chair for the common defence.",
       "levyCredits": 3, "legitimacyProposer": 0 },
     { "id": "relief", "name": "Relief", "target": "region", "interest": "relief", "proposeInfluence": 2,
       "description": "{proposer} moves that the Senate send relief to {target}: patrols on the lanes and grain for the worlds.",

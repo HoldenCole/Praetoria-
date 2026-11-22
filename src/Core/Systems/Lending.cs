@@ -47,10 +47,10 @@ public static class Lending
         var list = new List<LoanTerms>(); var house = w.House(borrowerId); if (house == null) return list;
         var f = ventures.Finance; int baseRate = BaseRate(f), worlds = Worlds(w, borrowerId); bool bad = VentureSystem.BadName(w, borrowerId);
         string? Elsewhere(string lenderId) => house.Debt > 0 && house.LenderId != lenderId
-            ? $"you owe {house.Debt} to {LenderName(w, house.LenderId)}: a second lender wants the first paid" : null;
+            ? $"you owe {Money.Show(house.Debt)} to {LenderName(w, house.LenderId)}: a second lender wants the first paid" : null;
         {
             int limit = f.LoanPrincipal + PerWorld * worlds, rate = baseRate + (bad ? BadNamePct : 0);
-            string why = $"They lend to anyone: {f.LoanPrincipal}, and {PerWorld} more for each world held (they count {WorldsCounted} at most), at {baseRate} in the hundred"
+            string why = $"They lend to anyone: {Money.Show(f.LoanPrincipal)}, and {Money.Show(PerWorld)} more for each world held (they count {WorldsCounted} at most), at {baseRate} in the hundred"
                 + (bad ? $", and {BadNamePct} more to a house known for bad business" : "") + ".";
             list.Add(new LoanTerms(CountingHouses, "the counting-houses", limit, rate, why, Elsewhere(CountingHouses)));
         }
@@ -69,7 +69,7 @@ public static class Lending
             string? no = w.AtWar(owner.Id, borrowerId) ? "you are at war with them"
                 : regard <= WontAt ? $"{head?.Name ?? owner.Name} will not lend to you: they think {regard:+0;-0} of you, and {WontAt} is where a banker stops"
                 : Elsewhere(owner.Id);
-            string why = $"A bank of level {bank.level} lends {PerBankLevel} for each level, and {PerWorld} more for each world you hold. The rate is {baseRate} in the hundred"
+            string why = $"A bank of level {bank.level} lends {Money.Show(PerBankLevel)} for each level, and {Money.Show(PerWorld)} more for each world you hold. The rate is {baseRate} in the hundred"
                 + (because.Count > 0 ? "; " + string.Join("; ", because) : "") + ".";
             list.Add(new LoanTerms(owner.Id, $"the bank of {owner.Name}", limit, rate, why, no));
         }

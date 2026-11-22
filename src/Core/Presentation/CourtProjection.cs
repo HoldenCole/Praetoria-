@@ -225,7 +225,7 @@ public static class CourtProjection
                 string payback = perYear > 0.5 ? $"pays for itself in {Counted.Years((long)(Math.Ceiling(cost / perYear)))}" : "does not pay in coin";
                 string years = b.BuildTurns > 1 ? $" · {b.BuildTurns} years, {Bundle(ProjectSystem.Split(b.Cost, b.BuildTurns).First)} a year" : b.BuildTurns == 1 ? " · a year" : "";
                 builds.Add(new BuildOption(h.Id, b.Id, $"{(b.Megastructure ? "Raise" : "Build")} {b.Name}  ({Bundle(b.Cost)}{years})",
-                    (b.Id == Economy.GranaryId ? $"unrest eases {Economy.GranaryCalm} more each year" : b.Id == "supply_depot" ? "your fleets are in supply within 2 lanes of here, not 1" : $"yield {Bundle(b.Yield)}") + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + $" · worth {perYear:0.#} credits a year now · {payback}" + (b.MinTitleRank > 0 ? $" · needs the rank of {Progression.Title.StyleOf(Progression.Title.OfRank(b.MinTitleRank), w.Era)}" : "") + (cmd.Refusal(ctx) is { } why ? $" · {why}" : ""), cmd.CanExecute(ctx)));
+                    (b.Id == Economy.GranaryId ? $"unrest eases {Economy.GranaryCalm} more each year" : b.Id == "supply_depot" ? "your fleets are in supply within 2 lanes of here, not 1" : $"yield {Bundle(b.Yield)}") + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + $" · worth {Money.Show(perYear)} credits a year now · {payback}" + (b.MinTitleRank > 0 ? $" · needs the rank of {Progression.Title.StyleOf(Progression.Title.OfRank(b.MinTitleRank), w.Era)}" : "") + (cmd.Refusal(ctx) is { } why ? $" · {why}" : ""), cmd.CanExecute(ctx)));
             }
             bool canRaise = new RaiseFleetCommand(p.Id, h.Id, content.Fleets, content.ShipClasses, null, content.Titles).CanExecute(ctx);
             var ships = new List<ShipOption>();
@@ -243,7 +243,7 @@ public static class CourtProjection
                     .Select(c => new Option(c.Id, $"Name {c.Name} governor of {h.Name}  (1 influence · administration {c.Skill("administration")})", new AppointGovernorCommand(p.Id, h.Id, c.Id).Refusal(ctx))).ToList(),
                 h.Culture,
                 h.Prosperity, tc.Economy?.ProsperityTarget(w, h) ?? 50,
-                new Option("invest", $"Invest in {h.Name}  ({content.Businesses.Finance.InvestCredits} credits → +{content.Businesses.Finance.InvestProsperity} prosperity: the world's yields are scaled by its prosperity, and it drifts back toward what its buildings and governor support by 5 a year)", new InvestCommand(p.Id, h.Id, content.Businesses).Refusal(ctx)),
+                new Option("invest", $"Invest in {h.Name}  ({Money.Credits(content.Businesses.Finance.InvestCredits)} → +{content.Businesses.Finance.InvestProsperity} prosperity: the world's yields are scaled by its prosperity, and it drifts back toward what its buildings and governor support by 5 a year)", new InvestCommand(p.Id, h.Id, content.Businesses).Refusal(ctx)),
                 w.Galaxy?.System(h.SystemId)?.Belt ?? 0,
                 h.GovernorId.Length > 0 && h.GovernorId != p.Id ? w.GetRelationship(h.GovernorId, p.Id)?.Disposition ?? 0 : 100, w.Char(h.GovernorId)?.Skill("administration") ?? 0, w.Char(h.GovernorId)?.NatureTraits.Contains("Ambitious") == true));
         }
@@ -258,8 +258,8 @@ public static class CourtProjection
             var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.TierFor(w, x.house.Id), x.house.Id == house.Id)).ToList();
             var lender = house.LenderId.Length > 0 ? w.House(house.LenderId)?.Name : null;
             ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, house.Debt > 0 ? Lending.InstalmentOf(house, f) : f.LoanInstalment,
-                new Option("loan", $"Borrow {f.LoanPrincipal} credits (owe {f.LoanRepay}, {f.LoanInstalment} a year)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
-                new Option("repay", $"Clear the debt ({house.Debt} credits)", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
+                new Option("loan", $"Borrow {Money.Credits(f.LoanPrincipal)} (owe {Money.Show(f.LoanRepay)}, {Money.Show(f.LoanInstalment)} a year)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
+                new Option("repay", $"Clear the debt ({Money.Credits(house.Debt)})", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
             var vs = tc.Ventures;
             foreach (var b in w.BusinessesOf(house.Id))
             {
@@ -270,9 +270,9 @@ public static class CourtProjection
                 bool enlarging = ProjectSystem.Underway(w, house.Id, Project.Expansion, b.Kind, b.Id);
                 string expandCost = def.BuildTurns > 1 ? $"{Bundle(def.ExpandCost)} over {def.BuildTurns} years" : Bundle(def.ExpandCost);
                 businessCards.Add(new BusinessCard(b.Id, b.Name, def.Name, w.Galaxy?.System(b.SystemId)?.Name, b.Level, def.MaxLevel, delta.IsEmpty() ? "—" : Bundle(delta),
-                    holder != null && holder != house.Id && def.Charter > 0 ? $"{def.Charter * b.Level} credits a year to {w.House(holder)?.Name}" : null, value,
+                    holder != null && holder != house.Id && def.Charter > 0 ? $"{Money.Credits(def.Charter * b.Level)} a year to {w.House(holder)?.Name}" : null, value,
                     new Option("expand", b.Level >= def.MaxLevel ? "At its height" : enlarging ? "Being enlarged" : $"Expand to level {b.Level + 1}  ({expandCost})", new ExpandBusinessCommand(p.Id, b.Id, bc).Refusal(ctx)),
-                    new Option("sell", $"Sell on the open market for {(vs != null ? vs.MarketPrice(w, b) : value)} credits", vs == null ? "no market for ventures" : new SellVentureCommand(p.Id, b.Id, "", vs).Refusal(ctx)),
+                    new Option("sell", $"Sell on the open market for {Money.Credits(vs != null ? vs.MarketPrice(w, b) : value)}", vs == null ? "no market for ventures" : new SellVentureCommand(p.Id, b.Id, "", vs).Refusal(ctx)),
                     Earnings: eco.VentureEarnings(w, b), MarketPrice: vs != null ? vs.MarketPrice(w, b) : value, Bids: bids, CompanyName: b.CompanyId.Length > 0 ? w.Company(b.CompanyId)?.Name : null, Enlarging: enlarging));
             }
             if (w.Galaxy != null)
@@ -311,9 +311,9 @@ public static class CourtProjection
             }
             var honors = new HonorSystem(content.Honors).Held(p).Select(h => h.Name).ToList();
             var laws = SetSuccessionLawCommand.Laws.Select(l => new Option(l, l, new SetSuccessionLawCommand(p.Id, l).CanExecute(ctx) ? null : (house.SuccessionLaw == l ? "current law" : "no influence"))).ToList();
-            var taxes = content.Holdings.TaxPolicies.Select(t => new Option(t.Id, $"{t.Name} ({t.CreditsBonus:+#;-#;0} credits/holding, unrest {t.UnrestDrift:+#;-#;0})", new SetTaxPolicyCommand(p.Id, t.Id, content.Holdings).CanExecute(ctx) ? null : "current")).ToList();
-            var exchange = content.Holdings.Rates.Select(r => new Option($"{r.Give}>{r.Get}", $"{r.GiveAmount} {Resource.Label(r.Give)} → {ExchangeCommand.Received(w, house.Id, r, content.Holdings, 1)} {Resource.Label(r.Get)}" + (ExchangeCommand.HasExchange(w, house.Id, content.Holdings) ? "" : " (half: the house has no exchange of its own)"),
-                new ExchangeCommand(p.Id, r, content.Holdings).CanExecute(ctx) ? null : $"needs {r.GiveAmount} {Resource.Label(r.Give)} (the house has {house.Treasury.Get(r.Give)})")).ToList();
+            var taxes = content.Holdings.TaxPolicies.Select(t => new Option(t.Id, $"{t.Name} ({Money.Signed(t.CreditsBonus)} credits/holding, unrest {t.UnrestDrift:+#;-#;0})", new SetTaxPolicyCommand(p.Id, t.Id, content.Holdings).CanExecute(ctx) ? null : "current")).ToList();
+            var exchange = content.Holdings.Rates.Select(r => new Option($"{r.Give}>{r.Get}", $"{Money.Of(r.Give, r.GiveAmount)} {Resource.Label(r.Give)} → {Money.Of(r.Get, ExchangeCommand.Received(w, house.Id, r, content.Holdings, 1))} {Resource.Label(r.Get)}" + (ExchangeCommand.HasExchange(w, house.Id, content.Holdings) ? "" : " (half: the house has no exchange of its own)"),
+                new ExchangeCommand(p.Id, r, content.Holdings).CanExecute(ctx) ? null : $"needs {Money.Of(r.Give, r.GiveAmount)} {Resource.Label(r.Give)} (the house has {Money.Of(r.Give, house.Treasury.Get(r.Give))})")).ToList();
             var emperor = ThroneSystem.Emperor(w);
             var throne = new ThroneCard(new ProclaimImperiumCommand(p.Id, content.Titles).Refusal(ctx), new SeizeThroneCommand(p.Id, content.Titles, content.Friction).Refusal(ctx),
                 house.Title == "emperor", emperor?.Name);
@@ -468,7 +468,7 @@ public static class CourtProjection
                 .Select(h => new ReclaimOption(h.Id, h.Name, w.House(h.OwnerId)!.Name, ReclaimFreeholdCommand.Price(w, h, house.Id), new ReclaimFreeholdCommand(p.Id, h.Id).Refusal(ctx))).ToList(),
             w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null,
             new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? (w.IsImperium ? "the court" : "the chair")} for a {(w.IsImperium ? "fief" : "prefecture")}  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
-            Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var bc = new BuyGoodCommand(p.Id, r, 3, content.Trade); var q = bc.Quote(w); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the market  ({(q.Credits > 0 ? q.Credits.ToString() : "—")} credits)", q.Refusal); }).ToList(),
+            Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var bc = new BuyGoodCommand(p.Id, r, 3, content.Trade); var q = bc.Quote(w); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the market  ({(q.Credits > 0 ? Money.Show(q.Credits) : "—")} credits)", q.Refusal); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             BuildSenate(w, p, house, tc.Senate, ctx),
             BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate), Market: BuildMarket(w, p, house, content, tc), Assets: BuildAssets(w, p, house, content, tc, ctx), Exchange: BuildExchange(w, p, house, content, tc));
@@ -486,14 +486,14 @@ public static class CourtProjection
     public static string SwingOf(BusinessDef def)
     {
         var parts = new List<string>();
-        if (def.WarCredits > 0) parts.Add($"+{def.WarCredits} a level for each war being fought"); else if (def.WarCredits < 0) parts.Add($"{def.WarCredits} a level for each war being fought");
-        if (def.PeaceCredits > 0) parts.Add($"+{def.PeaceCredits} a level while there is no war");
-        if (def.SpikeCredits > 0) parts.Add($"+{def.SpikeCredits} a level for each good whose price is spiking");
+        if (def.WarCredits != 0) parts.Add($"{Money.Signed(def.WarCredits)} a level for each war being fought");
+        if (def.PeaceCredits > 0) parts.Add($"{Money.Signed(def.PeaceCredits)} a level while there is no war");
+        if (def.SpikeCredits > 0) parts.Add($"{Money.Signed(def.SpikeCredits)} a level for each good whose price is spiking");
         return string.Join(" · ", parts);
     }
     public static string Bundle(Resources r)
     {
-        var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{r.Get(k)} {Resource.Label(k)}").ToList();
+        var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{Money.Of(k, r.Get(k))} {Resource.Label(k)}").ToList();
         return parts.Count == 0 ? "—" : string.Join(", ", parts);
     }
 
@@ -598,7 +598,7 @@ public static class CourtProjection
                 int perYear = (int)Math.Round(Economy.WorthOf(w, vs.Economy.VentureLine(w, ghost)));
                 bool distressed = owner.Treasury.Credits < 0 || owner.Debt > 0;
                 forSale.Add(new ForSaleCard(b.Id, b.Name, bc.Def(b.Kind)!.Name, owner.Id, owner.Name, owner.AccentColor, w.Galaxy?.System(b.SystemId)?.Name, b.Level, perYear, ask,
-                    refusal ?? (house.Treasury.Credits < ask ? $"needs {ask} credits" : null), ask > 0 && perYear > 0 ? $"{Counted.Years((long)(Math.Ceiling((double)ask / perYear)))}" : "never", distressed, w.PlanetHolder(b.SystemId) == house.Id));
+                    refusal ?? (house.Treasury.Credits < ask ? $"needs {Money.Credits(ask)}" : null), ask > 0 && perYear > 0 ? $"{Counted.Years((long)(Math.Ceiling((double)ask / perYear)))}" : "never", distressed, w.PlanetHolder(b.SystemId) == house.Id));
             }
             forSale = forSale.OrderBy(x => x.Refusal != null && !x.Refusal.StartsWith("needs ") ? 1 : 0).ThenByDescending(x => x.Distressed).ThenBy(x => x.PerYear > 0 ? (double)x.Ask / x.PerYear : 999).ThenBy(x => x.BusinessId, StringComparer.Ordinal).Take(14).ToList();
             foreach (var o in w.Offers.Where(o => o.ToHouseId == house.Id).OrderBy(o => o.Id, StringComparer.Ordinal))
@@ -667,8 +667,8 @@ public static class CourtProjection
         : $" Under a {d.GreatTitle} it would begin its own wars and come to conquer: one is raised at about one accession in {Math.Max(2, NationSystem.ByBoldness(n, d.GreatOneIn))}, or acclaimed when a warlike ruler beats the Reach.";
     /// <summary>A treaty that stands between the Reach and this nation: a client's, or the tribute the Reach pays it.</summary>
     private static string TreatyLine(World w, Nation n, NationDef d) =>
-        n.Vassal ? $" A client of the Reach{(w.House(n.PatronId) is { } patron ? $", under {patron.Name}" : "")}: it pays {d.Tribute} credits a year to the chair{(w.House(n.PatronId) != null ? $" and {NationSystem.ClientShare(d)} to its patron" : "")}, raids nobody and wars with nobody, until a warlike ruler with its fleets rebuilt throws the treaty off."
-        : n.PaidUntil > w.Turn ? $" The Reach pays it {d.Tribute} credits a year until T{n.PaidUntil}: the price of a war lost." : "";
+        n.Vassal ? $" A client of the Reach{(w.House(n.PatronId) is { } patron ? $", under {patron.Name}" : "")}: it pays {Money.Credits(d.Tribute)} a year to the chair{(w.House(n.PatronId) != null ? $" and {Money.Show(NationSystem.ClientShare(d))} to its patron" : "")}, raids nobody and wars with nobody, until a warlike ruler with its fleets rebuilt throws the treaty off."
+        : n.PaidUntil > w.Turn ? $" The Reach pays it {Money.Credits(d.Tribute)} a year until T{n.PaidUntil}: the price of a war lost." : "";
 
     private static MilitaryCard BuildMilitary(World w, Character p, House house, FleetSystem fs, FleetRules rules, CommandContext ctx, NationCatalog nations, SenateSystem senate)
     {
@@ -691,12 +691,12 @@ public static class CourtProjection
                 n.OnMap ? string.Join(", ", NationSystem.Worlds(w, d).Select(x => w.Holding(x.Id)).Where(h => h != null && h.OwnerId != n.HouseId).Select(h => $"{h!.Name} ({w.House(h.OwnerId)?.Name ?? h.OwnerId}{(w.Counter(NationSystem.UnheldKey(h.Id)) > 0 ? $", {w.Counter(NationSystem.UnheldKey(h.Id))} of {d.HoldYears} years ungarrisoned" : "")})")) : "",
                 d.HoldYears,
                 // the manner of a nation on the map: what kind of neighbour it is, in a line
-                !n.OnMap || n.Fallen ? "" : GreatLine(n, d) + (NationSystem.Buys(d) ? $"Would rather buy than fight. It sues at {NationSystem.SuesAt(n, d)}, half the usual tally; hires a hull a year while attacked; buys back the worlds it lost when it loses a war, for {NationSystem.RansomPerWealth * d.Wealth} credits each; pays tribute only while watched; and buys off a war nobody presses.{(NationSystem.ComesOut(n, d) ? " Its ruler is warlike: its squadron will come through the march." : " Its squadron stays at home.")} A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
-                    : d.Strikes ? $"Begins wars itself: when the Reach is divided and it has no love for it, or to take back a world of its own. {(d.Hosts > 1 ? $"{d.Hosts} fleets come through its marches" : "Its fleet comes through its march")}{(d.Campaigns ? " and stay in the field, taking world after world" : "")}. What it takes it keeps until it is beaten; its own worlds do not rise, it comes back for them. A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
-                    : d.Sorties == "never" ? $"Fights only when invaded: its fleets never leave home. Hull for hull they fight at {NationSystem.MettleOf(d)} in a hundred of a fleet of the Reach's{(d.Walls > 0 ? $", and its worlds take {d.Walls} years longer to reduce" : "")}. {(d.Yields.Count > 0 ? $"Each of its worlds gives the house that holds it {string.Join(" and ", d.Yields.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{k.Value} {k.Key}"))} a year. " : "")}A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
-                    : d.Temper == "decaying" ? $"An empire in decay: it strikes a hull from its lists every ten years, replaces none, and does not come back for a world it loses. Its fleets fight at {NationSystem.MettleOf(d)} in a hundred of a fleet of the Reach's. {(n.Treasure > 0 ? $"Its capital holds {n.Treasure} credits{(n.Regalia.Length > 0 ? $" and {n.Regalia}" : "")} for whoever takes it first. " : "Its vaults have been opened. ")}{(NationSystem.ComesOut(n, d) ? "Its ruler is warlike: its fleet will come through the march. " : "")}A fleet of its beaten pays {d.Wealth} credits, a world taken {NationSystem.PlunderPerWorld * d.Wealth}."
-                    : $"{(NationSystem.Great(n) ? "" : NationSystem.ComesOut(n, d) ? "Its host comes through the march in a war, takes one world, and goes home with it. " : "Its host stays at home. ")}A fleet of its beaten pays {d.Wealth} credits, a world taken or sacked {NationSystem.PlunderPerWorld * d.Wealth}.") + GreatHint(n, d) + TreatyLine(w, n, d),
-                n.OnMap ? string.Join(", ", NationSystem.Worlds(w, d).Where(x => w.Counter(NationSystem.RansomKey(x.Id)) > 0).Select(x => $"{NationSystem.RansomPerWealth * d.Wealth} credits for {x.Name}, until T{w.Counter(NationSystem.RansomKey(x.Id)) + NationSystem.RansomWaits}")) : "",
+                !n.OnMap || n.Fallen ? "" : GreatLine(n, d) + (NationSystem.Buys(d) ? $"Would rather buy than fight. It sues at {NationSystem.SuesAt(n, d)}, half the usual tally; hires a hull a year while attacked; buys back the worlds it lost when it loses a war, for {Money.Credits(NationSystem.RansomPerWealth * d.Wealth)} each; pays tribute only while watched; and buys off a war nobody presses.{(NationSystem.ComesOut(n, d) ? " Its ruler is warlike: its squadron will come through the march." : " Its squadron stays at home.")} A fleet of its beaten pays {Money.Credits(d.Wealth)}, a world taken {Money.Show(NationSystem.PlunderPerWorld * d.Wealth)}."
+                    : d.Strikes ? $"Begins wars itself: when the Reach is divided and it has no love for it, or to take back a world of its own. {(d.Hosts > 1 ? $"{d.Hosts} fleets come through its marches" : "Its fleet comes through its march")}{(d.Campaigns ? " and stay in the field, taking world after world" : "")}. What it takes it keeps until it is beaten; its own worlds do not rise, it comes back for them. A fleet of its beaten pays {Money.Credits(d.Wealth)}, a world taken {Money.Show(NationSystem.PlunderPerWorld * d.Wealth)}."
+                    : d.Sorties == "never" ? $"Fights only when invaded: its fleets never leave home. Hull for hull they fight at {NationSystem.MettleOf(d)} in a hundred of a fleet of the Reach's{(d.Walls > 0 ? $", and its worlds take {d.Walls} years longer to reduce" : "")}. {(d.Yields.Count > 0 ? $"Each of its worlds gives the house that holds it {string.Join(" and ", d.Yields.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{Money.Of(k.Key, k.Value)} {k.Key}"))} a year. " : "")}A fleet of its beaten pays {Money.Credits(d.Wealth)}, a world taken {Money.Show(NationSystem.PlunderPerWorld * d.Wealth)}."
+                    : d.Temper == "decaying" ? $"An empire in decay: it strikes a hull from its lists every ten years, replaces none, and does not come back for a world it loses. Its fleets fight at {NationSystem.MettleOf(d)} in a hundred of a fleet of the Reach's. {(n.Treasure > 0 ? $"Its capital holds {Money.Credits(n.Treasure)}{(n.Regalia.Length > 0 ? $" and {n.Regalia}" : "")} for whoever takes it first. " : "Its vaults have been opened. ")}{(NationSystem.ComesOut(n, d) ? "Its ruler is warlike: its fleet will come through the march. " : "")}A fleet of its beaten pays {Money.Credits(d.Wealth)}, a world taken {Money.Show(NationSystem.PlunderPerWorld * d.Wealth)}."
+                    : $"{(NationSystem.Great(n) ? "" : NationSystem.ComesOut(n, d) ? "Its host comes through the march in a war, takes one world, and goes home with it. " : "Its host stays at home. ")}A fleet of its beaten pays {Money.Credits(d.Wealth)}, a world taken or sacked {Money.Show(NationSystem.PlunderPerWorld * d.Wealth)}.") + GreatHint(n, d) + TreatyLine(w, n, d),
+                n.OnMap ? string.Join(", ", NationSystem.Worlds(w, d).Where(x => w.Counter(NationSystem.RansomKey(x.Id)) > 0).Select(x => $"{Money.Credits(NationSystem.RansomPerWealth * d.Wealth)} for {x.Name}, until T{w.Counter(NationSystem.RansomKey(x.Id)) + NationSystem.RansomWaits}")) : "",
                 n.OnMap && NationSystem.Buys(d) && n.Subdued(w.Turn) ? (NationSystem.Watched(w, d) ? "watched: the tribute comes" : $"not watched: {w.Counter(NationSystem.UnwatchedKeyOf(n))} of {NationSystem.UnwatchedYears} years, then it stops paying") : "",
                 // whose war it is (docs/BEYOND.md, "Whose war"), and what the player may do about it without waiting on anyone
                 !n.AtWar ? "" : (n.Defied ? $"{w.House(n.WarOf)?.Name ?? n.WarOf}'s war, against a peace the Senate voted: it costs that house {NationSystem.DefyYearlyCost(NationSystem.Leeway(w, w.House(n.WarOf)))} standing a year"
@@ -751,19 +751,22 @@ public static class CourtProjection
         var parts = new List<string>();
         if (d.LegitimacyTarget != 0) parts.Add($"the house named {(d.LegitimacyTarget > 0 ? "gains" : "loses")} {Math.Abs(d.LegitimacyTarget)} legitimacy");
         if (d.LegitimacyProposer != 0) parts.Add($"the mover {(d.LegitimacyProposer > 0 ? "gains" : "loses")} {Math.Abs(d.LegitimacyProposer)} legitimacy");
-        if (d.LevyCredits != 0) parts.Add($"every house pays {d.LevyCredits} credits to the chair");
+        if (d.LevyCredits != 0) parts.Add($"every house pays {Money.Credits(d.LevyCredits)} to the chair");
         if (d.EmbargoTurns > 0) parts.Add($"the exchanges are closed to the house named for {d.EmbargoTurns} years");
         if (d.LawlessnessRegion != 0) parts.Add($"the region's lawlessness {(d.LawlessnessRegion < 0 ? "falls" : "rises")} by {Math.Abs(d.LawlessnessRegion)}");
         if (d.AllegianceRegion != 0) parts.Add($"the region's allegiance {(d.AllegianceRegion > 0 ? "rises" : "falls")} by {Math.Abs(d.AllegianceRegion)}");
         if (d.ProsperityRegion != 0) parts.Add($"its worlds' prosperity {(d.ProsperityRegion > 0 ? "rises" : "falls")} by {Math.Abs(d.ProsperityRegion)}");
-        if (d.ReliefCost > 0) parts.Add($"the chair pays {d.ReliefCost} credits for it");
+        if (d.ReliefCost > 0) parts.Add($"the chair pays {Money.Credits(d.ReliefCost)} for it");
         if (d.Peace) parts.Add("the war with the house named is ended by the Senate's word");
         if (d.Breakup) parts.Add("the companies of the house named are broken up and their holders paid out");
         if (d.Rescue) parts.Add("the chair's purse steadies the Exchange");
         return parts.Count == 0 ? "" : "If it carries: " + string.Join("; ", parts) + ".";
     }
 
-    public static string Effects(IReadOnlyDictionary<string, int> fx) => fx.Count == 0 ? "changes no yield and no cost: what it moves is how the estates think of you" : string.Join(" · ", fx.Select(kv => $"{(kv.Value > 0 ? "+" : "")}{kv.Value} {Prose(kv.Key)}"));
+    public static string Effects(IReadOnlyDictionary<string, int> fx) => fx.Count == 0 ? "changes no yield and no cost: what it moves is how the estates think of you" : string.Join(" · ", fx.Select(kv => $"{(InCredits(kv.Key) ? Money.Signed(kv.Value) : (kv.Value > 0 ? "+" : "") + kv.Value)} {Prose(kv.Key)}"));
+    /// <summary>The effects of a law or an estate's mood that are an amount of credits, and so are written as credits are (docs/MONEY.md).
+    /// A court's wage ("court_wage") is not one of them: it is in single credits.</summary>
+    private static bool InCredits(string key) => key is "credits_per_world" or "tolls_bonus" or "informers_cost" or "envoy_cost" or "counsel_cost";
 
     /// <summary>Laws by category with every option's refusal, and the estates with their drift and mood (PolicySystem).</summary>
     private static ChanceryCard? BuildChancery(World w, Character p, House house, PolicyCatalog cat, CommandContext ctx)

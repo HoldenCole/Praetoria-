@@ -121,7 +121,7 @@ public sealed class LobbyCommand : ICommand
         if (_side == 0) return "for or against";
         if (m.Lobbied.Contains(house.Id + "→" + _houseId)) return "you have already had their ear";
         var head = Economy.HeadOf(w, target); if (head == null) return "no one to speak to";
-        if (_bribe) { int price = SenateSystem.BribeCost(w, target, actor); return SenateSystem.BribeRefused(w, target, actor) ?? (house.Treasury.Credits >= price ? null : $"needs {price} credits (the house has {house.Treasury.Credits})"); }
+        if (_bribe) { int price = SenateSystem.BribeCost(w, target, actor); return SenateSystem.BribeRefused(w, target, actor) ?? (house.Treasury.Credits >= price ? null : $"needs {Money.Credits(price)} (the house has {Money.Held(house.Treasury)})"); }
         if ((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) < -20) return $"{head.Name} will not hear you — try coin";
         return ctx.PoolsOf(ActorId).Short(new Dictionary<string, int> { [Pool.Influence] = 1 });
     }

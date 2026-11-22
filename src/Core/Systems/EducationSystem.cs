@@ -159,13 +159,13 @@ public static class EducationSystem
         if (who.Skill(skill) >= Ceiling(who, skill)) return "they have gone as far in it as they can";
         if (who.Study == skill) return "it is what they study already";
         int price = StudyPrice(w, head, who, skill);
-        return price == 0 ? "they would do it for the asking" : price < 0 ? "they will not, for anything you could offer" : head.Purse >= price ? null : $"they would want {price} credits of your own, and your purse does not hold it";
+        return price == 0 ? "they would do it for the asking" : price < 0 ? "they will not, for anything you could offer" : head.Purse >= price ? null : $"they would want {Money.Credits(price)} of your own, and your purse does not hold it";
     }
     /// <summary>The head asks, and pays what they would take. It is a bargain, and nobody thinks the worse of anybody.</summary>
     public static void AskAndPay(World w, Character head, Character who, string skill)
     {
         int price = StudyPrice(w, head, who, skill); head.Purse -= price; who.Purse += price; who.Study = skill; who.Flags.Remove(StudyRefusedChar); w.WorldCounters[AskedKey(who.Id)] = w.Turn;
-        w.Log($"{who.Name} turns to {skill} for {price} credits of {head.Name}'s own. It was a bargain, and both of them call it one.");
+        w.Log($"{who.Name} turns to {skill} for {Money.Credits(price)} of {head.Name}'s own. It was a bargain, and both of them call it one.");
     }
 
     /// <summary>The same bargain paid in something that is not money: a word in the right place for them. One influence where
@@ -192,7 +192,7 @@ public static class EducationSystem
         var teacher = pupil.MentorId.Length > 0 ? w.Char(pupil.MentorId) : null;
         if (teacher?.Alive != true || teacher.Id == head.Id || teacher.HouseId != head.HouseId) return "nobody of the house is teaching them";
         if (w.WorldCounters.TryGetValue(ThankedKey(teacher.Id), out int last) && w.Turn - last < ThanksEvery) return "you thanked them not long ago";
-        return head.Purse >= ThanksCredits ? null : $"needs {ThanksCredits} credits of your own";
+        return head.Purse >= ThanksCredits ? null : $"needs {Money.Credits(ThanksCredits)} of your own";
     }
     public static void Thank(World w, Character head, Character pupil)
     {
@@ -304,7 +304,7 @@ public static class EducationSystem
             {
                 int cost = TutorCost(c.Tutor);
                 if (mine.Treasury.Credits >= cost) mine.Treasury.Credits -= cost;
-                else { c.Tutor = 0; Mark(w, TutorDismissedFlag); w.Log($"{mine.Name} cannot pay {c.Name}'s tutor, who has gone."); w.Tell("warn", $"{c.Name}'s tutor has gone: the treasury held {mine.Treasury.Credits} credits and the year's fee was {cost}. Another can be engaged when there is coin", "dynasty", c.Id); }
+                else { c.Tutor = 0; Mark(w, TutorDismissedFlag); w.Log($"{mine.Name} cannot pay {c.Name}'s tutor, who has gone."); w.Tell("warn", $"{c.Name}'s tutor has gone: the treasury held {Money.Held(mine.Treasury)} credits and the year's fee was {Money.Show(cost)}. Another can be engaged when there is coin", "dynasty", c.Id); }
             }
 
         var admirals = w.Fleets.Values.Select(f => f.AdmiralId).Where(a => a.Length > 0).ToHashSet();

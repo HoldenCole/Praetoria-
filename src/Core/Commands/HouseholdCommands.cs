@@ -207,7 +207,7 @@ public sealed class WealthCommand : ICommand
     private readonly string _what, _targetId, _value;
     public WealthCommand(string actorId, string what, string targetId, string value) { ActorId = actorId; _what = what; _targetId = targetId; _value = value; }
     public string ActorId { get; }
-    public string Describe() => $"{_what} {_targetId} {_value}".Trim();
+    public string Describe() => $"{_what} {_targetId} {(_what is Move or Gift or Lend or LendAtInterest or Borrow && int.TryParse(_value, out int sum) ? Money.Show(sum) : _value)}".Trim();
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var me = w.Char(ActorId); var house = me != null ? w.House(me.HouseId) : null; if (me?.Alive != true || house == null) return "no house";

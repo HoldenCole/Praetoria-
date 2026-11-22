@@ -13,7 +13,7 @@ public static class ChoiceStakes
     private static string Signed(int n) => (n > 0 ? "+" : "−") + Math.Abs(n);
     private static string Op(CompareOp op) => op.ToString().ToLowerInvariant() switch { "gte" or "ge" => "at least", "gt" => "more than", "lte" or "le" => "at most", "lt" => "less than", "eq" => "exactly", "neq" or "ne" => "not", _ => "at least" };
 
-    /// <summary>What the choice does to the player's house and person, as far as its effects say: "−5 materials · −2 credits · legitimacy +2".</summary>
+    /// <summary>What the choice does to the player's house and person, as far as its effects say: "−5 materials · −200 credits · legitimacy +2".</summary>
     public static string Of(Choice choice, EvalContext ctx, Character player)
     {
         var parts = new List<string>(); var sums = new Dictionary<string, int>(); int legit = 0, stress = 0;
@@ -40,7 +40,7 @@ public static class ChoiceStakes
                         var p = Systems.HousePeace.Payable(ctx.World, lead > 0 ? foe.HouseId : player.HouseId, Math.Abs(lead) * rules.TributePerScore);
                         sums[Resource.Credits] = sums.GetValueOrDefault(Resource.Credits) + (lead > 0 ? p.credits : -p.credits);
                         foreach (var (g, n) in p.goods) sums[g] = sums.GetValueOrDefault(g) + (lead > 0 ? n : -n);
-                        parts.Add(p.unpaid > 0 ? $"peace ({Math.Abs(lead) * rules.TributePerScore} is owed by the score; {p.unpaid} of it {(lead > 0 ? them + " does not have" : "you do not have")})" : "peace");
+                        parts.Add(p.unpaid > 0 ? $"peace ({Money.Show(Math.Abs(lead) * rules.TributePerScore)} is owed by the score; {Money.Show(p.unpaid)} of it {(lead > 0 ? them + " does not have" : "you do not have")})" : "peace");
                     }
                     else if (pt.Kind == Systems.HousePeace.Cede && pt.World(ctx) is { } h) parts.Add(lead >= 0 ? $"peace, and {h.Name} ({Census.Say(Census.Citizens(ctx.World, h))} citizens) is yours" : $"peace, and {h.Name} is theirs");
                     else parts.Add(lead > 0 && pt.Kind == Systems.HousePeace.White ? "peace, nothing asked: " + them + " will remember it" : "peace, each side keeping what it holds");
@@ -48,7 +48,8 @@ public static class ChoiceStakes
                 }
                 case GrantClaimEffect g when Mine(g.Role): parts.Add("a claim to a higher rank"); break;
             }
-        var money = Resource.All.Where(k => sums.GetValueOrDefault(k) != 0).Select(k => Signed(sums[k]) + " " + Resource.Label(k)).ToList();
+        var money = Resource.All.Where(k => sums.GetValueOrDefault(k) != 0).Select(k => (sums[k] > 0 ? "+" : "−") + Money.Of(k, Math.Abs(sums[k])) + " " + Resource.Label(k)).ToList();
+        if (sums.GetValueOrDefault(Resource.Coin) is var coin && coin != 0) money.Add((coin > 0 ? "+" : "−") + Money.Coin(Math.Abs(coin)));   // single credits (docs/MONEY.md): not one of Resource.All
         if (legit != 0) money.Add("legitimacy " + Signed(legit));
         if (stress != 0) money.Add("stress " + Signed(stress));
         return string.Join(" · ", money.Concat(parts));
@@ -60,7 +61,7 @@ public static class ChoiceStakes
     {
         var house = ctx.World.House(player.HouseId); if (house == null) return null; int credits = 0;
         foreach (var e in choice.Effects) if (e is AdjustResourceEffect r && r.ResourceKey == Resource.Credits && ctx.Actor(r.Role) is { } a && a.HouseId == player.HouseId) credits += r.Delta;
-        return credits < 0 && house.Treasury.Credits + credits < 0 ? $"this takes {-credits} credits and the treasury holds {house.Treasury.Credits}: it would leave the house {-(house.Treasury.Credits + credits)} below nought" : null;
+        return credits < 0 && house.Treasury.Credits + credits < 0 ? $"this takes {Money.Credits(-credits)} and the treasury holds {Money.Held(house.Treasury)}: it would leave the house {Money.Coin(-(house.Treasury.Total + (long)credits * Money.PerUnit))} below nought" : null;
     }
 
     /// <summary>What a greyed choice lacks, in words: every requirement that does not hold, said plainly.</summary>
@@ -80,7 +81,7 @@ public static class ChoiceStakes
             case AnyCondition any: return want ? "one of: " + string.Join(", or ", any.Of.Select(x => Say(x, ctx, true)).Where(x => x.Length > 0)) : string.Join("; ", any.Of.Where(x => x.Evaluate(ctx)).Select(x => Say(x, ctx, false)).Where(x => x.Length > 0));
             case NotCondition not: return Say(not.Of, ctx, !want);
             case SkillCondition s: { var a = ctx.Actor(s.Role); return want ? $"needs {s.Skill.Replace('_', ' ')} {Op(s.Op)} {s.Value} ({Who(ctx, s.Role)} {(a == null ? "have none" : "have " + a.Skill(s.Skill))})" : $"not for one with {s.Skill.Replace('_', ' ')} {Op(s.Op)} {s.Value}"; }
-            case ResourceCondition r: { var a = ctx.Actor(r.Role); var h = a != null ? ctx.World.House(a.HouseId) : null; return want ? $"needs {Op(r.Op)} {r.Value} {Resource.Label(r.ResourceKey)} in the treasury (it holds {h?.Treasury.Get(r.ResourceKey) ?? 0})" : $"only with fewer than {r.Value} {Resource.Label(r.ResourceKey)}"; }
+            case ResourceCondition r: { var a = ctx.Actor(r.Role); var h = a != null ? ctx.World.House(a.HouseId) : null; return want ? $"needs {Op(r.Op)} {Money.Of(r.ResourceKey, r.Value)} {Resource.Label(r.ResourceKey)} in the treasury (it holds {Money.Of(r.ResourceKey, h?.Treasury.Get(r.ResourceKey) ?? 0)})" : $"only with fewer than {Money.Of(r.ResourceKey, r.Value)} {Resource.Label(r.ResourceKey)}"; }
             case TraitCondition t: return (want == t.Present ? "needs one who is " : "not for one who is ") + t.Trait.Replace('_', ' ');
             case RankCondition k: return want ? (k.VsRole != null ? "needs a higher rank in the service than " + Who(ctx, k.VsRole) : $"needs rank {Op(k.Op)} {k.Value} in the service") : "not at your rank in the service";
             case RelationshipCondition rel: { ctx.Binding.TryGet(rel.From, out var f); ctx.Binding.TryGet(rel.To, out var to); int now = f != null && to != null ? ctx.World.GetRelationship(f, to)?.Disposition ?? 0 : 0; string who = ctx.World.Char(f ?? "")?.Name ?? "they"; return want ? $"needs {who} to think {Op(rel.Op)} {rel.Value} of {(to == ctx.World.ProtagonistId ? "you" : ctx.World.Char(to ?? "")?.Name ?? "them")} (now {now})" : $"not while {who} thinks so of you"; }

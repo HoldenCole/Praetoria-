@@ -22,7 +22,7 @@
           "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -8 }, { "type": "adjustResource", "resource": "materials", "delta": -4 }, { "type": "adjustResource", "resource": "helium3", "delta": 6 },
             { "type": "log", "text": "{self.name} put the house's own scoops into the giant's clouds. The first six tanks came up before the season turned." } ] },
         { "id": "sell_the_concession", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 14 }, { "type": "adjustResource", "resource": "influence", "delta": -1 },
-            { "type": "log", "text": "{self.name} sold the skimming concession to a consortium for fourteen credits down. Their ramscoops, their fuel, the house's clouds." } ] },
+            { "type": "log", "text": "{self.name} sold the skimming concession to a consortium for fourteen hundred credits down. Their ramscoops, their fuel, the house's clouds." } ] },
         { "id": "leave_it", "effects": [ { "type": "log", "text": "{self.name} left the giant alone. The clouds will keep." } ] }
       ]
     },
@@ -34,7 +34,7 @@
           "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -10 }, { "type": "adjustResource", "resource": "rare_earths", "delta": 3 },
             { "type": "log", "text": "{self.name} paid for separators and a chemist who asked no questions. Three crates of rare earths, and the beginning of a trade." } ] },
         { "id": "sell_raw", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 9 },
-            { "type": "log", "text": "{self.name} sold the ore raw to a refinery off-world. Nine credits now, and someone else's sensors later." } ] }
+            { "type": "log", "text": "{self.name} sold the ore raw to a refinery off-world. Nine hundred credits now, and someone else's sensors later." } ] }
       ]
     },
     {
@@ -55,10 +55,10 @@
       "roles": [ { "name": "buyer", "when": [ { "type": "not", "of": { "type": "atWar", "role": "buyer", "present": true } } ] } ],
       "choices": [
         { "id": "sell_four", "effects": [ { "type": "adjustResource", "resource": "helium3", "delta": -4 }, { "type": "adjustResource", "resource": "credits", "delta": 16 }, { "type": "adjustRelationship", "from": "buyer", "to": "self", "delta": 10 },
-            { "type": "log", "text": "{self.name} sold four tanks to {buyer.house} at sixteen credits and a kind word. Their fleet sails on the house's fuel this season." } ] },
+            { "type": "log", "text": "{self.name} sold four tanks to {buyer.house} at sixteen hundred credits and a kind word. Their fleet sails on the house's fuel this season." } ] },
         { "id": "sell_dear", "requires": [ { "type": "skill", "role": "self", "skill": "economics", "op": "gte", "value": 2 } ],
           "effects": [ { "type": "adjustResource", "resource": "helium3", "delta": -4 }, { "type": "adjustResource", "resource": "credits", "delta": 24 }, { "type": "adjustRelationship", "from": "buyer", "to": "self", "delta": -8 },
-            { "type": "log", "text": "{self.name} named a price that made {buyer.name} wince, and got it. Twenty-four credits, and a buyer who will remember the wince." } ] },
+            { "type": "log", "text": "{self.name} named a price that made {buyer.name} wince, and got it. Twenty-four hundred credits, and a buyer who will remember the wince." } ] },
         { "id": "refuse", "effects": [ { "type": "adjustRelationship", "from": "buyer", "to": "self", "delta": -5 },
             { "type": "log", "text": "{self.name} kept the fuel. {buyer.house} will buy elsewhere, dearer, and say so." } ] }
       ]
@@ -73,7 +73,7 @@
         { "id": "embargo_them", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
             { "type": "log", "text": "{self.name} declared an embargo: no isotopes leave the house's worlds while the war lasts. The Senate noted who could afford to say it." } ] },
         { "id": "sell_to_both", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 18 }, { "type": "adjustResource", "resource": "isotopes", "delta": -2 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -3 },
-            { "type": "log", "text": "{self.name} sold isotopes to both sides through a factor in a neutral port. Eighteen credits, and a thing the chronicle will not forget." } ] }
+            { "type": "log", "text": "{self.name} sold isotopes to both sides through a factor in a neutral port. Eighteen hundred credits, and a thing the chronicle will not forget." } ] }
       ]
     }
   ]

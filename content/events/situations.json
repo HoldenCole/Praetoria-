@@ -61,7 +61,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} lost the vote and stood the chamber a round afterward. Three credits; the next count will be closer."
+              "text": "{self.name} lost the vote and stood the chamber a round afterward. Three hundred credits; the next count will be closer."
             }
           ]
         }
@@ -149,7 +149,7 @@
             },
             {
               "type": "log",
-              "text": "Under embargo, {self.name} ran goods through a cousin's name and a rim port. Five credits, a reputation, and a harbour-master who knows."
+              "text": "Under embargo, {self.name} ran goods through a cousin's name and a rim port. Five hundred credits, a reputation, and a harbour-master who knows."
             }
           ]
         },
@@ -292,7 +292,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} fed the bench at the house's table. Four credits; the bench votes better fed."
+              "text": "{self.name} fed the bench at the house's table. Four hundred credits; the bench votes better fed."
             }
           ]
         },
@@ -377,7 +377,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent wine to the commons' feast. Three credits; the toasts were to {self.house}."
+              "text": "{self.name} sent wine to the commons' feast. Three hundred credits; the toasts were to {self.house}."
             }
           ]
         },
@@ -448,7 +448,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} promised the wardroom new hulls and put five credits down to prove it."
+              "text": "{self.name} promised the wardroom new hulls and put five hundred credits down to prove it."
             }
           ]
         },
@@ -495,7 +495,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} accepted the factors' gift. Six credits, and a question about whose {era:senator|lord} {self.name} is."
+              "text": "{self.name} accepted the factors' gift. Six hundred credits, and a question about whose {era:senator|lord} {self.name} is."
             }
           ]
         },
@@ -536,7 +536,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the gift and had it entered in the public ledger. Six credits, honestly come by, and the Treasury took note of a house that keeps books."
+              "text": "{self.name} took the gift and had it entered in the public ledger. Six hundred credits, honestly come by, and the Treasury took note of a house that keeps books."
             }
           ]
         }
@@ -669,7 +669,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid bounties instead of sending the gang. Four credits; two companies who came willingly."
+              "text": "{self.name} paid bounties instead of sending the gang. Four hundred credits; two companies who came willingly."
             }
           ]
         }
@@ -1018,7 +1018,7 @@
             },
             {
               "type": "log",
-              "text": "The marque captains paid {self.house} its share of a season's prizes. Six credits, and a flag that is only arguably a pirate's."
+              "text": "The marque captains paid {self.house} its share of a season's prizes. Six hundred credits, and a flag that is only arguably a pirate's."
             }
           ]
         },
@@ -1056,7 +1056,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} looked away from what the marque captains took. Three credits; the factors stopped looking at {self.name}."
+              "text": "{self.name} looked away from what the marque captains took. Three hundred credits; the factors stopped looking at {self.name}."
             }
           ]
         }
@@ -1163,7 +1163,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid to rebuild what the raiders burned. Five credits, and a harbour that believes the house will come when called."
+              "text": "{self.name} paid to rebuild what the raiders burned. Five hundred credits, and a harbour that believes the house will come when called."
             }
           ]
         },
@@ -1182,7 +1182,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} posted a bounty on the raiders' heads. Four credits, and the navy noticed a {era:senator|lord} who wants pirates dead."
+              "text": "{self.name} posted a bounty on the raiders' heads. Four hundred credits, and the navy noticed a {era:senator|lord} who wants pirates dead."
             }
           ]
         },
@@ -1391,7 +1391,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sold two lots of isotopes to a broker who did not say where they were going. Fourteen credits, and a question not asked."
+              "text": "{self.name} sold two lots of isotopes to a broker who did not say where they were going. Fourteen hundred credits, and a question not asked."
             }
           ]
         },
@@ -1429,7 +1429,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sold the isotopes to the chair's arsenal at the chair's price. Eight credits, and a note in the Senate's good books."
+              "text": "{self.name} sold the isotopes to the chair's arsenal at the chair's price. Eight hundred credits, and a note in the Senate's good books."
             }
           ]
         }
@@ -1544,7 +1544,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took in the retainers of a fallen house. Three companies who know what falling costs, and two credits of bread."
+              "text": "{self.name} took in the retainers of a fallen house. Three companies who know what falling costs, and two hundred credits of bread."
             }
           ]
         },
@@ -1611,7 +1611,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sat for the portrait. Four credits, and a face on the wall that will outlast the sitter."
+              "text": "{self.name} sat for the portrait. Four hundred credits, and a face on the wall that will outlast the sitter."
             }
           ]
         },
@@ -1710,7 +1710,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} pensioned the old retainer with a cottage and three credits a year. The household saw it done."
+              "text": "{self.name} pensioned the old retainer with a cottage and three hundred credits a year. The household saw it done."
             }
           ]
         },

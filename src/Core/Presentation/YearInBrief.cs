@@ -98,7 +98,7 @@ public static class YearInBrief
         {
             var a = w.Char(m.A); var b = w.Char(m.B); if (a == null || b == null || (a.HouseId != mine && b.HouseId != mine)) continue;
             var ours = a.HouseId == mine ? a : b; var theirs = ours == a ? b : a;
-            lines.Add(new BriefLine(Family, "good", $"{ours.Name} married {theirs.Name}{(theirs.HouseId != mine ? " of " + Nm(theirs.HouseId) : "")}{(m.Dowry > 0 ? $", with a dowry of {m.Dowry} credits {(m.DowryFrom == mine ? "paid" : "received")}" : "")}.", "dynasty:marriages"));
+            lines.Add(new BriefLine(Family, "good", $"{ours.Name} married {theirs.Name}{(theirs.HouseId != mine ? " of " + Nm(theirs.HouseId) : "")}{(m.Dowry > 0 ? $", with a dowry of {Praetoria.Core.Money.Credits(m.Dowry)} {(m.DowryFrom == mine ? "paid" : "received")}" : "")}.", "dynasty:marriages"));
         }
         foreach (var b in w.Battles.Where(b => b.Turn == year && b.Involves(mine)))
         {
@@ -113,7 +113,7 @@ public static class YearInBrief
         foreach (var j in w.Judgments.Where(j => j.Turn == year && (j.WinnerId == mine || j.LoserId == mine)))
         {
             bool won = j.WinnerId == mine;
-            lines.Add(new BriefLine(Courts, won ? "good" : "warn", $"{(j.Judge.Length > 0 ? j.Judge + ", praetor, ruled" : "It was settled")} {(won ? "for you against " + Nm(j.LoserId) : "against you for " + Nm(j.WinnerId))}{(j.Matter.Length > 0 ? ": " + j.Matter : "")}{(j.Sum > 0 ? $". {j.Sum} credits {(won ? "came to" : "left")} the house" : "")}.", "senate:ladder"));
+            lines.Add(new BriefLine(Courts, won ? "good" : "warn", $"{(j.Judge.Length > 0 ? j.Judge + ", praetor, ruled" : "It was settled")} {(won ? "for you against " + Nm(j.LoserId) : "against you for " + Nm(j.WinnerId))}{(j.Matter.Length > 0 ? ": " + j.Matter : "")}{(j.Sum > 0 ? $". {Praetoria.Core.Money.Credits(j.Sum)} {(won ? "came to" : "left")} the house" : "")}.", "senate:ladder"));
         }
         foreach (var c in w.Counts.Where(c => c.Turn == year && c.HouseId == mine).OrderBy(c => c.RungId, StringComparer.Ordinal))
             lines.Add(new BriefLine(Senate, c.Won ? "good" : "info", $"{c.Name} {(c.Won ? "was elected " : "stood for ")}{c.Rung.ToLowerInvariant()}{(c.Won ? "" : " and was not chosen")}, with {c.Votes} votes.", "senate:ladder"));
@@ -121,7 +121,7 @@ public static class YearInBrief
         // where the treasury stood and stands
         var moved = new List<string>();
         foreach (var r in Counted)
-            if (w.WorldCounters.TryGetValue(DeltaKey(r), out int d) && d != 0) moved.Add($"{Resource.Label(r).ToLowerInvariant()} {house.Treasury.Get(r) - d} → {house.Treasury.Get(r)} ({(d > 0 ? "+" : "−")}{Math.Abs(d)})");
+            if (w.WorldCounters.TryGetValue(DeltaKey(r), out int d) && d != 0) moved.Add($"{Resource.Label(r).ToLowerInvariant()} {Praetoria.Core.Money.Of(r, house.Treasury.Get(r) - d)} → {Praetoria.Core.Money.Of(r, house.Treasury.Get(r))} ({(d > 0 ? "+" : "−")}{Praetoria.Core.Money.Of(r, Math.Abs(d))})");
         if (moved.Count > 0) lines.Add(new BriefLine(Money, house.Treasury.Credits < 0 ? "warn" : "info", "Over the year, with everything you spent and everything that came in: " + string.Join("; ", moved) + ".", "house:ledger"));
         return lines.OrderBy(l => Array.IndexOf(Order, l.Kind)).ToList();
     }

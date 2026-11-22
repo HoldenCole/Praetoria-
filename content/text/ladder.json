@@ -182,7 +182,7 @@
     {
       "id": "the_padded_account",
       "title": "The Padded Account",
-      "body": "Somebody above {self.name} has read the ledgers after all. One account does not come out, and the difference is three credits, and the hand is {self.name}'s. It is a small sum and an old trick. It has been written against {self.name}'s name where such things are written, and the senior clerk is waiting to hear what {self.name} has to say.",
+      "body": "Somebody above {self.name} has read the ledgers after all. One account does not come out, and the difference is three hundred credits, and the hand is {self.name}'s. It is a small sum and an old trick. It has been written against {self.name}'s name where such things are written, and the senior clerk is waiting to hear what {self.name} has to say.",
       "choices": {
         "own_it_and_put_it_right": "Own it, and put it right.",
         "say_it_was_a_slip_of_the_pen": "Say it was a slip of the pen.",

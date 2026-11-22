@@ -7,7 +7,7 @@
       "choices": {
         "take_it_well": "Thank the chamber for its attention.",
         "note_who_voted": "Write down every name that voted it down.",
-        "buy_the_house_a_round": "Stand the chamber a round (3 credits)."
+        "buy_the_house_a_round": "Stand the chamber a round (300 credits)."
       }
     },
     {
@@ -44,7 +44,7 @@
       "title": "The Leader's Table",
       "body": "{self.house} leads a bench, and a bench wants leading. The members are at the door with grievances, requests, and a quarrel about who sits nearest the leader at the vote.",
       "choices": {
-        "a_dinner": "Feed the bench at the house's table (4 credits).",
+        "a_dinner": "Feed the bench at the house's table (400 credits).",
         "the_whip": "Remind them, one by one, who leads.",
         "let_them_talk": "Let them argue it out and take the sense of the room."
       }
@@ -55,7 +55,7 @@
       "body": "The commons of {self.house}'s worlds are holding a feast in the house's honour and have sent up an invitation written in a careful hand. The old blood think the head of a house does not eat in the square.",
       "choices": {
         "attend": "Go down and eat what is put in front of you.",
-        "send_wine": "Send wine (3 credits).",
+        "send_wine": "Send wine (300 credits).",
         "stay_home": "Stay home. A {era:senator|lord} does not eat in the square."
       }
     },
@@ -65,14 +65,14 @@
       "body": "The officers of {self.house}'s fleet have asked {self.name} to the wardroom to drink the house's health. They will also, inevitably, mention hulls.",
       "choices": {
         "raise_the_cup": "Drink the toast standing.",
-        "promise_hulls": "Promise the wardroom new hulls, and mean it (5 credits).",
+        "promise_hulls": "Promise the wardroom new hulls, and mean it (500 credits).",
         "decline": "Send regrets."
       }
     },
     {
       "id": "the_merchants_gift",
       "title": "The Merchants' Gift",
-      "body": "The factors of {self.house}'s worlds have sent a purse and a letter. The letter is about gratitude. The purse is about six credits. Neither mentions what they will want later.",
+      "body": "The factors of {self.house}'s worlds have sent a purse and a letter. The letter is about gratitude. The purse is about six hundred credits. Neither mentions what they will want later.",
       "choices": {
         "accept": "Accept the purse.",
         "refuse": "Send it back unopened.",
@@ -95,7 +95,7 @@
       "choices": {
         "let_the_gang_work": "Let the gang take its quota.",
         "exempt_the_harvest": "Exempt the harvest hands.",
-        "pay_bounties": "Pay bounties instead (4 credits)."
+        "pay_bounties": "Pay bounties instead (400 credits)."
       }
     },
     {
@@ -170,8 +170,8 @@
       "title": "After the Raid",
       "body": "Raiders have plundered {self.house}'s shipping and the harbour is counting what is left. The harbour-master has three requests and the courtesy to make only one of them a demand.",
       "choices": {
-        "rebuild": "Pay to rebuild what was burned (5 credits).",
-        "post_a_bounty": "Post a bounty on the raiders (4 credits).",
+        "rebuild": "Pay to rebuild what was burned (500 credits).",
+        "post_a_bounty": "Post a bounty on the raiders (400 credits).",
         "let_it_lie": "Let it lie."
       }
     },
@@ -220,7 +220,7 @@
       "title": "The Empty Hall",
       "body": "A house has passed out of the rolls of the Reach, and its retainers have come to {self.house}'s gate with a cart, a crest they no longer have the right to, and the house's archive in a chest.",
       "choices": {
-        "take_them_in": "Take them in (2 credits).",
+        "take_them_in": "Take them in (200 credits).",
         "take_the_archive": "Buy the archive from the last clerk.",
         "turn_them_away": "Turn them from the gate."
       }
@@ -228,9 +228,9 @@
     {
       "id": "the_portrait",
       "title": "The Portrait",
-      "body": "A painter of some reputation has offered to take {self.name}'s likeness for the hall. Four credits and three afternoons. The hall, the painter observes, has a gap.",
+      "body": "A painter of some reputation has offered to take {self.name}'s likeness for the hall. Four hundred credits and three afternoons. The hall, the painter observes, has a gap.",
       "choices": {
-        "sit_for_it": "Sit for it (4 credits).",
+        "sit_for_it": "Sit for it (400 credits).",
         "refuse": "Refuse. The gap can wait."
       }
     },
@@ -248,7 +248,7 @@
       "title": "The Old Retainer",
       "body": "The steward's steward, who has served {self.house} since before {self.name} was born, has asked to be let go. He has a cottage in mind. He has also, he mentions, a friend at the capital who owes him a favour.",
       "choices": {
-        "a_pension": "Pension him (3 credits).",
+        "a_pension": "Pension him (300 credits).",
         "a_last_task": "Give him one last task: the letter to the capital."
       }
     }
