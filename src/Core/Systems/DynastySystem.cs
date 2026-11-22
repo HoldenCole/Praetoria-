@@ -274,7 +274,7 @@ public sealed class DynastySystem
             var father = Spouse(world, mother);
             if (father == null || father.Sex != "male") continue;   // births need a mother and a father
             if (world.Characters.Values.Any(k => k.MotherId == mother.Id && k.Age < 2)) continue;   // a year between children
-            if (rng.NextDouble() < BirthChance * CourtshipSystem.Fertility(world, mother, father))   // a warm marriage bears more, a cold one fewer, an estranged one none
+            if (rng.NextDouble() < BirthChance * CourtshipSystem.Fertility(world, mother, father) * (1 + CourtSystem.NursePerSkill * CourtSystem.Skill(world, mother.HouseId, CourtSystem.Nurse)))   // a warm marriage bears more, a cold one fewer, an estranged one none
                 Bear(world, mother, father, rng);
         }
     }
@@ -360,7 +360,7 @@ public sealed class DynastySystem
             FatherId = father.Id,
             BornHouseId = HouseholdSystem.IsFound(lineParent) ? lineParent.BornHouseId : ""   // born into the household, not into the blood
         };
-        world.Characters[child.Id] = child;
+        world.Characters[child.Id] = child; CourtSystem.Born(world, child);
         house?.Members.Add(child.Id);
 
         foreach (var parent in new[] { mother.Id, father.Id })

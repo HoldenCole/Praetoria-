@@ -309,6 +309,18 @@ Measured by `upstart` (three services, four seeds, sixty years). U8 to U11 are c
 | C4 | The chancellor votes; they do not lobby, whip or speak, and cannot move a motion in the head's name. | S | |
 | C5 | Each new post has two events. Nothing is written for a post left empty for years, for two post-holders who fall out, or for a post-holder who is also a magistrate or a commander. | M | |
 
+## The house's court (docs/COURT.md, 2026-11-22)
+
+| # | The gap | Size | Waits on |
+|---|---|---|---|
+| H1 | Only the player's house keeps a court. No other house has a guard, a physician or a tutor, so nothing is harder to do to them for it, and nobody hires away one of yours. | M | |
+| H2 | Those of the commons sworn to the house are not full persons: no family, purse, ambition or profile, and a scene cannot name them. One cannot marry, be freed into a house of their own, betray the house or be avenged. | L | the owner: should a long-serving one become a person (and found a house of clients)? |
+| H3 | Seven positions, the seven named. No chaplain, huntsman, cook, secretary, master of horse, librarian, astrologer, fool or keeper of the seal; the guard is one captain and not a counted body of men. | S | the owner: which further positions |
+| H4 | A position serves the whole house. None is attached to one person of it (a tutor for this child, a guard for that daughter), and the head cannot send the physician to a friend of another house. | M | the owner: the request can be read either way |
+| H5 | Nothing follows a title: no court that comes with a governorship, a consulship or a throne and goes when it goes. The council and the offices' desks are the nearest things. | L | the owner: what a title's court holds |
+| H6 | One scene for each position but the tutor and the shipwright, which have none. Nothing for two of the household who fall out, for one of the commons who knows too much, or for a rival's offer to one of them. | M | |
+| H7 | The court is not carried into the Godot client. | S | |
+
 ## Older, from docs/ROADMAP.md section 3
 
 Kept there in full. In short: the state gives commerce nothing (no tax-farming or contracts), callings lean to commerce,

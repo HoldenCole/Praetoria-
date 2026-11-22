@@ -198,12 +198,13 @@ public static class LifeSystem
             int chance = Math.Max(1, (c.Age - 30) / 4) + (c.Health < 50 ? 6 : 0);
             if (!wasIll && Hash(c.Id + ":ill:" + w.Turn) % 100 < chance)
             {
-                c.Flags.Add(IllChar); c.Health -= 12; if (ours) { w.Log($"{c.Name} is ill."); w.Tell("warn", $"{c.Name} is ill. A physician can be sent for from your own purse", "dynasty", c.Id); }
+                c.Flags.Add(IllChar); c.Health -= 12; if (ours) CourtSystem.Eases(w, c); if (ours) { w.Log($"{c.Name} is ill."); w.Tell("warn", $"{c.Name} is ill. A physician can be sent for from your own purse", "dynasty", c.Id); }
             }
             else if (wasIll)
             {
                 // one of the house with money of their own sends for the physicians without being told
-                if (ours && c.Id != p!.Id && c.Purse >= PhysicianCredits) Physicians(w, c);
+                if (ours && CourtSystem.Treats(w, c)) { }   // the house's own physician, who is paid by the year and not by the visit
+                else if (ours && c.Id != p!.Id && c.Purse >= PhysicianCredits) Physicians(w, c);
                 else if (c.Health >= 45 || Hash(c.Id + ":mend:" + w.Turn) % 3 == 0) { c.Flags.Remove(IllChar); if (ours) w.Log($"{c.Name} is well again."); }
                 else c.Health -= 4;
             }

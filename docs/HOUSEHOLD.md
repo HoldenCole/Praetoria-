@@ -79,6 +79,11 @@ anything is built; or begin nothing new. `HouseholdSystem.StewardPlan` says what
 and what it costs, or why nothing. The plan and the year's turn read the same list (`StewardChoices`), so what is shown
 is what is done unless the treasury changes in between.
 
+## The house's court
+
+Seven small positions (tutor, wet nurse, physician, captain of the guard, duel master, shipwright, master of
+ceremonies) held by the commons sworn to the house or by family. It is its own page: **docs/COURT.md**.
+
 ## The council
 
 What the owner asked (2026-11-22): *"I don't think it needs to show admiral, chancellor, and steward off to the right

@@ -103,6 +103,9 @@ public sealed class House
     public bool DowryFromPurse { get; set; }
     /// <summary>Standing duties handed to members of the house (docs/HOUSEHOLD.md).</summary>
     public List<Duty> Duties { get; set; } = new();
+    /// <summary>The house's own court (docs/COURT.md): the small positions of the household, which follow the house and not any rank it holds.</summary>
+    public List<Retainer> Court { get; set; } = new();
+    public Retainer? Position(string role) => Court.FirstOrDefault(r => r.Role == role);
     /// <summary>People asking to be taken into the house.</summary>
     public List<Petition> Petitions { get; set; } = new();
     public Duty? Duty(string role) => Duties.FirstOrDefault(d => d.Role == role);

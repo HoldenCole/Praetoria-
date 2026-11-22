@@ -74,6 +74,7 @@
         <button class="rung @(_view == "ventures" ? "here" : "")" @onclick='() => _view = "ventures"'>Ventures@(m.Businesses?.Count > 0 ? $" · {m.Businesses.Count}" : "")</button>
         <button class="rung @(_view == "household" ? "here" : "")" @onclick='() => _view = "household"'>The household · @m.Household.Count</button>
         <button class="rung @(_view == "council" ? "here" : "")" data-tab-council @onclick='() => _view = "council"'>The council · @house.Duties.Count of @HouseholdSystem.Roles.Length</button>
+        <button class="rung @(_view == "court" ? "here" : "")" data-tab-court title="The house's own court: tutor, wet nurse, physician, guard, duel master, shipwright, master of ceremonies. It goes with the house whatever rank or office it holds." @onclick='() => _view = "court"'>The court · @house.Court.Count of @CourtSystem.Positions.Length</button>
         <button class="rung @(_view == "purse" ? "here" : "")" @onclick='() => _view = "purse"'>Purses and the will</button>
     </div>
     @if (_view == "household")
@@ -130,6 +131,7 @@
     </div>
     }
     else if (_view == "council") { <div class="dash-grid deck-one"><div class="deck-col"><CouncilPanel /></div></div> }
+    else if (_view == "court") { <div class="dash-grid deck-one"><div class="deck-col"><CourtPanel /></div></div> }
     else if (_view == "purse") { <div class="dash-grid deck-one"><div class="deck-col"><WealthPanel /></div></div> }
     else
     {

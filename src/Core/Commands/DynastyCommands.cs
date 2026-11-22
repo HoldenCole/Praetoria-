@@ -146,6 +146,7 @@ public sealed class AssassinateCommand : ICommand
         if (actor.AptitudeTraits.Contains("Schemer")) odds += 0.10;
         foreach (var guard in w.LivingCharacters().Where(c => c.HouseId == target.HouseId && c.AptitudeTraits.Contains("Paranoid"))) odds -= 0.15;
         if (target.Id == w.ProtagonistId) odds -= 0.10;
+        odds -= CourtSystem.GuardPerSkill * CourtSystem.Skill(w, target.HouseId, CourtSystem.Guard);   // the house's own guard (docs/COURT.md)
         return Math.Clamp(odds, 0.05, 0.9);
     }
 
@@ -177,7 +178,7 @@ public sealed class AssassinateCommand : ICommand
             w.WorldFlags.Add($"assassin:{actor.HouseId}"); if (!player) w.WorldFlags.Add("assassin_any");   // a knife from somewhere, for content to trace
             if (w.House(actor.HouseId) is { } h) h.Legitimacy = Math.Max(0, h.Legitimacy - 5);
             if (player) { w.WorldCounters["seizures"] = w.Counter("seizures") + 1; w.WorldFlags.Add("plot_exposed"); }
-            if (t.Id == w.ProtagonistId || t.HouseId == w.Protagonist?.HouseId) w.WorldFlags.Add("knife_turned");
+            if (t.Id == w.ProtagonistId || t.HouseId == w.Protagonist?.HouseId) { w.WorldFlags.Add("knife_turned"); CourtSystem.Held(w, t); }
         }
         w.WorldCounters["assassinations_attempted"] = w.Counter("assassinations_attempted") + 1;
         _friction.Apply(w, actor, "assassination");

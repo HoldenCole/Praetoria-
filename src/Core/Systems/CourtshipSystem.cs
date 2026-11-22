@@ -464,6 +464,7 @@ public static class CourtshipSystem
             else { ha.Legitimacy += 2; hb.Legitimacy += 2; }
         }
         string? mine = w.Protagonist?.HouseId; bool ourWedding = mine != null && (a.HouseId == mine || b.HouseId == mine);
+        if (ourWedding && w.House(mine!) is { } ourHouse) CourtSystem.Wedding(w, ourHouse);
         // the counter is the player's own house's matches: an honour and the epilogue read it as "bound to yours"
         if (ourWedding) w.WorldCounters["marriages"] = w.Counter("marriages") + 1;
 

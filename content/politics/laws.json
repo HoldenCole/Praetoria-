@@ -195,6 +195,20 @@
         { "id": "retained", "name": "A bar retained", "effects": { "counsel_edge": 2, "counsel_cost": 2 }, "opinions": { "magistrates": 5 } },
         { "id": "every_clerk", "name": "Every clerk in the courts", "effects": { "counsel_edge": 4, "counsel_cost": 5 }, "opinions": { "magistrates": -10, "merchants": -5 } }
       ]
+    },
+    {
+      "id": "household_wages",
+      "name": "The Household's Wages",
+      "category": "The household",
+      "scope": "house",
+      "cost": 1,
+      "cooldown": 6,
+      "description": "What the house pays those of the commons who are sworn to it: its tutor, its physician, its guard and the rest. Well paid, they grow loyal faster and stay through a lean year. Meanly paid, they are cheaper and remember it.",
+      "options": [
+        { "id": "mean", "name": "As little as they will take", "effects": { "court_wage": -1, "court_loyalty": -3 }, "opinions": { "commons": -5 } },
+        { "id": "customary", "name": "The customary wage", "default": true },
+        { "id": "open_handed", "name": "An open hand", "effects": { "court_wage": 1, "court_loyalty": 3 }, "opinions": { "commons": 5, "merchants": -3 } }
+      ]
     }
   ]
 }

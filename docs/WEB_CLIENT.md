@@ -108,6 +108,13 @@ there is. They close when the pointer leaves, on a click elsewhere, on scrolling
 `tools/browser/tooltips.js` checks it in a real browser: a tooltip, one inside it and one inside that, all wholly on the
 screen, closed on leaving, turned upward at the foot of the screen.
 
+## The court's page
+
+House, *The court*: the seven positions of the house's own court as cards (docs/COURT.md). `CourtPanel.razor`;
+`[data-court-panel]`, a card per `[data-position]`, offers under `[data-offers]` with `[data-hire]`, relatives with
+`[data-appoint]`, `[data-dismiss]`. Unpaid wages are an alert that opens it (`house:court`). Picture:
+`tools/browser/shots/court.png`.
+
 ## The council's page
 
 House, *The council*: six posts as cards (docs/HOUSEHOLD.md, "The council"). The outliner has one line that opens it,

@@ -179,6 +179,8 @@ public sealed class RaiseFleetCommand : ICommand
         var h = w.Holding(_holdingId)!;
         var cls = Cls;
         house.Treasury.Spend(cls.Cost);
+        // the house's own shipwright: some of what the hull was to cost in materials is not needed after all (docs/COURT.md)
+        house.Treasury.Materials += cls.Cost.Materials * CourtSystem.ShipwrightPct(w, house.Id) / 100;
         house.Treasury.ClampNonCredit();
 
         var fleet = w.Fleets.Values

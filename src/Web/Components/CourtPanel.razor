@@ -1,0 +1,95 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@* The house's own court (docs/COURT.md; the owner, 2026-11-22: "families (house) should have a small court, but not the same thing
+   as the title court"). Seven small positions that go with the house whatever rank or office it holds. Each is held by one of the
+   commons sworn to the house, or by one of the family. A card for each: what it does, who holds it, who offers, who of the family could. *@
+@{
+    var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var names = c.Names;
+    int wages = CourtSystem.Wages(w, house); var wageLaw = c.Policies.Laws.FirstOrDefault(l => l.Id == "household_wages"); var wageNow = wageLaw != null ? PolicySystem.Option(w, c.Policies, house.Id, wageLaw.Id) : null;
+    int lawWage = PolicySystem.Modifier(w, c.Policies, house.Id, "court_wage"); int paid = house.Court.Where(r => r.KinId.Length == 0).Sum(r => Math.Max(0, r.Wage + lawWage));
+    var kin = w.LivingCharacters().Where(k => k.HouseId == house.Id && k.Id != pid && k.Age >= DynastySystem.AgeOfMajority).OrderBy(k => k.Id, StringComparer.Ordinal).ToList();
+}
+<section class="panel household council court" data-court-panel>
+    <div class="hh-head" data-court><b>The house's court</b> <span class="muted small">Seven small positions that belong to the house and not to any rank or office it holds: they go with you whatever you rise to, and stay if you fall. Each is held by one of the commons sworn to the house, who is paid, or by one of the family, who is not. Nothing has to be filled.</span></div>
+    <div class="small court-sum" data-court-sum>@house.Court.Count of @CourtSystem.Positions.Length filled · wages <b>@Counted.Of(paid, "credit")</b> a year@(wageLaw != null ? $" · {wageLaw.Name}: {wageNow?.Name ?? "unset"}, set in the Laws window" : "")</div>
+    <div class="council-grid">
+    @foreach (var role in CourtSystem.Positions)
+    {
+        var r = house.Position(role); string rl = role; int skill = CourtSystem.Skill(w, house.Id, role);
+        <div class="duty" data-position="@role" data-held="@(r != null ? "1" : "0")">
+            <div class="duty-top">
+                <b>@CourtSystem.Name(role)</b> <span class="muted small">@CourtSystem.Does(role)</span>
+                @if (r != null) { <button class="opt inline tiny" data-dismiss="@role" title="@(r.KinId.Length > 0 ? "Take the place back from them." : "Let them go. Somebody who has served eight years or more is not turned out without the rest of the household seeing it.")" @onclick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Dismiss, rl, string.Empty, names))">@(r.KinId.Length > 0 ? "Take it back" : "Let them go")</button> }
+            </div>
+            @if (r != null)
+            {
+                <div class="suit-who">
+                    <Portrait Id="@(r.KinId.Length > 0 ? r.KinId : r.Id)" Name="@r.Name" Sex="@r.Sex" Age="@r.Age" Accent="@house.AccentColor" Size="34" Opens="@(r.KinId.Length > 0)" />
+                    <div><b>@r.Name</b> <span class="muted">@r.Age · @(r.KinId.Length > 0 ? "of the family" : "of the commons") · @Years(w.Turn - r.Since) in the place</span>
+                        <div class="small"><span title="How good they are at it, of five. It is what the position is worth where it acts. One of the commons grows a point better every six years in the place.">Skill <span class="pips">@Pips(skill)</span></span>
+                            @if (r.KinId.Length == 0) { <span> · wage @Math.Max(0, r.Wage + lawWage) a year · <span class="@(r.Loyalty < 30 ? "bad" : "")" title="How far they are the house's own. It grows each year they are paid and falls hard each year they are not. At 60 they stay through unpaid years; under it, two unpaid years and they go.">loyalty @r.Loyalty</span></span> }
+                            @if (r.UnpaidYears > 0) { <span class="bad"> · unpaid for @Counted.Years(r.UnpaidYears)</span> }</div>
+                        @if (r.From.Length > 0) { <div class="muted small">@Sentence(r.From)</div> }
+                        <div class="small">@Worth(role, skill)</div></div>
+                </div>
+            }
+            else
+            {
+                <div class="muted small">Empty. @Without(role)</div>
+                <div class="court-offers" data-offers="@role">
+                    <div class="muted small">Of the commons, these would take it this year:</div>
+                    @foreach (var o in CourtSystem.Offers(w, names, house, role))
+                    {
+                        string oid = o.Id; var no = CourtSystem.HireRefusal(w, names, p, role, o.Id);
+                        <div class="court-offer">
+                            <Portrait Id="@o.Id" Name="@o.Name" Sex="@o.Sex" Age="@o.Age" Accent="@house.AccentColor" Size="28" Opens="false" />
+                            <div><b>@o.Name</b> <span class="muted">@o.Age</span> <span class="pips" title="Skill, of five">@Pips(o.Skill)</span><div class="muted small">@Sentence(o.From)</div></div>
+                            <button class="opt inline tiny" data-hire="@role" disabled="@(no != null)" title="@(no ?? "Swear them to the house. The wage is paid each year from the treasury.")" @onclick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Hire, rl, oid, names))">Take on · @Math.Max(0, o.Wage + lawWage) a year</button>
+                        </div>
+                    }
+                </div>
+                <div class="suit-acts" data-kin-for="@role"><span class="muted small" title="One of the family holds a place for nothing, and is the better disposed to you for being given it. They are as good at it as their own training makes them.">Or one of the family</span>
+                    @{ var could = kin.Where(k => CourtSystem.AppointRefusal(w, p, role, k) == null).OrderByDescending(k => CourtSystem.KinFit(k, role)).ThenBy(k => k.Id, StringComparer.Ordinal).Take(4).ToList(); }
+                    @if (could.Count == 0) { <span class="muted small">nobody free and willing</span> }
+                    @foreach (var k in could) { string kid = k.Id; <button class="opt inline tiny" data-appoint="@role" @onclick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Appoint, rl, kid, names))">@First(k.Name) · skill @CourtSystem.KinFit(k, role)</button> }
+                </div>
+            }
+        </div>
+    }
+    </div>
+</section>
+
+@code {
+    // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself.
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+    private static string First(string name) => name.Split(' ')[0];
+    private static string Sentence(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..] + ".";
+    private static string Years(int n) => n <= 0 ? "this year" : n == 1 ? "a year" : $"{n} years";
+    private static string Pips(int n) => new string('●', Math.Clamp(n, 0, CourtSystem.MaxSkill)) + new string('○', CourtSystem.MaxSkill - Math.Clamp(n, 0, CourtSystem.MaxSkill));
+    /// <summary>What the place is worth this year, in the figure the rule uses.</summary>
+    private static string Worth(string role, int s) => role switch
+    {
+        CourtSystem.Tutor => s >= 4 ? "Every child of the house learns as from the best tutor money buys." : "Every child of the house learns as from a paid tutor.",
+        CourtSystem.Nurse => $"Children come to the house {(int)Math.Round(100 * CourtSystem.NursePerSkill * s)}% more readily.",
+        CourtSystem.Physician => $"Somebody ill is well again within the year {Math.Min(100, 10 * (4 + s))} times in a hundred, and is less hurt by it meanwhile.",
+        CourtSystem.Guard => $"A knife meant for one of the house is {(int)Math.Round(100 * CourtSystem.GuardPerSkill * s)} points in a hundred less likely to find them.",
+        CourtSystem.DuelMaster => "Each year the least practised of the young is drilled, and may be the better with a pistol or a line of battle for it.",
+        CourtSystem.Shipwright => $"{CourtSystem.ShipwrightPctPerSkill * s}% of the materials of every hull laid down come back, and fleets in port gain {s} readiness a year.",
+        CourtSystem.Ceremonies => $"The old blood think {(s >= 4 ? 2 : 1)} the better of the house each year, and a wedding of the house adds to its legitimacy.",
+        _ => ""
+    };
+    private static string Without(string role) => role switch
+    {
+        CourtSystem.Tutor => "Each child is taught only by a tutor paid for one at a time.",
+        CourtSystem.Nurse => "The mothers of the house nurse their own.",
+        CourtSystem.Physician => "The sick of the house pay a physician from their own purse, if they have one.",
+        CourtSystem.Guard => "Nobody stands between the house and a knife.",
+        CourtSystem.DuelMaster => "The young learn arms where they can.",
+        CourtSystem.Shipwright => "The yards run themselves.",
+        CourtSystem.Ceremonies => "Weddings and feasts are ordered by whoever is to hand.",
+        _ => ""
+    };
+}

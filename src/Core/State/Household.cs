@@ -199,3 +199,29 @@ public sealed class OfficeBusiness
     /// <summary>An audit or an appeal has looked at this already.</summary>
     public bool Seen { get; set; }
 }
+
+/// <summary>One of a house's own court (docs/COURT.md): somebody who holds a small position in the household and goes where the house
+/// goes, whatever rank it holds. Most are of the commons, sworn to the house and paid by it; a position may be held by one of the
+/// family, and then <see cref="KinId"/> says who and the rest of this is theirs.</summary>
+public sealed class Retainer
+{
+    public string Id { get; set; } = "";
+    /// <summary>The position held (CourtSystem.Positions).</summary>
+    public string Role { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string Sex { get; set; } = "male";
+    public int Age { get; set; } = 30;
+    /// <summary>1 to 5. It grows a step every six years in the place.</summary>
+    public int Skill { get; set; } = 1;
+    public int Since { get; set; }
+    /// <summary>Credits a year from the treasury. One of the family is paid nothing for it.</summary>
+    public int Wage { get; set; }
+    /// <summary>0 to 100: paid and kept, it rises; unpaid, it falls, and low enough they go.</summary>
+    public int Loyalty { get; set; } = 40;
+    /// <summary>Where they come from, in a line.</summary>
+    public string From { get; set; } = "";
+    /// <summary>One of the family who holds the position, or "" for one of the commons.</summary>
+    public string KinId { get; set; } = "";
+    public int UnpaidYears { get; set; }
+}
+

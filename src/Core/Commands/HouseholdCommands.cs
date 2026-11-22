@@ -83,6 +83,34 @@ public sealed class DelegateCommand : ICommand
     public void Execute(CommandContext ctx) { var w = ctx.World; HouseholdSystem.Assign(w, w.Char(ActorId)!, _role, _holderId.Length == 0 ? null : w.Char(_holderId), _reserve); }
 }
 
+/// <summary>The house's own court (docs/COURT.md). <see cref="Hire"/>: swear one of the commons who offers to a position;
+/// <see cref="Appoint"/>: give a position to one of the family; <see cref="Dismiss"/>: let whoever holds it go.</summary>
+public sealed class RetainerCommand : ICommand
+{
+    public const string Hire = "hire", Appoint = "appoint", Dismiss = "dismiss";
+    private readonly string _what, _role, _who; private readonly Creation.NameCatalog _names;
+    public RetainerCommand(string actorId, string what, string role, string who, Creation.NameCatalog names) { ActorId = actorId; _what = what; _role = role; _who = who ?? ""; _names = names; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} {_role} {_who}".Trim();
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId);
+        return _what switch
+        {
+            Hire => CourtSystem.HireRefusal(w, _names, head, _role, _who),
+            Appoint => CourtSystem.AppointRefusal(w, head, _role, w.Char(_who)),
+            Dismiss => CourtSystem.DismissRefusal(w, head, _role),
+            _ => "no such thing"
+        };
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId)!;
+        if (_what == Hire) CourtSystem.Hire(w, _names, head, _role, _who); else if (_what == Appoint) CourtSystem.Appoint(w, head, _role, w.Char(_who)!); else CourtSystem.Dismiss(w, head, _role);
+    }
+}
+
 /// <summary>Tell whoever holds a post of the council what to do with it (<see cref="HouseholdSystem.Instructions"/>): whom the envoy
 /// calls on, whom the spymaster watches, how the chancellor votes, what the advocate settles.</summary>
 public sealed class PostInstructionCommand : ICommand

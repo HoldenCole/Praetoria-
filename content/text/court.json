@@ -1,0 +1,74 @@
+{
+  "//": "Text for content/events/court.json.",
+  "texts": [
+    {
+      "id": "the_physicians_cure",
+      "title": "The Physician's Cure",
+      "body": "{patient.name} is up and walking in the long gallery, thinner than before and in a bad temper, which the house's physician says is the surest sign. A month ago nobody in the household would have laid money on it.",
+      "choices": {
+        "thank_the_physician": "Thank the physician before the household.",
+        "take_it_as_owed": "It is what a physician is kept for.",
+        "open_the_dispensary": "Have them see whoever comes to the gate."
+      }
+    },
+    {
+      "id": "the_guard_between",
+      "title": "The Guard Between",
+      "body": "It was over before anyone in the hall understood it had begun. A man who should not have been in the passage, a blade, and one of the house's guard between it and {spared.name}. The guard has a cut along the forearm and wants to know who let the man in.",
+      "choices": {
+        "reward_the_guard": "A year's wage over again, in front of the rest.",
+        "double_the_watch": "Double the watch.",
+        "say_nothing": "It was their work. Say nothing."
+      }
+    },
+    {
+      "id": "the_nurse_at_the_cradle",
+      "title": "The Nurse at the Cradle",
+      "body": "There is a child in the house again, and the nurse has it. She has taken over two rooms, three servants and the kitchen's best hours without asking anybody, and the child is thriving.",
+      "choices": {
+        "keep_her_close": "Give her a room by the nursery and a place at table.",
+        "the_mother_nurses": "The mother nurses her own, as the old families do.",
+        "leave_it_to_the_women": "Leave the nursery to those who understand it."
+      }
+    },
+    {
+      "id": "grown_old_in_service",
+      "title": "Grown Old in the House's Service",
+      "body": "One of the household came to the house young and is not young now. The work is still done, more slowly, and with help that nobody mentions. The rest of the household is watching to see what the house does with people when it has had the best of them.",
+      "choices": {
+        "promise_a_pension": "Nobody who gave the house their life is turned out.",
+        "keep_them_on": "The place is theirs while they can do it.",
+        "find_someone_younger": "Begin to ask after younger hands."
+      }
+    },
+    {
+      "id": "the_duel_masters_pupil",
+      "title": "The Duel Master's Pupil",
+      "body": "The duel master has had {pupil.name} in the yard at first light every day for a year, and says there is something there now: not a duellist, perhaps, but somebody who will not die of surprise.",
+      "choices": {
+        "praise_them": "Watch a morning's drill, and say it was well done.",
+        "ask_for_more": "Tell the duel master they are being let off lightly.",
+        "leave_them_to_it": "Stay away from the yard."
+      }
+    },
+    {
+      "id": "the_feast_well_ordered",
+      "title": "The Day Well Ordered",
+      "body": "The master of ceremonies has the whole day on a single sheet: who walks before whom, which house sits above the salt, when the old families are to be seen arriving and by whom. It is the kind of thing nobody notices unless it is done badly.",
+      "choices": {
+        "spare_nothing": "Spare nothing.",
+        "as_it_was_ordered": "Let it run as it was ordered.",
+        "cut_it_short": "Strike two courses and send the musicians home."
+      }
+    },
+    {
+      "id": "the_retainer_who_left",
+      "title": "One of the Household Has Gone",
+      "body": "The wages had not been paid for two years, and one of those sworn to the house has taken their box and gone. They said nothing against the house on the way out. The others watched them go down the drive.",
+      "choices": {
+        "pay_what_is_owed": "Make up everybody's arrears to the day.",
+        "let_them_go": "Anyone who leaves over two lean years is no loss."
+      }
+    }
+  ]
+}

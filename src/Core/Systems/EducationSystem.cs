@@ -286,7 +286,7 @@ public static class EducationSystem
         // thing they are properly good at, not five they have barely met
         var skills = GroupSkills(course).OrderByDescending(s => Ceiling(c, s)).ThenBy(s => s, StringComparer.Ordinal).ToArray();
         string skill = c.Age % 3 == 2 && skills.Length > 1 ? skills[1] : skills[0];
-        return (skill, (against ? AgainstBentPoints : BentPoints) + TutorPoints(c.Tutor), against);
+        return (skill, (against ? AgainstBentPoints : BentPoints) + Math.Max(TutorPoints(c.Tutor), CourtSystem.TutorPoints(w, c.HouseId)), against);   // a tutor paid for this child, or the house's own
     }
 
     public static void Tick(World w)
