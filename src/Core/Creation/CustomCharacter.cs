@@ -502,7 +502,7 @@ public static class CharacterWorkshop
                 Skills = { ["administration"] = 3, ["economics"] = 3, ["charisma"] = 1 }, HouseName = "Crane", Accent = "#2EC27E", Origin = "new", Title = "landless", Legitimacy = 5, Party = "factors", PatronId = "lucent",
                 Treasury = { ["credits"] = 45, ["materials"] = 4, ["manpower"] = 0, ["influence"] = 1 }, Ventures = { new VentureSpec { Kind = "trading_company", System = "aurelia_prime" } }
             }),
-            ("The Upstart", "Nothing but a name nobody knows: no land, no seat, no patron, twenty credits, and a mother who kept another house's books. Everything is still to do.", new CustomCharacter
+            ("The Upstart", "Nothing but a name nobody knows: no land, no seat, no patron, two thousand credits, and a mother who kept another house's books. Everything is still to do.", new CustomCharacter
             {
                 Name = "Tam Corvane", Sex = "male", Age = 22, Track = "stewardship", Rank = 0, Ambition = Amb("restore_house_fortunes"), Nature = { Nat("Ambitious") }, Background = content.Backgrounds.ById("clerks_child") != null ? "clerks_child" : "",
                 Skills = { ["administration"] = 2, ["economics"] = 1 }, HouseName = "Corvane", Accent = "#8AC926", Origin = "new", Title = "landless", Legitimacy = 5,

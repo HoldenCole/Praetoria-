@@ -64,7 +64,7 @@ public static class LifeSystem
         w.Log($"{who.Name} takes a season away from it all.");
     }
     public static string? PhysicianRefusal(World w, Character? who) =>
-        who?.Alive != true ? "no such person" : who.Purse < PhysicianCredits ? $"a physician is paid {PhysicianCredits} from a purse, and this one holds {who.Purse}: move coin in House, under Purses and the will" : who.Health >= Cap(who.Age) && !who.Flags.Contains(IllChar) ? "there is nothing for them to treat" : null;
+        who?.Alive != true ? "no such person" : who.Purse < PhysicianCredits ? $"a physician is paid {Money.Show(PhysicianCredits)} from a purse, and this one holds {Money.Show(who.Purse)}: move coin in House, under Purses and the will" : who.Health >= Cap(who.Age) && !who.Flags.Contains(IllChar) ? "there is nothing for them to treat" : null;
     /// <summary>The head sends their own physicians to someone of the house, and pays for it out of their own purse.</summary>
     public static string? SendRefusal(World w, Character? head, Character? who) =>
         head?.Alive != true || who?.Alive != true ? "no such person" : who.Id == head.Id ? "see your own physicians" : who.HouseId != head.HouseId ? "not of your house"

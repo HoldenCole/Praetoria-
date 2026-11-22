@@ -89,8 +89,8 @@
                   Title="Readiness under 50 fights badly. Loyalty under 30 will not sail, under 15 deserts. Supply under 40 fights at four-fifths." />
             <Tile Label="Helium-3" Value="@(dry ? "Dry" : fuelBurn == 0 ? he3.ToString() : fuel.Years < 0 ? "Holds" : fuelYears == 0 ? "This year" : fuelYears + (fuelYears == 1 ? " year" : " years"))" Tone="@(dry ? "bad" : fuelBurn > 0 && fuelYears < 3 ? "warn" : "good")"
                   Note="@(dry ? "no fleet may sail" : fuel.Says)" Title="@($"Fleets burn helium-3 every year: one for every {c.Fleets.FuelHullsPerUnit} hulls. The figure is how long the tanks last when what the house brings up in a year is set against what its fleets burn. With none, readiness falls and nothing sails.")" />
-            <Tile Label="Upkeep" Value="@(upkeep + " a year")" Share="@upkeepPct" Tone="@(net < 0 ? "bad" : upkeepPct > 50 ? "warn" : "")"
-                  Note="@((upkeep > gross ? $"more than the {gross} the house takes in before it" : $"{upkeepPct}% of the {gross} the house takes in before it") + (net < 0 ? " · the house is losing money" : ""))" Title="What the fleets cost in credits each year, against the house's income before they are paid." />
+            <Tile Label="Upkeep" Value="@(Money.Show(upkeep) + " a year")" Share="@upkeepPct" Tone="@(net < 0 ? "bad" : upkeepPct > 50 ? "warn" : "")"
+                  Note="@((upkeep > gross ? $"more than the {Money.Show(gross)} the house takes in before it" : $"{upkeepPct}% of the {Money.Show(gross)} the house takes in before it") + (net < 0 ? " · the house is losing money" : ""))" Title="What the fleets cost in credits each year, against the house's income before they are paid." />
             <Tile Label="Nearest danger" Value="@(anyDanger ? danger.f!.Strength + (danger.f!.Strength == 1 ? " hull" : " hulls") : "None near")" Tone="@(!anyDanger ? "good" : danger.j.d <= 1 ? "bad" : "warn")"
                   Note="@(anyDanger ? $"{Who(danger.f!)} · {JumpWord(danger.j.d)} {danger.j.from}" : "nothing hostile within three jumps")" Title="The nearest fleet of raiders or of a house you are at war with, counted in jumps from the nearest world of yours." />
             <Tile Label="Wars" Value="@(m.Wars.Count == 0 ? "Peace" : m.Wars.Count == 1 ? m.Wars[0].EnemyName : m.Wars.Count + " wars")" Tone="@(m.Wars.Count == 0 ? "good" : "bad")"
@@ -154,7 +154,7 @@
                             <div class="tally"><span class="for" style="width:@(100 * warAbroad.ScoreReach / tot)%"></span><span class="against" style="width:@(100 * warAbroad.ScoreNation / tot)%"></span></div>
                             <div class="kv"><span>The tally</span><b>@warAbroad.ScoreReach : @warAbroad.ScoreNation <i class="muted">· @warAbroad.Threshold clear subdues them; @warAbroad.Threshold the other way and the chair buys peace</i></b></div>
                             @if (warAbroad.OnMap) { <div class="muted small">@(G.World!.Nation(warAbroad.Id) is { WarOf.Length: > 0 } own ? $"Only {G.World!.House(own.WarOf)?.Name ?? own.WarOf} is at war with them: no other house's fleets will fight theirs, and theirs come only for that house." : "Every house of the Reach is at war with them.") Sail to their worlds by the lanes. A fleet that raids sacks a world in a season and leaves it; one that takes and holds besieges it. Their host beaten counts two; a world of the Reach freed, or one of theirs taken, three; their capital, @warAbroad.Capital, ends it. A squadron of the Reach beaten counts one for them and a world occupied three. The house that does most takes the triumph.</div> }
-                            else { <div class="muted small">Each victory abroad brings @warAbroad.Wealth credits of plunder home and a point of valour to a commander at the front; the house whose fleets win most takes the triumph.</div> }</div>
+                            else { <div class="muted small">Each victory abroad brings @Money.Show(warAbroad.Wealth) credits of plunder home and a point of valour to a commander at the front; the house whose fleets win most takes the triumph.</div> }</div>
                     }
                     @foreach (var n in nations)
                     {
@@ -185,7 +185,7 @@
                             }
                             <div class="nrow"><span class="muted small">strength</span><span class="mbar"><i style="width:@(100 * n.Strength / maxStr)%; background:@(n.AtWar ? "#E63946" : n.SubduedUntil > 0 ? "#2EC27E" : "#C9D1DC")"></i></span><b title="The hulls it can put in the field. The bar is against the strongest nation at its full strength.">@n.Strength hulls</b>
                                 <span class="pill small @(n.Disposition <= -30 ? "warn" : n.Disposition >= 20 ? "good" : "")" title="Their regard for the Reach, from −100 to +100. An aggressive or decaying nation raids the rim once its regard is at −20 or lower.">regard @(n.Disposition >= 0 ? "+" : "")@n.Disposition</span>
-                                @if (n.AtWar) { <span class="pill small warn">at war</span> } else if (n.SubduedUntil > 0) { <span class="pill small good">pays @n.Tribute a year until year @n.SubduedUntil</span> } @if (n.RaidedLately) { <span class="pill small warn">raiding the rim</span> }@if (n.Wars > 0 && !n.AtWar) { <span class="pill small">@Counted.Wars(n.Wars) fought</span> }
+                                @if (n.AtWar) { <span class="pill small warn">at war</span> } else if (n.SubduedUntil > 0) { <span class="pill small good">pays @Money.Show(n.Tribute) a year until year @n.SubduedUntil</span> } @if (n.RaidedLately) { <span class="pill small warn">raiding the rim</span> }@if (n.Wars > 0 && !n.AtWar) { <span class="pill small">@Counted.Wars(n.Wars) fought</span> }
                                 @if (!n.AtWar && n.SubduedUntil == 0 && !n.Fallen) { <button class="opt inline tiny" disabled="@(n.War.Refusal != null)" title="@(n.War.Refusal ?? "move in the Senate that the Reach make war upon them (3 influence)")" @onclick="() => MoveWar(n.Id)">@n.War.Label</button> }</div>
                         </div>
                     }
@@ -297,7 +297,7 @@
                 var recall = new RecallHiredFleetCommand(pid, hired.Id); string? recallNo = recall.Refusal(G.Ctx); string hiredId = hired.Id, hiredName = hired.Name, employerName = w.House(hired.OwnerId)?.Name ?? hired.OwnerId;
                 <div class="fcard" data-hired-out="@hired.Id">
                     <div class="hc-head"><Icon Name="fleet" Size="18" /><div><b>@hired.Name</b> <span class="pill small status">out on hire</span> <span class="muted small">@fs.Describe(hired) · in the pay of @employerName · @(hired.IsAway ? "beyond the Reach" : hired.Moving ? "under way" : "at " + (w.Galaxy?.System(hired.SystemId)?.Name ?? hired.SystemId))</span></div></div>
-                    <div class="small">@employerName pays @MercenarySystem.PayOf(hired) credits a year for it (@MercenarySystem.CreditsPerHull a hull) and keeps and fuels it. It sails and fights at @employerName's orders; hulls it loses are lost. @Counted.Years(MercenarySystem.YearsLeft(w, hired)) of its term are left, and it comes home sooner if that house's wars end or the pay is not found.</div>
+                    <div class="small">@employerName pays @Money.Show(MercenarySystem.PayOf(hired)) credits a year for it (@Money.Show(MercenarySystem.CreditsPerHull) a hull) and keeps and fuels it. It sails and fights at @employerName's orders; hulls it loses are lost. @Counted.Years(MercenarySystem.YearsLeft(w, hired)) of its term are left, and it comes home sooner if that house's wars end or the pay is not found.</div>
                     <button class="opt inline tiny" data-recall-hired="@hired.Id" disabled="@(recallNo != null)" title="@(recallNo ?? $"The contract is broken: {employerName}'s head thinks {MercenarySystem.BreakRegard} the worse of you, and your house is thought the less of (legitimacy −{MercenarySystem.BreakLegitimacy}). The company is yours again at once and sails for home.")" @onclick="() => AskRecallHired(hiredId, hiredName, employerName)">Call it back</button>
                 </div>
             }
@@ -306,7 +306,7 @@
                 var fleet = w.Fleets[f.Id];
                 <div class="fcard @(f.Loyalty < 30 || f.Supply < 40 ? "warn" : "")">
                     <div class="hc-head"><Icon Name="fleet" Size="18" /><div><b>@f.Name</b> <span class="pill small status @StatusTone(f)">@StatusOf(f)</span> <span class="muted small">@f.Composition · @(f.Away.Length > 0 ? $"beyond the Reach · against {f.AwayName} · {AwayWord(f.AwayPhase)} ({f.AwayTurns})" : f.Moving ? $"→ {f.Destination} ({f.Eta})" : f.Where)@(f.Office ? " · held by office" : "")</span></div></div>
-                    @if (f.Away.Length > 0) { <div class="kv good"><span>Expedition</span><b>@f.ExpeditionWins victor@(f.ExpeditionWins == 1 ? "y" : "ies")@(f.Plunder > 0 ? $" · {f.Plunder} credits of plunder aboard" : "") · @(f.AwayPhase == "fighting" ? "fighting in their space" : f.AwayPhase == "home" ? "sailing home" : "outward bound")</b></div> }
+                    @if (f.Away.Length > 0) { <div class="kv good"><span>Expedition</span><b>@f.ExpeditionWins victor@(f.ExpeditionWins == 1 ? "y" : "ies")@(f.Plunder > 0 ? $" · {Money.Show(f.Plunder)} credits of plunder aboard" : "") · @(f.AwayPhase == "fighting" ? "fighting in their space" : f.AwayPhase == "home" ? "sailing home" : "outward bound")</b></div> }
                     <div class="gauges">
                         <div class="gauge" title="@($"Readiness, 0 to 100: a fleet at 100 fights at full weight, one at 0 at half. Each year at anchor it recovers {c.Fleets.ReadinessRecovery}; each year under way it falls {c.Fleets.ReadinessDecayMoving}. A battle won costs {c.Fleets.WinnerReadinessCost} and one lost {c.Fleets.LoserReadinessCost}. Dry tanks cost {FleetSystem.FuelReadinessLoss} a year, unpaid upkeep {FleetSystem.UnpaidReadinessLoss}, and short supply 5. A refit at a world of yours puts it back to 100 at once.")"><span>Readiness</span><i><b style="width:@f.Readiness%" class="@(f.Readiness < 50 ? "low" : "")"></b></i><em>@f.Readiness</em></div>
                         <div class="gauge" title="the crews' loyalty: under 30 they will not sail, under 15 they desert"><span>Loyalty</span><i><b style="width:@f.Loyalty%" class="@(f.Loyalty < 30 ? "low" : "")"></b></i><em>@f.Loyalty</em></div>
@@ -368,7 +368,7 @@
                                 @foreach (var em in employers.Take(8))
                                 {
                                     string? hireNo = new HireOutFleetCommand(pid, f.Id, em.Id).Refusal(G.Ctx); string emId = em.Id, fid = f.Id;
-                                    <button class="opt" data-hire-to="@em.Id" disabled="@(hireNo != null)" title="@(hireNo ?? MercenarySystem.Says(w, fleet, em))" @onclick="() => AskHire(fid, emId)">To @em.Name · @MercenarySystem.PayOf(fleet) credits a year</button>
+                                    <button class="opt" data-hire-to="@em.Id" disabled="@(hireNo != null)" title="@(hireNo ?? MercenarySystem.Says(w, fleet, em))" @onclick="() => AskHire(fid, emId)">To @em.Name · @Money.Show(MercenarySystem.PayOf(fleet)) credits a year</button>
                                     @if (hireNo != null) { <span class="muted small">@hireNo</span> }
                                 }
                             </details>
@@ -468,7 +468,7 @@
         G.Ask($"Call {fleetName} back from {employerName}?", $"The contract is broken: {employerName}'s head thinks {MercenarySystem.BreakRegard} the worse of you, and your house is thought the less of (legitimacy −{MercenarySystem.BreakLegitimacy}). The company is yours again at once and sails for home.", "Call it back", () => G.Execute(new RecallHiredFleetCommand(pid, fleetId)));
     }
     private static string SavedSays(Praetoria.Core.State.Resources r)
-    { var parts = Praetoria.Core.State.Resource.All.Where(k => r.Get(k) != 0).Select(k => r.Get(k) == 1 && k == Praetoria.Core.State.Resource.Credits ? "1 credit" : r.Get(k) + " " + Praetoria.Core.State.Resource.Label(k)).ToList(); return parts.Count == 0 ? "nothing" : string.Join(" and ", parts); }
+    { var parts = Praetoria.Core.State.Resource.All.Where(k => r.Get(k) != 0).Select(k => Money.Of(k, r.Get(k)) + " " + Praetoria.Core.State.Resource.Label(k)).ToList(); return parts.Count == 0 ? "nothing" : string.Join(" and ", parts); }
     [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }

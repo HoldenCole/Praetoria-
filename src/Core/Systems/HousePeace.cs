@@ -71,7 +71,7 @@ public static class HousePeace
         {
             var p = Payable(w, asker, owed); string got = Paid(p);
             terms.Add(new Term(White, "", "A white peace", "Each side keeps what it holds and nothing is paid.", suing, suing ? "" : $"{them} is ahead by {-lead}: it wants something for stopping"));
-            terms.Add(new Term(Tribute, "", $"Peace, paying tribute ({owed})", $"You owe {owed} ({-lead} behind × {rules.TributePerScore})" + (p.unpaid == 0 ? $" and pay {got}." : got.Length > 0 ? $": you can pay {got}, and the other {p.unpaid} is let go." : ": the treasury is empty, and it is let go."),
+            terms.Add(new Term(Tribute, "", $"Peace, paying tribute ({Money.Show(owed)})", $"You owe {Money.Show(owed)} ({-lead} behind × {Money.Show(rules.TributePerScore)})" + (p.unpaid == 0 ? $" and pay {got}." : got.Length > 0 ? $": you can pay {got}, and the other {Money.Show(p.unpaid)} is let go." : ": the treasury is empty, and it is let go."),
                 listens, listens ? "" : deaf));
             foreach (var h in Cedable(w, asker).OrderBy(h => h.Population).Take(4))
                 terms.Add(new Term(Cede, h.Id, "Peace, giving up " + h.Name, $"You give {h.Name} ({Presentation.Census.Say(Presentation.Census.Citizens(w, h))} citizens) to {them} and the war ends. A house that smells victory will still take a world to stop.", true, ""));
@@ -92,7 +92,7 @@ public static class HousePeace
             from.Add(Resource.Credits, -p.credits); to.Add(Resource.Credits, p.credits);
             foreach (var (g, n) in p.goods) { from.Add(g, -n); to.Add(g, n); }
             string got = Paid(p);
-            w.Log(got.Length > 0 ? $"By the terms of the peace, {bn} pays {an} {got} in tribute{(p.unpaid > 0 ? $" ({p.unpaid} more was owed and could not be found)" : "")}." : $"By the terms of the peace {bn} owed {an} {owed} in tribute, and had nothing to pay it with.");
+            w.Log(got.Length > 0 ? $"By the terms of the peace, {bn} pays {an} {got} in tribute{(p.unpaid > 0 ? $" ({Money.Show(p.unpaid)} more was owed and could not be found)" : "")}." : $"By the terms of the peace {bn} owed {an} {Money.Show(owed)} in tribute, and had nothing to pay it with.");
         }
         else if (kind == Cede && w.Holding(holdingId) is { } h && h.OwnerId == behind) fleets.CedeWorld(w, h, behind, ahead);
         fleets.MakePeace(w, asker, other, terms: false);

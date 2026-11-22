@@ -133,8 +133,8 @@ public sealed partial class HouseholdSystem
             if (found != null && skill + informers >= 1)
             {
                 var thief = w.Char(found.HolderId)!; thief.Flags.Add(SkimmingChar); Mark(w, SkimsFlag);
-                w.Log($"{holder.Name} has been through the books of {house.Name}: {Counted.Of(found.Skimmed, "credit")} have gone missing under {thief.Name}.");
-                d.LastReport = $"Found {Counted.Of(found.Skimmed, "credit")} missing under {thief.Name}, the {RoleName(found.Role).ToLowerInvariant()}.";
+                w.Log($"{holder.Name} has been through the books of {house.Name}: {Money.Credits(found.Skimmed)} have gone missing under {thief.Name}.");
+                d.LastReport = $"Found {Money.Credits(found.Skimmed)} missing under {thief.Name}, the {RoleName(found.Role).ToLowerInvariant()}.";
             }
             else d.LastReport = "Read the books of everyone who holds a post of yours, and found nothing out of place.";
             return;
@@ -143,7 +143,7 @@ public sealed partial class HouseholdSystem
         {
             var theirs = w.Fleets.Values.Where(f => f.OwnerId == target.Id).OrderBy(f => f.Id, StringComparer.Ordinal).ToList(); foreach (var f in theirs) Fresh(f, 100);
             int regard = w.GetRelationship(theirHead.Id, head.Id)?.Disposition ?? 0; theirHead.Flags.Add(SpyTargetChar);
-            d.LastReport = $"{target.Name}: {Counted.Hulls(theirs.Sum(f => f.Strength))} under sail, about {target.Treasury.Credits} credits banked, and {theirHead.Name} thinks {regard:+0;-0;0} of you"
+            d.LastReport = $"{target.Name}: {Counted.Hulls(theirs.Sum(f => f.Strength))} under sail, about {Money.Credits(target.Treasury.Credits)} banked, and {theirHead.Name} thinks {regard:+0;-0;0} of you"
                 + (w.EnemiesOf(target.Id).Any() ? $". At war with {string.Join(", ", w.EnemiesOf(target.Id).Select(e => w.House(e)?.Name ?? e).Take(3))}." : ".");
             Mark(w, SpyReportFlag);
             // an informer in another house may be found: the odds fall with the spymaster's craft and rise with the other head's
@@ -181,7 +181,7 @@ public sealed partial class HouseholdSystem
             if (nation.AtWar) { d.LastReport = $"{name} is at war with the Reach, and receives nobody."; return; }
             if (nation.Disposition >= NationCap) { d.LastReport = $"{name} thinks as well of the Reach as an envoy can make it ({nation.Disposition:+0;-0;0})."; return; }
             house.Treasury.Credits -= cost; int by = 1 + skill / 2; nation.Disposition = Math.Min(NationCap, nation.Disposition + by);
-            d.LastReport = $"Called on {name} with gifts ({Counted.Of(cost, "credit")}). It thinks {nation.Disposition:+0;-0;0} of the Reach now."; return;
+            d.LastReport = $"Called on {name} with gifts ({Money.Credits(cost)}). It thinks {nation.Disposition:+0;-0;0} of the Reach now."; return;
         }
         var target = d.Favour == WithPatron && house.PatronId.Length > 0 ? w.House(house.PatronId) : d.Favour.StartsWith(HousePrefix, StringComparison.Ordinal) ? w.House(d.Favour[HousePrefix.Length..]) : EnvoyChoice(w, house, head);
         var theirHead = target != null ? Economy.HeadOf(w, target) : null;
@@ -198,7 +198,7 @@ public sealed partial class HouseholdSystem
         }
         Regard(w, theirHead, head, Math.Min(gain, EnvoyCap - before)); int after = w.GetRelationship(theirHead.Id, head.Id)?.Disposition ?? 0;
         if (before < EnvoyWarmAt && after >= EnvoyWarmAt) { Mark(w, EnvoyWarmFlag); w.Log($"{holder.Name} has made a friend of {theirHead.Name} of {target.Name} for {house.Name}."); }
-        d.LastReport = $"Called on {theirHead.Name} of {target.Name} with gifts ({Counted.Of(cost, "credit")}). They think {after:+0;-0;0} of you now, from {before:+0;-0;0}.";
+        d.LastReport = $"Called on {theirHead.Name} of {target.Name} with gifts ({Money.Credits(cost)}). They think {after:+0;-0;0} of you now, from {before:+0;-0;0}.";
     }
 
     /// <summary>The advocate: every suit naming the house is pleaded without the head's influence, and one plainly lost is settled

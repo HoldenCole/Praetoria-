@@ -335,7 +335,7 @@ public sealed partial class HouseholdSystem
                     : $"Nothing that yields {(d.Favour == Resource.Helium3 ? "helium-3" : d.Favour)} can be begun on your worlds now, so they do as they judge. ";
                 return (did, cost, acts, unmet + (acts > 1 ? "Skilled enough for two things a year: a second follows if the treasury still stands above the reserve after the first." : "One thing a year, at their skill."));
             }
-        return (null, null, acts, $"Finds nothing to begin that leaves {d.Reserve} credits in the treasury and the materials the sites already rising will want.");
+        return (null, null, acts, $"Finds nothing to begin that leaves {Money.Credits(d.Reserve)} in the treasury and the materials the sites already rising will want.");
     }
 
     private void StewardActs(World w, House house, Character holder, Duty d, CommandExecutor executor, CommandContext ctx)
@@ -354,7 +354,7 @@ public sealed partial class HouseholdSystem
             house.Treasury.Credits -= 3; d.Skimmed += 3;
             if (d.Skimmed >= SkimAt && d.Skimmed - 3 < SkimAt) { Mark(w, SkimsFlag); holder.Flags.Add(SkimmingChar); w.Log($"The accounts of {house.Name} do not add up. {holder.Name} keeps them."); }
         }
-        d.LastReport = done.Count > 0 ? Cap(string.Join("; ", done)) + "." : d.Favour == FavourHold ? "Began nothing new, as told." : acts == 0 ? "Did little this year." : $"Found nothing worth doing with what is above the reserve of {d.Reserve}.";
+        d.LastReport = done.Count > 0 ? Cap(string.Join("; ", done)) + "." : d.Favour == FavourHold ? "Began nothing new, as told." : acts == 0 ? "Did little this year." : $"Found nothing worth doing with what is above the reserve of {Money.Show(d.Reserve)}.";
     }
 
     private void MarshalActs(World w, House house, Character holder, Duty d, CommandExecutor executor, CommandContext ctx)

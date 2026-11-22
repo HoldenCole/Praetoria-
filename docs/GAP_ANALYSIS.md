@@ -176,14 +176,14 @@ houses at turns 11, 31 and 60.
 - Rival stewards founded ventures alphabetically (Academy Patronage, a drain) and without a profit test; borrowed on a
   negative ledger every seven turns; never sold materials under fifteen; a headless house let its worlds rot. Fixed
   (profit-ranked founding, sell before borrowing, borrow only when positive, smaller material lots, thinner cushion for
-  landless or yield-less houses, a cousin for a headless rival house). Mean credits at T60: 14 → 99; houses in debt 7 → 1.
+  landless or yield-less houses, a cousin for a headless rival house). Mean credits at T60: 1,400 → 9,900; houses in debt 7 → 1.
 - The auto-player never wed, so the fallen house ended every sixty-turn run. Fixed in the harness.
 - Engine flags no content read (`at_war:*`, `assassin:*`, `coalition_forming`): three reactive events and two generic flags.
 - The Houses screen offered marriage and assassination against infants (a 0-year-old "match", an "accident" for a
   5-year-old). Hidden in the projection and refused in the command.
 
 ### Still open, ranked
-1. ~~Fortress worlds have no income~~ — closed: escort fees from peaceful neighbours (up to three credits a turn).
+1. ~~Fortress worlds have no income~~ — closed: escort fees from peaceful neighbours (up to three hundred credits a turn).
 2. ~~Free holds are orphans~~ — closed: a militia, a steward that acts, buy-back and war for the old lord, both for NPCs.
 3. ~~The capital is only a ledger line~~ — closed: the Senate's chair, legitimacy, prosperity, threat, rivals that
    declare for it, and the chronicle marking its passing. **Lawlessness has no face** (§6 item 3) and **governors are
@@ -231,7 +231,7 @@ through every screen with save/reload and the map-cycle captures.
 3. **Reclaiming a free hold never happens for rivals** (`reclaimed` 0–1): the war path is cheaper than the price. Either
    the price should fall with the leader's years in the chair, or war on a free hold should cost legitimacy.
 4. **Early-turn insolvency**: half a dozen landed houses dip below zero in turns two to five before ventures pay. A
-   starting cushion of five credits per world, or a first-turn grace on upkeep.
+   starting cushion of five hundred credits per world, or a first-turn grace on upkeep.
 5. **Wars still end in exhaustion more than terms** (battles 6–11 per run, conquests 3–5): acceptable, but the AI never
    sues for peace from strength to bank a cession.
 
@@ -249,21 +249,21 @@ browser drive through every screen with save/reload and the map-cycle captures.
 ### Found and fixed this pass
 - **Characters born in play had no action budget.** `World.PoolsFor` gave an unknown actor an empty pool with a cap of
   zero, so a rival house whose founding head died could never again raise a hull, sail, buy or build. Surfaced by the
-  fuel probe ("no treasury action left" on houses with a thousand credits). Every character now gets a rival's budget.
+  fuel probe ("no treasury action left" on houses with a hundred thousand credits). Every character now gets a rival's budget.
 - **Stewards ate their own manpower.** Free companies cost men a turn; rich houses founded two and could never lay a
-  keel again (manpower 0, credits 1,900). Ventures that eat men are founded or expanded only while the worlds breed more.
+  keel again (manpower 0, credits 190,000). Ventures that eat men are founded or expanded only while the worlds breed more.
 - **Fuel deadlocks**: a house with no navy never bought its first tank; a dry navy stayed dry; procurement took the one
   Treasury action a rival has. Fuel is bought first and pool-free, a dry navy is laid up a hull at a time, and the yards
   lay down no hull the tanks could not carry three turns.
 - **Inflation.** Hoards sold at the exchange, a skimmer yielding six a turn, and an unbounded hull sink removed: mean
-  credits at turn sixty went 120 → 1,900 → 450 → 290–350 after trimming yields, sell rates and the two richest ventures.
-  Still above the pre-batch 130–210; see below.
+  credits at turn sixty went 12,000 → 190,000 → 45,000 → 29,000–35,000 after trimming yields, sell rates and the two richest ventures.
+  Still above the pre-batch 13,000–21,000; see below.
 - **Wealth tiers were absolute** (26 of 32 houses "opulent"), which made *The Arms Broker*'s wealth gate meaningless.
   Tiers are now relative by rank: 7–8 poor, 11 comfortable, 7–8 rich, 5–6 opulent in a Reach of 32.
 
 ### Still open, ranked
 1. **Thrones fall too readily** (14 of 24 runs; unchanged from §8).
-2. **The ledger runs rich**: mean credits 290–350 at turn sixty, median 17–276. The remaining sinks are hulls (capped at
+2. **The ledger runs rich**: mean credits 29,000–35,000 at turn sixty, median 1,700–27,600. The remaining sinks are hulls (capped at
    ten plus six a world) and ventures (sixty a Reach). A court tithe to the capital's holder, upkeep that scales with
    a house's venture count, or prices that rise with the Reach's money supply are the candidates.
 3. **Heavy hulls are rare** (6–11 across the Reach): rare earths flow (nine producers) but stewards buy them only for the
@@ -294,7 +294,7 @@ from the game the design document describes, and what blocks a stranger from enj
 | battles per 60 turns | 3–7 | wars have teeth again after the fuel rebalance |
 | thrones taken | 24 of 36 runs | the Imperium forms in two runs of three by turn sixty — too often (§8, §9) |
 | generations per 60 turns | 1.0–1.2 (2.5 for the Old Lion) | one succession a run; the three-generation arc needs 120 turns or faster time |
-| mean credits at T60 | 290–350 | still rich (pre-strategic 130–210); tiers now relative so it does not break the gates |
+| mean credits at T60 | 29,000–35,000 | still rich (pre-strategic 13,000–21,000); tiers now relative so it does not break the gates |
 | dynasties ended | 5 of 36 | the fail state exists and is rare, as §14 wants |
 | chronicle oddities | early-turn negative treasuries only | rival houses dip below zero in turns 2–5 before ventures pay |
 
@@ -377,7 +377,7 @@ measures *fun*: every number above is about the simulation, none about a player'
 5. **The office-versus-house drama (§8) is absent.** The player never commands fleets they do not own; appointments to
    office (Admiral of the Reach, Treasurer, Consul) with their resources and their loss would make careers matter.
 6. **Heir-hunting and plots are one verb.** Find, then pay, then risk — and blackmail, forged claims and favours.
-7. **The ledger runs rich** (mean 290–350 credits at T60). A sink proportional to income.
+7. **The ledger runs rich** (mean 29,000–35,000 credits at T60). A sink proportional to income.
 8. **Role theming** (admiral / steward / senator chrome) — the GDD's second register of reactive UI.
 9. **A dynasty tree** over the generations, and the contextual ties on every rival's card.
 10. **Trade that is spatial** and ventures with risk.
@@ -444,7 +444,7 @@ Method: 324 tests · both validators (137 events) · `praetoria qa --seeds 3` (1
   less; the next balance pass should ask whether wars find other fronts.
 
 ### Still open, ranked
-1. **Content volume** (137 events). 2. **Plots with steps.** 3. **The ledger runs rich** (mean 280–340). 4. **Role
+1. **Content volume** (137 events). 2. **Plots with steps.** 3. **The ledger runs rich** (mean 28,000–34,000). 4. **Role
 theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.** 8. **Persistent factions** in the Senate, and the
 player as the whip's target by name.
 
@@ -527,7 +527,7 @@ browser drive through every screen (0 console errors).
 
 ### Still open, ranked
 1. **Content volume** (149 events); the three estate events that never surfaced for the random player want a scripted
-   check. 2. **Plots with steps.** 3. **The ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty
+   check. 2. **Plots with steps.** 3. **The ledger runs rich** (mean 31,000–35,000). 4. **Role theming.** 5. **A dynasty
 tree.** 6. **Spatial trade.** 7. **Audio.** 8. **The estates in the Senate**: a bench's platform read by the estates,
 and motions that change a law for the whole Reach.
 
@@ -557,7 +557,7 @@ Chancery (0 console errors).
 
 ### Still open, ranked
 1. **Content volume** (151 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
-ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
+ledger runs rich** (mean 31,000–35,000). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
 8. **The estates as voters**: an estate with enough regard across many houses could petition the Senate itself.
 
 ### Where the next forty come from
@@ -585,7 +585,7 @@ the docket, the alert in the outliner and the line on the Chancery's estate card
 
 ### Still open, ranked
 1. **Content volume** (154 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
-ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
+ledger runs rich** (mean 31,000–35,000). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
 
 ### Where the next forty come from
 Scripted chain playthroughs · fifty situations · plots with steps · a credit sink · role theming · the dynasty tree.
@@ -613,7 +613,7 @@ on both branches, Pages redeployed.
 
 ### Still open, ranked
 1. **Content volume** (154 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
-ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
+ledger runs rich** (mean 31,000–35,000). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
 
 ## 19. QoL and bug check — 2026-11-09
 
@@ -632,7 +632,7 @@ Method: a read-through of the Senate, Acts and petition paths for edge cases; 35
 
 ### Still open, ranked
 1. **Content volume** (154 events); the estate events still want a scripted check. 2. **Plots with steps.** 3. **The
-ledger runs rich** (mean 310–350). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
+ledger runs rich** (mean 31,000–35,000). 4. **Role theming.** 5. **A dynasty tree.** 6. **Spatial trade.** 7. **Audio.**
 
 ## 20. Content volume and the reachability check — 2026-11-09
 
@@ -658,7 +658,7 @@ Method: 388 tests (38 new, the reachability table among them) · both validators
   should matter more, give the levy a point of lean among the comfortable houses; it is a tuning knob, not a defect.
 
 ### Still open, ranked
-1. **Plots with steps.** 2. **The ledger runs rich** (mean 310–350). 3. **Role theming.** 4. **A dynasty tree.**
+1. **Plots with steps.** 2. **The ledger runs rich** (mean 31,000–35,000). 3. **Role theming.** 4. **A dynasty tree.**
 5. **Spatial trade.** 6. **Audio.** 7. **Content volume** continues: the next batch should be scripted chains, not
 single situations.
 
@@ -678,7 +678,7 @@ track.
   the creation screen. A steward-led scenario would show the ledger register from turn one.
 
 ### Still open, ranked
-1. **Plots with steps.** 2. **The ledger runs rich** (mean 310–350). 3. **A dynasty tree.** 4. **Spatial trade.**
+1. **Plots with steps.** 2. **The ledger runs rich** (mean 31,000–35,000). 3. **A dynasty tree.** 4. **Spatial trade.**
 5. **Audio.** 6. **Content as scripted chains.**
 
 ## 22. Military depth, stages 1–2 — 2026-11-09
@@ -754,7 +754,7 @@ NPC hawks and expeditions; Military screen *Beyond the Reach* panel, fleet-card 
 alerts, ten events. 435 tests.
 
 **Measured** (probe, 60 turns, four scenarios): wars abroad 1–2 a run; expeditions 1–5; battles abroad 2–13; raids 12–17;
-one subdual (Concord, 84 credits of tribute) and one lost war (Vashti) across the four. Soak (all scenarios, 3 seeds, 60
+one subdual (Concord, 8,400 credits of tribute) and one lost war (Vashti) across the four. Soak (all scenarios, 3 seeds, 60
 turns): every nation flag raised at least once; `SendExpedition` reached by the random player.
 
 **Watch**: raids land about one turn in four across the Reach with two aggressive nations — fine for drama, high if the
@@ -980,7 +980,7 @@ and the custom of the estate.
 
 **Measured.** 556 tests, eight of them for this. The soak passes on eleven starts and three seeds (lines ended in 4 of
 33). In the browser the old head died within four years, the house passed to the heir and the relative named in the
-will held 15 credits afterwards; the split itself is checked exactly by the tests, not by that run.
+will held 1,500 credits afterwards; the split itself is checked exactly by the tests, not by that run.
 
 **Found on the way.**
 - A debt scandal could not happen in a saga's first five years (the check compared against a year that had not come).
@@ -999,7 +999,7 @@ Built as docs/AMBITIONS.md describes. It closes the line left open in §32: rela
 **Measured.** 564 tests, eight of them for this. The soak passes on eleven starts and three seeds (lines ended in 5 of
 33) and all four new events fired in it. In the browser on *The Old Lion*, with nothing done but granting the first
 request: three relatives had pursuits by the second year, one asked to be named heir in the third and was, and another
-put one or two credits of her own into the house in each of four years.
+put one or two hundred credits of her own into the house in each of four years.
 
 **Found on the way.** The first draft remembered who had begun a venture only in memory, so a save taken while it was
 being built would have lost the founder. It is kept in the save now, and tested.
@@ -1396,7 +1396,7 @@ B6, B8, B11 and B12 from the worklist, by the owner's order.
 
 - **A throne's own temper (B6).** Under a throne, whether the Reach fights for a region is the Emperor's answer: how
   new the throne is, the Emperor's nature, how secure the throne is at home, and what the Emperor thinks of the house.
-- **More ways to bring a house over (B8).** A promise of a place (regard at once, and a debt of three credits a year
+- **More ways to bring a house over (B8).** A promise of a place (regard at once, and a debt of three hundred credits a year
   for ten years if the state is founded with them in it), a threat (they follow while they are afraid), and a
   marriage between the two houses making a house easier asked.
 - **Joining, leaving and reaching (B11).** A state still fighting can be joined; a member that is not the ruler can
@@ -1430,7 +1430,7 @@ gap; skip, and list, the ones that are the owner's to decide. This is the first 
 
 **Family and wealth.** An entail (W3). Heirlooms that do something: a signet mends a name, a sword teaches in the
 fleet, a library speeds study (W5). The head can borrow of a relative and lend at interest; relatives lend to each
-other; a bride's purse goes toward her portion (W6). A household costs a credit a head and a stipend for whoever does
+other; a bride's purse goes toward her portion (W6). A household costs a hundred credits a head and a stipend for whoever does
 the head's work (H3). A relative may name a price for studying, and a teacher of the house can be thanked (E6).
 Nobody sits above their ceiling (E5).
 
@@ -1469,8 +1469,8 @@ spoken for in their first year: the Old Lion, pleading one brief before a judge 
 That is the name being rewarded, not the work. It now takes three good years under that person as well.
 
 **Seen in the browser** on the Old Lion start: the sword of House Castellan entailed from the start, with what it
-does; the entail broken (with the confirmation) and made again; a loan at interest showing "owes you 12" and paid off
-within eight years; no console errors. The Borrow button was dark throughout, because no relative had twelve credits:
+does; the entail broken (with the confirmation) and made again; a loan at interest showing "owes you 1,200" and paid off
+within eight years; no console errors. The Borrow button was dark throughout, because no relative had 1,200 credits:
 mapped as W7.
 
 **Mapped while building** (ten rows, docs/GAPS.md): W7 relatives' purses are small; W8 no heirloom is ever made or
@@ -1496,11 +1496,11 @@ broke out in 41, 9 states were recognised, no house went over to a state by itse
 owner's to decide:
 
 - **W7, relatives' purses.** The first attempt did not work, and the browser said so. Letting a careful person keep
-  thirty credits instead of twenty, offering a loan of five as well as ten, and letting a relative with six to spare
-  help another changed nothing in play: after twelve years on the Old Lion start nobody had seven credits. The cause
-  was income, not the cap. A person's service now pays them their rank and one more a year, where it paid half that.
-  Driven again: in year twelve a relative lent the head five.
-- **H5, the keep.** A grown person of standing costs two a year. One unpaid two years running, who thinks less than
+  3,000 credits instead of 2,000, offering a loan of five hundred as well as a thousand, and letting a relative with six hundred to spare
+  help another changed nothing in play: after twelve years on the Old Lion start nobody had seven hundred credits. The cause
+  was income, not the cap. A person's service now pays them their rank and one more a year, in hundreds of credits, where it paid half that.
+  Driven again: in year twelve a relative lent the head five hundred.
+- **H5, the keep.** A grown person of standing costs two hundred a year. One unpaid two years running, who thinks less than
   20 of the head, goes home or lays down the work; a child stays.
 - **E7, a price that is not money.** One or two influence, for a word said for them in the right place.
 - **F7, asking the elder.** For one of the three things; done first and with a will, or the elder says why not. An
@@ -1550,7 +1550,7 @@ on the last pass, which is the convictions. A house was under a scandal in about
 
 **Seen in the browser.** The Old Lion: a quaestor of House Dreyer who took money in year 1 was on the record by
 year 3; the charge came before a praetor "known to be for sale, who will find for the richer house"; the Old Lion's
-house being the richer, it was proved. The same praetor then took fifteen credits and was shown as "in your pocket",
+house being the richer, it was proved. The same praetor then took 1,500 credits and was shown as "in your pocket",
 and the buying appeared under "Against your own house". The New Man: the first praetor offered was upright, and the
 chronicle reads "Placidia Aurelian, praetor, says in open court what Marcus Crane offered. Nothing was taken.
 Everything was heard." My first run of the script found no panel: it is under the "Your standing" tab, and the
@@ -1574,10 +1574,10 @@ the accused does nothing in their own defence. Only a praetor can be bought (L11
 ## 51. The facts of a year's business, and three numbers that were wrong — 2026-11-15
 
 **L5.** The work of an elected office was one decision from three with nothing behind it. A praetor's case now has a
-matter, a stake of 5 to 15 credits and a law that is plain, arguable or doubtful; the plainer the law, the more a
+matter, a stake of 500 to 1,500 credits and a law that is plain, arguable or doubtful; the plainer the law, the more a
 ruling against it costs, and a doubtful one is neither appealed nor kept on the record. A praetor can bring the two
 houses to terms, which is the honest ruling where the law is doubtful and short-changes the house that had the law
-where it is plain. A quaestor's accounts show what is over (4 to 12 credits, and where it came from): that sum is
+where it is plain. A quaestor's accounts show what is over (400 to 1,200 credits, and where it came from): that sum is
 what can be sent to a lawless region or taken. An aedile can give lanes and grain both. Details in docs/LADDER.md.
 
 **Measured, and corrected.** The first measurement on this build: the soak passed, survival was 0 of 10 everywhere,
@@ -1598,11 +1598,11 @@ in 43; 15 states recognised; 629 former magistrates charged and 436 convicted; 4
 Trust in the magistrates averaged 53 to 64 by start and was low at some time in 8 of the 60 runs: where it stood
 before the courts were built, and a little more often low.
 
-694 tests (four new for the facts; three older tests that assumed five credits of damages now read the stake).
+694 tests (four new for the facts; three older tests that assumed five hundred credits of damages now read the stake).
 
 **Seen in the browser.** The Risen Officer, elected quaestor at thirty: "The year's accounts of the Reach are yours
-to close. They show 3 credits over, from harbour dues that came in over the estimate", with the offer to let "3
-credits find their way to your house". Three, not the old eight, because that year the capital's purse held three.
+to close. They show 300 credits over, from harbour dues that came in over the estimate", with the offer to let "300
+credits find their way to your house". Three hundred, not the old eight hundred, because that year the capital's purse held three hundred.
 
 **Left, and mapped.** The facts are figures drawn by lot. Nobody gives evidence, nothing is found out, and a trial is
 still one decision (L11).
@@ -1861,8 +1861,8 @@ shares are out of the float and the count of a company's shares still adds up. S
 that assumed every holder was a house were changed: dividends, a special dividend, winding up, the yearly check for
 holders that no longer exist, the check that someone still holds the company, and the notice of a rival's stake.
 
-**Measured.** The Republic probe (60 runs of 60 years): 3,042 shares bought in a person's name, 73 sold, 7,162
-credits paid into purses, 1,741 shares passed on at a death, 124 people holding some at the end; founders drew 441
+**Measured.** The Republic probe (60 runs of 60 years): 3,042 shares bought in a person's name, 73 sold, 716,200
+credits paid into purses, 1,741 shares passed on at a death, 124 people holding some at the end; founders drew 44,100
 credits. The Republic stood in all 60; the great war was fought in 45 runs (49); 26 states broke away (30); trust
 in the magistrates averaged 51 to 62 by start and was low in 15 runs (15); 1,074 ventures were wound up (1,039).
 The soak (33 runs, a save and load in each) passes with no drift; in it 1,304 shares were bought privately and the
@@ -1944,7 +1944,7 @@ fifth of the price when it is sold. And shares held in a person's name vote with
 its head. The third, a world held by a person, is left to the owner as W12.
 
 **Measured.** The Republic probe (60 runs of 60 years, nobody giving orders): 29 ventures were a relative's own at
-the end, 928 credits paid over to holders, no founder's stakes (every venture a relative founded there was their
+the end, 92,800 credits paid over to holders, no founder's stakes (every venture a relative founded there was their
 own). The Republic stood in all 60; the great war was fought in 41 runs (41); 23 states broke away (23); trust in
 the magistrates averaged 48 to 61 by start and was low in 14 runs (15); 498 ventures were wound up (469). The soak
 (33 runs, a save and load in each) passes with no drift. Survival: 0 of 10 on every start.
@@ -1969,11 +1969,11 @@ creditors real. The fourth, a second start for founders of other houses, cannot 
 no founders, and is folded into X1.
 
 **The rule that never applied.** Foreclosure was first written for a house with a loan unpaid and nothing in the
-treasury, or a treasury 20 under. Ten runs gave none. Counting showed why: a house is overdrawn in about one
+treasury, or a treasury 2,000 under. Ten runs gave none. Counting showed why: a house is overdrawn in about one
 house-year in twenty-five, but almost never deeply, and seldom while it owns a venture. Two years overdrawn running
 was added, and the count is kept in the probe.
 
-**Measured.** The Republic probe (60 runs of 60 years): 3,059 credits paid at a peace for what was sacked, 60
+**Measured.** The Republic probe (60 runs of 60 years): 305,900 credits paid at a peace for what was sacked, 60
 struck out; 10 ventures sold by a company and 11 closed; 26 foreclosed on; 181 sacked; 504 wound up (498). The
 Republic stood in all 60; the great war was fought in 40 runs (41); 23 states broke away (23); trust in the
 magistrates averaged 47 to 61 by start and was low in 14 runs (14). The soak (33 runs, a save and load in each)
@@ -2019,7 +2019,7 @@ lender's loan. A blockade that fails is billed at the peace. A bill for a fleet 
 peace carries already follows the score of the fighting, and a second charge for the same thing would be double.
 
 **Measured.** The Republic probe (60 runs of 60 years): 27 ventures and 46 things taken by creditors, no world;
-780 credits billed for blockades; 4,192 paid at a peace (3,059), 66 struck out. The Republic stood in all 60; the
+78,000 credits billed for blockades; 419,200 paid at a peace (305,900), 66 struck out. The Republic stood in all 60; the
 great war was fought in 42 runs (41); 23 states broke away (24); trust in the magistrates averaged 46 to 62 by
 start and was low in 14 runs (14). Survival: 0 of 10 on every start.
 
@@ -2152,7 +2152,7 @@ traced. All three are proved by tests, and the panel was driven in the browser.
 
 **Seen in the browser** (`tools/browser/feud.js`). On The Old Lion an accident arranged in the second year was laid
 at my door: the You screen showed "Blood between houses, 1 held against you", who was dead, that it was held against
-me by name, and the offer of the price greyed out with its reason: the house had not the 60 credits.
+me by name, and the offer of the price greyed out with its reason: the house had not the 6,000 credits.
 
 761 tests (twelve new).
 
@@ -2389,7 +2389,7 @@ nobody presses.
 | The weaker fighting value by itself changed almost nothing | Kept, as the off-map figure; the gathering was the cause |
 | With gathering, 53 forced wars of 119 guttered out after twelve years, fleets waiting at the march | The Cities buy off a war nobody is fighting |
 | Bought off after four quiet years, 113 wars of 134 ended before a fleet of the Reach had reached the Shore | The four years run only while nobody presses them: no fleet of three hulls at their march, over their cities, or on its way. A war that is pressed and not fought is bought off at twelve |
-| No house moved a war for plunder, though most houses have under 40 credits | Left, and mapped (N9). The houses that would move it are rarely the ones whose turn it is to move anything |
+| No house moved a war for plunder, though most houses have under 4,000 credits | Left, and mapped (N9). The houses that would move it are rarely the ones whose turn it is to move anything |
 
 **Measured.** Sixty unattended games as they come, and sixty with the Senate's war on the Cities made for it in year
 8 and every twenty years after. Sixty years each; the player gives no orders.
@@ -2403,7 +2403,7 @@ nobody presses.
 | Their fleet through the march | 37 times | 55 times |
 | Worlds of the Reach taken; freed; ceded | 17; 6; 8 | 26; 19; 4 |
 | Their worlds taken | 49: 42 bought back, none rose | 57: 38 rose again |
-| Plunder | 1,485 credits | 716 credits |
+| Plunder | 148,500 credits | 71,600 credits |
 | Hulls hired | 155 | none |
 | Tribute stopped unwatched | 34 times | never |
 | Their capital taken; the nation ended | 0; 0 | 0; 0 |

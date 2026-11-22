@@ -257,11 +257,11 @@ public sealed partial class NationSystem
         string who = with.Length > 0 ? w.House(with)?.Name ?? "the house whose war it was" : "the Reach";
         switch (terms)
         {
-            case "tribute": n.SubduedUntil = w.Turn + TermsYears; w.Log($"Terms with {d.Name}: it pays {who} {d.Tribute} credits a year for {TermsYears} years; each house keeps what it holds of its worlds, and what it holds of the Reach's goes home."); PeaceOnMap(w, n, d, reachWon: true); break;
+            case "tribute": n.SubduedUntil = w.Turn + TermsYears; w.Log($"Terms with {d.Name}: it pays {who} {Money.Credits(d.Tribute)} a year for {TermsYears} years; each house keeps what it holds of its worlds, and what it holds of the Reach's goes home."); PeaceOnMap(w, n, d, reachWon: true); break;
             case "territory": w.Log($"Terms with {d.Name}: each house keeps what it holds of its worlds, and what it holds of the Reach's goes home. Nobody pays tribute."); PeaceOnMap(w, n, d, reachWon: true); break;
             case "white": Mark(w, "white_peace", n); w.Log($"A white peace with {d.Name}: every world goes back to whoever had it before the war, and nobody pays anybody."); PeaceOnMap(w, n, d, reachWon: true, allBack: true); break;
             case "ceded": w.Log($"Terms with {d.Name}: what it holds of the Reach's is ceded, and what the Reach holds of its worlds is given up. Nobody pays tribute."); PeaceOnMap(w, n, d, reachWon: false); break;
-            default: n.PaidUntil = w.Turn + TermsPaidYears; Mark(w, "reach_pays_tribute", n); w.Log($"Terms with {d.Name}: what it holds of the Reach's is ceded, and {who} pays it {d.Tribute} credits a year for {TermsPaidYears} years."); PeaceOnMap(w, n, d, reachWon: false); break;
+            default: n.PaidUntil = w.Turn + TermsPaidYears; Mark(w, "reach_pays_tribute", n); w.Log($"Terms with {d.Name}: what it holds of the Reach's is ceded, and {who} pays it {Money.Credits(d.Tribute)} a year for {TermsPaidYears} years."); PeaceOnMap(w, n, d, reachWon: false); break;
         }
     }
 

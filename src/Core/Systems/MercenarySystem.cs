@@ -50,14 +50,14 @@ public static class MercenarySystem
         if (w.Wars.Any(x => x.Involves(actor.HouseId))) return "your house is at war itself: its ships are wanted at home";
         var head = Economy.HeadOf(w, employer); int regard = head != null ? w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0 : 0;
         if (regard < TakesAt) return $"{head?.Name ?? "its head"} thinks too ill of you to put your ships in {employer.Name}'s line (regard {regard}; {TakesAt} or better would do)";
-        int pay = PayOf(f); return employer.Treasury.Credits >= pay ? null : $"{employer.Name} cannot find the first year's pay ({pay} credits; it has {Math.Max(0, employer.Treasury.Credits)})";
+        int pay = PayOf(f); return employer.Treasury.Credits >= pay ? null : $"{employer.Name} cannot find the first year's pay ({Money.Credits(pay)}; it has {Money.Show(Math.Max(0, employer.Treasury.Credits))})";
     }
 
     /// <summary>What hiring it out would do, said before it is done.</summary>
     public static string Says(World w, Fleet f, House employer)
     {
         var foes = w.EnemiesOf(employer.Id).Distinct().Select(e => w.House(e)?.Name ?? e).ToList();
-        return $"{f.Name} ({Counted.Hulls(f.Strength)}) sails under {employer.Name}'s colours and at its orders for up to {TermYears} years, against {string.Join(" and ", foes)}. {employer.Name} pays you {CreditsPerHull} credits a hull each year ({PayOf(f)} now) and keeps and fuels the ships. "
+        return $"{f.Name} ({Counted.Hulls(f.Strength)}) sails under {employer.Name}'s colours and at its orders for up to {TermYears} years, against {string.Join(" and ", foes)}. {employer.Name} pays you {Money.Credits(CreditsPerHull)} a hull each year ({Money.Show(PayOf(f))} now) and keeps and fuels the ships. "
             + $"Hulls lost in its battles are lost to you. Your house is thought the less of for selling its sword (legitimacy −{Legitimacy}), and the head of each house it is turned on thinks {FoeRegard} the worse of you; {employer.Name}'s head thinks {EmployerRegard} the better. "
             + "It comes home when that house's wars are over, the term is up or the pay is not found. Calling it back sooner breaks the contract.";
     }
@@ -111,7 +111,7 @@ public static class MercenarySystem
             if (w.Turn >= f.HireTurn + TermYears) { ComeHome(w, f, "its term is up"); continue; }
             if (w.Turn <= f.HireTurn) continue;   // the first year was paid when it was hired
             if (!Pay(w, f, employer, home)) { ComeHome(w, f, $"{employer.Name} could not find its pay"); continue; }
-            if (home.Id == mine) w.Tell("good", $"{employer.Name} pays {PayOf(f)} credits for {f.Name} ({Counted.Hulls(f.Strength)}), {Counted.Years(YearsLeft(w, f))} of its term left", "military", employer.Id);
+            if (home.Id == mine) w.Tell("good", $"{employer.Name} pays {Money.Credits(PayOf(f))} for {f.Name} ({Counted.Hulls(f.Strength)}), {Counted.Years(YearsLeft(w, f))} of its term left", "military", employer.Id);
         }
     }
 

@@ -321,7 +321,7 @@ public sealed partial class NationSystem
         if (w.House(was) is { } holder) holder.Treasury.Credits += sum;
         hw.OwnerId = n.HouseId; hw.FormerOwnerId = ""; hw.GovernorId = n.Ruler?.CharacterId ?? ""; w.Sieges.Remove(hw.Id); w.WorldCounters.Remove(UnheldKey(hw.Id));
         Bump(w, RansomedCounter, n); Mark(w, "city_ransomed", n);
-        w.Log($"{d.Name} buys {hw.Name} back from {w.House(was)?.Name ?? was} for {sum} credits.");
+        w.Log($"{d.Name} buys {hw.Name} back from {w.House(was)?.Name ?? was} for {Money.Credits(sum)}.");
     }
 
     /// <summary>What a victory over a nation on the map pays the house that won it: the nation's wealth for a fleet beaten, twice that for a world taken.</summary>
@@ -329,7 +329,7 @@ public sealed partial class NationSystem
     {
         if (credits <= 0 || w.House(houseId) is not { } h) return;
         h.Treasury.Credits += credits; Bump(w, PlunderCounter, n, credits);
-        w.Log($"{h.Name} takes {credits} credits of plunder {what}.");
+        w.Log($"{h.Name} takes {Money.Credits(credits)} of plunder {what}.");
     }
 
     /// <summary>The nation's last world is taken: it is no more. What it took from the Reach goes back; its fleets scatter; its people are gone.</summary>
@@ -383,7 +383,7 @@ public sealed partial class NationSystem
                         taker.Treasury.Credits += lost.Treasure; taker.Legitimacy = Math.Min(100, taker.Legitimacy + lost.Titles); Bump(w, TreasureCounter, lost, Math.Max(1, lost.Treasure));
                         Mark(w, conqueror == w.Protagonist?.HouseId ? "treasure_taken_by_us" : "treasure_taken", lost);
                         var crowned = WealthSystem.TakeRegalia(w, taker, lost.Regalia, lost.Id);
-                        w.Log($"{taker.Name} opens the vaults under {h.Name}: {lost.Treasure} credits{(crowned != null ? $", and {crowned.Name} carried home through the Reach" : "")}.");
+                        w.Log($"{taker.Name} opens the vaults under {h.Name}: {Money.Credits(lost.Treasure)}{(crowned != null ? $", and {crowned.Name} carried home through the Reach" : "")}.");
                         lost.Treasure = 0; lost.Titles = 0; lost.Regalia = "";
                     }
                 }
@@ -416,7 +416,7 @@ public sealed partial class NationSystem
         if (reachWon && !allBack && Buys(d)) foreach (var x in Worlds(w, d))
             if (w.Holding(x.Id) is { } held && held.OwnerId != n.HouseId && w.OfTheReach(held.OwnerId))
             {
-                if (held.OwnerId == w.Protagonist?.HouseId) { w.WorldCounters[RansomKey(x.Id)] = w.Turn; Mark(w, "ransom_offered", n); w.Log($"{d.Name} offers {RansomPerWealth * d.Wealth} credits for {held.Name}, to have it back."); }
+                if (held.OwnerId == w.Protagonist?.HouseId) { w.WorldCounters[RansomKey(x.Id)] = w.Turn; Mark(w, "ransom_offered", n); w.Log($"{d.Name} offers {Money.Credits(RansomPerWealth * d.Wealth)} for {held.Name}, to have it back."); }
                 else Ransom(w, n, d, held);
             }
         // and if the nation won, what the Reach took of its own worlds is given up

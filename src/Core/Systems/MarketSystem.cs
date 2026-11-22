@@ -225,7 +225,7 @@ public sealed class MarketSystem
         double unit = BuyPrice(w, t, houseId, good); double reference = Math.Max(4, g.StockRef); double already = Math.Max(0, g.Bought - g.Sold);
         double cost = unit * (units + t.Market.Rules.ImpactPct / 100.0 * (units * already + units * units / 2.0) / reference);
         int credits = Math.Max(1, (int)Math.Ceiling(cost - 1e-9));
-        return new TradeQuote(credits, cost / units, house.Treasury.Credits < credits ? $"needs {credits} credits" : null);
+        return new TradeQuote(credits, cost / units, house.Treasury.Credits < credits ? $"needs {Money.Credits(credits)}" : null);
     }
 
     /// <summary>What selling <paramref name="units"/> would fetch: each unit cheaper than the last by the order's weight; never less than

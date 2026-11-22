@@ -309,7 +309,7 @@ public sealed partial class NationSystem
                 {
                     f.SystemId = f.HomeSystemId.Length > 0 ? f.HomeSystemId : w.HoldingsOf(f.OwnerId).FirstOrDefault(h => h.IsPlanet && h.SystemId.Length > 0)?.SystemId ?? "";
                     house.Treasury.Credits += f.Plunder;
-                    w.Log($"{f.Name} comes home from {d.Name}{(f.Plunder > 0 ? $" with {f.Plunder} credits of plunder" : "")}{(f.ExpeditionWins > 0 ? $" and {f.ExpeditionWins} victor{(f.ExpeditionWins == 1 ? "y" : "ies")}" : "")}.");
+                    w.Log($"{f.Name} comes home from {d.Name}{(f.Plunder > 0 ? $" with {Money.Credits(f.Plunder)} of plunder" : "")}{(f.ExpeditionWins > 0 ? $" and {f.ExpeditionWins} victor{(f.ExpeditionWins == 1 ? "y" : "ies")}" : "")}.");
                     if (f.OwnerId == mine) w.WorldFlags.Add("expedition_returned");
                     f.Away = ""; f.AwayPhase = ""; f.AwayTurns = 0; f.HomeSystemId = ""; f.Plunder = 0; f.ExpeditionWins = 0;
                     if (f.SystemId.Length == 0) { w.Fleets.Remove(f.Id); w.Log($"{f.Name} has no port left to come home to; its crews scatter."); }
@@ -361,7 +361,7 @@ public sealed partial class NationSystem
                     n.Commander = NewCommander(w, n, d);
                 }
             }
-            w.Log($"{f.Name} beats the fleets of {d.Name}{under} in their own space: {committed} hulls met, {lost} of ours lost, {d.Wealth} credits taken. The tally stands {n.ScoreReach} to {n.ScoreNation}.");
+            w.Log($"{f.Name} beats the fleets of {d.Name}{under} in their own space: {committed} hulls met, {lost} of ours lost, {Money.Credits(d.Wealth)} taken. The tally stands {n.ScoreReach} to {n.ScoreNation}.");
             if (f.OwnerId == mine) w.WorldFlags.Add("expedition_victory");
             CaesarSystem.ExpeditionVictory(w, f, commander);
             if (commander != null)
@@ -427,10 +427,10 @@ public sealed partial class NationSystem
 top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legitimacy + LegitimacyTriumph); top.SphereInfluence["senate"] = top.SphereInfluence.GetValueOrDefault("senate") + InfluenceTriumph;
                 if (top.Id == mine) w.WorldFlags.Add("triumph");
                 CaesarSystem.Subdued(w, top);
-                w.Log(client ? $"{d.Name} is beaten, and is made a client of the Reach: its ruler keeps the chair and its worlds, and pays {d.Tribute} credits a year to the Reach and {ClientShare(d)} to {top.Name}, whose fleets won it, for as long as the treaty holds. The triumph is {top.Name}'s."
-                    : $"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years. The triumph is {top.Name}'s, whose fleets won it.");
+                w.Log(client ? $"{d.Name} is beaten, and is made a client of the Reach: its ruler keeps the chair and its worlds, and pays {Money.Credits(d.Tribute)} a year to the Reach and {Money.Show(ClientShare(d))} to {top.Name}, whose fleets won it, for as long as the treaty holds. The triumph is {top.Name}'s."
+                    : $"{d.Name} sues for peace and will pay the Reach {Money.Credits(d.Tribute)} a year for {SubduedTurns} years. The triumph is {top.Name}'s, whose fleets won it.");
             }
-            else w.Log(client ? $"{d.Name} is beaten, and is made a client of the Reach: it pays {d.Tribute} credits a year for as long as the treaty holds." : $"{d.Name} sues for peace and will pay the Reach {d.Tribute} credits a year for {SubduedTurns} years.");
+            else w.Log(client ? $"{d.Name} is beaten, and is made a client of the Reach: it pays {Money.Credits(d.Tribute)} a year for as long as the treaty holds." : $"{d.Name} sues for peace and will pay the Reach {Money.Credits(d.Tribute)} a year for {SubduedTurns} years.");
             if (n.OnMap) Bump(w, WonCounter, n);
             PeaceOnMap(w, n, d, reachWon: true, allBack: client);   // a client is left what is its own
             EndWar(w, n, d);
@@ -444,8 +444,8 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             if (chair != null) { if (!pays) chair.Treasury.Credits -= d.Tribute * 3; chair.Legitimacy = Math.Max(0, chair.Legitimacy - LegitimacyDefeat); }
             if (pays) { n.PaidUntil = w.Turn + PaidYears; n.TreatyWith = n.WarOf; Mark(w, "reach_pays_tribute", n); }
             n.LastPeace = pays ? "paid" : n.OnMap ? "ceded" : "bought"; Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
-            w.Log(pays ? $"The war with {d.Name} is lost. They hold nothing of the Reach's to keep, so the Reach pays: {d.Tribute} credits a year for {PaidYears} years, from the chair{(chair != null ? $" of {chair.Name}" : "")}, and the Reach is shamed."
-                : $"The war with {d.Name} is lost: the chair{(chair != null ? $" of {chair.Name}" : "")} buys peace for {d.Tribute * 3} credits, and the Reach is shamed.");
+            w.Log(pays ? $"The war with {d.Name} is lost. They hold nothing of the Reach's to keep, so the Reach pays: {Money.Credits(d.Tribute)} a year for {PaidYears} years, from the chair{(chair != null ? $" of {chair.Name}" : "")}, and the Reach is shamed."
+                : $"The war with {d.Name} is lost: the chair{(chair != null ? $" of {chair.Name}" : "")} buys peace for {Money.Credits(d.Tribute * 3)}, and the Reach is shamed.");
             if (n.OnMap) Bump(w, LostOnMapCounter, n);
             // a warlike ruler who has beaten the Reach is acclaimed: the next time they come, they come to stay
             if (n.OnMap && d.GreatOneIn > 0 && d.GreatTitle.Length > 0 && n.Ruler is { Nature: "warlike", Great: false } victor) MakeGreat(w, n, d, victor, acclaimed: true);
@@ -459,7 +459,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             // ransom); no tribute follows
             int sum = d.Tribute * BoughtPeaceTributes; if (chair != null) chair.Treasury.Credits += sum;
             n.Disposition = Math.Min(100, n.Disposition + 5); Bump(w, BoughtPeaceCounter, n); Mark(w, "nation_bought_peace", n); n.LastPeace = "bought";
-            w.Log($"{d.Name} buys its peace: {sum} credits to {(chair != null ? chair.Name : "the Reach")}, and a war that nobody was fighting is over.");
+            w.Log($"{d.Name} buys its peace: {Money.Credits(sum)} to {(chair != null ? chair.Name : "the Reach")}, and a war that nobody was fighting is over.");
             PeaceOnMap(w, n, d, reachWon: true);
             EndWar(w, n, d);
         }
