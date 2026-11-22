@@ -18,8 +18,8 @@
     if (mk == null) { story = "There is no market in this age."; storyTone = ""; }
     else if (mk.Embargoed) { story = "The Senate's embargo closes the exchanges to your house. Nothing may be bought or sold until it lifts."; storyTone = "bad"; }
     else if (lacking != null) { int want = Math.Max(3, -lacking.NetPerTurn * 3); var q = MarketSystem.QuoteBuy(w, t, house.Id, lacking.Id, want);
-        story = $"The house burns {-lacking.NetPerTurn} {lacking.Name.ToLowerInvariant()} a year and has none. It stands at {F2(lacking.Price)} a unit, {(Against(lacking) == 0 ? "its usual price" : Signed(Against(lacking)) + "% against its usual price")}: "
-            + (q.Refusal != null ? $"buying {want} units {q.Refusal}, and the treasury has {m.Treasury.Credits}." : $"{want} units would cost {q.Credits} credits, and the treasury has {m.Treasury.Credits}."); storyTone = "warn"; }
+        story = $"The house burns {-lacking.NetPerTurn} {lacking.Name.ToLowerInvariant()} a year and has none. It stands at {Money.Show(lacking.Price)} a unit, {(Against(lacking) == 0 ? "its usual price" : Signed(Against(lacking)) + "% against its usual price")}: "
+            + (q.Refusal != null ? $"buying {want} units {q.Refusal}, and the treasury has {Money.Held(house.Treasury)}." : $"{want} units would cost {Money.Credits(q.Credits)}, and the treasury has {Money.Held(house.Treasury)}."); storyTone = "warn"; }
     else if (mover != null && mover.ChangePct != 0) { story = $"{mover.Name} has moved most: {Signed(mover.ChangePct)}% in five years. {Cap(mover.Cause)}. You trade {terms} at a {mk.SpreadPct}% spread."; storyTone = ""; }
     else { story = $"Prices are steady. You trade {terms} at a {mk.SpreadPct}% spread."; storyTone = ""; }
 }
@@ -29,7 +29,7 @@
             <span class="muted">the Reach's markets · prices follow what the houses make, burn and fight over</span></div>
         <p class="headline @storyTone">@story</p>
         <div class="tiles">
-            <Tile Label="Credits to trade with" Value="@m.Treasury.Credits.ToString()" Tone="@(m.Treasury.Insolvent ? "bad" : "")" Note="@(net > 0 ? $"+{net} a year coming in" : net < 0 ? $"−{-net} a year going out" : "neither growing nor shrinking")" />
+            <Tile Label="Credits to trade with" Value="@Money.Held(house.Treasury)" Tone="@(m.Treasury.Insolvent ? "bad" : "")" Note="@(net > 0 ? $"+{Money.Show(net)} a year coming in" : net < 0 ? $"−{Money.Show(-net)} a year going out" : "neither growing nor shrinking")" />
             @if (mk != null)
             {
                 <Tile Label="Your terms" Value="@(mk.Embargoed ? "embargoed" : $"{mk.SpreadPct}% spread")" Tone="@(mk.Embargoed ? "bad" : mk.OwnMarket ? "good" : "warn")"
@@ -37,16 +37,16 @@
                 @if (dearest != null)
                 {
                     <Tile Label="Dearest good" Value="@(Against(dearest) == 0 ? "usual price" : Signed(Against(dearest)) + "%")" Tone="@(Against(dearest) >= 50 ? "warn" : "")"
-                          Note="@($"{dearest.Name}: {F2(dearest.Price)} a unit against a usual {F2(dearest.Base)}{(dearest.Held > 0 ? $" · you hold {dearest.Held}" : "")}")" Title="@Cap(dearest.Cause)" />
+                          Note="@($"{dearest.Name}: {Money.Show(dearest.Price)} a unit against a usual {Money.Show(dearest.Base)}{(dearest.Held > 0 ? $" · you hold {dearest.Held}" : "")}")" Title="@Cap(dearest.Cause)" />
                 }
                 @if (cheapest != null && cheapest.Id != dearest?.Id)
                 {
                     <Tile Label="Cheapest good" Value="@(Against(cheapest) == 0 ? "usual price" : Signed(Against(cheapest)) + "%")" Tone="@(Against(cheapest) <= -30 ? "good" : "")"
-                          Note="@($"{cheapest.Name}: {F2(cheapest.Price)} a unit against a usual {F2(cheapest.Base)}{(cheapest.Held > 0 ? $" · you hold {cheapest.Held}" : "")}")" Title="@Cap(cheapest.Cause)" />
+                          Note="@($"{cheapest.Name}: {Money.Show(cheapest.Price)} a unit against a usual {Money.Show(cheapest.Base)}{(cheapest.Held > 0 ? $" · you hold {cheapest.Held}" : "")}")" Title="@Cap(cheapest.Cause)" />
                 }
             }
             <Tile Label="Wars in the Reach" Value="@wars.ToString()" Tone="@(wars > 0 ? "warn" : "")" Note="@(wars > 0 ? "each lifts fuel, isotopes, crews and materials" : "peace: yards and magazines are not buying ahead")" />
-            <Tile Label="Your ventures" Value="@(ventures == 0 ? "none" : ventures.ToString())" Tone="@(ventures > 0 && earning > 0 ? "good" : "")" Note="@(ventures == 0 ? (sites > 0 ? $"{Counted.Sites(sites)} being built" : "coin that is not land still counts") : $"{Signed(earning)} a year between them{(sites > 0 ? $" · {Counted.Sites(sites)} being built" : "")}")" Title="Found, enlarge, buy and sell them on the Ventures tab." />
+            <Tile Label="Your ventures" Value="@(ventures == 0 ? "none" : ventures.ToString())" Tone="@(ventures > 0 && earning > 0 ? "good" : "")" Note="@(ventures == 0 ? (sites > 0 ? $"{Counted.Sites(sites)} being built" : "coin that is not land still counts") : $"{(earning > 0 ? "+" : earning < 0 ? "−" : "")}{Money.Show(Math.Abs(earning))} a year between them{(sites > 0 ? $" · {Counted.Sites(sites)} being built" : "")}")" Title="Found, enlarge, buy and sell them on the Ventures tab." />
         </div>
     </header>
 
@@ -78,15 +78,15 @@
                         bool loud = g.Price >= g.Base * 1.5 || g.Price <= g.Base * 0.7 || g.Deficit >= 15 || g.BuyRefusal != null || Math.Abs(g.ChangePct) >= 10;
                         <tr class="@(g.Price >= g.Base * 1.5 ? "spike" : g.Price <= g.Base * 0.7 ? "slump" : "") @(loud ? "" : "quiet")" title="@Cap(g.Cause)">
                             <td class="hn"><Icon Name="@(Icons.Paths.ContainsKey(g.Id) ? g.Id : "materials")" Size="14" /> <b>@g.Name</b>@if (g.Deficit >= 15) { <span class="pill small warn" title="the Reach needs more than it brings up and is shipped">short @g.Deficit%</span> }</td>
-                            <td><b>@F2(g.Price)</b> <span class="muted small" title="What one unit costs you to buy and brings you sold, before your order's own weight: the price, your spread, and what the Reach's law of trade adds or takes.">@(g.CanBuy && g.BuyRefusal == null ? $"buy {F2(g.BuyUnit)}" : "not to be bought") · sell @F2(g.SellUnit)</span></td>
+                            <td><b>@Money.Show(g.Price)</b> <span class="muted small" title="What one unit costs you to buy and brings you sold, before your order's own weight: the price, your spread, and what the Reach's law of trade adds or takes.">@(g.CanBuy && g.BuyRefusal == null ? $"buy {Money.Show(g.BuyUnit)}" : "not to be bought") · sell @Money.Show(g.SellUnit)</span></td>
                             <td>@((MarkupString)Spark(g))</td>
                             <td><span class="@(g.ChangePct >= 10 ? "warn" : g.ChangePct <= -10 ? "good" : "muted")">@(g.ChangePct > 0 ? "+" : "")@g.ChangePct%</span></td>
                             <td>@g.Stock</td>
                             <td>@g.Held @if (g.NetPerTurn != 0) { <small class="@(g.NetPerTurn > 0 ? "up" : "down")">@(g.NetPerTurn > 0 ? "+" : "")@g.NetPerTurn</small> }</td>
                             <td class="order">
                                 <label class="lot" title="How many units to buy or sell at once. Change it: the buttons show the lot and what it comes to."><small class="muted">lot</small> <input type="number" min="1" max="999" value="@qty" @oninput="e => SetQty(g.Id, e)" /></label>
-                                @if (g.CanBuy) { <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? $"{F2(buy.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new BuyGoodCommand(pid, g.Id, qty, t))">Buy @qty · @(buy.Credits > 0 ? buy.Credits + " cr" : "—")</button> }
-                                @if (g.CanSell) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{F2(sell.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new SellGoodCommand(pid, g.Id, qty, t))">Sell @qty · @(sell.Refusal == null ? sell.Credits + " cr" : "—")</button> }
+                                @if (g.CanBuy) { <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? $"{Money.Show(buy.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new BuyGoodCommand(pid, g.Id, qty, t))">Buy @qty · @(buy.Credits > 0 ? Money.Show(buy.Credits) + " cr" : "—")</button> }
+                                @if (g.CanSell) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{Money.Show(sell.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new SellGoodCommand(pid, g.Id, qty, t))">Sell @qty · @(sell.Refusal == null ? Money.Show(sell.Credits) + " cr" : "—")</button> }
                             </td>
                         </tr>
                         @if (loud) { <tr class="cause"><td colspan="7"><span class="muted small">@Cap(g.Cause)@(g.BuyRefusal != null ? " · " + g.BuyRefusal : "")</span></td></tr> }

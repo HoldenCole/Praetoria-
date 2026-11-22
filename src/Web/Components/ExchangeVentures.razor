@@ -10,21 +10,21 @@
 }
 <div class="dash-grid exchange-grid">
     <section class="panel">
-        <h3><Icon Name="trade_hub" Size="13" /> Your ventures <span class="muted">@mine.Count · earning @earns credits a year at this year's prices · worth @worth</span></h3>
+        <h3><Icon Name="trade_hub" Size="13" /> Your ventures <span class="muted">@mine.Count · earning @Money.Show(earns) credits a year at this year's prices · worth @Money.Show(worth)</span></h3>
         @if (VentureSystem.BadName(w, w.Protagonist!.HouseId)) { <div class="row small"><span class="pill warn" title="A venture of the house failed and was wound up. Buyers know it: they bid a tenth less for anything the house sells, until the year is out.">A name for bad business until year @w.Counter(VentureSystem.BadNameKey(w.Protagonist!.HouseId))</span> <span class="muted">Other houses bid a tenth less for what you sell.</span></div> }
         @if (mine.Count == 0) { <div class="muted">The house owns no venture. Found one below, or buy one from a house that needs the coin.</div> }
         @foreach (var b in mine)
         {
             <div class="vcard">
                 <div class="vc-head"><b>@b.Name</b> <span class="muted small">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")@(b.CompanyName != null ? $" · held by {b.CompanyName}" : "")</span>
-                    <span class="pill @(b.Earnings <= 0 ? "warn" : "good")">@(b.Earnings >= 0 ? "+" : "")@b.Earnings a year</span>
+                    <span class="pill @(b.Earnings <= 0 ? "warn" : "good")">@(b.Earnings >= 0 ? "+" : "")@Money.Show(b.Earnings) a year</span>
                     @if (w.Business(b.Id) is { LosingYears: > 0 } losing) { <span class="pill bad" title="A venture that earns nothing or loses money three years running is wound up: half its salvage comes back, and whoever of the house founded it has failed at it.">@losing.LosingYears of @VentureSystem.FailsAfter years without a profit</span> }</div>
                 @if (vs != null && w.Business(b.Id) is { LosingYears: > 0 } failing)
                 {
                     var noProp = vs.PropRefusal(w, w.House(w.Protagonist!.HouseId), failing);
                     <div class="row small"><span class="warn">@(failing.LosingYears >= VentureSystem.FailsAfter - 1 ? "It will be wound up next year if it does not pay." : "It has stopped paying.")</span>
-                        <button class="opt inline tiny" disabled="@(noProp != null)" title="@(noProp ?? "The losing years are wiped out, and it has three more to come right.")" @onclick="() => G.Execute(new PropVentureCommand(pid, b.Id, vs))">Put @vs.PropCost(w, failing) credits in</button>
-                        <span class="muted">or sell it below. Wound up, it returns @vs.WoundUp(failing).</span></div>
+                        <button class="opt inline tiny" disabled="@(noProp != null)" title="@(noProp ?? "The losing years are wiped out, and it has three more to come right.")" @onclick="() => G.Execute(new PropVentureCommand(pid, b.Id, vs))">Put @Money.Show(vs.PropCost(w, failing)) credits in</button>
+                        <span class="muted">or sell it below. Wound up, it returns @Money.Show(vs.WoundUp(failing)).</span></div>
                 }
                 @if (vs != null && w.Business(b.Id) is { CompanyId.Length: 0 } own)
                 {
@@ -45,7 +45,7 @@
                     </div>
                 }
                 <div class="kv"><span>Pays</span><b>@b.Yield@(b.Charter != null ? $" · charter {b.Charter}" : "")</b></div>
-                <div class="kv"><span>Worth</span><b>@b.Value <i class="muted">six years of what it earns now, half its book at least</i></b></div>
+                <div class="kv"><span>Worth</span><b>@Money.Show(b.Value) <i class="muted">six years of what it earns now, half its book at least</i></b></div>
                 <div class="row small">
                     <button class="opt inline tiny" disabled="@(b.Expand.Refusal != null)" title="@b.Expand.Refusal" @onclick="() => G.Execute(new ExpandBusinessCommand(pid, b.Id, c.Businesses))">@b.Expand.Label</button>
                     @if (b.CompanyName == null && G.Turn!.Companies is { Open: true } cx)
@@ -59,7 +59,7 @@
                         @foreach (var bid in b.Bids ?? new List<VentureBid>())
                         {
                             string? bidNo = new SellVentureCommand(pid, b.Id, bid.HouseId, vs).Refusal(G.Ctx);
-                            <button class="opt inline tiny" disabled="@(bidNo != null)" title="@(bidNo ?? ((bid.HoldsTheWorld ? "It holds the world the venture works, and pays the more for that. " : "") + $"A private sale: the venture stays whole and goes on working for {bid.HouseName}, whose head thinks {VentureSystem.PrivateSaleRegard} the better of you for it. The open market breaks it up and buys you no regard: take whichever pays you more for what you want."))" @onclick='() => G.AskDo("Sell " + b.Name + " to " + bid.HouseName + "?", bid.HouseName + " pays " + bid.Price + " credits and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + bid.Price, new SellVentureCommand(pid, b.Id, bid.HouseId, vs))'>Sell to @bid.HouseName for @bid.Price</button>
+                            <button class="opt inline tiny" disabled="@(bidNo != null)" title="@(bidNo ?? ((bid.HoldsTheWorld ? "It holds the world the venture works, and pays the more for that. " : "") + $"A private sale: the venture stays whole and goes on working for {bid.HouseName}, whose head thinks {VentureSystem.PrivateSaleRegard} the better of you for it. The open market breaks it up and buys you no regard: take whichever pays you more for what you want."))" @onclick='() => G.AskDo("Sell " + b.Name + " to " + bid.HouseName + "?", bid.HouseName + " pays " + Money.Credits(bid.Price) + " and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + Money.Show(bid.Price), new SellVentureCommand(pid, b.Id, bid.HouseId, vs))'>Sell to @bid.HouseName for @Money.Show(bid.Price)</button>
                         }
                     }
                 </div>
@@ -72,9 +72,9 @@
             @foreach (var o in assets.Offers)
             {
                 <div class="vcard offer">
-                    <div class="vc-head"><b>@o.BusinessName</b> <span class="muted small">@o.KindName@(o.SystemName != null ? $" · {o.SystemName}" : "") · from @o.FromName</span><span class="pill good" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter.">worth +@o.PerYear credits a year to you at today's prices</span></div>
+                    <div class="vc-head"><b>@o.BusinessName</b> <span class="muted small">@o.KindName@(o.SystemName != null ? $" · {o.SystemName}" : "") · from @o.FromName</span><span class="pill good" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter.">worth +@Money.Show(o.PerYear) credits a year to you at today's prices</span></div>
                     <div class="muted small">@Cap(o.Reason).</div>
-                    <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AcceptVentureOfferCommand(pid, o.Id, vs))">Take it for @o.Price credits</button>
+                    <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AcceptVentureOfferCommand(pid, o.Id, vs))">Take it for @Money.Show(o.Price) credits</button>
                 </div>
             }
         }
@@ -85,7 +85,7 @@
         {
             <div class="row small"><span class="muted">Paid for by</span>
                 <button class="opt inline tiny @(_payFrom.Length == 0 ? "here" : "")" @onclick="() => _payFrom = string.Empty">the house</button>
-                @foreach (var bd in boards) { var bid = bd.Id; <button class="opt inline tiny @(_payFrom == bid ? "here" : "")" title="from the company's own cash; the venture is the company's" @onclick="() => _payFrom = bid">@bd.Name · @bd.Cash in hand</button> }
+                @foreach (var bd in boards) { var bid = bd.Id; <button class="opt inline tiny @(_payFrom == bid ? "here" : "")" title="from the company's own cash; the venture is the company's" @onclick="() => _payFrom = bid">@bd.Name · @Money.Show(bd.Cash) in hand</button> }
             </div>
         }
         @if (open.Count == 0) { <div class="muted small">Nothing can be founded with what the house holds and where it stands.</div> }
@@ -99,7 +99,7 @@
                     <td class="muted small">@v.SystemName</td>
                     <td class="small">@v.Cost@(v.BuildTurns > 1 ? $" · {v.First} a year" : "")</td>
                     <td class="small">@(v.BuildTurns <= 0 ? "at once" : v.BuildTurns == 1 ? "a year" : $"{v.BuildTurns} years")</td>
-                    <td><span class="@(v.PerYear > 0 ? "good" : "warn")" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter. Prices move.">@(v.PerYear >= 0 ? "+" : "")@v.PerYear cr worth</span>@if (v.Swing.Length > 0) { <div class="muted small" data-swing>@v.Swing</div> }</td>
+                    <td><span class="@(v.PerYear > 0 ? "good" : "warn")" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter. Prices move.">@(v.PerYear >= 0 ? "+" : "")@Money.Show(v.PerYear) cr worth</span>@if (v.Swing.Length > 0) { <div class="muted small" data-swing>@v.Swing</div> }</td>
                     <td class="small">@v.Payback</td>
                     <td>@{ var foundCmd = new FoundBusinessCommand(pid, v.DefId, v.SystemId, c.Businesses, c.Holdings, c.Titles, _payFrom); var foundNo = _payFrom.Length > 0 ? foundCmd.Refusal(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0))) : null; }<button class="opt inline tiny" disabled="@(foundNo != null)" title="@foundNo" @onclick="() => G.Execute(foundCmd)">Found</button></td>
                 </tr>
@@ -121,7 +121,7 @@
                     <div class="vcard @(f.Distressed ? "distress" : "")">
                         <div class="vc-head"><Sigil HouseId="@f.OwnerId" Accent="@f.OwnerAccent" Size="14" /> <b>@f.Name</b></div>
                         <div class="muted small">@f.KindName · level @f.Level@(f.SystemName != null ? $" · {f.SystemName}" : "") · @f.OwnerName@(f.Distressed ? " · short of coin" : "")@(f.OnYourWorld ? " · works your world" : "")</div>
-                        <div class="kv"><span>To you</span><b><span class="@(f.PerYear > 0 ? "good" : "warn")">@(f.PerYear >= 0 ? "+" : "")@f.PerYear credits' worth a year, in goods at today's prices</span> · @(f.Payback == "never" ? "does not pay itself back at this price" : "pays back in " + f.Payback)</b></div>
+                        <div class="kv"><span>To you</span><b><span class="@(f.PerYear > 0 ? "good" : "warn")">@(f.PerYear >= 0 ? "+" : "")@Money.Show(f.PerYear) credits' worth a year, in goods at today's prices</span> · @(f.Payback == "never" ? "does not pay itself back at this price" : "pays back in " + f.Payback)</b></div>
                         <VentureBuy BusinessId="@f.BusinessId" />
                     </div>
                 }

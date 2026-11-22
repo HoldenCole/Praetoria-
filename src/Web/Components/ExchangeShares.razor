@@ -18,7 +18,7 @@ else
             <div class="stat"><span>Index</span><b>@ex.Index.ToString("0") <i class="@(ex.IndexChangePct >= 0 ? "good" : "warn")">@(ex.IndexChangePct > 0 ? "+" : "")@ex.IndexChangePct% in five years</i></b></div>
             <div>@((MarkupString)Spark(ex.IndexHistory, ex.IndexChangePct >= 0))</div>
             <div class="stat @(ex.ConfidencePct < 85 ? "warn" : "")"><span>Confidence in the Reach</span><b>@ex.ConfidencePct</b></div>
-            <div class="stat"><span>Your paper</span><b>@ex.PaperValue <i class="muted">· @ex.DividendsDue in dividends next year</i></b></div>
+            <div class="stat"><span>Your paper</span><b>@Money.Show(ex.PaperValue) <i class="muted">· @Money.Show(ex.DividendsDue) in dividends next year</i></b></div>
             @if (ex.LevyPct > 0) { <div class="stat warn"><span>Exchange levy</span><b>@ex.LevyPct% <i class="muted">to the chair</i></b></div> }
         </div>
         <table class="standings goods shares">
@@ -32,15 +32,15 @@ else
                 <tr class="@(c.Directed ? "mine" : "")">
                     <td class="hn"><b>@c.Name</b>
                         <div class="muted small">@c.SectorName@(c.OutlookPct != 0 ? $" ({(c.OutlookPct > 0 ? "+" : "")}{c.OutlookPct}% outlook)" : "") · @(c.Directed ? "you direct it" : $"directed by {c.ControllerName}")@(c.MonopolyName.Length > 0 ? $" · monopoly of {c.MonopolyName}" : "")</div></td>
-                    <td><b>@F2(c.Price)</b> <span class="small @(c.ChangePct >= 10 ? "good" : c.ChangePct <= -10 ? "warn" : "muted")" title="in five years">@(c.ChangePct > 0 ? "+" : "")@c.ChangePct%</span></td>
+                    <td><b>@Money.Show(c.Price)</b> <span class="small @(c.ChangePct >= 10 ? "good" : c.ChangePct <= -10 ? "warn" : "muted")" title="in five years">@(c.ChangePct > 0 ? "+" : "")@c.ChangePct%</span></td>
                     <td>@((MarkupString)Spark(c.History, c.ChangePct >= 0))</td>
-                    <td title="what it earned last year, and the dividend it declared (as a share of its price)">@c.Earnings · @c.Dividend <span class="muted small">@c.YieldPct%</span></td>
+                    <td title="what it earned last year, and the dividend it declared (as a share of its price)">@Money.Show(c.Earnings) · @Money.Show(c.Dividend) <span class="muted small">@c.YieldPct%</span></td>
                     <td>@c.Float<span class="muted small">/@c.Shares</span></td>
-                    <td title="@(c.Held > 0 ? $"worth {c.HeldValue} credits" : "")">@if (c.Held > 0) { <b>@c.Held</b> <span class="muted small">@(c.Held * 100 / Math.Max(1, c.Shares))%</span> } else { <span class="muted">—</span> }</td>
+                    <td title="@(c.Held > 0 ? $"worth {Money.Credits(c.HeldValue)}" : "")">@if (c.Held > 0) { <b>@c.Held</b> <span class="muted small">@(c.Held * 100 / Math.Max(1, c.Shares))%</span> } else { <span class="muted">—</span> }</td>
                     <td class="order">
                         <label class="lot" title="How many shares to buy or sell at once. Change it: the buttons show the lot and what it comes to."><small class="muted">lot</small> <input type="number" min="1" max="999" value="@qty" @oninput="e => SetQty(c.Id, e)" /></label>
-                        <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? BuyTip(buy, c, wouldControl))" @onclick="() => G.Execute(new BuySharesCommand(pid, c.Id, qty, cs))">Buy @qty · @(buy.Credits > 0 ? buy.Credits + " cr" : "—")</button>
-                        @if (c.Held > 0) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{F2(sell.UnitPrice)} a share with your order's weight")" @onclick="() => G.Execute(new SellSharesCommand(pid, c.Id, qty, cs))">Sell @qty · @(sell.Refusal == null ? sell.Credits + " cr" : "—")</button> }
+                        <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? BuyTip(buy, c, wouldControl))" @onclick="() => G.Execute(new BuySharesCommand(pid, c.Id, qty, cs))">Buy @qty · @(buy.Credits > 0 ? Money.Show(buy.Credits) + " cr" : "—")</button>
+                        @if (c.Held > 0) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{Money.Show(sell.UnitPrice)} a share with your order's weight")" @onclick="() => G.Execute(new SellSharesCommand(pid, c.Id, qty, cs))">Sell @qty · @(sell.Refusal == null ? Money.Show(sell.Credits) + " cr" : "—")</button> }
                     </td>
                 </tr>
                 <tr class="cause"><td colspan="7"><span class="muted small">@Cap(c.Cause)@(c.Stakes.Count > 0 ? " · held by " + string.Join(", ", c.Stakes.Select(s => $"{s.HouseName} {s.Pct}%")) : "")@(c.Description.Length > 0 ? " · " + c.Description : "")@(c.Ventures.Count > 0 ? " · owns " + string.Join(", ", c.Ventures) : "")@(wouldControl && c.GoldenShare ? " · its founder may refuse a takeover once" : "")</span></td></tr>
@@ -55,17 +55,17 @@ else
             var fl = cs.FloatRefusal(w, house.Id, w.Company(c.Id), n); var bb = cs.BuybackRefusal(w, house.Id, w.Company(c.Id), n);
             var sp = cs.SpecialRefusal(w, house.Id, w.Company(c.Id)); var pv = cs.PrivateRefusal(w, house.Id, w.Company(c.Id));
             <div class="vcard">
-                <div class="vc-head"><b>@c.Name</b> <span class="muted small">the board · you hold @(c.Held * 100 / Math.Max(1, c.Shares))% · @c.Cash credits in hand · pays out @c.PayoutPct% of what it earns</span></div>
+                <div class="vc-head"><b>@c.Name</b> <span class="muted small">the board · you hold @(c.Held * 100 / Math.Max(1, c.Shares))% · @Money.Show(c.Cash) credits in hand · pays out @c.PayoutPct% of what it earns</span></div>
                 <div class="row small">
                     <span class="muted">Dividend</span>
                     @foreach (var pct in Payouts) { int v = pct; <button class="opt inline tiny @(c.PayoutPct == v ? "here" : "")" disabled="@(c.PayoutPct == v)" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Payout, v, cs))">@(v == 0 ? "keep it all" : v == 100 ? "pay it all" : v + "%")</button> }
                 </div>
                 <div class="row small">
                     <input type="number" min="1" max="99" value="@n" @onchange="e => SetQty(BoardKey(c.Id), e)" />
-                    <button class="opt inline tiny" disabled="@(fl != null)" title="@(fl ?? "new shares sold to the public at a tenth under the price; the coin goes into the company, and your share of it shrinks")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Float, n, cs))">Float @n new shares · raises @(fl == null ? cs.FloatProceeds(w.Company(c.Id)!, n).ToString() : "—")</button>
+                    <button class="opt inline tiny" disabled="@(fl != null)" title="@(fl ?? "new shares sold to the public at a tenth under the price; the coin goes into the company, and your share of it shrinks")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Float, n, cs))">Float @n new shares · raises @(fl == null ? Money.Show(cs.FloatProceeds(w.Company(c.Id)!, n)) : "—")</button>
                     <button class="opt inline tiny" disabled="@(bb != null)" title="@(bb ?? "the company buys its own shares off the float with its cash and cancels them")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Buyback, n, cs))">Buy back @n</button>
                     @{ string? pin = new BoardCommand(pid, c.Id, BoardCommand.PayIn, n, cs).Refusal(G.Ctx); }
-                    <button class="opt inline tiny" data-payin="@c.Id" disabled="@(pin != null)" title="@(pin ?? $"{n} credits of the house's own go into the company's chest, for no new shares: your share of it stays what it is, and every other holder is the richer by theirs. It is how a company you direct is given the coin to enlarge a venture without cutting the dividend or floating shares.")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.PayIn, n, cs))">Pay in @n credits</button>
+                    <button class="opt inline tiny" data-payin="@c.Id" disabled="@(pin != null)" title="@(pin ?? $"{Money.Credits(n)} of the house's own go into the company's chest, for no new shares: your share of it stays what it is, and every other holder is the richer by theirs. It is how a company you direct is given the coin to enlarge a venture without cutting the dividend or floating shares.")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.PayIn, n, cs))">Pay in @Money.Show(n) credits</button>
                     <button class="opt inline tiny" disabled="@(sp != null)" title="@(sp ?? "the cash in hand is paid to every holder by their shares, now")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Special, 0, cs))">Pay out the cash</button>
                     <button class="opt inline tiny" disabled="@(pv != null)" title="@(pv ?? "the ventures and the cash are the house's again")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Private, 0, cs))">Wind it up</button>
                 </div>
@@ -86,17 +86,17 @@ else
                 <h3><Icon Name="credits" Size="13" /> War bonds <span class="muted">lent to the chair for the war abroad</span></h3>
                 @if (ex.BondOffer is { } bo)
                 {
-                    <div class="muted small">The Reach borrows for the war with @bo.NationName: @bo.Face credits a bond at @bo.YieldPct% a year, repaid when the war ends (a tenth over if the nation is subdued, fifteen in the hundred short if not). You hold @bo.Held of @bo.Cap.</div>
-                    <button class="opt" disabled="@(bo.Refusal != null)" title="@(bo.Refusal ?? $"{bo.Face} credits lent to the chair now. It pays {bo.YieldPct}% a year while the war lasts. When the war ends it is repaid: {bo.Face * 110 / 100} if {bo.NationName} was subdued, {bo.Face * 85 / 100} if not; and if the chair's treasury cannot find the whole sum, only what it can. There is no selling a bond before then.")" @onclick="() => G.Execute(new BuyBondCommand(pid, cs))">Buy a bond · @bo.Face credits at @bo.YieldPct% · repaid when the war ends</button>
+                    <div class="muted small">The Reach borrows for the war with @bo.NationName: @Money.Show(bo.Face) credits a bond at @bo.YieldPct% a year, repaid when the war ends (a tenth over if the nation is subdued, fifteen in the hundred short if not). You hold @bo.Held of @bo.Cap.</div>
+                    <button class="opt" disabled="@(bo.Refusal != null)" title="@(bo.Refusal ?? $"{Money.Credits(bo.Face)} lent to the chair now. It pays {bo.YieldPct}% a year while the war lasts. When the war ends it is repaid: {Money.Show(bo.Face * 110 / 100)} if {bo.NationName} was subdued, {Money.Show(bo.Face * 85 / 100)} if not; and if the chair's treasury cannot find the whole sum, only what it can. There is no selling a bond before then.")" @onclick="() => G.Execute(new BuyBondCommand(pid, cs))">Buy a bond · @Money.Show(bo.Face) credits at @bo.YieldPct% · repaid when the war ends</button>
                 }
-                @foreach (var b in ex.Bonds) { <div class="line small"><b>@b.Face</b> at @b.YieldPct% <span class="muted">· the war with @b.NationName · bought in year @b.Bought</span></div> }
+                @foreach (var b in ex.Bonds) { <div class="line small"><b>@Money.Show(b.Face)</b> at @b.YieldPct% <span class="muted">· the war with @b.NationName · bought in year @b.Bought</span></div> }
             </section>
         }
         @if (ex.IsTreasurer)
         {
             <section class="panel">
                 <h3><Icon Name="influence" Size="13" /> The Treasurer's hand</h3>
-                <div class="muted small">Once a term the Treasurer may open the Reach's purse under a falling market: the chair pays @cs.Rules.SteadyCost credits, companies in the red are made whole, and confidence is held up for two years.</div>
+                <div class="muted small">Once a term the Treasurer may open the Reach's purse under a falling market: the chair pays @Money.Show(cs.Rules.SteadyCost) credits, companies in the red are made whole, and confidence is held up for two years.</div>
                 <button class="opt" disabled="@(ex.SteadyRefusal != null)" title="@ex.SteadyRefusal" @onclick="() => G.Execute(new SteadyMarketCommand(pid, cs))">Steady the market</button>
             </section>
         }
@@ -128,7 +128,7 @@ else
             @foreach (var b in loose)
             {
                 var refusal = cs.IncorporateRefusal(w, house.Id, w.Businesses.GetValueOrDefault(b.Id), string.Empty);
-                <div class="line small"><b>@b.Name</b> <span class="muted">earns @b.Earnings · worth @b.Value</span>
+                <div class="line small"><b>@b.Name</b> <span class="muted">earns @Money.Show(b.Earnings) · worth @Money.Show(b.Value)</span>
                     <button class="opt inline tiny" disabled="@(refusal != null)" title="@(refusal ?? "a hundred shares, all yours; sell some for coin, or float new ones to build")" @onclick='() => G.AskDo("Incorporate " + b.Name + "?", "It is listed on the Exchange as a company of a hundred shares, all yours to begin with. Its profit is then paid as dividends to whoever holds the shares, and others may buy in. It cannot be made a private venture again.", "Incorporate", new IncorporateCommand(pid, b.Id, string.Empty, cs))'>Incorporate</button>
                     @foreach (var c in directed) { string? foldNo = new IncorporateCommand(pid, b.Id, c.Id, cs).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(foldNo != null)" title="@(foldNo ?? "new shares are issued to you for what it is worth")" @onclick="() => G.Execute(new IncorporateCommand(pid, b.Id, c.Id, cs))">Fold into @c.Name</button> }
                 </div>
@@ -159,7 +159,7 @@ else
     private static string F1(double v) => v.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string BuyTip(ShareQuote q, CompanyLine c, bool wouldControl) =>
-        F2(q.UnitPrice) + " a share with your order's weight" + (q.Levy > 0 ? ", " + q.Levy + " of it the levy" : "") + (wouldControl ? "; this would give you more than half" + (c.GoldenShare ? ", and its founder may refuse it once" : "") : "");
+        Money.Show(q.UnitPrice) + " a share with your order's weight" + (q.Levy > 0 ? ", " + Money.Show(q.Levy) + " of it the levy" : "") + (wouldControl ? "; this would give you more than half" + (c.GoldenShare ? ", and its founder may refuse it once" : "") : "");
     /// <summary>A twelve-year line, 120 by 26.</summary>
     private static string Spark(IReadOnlyList<double> h, bool up)
     {

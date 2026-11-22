@@ -191,7 +191,7 @@ public sealed partial class NationSystem
             if (w.Counter(YieldSinceKey(x.Id)) == 0)
             {
                 w.WorldCounters[YieldSinceKey(x.Id)] = Math.Max(1, w.Turn); if (holder.Id == w.Protagonist?.HouseId) Mark(w, "world_yields_to_us", n);
-                w.Log($"{hw.Name} works for {holder.Name} now: {string.Join(", ", d.Yields.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{k.Value} {k.Key}"))} a year, for as long as it is held.");
+                w.Log($"{hw.Name} works for {holder.Name} now: {string.Join(", ", d.Yields.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{Money.Of(k.Key, k.Value)} {k.Key}"))} a year, for as long as it is held.");
             }
         }
         // an empire in decay strikes a hull from its lists every ten years, down to a remnant
