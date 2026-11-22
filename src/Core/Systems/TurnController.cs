@@ -271,7 +271,7 @@ public sealed class TurnController
         if (World.InAcademy) { Phase = TurnPhase.Resolve; _academy.EndTerm(World); SyncRng(); Phase = TurnPhase.Idle; return; }   // the term closes; the world has not moved
         Phase = TurnPhase.Resolve; World.NewsFrom = World.NewsSeq;   // what is told from here on is the coming year's news (docs/PLAYTHROUGH.md 14)
         Presentation.YearInBrief.MarkActed(World);   // where the treasury stood when the head had done with the year: last year's accounts split the head's own acts from the year's turn
-        using (Perf.Time("end:household")) { _household.Tick(World, Executor, Context()); CourtSystem.Tick(World, _content.Policies); }   // those the head has handed work to do it; the household's own lives go on (docs/HOUSEHOLD.md)
+        using (Perf.Time("end:household")) { _household.Tick(World, Executor, Context()); CourtSystem.Tick(World, _content.Policies); PayrollSystem.Tick(World, _content.ShipClasses); }   // those the head has handed work to do it; the household's own lives go on (docs/HOUSEHOLD.md)
         using (Perf.Time("end:ambitions")) { _ambitions.Tick(World, Executor, Context()); _ventures?.PayHolders(World); }   // the people of the house go after what they want (docs/AMBITIONS.md) — RNG-free
         using (Perf.Time("end:npc")) { _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings, _fleets.Rules, _content.Businesses); }   // NPCs act, invest, sail, and may author a crisis
         using (Perf.Time("end:senate")) { _senate.Tick(World); }          // the Senate votes last session's motions and hears new ones (GDD §6.1) — RNG-free

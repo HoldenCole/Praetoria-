@@ -227,6 +227,92 @@ internal static class Probes
 
     /// <summary>balance: after sixty years, where prices sat against their usual level, what the Reach made and used, the Exchange,
     /// and how the houses stand in the three orders.</summary>
+    // ---- the economy on trial (docs/ECONOMY_REVIEW.md, "Trials") ----
+
+    private static readonly Dictionary<string, double> UsualPrice = new() { [Resource.Credits] = 1, [Resource.Materials] = 1.5, [Resource.Manpower] = 2, [Resource.Exotics] = 7, [Resource.Helium3] = 6, [Resource.RareEarths] = 9, [Resource.Isotopes] = 12, [Resource.Influence] = 6 };
+    private static double Worth(Resources r) => Resource.All.Sum(k => UsualPrice[k] * r.Get(k));
+    private static bool Strategic(Resources y) => y.Helium3 > 0 || y.RareEarths > 0 || y.Isotopes > 0 || y.Exotics > 0;
+    /// <summary>What a thing of this kind is meant to return a year at usual prices, by what it yields: the ranged returns on trial.</summary>
+    private static double TargetReturn(Resources yield, string sector, string id, bool great)
+    {
+        if (id == "salvage_guild") return 0.20;                       // speculative
+        if (sector == "arms" && !Strategic(yield)) return 0;          // war ventures: thin at peace, rich in a war; left as they are
+        if (id is "insurance_house" or "commodity_warehouse" or "shipyard_company") return 0;   // they live on peace, spikes and wars
+        if (Strategic(yield)) return great ? 0.12 : 0.15;             // helium-3, rare earths, isotopes, exotics: the dear goods, and three times this in a spike
+        if (great) return yield.Materials > 0 ? 0.10 : 0.05;          // a great work that makes something earns; one that is for show does not
+        if (sector == "shipping") return 0.12;
+        if (sector is "trade" or "services") return 0.10;
+        if (sector == "finance") return 0.09;
+        if (yield.Influence > 0 || yield.Materials > 0) return 0.10;
+        if (yield.Manpower > 0) return 0.08;
+        return 0.07;                                                  // credits only: markets, ports, power
+    }
+    private static (double before, double after) Reprice(Resources cost, Resources? expand, Resources yield, Resources flat, Resources upkeep, string sector, string id, bool great)
+    {
+        double net = Worth(yield) + Worth(flat) - Worth(upkeep), c = Worth(cost); if (net <= 0 || c <= 0) return (0, 0);
+        var all = yield.Clone(); all.Add(flat);   // what it yields at any level counts toward what kind of thing it is
+        double now = net / c, want = TargetReturn(all, sector, id, great); if (want <= 0 || now <= want) return (now, now);
+        double k = now / want; foreach (var r in Resource.All) { cost.Set(r, (int)Math.Ceiling(cost.Get(r) * k)); expand?.Set(r, (int)Math.Ceiling(expand.Get(r) * k)); }
+        return (now, net / Worth(cost));
+    }
+    /// <summary>Raise the cost of everything that returns more than its kind is meant to, in this loaded copy of the content only.</summary>
+    private static List<string> RangedReturns(ContentDatabase content, bool print)
+    {
+        var said = new List<string>(); var none = new Resources();
+        void Say(string kind, string name, (double before, double after) r, Resources cost) { if (r.before > 0) said.Add($"   {kind,-10} {name,-28} {100 * r.before,4:F0}% -> {100 * r.after,3:F0}%   now costs {CourtProjection.Bundle(cost)}"); }
+        foreach (var b in content.Holdings.Buildings.OrderBy(b => b.Id, StringComparer.Ordinal)) Say("building", b.Name, Reprice(b.Cost, null, b.Yield, none, b.Upkeep, "", b.Id, false), b.Cost);
+        foreach (var x in content.Holdings.Works.OrderBy(x => x.Id, StringComparer.Ordinal)) Say(x.IsMegastructure ? "great work" : "work", x.Name, Reprice(x.Cost, null, x.Yield, none, x.Upkeep, "", x.Id, x.IsMegastructure), x.Cost);
+        foreach (var v in content.Businesses.Defs) Say("venture", v.Name, Reprice(v.Cost, v.ExpandCost, v.Yield, v.FlatYield, v.Upkeep, v.Sector, v.Id, false), v.Cost);
+        if (print) foreach (var l in said) Console.WriteLine(l);
+        return said;
+    }
+
+    /// <summary>`praetoria econ`: today's returns and the ranged returns, each against no salaries and every scheme of salaries on trial,
+    /// thirty years, every house. What it prints is the table in docs/ECONOMY_REVIEW.md, "Trials".</summary>
+    public static int Econ(Options o)
+    {
+        string sid = o.Scenario == "academy_crucible" ? "the_old_lion" : o.Scenario; int seeds = Math.Max(1, Math.Min(o.Seeds, 4)); int years = Math.Max(30, o.Turns);
+        Console.WriteLine($"=== The economy on trial: {sid}, {Praetoria.Core.Counted.Seeds(seeds)}, {years} years, every house; amounts in credits ===\n");
+        Console.WriteLine("-- the ranged returns: what is repriced, its return a year before and after --");
+        RangedReturns(ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir()), true);
+        var payrolls = new[] { "" }.Concat(PayrollSystem.Schemes.Select(s => s.Id)).ToArray();
+        Console.WriteLine($"\n{"returns",-8} {"salaries",-9} {"year",4} | {"takes in",8} {"upkeep",7} {"wages",6} {"wages %",7} {"kept %",6} | {"treasury",9} {"in the red",10} | {"hulls",5} {"buildings",9} {"ventures",8} {"houses",6}");
+        foreach (bool ranged in new[] { false, true })
+            foreach (string pay in payrolls)
+            {
+                var at = new SortedDictionary<int, List<(long gross, long upkeep, long wages, long treasury)>>(); var tot = new Dictionary<int, (int hulls, int buildings, int ventures, int houses)>();
+                for (ulong seed = 1; seed <= (ulong)seeds; seed++)
+                {
+                    var content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir()); if (ranged) RangedReturns(content, false);
+                    var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), sid), seed); w.Payroll = pay; var tc = new TurnController(w, content);
+                    for (int t = 0; t <= years && !w.IsDynastyDead; t++)
+                    {
+                        if (t is 1 or 10 or 20 || t == years)
+                        {
+                            var hs = w.Houses.Values.Where(h => !World.Outsider(h.Id) && Economy.HeadOf(w, h) != null).ToList(); if (!at.ContainsKey(t)) at[t] = new();
+                            foreach (var h in hs)
+                            {
+                                var led = tc.Economy.Compute(w, h.Id, tc.Fleets); long gross = 100L * led.Lines.Where(l => l.Delta.Credits > 0).Sum(l => l.Delta.Credits), up = -100L * led.Lines.Where(l => l.Delta.Credits < 0).Sum(l => l.Delta.Credits);
+                                long wages = PayrollSystem.Of(pay) is { } s ? PayrollSystem.Bill(w, content.ShipClasses, h, s).Sum(l => l.credits) : 0; at[t].Add((gross, up, wages, h.Treasury.Total));
+                            }
+                            var was = tot.GetValueOrDefault(t); var ids = hs.Select(h => h.Id).ToHashSet();
+                            tot[t] = (was.hulls + w.Fleets.Values.Where(f => ids.Contains(f.OwnerId) && !f.Office).Sum(f => f.Strength), was.buildings + w.Holdings.Values.Where(x => ids.Contains(x.OwnerId)).Sum(x => x.Buildings.Count),
+                                was.ventures + w.Businesses.Values.Where(b => ids.Contains(b.OwnerId)).Sum(b => b.Level), was.houses + hs.Count);
+                        }
+                        PassiveTurn(tc); tc.EndTurn();
+                    }
+                }
+                foreach (var (t, rows) in at)
+                {
+                    long Mid(Func<(long gross, long upkeep, long wages, long treasury), long> f) { var v = rows.Select(f).OrderBy(x => x).ToList(); return v.Count == 0 ? 0 : v[v.Count / 2]; }
+                    long g = rows.Sum(r => r.gross), up = rows.Sum(r => r.upkeep), wg = rows.Sum(r => r.wages); var c = tot[t];
+                    Console.WriteLine($"{(ranged ? "ranged" : "today"),-8} {(pay.Length == 0 ? "none" : pay),-9} {t,4} | {Mid(r => r.gross),8:N0} {Mid(r => r.upkeep),7:N0} {Mid(r => r.wages),6:N0} {(g > 0 ? 100.0 * wg / g : 0),6:F0}% {(g > 0 ? 100.0 * (g - up - wg) / g : 0),5:F0}% | {Mid(r => r.treasury),9:N0} {rows.Count(r => r.treasury < 0),7} of {rows.Count,-3}| {c.hulls / seeds,5} {c.buildings / seeds,9} {c.ventures / seeds,8} {c.houses / seeds,6}");
+                }
+                Console.WriteLine();
+            }
+        return 0;
+    }
+
     public static int Balance(Options o)
     {
         var (content, scenarios) = Load(o); int seeds = Math.Max(1, Math.Min(o.Seeds, 4));

@@ -39,6 +39,9 @@ public sealed class World
 
     /// <summary>GDD §20 "family autonomy": 0 = deferential kin; 1.0 default; 2.0 a pressure-cooker of scheming relatives.</summary>
     public double FamilyAutonomy { get; set; } = 1.0;
+    /// <summary>The scheme of salaries on trial (<see cref="Systems.PayrollSystem"/>), or "" for none: nobody is paid, as in every game
+    /// that is played. Set only by the measuring tool (docs/ECONOMY_REVIEW.md, "Salaries on trial").</summary>
+    public string Payroll { get; set; } = "";
 
     /// <summary>GDD §20 "crisis intensity": off / low / default / dominant — how fast the Great Crisis clock runs.</summary>
     public string CrisisIntensity { get; set; } = "default";
