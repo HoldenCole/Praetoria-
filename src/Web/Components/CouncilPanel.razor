@@ -12,7 +12,7 @@
     var postLaws = c.Policies.Laws.Where(l => l.Scope.StartsWith("post:")).ToDictionary(l => l.Scope["post:".Length..], l => l);
 }
 <section class="panel household council" data-council-panel>
-    <div class="hh-head" data-council><b>The council</b> <span class="muted small">Six posts you can give away. Nothing has to be: an empty post is work you do yourself, or work nobody does. Whoever holds one does it once a year by their own skill, spends only what is above the reserve, and can be anyone grown of the house, born to it or taken in. Each says below what it sees. A post is paid @HouseholdSystem.Stipend credits a year from the treasury; unpaid for @HouseholdSystem.LeavesAfter years, its holder gives it up.</span></div>
+    <div class="hh-head" data-council><b>The council</b> <span class="muted small">Six posts you can give away. Nothing has to be: an empty post is work you do yourself, or work nobody does. Whoever holds one does it once a year by their own skill, spends only what is above the reserve, and can be anyone grown of the house, born to it or taken in. Each says below what it sees. A post is paid @Money.Show(HouseholdSystem.Stipend) credits a year from the treasury; unpaid for @HouseholdSystem.LeavesAfter years, its holder gives it up.</span></div>
     <div class="council-grid">
     @foreach (var role in HouseholdSystem.Roles)
     {
@@ -33,7 +33,7 @@
                         @if (holder.Flags.Contains(HouseholdSystem.SkimmingChar)) { <div class="small bad">The accounts under them do not add up.</div> }</div>
                 </div>
                 <div class="suit-acts"><span class="muted small" title="They spend only what the treasury holds above this in credits. Materials and the rest they leave alone as far as the year's shares of what is already being built will want them.">Leave in the treasury (credits)</span>
-                    @foreach (int amt in Reserves) { int a = amt; <button class="opt inline tiny @(d.Reserve == amt ? "here" : "")" @onclick="() => G.Execute(new DelegateCommand(pid, r, d.HolderId, a))">@amt</button> }
+                    @foreach (int amt in Reserves) { int a = amt; <button class="opt inline tiny @(d.Reserve == amt ? "here" : "")" @onclick="() => G.Execute(new DelegateCommand(pid, r, d.HolderId, a))">@Money.Show(amt)</button> }
                 </div>
                 @if (role != HouseholdSystem.Steward && role != HouseholdSystem.Marshal)
                 {

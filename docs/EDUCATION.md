@@ -57,7 +57,7 @@ From six, a child has lessons every year without anyone arranging it.
   third on the next. At sixteen they are properly good at one thing (about 3) and have met another.
 - **You may set a different course.** Against their bent they learn one point a year, think a little less of you every
   year, and an event comes of it.
-- **A tutor** adds one or two points a year (2 or 5 credits). A house that cannot pay loses the tutor.
+- **A tutor** adds one or two points a year (200 or 500 credits). A house that cannot pay loses the tutor.
 - **At sixteen** what they were brought up to decides their service, ahead of what their parents did, and what they
   learned is kept.
 
@@ -119,10 +119,10 @@ it every third year, until there is nothing left to pass on.
 
 Closed straight off the register on 2026-11-15 (docs/GAPS.md E5, E6).
 
-- **A price.** One who would not study for the asking, but is within 12 of it, will for 4 credits of the head's own;
-  within 25, for 8; further off, not for anything. Paid, they turn to it, the money is theirs, and nobody thinks the
+- **A price.** One who would not study for the asking, but is within 12 of it, will for 400 credits of the head's own;
+  within 25, for 800; further off, not for anything. Paid, they turn to it, the money is theirs, and nobody thinks the
   worse of anybody. The button appears beside the subject when asking alone would be refused.
-- **Thanks.** The head can thank one of the house who has another of it under their wing: 4 credits of the head's own,
+- **Thanks.** The head can thank one of the house who has another of it under their wing: 400 credits of the head's own,
   +8 regard, once in three years. And when a pupil has taken a step from a teacher of the house, an event asks whether
   the head thanks them, pays them, or takes it as their duty.
 - **Ceilings.** Nobody sits above their ceiling: what a person has already reached is taken as what was in them, and

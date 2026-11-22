@@ -141,7 +141,7 @@
             @foreach (var good in CharacterWorkshop.Goods)
             {
                 var gd = good; int cap = gd == Resource.Credits ? lim.MaxCredits : gd == Resource.Influence ? lim.MaxInfluence : lim.MaxGoods;
-                <label>@Cap(Resource.Label(gd)) <input type="number" min="0" max="@cap" value="@c.Treasury.GetValueOrDefault(gd)" @onchange="e => { c.Treasury[gd] = Num(e, 0, cap); Changed(); }" /></label>
+                <label>@Cap(Resource.Label(gd))@(gd == Resource.Credits ? " (hundreds)" : "") <input type="number" min="0" max="@cap" value="@c.Treasury.GetValueOrDefault(gd)" @onchange="e => { c.Treasury[gd] = Num(e, 0, cap); Changed(); }" /></label>
             }
         </div>
         @if (!c.Imperium)

@@ -236,8 +236,8 @@ be changed in content without touching the engine.
 - Dividends are declared from the year's earnings and paid the next year through the ledger, to whoever holds then.
 - A chartered company lets no house hold more than a quarter, unless the throne has granted its monopoly.
 - The Exchange Levy Act taxes every share trade and pays the chair.
-- A company whose cash falls below −30 is wound up: its ventures are broken up and its holders paid what is left.
-- A bond costs 20 credits, pays 6 per cent a year (more when the war goes badly), and is repaid when the war ends:
+- A company whose cash falls below −3,000 is wound up: its ventures are broken up and its holders paid what is left.
+- A bond costs 2,000 credits, pays 6 per cent a year (more when the war goes badly), and is repaid when the war ends:
   110 per cent if the nation was subdued, 85 if not. The chair pays the coupons and the principal. If the chair cannot
   pay, the bonds default and confidence falls.
 
@@ -269,7 +269,7 @@ never go wrong. Now every venture a house owns outright is reckoned at the start
 - **Two such years running**, and the owner is warned (an alert, and the venture's card says so).
 - **Three**, and it is wound up. The house gets half its salvage, which is a quarter of what it cost; the rest goes to
   those it owed. The venture is gone.
-- **Carrying it.** The owner can put money in: twice its yearly loss and 2 credits for each level of it, 4 at the
+- **Carrying it.** The owner can put money in: twice its yearly loss and 200 credits for each level of it, 400 at the
   least. The losing years are wiped out and it has three more to come right. Or it can be sold, as before.
 - **The founder.** If one of the owner's own house founded it (docs/AMBITIONS.md), that is a failure of their own: it
   is written into their life, it tells on them, and it counts against what they want. Three failures and a person
@@ -299,16 +299,16 @@ stop it.
 
 - **Other houses act.** A year from being wound up, a house whose head knows economics (2 or better), or which sits
   with the Factors, or one house in three otherwise, does something. If it has the cost of carrying the venture and
-  60 credits beside, it carries it. If not, it sells: to the best bidder among the other houses, or on the open
+  6,000 credits beside, it carries it. If not, it sells: to the best bidder among the other houses, or on the open
   market, which pays more than a winding up would. The rest let it go. The player is never sold to unasked.
 - **A company's venture is judged** like any other. After three years without a profit the company carries it out of
-  its own cash if it has the cost and 20 beside; otherwise it closes it, takes half the salvage into its cash, and
+  its own cash if it has the cost and 2,000 beside; otherwise it closes it, takes half the salvage into its cash, and
   its shares are sold off a little (a twentieth of them, as selling pressure).
 - **A failure costs more than money.** Those the house owes are paid out of what comes back before the house is. The
   merchants think 3 worse of the house and the commons 1. And for five years the house has **a name for bad
   business**: other houses bid a tenth less for any venture it sells. The Exchange screen says so.
 - **A second cause: sacked.** When a world falls to a siege, about half the ventures there that belong to houses at
-  war with whoever took it are sacked. Nothing comes back to the owner; the taker carries off 4 credits a level. A
+  war with whoever took it are sacked. Nothing comes back to the owner; the taker carries off 400 credits a level. A
   founder of the owner's house has failed at it, as if it had been wound up. An event for the head.
 - **A second start.** For six years after a venture they founded fails or is sacked, the head can stake its founder
   to another: the house founds the cheapest venture it can, in the founder's name. They think 10 better of the head
@@ -328,24 +328,24 @@ carries or closes a failing venture and never sells it; other houses give no fou
 
 Closed off the register (docs/GAPS.md A8).
 
-- **A bill for what was sacked.** Every venture sacked is written down against whoever took the world: 10 credits a
+- **A bill for what was sacked.** Every venture sacked is written down against whoever took the world: 1,000 credits a
   level. When the two make peace the bill is paid, as far as the payer's treasury goes. A house beaten badly enough
   to cede a world presents no bill: its claim is struck out. A bill with no war behind it (the war ended some other
   way) lapses at the year's reckoning.
 - **A company sells.** A company that cannot carry a failing venture now sells it rather than close it, if the house
   that directs it minds its books (the same test as for a house): to the holder of the world it works, at the
   market's price, or on the open market. The money is the company's. A board that does not mind still closes it.
-- **Foreclosure.** A house is foreclosed on when it owes on a loan and its treasury is empty, or its treasury is 20
+- **Foreclosure.** A house is foreclosed on when it owes on a loan and its treasury is empty, or its treasury is 2,000
   or more under, or it has been overdrawn two years running. Its lender takes the least valuable of its ventures
   against the loan and pays over anything above it; with no lender able to, the venture is sold. The proceeds pay
   the loan, then whatever else the house owes, then the house. It has a name for bad business for five years. **A
   venture that is someone's own is not the house's to lose**, and is never taken. You are warned in the first year
   you are overdrawn. An event when it happens to you.
 
-Measured over sixty runs of sixty years: 3,059 credits were paid at a peace for what had been sacked and 60 struck
+Measured over sixty runs of sixty years: 305,900 credits were paid at a peace for what had been sacked and 60 struck
 out; companies sold 10 failing ventures and closed 11; 26 ventures were foreclosed on. A house was overdrawn in
-4,596 house-years, about one in twenty-five, but by 20 or more in only 42 of them, which is why the first form of the
-rule (a loan unpaid, or 20 under) never once applied and two years overdrawn was added.
+4,596 house-years, about one in twenty-five, but by 2,000 or more in only 42 of them, which is why the first form of the
+rule (a loan unpaid, or 2,000 under) never once applied and two years overdrawn was added.
 
 Found while building it, and mapped (A9): foreclosure takes a venture and nothing else, and the house has no say in
 which; a bill at the peace is for ventures only.
@@ -360,18 +360,18 @@ Closed off the register (docs/GAPS.md A9).
   withdrawn, and is spent when it is taken. Without one the creditors take the least of the ventures, as before.
 - **A thing handed down.** A house with no venture left to give loses a thing instead: the one pledged, else the
   least valuable the head holds. This waits a year longer than a venture does (three years overdrawn, or a loan
-  unpaid, or 20 under). **An entailed thing is never taken**: that is what an entail is for. Against a loan from a
+  unpaid, or 2,000 under). **An entailed thing is never taken**: that is what an entail is for. Against a loan from a
   named house the thing goes to that house's head as their own; otherwise it is sold.
 - **A world, last of all.** Only against a loan from a named house, only when there is neither a venture nor a thing
   to take, never a house's last world and never the capital. The least peopled world passes to the lender and the
   whole loan is written off.
 - **A bill for a blockade.** A blockade that is lifted without the world falling, or still stands when peace is
-  made, is written down against whoever laid it: 3 credits for each year it stood. It is paid at the peace with the
+  made, is written down against whoever laid it: 300 credits for each year it stood. It is paid at the peace with the
   bill for what was sacked, by the same rule. A fleet lost is not billed: the tribute the beaten side pays at a
   peace already answers to how the fighting went.
 
-Measured over sixty runs of sixty years: creditors took 27 ventures and 46 things, and no world; 780 credits were
-billed for blockades that failed, and 4,192 paid at a peace in all (3,059 before blockades were billed). In the soak
+Measured over sixty runs of sixty years: creditors took 27 ventures and 46 things, and no world; 78,000 credits were
+billed for blockades that failed, and 419,200 paid at a peace in all (305,900 before blockades were billed). In the soak
 a world was foreclosed on once, and its player made four pledges.
 
 Found while building it, and mapped (A10): only the head's own things are at risk, never a relative's; other houses
@@ -386,12 +386,12 @@ house that keeps a bank. The rules are constants in `src/Core/Systems/Lending.cs
 
 | | limit | rate |
 |---|---|---|
-| the counting-houses | 20, and 10 for each world held (four counted) | 30 in the hundred |
-| a house's bank | 20 for each level of the bank, and the same 10 a world | 30; 10 off at +20 regard, 10 more at -10, 10 off for its client |
+| the counting-houses | 2,000, and 1,000 for each world held (four counted) | 30 in the hundred |
+| a house's bank | 2,000 for each level of the bank, and the same 1,000 a world | 30; 10 off at +20 regard, 10 more at -10, 10 off for its client |
 
 A house known for bad business pays 10 more everywhere. A bank whose head thinks -30 or worse of the borrower, or is at war
 with it, lends nothing. One lender at a time; the lender already owed lends more, to its limit. What is owed is the sum and
-its interest together from the day, paid by the year in the proportion the standing loan always was (4 a year on 26), and
+its interest together from the day, paid by the year in the proportion the standing loan always was (400 a year on 2,600), and
 kept on the house as `LoanInstalment`. `RepayLoanCommand` takes an amount: a part paid shortens the years and saves no
 interest. The standing loan the stewards of other houses take is unchanged, and is the counting-houses' terms exactly.
 

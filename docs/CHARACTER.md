@@ -37,7 +37,7 @@ Shortcuts: five presets (*The Heir*, *The Officer*, *The New Man*, *The Upstart*
 | The house's rank | 6 a step |
 | Legitimacy | 1 for every 5 |
 | An old name / a seat by the census / a patron | 3 / 4 / 3 |
-| The treasury | credits and materials and manpower 1 for every 8; influence 2 each; exotics 2; helium-3 1 for every 2; rare earths 1; isotopes 2 |
+| The treasury | credits 1 for every 800; materials and manpower 1 for every 8; influence 2 each; exotics 2; helium-3 1 for every 2; rare earths 1; isotopes 2 |
 | A world / a hull / a venture | 10 / 2 / 4 |
 | Spouse / child / grown child / sibling | 2 / 2 / 3 / 1 |
 | A living father or mother | 2 each |
@@ -61,7 +61,7 @@ Natures are free: they are character, and each has its own price in stress durin
 | Children / siblings | 3 / 3 | 8 / 6 |
 | A relative's step in a service | 2, and none before twenty | 5 |
 | A parent's age | sixteen years more than the head's, to 95 | the same |
-| Credits / other goods / influence | 150 / 60 / 10 | 5000 / 2000 / 200 |
+| Credits / other goods / influence | 15,000 / 60 / 10 | 500,000 / 2000 / 200 |
 
 ## How it is built
 

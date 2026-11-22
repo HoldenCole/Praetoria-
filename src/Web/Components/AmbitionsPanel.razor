@@ -60,7 +60,7 @@
                 var offer = sys.SecondStartOffer(w, w.Protagonist, c, G.Ctx);
                 <div class="suit-acts">
                     <span class="muted small">What @First(c.Name) founded failed in year @w.Counter(VentureSystem.FailedFounderKey(c.Id)).</span>
-                    <button class="opt inline tiny" disabled="@(offer.refusal != null)" title="@(offer.refusal ?? $"The house founds {offer.what} for them, out of the treasury. They think much better of you, and the failure is no longer the last word.")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.SecondStart, cid, sys))">Give them a second start@(offer.refusal == null ? $" · {offer.cost}" : "")</button>
+                    <button class="opt inline tiny" disabled="@(offer.refusal != null)" title="@(offer.refusal ?? $"The house founds {offer.what} for them, out of the treasury. They think much better of you, and the failure is no longer the last word.")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.SecondStart, cid, sys))">Give them a second start@(offer.refusal == null ? $" · {Money.Show(offer.cost)}" : "")</button>
                 </div>
             }
             @if (asks)

@@ -1,3 +1,4 @@
+using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.State;
@@ -127,7 +128,7 @@ public class ChairTests
         foreach (var fl in w.Fleets.Values) fl.Office = false;
         var c = Charged(w, me, "treasurer"); var f = LadderSystem.BudgetOf(c)!;
         Assert.Equal(landed * LadderSystem.LevyEach, f.Assessed); Assert.Equal(0, f.Lost); Assert.Equal(0, f.Wanted); Assert.Equal(f.Assessed, f.Surplus);
-        Assert.Contains($"{f.Collected} credits came in", LadderSystem.DutySays(w, Content.Policies, c));
+        Assert.Contains($"{Money.Credits(f.Collected)} came in", LadderSystem.DutySays(w, Content.Policies, c));
         chair.Treasury.Credits = 40; int banked = LadderSystem.BalanceSum(c); Assert.Equal(Math.Clamp((f.Surplus + 1) / 2, 1, 12), banked);
         Assert.True(Do(tc, ctx, me, LadderSystem.Balance)); Assert.Equal(40 + banked, chair.Treasury.Credits);
         // a bad year: the lanes are lawless and the regions loose, so less comes in and more is called for

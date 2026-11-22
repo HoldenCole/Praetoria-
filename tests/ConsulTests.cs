@@ -1,3 +1,4 @@
+using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.State;
@@ -59,7 +60,7 @@ public class ConsulTests
 
         // coin: a sixth of its treasury, fifteen at the most; given, and a favour owed
         int coin = AskAbove.CoinOf(patron); Assert.Equal(AskAbove.CoinMost, coin); int had = mine.Treasury.Credits;
-        var ask = new AskAboveCommand("self", "aurelian", AskAbove.Coin, Content.Offices, senate); Assert.Null(ask.Refusal(ctx)); Assert.Contains($"gives you {coin} credits", ask.Says(w));
+        var ask = new AskAboveCommand("self", "aurelian", AskAbove.Coin, Content.Offices, senate); Assert.Null(ask.Refusal(ctx)); Assert.Contains($"gives you {Money.Credits(coin)}", ask.Says(w));
         Assert.True(exec.TryExecute(ask, ctx));
         Assert.Equal(had + coin, mine.Treasury.Credits); Assert.Equal(120 - coin, patron.Treasury.Credits); Assert.True(WealthSystem.FavourOwed(w, "vega", "aurelian"));
         // one debt at a time: nothing more until the favour is settled

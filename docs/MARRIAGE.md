@@ -51,7 +51,7 @@ One act a year for each suit:
 | Act | Cost | Does |
 |---|---|---|
 | Time together | 1 influence | Favour up, more for a suitor with charisma |
-| A gift | 12 credits | Favour up a little, the family up a little |
+| A gift | 1,200 credits | Favour up a little, the family up a little |
 | Put the case to the family | 2 influence | The family up, more for a head with oratory or diplomacy |
 | Put word about against a rival | 1 agent | Sets the rival back, more with intrigue. It may be traced to you, which costs you with the family |
 
@@ -77,7 +77,7 @@ Set when the match is proposed, and shown with the family's answer before you as
 | The children's name | by custom, yours, theirs | Taking it against custom −15; conceding it against custom +15 |
 
 Custom gives the children to the head of a house, otherwise to the greater house, otherwise to the father's. The
-customary dowry is 8 to 60 credits by the bride's house's rank and wealth. A house pays what it has.
+customary dowry is 800 to 6,000 credits by the bride's house's rank and wealth. A house pays what it has.
 
 A refusal costs 5 of the family's consent, and they answer once a year.
 

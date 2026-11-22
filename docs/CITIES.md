@@ -36,14 +36,14 @@ screen:
 |---|---|---|---|
 | the capital | +1 influence | unrest −1, defence +0.2 | (the home world's own row is its) |
 | a city of craftsmen | +1 materials | prosperity +2 | Guild Halls |
-| a resort | +1 credits | prosperity +4, unrest −1 | Pleasure Gardens |
-| a great port | +2 credits | | Bonded Warehouses |
+| a resort | +100 credits | prosperity +4, unrest −1 | Pleasure Gardens |
+| a great port | +200 credits | | Bonded Warehouses |
 | a garrison city | +1 manpower | defence +0.3, muster +6 | Citadel |
 | a university town | +1 influence | prosperity +2 | Collegium |
 | a holy city | | unrest −2 | Pilgrims' Basilica |
 | a company town | +2 materials | unrest +1 | Deep Workings |
-| a market city | +1 credits | prosperity +2 | Covered Market |
-| a breadbasket city | +1 manpower, +1 credits | muster +4 | Great Granaries |
+| a market city | +100 credits | prosperity +2 | Covered Market |
+| a breadbasket city | +1 manpower, +100 credits | muster +4 | Great Granaries |
 | a yard city | +1 materials | defence +0.2 | Slipways |
 | an old city | +1 influence | prosperity +1 | Old Quarter |
 
@@ -60,8 +60,8 @@ on the map.
 
 | city | where it is put | each year | on the world | its building |
 |---|---|---|---|---|
-| the Capital of the Reach | the seat of the world the Senate sits on | +2 influence, +2 credits, +2 manpower | unrest −1, defence +0.5, muster +10 | The Senate's Precinct (on the home world) |
-| the Exchange city | the most peopled trading world that is not the capital | +4 credits | prosperity +3 | The Great Exchange |
+| the Capital of the Reach | the seat of the world the Senate sits on | +2 influence, +200 credits, +2 manpower | unrest −1, defence +0.5, muster +10 | The Senate's Precinct (on the home world) |
+| the Exchange city | the most peopled trading world that is not the capital | +400 credits | prosperity +3 | The Great Exchange |
 | the Lode | the solid world with most in the ground | +4 materials | unrest +1 | The Great Pit |
 | the Academy city | the most peopled living world that is none of those | +2 influence, +1 manpower | prosperity +2, muster +4 | The Institute's Halls |
 

@@ -6,13 +6,13 @@ different to live in. Data in `content/galaxy/the_reach.json` (`ring` on each re
 
 | Ring | Regions | Character |
 |---|---|---|
-| **Core** | The Imperial Core, The Golden Concourse | commerce and the court: a credit more per peopled world, charters pay double, prosperity +10, unrest eases a point a turn, lawlessness falls, allegiance settles high |
+| **Core** | The Imperial Core, The Golden Concourse | commerce and the court: a hundred credits more per peopled world, charters pay double, prosperity +10, unrest eases a point a turn, lawlessness falls, allegiance settles high |
 | **Middle** | The Drake Lanes, The Greywater Reach, The Southern Spire, The Lantern Shoals | no thumb on the scale: it leans the way the capital's standing, its worlds' loyalty and the lanes' lawlessness push it |
 | **Rim** | The Western Marches, The Valmont Anvils, The Ashen Verge, The Pale Reaches | lawless and restless: prosperity −10, unrest climbs a point a turn, lawlessness grows a point a turn, allegiance settles low; two worlds (the Gallows, Sorrow) are held by no one |
 
 ## The capital
 
-`capital` names the system the galaxy turns on (Aurelia Prime). Whoever holds its planet keeps **the court**: two
+`capital` names the system the galaxy turns on (Aurelia Prime). Whoever holds its planet keeps **the court**: two hundred
 credits and an influence a turn on the ledger, and every region's allegiance reads that house's legitimacy. Content
 reads `holds_capital`.
 
@@ -69,7 +69,7 @@ the victor is raised to Duke at least with ten legitimacy, and the Fractured Sta
 A world that breaks away is a house from its first day: a leader, a treasury, a **militia** hull in orbit with the leader
 in command, and a steward who trades, stakes claims and founds ventures like any other (`NpcAi`). It remembers its
 old lord (`Holding.FormerOwnerId`). The way back is coin or war: **buy it back** (`ReclaimFreeholdCommand`) for
-fifteen credits plus half its people plus half the leader's grudge, provided you are at peace with it, it is not in
+fifteen plus half its people plus half the leader's grudge, in hundreds of credits, provided you are at peace with it, it is not in
 revolt and its unrest is under seventy — the world swears again, the leader takes the governor's chair under the old
 banner, and a free house left with nothing is folded away, militia and ventures with it; or **declare war** and
 besiege it. Rival lords do the same: they buy back when they have the coin and fight when they have the fleet. The
@@ -77,7 +77,7 @@ player hears of it through *The Free Hold Sends Word* (`freehold_of_ours`).
 
 ## The capital as a prize
 
-Holding the capital's world gives the **court** (two credits and an influence a turn), **the Senate's chair** (two
+Holding the capital's world gives the **court** (two hundred credits and an influence a turn), **the Senate's chair** (two
 Senate influence by right), a point of **legitimacy** every third turn, five more prosperity on the world, and the
 **throne gate** above. It also paints a target: five threat, and every ten turns a strong, legitimate, solvent rival
 (hulls at three to two) may **declare for the capital** and sail on it. When the capital changes hands the chronicle
@@ -97,8 +97,8 @@ skull. Content reads `pirates_near` (*Raiders at the Gate*, *The Pirate King's O
 
 ## Governors who scheme
 
-A governor's loyalty is on the ledger: one who dislikes the head skims a credit; one who hates them (−40) lets the world
-slide (prosperity target −10); an able one (administration 3) finds a credit the ledger did not know it had; being named
+A governor's loyalty is on the ledger: one who dislikes the head skims a hundred credits; one who hates them (−40) lets the world
+slide (prosperity target −10); an able one (administration 3) finds a hundred credits the ledger did not know it had; being named
 to the chair is an honour (+10 toward the one who named them). An **ambitious** governor who hates the head, on a restless
 (unrest ≥ 50) or rich (prosperity ≥ 70) world, **declares it for themselves** one such turn in eight: a new house under
 the governor's name, a free hold for every purpose, a militia hull, and a grievance for the old lord (`governor_revolt`).
@@ -143,7 +143,7 @@ The lanes are **sparse** (forty lanes for thirty-one systems, fewer than three a
 Cinder Gate and Drydock Nine from the Greywater side, the Spire and Pallas Reach from the south, Castrum from the
 Anvils, Lanternfall down to the Verge, the Veil and Saltmere out to the Marches. **Chokepoints** are computed from the
 web (`Galaxy.Chokepoints()`): every articulation point plus the quarter of systems the most shortest paths run through.
-Holding a chokepoint's world pays **tolls** (two credits a turn on the ledger), and while a fleet of the holder's sits
+Holding a chokepoint's world pays **tolls** (two hundred credits a turn on the ledger), and while a fleet of the holder's sits
 there, a house at war with the holder cannot route *through* it — its fleets must go round, or cannot go at all. The
 map marks chokepoints with a brass diamond; the planet card names them.
 

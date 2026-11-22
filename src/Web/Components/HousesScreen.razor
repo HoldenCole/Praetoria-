@@ -38,7 +38,7 @@
             <Tile Label="Think well of you" Value="@friends.Count.ToString()" Share="@(houses.Count > 0 ? 100 * friends.Count / houses.Count : 0)" Tone="@(friends.Count > enemies.Count ? "good" : "")" Note="@(warmest != null ? $"of {houses.Count} · warmest: {warmest.Name} {Signed(regard[warmest.Id])}" : "")" Title="Houses whose people regard you at more than +20, on average." />
             <Tile Label="Think ill of you" Value="@enemies.Count.ToString()" Share="@(houses.Count > 0 ? 100 * enemies.Count / houses.Count : 0)" Tone="@(enemies.Count > friends.Count ? "warn" : "")" Note="@(coldest != null ? $"of {houses.Count} · coldest: {coldest.Name} {Signed(regard[coldest.Id])}" : "")" Title="Houses whose people regard you at less than −20, on average." />
             @if (strongest != null) { <Tile Label="Strongest in arms" Value="@($"{theirHulls} hulls")" Share="@(theirHulls > 0 ? 100 * myHulls / Math.Max(myHulls, theirHulls) : 0)" Tone="@(myHulls >= theirHulls ? "good" : myHulls * 2 < theirHulls ? "warn" : "")" Note="@($"{strongest.Name} · you have {myHulls}")" Title="The bar is your hulls against theirs." /> }
-            @if (richest != null) { <Tile Label="Richest" Value="@richest.Wealth.ToString()" Share="@(richest.Wealth > 0 ? Math.Clamp(100 * mine.Wealth / Math.Max(mine.Wealth, richest.Wealth), 0, 100) : 0)" Tone="@(mine.Wealth >= richest.Wealth ? "good" : "")" Note="@($"{richest.Name} · you have {mine.Wealth}")" Title="The bar is your wealth against theirs." /> }
+            @if (richest != null) { <Tile Label="Richest" Value="@Money.Show(richest.Wealth)" Share="@(richest.Wealth > 0 ? Math.Clamp(100 * mine.Wealth / Math.Max(mine.Wealth, richest.Wealth), 0, 100) : 0)" Tone="@(mine.Wealth >= richest.Wealth ? "good" : "")" Note="@($"{richest.Name} · you have {Money.Show(mine.Wealth)}")" Title="The bar is your wealth against theirs." /> }
         </div>
     </header>
     <div class="dash-grid gallery-grid">
@@ -58,7 +58,7 @@
                         <td><span class="mbar"><i style="width:@(100 * worlds / maxWorlds)%; background:@h.AccentColor"></i></span>@worlds</td>
                         <td><span class="mbar"><i style="width:@(100 * hulls / maxHulls)%; background:@h.AccentColor"></i></span>@hulls</td>
                         <td><span class="mbar"><i style="width:@(100 * seats / maxSeats)%; background:@h.AccentColor"></i></span>@seats</td>
-                        <td>@if (w.Foreign(h.Id)) { <span class="muted small" title="A nation beyond the Reach: its wealth is its own treasury and trade, and is not ranked among the houses.">a nation</span> } else { <span class="tier small @Wealth.TierFor(w, h.Id)" title="wealth @h.Wealth: ranked among the houses of the Reach (the top sixth opulent, the next quarter rich, the bottom quarter poor)">@Wealth.TierFor(w, h.Id)</span> }</td>
+                        <td>@if (w.Foreign(h.Id)) { <span class="muted small" title="A nation beyond the Reach: its wealth is its own treasury and trade, and is not ranked among the houses.">a nation</span> } else { <span class="tier small @Wealth.TierFor(w, h.Id)" title="wealth @Money.Show(h.Wealth): ranked among the houses of the Reach (the top sixth opulent, the next quarter rich, the bottom quarter poor)">@Wealth.TierFor(w, h.Id)</span> }</td>
                         <td class="ord" title="@OrderSystem.CallingName(h.Calling): the Senate @h.Order(OrderSystem.Senate), Arms @h.Order(OrderSystem.Arms), Commerce @h.Order(OrderSystem.Commerce)">@foreach (var o in OrderSystem.All) { <span class="ordpip t@(OrderSystem.Tier(h, o)) @(h.Calling == o ? "calling" : "")">@(o == OrderSystem.Senate ? "S" : o == OrderSystem.Arms ? "A" : "C")</span> }</td>
                         <td>@if (h.Id != mine.Id) { <span class="pill @(atWar ? "warn" : disp < -20 ? "warn" : disp > 20 ? "good" : "")">@(atWar ? "⚔ " : "")@(disp >= 0 ? "+" : "")@disp</span> } else { <span class="muted">—</span> }</td>
                         <td class="muted small">@(bench?.Name ?? "")</td>
@@ -92,20 +92,20 @@
                     var take = os.TakeClientRefusal(w, mine, fh); var seek = os.SeekPatronRefusal(w, mine, fh);
                     <div class="row small">
                         @if (fh.PatronId == mine.Id) { <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Release, fid, os))">Turn the client away</button> }
-                        else { <button class="opt inline tiny" disabled="@(take != null)" title="@(take ?? "pay its debts and a gift: it votes for you at an election and leans your way in the chamber; a credit a year to keep")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Take, fid, os))">Take as a client · @OrderSystem.ClientCost(fh)</button> }
+                        else { <button class="opt inline tiny" disabled="@(take != null)" title="@(take ?? "pay its debts and a gift: it votes for you at an election and leans your way in the chamber; 100 credits a year to keep")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Take, fid, os))">Take as a client · @Money.Show(OrderSystem.ClientCost(fh))</button> }
                         @if (mine.PatronId == fh.Id) { <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Leave, string.Empty, os))">Leave its protection</button> }
-                        else { <button class="opt inline tiny" disabled="@(seek != null)" title="@(seek ?? "a credit a year from it, its backing and its clients' in the chamber; your vote is expected at the election")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Seek, fid, os))">Seek it as a patron</button> }
+                        else { <button class="opt inline tiny" disabled="@(seek != null)" title="@(seek ?? "100 credits a year from it, its backing and its clients' in the chamber; your vote is expected at the election")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Seek, fid, os))">Seek it as a patron</button> }
                     </div>
                 }
                 <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
                 <div class="kv"><span>Domain</span><b>@Counted.Worlds(worlds.Count) · @Counted.Stations(stations.Count)</b></div>
                 <div class="kv"><span>Navy</span><b>@Counted.Hulls(FleetSystem.StrengthOf(w, fh.Id))@(FleetSystem.CampaignTarget(w, fh.Id) is { } ct ? $" · campaigning on {w.Galaxy?.System(ct)?.Name ?? ct}" : "")</b></div>
-                <div class="kv"><span>Wealth</span><b>@fh.Wealth · @if (w.Foreign(fh.Id)) { <span class="muted">a nation: not ranked among the houses</span> } else { <span class="tier @Wealth.TierFor(w, fh.Id)">@Wealth.TierFor(w, fh.Id)</span> }@(fh.Debt > 0 ? " · in debt" : "")</b></div>
+                <div class="kv"><span>Wealth</span><b>@Money.Show(fh.Wealth) · @if (w.Foreign(fh.Id)) { <span class="muted">a nation: not ranked among the houses</span> } else { <span class="tier @Wealth.TierFor(w, fh.Id)">@Wealth.TierFor(w, fh.Id)</span> }@(fh.Debt > 0 ? " · in debt" : "")</b></div>
                 <div class="kv"><span>In the Senate</span><b>@Counted.Seats(senate.Weight(w, fh.Id))@(FactionSystem.Of(w, fh.Id) is { } fb ? $" · {fb.Name}{(fb.LeaderHouseId == fh.Id ? " (leads)" : "")}" : "")@(w.Counter("motions_passed:" + fh.Id) > 0 ? $" · {Counted.Motions(w.Counter("motions_passed:" + fh.Id))} carried" : "")@(SenateSystem.Embargoed(w, fh.Id) ? " · under embargo" : "")</b></div>
                 @if (offDefault.Count > 0 || moods.Count > 0) { <div class="kv"><span>Law</span><b>@(offDefault.Count > 0 ? string.Join(", ", offDefault) : "the customary law")@(moods.Count > 0 ? " · " + string.Join(", ", moods.Select(x => $"{x.e.Name.Replace("The ", "").ToLowerInvariant()} {(x.a >= PolicySystem.Loyal ? "loyal" : "hostile")}")) : "")</b></div> }
                 @if (m.Capital is { } cap && cap.HolderId == fh.Id) { <div class="kv"><span>The capital</span><b>holds @cap.SystemName — @(w.IsImperium ? "the court" : "the capital"), the Senate's chair, and a target</b></div> }
                 @if (fh.Bloc == RegionSystem.FreeholdsBloc) { <div class="kv"><span>Standing</span><b class="warn">a free hold — sworn to no one</b></div> }
-                @if (m.Reclaims is { Count: > 0 } rcs) { foreach (var rc in rcs.Where(r => w.Holding(r.HoldingId)?.OwnerId == fh.Id)) { <button class="opt" disabled="@(rc.Refusal != null)" title="@rc.Refusal" @onclick="() => G.Execute(new ReclaimFreeholdCommand(pid, rc.HoldingId))">Buy back @rc.HoldingName (@rc.Price credits)</button> } }
+                @if (m.Reclaims is { Count: > 0 } rcs) { foreach (var rc in rcs.Where(r => w.Holding(r.HoldingId)?.OwnerId == fh.Id)) { <button class="opt" disabled="@(rc.Refusal != null)" title="@rc.Refusal" @onclick="() => G.Execute(new ReclaimFreeholdCommand(pid, rc.HoldingId))">Buy back @rc.HoldingName (@Money.Show(rc.Price) credits)</button> } }
                 @if (w.BusinessesOf(fh.Id).Any())
                 {
                     <h4>Its ventures <span class="muted small">@(fh.Id == w.Protagonist!.HouseId ? "yours" : "each can be bought at what it asks, or offered for")</span></h4>
@@ -116,7 +116,7 @@
                             <b>@bz.Name</b> <span class="muted">@(c.Businesses.Def(bz.Kind)?.Name ?? bz.Kind) · level @bz.Level · @(w.Galaxy?.System(bz.SystemId)?.Name ?? bz.SystemId)@(bz.CompanyId.Length > 0 ? " · held by a company" : "")</span>
                             @if (fh.Id != w.Protagonist!.HouseId && bz.CompanyId.Length == 0)
                             {
-                                <span class="muted"> · </span><span class="small @(toYou > 0 ? "good" : "warn")" title="What it would earn in your hands, in goods at today's prices: the charter and the world's holder differ by who owns it.">@(toYou >= 0 ? "+" : "")@toYou a year to you</span>
+                                <span class="muted"> · </span><span class="small @(toYou > 0 ? "good" : "warn")" title="What it would earn in your hands, in goods at today's prices: the charter and the world's holder differ by who owns it.">@(toYou >= 0 ? "+" : "")@Money.Show(toYou) a year to you</span>
                                 <VentureBuy BusinessId="@bz.Id" />
                             }
                         </div>

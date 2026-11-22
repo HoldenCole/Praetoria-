@@ -26,10 +26,10 @@
         string sid = s.Id; var other = w.House(LadderSystem.OtherIn(s, house.Id)); var judge = w.Char(s.HolderId); bool forUs = s.RightId == house.Id; int stake = LadderSystem.StakeOf(s);
         var noSettle = new SuitCommand(pid, SuitCommand.Settle, sid).Refusal(G.Ctx); var adv = w.Char(s.AdvocateId);
         <div class="suit court-suit @(forUs ? "" : "warn")" data-suit="@sid">
-            <b>@(other?.Name) against your house</b> <span class="muted">over @LadderSystem.MatterOf(s) · @stake credits turn on it · heard by @(judge?.Name ?? "a praetor")@(judge != null ? ", who is " + Nature(judge) : "")</span>
-            <div class="small">@LadderSystem.LawFor(w, s, house.Id) @(forUs ? $"If the praetor rules on the law, {other?.Name} pays you {stake}." : $"If the praetor rules on the law, you pay {stake}.")@(adv != null ? $" {adv.Name} is to plead it." : "")</div>
+            <b>@(other?.Name) against your house</b> <span class="muted">over @LadderSystem.MatterOf(s) · @Money.Show(stake) credits turn on it · heard by @(judge?.Name ?? "a praetor")@(judge != null ? ", who is " + Nature(judge) : "")</span>
+            <div class="small">@LadderSystem.LawFor(w, s, house.Id) @(forUs ? $"If the praetor rules on the law, {other?.Name} pays you {Money.Show(stake)}." : $"If the praetor rules on the law, you pay {Money.Show(stake)}.")@(adv != null ? $" {adv.Name} is to plead it." : "")</div>
             <div class="suit-acts">
-                <button class="opt inline tiny" data-settle="@sid" disabled="@(noSettle != null)" title="@(noSettle ?? (forUs ? $"{other?.Name} pays you {stake / 2} now and the suit is withdrawn: half, but certain, whatever the praetor is" : $"You pay {other?.Name} {stake / 2} now and the suit is withdrawn: half of what a ruling on the law would cost"))" @onclick="() => AskSettle(sid, forUs, other?.Name ?? string.Empty, stake / 2)">@(forUs ? $"Take terms · {stake / 2} to you" : $"Come to terms · pay {stake / 2}")</button>
+                <button class="opt inline tiny" data-settle="@sid" disabled="@(noSettle != null)" title="@(noSettle ?? (forUs ? $"{other?.Name} pays you {Money.Show(stake / 2)} now and the suit is withdrawn: half, but certain, whatever the praetor is" : $"You pay {other?.Name} {Money.Show(stake / 2)} now and the suit is withdrawn: half of what a ruling on the law would cost"))" @onclick="() => AskSettle(sid, forUs, other?.Name ?? string.Empty, stake / 2)">@(forUs ? $"Take terms · {Money.Show(stake / 2)} to you" : $"Come to terms · pay {Money.Show(stake / 2)}")</button>
                 @foreach (var a in pleaders)
                 {
                     string aid = a.Id; var noPlead = new SuitCommand(pid, SuitCommand.Plead, sid, aid).Refusal(G.Ctx);
@@ -44,7 +44,7 @@
         @foreach (var r in rulings)
         {
             bool won = r.WinnerId == house.Id; var them = w.House(won ? r.LoserId : r.WinnerId);
-            <div class="suit court-ruling @(won ? "good" : "warn")">Year @r.Turn: <b>@(won ? $"{them?.Name} paid you {r.Sum} credits" : $"you paid {them?.Name} {r.Sum} credits")</b><span class="muted">@(r.Matter.Length > 0 ? " over " + r.Matter : "") · @(r.Judge.Length > 0 ? r.Judge + ", praetor: " : "")@r.How</span></div>
+            <div class="suit court-ruling @(won ? "good" : "warn")">Year @r.Turn: <b>@(won ? $"{them?.Name} paid you {Money.Credits(r.Sum)}" : $"you paid {them?.Name} {Money.Credits(r.Sum)}")</b><span class="muted">@(r.Matter.Length > 0 ? " over " + r.Matter : "") · @(r.Judge.Length > 0 ? r.Judge + ", praetor: " : "")@r.How</span></div>
         }
         @if (w.Judgments.Count > 5) { <button class="opt inline tiny" @onclick="() => _allRulings = !_allRulings">@(_allRulings ? "Show fewer" : "Show all " + w.Judgments.Count)</button> }
     }
@@ -80,7 +80,7 @@
     @foreach (var j in bench)
     {
         string jid = j.Id; var no = new ProsecutionCommand(pid, ProsecutionCommand.Buy, jid, offices).Refusal(G.Ctx); string nature = Nature(j); bool mine = LadderSystem.BoughtBy(w, j) == house.Id;
-        string tip = nature == "upright" ? UprightTip : nature == "known to be for sale" ? SaleTip : MaybeTip; string label = "Offer · " + LadderSystem.BribeCredits + " of your own";
+        string tip = nature == "upright" ? UprightTip : nature == "known to be for sale" ? SaleTip : MaybeTip; string label = "Offer · " + Money.Show(LadderSystem.BribeCredits) + " of your own";
         <div class="suit court-bench">
             <b>@j.Name</b> <span class="muted">of @(w.House(j.HouseId)?.Name) · @nature</span>
             @if (mine) { <span class="pill small warn">in your pocket</span> }
@@ -93,7 +93,7 @@
 @code {
     private bool _all, _allRulings;
     private void AskSettle(string suitId, bool forUs, string other, int half) => G.Ask(forUs ? "Take terms from " + other + "?" : "Come to terms with " + other + "?",
-        forUs ? other + " pays you " + half + " credits now and the suit is withdrawn. A ruling on the law would have paid twice that, if the praetor ruled on the law." : "You pay " + other + " " + half + " credits now and the suit is withdrawn. A ruling on the law would cost twice that.",
+        forUs ? other + " pays you " + Money.Credits(half) + " now and the suit is withdrawn. A ruling on the law would have paid twice that, if the praetor ruled on the law." : "You pay " + other + " " + Money.Credits(half) + " now and the suit is withdrawn. A ruling on the law would cost twice that.",
         forUs ? "Take the terms" : "Pay, and end it", () => G.Execute(new SuitCommand(G.World!.ProtagonistId, SuitCommand.Settle, suitId)), "Let it be heard");
     private const string Intro = "A magistrate cannot be touched while they sit. When the term is over, what they took is still on the record, and any house may bring it before a sitting praetor. The verdict is that praetor's.";
     private const string ChargeTip = "If it is proved they may not stand for five years, their house pays and is thought the less of, and yours the better. If they are let go, your house looks the worse for bringing it. Either way their house will not forgive you.";

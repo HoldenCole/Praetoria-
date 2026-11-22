@@ -1,3 +1,4 @@
+using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Presentation;
@@ -316,7 +317,7 @@ public class PlaythroughFixTests
         var ectx = new Praetoria.Core.Events.EvalContext(w, new Praetoria.Core.Events.Binding(me.Id), TestContent.Rng(), Content);
         var pay = new Praetoria.Core.Events.Choice { Id = "pay", Effects = new Praetoria.Core.Events.IEffect[] { new Praetoria.Core.Events.AdjustResourceEffect("self", Resource.Credits, -9), new Praetoria.Core.Events.AdjustLegitimacyEffect("self", 2) } };
         string stakes = Praetoria.Core.Presentation.ChoiceStakes.Of(pay, ectx, me);
-        Assert.Contains("−9 credits", stakes); Assert.Contains("legitimacy +2", stakes);
+        Assert.Contains("−900 credits", stakes); Assert.Contains("legitimacy +2", stakes);
         Assert.Contains("below nought", Praetoria.Core.Presentation.ChoiceStakes.Overdraws(pay, ectx, me));
         house.Treasury.Credits = 50; Assert.Null(Praetoria.Core.Presentation.ChoiceStakes.Overdraws(pay, ectx, me));
         var hard = new Praetoria.Core.Events.Choice { Id = "hard", Requirements = new Praetoria.Core.Events.ICondition[] {
@@ -470,7 +471,7 @@ public class PlaythroughFixTests
         }
         Assert.NotNull(m); Assert.NotNull(bench); var leader = w.House(bench!.LeaderHouseId)!; ctx = new CommandContext(w, TestContent.Rng());
         int price = SenateSystem.BribeCost(w, leader, me); Assert.True(price >= SenateSystem.BribeCredits + SenateSystem.BenchLeaderBribe, "a bench's leader costs more than five credits");
-        house.Treasury.Credits = price - 1; Assert.Contains("needs " + price, new LobbyCommand(me.Id, m!.Id, leader.Id, 1, bribe: true).Refusal(ctx));
+        house.Treasury.Credits = price - 1; Assert.Contains("needs " + Money.Show(price), new LobbyCommand(me.Id, m!.Id, leader.Id, 1, bribe: true).Refusal(ctx));
         house.Treasury.Credits = price + 10; var taker = Economy.HeadOf(w, leader)!; int theirs = taker.Purse;
         var members = bench.Members.Where(id => id != leader.Id && id != m.TargetId && id != m.ProposerHouseId).ToList(); var before = members.ToDictionary(id => id, id => senate.Lean(w, m, id)); int leaderBefore = senate.Lean(w, m, leader.Id);
         int side = leaderBefore > 0 ? -1 : 1; var bribe = new LobbyCommand(me.Id, m.Id, leader.Id, side, bribe: true); Assert.Null(bribe.Refusal(ctx)); bribe.Execute(ctx);
@@ -519,7 +520,7 @@ public class PlaythroughFixTests
     {
         var (w, _, house, me, ctx) = Start(); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet);
         var p = new Project { Id = "t_p", OwnerId = house.Id, Kind = Project.Building, DefId = "x", TargetId = seat.Id, Name = "a test works", TurnsTotal = 4, TurnsLeft = 3, Cost = new Resources { Credits = 40 }, Stalled = true }; w.Projects.Add(p);
-        house.Treasury.Credits = 4; Assert.Equal("6 credits short", new PayInstalmentCommand(me.Id, p.Id).Refusal(ctx));
+        house.Treasury.Credits = 4; Assert.Equal("600 credits short", new PayInstalmentCommand(me.Id, p.Id).Refusal(ctx));
         house.Treasury.Credits = 25; var cmd = new PayInstalmentCommand(me.Id, p.Id); Assert.Null(cmd.Refusal(ctx)); cmd.Execute(ctx);
         Assert.False(p.Stalled); Assert.Equal(15, house.Treasury.Credits); Assert.Equal(2, p.TurnsLeft); Assert.Equal(10, p.Paid.Credits);
         Assert.Equal("it has not stalled", new PayInstalmentCommand(me.Id, p.Id).Refusal(ctx));
@@ -642,7 +643,7 @@ public class PlaythroughFixTests
         Assert.Equal("", Praetoria.Core.Presentation.ReportFacts.For(w, lost, Content));
         w.Judgments.Add(new JudgmentRecord { Turn = 3, Judge = "Eamon Thalen", WinnerId = foe.Id, LoserId = house.Id, Sum = 15, Matter = "a debt of long standing", How = "ruled where the law was doubtful" });
         string facts = Praetoria.Core.Presentation.ReportFacts.For(w, lost, Content);
-        Assert.Contains(foe.Name, facts); Assert.Contains("a debt of long standing", facts); Assert.Contains("15 credits", facts); Assert.Contains("Eamon Thalen", facts);
+        Assert.Contains(foe.Name, facts); Assert.Contains("a debt of long standing", facts); Assert.Contains("1,500 credits", facts); Assert.Contains("Eamon Thalen", facts);
         w.Battles.Add(new BattleRecord { Turn = 4, Place = "Cinder Gate", AttackerId = foe.Id, DefenderId = house.Id, WinnerId = foe.Id, AttackerHulls = 9, DefenderHulls = 4, AttackerLost = 1, DefenderLost = 3 });
         string fight = Praetoria.Core.Presentation.ReportFacts.For(w, line, Content);
         Assert.Contains("Cinder Gate", fight); Assert.Contains("your 4 hulls against 9", fight); Assert.Contains("You lost 3", fight);
@@ -710,7 +711,7 @@ public class PlaythroughFixTests
         from.Treasury.Credits = 3; bride.Purse = 0;
         var m = CourtshipSystem.Wed(w, bride, groom, CourtshipSystem.Arranged, CourtshipSystem.Customary);
         Assert.Equal(due, m.DowryAgreed); Assert.Equal(3, m.Dowry);
-        Assert.Contains(w.News, n => n.Text.Contains($"agreed a dowry of {due}") && n.Text.Contains("only 3"));
+        Assert.Contains(w.News, n => n.Text.Contains($"agreed a dowry of {Money.Show(due)}") && n.Text.Contains("only 300"));
         // a second yes, from a report answered the same year, marries nobody
         var other = w.LivingCharacters().First(c => c.Sex == "female" && c.Age >= 18 && c.HouseId != house.Id && c.Id != bride.Id && DynastySystem.Spouse(w, c) == null);
         new Praetoria.Core.Events.AddBondEffect("self", "match", BondType.Marriage, 60).Apply(new Praetoria.Core.Events.EvalContext(w, new Praetoria.Core.Events.Binding(groom.Id).With("match", other.Id), TestContent.Rng()));
@@ -754,7 +755,7 @@ public class PlaythroughFixTests
         house.Treasury.Credits = 30;
         var payIn = new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 12, tc.Companies!); Assert.Null(payIn.Refusal(ctx)); payIn.Execute(ctx);
         Assert.Equal(12, co.Cash); Assert.Equal(18, house.Treasury.Credits);
-        Assert.Contains("treasury holds 18", new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 50, tc.Companies!).Refusal(ctx));
+        Assert.Contains("treasury holds 1,800", new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 50, tc.Companies!).Refusal(ctx));
         co.ControllerId = other.Id; Assert.Equal("you do not direct it", new BoardCommand(me.Id, co.Id, BoardCommand.PayIn, 5, tc.Companies!).Refusal(ctx));
     }
     [Fact]
@@ -784,7 +785,7 @@ public class PlaythroughFixTests
         tc.EndTurn(); if (!w.IsDynastyDead) tc.BeginTurn();
         var brief = Praetoria.Core.Presentation.YearInBrief.For(w, Content);
         Assert.Contains(brief, l => l.Kind == Praetoria.Core.Presentation.YearInBrief.War && l.Text.Contains("Cinder Gate") && l.Text.Contains("won against") && l.Target == "military:battles");
-        Assert.Contains(brief, l => l.Kind == Praetoria.Core.Presentation.YearInBrief.Courts && l.Text.Contains("against you") && l.Text.Contains("7 credits left"));
+        Assert.Contains(brief, l => l.Kind == Praetoria.Core.Presentation.YearInBrief.Courts && l.Text.Contains("against you") && l.Text.Contains("700 credits left"));
         Assert.Contains(brief, l => l.Kind == Praetoria.Core.Presentation.YearInBrief.Money && l.Text.Contains("credits") && l.Target == "house:ledger");
         // the lines come grouped in the order the brief names
         var kinds = brief.Select(l => Array.IndexOf(Praetoria.Core.Presentation.YearInBrief.Order, l.Kind)).ToList(); Assert.Equal(kinds.OrderBy(k => k).ToList(), kinds);
@@ -835,7 +836,7 @@ public class PlaythroughFixTests
         var rec = w.Deaths.Single(d => d.PersonId == kin.Id);
         Assert.Equal("in battle", rec.How);
         Assert.Contains(rec.Posts, p => p.What == "the governing of " + world.Name && p.Target == "galaxy:" + world.SystemId);
-        Assert.Contains(rec.Passed, l => l.Contains("purse of 14 credits") && l.Contains(me.Name));
+        Assert.Contains(rec.Passed, l => l.Contains("purse of 1,400 credits") && l.Contains(me.Name));
         tc.EndTurn(); if (w.IsDynastyDead) return; tc.BeginTurn();
         var brief = Praetoria.Core.Presentation.YearInBrief.For(w, Content);
         Assert.Contains(brief, l => l.Text.StartsWith(kin.Name + " died at") && l.Text.Contains("in battle"));
@@ -969,7 +970,7 @@ public class PlaythroughFixTests
         war.AddScore(house.Id, 3); foe.Treasury.Credits = 500; int owed = HousePeace.TributeOwed(w, rules, house.Id, foe.Id); Assert.True(owed > 0);
         Assert.True(Open("demand_tribute")); Assert.False(Open("demand_world"));
         string facts = Praetoria.Core.Presentation.ReportFacts.For(w, def, Content); Assert.Contains("you are 3 ahead", facts); Assert.Contains(owed.ToString(), facts);
-        Assert.Contains("+" + owed + " credits", Praetoria.Core.Presentation.ChoiceStakes.Of(Ch("demand_tribute"), ec, me));
+        Assert.Contains("+" + Money.Credits(owed), Praetoria.Core.Presentation.ChoiceStakes.Of(Ch("demand_tribute"), ec, me));
         int before = house.Treasury.Credits; foreach (var e in Ch("demand_tribute").Effects) e.Apply(ec);
         Assert.Equal(before + owed, house.Treasury.Credits); Assert.False(w.AtWar(house.Id, foe.Id));
         // far ahead with the stronger fleet: a world may be named, and it changes hands

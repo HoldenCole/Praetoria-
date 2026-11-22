@@ -1,3 +1,4 @@
+using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.State;
@@ -79,7 +80,7 @@ public class VentureTests
 
         // the asking is a price, not an offer; and an offer must be payable
         Assert.Contains("that is the price, not an offer", new OfferForVentureCommand("self", "c", ask, vs).Refusal(Ctx(w)));
-        mine.Treasury.Credits = 1; Assert.Equal($"needs {least} credits", new OfferForVentureCommand("self", "c", least, vs).Refusal(Ctx(w))); mine.Treasury.Credits = 500;
+        mine.Treasury.Credits = 1; Assert.Equal($"needs {Money.Credits(least)}", new OfferForVentureCommand("self", "c", least, vs).Refusal(Ctx(w))); mine.Treasury.Credits = 500;
 
         // too little: answered with a price between the two, never under the least, and that price stands for the year
         int low = Math.Max(insult, least - 6); Assert.True(low < least);
@@ -148,7 +149,7 @@ public class VentureTests
         var (w, _, vs) = Reach(); var ex = new CommandExecutor();
         // you buy Corwin's company on Corwin's world at its asking price
         var theirs = Put(w, "c", "corwin", "trading_company", "mid1"); int ask = vs.Ask(w, theirs, "vega").price;
-        w.House("vega")!.Treasury.Credits = ask - 1; Assert.Equal($"needs {ask} credits", new BuyVentureCommand("self", "c", vs).Refusal(Ctx(w)));
+        w.House("vega")!.Treasury.Credits = ask - 1; Assert.Equal($"needs {Money.Credits(ask)}", new BuyVentureCommand("self", "c", vs).Refusal(Ctx(w)));
         w.House("vega")!.Treasury.Credits = 300; int corwinBefore = w.House("corwin")!.Treasury.Credits;
         Assert.True(ex.TryExecute(new BuyVentureCommand("self", "c", vs), Ctx(w)));
         Assert.Equal("vega", theirs.OwnerId); Assert.Equal(300 - ask, w.House("vega")!.Treasury.Credits); Assert.Equal(corwinBefore + ask, w.House("corwin")!.Treasury.Credits);
@@ -197,7 +198,7 @@ public class VentureTests
         var def = v.Def("shipping_line")!; Assert.Equal(2, def.BuildTurns);
         w.Galaxy!.Lanes.Add(new Praetoria.Core.Galaxy.Hyperlane { A = "tessaly", B = "prime" }); w.Galaxy.Lanes.Add(new Praetoria.Core.Galaxy.Hyperlane { A = "tessaly", B = "mid1" });   // a hub of three lanes
         var found = new FoundBusinessCommand("self", "shipping_line", "tessaly", v, Content.Holdings, Content.Titles);
-        vega.Treasury.Credits = 6; Assert.Equal("1 credits short to begin", found.Refusal(Ctx(w)));   // what is short, and only that
+        vega.Treasury.Credits = 6; Assert.Equal("100 credits short to begin", found.Refusal(Ctx(w)));   // what is short, and only that
         vega.Treasury.Credits = 100; Assert.True(ex.TryExecute(found, Ctx(w)));
         var p = Assert.Single(w.Projects); Assert.Equal(Project.Venture, p.Kind); Assert.Equal(2, p.TurnsLeft); Assert.Equal(93, vega.Treasury.Credits); Assert.Equal(97, vega.Treasury.Materials);
         Assert.Null(w.Business(FoundBusinessCommand.IdFor("vega", "shipping_line", "tessaly"))); Assert.Equal("already being founded here", found.Refusal(Ctx(w)));

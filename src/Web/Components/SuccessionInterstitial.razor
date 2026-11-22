@@ -26,7 +26,7 @@
             }
         </div>
         <div class="succ-grid">
-            <div><span class="muted">What passes with the name</span><b>@(house != null ? c.Titles.NameOf(house.Title, G.World!.Era) : "") · @Counted.Worlds(worlds) · @Counted.Hulls(hulls) · @(house?.Treasury.Credits ?? 0) credits · legitimacy @(house?.Legitimacy ?? 0)</b></div>
+            <div><span class="muted">What passes with the name</span><b>@(house != null ? c.Titles.NameOf(house.Title, G.World!.Era) : "") · @Counted.Worlds(worlds) · @Counted.Hulls(hulls) · @(house != null ? Money.Held(house.Treasury) : Money.Show(0)) credits · legitimacy @(house?.Legitimacy ?? 0)</b></div>
             <div><span class="muted">What does not</span><b>@(oldRank.Length > 0 ? $"The {oldRank}'s career. " : "")The heir begins again@(heirRank.Length > 0 ? $" as {heirRank}" : "")@(heir?.CareerTrack is { Length: > 0 } t ? $" on the {t} track" : "").</b></div>
             @if (heir != null && G.World!.Pools.TryGetValue(heir.Id, out var hp))
             {

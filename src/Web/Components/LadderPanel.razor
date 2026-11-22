@@ -74,7 +74,7 @@
             string rid = rung.Id; var holders = LadderSystem.Holders(w, rung.Id); var ours = w.Candidacies.Where(x => x.RungId == rung.Id).ToList();
             var stand = new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices).Refusal(G.Ctx);
             <div class="rung-row">
-                <div><b>@rung.Name</b> <span class="muted small">@Counted.Seats(rung.Seats) · from @rung.MinAge@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {rung.Stipend} a year" : "")</span></div>
+                <div><b>@rung.Name</b> <span class="muted small">@Counted.Seats(rung.Seats) · from @rung.MinAge@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {Money.Show(rung.Stipend)} a year" : "")</span></div>
                 <div class="muted small">@rung.Description</div>
                 <div class="small">Sitting: @(holders.Count == 0 ? "nobody" : string.Join("; ", holders.Select(h => { var x = w.Char(h.CharacterId); return x == null ? "" : x.HouseId == house.Id ? $"{x.Name} (yours)" : $"{x.Name} of {w.House(x.HouseId)?.Name}"; })))</div>
                 @foreach (var cd in ours)
@@ -101,7 +101,7 @@
                 @if (mySeat?.OfficeId == rung.Id && rung.Games > 0)
                 {
                     var games = new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices).Refusal(G.Ctx);
-                    <div class="suit-acts"><button class="opt inline" disabled="@(games != null)" title="@(games ?? "the house gains standing, and it is written into your life")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices))">Give games · @rung.Games credits of your own</button></div>
+                    <div class="suit-acts"><button class="opt inline" disabled="@(games != null)" title="@(games ?? "the house gains standing, and it is written into your life")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices))">Give games · @Money.Show(rung.Games) credits of your own</button></div>
                 }
             </div>
         }

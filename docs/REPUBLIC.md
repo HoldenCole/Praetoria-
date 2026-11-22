@@ -28,8 +28,8 @@ rather than the state, who can be voted a triumph or march on the capital.
    leader stands as before. The Senate screen groups the hemicycle by party and shows each party's colour, courted
    estates and law platform.
 2. **The consulship — done (2026-11-09).** Two elected offices in `content/senate/offices.json` (`elected: true`):
-   the Senior Consul (weight +4, two credits a turn, a motion one influence cheaper, the veto) and the Junior Consul
-   (+3, one credit, the discount, the veto). Every tenth turn (`ElectionSystem.Hold`, not under the Imperium) each party
+   the Senior Consul (weight +4, two hundred credits a turn, a motion one influence cheaper, the veto) and the Junior Consul
+   (+3, a hundred credits, the discount, the veto). Every tenth turn (`ElectionSystem.Hold`, not under the Imperium) each party
    nominates its weightiest member with a qualified candidate (rank 2 on any track, and since 2026-11-14 forty years
    old and a former praetor: docs/LADDER.md) who was not elected last time;
    the player may **stand** (two influence) and runs as their party's nominee, or alone. Every house's weight goes to
@@ -78,7 +78,7 @@ years. A house that brings up a quarter of the Reach's production of a strategic
   general or banker is heard whatever their rank.
 - **Four doors to a seat.** (A house that has come in by none of them has no senator's year and no committee: docs/UPSTART.md.) A house may move motions and stand for office by **land** (Prefect or better), **the
   bench** (a head who is a Judge), **the sword** (great in Arms) or **the purse**: a house notable in Commerce
-  pays the census 60 credits and is enrolled. Every house still votes.
+  pays the census 6,000 credits and is enrolled. Every house still votes.
 - **Sway.** A house leans toward whoever it depends on: +3 its patron, +2 its client, +2 its creditor, +1 a fellow
   client, +1 the house whose helium-3 its fleets burn, +1 the director of a company it holds a tenth of; four at
   most. Sway counts for a commission, a recognition or a peace for that house, for anything it moves (two at most),
@@ -87,10 +87,10 @@ years. A house that brings up a quarter of the Reach's production of a strategic
 - **The obvious man.** For a commission the chamber leans +1 toward a house great in the post's order and −1 against a
   house of no account in it. A banker with no ships needs a lot of sway to be voted a fleet.
 - **Patrons and clients.** A house at least twice as rich may take a needy house as a client by paying its debts and a
-  gift. The client costs a credit a year, votes for the patron at an election whatever its party, and leans the
+  gift. The client costs a hundred credits a year, votes for the patron at an election whatever its party, and leans the
   patron's way. A house may also seek a patron who thinks well of it. A client that outgrows its patron leaves. A
   house keeps one client plus its steps in Commerce and in the Senate.
-- **Canvassing.** Ten credits spent on the voters in a nominee's name is one more vote's weight at the next election,
+- **Canvassing.** A thousand credits spent on the voters in a nominee's name is one more vote's weight at the next election,
   five times an election. It may be spent for another house: that is how a Crassus makes a Caesar consul.
 - **The first of the name.** A new name in a consul's chair gains five legitimacy, once.
 
@@ -147,7 +147,7 @@ bench does. Among other houses a bench still puts forward its weightiest eligibl
 ## Asking those above you (2026-11-21)
 
 From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P6, P17 and P54). `AskAbove`: a house asks its patron or
-its bench's leader for coin (`CoinOf`: a sixth of the treasury, 15 at most, 30 kept by), for its backing for consul (a
+its bench's leader for coin (`CoinOf`: a sixth of the treasury, 1,500 at most, 3,000 kept by), for its backing for consul (a
 pledge of its seats, as in the section above), or to move a motion in its own name (`AskToMoveCommand`: the head of
 that house proposes it, at that house's cost). Heard at +10 regard; one favour owed at a time (`WealthSystem.OweFor`);
 once in two years for each house. Other houses do not ask the player.

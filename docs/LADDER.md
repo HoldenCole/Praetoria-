@@ -48,7 +48,7 @@ The rule is docs/PROCESS.md: you play one person.
   The head cannot enter them and cannot take their name down.
 - **Ask them to stand down**, once a term. The loyal withdraw and think less of you. The wilful leave their name where
   it is and think less of you too.
-- **Give games** as aedile, once a term, for 12 credits of your own: the house gains 2 legitimacy and it is written
+- **Give games** as aedile, once a term, for 1,200 credits of your own: the house gains 2 legitimacy and it is written
   into your life. An aedile of the house with the money gives theirs without being asked.
 
 With the family's independence set to deferential (docs/CHARACTER.md), relatives do not stand by themselves.
@@ -70,9 +70,9 @@ magistrate has business, and what they do with it has consequences.
 
 | Office | The year's business | The choices |
 |---|---|---|
-| **Quaestor** | The accounts of the Reach. One quaestor a year is given the most lawless region, if the capital's purse can bear it. | **Close them as they stand** (trust +1, the house thought a little better of). **Find money for the lawless region** (its lawlessness −2, 4 credits from the capital's purse, its houses think +6 of yours). **Favour your own house** (+8 credits to the house, trust −3, and one time in four it comes out). |
-| **Aedile** | The works and the lanes, paid from the aedile's own purse. | **Repair the lanes** of the region where the house's worlds are (6 credits, lawlessness −2). **Grain for the squares** (6 credits, legitimacy +2). **Do nothing** (trust −1). |
-| **Praetor** | A case between two houses at odds, neither the praetor's own. The law is with one of them. | **Rule on the law** (the loser pays 5 credits, the winner thinks +6 and the loser −6, trust +1). **Rule for a friend** (the house that thinks better of yours: +12 from them, −12 from the other; if the law was not with them, trust −3 and legitimacy −1). **Take the gift** (10 credits to your own purse from the richer house, a ruling for them, trust −4, and one time in three it comes out). |
+| **Quaestor** | The accounts of the Reach. One quaestor a year is given the most lawless region, if the capital's purse can bear it. | **Close them as they stand** (trust +1, the house thought a little better of). **Find money for the lawless region** (its lawlessness −2, 400 credits from the capital's purse, its houses think +6 of yours). **Favour your own house** (+800 credits to the house, trust −3, and one time in four it comes out). |
+| **Aedile** | The works and the lanes, paid from the aedile's own purse. | **Repair the lanes** of the region where the house's worlds are (600 credits, lawlessness −2). **Grain for the squares** (600 credits, legitimacy +2). **Do nothing** (trust −1). |
+| **Praetor** | A case between two houses at odds, neither the praetor's own. The law is with one of them. | **Rule on the law** (the loser pays 500 credits, the winner thinks +6 and the loser −6, trust +1). **Rule for a friend** (the house that thinks better of yours: +12 from them, −12 from the other; if the law was not with them, trust −3 and legitimacy −1). **Take the gift** (1,000 credits to your own purse from the richer house, a ruling for them, trust −4, and one time in three it comes out). |
 
 - **You decide your own; nobody decides yours and you decide nobody else's.** A relative who holds an office decides
   their own business, as every other house's magistrate does, by nature: the honourable and the just deal straight,
@@ -133,8 +133,8 @@ takes the place of the senator's year.
 
 | Office | The choices |
 |---|---|
-| **Consul** (both) | **Call the magistrates to account**: up to two who took money this year are looked at, each caught one time in two and removed; trust +2 and +2 for each caught; every magistrate's house thinks −2 of you. **Send the fleet onto the lanes** of the most lawless region: lawlessness −4 for 4 credits of the capital's; its houses think +4. **Spend the year on your bench**: its houses +4, influence +2, trust −1. |
-| **Treasurer** | **Balance the books**: half the year's surplus is banked for the capital's purse (in a year of shortfall nothing is, and the Reach's own fleets each lose 5 readiness), trust +1, legitimacy +1. **Forgive a region its levy**: the region that holds loosest gains 4 allegiance for what its landed houses would have paid, out of the capital's purse; its houses think +4. **Let the contracts to your own house**: a third of what the year calls for (6 to 18 credits), trust −3, and one time in four it comes out: the office is taken away and you may not stand for five years. |
+| **Consul** (both) | **Call the magistrates to account**: up to two who took money this year are looked at, each caught one time in two and removed; trust +2 and +2 for each caught; every magistrate's house thinks −2 of you. **Send the fleet onto the lanes** of the most lawless region: lawlessness −4 for 400 credits of the capital's; its houses think +4. **Spend the year on your bench**: its houses +4, influence +2, trust −1. |
+| **Treasurer** | **Balance the books**: half the year's surplus is banked for the capital's purse (in a year of shortfall nothing is, and the Reach's own fleets each lose 5 readiness), trust +1, legitimacy +1. **Forgive a region its levy**: the region that holds loosest gains 4 allegiance for what its landed houses would have paid, out of the capital's purse; its houses think +4. **Let the contracts to your own house**: a third of what the year calls for (600 to 1,800 credits), trust −3, and one time in four it comes out: the office is taken away and you may not stand for five years. |
 | **Speaker** | **Keep the order fair**: every bench's leader +2, trust +1, legitimacy +1. **Bring your own business forward**: influence +2, your bench's leader +4, the others −3. **Give an enemy no day**: whatever that house has moved is held over a year; the house you are worst at odds with thinks −10 of you, those who hate it think +5, trust −1. |
 
 Other houses' officers decide by nature, at once, and what they do reaches you: a Treasurer who forgives your own
@@ -143,12 +143,12 @@ is noticed: trust −1 and legitimacy −1. A bench or a desk left empty costs i
 merchants, think one the less of it), not the Reach's name.
 
 **The budget.** The Treasurer's charge has figures, drawn from the state of the Reach when the year's business is
-drawn and kept with it, so that what is read is what is decided. *What came in*: 2 credits assessed on each landed
-house of the Reach, less the 2 of every house whose home region is lawless (40 or more): the lanes lose it. *What is
-called for*: a credit for every hull of the Reach's own fleets, 2 for every region with lawlessness of 20 or more,
-and 2 for every region whose allegiance is under 60. The difference is the year's surplus or its shortfall, and the
-three choices are read against it: "34 credits were assessed on the landed houses and 30 came in: the lawless lanes
-lost 4. The Reach's own hulls call for 4, its lanes for 8 and its loose regions for 6: 18 in all. That leaves 12
+drawn and kept with it, so that what is read is what is decided. *What came in*: 200 credits assessed on each landed
+house of the Reach, less the 200 of every house whose home region is lawless (40 or more): the lanes lose it. *What is
+called for*: a hundred credits for every hull of the Reach's own fleets, 200 for every region with lawlessness of 20 or more,
+and 200 for every region whose allegiance is under 60. The difference is the year's surplus or its shortfall, and the
+three choices are read against it: "3,400 credits were assessed on the landed houses and 3,000 came in: the lawless lanes
+lost 400. The Reach's own hulls call for 400, its lanes for 800 and its loose regions for 600: 1,800 in all. That leaves 1,200
 over."
 
 **The chair.** The great offices also act on the Senate's real business, on the docket itself.
@@ -168,8 +168,8 @@ presiding consul their buttons there, and says of a tied count which way the cas
 **A desk, and a posting.** The other two careers ask something of their ranks as well, of the people of your house.
 
 - **A Governor, a Minister or a High Treasurer** has the year's returns from the house's region across their desk.
-  **Assess it fairly** (the merchants +2, the region's allegiance +1, trust +1), **press the collection** (6 credits to
-  the house, the commons −4, allegiance −1), or **keep a share** (6 credits to your own purse, trust −2, and one time
+  **Assess it fairly** (the merchants +2, the region's allegiance +1, trust +1), **press the collection** (600 credits to
+  the house, the commons −4, allegiance −1), or **keep a share** (600 credits to your own purse, trust −2, and one time
   in four the returns are reopened: you are broken a grade and the house loses 3 legitimacy).
 - **A Commander or above with no fleet under them** has a year ashore. **Drill the house's crews** (every fleet of the
   house +4 loyalty), **patrol the home lanes** (lawlessness −2), or **sit on a board of inquiry** (the officers +2,
@@ -179,8 +179,8 @@ presiding consul their buttons there, and says of a tied count which way the cas
 
 | Rank | The work | The choices |
 |---|---|---|
-| **Aspirant, Advocate** | A brief before a lesser court: a client house against another | **Plead it on the law**: learn the law and some speaking; win (likelier the better you speak and know the law) and the client thinks +4 of your house. **Take the side that pays**: 4 credits to your own purse, the other house −3. **Plead for one who cannot pay**: practice at speaking, and the commons +2. |
-| **Clerk, Administrator** | A year of the administration's ledgers | **Keep them exactly**: learn the administration; the house is a credit the better. **Make yourself useful**: a little influence, a little economics. **Pad an account**: 3 credits to your purse; one time in five it is found and written against you as a failure. |
+| **Aspirant, Advocate** | A brief before a lesser court: a client house against another | **Plead it on the law**: learn the law and some speaking; win (likelier the better you speak and know the law) and the client thinks +4 of your house. **Take the side that pays**: 400 credits to your own purse, the other house −3. **Plead for one who cannot pay**: practice at speaking, and the commons +2. |
+| **Clerk, Administrator** | A year of the administration's ledgers | **Keep them exactly**: learn the administration; the house is a hundred credits the better. **Make yourself useful**: a little influence, a little economics. **Pad an account**: 300 credits to your purse; one time in five it is found and written against you as a failure. |
 | **Cadet, Ensign, Lieutenant** with no command | Watches and drills | **Stand your watches**: learn tactics. **Volunteer for the patrol**: learn gunnery, the home lanes −1 lawlessness, and one time in ten you come back hurt. **Make friends in the mess**: the officers +1, a crew of the house's a little steadier, some leadership. |
 
 What is learned is on top of what the service teaches anyone by the year. A junior who lets the year go by loses only
@@ -279,7 +279,7 @@ fleet their patron commands. One patron at a time.
 
 **Taken along.** When a patron rises (a step in rank, a magistracy, an office of the Reach) their people go with
 them to the new post: the junior learns their own trade faster for it that year (law, administration or tactics) and
-is paid 3 credits for the place. Once for each rise.
+is paid 300 credits for the place. Once for each rise.
 
 **A falling out.** When the one above has come to think −20 or worse of a junior who has worked under them, the two
 fall out. A patron is lost. The years under that senior count for nothing. And that senior will not be above the
@@ -369,7 +369,7 @@ it: a case said only who was in the right, the accounts had no figures, the work
 **A praetor's case** now has three facts, and each changes what a ruling does.
 
 - **The matter**: a boundary, a debt, a contract not honoured, a contested inheritance, the salvage of a wreck.
-- **The stake**: 5, 10 or 15 credits. It is what the loser pays, and twice it is what an overturned ruling pays back.
+- **The stake**: 500, 1,000 or 1,500 credits. It is what the loser pays, and twice it is what an overturned ruling pays back.
 - **How plain the law is**: plain (four cases in ten), arguable (four), doubtful (two).
 
 | A ruling against the law | Costs the Reach's trust | On the record, and open to appeal |
@@ -384,10 +384,10 @@ magistrates are trusted a point more. Where the law is plain, the house that had
 worse of the praetor's house; the other is grateful. An upright praetor of another house settles a doubtful case
 and rules on the law in the rest.
 
-**A quaestor's accounts** show what is over: 4 to 12 credits, never more than the capital's purse holds, and where
+**A quaestor's accounts** show what is over: 400 to 1,200 credits, never more than the capital's purse holds, and where
 it came from (dues, fines, a levy overcollected, an estate fallen to the Reach). That figure is what the quaestor
 has to dispose of. Sent to a lawless region, it makes the lanes safer by half of it (2 to 6), where it was always
-2. Taken, it is what the house gets and what the capital's purse loses, where it was always 8; and a sum of 9 or
+2. Taken, it is what the house gets and what the capital's purse loses, where it was always 800; and a sum of 900 or
 more is likelier noticed (one time in three, not four).
 
 **An aedile** can give lanes and grain both, for twice the sum: both effects, and it is remembered as a generous
@@ -430,7 +430,7 @@ can hear it.
 | None of these | By who pleads better: 40 in a hundred, 6 more for each point of law and oratory the accuser's best advocate has, 4 fewer for each the accused's has. |
 
 **Proved:** the accused may not stand for five years and loses any seat they hold; their house is under a scandal
-(its candidates lose votes for ten years), loses 4 standing and pays 10 credits, to the house that was wronged if
+(its candidates lose votes for ten years), loses 4 standing and pays 1,000 credits, to the house that was wronged if
 there was one and to the capital's if not. The house that brought it gains 2 standing and the commons' regard, and
 the Reach's trust in its magistrates is mended a point if it is under sixty. **Let go:** the house that brought it loses a point of standing, and
 if everyone can see why they were let go, trust falls a point. Either way the accused's house does not forgive it
@@ -441,7 +441,7 @@ finds something on the record against one of its people brings it. The people of
 excepted: one of them convicted is treated exactly as one removed from office, and the events that follow a removal
 follow this.
 
-**A praetor can be bought.** 15 credits of the head's own, to a sitting praetor of another house. The panel says
+**A praetor can be bought.** 1,500 credits of the head's own, to a sitting praetor of another house. The panel says
 what is known of them. The upright refuse and say so from the bench: the house loses 4 standing and is under a
 scandal as if one of its own had been removed. One known to be for sale takes it. The rest take it one time in two,
 and only from a house they do not think ill of; refusing, they say nothing and think the less of you. A bought

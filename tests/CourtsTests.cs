@@ -1,3 +1,4 @@
+using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.State;
@@ -159,10 +160,10 @@ public class CourtsTests
             {
                 Assert.InRange(b.Weight, LadderSystem.Doubtful, LadderSystem.Plain); Assert.Contains(b.Stake, new[] { LadderSystem.Damages, LadderSystem.Damages * 2, LadderSystem.Damages * 3 }); Assert.NotEqual("", b.Matter);
                 seen.Add(b.Weight); stakes.Add(b.Stake); matters.Add(b.Matter); cases++;
-                string says = LadderSystem.Says(w, Offices, b); Assert.Contains(b.Stake + " credits turn on it", says); Assert.Contains(" over ", says);
+                string says = LadderSystem.Says(w, Offices, b); Assert.Contains(Money.Credits(b.Stake) + " turn on it", says); Assert.Contains(" over ", says);
                 Assert.Contains(b.Weight == LadderSystem.Plain ? "read plainly" : b.Weight == LadderSystem.Arguable ? "arguable" : "doubtful", says);
             }
-            foreach (var b in w.OfficeWork.Where(b => b.Turn == w.Turn && b.Kind == LadderSystem.Accounts)) { Assert.InRange(b.Stake, 0, 12); if (b.Stake > 0) Assert.Contains(b.Stake + " credits over", LadderSystem.Says(w, Offices, b)); }
+            foreach (var b in w.OfficeWork.Where(b => b.Turn == w.Turn && b.Kind == LadderSystem.Accounts)) { Assert.InRange(b.Stake, 0, 12); if (b.Stake > 0) Assert.Contains(Money.Credits(b.Stake) + " over", LadderSystem.Says(w, Offices, b)); }
         }
         Assert.True(seen.Count == 3, $"weights seen: {string.Join(",", seen)} over {cases} cases, {w.Magistrates.Count(m => m.OfficeId == LadderSystem.Praetor)} praetors sitting"); Assert.True(stakes.Count >= 2); Assert.True(matters.Count >= 3);
         _ = me; _ = mine;
@@ -234,7 +235,7 @@ public class CourtsTests
         // the aedile: lanes and grain both, for twice the sum
         var ae = Person(w, others.First(h => h.Id != chair.Id && h.Id != house.Id), "aedile_man"); Sit(w, ae, "aedile"); var aeHouse = w.House(ae.HouseId)!; aeHouse.Treasury.Credits = 5;
         w.OfficeWork.Add(new OfficeBusiness { Id = "works_both", RungId = "aedile", HolderId = ae.Id, Kind = LadderSystem.Works, Turn = w.Turn, RegionId = region });
-        Assert.Contains((LadderSystem.WorksCredits * 2).ToString(), LadderSystem.DecideRefusal(w, ae, LadderSystem.Both));
+        Assert.Contains(Money.Show(LadderSystem.WorksCredits * 2), LadderSystem.DecideRefusal(w, ae, LadderSystem.Both));
         aeHouse.Treasury.Credits = 40; int legit = aeHouse.Legitimacy; RegionSystem.StateOf(w, region).Lawlessness = 60;
         LadderSystem.Decide(w, Offices, ae, LadderSystem.Both);
         Assert.Equal(40 - LadderSystem.WorksCredits * 2, aeHouse.Treasury.Credits); Assert.Equal(60 - LadderSystem.ReliefBy, RegionSystem.StateOf(w, region).Lawlessness); Assert.Equal(Math.Min(100, legit + 3), aeHouse.Legitimacy);

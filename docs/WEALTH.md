@@ -11,9 +11,9 @@ Every grown member of your house has a **purse** of their own, apart from the ho
 
 | What fills it, each year | How much |
 |---|---|
-| The allowance (not for the head) | 0, 1 or 3 credits, from the treasury |
-| The pay of their service | Half their rank, rounded up |
-| An estate they hold | 2 |
+| The allowance (not for the head) | 0, 100 or 300 credits, from the treasury |
+| The pay of their service | Half their rank, rounded up, in hundreds of credits |
+| An estate they hold | 200 |
 
 **Your own purse.** As head you can move credits between it and the treasury. What is in your purse is yours: it goes by
 your will and not with the house, and when the house's creditors come they cannot touch it. A head who takes from the
@@ -26,8 +26,8 @@ One setting for the whole house.
 | Allowance | Each grown member a year | How they take it |
 |---|---|---|
 | Mean | 0 | They think worse of you every year, the wilful twice as fast |
-| Customary | 1 | Nobody remarks on it |
-| Generous | 3 | They think better of you every year |
+| Customary | 100 | Nobody remarks on it |
+| Generous | 300 | They think better of you every year |
 
 If the treasury cannot pay it, it goes unpaid and they mind.
 
@@ -40,10 +40,10 @@ Their own business. Each year, by temperament:
 - **They spend it on being seen**, if proud, arrogant or set on outshining rivals.
 - **They lose it at the tables**, now and then, if they have little discipline and no steadiness.
 - **They put it by**, if greedy or set on a fortune.
-- **They live within their means** otherwise, and keep no more than 20.
+- **They live within their means** otherwise, and keep no more than 2,000.
 
-**Debt.** A purse can go below nothing, and a debt grows by a tenth a year. At 8 owed you are told. You can pay it from
-the treasury (they are grateful) or from your own purse (more so), or leave them to it. Past 20 owed the creditors come
+**Debt.** A purse can go below nothing, and a debt grows by a tenth a year. At 800 owed you are told. You can pay it from
+the treasury (they are grateful) or from your own purse (more so), or leave them to it. Past 2,000 owed the creditors come
 to the house itself: they are paid from the treasury as far as it goes, the house loses 2 legitimacy, and it is talked
 of.
 
@@ -56,7 +56,7 @@ A thing worth leaving to someone: a signet, a sword, a library, an estate. **It 
 - **Sell it** for what it is worth; the money is yours. Selling what the family has always had costs the house 3
   legitimacy, and your blood kin resent it.
 - **Leave it** to someone in your will.
-- An estate pays its holder 2 a year.
+- An estate pays its holder 200 a year.
 
 ## The will, and the estate
 
@@ -101,13 +101,13 @@ sold out of the family.
 Eight tests; one caught a fault in the first draft (a debt scandal could not happen in a saga's first five years). The
 soak passes on all eleven starts. In the browser on *The Old Lion*: money moved to the head's purse, a generous
 allowance set, half the purse willed to a younger relative and the estate set to portions; the old head died within
-four years, the house passed to the heir, and the relative named in the will held 15 credits afterwards (the legacy,
+four years, the house passed to the heir, and the relative named in the will held 1,500 credits afterwards (the legacy,
 any portion and their allowance together; the run did not separate them).
 
 ## A sum to a relative, and whose money a dowry is
 
 - **Give.** From your own purse to a grown relative's, once a year each. It is theirs. They think the better of you
-  for it (2, and one more for every 2 credits, to 10).
+  for it (2, and one more for every 200 credits, to 10).
 - **Lend.** From your own purse; one loan to a person at a time. They pay it back by thirds as they have the money
   (the honourable and the loyal always, others about three years in five). **Left six years unpaid it sits between
   you**: each thinks one the less of the other every year, and there is an event. You can **forgive** it at any time
@@ -133,20 +133,20 @@ entailed from the start. If an entailed thing is ever found in the wrong hands i
 | Signet | On the hand of the head of its own house, the house's standing mends a point a year while it is under 50. Off that hand, nothing. |
 | Sword | Carried by someone in the fleet, 2 learning a year toward discipline. On a wall, nothing. |
 | Library | Everyone of its holder's house who has set themselves a study learns it 1 faster a year. |
-| Estate | 2 credits a year to its holder (as before). |
+| Estate | 200 credits a year to its holder (as before). |
 
 The panel says what each does where it is.
 
 **Loans the other way, and between relatives.**
 
-- The head can **borrow** of a relative, out of that person's purse. They must keep 2 back, and they lend only if they
+- The head can **borrow** of a relative, out of that person's purse. They must keep 200 back, and they lend only if they
   are loyal or think 20 or better of the head. One who counts such things (greedy, or set on a fortune) wants a fifth
   on top. The head pays back as far as their purse goes. Left six years, the lender thinks 2 worse of the head each
   year and an event asks what is to be done. If the head dies owing it, it is paid out of their purse, then out of the
   treasury, before anything is shared.
 - The head can **lend at interest**: the same loan with a fifth on top. It is taken as business (−1, where a plain
   loan is +3).
-- **One of the house in debt** is helped by another who has 10 or more to spare and thinks 30 or better of them: half
+- **One of the house in debt** is helped by another who has 1,000 or more to spare and thinks 30 or better of them: half
   the lender's purse at most. The debtor thinks 6 better of them, pays it back by thirds, and the head is told.
 - **A bride** puts half her own purse toward her portion, up to half of what is due, before the head's purse or the
   treasury is touched.
@@ -155,13 +155,13 @@ Found while building it, and mapped: an heirloom is one of four kinds and no hou
 
 ### Purses that hold something (W7, the same day)
 
-Seen in play: the Borrow button was nearly always dark. Raising what a careful person keeps (twenty credits to thirty),
-offering five as well as ten, and letting a relative with six to spare help another, did not change that: driven
-again in the browser for twelve years, nobody had seven credits. The cause was income. A person's service paid them
-half their rank a year, and an allowance one more; the proud spent it and the rest saved a credit or two a year.
+Seen in play: the Borrow button was nearly always dark. Raising what a careful person keeps (2,000 credits to 3,000),
+offering five hundred as well as a thousand, and letting a relative with six hundred to spare help another, did not change that: driven
+again in the browser for twelve years, nobody had seven hundred credits. The cause was income. A person's service paid them
+half their rank a year in hundreds of credits, and an allowance a hundred more; the proud spent it and the rest saved a hundred credits or two a year.
 
-**A person's service now pays them their rank and one more a year.** Driven again on the Old Lion start: in year
-twelve a relative lent the head five, and is owed it. Purses are still small (two to four credits beside that loan),
+**A person's service now pays them their rank and one more a year, in hundreds of credits.** Driven again on the Old Lion start: in year
+twelve a relative lent the head five hundred, and is owed it. Purses are still small (two to four hundred credits beside that loan),
 which is as it should be for people living on an allowance; they are no longer empty.
 
 ### New things (W8, 2026-11-15)
@@ -171,14 +171,14 @@ its own.
 
 | Kind | How it is come by | What it does |
 |---|---|---|
-| **Shrine** | Made to order, out of a person's own purse: 24 credits. One to a house. | The commons think a point better of its holder's house each year, while they think less than 40 of it. |
-| **Library** | Made to order the same way: 36 credits. One to a house. | What a library always did: everyone of the house who has set a study learns it a little faster. |
+| **Shrine** | Made to order, out of a person's own purse: 2,400 credits. One to a house. | The commons think a point better of its holder's house each year, while they think less than 40 of it. |
+| **Library** | Made to order the same way: 3,600 credits. One to a house. | What a library always did: everyone of the house who has set a study learns it a little faster. |
 | **Standard** | Taken in a battle. About one victory in four over another house brings one home, and it belongs to whoever commanded, not to the house. A house keeps two at most. Raiders fly nothing worth taking. | Flown from the flagship of whoever holds it, that fleet is a point more loyal each year, up to 90. In a hall it does nothing. |
 | **Plate** | Sent by the other house at a wedding between two houses, about one wedding in twelve: to the bride if a dowry came with her, to the groom if none did. It is that person's own. | Its holder and the head of the house that sent it think a point better of each other each year, up to 40. |
 
 - A thing made to order is worth two thirds of what it cost, so having one made and selling it loses money.
 - **Selling plate** is an answer to whoever sent it: the head of that house thinks 12 worse of the seller.
-- **Other houses** have things made too: a house with 80 credits or more does so about once in eighty years, out of its
+- **Other houses** have things made too: a house with 8,000 credits or more does so about once in eighty years, out of its
   treasury, since its head has no purse the game keeps.
 - **Nothing is sent in your name.** When one of yours marries into another house, no plate goes unless you give
   something yourself. The panel now offers the heads of the three houses of best standing as people to give a thing to.
@@ -201,7 +201,7 @@ same day: see the next section.
 - The head of that house thinks a point worse of whoever flies it each year, down to −40.
 - **Retaken.** If that house beats the house that flies it in a battle, the standard comes home at once, to whoever
   commanded. This is certain, not a chance: it is what the day was for.
-- **Bought home.** At peace, a house can buy its standard back for three times its worth (36 credits). You do it
+- **Bought home.** At peace, a house can buy its standard back for three times its worth (3,600 credits). You do it
   from your own purse, from the heirlooms list, unless the other head thinks −20 or worse of you. Other houses do it
   among themselves in about one year in eight, when they can pay.
 - **Asked for.** A house whose standard one of yours flies asks for it, in about one year in four and not more than
@@ -210,12 +210,12 @@ same day: see the next section.
   the button on the standard itself.
 - A standard that has come home is that house's own again and nobody resents it.
 
-**A relative has a thing made.** One of your house with a shrine's price and 6 credits beside has one made in their
+**A relative has a thing made.** One of your house with a shrine's price and 600 credits beside has one made in their
 own name, in about one year in four: a library instead if they are learned and can pay for it. One of a kind to a
 house still holds. An event for the head: it does the house credit, add the house's money to it, or it should have
 been the house's to give.
 
-**A gift to mend a quarrel.** A head who thinks −45 to −15 of another, is not at war with them and has 60 credits
+**A gift to mend a quarrel.** A head who thinks −45 to −15 of another, is not at war with them and has 6,000 credits
 sends plate, in about one year in thirty: to whichever such head they think worst of. Each thinks 8 better of the
 other, and the plate does what plate does. Sent to you, an event: take it as it is meant, answer in kind, or send it
 back (they think 14 worse of you, and it is gone).
@@ -248,7 +248,7 @@ standard is ever taken in a war. Both were closed the same day: see the next sec
 
 - **An orrery** is a new kind of thing. Its holder learns whatever they have set themselves to study a point faster
   each year.
-- **Sent to ask.** A head with a motion before the Senate and 60 credits sends one, in about one such year in ten,
+- **Sent to ask.** A head with a motion before the Senate and 6,000 credits sends one, in about one such year in ten,
   to the head of the weightiest house that is neither friend nor enemy (−10 to 19). Kept, it is **a favour owed**.
 - **A favour owed is a vote leaned.** A house that owes the proposer a favour leans two further for the motion, and
   the favour is spent when it is voted.
@@ -273,7 +273,7 @@ or return a gift. Both were closed the next day: see the next section.
 **A favour owed to you can be asked for something other than a vote.** From the purses panel, beside the house
 that owes it:
 
-- **Money:** 15 credits, paid into your treasury, if they have it.
+- **Money:** 1,500 credits, paid into your treasury, if they have it.
 - **A match:** the family's consent to a suit between your house and theirs rises by 20.
 - Left alone, it is spent on the next motion you bring, as before.
 
@@ -311,16 +311,16 @@ A purse held credits and nothing else. Now a person can hold **shares in their o
 - **They go by the will**, as the purse does: the share the will leaves to someone, of each holding, and the rest to
   the heir. When one of the house other than its head dies, theirs go to the head, in the head's own name. Shares in
   the name of someone with nobody to come after them go back to the float.
-- **Relatives do it for themselves.** One who is greedy, wants a fortune, or knows economics (3 or better), and has 12
-  credits or more, buys up to five shares a year of the company that pays best for its price, keeping 6 back. One in
+- **Relatives do it for themselves.** One who is greedy, wants a fortune, or knows economics (3 or better), and has 1,200
+  credits or more, buys up to five shares a year of the company that pays best for its price, keeping 600 back. One in
   debt sells what covers it. The purses list says what each did and what they hold. An event tells the head the first
   a relative buys: it is their money, or tell them what the house knows, or the house comes first.
-- **A founder's stake.** Whoever of the house founded a venture draws its level in credits a year out of the
+- **A founder's stake.** Whoever of the house founded a venture draws its level in hundreds of credits a year out of the
   treasury, into their purse. This was true only of those who wanted a fortune; it is now true of every founder.
 
 Measured over sixty runs of sixty years: relatives bought 3,042 shares in their own names (about fifty a run) and
-sold 73; the shares paid 7,162 credits into purses (about two a year to a house's people); 1,741 shares passed on
-at a death; at the end 124 people held some, worth 5,253 credits together. Founders drew 441 credits in stakes.
+sold 73; the shares paid 716,200 credits into purses (about two hundred a year to a house's people); 1,741 shares passed on
+at a death; at the end 124 people held some, worth 525,300 credits together. Founders drew 44,100 credits in stakes.
 
 Found while building it, and mapped (W10): a venture is still the house's, and the head can sell it over its
 founder's head; no world is a person's; shares in a person's name carry no vote, even alongside their house's; and
@@ -352,7 +352,7 @@ else's count while they think no ill of the head (0 or better). One who does thi
 dividend and withholds the vote; the purses list says so.
 
 Measured over sixty runs of sixty years, with no player giving orders: 29 ventures were a relative's own at the end,
-all founded with their own money, and 928 credits were paid over to their holders. No founder's stake was paid: in
+all founded with their own money, and 92,800 credits were paid over to their holders. No founder's stake was paid: in
 those runs every venture a relative founded was their own.
 
 Not seen in play: the soak's player never settled a venture and never sold one a relative had founded, so both rest

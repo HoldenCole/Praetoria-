@@ -29,7 +29,7 @@
     <div class="muted small">You are <b class="@(p.Health < LifeSystem.Sound ? "bad" : "")">@LifeSystem.HealthName(p.Health)</b>@(p.Flags.Contains(LifeSystem.IllChar) ? ", and ill" : "")@(p.Flags.Contains(LifeSystem.WoundedChar) ? ", and carrying a wound" : "")@(life is { Wounds: > 0 } ? $" · wounded {Counted.Times(life.Wounds)}" : "") · at @p.Age you can be no better than @cap.@(p.Health < LifeSystem.Frail ? " The frail lay their commands down, and do not live long." : "")</div>
     <div class="suit-acts">
         <button class="opt inline" disabled="@(rest != null)" title="@(rest ?? "health +8, strain −10")" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Rest))">A season away · @LifeSystem.RestInfluence influence</button>
-        <button class="opt inline" disabled="@(phys != null)" title="@(phys ?? "health +6, and an illness cured; from your own purse")" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Physicians))">The physicians · @LifeSystem.PhysicianCredits credits</button>
+        <button class="opt inline" disabled="@(phys != null)" title="@(phys ?? "health +6, and an illness cured; from your own purse")" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Physicians))">The physicians · @Money.Show(LifeSystem.PhysicianCredits) credits</button>
         @if (_confirm) { <button class="opt inline veto" @onclick="() => { _confirm = false; G.Execute(new LifeCommand(pid, LifeCommand.Retire)); }">Yes, lay it down</button> <button class="opt inline" @onclick="() => _confirm = false">No</button> }
         else { <button class="opt inline" disabled="@(retire != null)" title="@(retire ?? $"{heir?.Name} has the house and you play on as them. You stay as its elder and teach them.")" @onclick="() => _confirm = true">Lay the house down</button> }
     </div>
@@ -38,7 +38,7 @@
         string xid = x.Id; var send = new LifeCommand(pid, LifeCommand.Send, xid).Refusal(G.Ctx); string state = x.Name + " is " + LifeSystem.HealthName(x.Health) + (x.Flags.Contains(LifeSystem.IllChar) ? ", and ill" : "") + ".";
         <div class="suit-acts">
             <span class="small">@state</span>
-            <button class="opt inline tiny" disabled="@(send != null)" title="@(send ?? SendTip)" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Send, xid))">Send your physicians · @LifeSystem.PhysicianCredits credits</button>
+            <button class="opt inline tiny" disabled="@(send != null)" title="@(send ?? SendTip)" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Send, xid))">Send your physicians · @Money.Show(LifeSystem.PhysicianCredits) credits</button>
         </div>
     }
     @if (elder != null) { <div class="muted small elder-line">@elder.Name laid the house down and is its elder still. Their old friends are the house's while they live.@(counsel.Length > 0 ? " Last year: " + counsel : "")</div> }

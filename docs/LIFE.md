@@ -24,7 +24,7 @@ Everyone has a health from 0 to 100.
 Someone under fifty, who used never to die of anything, can now die if their health is below 25.
 
 **What you can do for yourself:** a season away (2 influence, once a year: health +8, stress −10), and the physicians
-(6 credits from your own purse: health +6, and an illness cured). Your relatives send for the physicians themselves,
+(600 credits from your own purse: health +6, and an illness cured). Your relatives send for the physicians themselves,
 out of their own purses.
 
 **A wound** in battle now costs health, is written into the record, and leaves a scar on the portrait.
@@ -57,7 +57,7 @@ thought ill of you (−40) that long is an old enemy. A friendship that cools st
 ### A physician for a relative
 
 Someone of your house who is ill or ailing is listed on the life panel with a button: **send your own physicians**
-(6 credits from your purse). Their health rises 6, an illness is cured, and they think 8 the better of you.
+(600 credits from your purse). Their health rises 6, an illness is cured, and they think 8 the better of you.
 
 ## Retirement
 

@@ -81,7 +81,7 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
   scenario, a twenty-turn browser drive through every screen with a save/reload, and a probe of the whole economy at
   turns 11/31/60. Found: half the houses insolvent by turn 60 (alphabetical venture founding, debt spirals, unsold
   materials, headless houses), and the fallen house "dying" every sixty-turn run because the auto-player never wed.
-  Fixed all five; mean house credits at turn 60 went from 14 to 99 and houses in debt from 7 to 1. Lesson: a soak
+  Fixed all five; mean house credits at turn 60 went from 1,400 to 9,900 and houses in debt from 7 to 1. Lesson: a soak
   that only asks "did it crash" misses an economy that quietly fails; the probe that prints the twelve poorest houses
   with their specializations found in one line what forty turns of green QA had not.
 - 2026-11-08 — Owner: fortress income and the throne gate; then free holds and the capital as a prize; then "remember
@@ -104,7 +104,7 @@ drive it with Playwright (see `docs/WEB_CLIENT.md`). Graphics phases iterate on 
 - 2026-11-08 — Owner: economic additions — asteroid mining, helium-3, rare earths, special materials for weapons; not
   every planet or region has everything; decisions gated behind wealth and resources. Done as "the strategic three"
   (ECONOMY.md). Lesson: every new sink or source must be probed against the NPC economy the same day — the first
-  probe showed fifteen of twenty navies dry and a thousand-credit house that could not act, and each fix exposed the
+  probe showed fifteen of twenty navies dry and a hundred-thousand-credit house that could not act, and each fix exposed the
   next (pools, manpower, deadlocks, inflation, absolute tiers). Six probe rounds, each under two minutes, beat guessing.
 - 2026-11-08 — Owner: "time for a gap analysis." GAP_ANALYSIS §10: the whole game read against the GDD's pillars,
   with the harness numbers and a thirty-turn playthrough. Verdict: economy and galaxy are the deep pillars; the

@@ -1,3 +1,4 @@
+using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Galaxy;
@@ -186,7 +187,7 @@ public class EconomyDepthTests
         // only the holder of that system's world buys; not at war; and the coin must be there
         Assert.Equal("it is yours already", new BuyOutClaimCommand("self", claim.Id, v).Refusal(Ctx(w)));
         w.Wars.Add(new War { HouseA = "vega", HouseB = "corwin", Since = 1 }); Assert.StartsWith("you are at war with", new BuyOutClaimCommand("corwin_head", claim.Id, v).Refusal(Ctx(w))); w.Wars.Clear();
-        corwin.Treasury.Credits = 1; Assert.Equal($"needs {stake} credits", new BuyOutClaimCommand("corwin_head", claim.Id, v).Refusal(Ctx(w))); corwin.Treasury.Credits = 100;
+        corwin.Treasury.Credits = 1; Assert.Equal($"needs {Money.Credits(stake)}", new BuyOutClaimCommand("corwin_head", claim.Id, v).Refusal(Ctx(w))); corwin.Treasury.Credits = 100;
 
         // bought: the coin changes hands, the claim is the buyer's and pays the buyer
         int mine = vega.Treasury.Credits;
@@ -226,8 +227,8 @@ public class EconomyDepthTests
         w.Relationship("corwin_head", "self").Disposition = Lending.GoodRegard;
 
         // an amount of one's choosing, within the limit
-        Assert.Equal($"no less than {Lending.Step} credits", new TakeLoanCommand("self", v, "corwin", 2).Refusal(Ctx(w)));
-        Assert.Contains("will lend you 30 and no more", new TakeLoanCommand("self", v, "corwin", 35).Refusal(Ctx(w)));
+        Assert.Equal($"no less than {Money.Credits(Lending.Step)}", new TakeLoanCommand("self", v, "corwin", 2).Refusal(Ctx(w)));
+        Assert.Contains("will lend you 3,000 and no more", new TakeLoanCommand("self", v, "corwin", 35).Refusal(Ctx(w)));
         Assert.True(exec.TryExecute(new TakeLoanCommand("self", v, "corwin", 15), Ctx(w)));
         Assert.Equal(2 + 15, vega.Treasury.Credits); Assert.Equal(18, vega.Debt); Assert.Equal("corwin", vega.LenderId);                  // 15 at 20 in the hundred
         Assert.Equal(Lending.Instalment(f, 18), vega.LoanInstalment); Assert.Equal(3, vega.LoanInstalment);
@@ -250,7 +251,7 @@ public class EconomyDepthTests
         Assert.True(exec.TryExecute(new RepayLoanCommand("self", 99), Ctx(w)));                                                             // more than is owed pays what is owed
         Assert.Equal(0, vega.Debt); Assert.Equal(15, vega.Treasury.Credits); Assert.Equal("", vega.LenderId); Assert.Equal(0, vega.LoanInstalment);
         vega.Treasury.Credits = 3; Assert.True(exec.TryExecute(new TakeLoanCommand("self", v, "", 30), Ctx(w))); Assert.Equal(39, vega.Debt);
-        Assert.Equal("needs 5 credits", new RepayLoanCommand("self", 5).Refusal(Ctx(new World { Houses = { ["x"] = new House { Id = "x", Debt = 9 } }, Characters = { ["self"] = new Character { Id = "self", HouseId = "x", Alive = true } } })));
+        Assert.Equal("needs 500 credits", new RepayLoanCommand("self", 5).Refusal(Ctx(new World { Houses = { ["x"] = new House { Id = "x", Debt = 9 } }, Characters = { ["self"] = new Character { Id = "self", HouseId = "x", Alive = true } } })));
     }
 
     [Fact]

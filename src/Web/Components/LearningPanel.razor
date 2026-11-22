@@ -46,14 +46,14 @@
         @foreach (int t in Tutors)
         {
             int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()).Refusal(G.Ctx);
-            <button class="opt inline tiny @(p.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@(no ?? (t == 0 ? "no teacher" : $"+{EducationSystem.TutorPoints(t)} point{(EducationSystem.TutorPoints(t) == 1 ? "" : "s")} a year to what you study. The fee is {EducationSystem.TutorCost(t)} credits a year from the house treasury, taken at the year's end; a teacher the treasury cannot pay leaves."))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()))">@TutorLabel(t)</button>
+            <button class="opt inline tiny @(p.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@(no ?? (t == 0 ? "no teacher" : $"+{EducationSystem.TutorPoints(t)} point{(EducationSystem.TutorPoints(t) == 1 ? "" : "s")} a year to what you study. The fee is {Money.Credits(EducationSystem.TutorCost(t))} a year from the house treasury, taken at the year's end; a teacher the treasury cannot pay leaves."))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()))">@TutorLabel(t)</button>
         }
     </div>
 </section>
 
 @code {
     private static readonly int[] Tutors = { 0, 1, 2 };
-    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {EducationSystem.GoodTutorCredits} credits a year" : $"the best · {EducationSystem.BestTutorCredits} credits a year";
+    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {Money.Credits(EducationSystem.GoodTutorCredits)} a year" : $"the best · {Money.Credits(EducationSystem.BestTutorCredits)} a year";
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= Redraw;

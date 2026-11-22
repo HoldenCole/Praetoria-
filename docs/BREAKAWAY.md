@@ -46,10 +46,10 @@ The panel lists, for each region, the other houses that hold a world there, whet
 regard for you. Once a year for each you may send:
 
 - **a quiet word** (2 influence): their regard rises by 8;
-- **a gift** (12 credits from the house): their regard rises by 12, and by 4 more if they are poor.
+- **a gift** (1,200 credits from the house): their regard rises by 12, and by 4 more if they are poor.
 
 - **a promise of a place** (2 influence): their regard rises by 15 at once, and you owe them. If the state is founded
-  with them in it, its ruler pays them 3 credits a year for ten years. A ruler who cannot pay is thought 8 the less of
+  with them in it, its ruler pays them 300 credits a year for ten years. A ruler who cannot pay is thought 8 the less of
   each year, and there is an event;
 - **a threat** (2 influence), if you have three hulls to their one: they will follow you for as long as they are
   afraid (ten years, and while you still have two hulls to their one), and think 20 the less of you.
@@ -220,7 +220,7 @@ with its causes ("the peace of the Reach"). Each year the pressure is the sum of
 - At 40 there are rumblings. At 150 the houses sort into two camps. At 300 it is war.
 - **It can be aimed.** The same act can name one house: the five strongest of the others each think 8 the less of it.
   If the capital hears whose money it was, so does that house (−25).
-- **A house can push it on purpose.** "Stir the camps" (3 influence, 12 credits): money and letters in the right
+- **A house can push it on purpose.** "Stir the camps" (3 influence, 1,200 credits): money and letters in the right
   places, and for three years "somebody's money is setting the great houses against one another" adds 6 to the
   pressure. One time in three the capital hears whose money it was: its holder thinks 15 the less of you and your house
   loses 3 legitimacy. It cannot be done once the war has come, or while the last one is remembered.

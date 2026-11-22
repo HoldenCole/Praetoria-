@@ -122,7 +122,7 @@
                 <div class="crew-row">
                     <span><b>@f.Name</b> <span class="muted small">@f.Strength hulls · @admName</span></span>
                     <span class="gauge"><i><b style="width:@f.Devotion%" class="@(f.Devotion >= CaesarSystem.DevotedAt ? GoodClass : string.Empty)"></b><u style="left:@CaesarSystem.DevotedAt%"></u></i><em>@f.Devotion</em></span>
-                    <button class="opt inline tiny" disabled="@(no != null)" title="@giftTip" @onclick="() => G.Execute(new CaesarCommand(pid, CaesarCommand.Donative, fid, cz))">Donative · @CaesarSystem.DonativeCost(f) credits</button>
+                    <button class="opt inline tiny" disabled="@(no != null)" title="@giftTip" @onclick="() => G.Execute(new CaesarCommand(pid, CaesarCommand.Donative, fid, cz))">Donative · @Money.Show(CaesarSystem.DonativeCost(f)) credits</button>
                 </div>
             }
         }

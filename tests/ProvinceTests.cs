@@ -1,3 +1,4 @@
+using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.State;
@@ -236,7 +237,7 @@ public class ProvinceTests
             w.Relationship(Economy.HeadOf(w, asker)!.Id, me.Id).Disposition = ProvinceSystem.CoinRegardFloor;
             Assert.Contains("not your coin", new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Coin, Cat, tc.Senate).Refusal(ctx));
             w.Relationship(Economy.HeadOf(w, asker)!.Id, me.Id).Disposition = 0; int theirs = asker.Treasury.Credits;
-            var cmd = new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Coin, Cat, tc.Senate); Assert.Contains($"paid {price} credits", cmd.Says(w));
+            var cmd = new AnswerDemandOtherwiseCommand(me.Id, d.Id, ProvinceSystem.Coin, Cat, tc.Senate); Assert.Contains($"paid {Money.Credits(price)}", cmd.Says(w));
             Assert.True(tc.Executor.TryExecute(cmd, ctx));
             Assert.Equal(200 - price, house.Treasury.Credits); Assert.Equal(theirs + price, asker.Treasury.Credits); Assert.Empty(w.SeatDemands); Assert.False(w.HasFlag(ProvinceSystem.DemandFlag));
             Assert.Equal(house.Id, ProvinceSystem.HolderOf(planet, idx)); Assert.Equal(w.Turn + Cat.Provinces.SettleYears, planet.Provinces[idx].SettledUntil); Assert.False(w.AtWar(house.Id, asker.Id));

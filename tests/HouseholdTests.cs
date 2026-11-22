@@ -155,7 +155,7 @@ public class HouseholdTests
 
         // below the reserve they say so beforehand
         tc.BeginTurn(); Assert.True(Do(w, new StewardFavourCommand(me.Id, ""))); mine.Treasury.Credits = 30; d.Reserve = 1000;
-        var none = tc.Household.StewardPlan(w, mine, ctx); Assert.Null(none.next); Assert.Contains("1000 credits", none.says);
+        var none = tc.Household.StewardPlan(w, mine, ctx); Assert.Null(none.next); Assert.Contains("100,000 credits", none.says);
     }
 
     [Fact]

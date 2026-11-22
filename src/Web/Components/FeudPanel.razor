@@ -30,7 +30,7 @@
             <div class="muted small">@(f.Unanswered > FeudSystem.GraceYears ? $"Unanswered {f.Unanswered} years: it has cost the house {f.Shame} standing, and your near kin hold it against you. " : f.Unanswered > 0 ? $"Unanswered {Counted.Years(f.Unanswered)}. After {FeudSystem.GraceYears} it begins to cost the house standing. " : "")After @FeudSystem.LetLieYears years it is let lie whether you say so or not.@(f.Refused ? " They have refused you once: what you do now is on them." : "")</div>
             @if (f.Asked == "offer")
             {
-                <div class="suit-acts"><span class="small">They offer <b>@f.Price credits</b> to end it.</span>
+                <div class="suit-acts"><span class="small">They offer <b>@Money.Show(f.Price) credits</b> to end it.</span>
                     <button class="opt inline" disabled="@(No(f, FeudCommand.Take) != null)" title="The money comes to the house and the debt is ended. The dead person's near kin think the less of you for it." @onclick="() => Do(f, FeudCommand.Take)">Take it</button>
                     <button class="opt inline" title="The offer is not made twice." @onclick="() => Do(f, FeudCommand.Spurn)">Spurn it</button></div>
             }
@@ -43,7 +43,7 @@
                         var who = c; string? no = No(f, FeudCommand.Challenge, who); int o = blamed != null ? FeudSystem.DuelOdds(who, blamed) : 0;
                         <button class="opt inline" disabled="@(no != null)" title="@(no ?? $"{who.Name} goes in your place: about {o} in a hundred.")" @onclick="() => Do(f, FeudCommand.Challenge, who.Id)">Send @who.Name.Split(' ')[0] · @o in 100</button>
                     }
-                    <button class="opt inline" disabled="@(demand != null)" title="@(demand ?? $"Ask {f.Price} credits. A house pays if it has the money twice over or you are the stronger. Taking money for the dead costs you with their near kin.")" @onclick="() => Do(f, FeudCommand.Demand)">Ask the price · @f.Price</button>
+                    <button class="opt inline" disabled="@(demand != null)" title="@(demand ?? $"Ask {Money.Credits(f.Price)}. A house pays if it has the money twice over or you are the stronger. Taking money for the dead costs you with their near kin.")" @onclick="() => Do(f, FeudCommand.Demand)">Ask the price · @Money.Show(f.Price)</button>
                     <button class="opt inline veto" disabled="@(!canKnife)" title="@(canKnife ? $"A hired hand for {blamed!.Name}: about {(int)(AssassinateCommand.Odds(w, p, blamed) * 100)} in a hundred, 2 agents. If the one to blame dies, the debt is paid. Anyone else of theirs is the wrong blood, and they will hold it against you in turn." : "You have not the agents, or there is nobody to reach.")" @onclick="() => G.Execute(knife!)">A knife</button>
                     <button class="opt inline" disabled="@(lie != null)" title="@(lie ?? $"Say that it is let lie. It costs the house {Math.Max(0, FeudSystem.LetLieStanding - f.Shame)} standing, the dead person's near kin take it hard, and the other house had not expected it.")" @onclick="() => Do(f, FeudCommand.LetLie)">Let it lie</button>
                 </div>
@@ -58,7 +58,7 @@
             <div class="muted small">They vote against what your house moves, and nobody of theirs will marry one of yours. Sooner or later they come: with a challenge, a price, or a knife for one of your kin.</div>
             @if (f.Asked == "price")
             {
-                <div class="suit-acts"><span class="small">@(asker?.Name ?? "Their head") asks <b>@f.Price credits</b>.</span>
+                <div class="suit-acts"><span class="small">@(asker?.Name ?? "Their head") asks <b>@Money.Show(f.Price) credits</b>.</span>
                     <button class="opt inline" disabled="@(No(f, FeudCommand.Pay) != null)" title="@(No(f, FeudCommand.Pay) ?? $"The house pays and the debt is ended. To pay is to admit it: {FeudSystem.PriceAdmits} standing.")" @onclick="() => Do(f, FeudCommand.Pay)">Pay it</button>
                     <button class="opt inline" title="A house that is refused its price takes something else." @onclick="() => Do(f, FeudCommand.Refuse)">Refuse</button></div>
             }
@@ -71,7 +71,7 @@
             }
             else
             {
-                <div class="suit-acts"><button class="opt inline" disabled="@(offer != null)" title="@(offer ?? $"Offer {f.Price} credits for their dead. Most heads take it. The vengeful, the cruel and the proud do not. It can be offered once.")" @onclick="() => Do(f, FeudCommand.Offer)">Offer the price · @f.Price</button></div>
+                <div class="suit-acts"><button class="opt inline" disabled="@(offer != null)" title="@(offer ?? $"Offer {Money.Credits(f.Price)} for their dead. Most heads take it. The vengeful, the cruel and the proud do not. It can be offered once.")" @onclick="() => Do(f, FeudCommand.Offer)">Offer the price · @Money.Show(f.Price)</button></div>
             }
         </div>
     }

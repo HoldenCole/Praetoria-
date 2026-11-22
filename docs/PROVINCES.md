@@ -26,18 +26,18 @@ its kind of world, in an order that is the world's own.
 
 | focus | where | pays its holder a year | |
 |---|---|---|---|
-| The seat | every world | 1 credit, 1 influence | the holder of the world's |
-| Helium-3 fields | a system with helium-3 | 1 helium-3, 1 credit | |
-| Rare-earth diggings | a system with rare earths | 1 rare earths, 1 credit | |
-| Isotope pits | a system with isotopes | 1 isotopes, 1 credit | |
+| The seat | every world | 100 credits, 1 influence | the holder of the world's |
+| Helium-3 fields | a system with helium-3 | 1 helium-3, 100 credits | |
+| Rare-earth diggings | a system with rare earths | 1 rare earths, 100 credits | |
+| Isotope pits | a system with isotopes | 1 isotopes, 100 credits | |
 | A march | anywhere; first on a fortress or a key of the lanes | 2 manpower | defence +0.2 |
-| Farmland | a living or ocean world | 1 manpower, 1 credit | |
-| Port towns | an ocean or living world, a giant | 2 credits | |
+| Farmland | a living or ocean world | 1 manpower, 100 credits | |
+| Port towns | an ocean or living world, a giant | 200 credits | |
 | Foundry country | a forge, dead or arid world | 2 materials | |
-| Mining country | a dead, arid, frozen or forge world, a belt | 1 material, 1 credit | |
+| Mining country | a dead, arid, frozen or forge world, a belt | 1 material, 100 credits | |
 | Ice fields | a frozen world | 1 material, 1 manpower | |
-| Cloud works | a giant | 1 credit, 1 material | |
-| Caravan country | an arid world | 1 credit, 1 manpower | |
+| Cloud works | a giant | 100 credits, 1 material | |
+| Caravan country | an arid world | 100 credits, 1 manpower | |
 | Belt claims | a belt | 2 materials | |
 
 **Who holds them at the start.** On a world of the Reach the other two provinces go to two different houses of the same
@@ -57,7 +57,7 @@ provinces. A nation's world is all the nation's. A new colony is all its founder
   province too: room for people (by its level), where the world's prosperity heads, its unrest. Not for a province: the home world's own eight, anything a system
   has only one of, great works. The buildings go with the province when it changes hands. The seat has no row of its
   own: the world's row is its holder's.
-- A province can be **improved** to level II and III by its holder (10 credits and 8 materials, then twice that); it pays
+- A province can be **improved** to level II and III by its holder (1,000 credits and 8 materials, then twice that); it pays
   that many times over. How high it may go is the development of the system it is in, as for a building (3 and 6).
 - A **march defends** the system it is in, whoever holds the world.
 - A province pays **nothing** while its world is in revolt, or while its holder is at war with the house that holds the world.
@@ -68,7 +68,7 @@ The owner, 2026-11-20: yes, a house with a province owes the house that holds th
 
 | | what | when |
 |---|---|---|
-| **A tithe** | 1 credit a year for each level of the province | every year |
+| **A tithe** | 100 credits a year for each level of the province | every year |
 | **A levy** | 1 manpower a year for each level, on top of the tithe | in any year the holder of the world is at war |
 | **A squadron** | 1 hull for each level of the province, as a fleet at the world, under the holder of the world | from the first year of its war until the peace; once a war, and not replaced if it is lost |
 | **Its voice** | it leans the holder's way in the Senate, as a client leans to a patron (+2) | on what that house moves, and on what is aimed at it |
@@ -164,7 +164,7 @@ It is asked back like any province (`DemandSeatCommand`). Other houses do not ye
 ## Other answers to a demand (2026-11-21)
 
 From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P91). `AnswerDemandOtherwiseCommand`,
-`ProvinceSystem.Answer`: coin (`BuyOffPrice`: 20 a level, 60 for a world; refused by an asker at -20 regard or worse),
+`ProvinceSystem.Answer`: coin (`BuyOffPrice`: 2,000 a level, 6,000 for a world; refused by an asker at -20 regard or worse),
 the praetor's court (`CourtFinds`: for the holder unless the dues are withheld or the world is in revolt; `Abides`: the
 asker lets it lie unless its head is ruthless or arrogant and has the stronger fleet), or the bench (more seats than
 the asker's bench, and the asker not of it; a favour owed to the bench's leader). Kept, the province is settled for

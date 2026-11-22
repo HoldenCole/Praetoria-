@@ -20,7 +20,7 @@ house, the victories, the crews and the triumph are theirs. What the *house* doe
 Every fleet has a **devotion** (0 to 100) to the person who commands it, beside its loyalty to the house.
 
 - It rises with **victories** under that commander: 6 a battle, 12 if led from the front. A battle lost costs 6.
-- A point or two a year for the years together. A **donative** (2 credits a hull from the house, once a year) adds 8.
+- A point or two a year for the years together. A **donative** (200 credits a hull from the house, once a year) adds 8.
 - At **50** the crews follow the commander before the house.
 - **A new commander starts again.** If the crews were the old one's, they resent the change (loyalty −10), and if their
   commander dies they are sullen (−8).

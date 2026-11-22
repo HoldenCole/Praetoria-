@@ -1,3 +1,4 @@
+using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Galaxy;
@@ -86,7 +87,7 @@ public class NationTests
         int credits = w.House("vega")!.Treasury.Credits; int plunder = f.Plunder;
         for (int t = 0; t < 8 && f.IsAway; t++) { w.Turn++; fs.Tick(w); ns.Tick(w); }
         Assert.False(f.IsAway); Assert.Equal("tessaly", f.SystemId);
-        if (plunder > 0) { Assert.Contains(w.History, h => h.Text.Contains($"with {plunder} credits of plunder")); Assert.True(w.House("vega")!.Treasury.Credits > credits - 40); }   // paid in, less the voyage's upkeep
+        if (plunder > 0) { Assert.Contains(w.History, h => h.Text.Contains($"with {Money.Credits(plunder)} of plunder")); Assert.True(w.House("vega")!.Treasury.Credits > credits - 40); }   // paid in, less the voyage's upkeep
         if (plunder > 0) Assert.True(n.Strength < before);
         Assert.Contains(w.History, h => h.Text.Contains("comes home from The Outer Compact"));
     }

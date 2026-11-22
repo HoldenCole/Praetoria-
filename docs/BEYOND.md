@@ -204,7 +204,7 @@ with no war record for each pair. Fleets reach them by the lanes; the off-map ex
 - **They gather first.** A defended world beyond the march is not attacked one squadron at a time. The fleets go to
   the march nearest it, wait there, and go in together in the year those standing at the march are a quarter more
   than what holds the world. (Added with the Free Cities, for both nations.)
-- **Beating them pays.** The house that beats a nation's fleet takes the nation's wealth in credits (4 for the
+- **Beating them pays.** The house that beats a nation's fleet takes the nation's wealth in credits (400 for the
   Khanates), and twice that for taking one of its worlds. (Added with the Free Cities, for both nations.)
 
 **The tally.** The war ends as before, when one side leads by six.
@@ -295,11 +295,11 @@ they do not raid, and they sell rare earths, exotics and materials into the Reac
 | In a war their fleet | comes through the march and takes a world a season | stays at home, unless a warlike Speaker rules |
 | Hulls lost | grow back two every five years | are replaced by hire: one a year while the war lasts |
 | They sue for peace | when the Reach leads by 6 | when the Reach leads by 3 |
-| A world of theirs the Reach took | is the taker's while a fleet stands over it | is bought back at the peace for 36 credits |
+| A world of theirs the Reach took | is the taker's while a fleet stands over it | is bought back at the peace for 3,600 credits |
 | Tribute | is paid for twenty years | is paid only while a fleet of the Reach is watching |
 | A war nobody fights | gutters out after twelve years | is bought off: after four years if nobody presses them, after twelve if a fleet waits at their march |
 | A world of theirs held without a fleet | rises in 3 years | shuts its gates in 6 |
-| Beating their fleet; taking a world | pays 4 credits; 8 | pays 9 credits; 18 |
+| Beating their fleet; taking a world | pays 400 credits; 800 | pays 900 credits; 1,800 |
 
 - **The ransom.** When the Cities lose a war, each city a house of the Reach holds is bought back: the house is paid
   and the city goes home. If the house is yours you are asked, by a report each year for two years. Take the money and
@@ -310,10 +310,10 @@ they do not raid, and they sell rare earths, exotics and materials into the Reac
   house that holds the capital, which takes the tribute, posts a fleet at the march when it has one to spare.
 - **A peace bought.** The Cities do not let a war lie. Four years running with no battle and nobody pressing them (no
   fleet of the Reach of three hulls at their march, over their cities, or on its way), and they pay the house that
-  holds the capital four years' tribute (20 credits) to end it. A fleet at the march keeps the war alive; twelve
+  holds the capital four years' tribute (2,000 credits) to end it. A fleet at the march keeps the war alive; twelve
   years without a battle and they buy it off all the same. What each side took goes home, their cities for the
   ransom, and no tribute follows.
-- **A war for plunder.** A house that wants a war and has under 40 credits may name the Cities when no nation has
+- **A war for plunder.** A house that wants a war and has under 4,000 credits may name the Cities when no nation has
   given the Reach a better reason, and a house short of money leans a point toward a war on a rich neighbour.
 
 **On the screen.** The Galaxy screen lists the Shore under "beyond" and the whole map fits the panel whatever its
@@ -335,7 +335,7 @@ gives no orders in either set.
 | Their squadron through the march (a warlike Speaker) | 37 times |
 | Worlds of the Reach they took | 17: 6 freed, 1 given back at a won peace, 8 ceded at a lost one |
 | Cities taken by houses of the Reach | 49; 42 bought back, none rose, the rest were still held |
-| Plunder taken | 1,485 credits |
+| Plunder taken | 148,500 credits |
 | Hulls hired | 155 |
 | Tribute stopped because nobody was watching | 34 times |
 | Thessar taken; the Cities ended | never |
@@ -416,7 +416,7 @@ nations on the map.
 | Ceded at a lost peace | 47 | 1 | 0 |
 | In its hands at the end | 16 | 2 | 0 |
 | Its own worlds taken | 58 | 21 (12 rose again) | 0 |
-| Plunder taken from it | 2,994 credits | 264 credits | 9 credits |
+| Plunder taken from it | 299,400 credits | 26,400 credits | 900 credits |
 | Its capital taken; the nation ended | never | never | never |
 
 - **The Republic stood in all 60.**
@@ -487,11 +487,11 @@ at seven-tenths of a fleet of the Reach's.
   it loses in a war it has lost.
 - **It does not come back.** A world it loses stays lost. It does not rise, and the Crown makes no war for it. So it
   is the one nation that can be taken apart world by world, and **ended**.
-- **Its vaults.** Whoever first takes the Purple Palace takes 120 credits, eight points of standing and **the diadem
+- **Its vaults.** Whoever first takes the Purple Palace takes 12,000 credits, eight points of standing and **the diadem
   of the Autokrators**, once. The diadem is a thing like a signet or a sword: the head of the house has it, and while
   a head of a house keeps it that house's standing mends a point a year up to 85. It can be sold, given or willed,
   and carried off in its turn by whoever storms that house's last world. This is besides the plunder every nation's
-  worlds pay (16 credits a world from the Crown).
+  worlds pay (1,600 credits a world from the Crown).
 - **A war for plunder.** A house that wants a war and is short of money may name the Crown, as it may the Free
   Cities, when no nation has given the Reach a better reason.
 - Its fleet stays at home unless a warlike Autokrator rules. It sues for peace when the Reach leads by 5.
@@ -505,7 +505,7 @@ at seven-tenths of a fleet of the Reach's.
 | Begins a war | no | no | yes | no | no |
 | Its fleet in a war | raids: one world, then home | stays home | campaigns on two lines | never leaves home | stays home |
 | A world of its own, taken | rises in 3 years | bought back, or 6 | it makes war for it | rises in 4 years | stays taken |
-| What taking one is worth | 8 credits | 18 credits | 12 credits | 10 credits, and 2 isotopes a year | 16 credits; the capital, 120 more and the diadem |
+| What taking one is worth | 800 credits | 1,800 credits | 1,200 credits | 1,000 credits, and 2 isotopes a year | 1,600 credits; the capital, 12,000 more and the diadem |
 
 **On the screen.** The Galaxy screen lists five regions under "beyond". Each nation's card on the Military screen
 says what kind of neighbour it is. Six reports: the Long Dark (a war voted on the Compact); the isotope fields; the
@@ -527,7 +527,7 @@ With a war forced on each in year 8 and every twenty years after (60 games each)
 | Its worlds taken; risen again | 40; 32 | 49; 0 |
 | Its capital taken | never | never |
 | Worlds of the Reach it took; freed; ceded | 0; 0; 0 | 23; 13; 10 |
-| What the takers had of it | 1,376 isotopes, 755 credits | 1,512 credits; the vaults never opened |
+| What the takers had of it | 1,376 isotopes, 75,500 credits | 151,200 credits; the vaults never opened |
 
 - **The Compact** wins three battles in four in its own space. Its worlds are taken and lost again: four in five
   rose within the war or after it.
@@ -928,7 +928,7 @@ do, and what turns on it. Each can be changed without rebuilding the rest.
 
 13. **Should a nation be able to end?** Built: yes, when its last world is taken. In practice only the Hollow Crown
     can be, because it alone does not rise and does not come back. Say if the others should be endable too, or none.
-14. **Is the Crown's treasure the right prize?** Built: 120 credits, eight points of standing and the diadem (which
+14. **Is the Crown's treasure the right prize?** Built: 12,000 credits, eight points of standing and the diadem (which
     mends a house's standing while its head keeps it), once, to whoever first takes its capital. No title or claim
     comes with it: taking the Crown makes you rich, and heir to nothing.
 15. **Should anyone but you go for the Compact or the Crown?** Built: as with the Free Cities, almost never. The

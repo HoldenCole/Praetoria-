@@ -25,7 +25,7 @@ Bold is new with this piece. Before it, a relative was a name, a sex and an age,
 backgrounds existed only for the written starts.
 
 A standard start has 60 points. Everything at its least costs 8. The **Upstart** preset (a clerk's child, twenty-two,
-no land, no seat, no patron, twenty credits, a mother who is still a clerk and a sister of nineteen) costs 19.
+no land, no seat, no patron, 2,000 credits, a mother who is still a clerk and a sister of nineteen) costs 19.
 
 ## 2. What was wrong, and is mended
 
@@ -39,13 +39,13 @@ Played from nothing, the first forty years were flat. Three rules did it, and no
 | "Orrin Orrin", head of House Orrin. | A child could be given the family's own surname for a first name. | Nobody of a house is named for it. |
 
 The test player was also made to behave as a careful person would: it reads what a venture would pay before founding
-one, sells what its ventures bring up, and does not spend its last ten credits on another house's election. With the
+one, sells what its ventures bring up, and does not spend its last thousand credits on another house's election. With the
 first version (take whatever is offered first) every venture it founded was wound up for earning nothing within three
 years. That was the script. What is left in section 4 is the game.
 
 ## 3. The story, as it now plays
 
-Twelve games: three services, four seeds, sixty years, the same start (landless, a new name, legitimacy 5, 20 credits,
+Twelve games: three services, four seeds, sixty years, the same start (landless, a new name, legitimacy 5, 2,000 credits,
 6 materials, 4 manpower, one skill at 2, nobody).
 
 | | Before | Now |
@@ -67,15 +67,15 @@ The middle game, year by year:
 
 | Year | Legitimacy | Credits in hand | The house's rank | The founder's step |
 |---|---|---|---|---|
-| 1 | 5 | 10 | Citizen | 0 |
-| 5 | 7 | 7 | Citizen | 1 |
-| 10 | 9 | 8 | Citizen | 3 |
-| 15 | 16 | 10 | Warden | 4 |
-| 20 | 18 | 8 | Warden | 4 |
-| 30 | 23 | 27 | Prefect | 4 |
-| 40 | 40 | 154 | Prefect | (dead or retired in most) |
-| 50 | 55 | 376 | Prefect | |
-| 60 | 76 | 650 | Legate | |
+| 1 | 5 | 1,000 | Citizen | 0 |
+| 5 | 7 | 700 | Citizen | 1 |
+| 10 | 9 | 800 | Citizen | 3 |
+| 15 | 16 | 1,000 | Warden | 4 |
+| 20 | 18 | 800 | Warden | 4 |
+| 30 | 23 | 2,700 | Prefect | 4 |
+| 40 | 40 | 15,400 | Prefect | (dead or retired in most) |
+| 50 | 55 | 37,600 | Prefect | |
+| 60 | 76 | 65,000 | Legate | |
 
 One of them, a lawyer (law, seed 1), as its own chronicle has it: a shipping line at Lanternfall in year 3; four years
 of other people's briefs and a step up in year 5 ("it is the years that did it, and nobody's word"); his name down for
@@ -90,13 +90,13 @@ world.** That is roughly Cicero's father to Cicero, and slower than Marius.
 
 Measured in the same twelve games. None of this is mended, because each is a choice about the game and not a fault.
 
-1. **It never gets rich by the Reach's measure.** At year 60 the middle house has 650 credits in hand and five
+1. **It never gets rich by the Reach's measure.** At year 60 the middle house has 65,000 credits in hand and five
    ventures, and is 30th of 32 in wealth. The old houses have had sixty years of worlds. One game of twelve reached
    the richer half. If "riches" in rags to riches means overtaking the old names, the game does not yet allow it in
    three generations.
-2. **Money comes late.** Under 30 credits in hand for the first thirty years. What a first venture pays a house with
-   no world, on the best world for it: a salvage guild 9 a year (costs 8 and 2 materials), a skimmer fleet up to 17
-   where there is helium-3, a mining concern 6, a shipping line 6, a trading company 2. A commodity warehouse and a
+2. **Money comes late.** Under 3,000 credits in hand for the first thirty years. What a first venture pays a house with
+   no world, on the best world for it: a salvage guild 900 a year (costs 800 and 2 materials), a skimmer fleet up to 1,700
+   where there is helium-3, a mining concern 600, a shipping line 600, a trading company 200. A commodity warehouse and a
    shipyard company pay nothing or less on every one of 42 worlds in an ordinary year: they earn only in a price spike
    or a war, and are wound up after three years without one.
 3. **Land is the last thing to come.** "The Senate will not entrust a world to a house of so little standing" was the
@@ -128,7 +128,7 @@ Measured in the same twelve games. None of this is mended, because each is a cho
 - **More family?** Uncles, cousins and a household on the first day are not in the creator. Neither is a relative who
   dislikes you.
 - The numbers that are mine: four years' work for a step; the prices and caps in docs/CHARACTER.md; Clerk's Child
-  (legitimacy −4, 4 credits, Administrator, administration and law +1) and Rim-born (legitimacy −6, 4 materials, 2
+  (legitimacy −4, 400 credits, Administrator, administration and law +1) and Rim-born (legitimacy −6, 4 materials, 2
   manpower, Ambitious, logistics, gunnery and economics +1, 2 strain).
 
 ## 6. Checked

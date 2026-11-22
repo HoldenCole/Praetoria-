@@ -7,7 +7,7 @@
        off to the right all the time because that's confusing"). A seat speaks here only when it warns; all six, with who holds each
        and what they did, are under House, the Household. */
     foreach (var seat in m.Advisors.Where(a => a.Urgent)) alerts.Add(("warn", seat.Seat + ": " + seat.Line.Split(". ")[0].TrimEnd('.'), "house:council"));
-    if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {m.Treasury.Credits} credits" + (w.Protagonist!.Purse > 0 ? $". Your own purse holds {w.Protagonist.Purse}: it can be put into the treasury" : ""), w.Protagonist!.Purse > 0 ? "house:purse" : "house:ledger"));
+    if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {Money.Held(house.Treasury)} credits" + (w.Protagonist!.Purse > 0 ? $". Your own purse holds {Money.Show(w.Protagonist.Purse)}: it can be put into the treasury" : ""), w.Protagonist!.Purse > 0 ? "house:purse" : "house:ledger"));
     foreach (var bt in w.Battles.Where(b => b.Turn == w.Turn - 1 && b.Involves(w.Protagonist!.HouseId)).Take(3)) alerts.Add((bt.WinnerId == w.Protagonist!.HouseId ? "good" : "warn", $"{(bt.WinnerId == w.Protagonist!.HouseId ? "Won" : "Lost")}: the battle of {bt.Place} ({Counted.Hulls(bt.AttackerHulls)} against {bt.DefenderHulls})", "military:battles"));
     // what a player should not have to find by looking (docs/PLAYTHROUGH.md, "New alerts where there are none")
     if (house.Treasury.Manpower <= 0 && m.Fleets.Count + m.Holdings.Count > 0) alerts.Add(("warn", "Manpower is at nought: no new hull can be crewed and no levy raised until it recovers", "house:ledger"));
@@ -18,8 +18,8 @@
     foreach (var nw in w.NewsNow().Reverse().Take(8)) alerts.Add((nw.Tone, nw.Text, nw.SubjectId.Length > 0 && nw.Target == "dynasty" ? "dynasty:tree:" + nw.SubjectId : nw.SubjectId.Length > 0 && nw.Target == "houses" ? "houses:" + nw.SubjectId : nw.Target));
     if (w.Protagonist?.HouseId is { } suedHouse)
     {
-        foreach (var su in LadderSystem.SuitsNaming(w, suedHouse)) alerts.Add((su.RightId == suedHouse ? "info" : "warn", $"{w.House(LadderSystem.OtherIn(su, suedHouse))?.Name} sues your house over {LadderSystem.MatterOf(su)}: {LadderSystem.StakeOf(su)} credits, heard at the year's end", "senate:ladder"));
-        foreach (var jr in w.Judgments.Where(j => j.Turn == w.Turn - 1)) alerts.Add((jr.WinnerId == suedHouse ? "good" : "warn", jr.WinnerId == suedHouse ? $"The court found for you: {w.House(jr.LoserId)?.Name} paid {jr.Sum} credits" : $"The court found against you: you paid {w.House(jr.WinnerId)?.Name} {jr.Sum} credits", "senate:ladder"));
+        foreach (var su in LadderSystem.SuitsNaming(w, suedHouse)) alerts.Add((su.RightId == suedHouse ? "info" : "warn", $"{w.House(LadderSystem.OtherIn(su, suedHouse))?.Name} sues your house over {LadderSystem.MatterOf(su)}: {Money.Credits(LadderSystem.StakeOf(su))}, heard at the year's end", "senate:ladder"));
+        foreach (var jr in w.Judgments.Where(j => j.Turn == w.Turn - 1)) alerts.Add((jr.WinnerId == suedHouse ? "good" : "warn", jr.WinnerId == suedHouse ? $"The court found for you: {w.House(jr.LoserId)?.Name} paid {Money.Credits(jr.Sum)}" : $"The court found against you: you paid {w.House(jr.WinnerId)?.Name} {Money.Credits(jr.Sum)}", "senate:ladder"));
     }
     foreach (var war in m.Wars) alerts.Add(("warn", $"At war with {war.EnemyName}{(war.TheyAreSuing ? " — they sue for peace" : "")}", "military"));
     foreach (var sg in m.Sieges.Where(s => s.Ours)) alerts.Add(("warn", $"{sg.HoldingName} besieged by {sg.BesiegerName} ({sg.Turns}/{sg.Required})", "galaxy:" + (w.Holdings.Values.FirstOrDefault(x => x.Name == sg.HoldingName)?.SystemId ?? "")));
@@ -27,7 +27,7 @@
     if (m.Character.Regency) alerts.Add(("info", "A regent rules in your name", "dynasty"));
     if (w.HasFlag("pirates_near")) alerts.Add(("warn", "Raiders within a lane of your worlds", "military:near"));
     if (w.HasFlag("raided")) alerts.Add(("warn", "Your shipping was plundered", "military:near"));
-    if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry: the fleet cannot sail until helium-3 is bought or skimmed" + (w.Protagonist!.Purse > 0 && house.Treasury.Credits < 6 ? $" (your own purse holds {w.Protagonist.Purse})" : ""), "exchange:goods"));
+    if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry: the fleet cannot sail until helium-3 is bought or skimmed" + (w.Protagonist!.Purse > 0 && house.Treasury.Credits < 6 ? $" (your own purse holds {Money.Show(w.Protagonist.Purse)})" : ""), "exchange:goods"));
     string NationName(string prefix) => w.WorldFlags.Where(f => f.StartsWith(prefix)).Select(f => G.Content!.Nations.Def(f[prefix.Length..])?.Name ?? f[prefix.Length..]).FirstOrDefault() ?? "a nation beyond the Reach";
     if (w.HasFlag("foreign_war_declared")) alerts.Add(("warn", $"The Senate has made war on {NationName("foreign_war:")} — fleets may be sent", "military:abroad"));
     else if (w.HasFlag("foreign_war") && NationSystem.AtWar(w) is { WarOf.Length: > 0 } own) alerts.Add((own.Defied ? "warn" : "info", own.WarOf == w.Protagonist?.HouseId ? $"Your house is at war with {NationName("foreign_war:")} on its own account{(own.Defied ? ", against a peace the Senate voted" : ": the Senate voted nothing")}" : $"{w.House(own.WarOf)?.Name ?? own.WarOf} is at war with {NationName("foreign_war:")} on its own account{(own.Defied ? ", against a peace the Senate voted" : "")}: no other house is", "military:abroad"));

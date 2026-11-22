@@ -13,8 +13,8 @@ docket. A motion moved in turn T is voted at the end of turn T+1, so there is al
 |---|---|---|
 | Censure | a house | target legitimacy −6 |
 | Recognition | a house (yourself allowed) | target legitimacy +6 |
-| The Levy | — | every landed house pays 3 credits to the chair; the chair gains 2 legitimacy |
-| Relief | a region | lawlessness −15, allegiance +10, prosperity +5 on its worlds; the proposer pays 8 credits (half effect if it cannot) |
+| The Levy | — | every landed house pays 300 credits to the chair; the chair gains 2 legitimacy |
+| Relief | a region | lawlessness −15, allegiance +10, prosperity +5 on its worlds; the proposer pays 800 credits (half effect if it cannot) |
 | The Peace of the Reach | a house at war | white peace in all its wars |
 | Commission | a house and an office | the house's best-qualified member takes the office; the previous holder is relieved; target legitimacy +2 |
 | Embargo | a house | the exchanges close to it for eight turns: no open market, venture credits halved |
@@ -63,7 +63,7 @@ votes for it; a region's lords vote for its relief, and the rim is sympathetic; 
 the bystanders like it; disposition toward the proposer tilts everything a point; a deterministic jitter breaks the
 ties. The Senate screen shows every bench's lean before the vote.
 
-**Whipping** (`LobbyCommand`): one influence leans a house that does not dislike you by two toward your stance; five
+**Whipping** (`LobbyCommand`): one influence leans a house that does not dislike you by two toward your stance; five hundred
 credits bribe any house by three. Once per house per motion. **Voting** (`VoteCommand`) is free.
 
 ## Rivals bring their own business
@@ -94,7 +94,7 @@ each granted by a **Commission** motion to a house whose member holds the rank o
 | office | track · rank | confers |
 |---|---|---|
 | Admiral of the Reach | military · Lieutenant | command of the **office fleets** (`Fleet.Office`): they sail under the holder's colours and fight its wars, the chair pays their upkeep and the state's bunkers fuel them; +3 Navy influence |
-| Treasurer of the Reach | stewardship · Governor | three credits a turn from the chair's coffers; +3 Treasury influence |
+| Treasurer of the Reach | stewardship · Governor | three hundred credits a turn from the chair's coffers; +3 Treasury influence |
 | Speaker of the Senate | law · Judge | three more votes of weight, motions cost one influence less; +2 Senate influence |
 
 An office is the state's, not the house's. It is lost when the Senate commissions another (the holder's friends vote

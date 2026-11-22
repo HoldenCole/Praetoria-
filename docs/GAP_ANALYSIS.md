@@ -216,7 +216,7 @@ through every screen with save/reload and the map-cycle captures.
 - **The fief was dead content.** Its grantor was the court, and the court holds only the capital in the Reach. The
   greatest landed house at peace now grants when the court cannot, and landless rivals court the grantor first; one or
   two fiefs are granted per sixty turns and *The Fief* can fire.
-- Fortress free holds were broke by construction (no yield, no neighbours): a garrison credit and a levy. Rival stewards
+- Fortress free holds were broke by construction (no yield, no neighbours): a hundred credits for the garrison and a levy. Rival stewards
   staked a belt claim every turn they could afford one (Pike: six claims, no coin): capped at two unless the ledger is
   in the black. The Lawless were running up a debt on hull upkeep. Two academy set-pieces had an unreachable age window.
 

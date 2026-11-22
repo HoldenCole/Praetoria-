@@ -9,7 +9,7 @@
     string Best(Character x) => x.Skills.Count(kv => kv.Value > 0) == 0 ? "nothing yet" : string.Join(", ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(4).Select(kv => $"{kv.Key} {kv.Value}"));
 }
 <section class="panel education">
-    <h3><Icon Name="dynasty" Size="13" /> Upbringing and learning <span class="muted">@young.Count(c => c.Age >= EducationSystem.SchoolAge) at their lessons@(bill > 0 ? $" · teachers cost {bill} a year" : "")</span></h3>
+    <h3><Icon Name="dynasty" Size="13" /> Upbringing and learning <span class="muted">@young.Count(c => c.Age >= EducationSystem.SchoolAge) at their lessons@(bill > 0 ? $" · teachers cost {Money.Show(bill)} a year" : "")</span></h3>
     <div class="muted small">Nobody has to be managed. A child is brought up toward what they show a bent for, and a grown person studies what they choose. You can set a child a different course, and pay for a teacher for anyone.</div>
 
     @foreach (var c in young)
@@ -55,7 +55,7 @@
             {
                 var noThanks = new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty).Refusal(G.Ctx); bool ofHouse = mentor is { Alive: true } && mentor.HouseId == house.Id && mentor.Id != pid;
                 <div class="muted small">@under
-                    @if (ofHouse) { string thankLabel = "Thank " + mentor!.Name.Split(' ')[0] + " · " + EducationSystem.ThanksCredits; <button class="opt inline tiny" disabled="@(noThanks != null)" title="@(noThanks ?? ThankTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty))">@thankLabel</button> }
+                    @if (ofHouse) { string thankLabel = "Thank " + mentor!.Name.Split(' ')[0] + " · " + Money.Show(EducationSystem.ThanksCredits); <button class="opt inline tiny" disabled="@(noThanks != null)" title="@(noThanks ?? ThankTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty))">@thankLabel</button> }
                 </div>
             }
             <div class="suit-acts"><span class="muted small">Ask them to study</span>
@@ -65,7 +65,7 @@
                     <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? ((would ? AskYes : AskNo) + " " + SkillWords.For(skill)))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Ask, cid, skill))">@skill</button>
                     @if (no == null && !would)
                     {
-                        int price = EducationSystem.StudyPrice(w, p, c, skill); var noPay = new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill).Refusal(G.Ctx); string payLabel = "…for " + price + " of your own";
+                        int price = EducationSystem.StudyPrice(w, p, c, skill); var noPay = new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill).Refusal(G.Ctx); string payLabel = "…for " + Money.Show(price) + " of your own";
                         if (price > 0)
                         {
                             int word = EducationSystem.FavourPrice(w, p, c, skill); var noWord = new EducationCommand(pid, EducationCommand.AskAndSpeak, cid, skill).Refusal(G.Ctx); string wordLabel = "…or a word for them · " + word + " influence";
@@ -103,8 +103,8 @@
         var pool = EducationSystem.TrackSkills(c.CareerTrack).Concat(new[] { "administration", "oratory", "tactics", "economics", "diplomacy" }).Distinct();
         return pool.Where(s => s != c.Study && c.Skill(s) < EducationSystem.Ceiling(c, s)).OrderByDescending(s => EducationSystem.Ceiling(c, s) - c.Skill(s)).ThenBy(s => s, StringComparer.Ordinal).Take(3).ToList();
     }
-    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {EducationSystem.GoodTutorCredits} credits a year" : $"the best · {EducationSystem.BestTutorCredits} credits a year";
-    private static string TutorTip(int t) => t == 0 ? "No tutor: they learn what the year teaches them." : $"+{EducationSystem.TutorPoints(t)} point{(EducationSystem.TutorPoints(t) == 1 ? "" : "s")} a year toward the next step of what they are learning. The fee is {EducationSystem.TutorCost(t)} credits a year from the house treasury, taken at the year's end; a tutor the treasury cannot pay leaves.";
+    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {Money.Credits(EducationSystem.GoodTutorCredits)} a year" : $"the best · {Money.Credits(EducationSystem.BestTutorCredits)} a year";
+    private static string TutorTip(int t) => t == 0 ? "No tutor: they learn what the year teaches them." : $"+{EducationSystem.TutorPoints(t)} point{(EducationSystem.TutorPoints(t) == 1 ? "" : "s")} a year toward the next step of what they are learning. The fee is {Money.Credits(EducationSystem.TutorCost(t))} a year from the house treasury, taken at the year's end; a tutor the treasury cannot pay leaves.";
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= Redraw;

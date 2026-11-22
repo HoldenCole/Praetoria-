@@ -5,7 +5,7 @@
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
     var found = HouseholdSystem.Found(w, house.Id); int room = HouseholdSystem.Room(house);
     var eligible = HouseholdSystem.Eligible(w, house);
-    int keep = HouseholdSystem.Keep(w, house); string keepLine = keep > 0 ? " · costs " + keep + " a year" : "";
+    int keep = HouseholdSystem.Keep(w, house); string keepLine = keep > 0 ? " · costs " + Money.Show(keep) + " a year" : "";
     var mentor = p.MentorId.Length > 0 ? w.Char(p.MentorId) : null;
     string Rank(Character x) => c.Careers.RankName(x.CareerTrack, x.CareerRank, w.Era) ?? (x.Age < 16 ? "a child" : "of no office");
     string Best(Character x) => x.Skills.Count == 0 ? "no training" : string.Join(", ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(3).Select(kv => $"{kv.Key} {kv.Value}"));
@@ -140,7 +140,7 @@
 </section>
 
 @code {
-    private static readonly string KeepNote = $"Each person taken in costs the treasury {HouseholdSystem.KeepEach} a year ({HouseholdSystem.KeepOfStanding} for a grown person of standing); whoever does your work is paid {HouseholdSystem.Stipend} a year into their own purse. Unpaid {HouseholdSystem.LeavesAfter} years running, one who does not think well of you goes.";
+    private static readonly string KeepNote = $"Each person taken in costs the treasury {Money.Show(HouseholdSystem.KeepEach)} a year ({Money.Show(HouseholdSystem.KeepOfStanding)} for a grown person of standing); whoever does your work is paid {Money.Show(HouseholdSystem.Stipend)} a year into their own purse. Unpaid {HouseholdSystem.LeavesAfter} years running, one who does not think well of you goes.";
     // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself: without this
     // it showed last year's figures after End Turn until something in it was clicked.
     protected override void OnInitialized() => G.Changed += Redraw;

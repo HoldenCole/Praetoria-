@@ -58,13 +58,13 @@ still do any of the work personally whenever you like.
 | **Steward** | Begins the cheapest useful building a world lacks (working a deposit first), or failing that enlarges a venture | Administration or economics |
 | **Marshal** | Buys fuel when the tank is under a year's bill; puts damaged fleets into refit | Logistics, leadership or tactics |
 
-- **The reserve.** You say how many credits they must leave in the treasury (0, 20, 50, 100 or 200). They spend only
+- **The reserve.** You say how many credits they must leave in the treasury (0, 2,000, 5,000, 10,000 or 20,000). They spend only
   what is above it.
 - **Competence shows.** A steward with skill 3 does two things a year; one with none does little in some years. A
   marshal with skill 3 buys a second year's fuel while they are at it.
 - **A report** each year says what they did, in a line.
 - **Trust.** Holding a duty makes them think better of you, slowly.
-- **Honesty.** A steward who is greedy, not honourable or loyal, and owes you nothing (regard under 10) takes three
+- **Honesty.** A steward who is greedy, not honourable or loyal, and owes you nothing (regard under 10) takes three hundred
   credits a year. After three years the accounts are noticed not to add up, and there is an event.
 - **It lapses** if they die, leave the house, refuse to serve you (defiant, or regard under −20), or become head.
 
@@ -97,7 +97,7 @@ embargo, a suit with nobody to plead it, reports gone stale on a house you are a
 neighbour with a larger fleet, a rank ahead of your standing) is said on the council's page and nowhere else.
 
 **Six posts**, each built as the steward and the marshal already were: given to anyone grown of the house, done once a
-year by the holder's own skill, paid 2 credits a year, spending only what the treasury holds above the reserve, told
+year by the holder's own skill, paid 200 credits a year, spending only what the treasury holds above the reserve, told
 one thing by the head, saying in a line what it did, and learning its skill a step every four years.
 
 | Post | Skill | What it does in a year | What you can tell it | Its law |
@@ -122,9 +122,9 @@ the Laws window like any other:
 
 | Law | Options |
 |---|---|
-| Informers | a few trusted ears · a paid network (+1 house watched, 2 credits a year) · ears in every household (+3, 5 credits; the commons and the magistrates think the worse of it) |
-| The Envoy's Table | a plain call · an open table (+2 regard a call, 2 credits more) · gifts of state (+4, 5 credits more) |
-| The House's Counsel | the advocate alone · a bar retained (+2 to the advocate's craft in court, 2 credits a year) · every clerk in the courts (+4, 5 credits; the magistrates think the worse of it) |
+| Informers | a few trusted ears · a paid network (+1 house watched, 200 credits a year) · ears in every household (+3, 500 credits; the commons and the magistrates think the worse of it) |
+| The Envoy's Table | a plain call · an open table (+2 regard a call, 200 credits more) · gifts of state (+4, 500 credits more) |
+| The House's Counsel | the advocate alone · a bar retained (+2 to the advocate's craft in court, 200 credits a year) · every clerk in the courts (+4, 500 credits; the magistrates think the worse of it) |
 
 **Seven events** (content/events/council.json), each raised by something a post did: the spymaster's report, the
 informer found, a friend at another table, the envoy turned away, the advocate's day, the advocate loses, the
@@ -132,7 +132,7 @@ chancellor's voice.
 
 **One new command**, `PostInstructionCommand`: tell a post its one thing.
 
-**The numbers are mine**: an envoy's call is worth 2 regard plus the envoy's skill, to +60 at most, and costs 2 credits
+**The numbers are mine**: an envoy's call is worth 2 regard plus the envoy's skill, to +60 at most, and costs 200 credits
 in gifts; a nation's regard for the Reach rises 1 plus half the envoy's skill, to +40 at most; a spymaster watches 2
 houses plus half their skill; the laws' figures above.
 
@@ -184,15 +184,15 @@ relative's mentor teaches as the head's own does. With the family's autonomy tur
 
 ## What a household costs
 
-Closed straight off the register on 2026-11-15 (docs/GAPS.md H3). Each person taken in costs the treasury a credit a
-year. Whoever does the head's work (a steward, a marshal) is paid 2 a year into their own purse. A house that cannot
+Closed straight off the register on 2026-11-15 (docs/GAPS.md H3). Each person taken in costs the treasury a hundred credits a
+year. Whoever does the head's work (a steward, a marshal) is paid 200 a year into their own purse. A house that cannot
 pay keeps them all the same: each goes without, thinks 2 worse of the head that year, and an event asks what the head
 says about it. The household and wealth panels both show the yearly figure.
 
 
 ### The keep by standing, and going unpaid (H5, the same day)
 
-A grown person of standing (the fourth rank of a service or above) who was taken in costs 2 a year: they are kept as
+A grown person of standing (the fourth rank of a service or above) who was taken in costs 200 a year: they are kept as
 what they are. One who goes unpaid two years running, and thinks less than 20 of the head, goes. A grown person taken
 in goes home, if there is a home to go to; one doing the head's work lays it down. A child stays where they were put.
 A year paid in full starts the count again.

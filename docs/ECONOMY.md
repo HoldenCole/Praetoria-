@@ -12,25 +12,25 @@ is what will happen.
 
 | Line kind | Source |
 |---|---|
-| `world` / `station` / `claim` | a holding: specialization yield, buildings, population → manpower, the tithe, contiguity, the belt; scaled by prosperity; halved under blockade; manpower throttled by unrest; less a credit if the governor hates the head |
+| `world` / `station` / `claim` | a holding: specialization yield, buildings, population → manpower, the tithe, contiguity, the belt; scaled by prosperity; halved under blockade; manpower throttled by unrest; less a hundred credits if the governor hates the head |
 | `venture` | a business: yield × level + flat yield − upkeep × level; scaled by the world's prosperity; halved when the world's holder is at war with you or besieged; less the charter owed |
 | `charter` | credits paid by another house's venture on a world you hold |
-| `tolls` | two credits for each chokepoint whose world you hold (`docs/GALAXY.md`) |
-| `escort` | a fortress world (specialization defense ≥ 0.4) earns a credit per neighbouring system another house holds and is at peace with, up to three: ships pass under its guns and pay |
-| `court` | two credits and an influence for holding the capital |
+| `tolls` | two hundred credits for each chokepoint whose world you hold (`docs/GALAXY.md`) |
+| `escort` | a fortress world (specialization defense ≥ 0.4) earns a hundred credits per neighbouring system another house holds and is at peace with, up to three hundred: ships pass under its guns and pay |
+| `court` | two hundred credits and an influence for holding the capital |
 
-A governor's hand is in the `world` line too: a hostile governor (disposition ≤ −20 toward the head) skims a credit, an
-able one (administration ≥ 3) adds one, and a governor who hates the head (≤ −40) drags the prosperity target down ten.
+A governor's hand is in the `world` line too: a hostile governor (disposition ≤ −20 toward the head) skims a hundred credits, an
+able one (administration ≥ 3) adds a hundred, and a governor who hates the head (≤ −40) drags the prosperity target down ten.
 | `loan` | this turn's instalment |
-| `interest` | a credit per house paying down a loan your bank holds |
+| `interest` | a hundred credits per house paying down a loan your bank holds |
 | `fleet` | fleet upkeep (forecast only; the fleet system charges it) |
 
 ## The rings
 
-A holding's ring (`docs/GALAXY.md`) changes its ledger: the core adds a credit per peopled world and doubles the charters
+A holding's ring (`docs/GALAXY.md`) changes its ledger: the core adds a hundred credits per peopled world and doubles the charters
 its holder collects; prosperity targets carry the ring's offset (core +10, rim −10); unrest drifts with the ring; a
 region's lawlessness taxes credits and materials from holdings and ventures alike (half at 100); a world in revolt
-yields nothing but its upkeep; the capital's holder keeps the court (two credits, an influence).
+yields nothing but its upkeep; the capital's holder keeps the court (two hundred credits, an influence).
 
 ## Holdings: prosperity
 
@@ -42,15 +42,15 @@ again, a world at 0 yields half. Each turn it moves up to five points toward a t
    − 30 if blockaded + 2 × levels of ventures working the world
 ```
 
-So the lenient tithe (−1 credit) lifts prosperity by 4, the harsh tithe (+2) drags it down by 8; a skilled governor is
-worth more than a building; a thriving world (≥ 75) also grows a point of population faster. **Investing** (6 credits)
+So the lenient tithe (−100 credits) lifts prosperity by 4, the harsh tithe (+200) drags it down by 8; a skilled governor is
+worth more than a building; a thriving world (≥ 75) also grows a point of population faster. **Investing** (600 credits)
 lifts a holding by 15 at once — the steward's lever when a world languishes.
 
 ## Asteroid belts and claims
 
 Systems may carry a **belt** (`"belt": n` in the galaxy file, 0..3). The richness is also the number of **claims** the
-belt supports. A claim is the smallest holding there is (`kind: claim`, specialization `belt_claim`): 6 credits and 4
-materials to stake, 2 materials a turn plus the belt's richness, an exotic a turn from a rich belt, a credit of upkeep.
+belt supports. A claim is the smallest holding there is (`kind: claim`, specialization `belt_claim`): 600 credits and 4
+materials to stake, 2 materials a turn plus the belt's richness, an exotic a turn from a rich belt, a hundred credits of upkeep.
 A house may stake where it holds something or next door to it — or anywhere at all if it holds nothing, which is the
 landless house's first rung back. Eight systems of the Reach have belts.
 
@@ -84,9 +84,9 @@ treasury actions and one agent a turn (was nine and 3/3/2). A proclamation (thre
 
 ## Loans
 
-The standing loan: borrow 20, owe 26, pay 4 a turn whether the ledger can bear it or not. The lender is the house with
-the strongest bank, if any (it takes a credit of interest a turn); otherwise the caravaneers' counting-houses. A house
-in debt cannot borrow again; it can clear the debt in one payment. NPC stewards borrow at −5 credits and repay when
+The standing loan: borrow 2,000, owe 2,600, pay 400 a turn whether the ledger can bear it or not. The lender is the house with
+the strongest bank, if any (it takes a hundred credits of interest a turn); otherwise the caravaneers' counting-houses. A house
+in debt cannot borrow again; it can clear the debt in one payment. NPC stewards borrow at −500 credits and repay when
 flush. Content reads `in_debt`.
 
 ## House wealth
@@ -132,7 +132,7 @@ A landless house with legitimacy twenty or more petitions for a fief (three infl
 holds a world beyond the capital, else the greatest landed house at peace with the petitioner (two worlds at least,
 never a free hold); the grantor's head must think well of the petitioner (disposition ten), so a landless rival courts
 them first. The grantor's least peopled world changes hands, the petitioner rises a baron, the grantor gains five
-legitimacy for the generosity. Fortress worlds, meanwhile, earn a garrison credit and a levy of manpower on top of
+legitimacy for the generosity. Fortress worlds, meanwhile, earn a hundred credits for the garrison and a levy of manpower on top of
 their escort fees, so a march lord is marginal rather than broke.
 
 ## The strategic three
@@ -143,22 +143,22 @@ rare earths in six belts, isotopes in four dead or forge worlds, most of them on
 
 | resource | from | for | on the open market |
 |---|---|---|---|
-| **helium-3** | Helium Skimmers (building) or a Skimmer Fleet (venture) on a giant | fuel: a navy of two hulls or more burns one a turn per three hulls | yes, 6 credits + scarcity |
-| **rare earths** | a belt claim in a rare-earth belt (one, two at richness 3), or a Rare-Earth Refinery | cruisers, carriers, battleships, the orbital foundry, the exotics lab, the sensor array | yes, 9 credits + scarcity |
+| **helium-3** | Helium Skimmers (building) or a Skimmer Fleet (venture) on a giant | fuel: a navy of two hulls or more burns one a turn per three hulls | yes, 600 credits + scarcity |
+| **rare earths** | a belt claim in a rare-earth belt (one, two at richness 3), or a Rare-Earth Refinery | cruisers, carriers, battleships, the orbital foundry, the exotics lab, the sensor array | yes, 900 credits + scarcity |
 | **isotopes** | Isotope Works (building) or an Enrichment Concern (venture, count or better) | battleships, bastion guns, the planetary arsenal | **never** — a deposit, a venture or an event |
 
 A deposit building or venture yields its listed amount × the deposit's richness; a belt claim brings up the belt's rare
 earths as well as its ore. **Fuel**: `FleetRules.FuelHullsPerUnit` (3); short, readiness slides fifteen a turn, no fleet
 of the house may sail, and the player hears of it through `fuel_short` (*Dry Tanks*). Tanks start part full (ten plus two
 a hull). **The open market** (`ProcureCommand`): credits alone (no pool point) buy helium-3 or rare earths at the base price plus
-two credits for every producer short of four — so a Reach where one house skims pays double, and a rich house without a
-deposit can still buy its way in. The exchange trades them too (and sells isotopes, 6 credits each, but never buys).
+two hundred credits for every producer short of four — so a Reach where one house skims pays double, and a rich house without a
+deposit can still buy its way in. The exchange trades them too (and sells isotopes, 600 credits each, but never buys).
 
 Rival stewards buy fuel before they spend a pool point on anything else (three turns' worth when the coin is comfortable,
 one when it is not), work a deposit before anything else they could build, value a strategic yield at its exchange worth
 when choosing a venture, sell a hoard, and buy the rare earths a heavy hull wants. The yards lay down no hull the tanks
 could not carry three turns, and no navy out of proportion to its worlds (ten hulls, plus six a world and one a station
-or claim). Wealth counts stocks at 2, 3 and 5 credits a unit.
+or claim). Wealth counts stocks at 200, 300 and 500 credits a unit.
 
 Flags for content: `deposit:<res>` (a world or claim of yours sits on one), `strategic:<res>` (you hold a unit),
 `fuel_short`; counters `deposits_held`, `procured`, `fuel_short:<house>`. Conditions: `wealth` (tier compare) and

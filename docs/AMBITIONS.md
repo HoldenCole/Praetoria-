@@ -10,8 +10,8 @@ Every grown member of the house, born to it or taken in, pursues their ambition 
 | They want | What they do about it | They have it when |
 |---|---|---|
 | A command of their own | Take a command that stands empty; rise in their service | They have commanded a fleet of the house for three years |
-| A fortune of their own | Save; found a venture with their own money once they can afford the cheapest; take a share of what it earns | Their purse reaches 50 |
-| To see the house rich again | While the house is poor (under 60) they keep 3 credits and give the rest; while it is only thin (under 150), a third of what they can spare. They found a venture for the house, and its cost counts; so does what it brings in, 2 a level every year it stands | They have given the house 34 credits of their own, in money and in what they built |
+| A fortune of their own | Save; found a venture with their own money once they can afford the cheapest; take a share of what it earns | Their purse reaches 5,000 |
+| To see the house rich again | While the house is poor (under 6,000) they keep 300 credits and give the rest; while it is only thin (under 15,000), a third of what they can spare. They found a venture for the house, and its cost counts; so does what it brings in, 200 a level every year it stands | They have given the house 3,400 credits of their own, in money and in what they built |
 | To rise in their service and be heard | Work at their service and their speaking | They hold an office of state, or have risen far |
 | To be the first of the house | Measure themselves against whoever of the house stands highest; the two grow cooler toward each other | They are well ahead of that person |
 | The seat of the house | Build a standing to rival the heir's | They stand to inherit |
@@ -19,7 +19,7 @@ Every grown member of the house, born to it or taken in, pursues their ambition 
 
 "How near" is shown for each, from 0 to 100, with a line saying what they did this year.
 
-A venture a relative founds is the house's, and carries their name as founder. One who wanted a fortune takes a credit a
+A venture a relative founds is the house's, and carries their name as founder. One who wanted a fortune takes a hundred credits a
 year from it for each of its levels.
 
 Having had what they wanted, after four years they set their mind on something else.
@@ -71,7 +71,7 @@ Four, in `content/events/ambitions.json`: what they wanted; no nearer it; a vent
 
 Eight tests. The soak passes on all eleven starts with a random player who grants, refuses and names heirs; all four
 events fired in it. In the browser on *The Old Lion*, touching nothing but the first request: three relatives had
-pursuits by the second year; one asked to be named heir in the third and was; another put a credit or two of her own
+pursuits by the second year; one asked to be named heir in the third and was; another put a hundred credits or two of her own
 into the house in each of four years.
 
 ## Quarrels and failures

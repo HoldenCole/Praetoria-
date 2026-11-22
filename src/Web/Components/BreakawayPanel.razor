@@ -15,7 +15,7 @@
     string? noStir = new SecessionCommand(pid, SecessionCommand.Stir, "", "", ps).Refusal(G.Ctx); bool stirring = PolitySystem.Stirring(w);
     var great = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null).OrderByDescending(h => FleetSystem.StrengthOf(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(4).ToList();
     string? noLeave = own == null ? "not of a state" : new SecessionCommand(pid, SecessionCommand.Leave, "", "", ps).Refusal(G.Ctx);
-    string promisedLine = own == null || own.Promised.Count == 0 ? "" : "Promised a place, and paid " + PolitySystem.PromiseCredits + " credits a year by its ruler until year " + (own.Since + PolitySystem.PledgeYears) + ": " + string.Join(", ", own.Promised.Select(id => id == house.Id ? "your house" : w.House(id)?.Name ?? id)) + ".";
+    string promisedLine = own == null || own.Promised.Count == 0 ? "" : "Promised a place, and paid " + Money.Credits(PolitySystem.PromiseCredits) + " a year by its ruler until year " + (own.Since + PolitySystem.PledgeYears) + ": " + string.Join(", ", own.Promised.Select(id => id == house.Id ? "your house" : w.House(id)?.Name ?? id)) + ".";
     var court = own != null && own.HeadHouseId == house.Id ? w.Houses.Values.Where(h => PolitySystem.Courtable(w, own, h)).OrderBy(h => h.Id, StringComparer.Ordinal).Take(6).ToList() : new List<House>();
     string stirLine = stirring ? "Somebody's money is setting the great houses against one another, until year " + w.Counter(PolitySystem.StirKey) + "." : "";
     string peace = warOver ? "The Reach has fought its great war" + (wars > 1 ? " (" + wars + " of them now)" : "") + ". For " + Counted.MoreYears(peaceLeft) + " nobody will be stirred to another; after that it is something people were told about, and what is wrong with the Reach can bring one again. " : greatWar ? "" : near == 0 && pressure.Count == 0 ? "The Reach is at peace with itself, and nothing is pushing it toward a great war. "
@@ -49,7 +49,7 @@
     @if (own == null && !greatWar)
     {
         <div class="suit-acts">
-            <button class="opt inline tiny" disabled="@(noStir != null)" title="@(noStir ?? StirTip)" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, string.Empty, string.Empty, ps))">Stir the camps · @PolitySystem.StirInfluence influence, @PolitySystem.StirCredits credits</button>
+            <button class="opt inline tiny" disabled="@(noStir != null)" title="@(noStir ?? StirTip)" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, string.Empty, string.Empty, ps))">Stir the camps · @PolitySystem.StirInfluence influence, @Money.Show(PolitySystem.StirCredits) credits</button>
             @if (stirLine.Length > 0) { <span class="muted small">@stirLine</span> }
         </div>
         @if (noStir == null && great.Count > 0)
@@ -79,7 +79,7 @@
                 <div class="suit-acts">
                     <span class="small">@cLine</span>
                     <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? CourtTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))">A quiet word · @PolitySystem.WordInfluence influence</button>
-                    <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? CourtTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @PolitySystem.GiftCredits credits</button>
+                    <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? CourtTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @Money.Show(PolitySystem.GiftCredits) credits</button>
                 </div>
             }
         }
@@ -121,7 +121,7 @@
                     <div class="suit-acts">
                         <span class="small">@hLine</span>
                         <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? WordTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))">A quiet word · @PolitySystem.WordInfluence influence</button>
-                        <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? GiftTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @PolitySystem.GiftCredits credits</button>
+                        <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? GiftTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @Money.Show(PolitySystem.GiftCredits) credits</button>
                         <button class="opt inline tiny" disabled="@(noPromise != null)" title="@(noPromise ?? PromiseTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Promise, ps))">Promise a place</button>
                         <button class="opt inline tiny" disabled="@(noThreat != null)" title="@(noThreat ?? ThreatTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Threat, ps))">Threaten</button>
                     </div>
@@ -180,7 +180,7 @@
     private string _form = PolitySystem.Republic, _confirm = "";
     private const string RejoinKey = "@rejoin", LeaveKey = "@leave";
     private const string LeaveTip = "Your house goes back to the Reach with its worlds and takes its seat in the Senate again. The state's ruler will not forgive it; the capital will be glad of it.";
-    private const string PromiseTip = "Their regard for you rises by 15 at once. If the state is founded with them in it, you owe them 3 credits a year for ten years; a ruler who cannot pay is thought the less of, and a house that comes to think ill of its ruler leaves.";
+    private const string PromiseTip = "Their regard for you rises by 15 at once. If the state is founded with them in it, you owe them 300 credits a year for ten years; a ruler who cannot pay is thought the less of, and a house that comes to think ill of its ruler leaves.";
     private const string ThreatTip = "It takes three hulls to their one. They will follow you for as long as they are afraid, think 20 the less of you, and leave the state the day they are not.";
     private const string CourtTip = "Their regard for you rises. A house of the Reach that thinks well of a state's ruler and ill of the capital may come over by itself, with its worlds or with a whole region on your border.";
     private const string StirAgainstTip = "The same price and the same risk. The five strongest of the other houses each think 8 the less of this one. If the capital hears whose money it was, so does this house.";

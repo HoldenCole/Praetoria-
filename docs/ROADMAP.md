@@ -71,7 +71,7 @@ Ranked within each group by how much they hurt play. The list of what the 2026-1
 **The economy**
 1. **Materials have nowhere to go.** After sixty years the Reach makes about 280 materials a year and uses 30 to 100;
    rare earths 22 against 0 to 2; exotics 10 against 0. Prices sit at two-thirds of usual because of it, and it is why
-   mean credits reach 800. The price formula is not the problem; the economy needs sinks (upkeep on what is built,
+   mean credits reach 80,000. The price formula is not the problem; the economy needs sinks (upkeep on what is built,
    worlds that consume, more to spend strategic goods on).
 2. Rival houses now add to a stake when a director holds less than half, but stewards defend their majority so well
    that it rarely happens. No takeover between rivals in the measured runs.

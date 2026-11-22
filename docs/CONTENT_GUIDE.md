@@ -193,6 +193,9 @@ manpower, influence, exotics, helium3, rare_earths, isotopes` (the last three co
 Note `title`/`claim` test an **exact title id** (held / not-held), not a rank threshold — for "Count or
 higher" gate on the `title_rank` counter (see §Progression below).
 
+**Credits in content files are hundreds.** A number of credits in a content file is a count of hundreds: `"credits": 3`
+is 300 credits on screen. Single credits are paid with the resource `coin`. See docs/MONEY.md.
+
 **Examples**
 ```jsonc
 { "type": "all", "of": [
