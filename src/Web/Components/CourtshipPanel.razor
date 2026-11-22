@@ -27,7 +27,7 @@
                 <Portrait Id="@ours.Id" Name="@ours.Name" Sex="@ours.Sex" Age="@ours.Age" Accent="@house.AccentColor" Size="40" />
                 <Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Accent="@(sh?.AccentColor ?? "#888")" Size="40" />
                 <div><b>@ours.Name</b> and <b>@spouse.Name</b>@(sh != null && sh.Id != house.Id ? $" of {sh.Name}" : "")
-                    <div class="muted small">@CourtshipSystem.KindName(m.Kind) · @Years(w.Turn - m.Since) · @kids child(ren)@(m.ChildrenTo.Length > 0 ? $" · the children carry the name of {w.House(m.ChildrenTo)?.Name}" : " · the children's name by custom")@(m.Dowry > 0 ? (m.DowryFrom == G.World!.Protagonist!.HouseId ? $" · your house paid a dowry of {m.Dowry} credits" : $" · a dowry of {m.Dowry} credits came to your house") + (m.DowryAgreed > m.Dowry ? $" ({m.DowryAgreed} were agreed; no more could be raised)" : "") : m.DowryAgreed > 0 ? $" · a dowry of {m.DowryAgreed} credits was agreed and none could be raised" : " · no dowry")</div></div>
+                    <div class="muted small">@CourtshipSystem.KindName(m.Kind) · @Years(w.Turn - m.Since) · @kids child(ren)@(m.ChildrenTo.Length > 0 ? $" · the children carry the name of {w.House(m.ChildrenTo)?.Name}" : " · the children's name by custom")@(m.Dowry > 0 ? (m.DowryFrom == G.World!.Protagonist!.HouseId ? $" · your house paid a dowry of {Money.Credits(m.Dowry)}" : $" · a dowry of {Money.Credits(m.Dowry)} came to your house") + (m.DowryAgreed > m.Dowry ? $" ({Money.Show(m.DowryAgreed)} were agreed; no more could be raised)" : "") : m.DowryAgreed > 0 ? $" · a dowry of {Money.Credits(m.DowryAgreed)} was agreed and none could be raised" : " · no dowry")</div></div>
             </div>
             <div class="gauges">
                 <div class="gauge" title="Warm marriages bear more children and ease their partners. Cold ones do the opposite. At the bottom the couple live apart and no children come."><span>Warmth</span><i><b style="width:@m.Warmth%" class="@(m.Warmth >= CourtshipSystem.WarmAt ? "high" : m.Warmth <= CourtshipSystem.ColdAt ? "low" : "")"></b></i><em>@m.Warmth</em></div>
@@ -168,7 +168,7 @@
                                 <td>@th?.Name <span class="muted">@(th == null ? "" : Praetoria.Core.Progression.Title.StyleOf(th.Title, w.Era)) · @th?.Legitimacy</span></td>
                                 @if (suitor.Id != pid && suitor.Age >= 16) { int wish = kid ? 50 : CourtshipSystem.StartFavour(w, t, suitor); <td class="num @(wish >= 45 ? "good" : wish < CourtshipSystem.UnwillingWish ? "bad" : "")">@(kid ? "—" : wish.ToString())</td> }
                                 <td data-best-skill>@BestSkill(t)</td>
-                                <td class="num" data-dowry="@DowryOf(w, suitor, t)" title="@(suitor.Sex == "female" ? "Yours to pay: the bride is of your house." : "Theirs to pay: the bride is of their house.")">@DowryOf(w, suitor, t)@(suitor.Sex == "female" ? " to pay" : "")</td>
+                                <td class="num" data-dowry="@DowryOf(w, suitor, t)" title="@(suitor.Sex == "female" ? "Yours to pay: the bride is of your house." : "Theirs to pay: the bride is of their house.")">@Money.Show(DowryOf(w, suitor, t))@(suitor.Sex == "female" ? " to pay" : "")</td>
                                 <td class="num @(pr.favour >= 45 ? "good" : pr.favour < 25 && !kid ? "bad" : "")">@(kid ? "—" : pr.favour.ToString())</td>
                                 <td class="num @(pr.consent >= 45 ? "good" : pr.consent < 25 ? "bad" : "")">@pr.consent</td>
                                 <td><button class="opt inline tiny" @onclick="() => G.Execute(new CourtCommand(pid, sid, tid))">@(kid ? "Sound them out" : suitor.Id == pid ? "Pay court" : "Arrange it")</button></td>
@@ -210,7 +210,7 @@
     private static readonly (string id, string label, string help, string tip)[] Acts =
     {
         (CourtshipSystem.ActTime, "Time together · 1 influence", "", "raises their favour, more for a suitor with charisma"),
-        (CourtshipSystem.ActGift, $"A gift · {CourtshipSystem.GiftCredits} credits", $"Send a gift in the house's name · {CourtshipSystem.GiftCredits} credits", "raises their favour a little and the family's opinion a little"),
+        (CourtshipSystem.ActGift, $"A gift · {Money.Credits(CourtshipSystem.GiftCredits)}", $"Send a gift in the house's name · {Money.Credits(CourtshipSystem.GiftCredits)}", "raises their favour a little and the family's opinion a little"),
         (CourtshipSystem.ActFamily, "Put the case to the family · 2 influence", "Speak to their family for them · 2 influence", "raises the family's opinion, more for a head with oratory or diplomacy"),
         (CourtshipSystem.ActRival, "Put word about against the rival · 1 agent", "Put word about against their rival · 1 agent", "sets the rival's suit back, more for a head with intrigue; if it is traced to you the family will not like it"),
     };

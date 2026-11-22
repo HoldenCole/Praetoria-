@@ -172,7 +172,7 @@ internal static class Commands
             Console.WriteLine();
         }
 
-        Console.WriteLine($"Deterministic ledger complete. Final credits: {house.Treasury.Credits}.");
+        Console.WriteLine($"Deterministic ledger complete. Final credits: {Praetoria.Core.Money.Held(house.Treasury)}.");
         return 0;
     }
 
@@ -490,7 +490,7 @@ internal static class Commands
         {
             var bits = new List<string>();
             if (b.Legitimacy != 0) bits.Add($"legitimacy {b.Legitimacy:+#;-#;0}");
-            foreach (var r in Praetoria.Core.State.Resource.All) if (b.Treasury.Get(r) != 0) bits.Add($"{r} {b.Treasury.Get(r):+#;-#;0}");
+            foreach (var r in Praetoria.Core.State.Resource.All) if (b.Treasury.Get(r) != 0) bits.Add($"{r} {Praetoria.Core.Money.SignedOf(r, b.Treasury.Get(r))}");
             bits.AddRange(b.Nature.Select(t => "+" + t)); bits.AddRange(b.Aptitude.Select(t => "+" + t));
             bits.AddRange(b.Skills.Select(kv => $"{kv.Key} {kv.Value:+#;-#;0}"));
             Console.WriteLine($"  {b.Id,-16} {b.Name}\n{"",19}{b.Description}\n{"",19}[{string.Join(" · ", bits)}]" +

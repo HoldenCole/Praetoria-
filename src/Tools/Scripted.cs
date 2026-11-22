@@ -375,7 +375,7 @@ internal static class Scripted
         var tracks = new[] { "military", "stewardship", "law" };
         Console.WriteLine($"=== The upstart: a new house from nothing · {tracks.Length} services × {Counted.Seeds(seeds)} × {turns} years ===");
         var spec0 = Nothing("military"); var (cost, _) = Praetoria.Core.Creation.CharacterWorkshop.Cost(spec0, content);
-        Console.WriteLine($"    the start: landless, a new name, legitimacy {spec0.Legitimacy}, {spec0.Treasury["credits"]} credits, no seat, no patron, no family · {cost} of {Praetoria.Core.Creation.WorkshopLimits.Standard.Budget} points");
+        Console.WriteLine($"    the start: landless, a new name, legitimacy {spec0.Legitimacy}, {Praetoria.Core.Money.Credits(spec0.Treasury["credits"])}, no seat, no patron, no family · {cost} of {Praetoria.Core.Creation.WorkshopLimits.Standard.Budget} points");
         var runs = new List<(string track, Result r)>();
         foreach (var track in tracks) for (ulong seed = 1; seed <= (ulong)seeds; seed++)
         {
@@ -407,7 +407,7 @@ internal static class Scripted
         {
             var w = r.World!; var p = w.Protagonist; var h = p != null ? w.House(p.HouseId) : null; if (h == null || p == null) { Console.WriteLine($"     {r.Label}: the line ended in year {r.Years}"); continue; }
             int richer = w.Houses.Values.Count(x => !World.Outsider(x.Id) && x.Wealth > h.Wealth), houses = w.Houses.Values.Count(x => !World.Outsider(x.Id));
-            Console.WriteLine($"     {r.Label,-22} year {r.Years} · {content.Titles.NameOf(h.Title, w.Era)} · {p.Name}, {p.Age}, rank {p.CareerRank} · worlds {w.HoldingsOf(h.Id).Count(x => x.IsPlanet)} · provinces {w.Holdings.Values.Sum(x => x.IsPlanet && x.OwnerId != h.Id ? x.Provinces.Count(pv => pv.HolderId == h.Id) : 0)} · ventures {w.BusinessesOf(h.Id).Count()} · {h.Treasury.Credits} credits · wealth {richer + 1} of {houses} · legitimacy {h.Legitimacy} · of the house alive {w.LivingCharacters().Count(c => c.HouseId == h.Id)} · {(h.PatronId.Length > 0 ? "client of " + (w.House(h.PatronId)?.Name ?? "?") : "no patron")} · head {w.Counter("generation") + 1}{(r.LineEnded ? " · THE LINE ENDED" : "")}");
+            Console.WriteLine($"     {r.Label,-22} year {r.Years} · {content.Titles.NameOf(h.Title, w.Era)} · {p.Name}, {p.Age}, rank {p.CareerRank} · worlds {w.HoldingsOf(h.Id).Count(x => x.IsPlanet)} · provinces {w.Holdings.Values.Sum(x => x.IsPlanet && x.OwnerId != h.Id ? x.Provinces.Count(pv => pv.HolderId == h.Id) : 0)} · ventures {w.BusinessesOf(h.Id).Count()} · {Praetoria.Core.Money.Held(h.Treasury)} credits · wealth {richer + 1} of {houses} · legitimacy {h.Legitimacy} · of the house alive {w.LivingCharacters().Count(c => c.HouseId == h.Id)} · {(h.PatronId.Length > 0 ? "client of " + (w.House(h.PatronId)?.Name ?? "?") : "no patron")} · head {w.Counter("generation") + 1}{(r.LineEnded ? " · THE LINE ENDED" : "")}");
         }
         // what a first venture pays: every kind a house with no world and no rank may found, on every world it could found it on
         if (runs.FirstOrDefault().r?.Controller is { } tc0)
@@ -427,7 +427,7 @@ internal static class Scripted
                 }
                 if (pays.Count == 0) { Console.WriteLine($"     {def.Name,-22} nowhere: {never}"); continue; }
                 pays.Sort((a, b) => b.worth.CompareTo(a.worth));
-                Console.WriteLine($"     {def.Name,-22} costs {def.Cost} · {pays.Count} worlds · pays nothing or less on {pays.Count(x => x.worth <= 0)} · best {pays[0].worth} at {pays[0].where} · middle {pays[pays.Count / 2].worth} · worst {pays[^1].worth}");
+                Console.WriteLine($"     {def.Name,-22} costs {Praetoria.Core.Presentation.CourtProjection.Bundle(def.Cost)} · {pays.Count} worlds · pays nothing or less on {pays.Count(x => x.worth <= 0)} · best {Praetoria.Core.Money.Show(pays[0].worth)} at {pays[0].where} · middle {Praetoria.Core.Money.Show(pays[pays.Count / 2].worth)} · worst {Praetoria.Core.Money.Show(pays[^1].worth)}");
             }
         }
         Console.WriteLine(); Console.WriteLine("   the middle game by year (legitimacy · credits in hand · the house's rank):");
@@ -435,7 +435,7 @@ internal static class Scripted
         {
             var at = runs.Select(x => x.r.Trace.LastOrDefault(t => t.year <= y)).Where(t => t.year > 0).ToList(); if (at.Count == 0) continue;
             int Mid(Func<(int year, int legitimacy, int credits, int rank, int career), int> f) => at.Select(f).OrderBy(v => v).ElementAt(at.Count / 2);
-            Console.WriteLine($"     year {y,2}: legitimacy {Mid(t => t.legitimacy),3} ({at.Min(t => t.legitimacy)} to {at.Max(t => t.legitimacy)}) · credits {Mid(t => t.credits),4} ({at.Min(t => t.credits)} to {at.Max(t => t.credits)}) · rank {Mid(t => t.rank)}{(at.Any(t => t.career >= 0) ? $" · the founder's step in the service {at.Where(t => t.career >= 0).Select(t => t.career).OrderBy(v => v).ElementAt(at.Count(t => t.career >= 0) / 2)} ({at.Where(t => t.career >= 0).Min(t => t.career)} to {at.Where(t => t.career >= 0).Max(t => t.career)})" : "")}");
+            Console.WriteLine($"     year {y,2}: legitimacy {Mid(t => t.legitimacy),3} ({at.Min(t => t.legitimacy)} to {at.Max(t => t.legitimacy)}) · credits {Praetoria.Core.Money.Show(Mid(t => t.credits)),6} ({Praetoria.Core.Money.Show(at.Min(t => t.credits))} to {Praetoria.Core.Money.Show(at.Max(t => t.credits))}) · rank {Mid(t => t.rank)}{(at.Any(t => t.career >= 0) ? $" · the founder's step in the service {at.Where(t => t.career >= 0).Select(t => t.career).OrderBy(v => v).ElementAt(at.Count(t => t.career >= 0) / 2)} ({at.Where(t => t.career >= 0).Min(t => t.career)} to {at.Where(t => t.career >= 0).Max(t => t.career)})" : "")}");
         }
         // one house's own story, as its chronicle tells it
         var told = runs.Where(x => !x.r.LineEnded).OrderByDescending(x => x.r.ReachedIn.Count).ThenBy(x => x.r.Label, StringComparer.Ordinal).FirstOrDefault();

@@ -601,7 +601,7 @@ internal static class Qa
         foreach (var h in world.Houses.Values)
         {
             var t = h.Treasury;
-            if (t.Credits < 0 || t.Materials < 0 || t.Manpower < 0 || t.Influence < 0 || t.Exotics < 0) oddities.Add($"{label} t{world.Turn}: negative treasury — {h.Name} c{t.Credits} m{t.Materials} mp{t.Manpower} i{t.Influence} e{t.Exotics}");
+            if (t.Credits < 0 || t.Materials < 0 || t.Manpower < 0 || t.Influence < 0 || t.Exotics < 0) oddities.Add($"{label} t{world.Turn}: negative treasury — {h.Name} c{Praetoria.Core.Money.Held(t)} m{t.Materials} mp{t.Manpower} i{t.Influence} e{t.Exotics}");
         }
         foreach (var hd in world.Holdings.Values)
         {

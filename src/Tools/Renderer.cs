@@ -51,7 +51,7 @@ public static class Renderer
     public static void RenderTreasury(House house)
     {
         var t = house.Treasury;
-        Console.WriteLine($"   {house.Name} treasury — credits {t.Credits} · materials {t.Materials} · " +
+        Console.WriteLine($"   {house.Name} treasury — credits {Praetoria.Core.Money.Held(t)} · materials {t.Materials} · " +
                           $"manpower {t.Manpower} · influence {t.Influence} · exotics {t.Exotics}");
     }
 
