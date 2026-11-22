@@ -108,6 +108,16 @@ there is. They close when the pointer leaves, on a click elsewhere, on scrolling
 `tools/browser/tooltips.js` checks it in a real browser: a tooltip, one inside it and one inside that, all wholly on the
 screen, closed on leaving, turned upward at the foot of the screen.
 
+## Money on the screens
+
+A house's books are in hundreds of credits and every screen shows credits (docs/MONEY.md). Nothing in a page prints a
+number of credits itself: `Money.Show(n)` for a figure, `Money.Signed(n)` for a change, `Money.Credits(n)` with the
+word, `Money.Of(key, n)` in a loop over every resource, `Money.Held(treasury)` for a treasury to the single credit,
+and `Money.Coin(n)` only for what is already single credits (the court's wages). Where an amount is typed (a sum moved
+between purse and treasury, an offer for a venture, the creator's starting credits) the box takes credits in steps of
+100 and the command is given hundreds. A test (`MoneyTests`) reads every `.cs` and `.razor` file and fails on an amount
+written beside the word "credits" without `Money`. Picture: `tools/browser/shots/money-ledger.png`.
+
 ## The court's page
 
 House, *The court*: the seven positions of the house's own court as cards (docs/COURT.md). `CourtPanel.razor`;

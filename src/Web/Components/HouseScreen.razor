@@ -39,10 +39,10 @@
             <span class="muted">@titleName · @house.Culture culture · @Counted.Worlds(planets)@(stations > 0 ? $" · {Counted.Stations(stations)}" : "")@(claims > 0 ? $" · {Counted.Claims(claims)}" : "") · <span data-house-citizens="@citizens" title="The citizens of every world and station of the house. On the scale the rules reckon by, they come to @pop.">@Census.Say(citizens) citizens</span> · tithe @(m.Standing?.TaxPolicy ?? "customary")</span></div>
         <p class="headline @storyTone">@story</p>
         <div class="tiles">
-            <Tile Label="In the treasury" Value="@($"{Money.Held(house.Treasury)} credits")" Tone="@(m.Treasury.Insolvent ? "bad" : net < 0 ? "warn" : net > 0 ? "good" : "")"
+            <Tile Label="In the treasury" Value="@Money.Held(house.Treasury)" Tone="@(m.Treasury.Insolvent ? "bad" : net < 0 ? "warn" : net > 0 ? "good" : "")"
                   Note="@(net > 0 ? $"+{Money.Show(net)} a year" : net < 0 ? $"−{Money.Show(-net)} a year · {(lasts <= 0 ? "gone within the year" : Counted.Years(lasts) + " left")}" : "neither growing nor shrinking")"
                   Title="What the house has in hand, and what a year adds to it or takes from it." />
-            <Tile Label="Takes in" Value="@($"+{Money.Show(gross)} a year")" Tone="@(spend > gross ? "warn" : "")" Share="@(gross > 0 ? 100 * spend / gross : spend > 0 ? 100 : 0)"
+            <Tile Label="Takes in a year" Value="@($"+{Money.Show(gross)}")" Tone="@(spend > gross ? "warn" : "")" Share="@(gross > 0 ? 100 * spend / gross : spend > 0 ? 100 : 0)"
                   Note="@(gross == 0 ? (spend > 0 ? $"nothing, and spends {Money.Show(spend)}" : "nothing, and spends nothing") : (spend > gross ? $"spends {Money.Show(spend)}, which is {Money.Show(spend - gross)} more" : $"spends {Money.Show(spend)} of it ({100 * spend / gross}%)") + (drain != null ? $" · most on {drain.Source}" : ""))"
                   Title="@(lg == null ? "" : string.Join(" · ", lg.Lines.Where(l => l.Delta.Credits != 0).OrderByDescending(l => l.Delta.Credits).Select(l => $"{l.Source} {Money.Signed(l.Delta.Credits)}")))" />
             @if (lg != null)

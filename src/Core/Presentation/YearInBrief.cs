@@ -57,6 +57,9 @@ public static class YearInBrief
     public static void Mark(World w)
     {
         var house = w.Protagonist != null ? w.House(w.Protagonist.HouseId) : null; if (house == null) return;
+        // the odd coin beside the hundreds, so that the year's account of credits is right to the single credit (docs/MONEY.md)
+        if (w.WorldCounters.TryGetValue(OpenKey(Resource.Coin), out int coinOpen)) w.WorldCounters[DeltaKey(Resource.Coin)] = house.Treasury.Coin - coinOpen; else w.WorldCounters.Remove(DeltaKey(Resource.Coin));
+        w.WorldCounters[OpenKey(Resource.Coin)] = house.Treasury.Coin;
         foreach (var r in Counted)
         {
             int now = house.Treasury.Get(r);
@@ -121,7 +124,15 @@ public static class YearInBrief
         // where the treasury stood and stands
         var moved = new List<string>();
         foreach (var r in Counted)
+        {
+            if (r == Resource.Credits)
+            {
+                long by = (long)w.Counter(DeltaKey(r)) * Praetoria.Core.Money.PerUnit + w.Counter(DeltaKey(Resource.Coin));
+                if (by != 0) moved.Add($"credits {Praetoria.Core.Money.Exact(house.Treasury.Total - by)} → {Praetoria.Core.Money.Held(house.Treasury)} ({(by > 0 ? "+" : "−")}{Praetoria.Core.Money.Exact(Math.Abs(by))})");
+                continue;
+            }
             if (w.WorldCounters.TryGetValue(DeltaKey(r), out int d) && d != 0) moved.Add($"{Resource.Label(r).ToLowerInvariant()} {Praetoria.Core.Money.Of(r, house.Treasury.Get(r) - d)} → {Praetoria.Core.Money.Of(r, house.Treasury.Get(r))} ({(d > 0 ? "+" : "−")}{Praetoria.Core.Money.Of(r, Math.Abs(d))})");
+        }
         if (moved.Count > 0) lines.Add(new BriefLine(Money, house.Treasury.Credits < 0 ? "warn" : "info", "Over the year, with everything you spent and everything that came in: " + string.Join("; ", moved) + ".", "house:ledger"));
         return lines.OrderBy(l => Array.IndexOf(Order, l.Kind)).ToList();
     }

@@ -41,6 +41,8 @@ public static class Money
         foreach (var k in Resource.All) { if (k == Resource.Credits) continue; int by = after.Get(k) - before.Get(k); if (by != 0) parts.Add((by > 0 ? "+" : "−") + Math.Abs(by).ToString(CultureInfo.InvariantCulture) + " " + Resource.Label(k)); }
         return parts;
     }
+    /// <summary>A sum already reckoned in single credits, as a bare number: 2595 is "2,595".</summary>
+    public static string Exact(long credits) => N(credits);
     /// <summary>An amount that is already in single credits (a servant's wage): "1 credit", "6 credits".</summary>
     public static string Coin(long credits) => credits == 1 ? "1 credit" : N(credits) + " credits";
 }

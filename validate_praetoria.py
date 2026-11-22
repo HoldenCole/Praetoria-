@@ -143,7 +143,8 @@ def validate_events(ev,tx):
                 if ef["type"] not in EFF: errors.append(f"[{eid}/{cid}] bad effect '{ef['type']}'")
                 for rf in ("role","from","to"):
                     if rf in ef and ef[rf] not in roles: errors.append(f"[{eid}/{cid}] effect unbound role '{ef[rf]}'")
-                if ef["type"] in ("adjustResource","sellAtMarket") and ef.get("resource") not in RES: errors.append(f"[{eid}/{cid}] bad resource")
+                # "coin" is single credits (docs/MONEY.md): a scene may pay or take them, but nothing is sold for them and no building costs them
+                if ef["type"] in ("adjustResource","sellAtMarket") and ef.get("resource") not in RES and not (ef["type"] == "adjustResource" and ef.get("resource") == "coin"): errors.append(f"[{eid}/{cid}] bad resource")
                 if ef["type"]=="addTrait":
                     tr=ef.get("trait"); kind=ef.get("kind","aptitude")
                     pool=NATURE if kind=="nature" else APTITUDE
