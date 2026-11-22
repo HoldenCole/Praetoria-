@@ -328,6 +328,7 @@ Measured by `upstart` (three services, four seeds, sixty years). U8 to U11 are c
 | M1 | The books are in hundreds and only shown in credits: a house-level amount (a yield, a cost, a price, a purse) moves in whole hundreds, and the rules still round down at that size. Rewriting every rule in single credits would fix it and would move the whole balance. | L | the owner: is whole hundreds enough |
 | M2 | Only the house's court is paid in single credits. Other things that are small by nature are still in hundreds: a council post's pay (200 a year), a physician sent for from a purse, a tutor paid for one child, a client's stipend. | M | the owner: which of these should be small |
 | M3 | The court's wages are not a line in the house's ledger or in the year's forecast beside the treasury: they are paid at the year's end and seen on the court's page. | S | |
+| M5 | The economy as a whole is out of proportion with itself: ordinary things pay back in one to three years, houses bank four fifths of their income, nobody is paid to crew a hull or run a world, and pay is nearly flat from cadet to admiral. Sampled against real-world ratios in docs/ECONOMY_REVIEW.md, with targets and two ways to retune. | L | the owner: the targets, and which way |
 | M4 | The older Godot client and saved games made before this show and hold the same figures; nothing in a save needed changing, but a chronicle written before the change quotes the old figures. | S | |
 
 ## Older, from docs/ROADMAP.md section 3
