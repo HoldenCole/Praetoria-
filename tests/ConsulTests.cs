@@ -179,7 +179,7 @@ public class ConsulTests
         // pledged: the seats are counted for them and not where they went before
         var before = ElectionSystem.Tally(w, Content.Offices, wt, noms); int seats = wt("vega"); Assert.True(seats > 0);
         int regard = w.Relationship(toHead.Id, "self").Disposition; int ownRegard = own != null ? w.Relationship(Economy.HeadOf(w, w.House(own)!)!.Id, "self").Disposition : 0;
-        var cmd = new PledgeVotesCommand("self", to, Content.Offices, senate); Assert.Null(cmd.Refusal(ctx)); Assert.Contains($"{seats} seat(s) are counted for", cmd.Says(w));
+        var cmd = new PledgeVotesCommand("self", to, Content.Offices, senate); Assert.Null(cmd.Refusal(ctx)); Assert.Contains($"{Praetoria.Core.Counted.Seats(seats)} {Praetoria.Core.Counted.Are(seats)} counted for", cmd.Says(w));
         Assert.True(new CommandExecutor().TryExecute(cmd, ctx)); Assert.Equal(to, ElectionSystem.PledgedTo(w, "vega"));
         var after = ElectionSystem.Tally(w, Content.Offices, wt, noms);
         Assert.Equal(before[to] + seats, after[to]); Assert.Equal(before.Values.Sum(), after.Values.Sum());

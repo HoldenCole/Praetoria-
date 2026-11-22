@@ -73,7 +73,7 @@ public static class EmergencySystem
         if (Danger(w) == null) return "the Reach is in no danger that calls for it";
         if (ConsulOf(w, offices, target.Id) == null) return "only a sitting consul may be given them";
         int ended = w.Counter(EndedKey);
-        return ended > 0 && w.Turn - ended < GapYears ? $"the Senate gave them only {w.Turn - ended} year(s) ago" : null;
+        return ended > 0 && w.Turn - ended < GapYears ? $"the Senate gave them only {Counted.Years(w.Turn - ended)} ago" : null;
     }
 
     /// <summary>How a house leans on giving them. No Senate likes to; the graver the danger the readier it is; a house thinks of the consul it is being asked to

@@ -85,7 +85,7 @@ public static class Renderer
             var live = world.Fleets.GetValueOrDefault(f.FleetId);
             string admiral = f.IsPlayer && live?.AdmiralId.Length > 0 ? $" · {world.Char(live.AdmiralId)?.Name} commanding" : f.IsPlayer ? " · unled" : "";
             string vet = f.IsPlayer && live?.Veterancy > 0 ? $" · veterancy {live.Veterancy}" : "";
-            Console.WriteLine($"     {(f.IsPlayer ? "⚓" : "◦")} {f.Name} ({f.OwnerHouseName}) at {world.Galaxy.System(f.SystemId)?.Name ?? f.SystemId} · {f.Strength} hull(s)" +
+            Console.WriteLine($"     {(f.IsPlayer ? "⚓" : "◦")} {f.Name} ({f.OwnerHouseName}) at {world.Galaxy.System(f.SystemId)?.Name ?? f.SystemId} · {Praetoria.Core.Counted.Hulls(f.Strength)}" +
                               (f.IsPlayer ? (f.Moving ? $" · en route to {world.Galaxy.System(f.DestinationId)?.Name} ({f.Eta})" : $" · readiness {f.Readiness}") + admiral + vet : $" · reported {f.Confidence}%"));
         }
     }

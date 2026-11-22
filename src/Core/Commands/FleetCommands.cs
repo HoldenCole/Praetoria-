@@ -274,7 +274,7 @@ public sealed class AskFleetToLeaveCommand : ICommand
         var head = w.House(f.OwnerId) is { } h ? Economy.HeadOf(w, h) : null;
         int regard = head != null ? w.GetRelationship(head.Id, ActorId)?.Disposition ?? 0 : 0, mine = (int)w.Fleets.Values.Where(x => x.OwnerId == actor.HouseId && !x.Moving && x.SystemId == f.SystemId).Sum(x => (double)x.Strength), theirs = w.Fleets.Values.Where(x => x.OwnerId == f.OwnerId && !x.Moving && x.SystemId == f.SystemId).Sum(x => x.Strength);
         if (regard < FleetSystem.ObligesAt && mine < theirs)
-            return $"{them} would refuse: {head?.Name ?? "its head"} thinks too ill of you to oblige (regard {regard}; {FleetSystem.ObligesAt} or better would do), and you have {mine} hull(s) here to its {theirs} (as many as it has would do)";
+            return $"{them} would refuse: {head?.Name ?? "its head"} thinks too ill of you to oblige (regard {regard}; {FleetSystem.ObligesAt} or better would do), and you have {Counted.Hulls(mine)} here to its {theirs} (as many as it has would do)";
         return ctx.PoolsOf(ActorId).Short(CostMap);
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
@@ -367,7 +367,7 @@ public sealed class DetachHullsCommand : ICommand
     private readonly string _fleetId; private readonly int _hulls; private readonly FleetRules _rules; private readonly ShipClassCatalog _classes;
     public DetachHullsCommand(string actorId, string fleetId, int hulls, FleetRules rules, ShipClassCatalog? classes = null) { ActorId = actorId; _fleetId = fleetId; _hulls = hulls; _rules = rules; _classes = classes ?? ShipClassCatalog.Empty; }
     public string ActorId { get; }
-    public string Describe() => $"detach {_hulls} hull(s) from {_fleetId}";
+    public string Describe() => $"detach {Counted.Hulls(_hulls)} from {_fleetId}";
     public List<(ShipClassDef cls, int n)> Which(World w) => w.Fleets.TryGetValue(_fleetId, out var f) ? FleetHulls.Lightest(f, _hulls, _classes, _rules) : new();
     public string? Refusal(CommandContext ctx)
     {
@@ -390,7 +390,7 @@ public sealed class DetachHullsCommand : ICommand
             Readiness = f.Readiness, Veterancy = f.Veterancy, Supply = f.Supply, Loyalty = f.Loyalty, Stance = f.Stance, Loadout = f.Loadout, ArrivedTurn = f.ArrivedTurn, Strength = 0 };
         foreach (var (cls, k) in took) d.Ships[cls.Id] = d.Ships.GetValueOrDefault(cls.Id) + k;
         d.Recount(); w.Fleets[d.Id] = d;
-        w.Log($"{FleetHulls.Say(took)} of {f.Name} {(took.Sum(x => x.n) == 1 ? "is" : "are")} detached at {w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId} as {d.Name}; {f.Name} keeps {f.Strength} hull(s).");
+        w.Log($"{FleetHulls.Say(took)} of {f.Name} {(took.Sum(x => x.n) == 1 ? "is" : "are")} detached at {w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId} as {d.Name}; {f.Name} keeps {Counted.Hulls(f.Strength)}.");
     }
 }
 
@@ -435,7 +435,7 @@ public sealed class LayUpFleetCommand : ICommand
     {
         var w = ctx.World; var f = w.Fleets[_fleetId]; ctx.PoolsOf(ActorId).Spend(Cost);
         string where = w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId;
-        if (_on) { f.LaidUp = true; f.Readiness = 0; f.Drilling = false; w.Log($"{f.Name} is laid up at {where}: its crews are paid off and its {f.Strength} hull(s) kept, at {_fleets.Rules.LaidUpUpkeepPct} in a hundred of their keep."); }
+        if (_on) { f.LaidUp = true; f.Readiness = 0; f.Drilling = false; w.Log($"{f.Name} is laid up at {where}: its crews are paid off and its {Counted.Hulls(f.Strength)} kept, at {_fleets.Rules.LaidUpUpkeepPct} in a hundred of their keep."); }
         else { f.LaidUp = false; f.Readiness = 0; w.Log($"{f.Name} is put back in commission at {where}. Its crews are new to it: it has no readiness, and gains {_fleets.Rules.ReadinessRecovery} a year at anchor."); }
     }
 }
@@ -446,7 +446,7 @@ public sealed class PayOffHullsCommand : ICommand
     private readonly string _fleetId; private readonly int _hulls; private readonly FleetRules _rules; private readonly ShipClassCatalog _classes;
     public PayOffHullsCommand(string actorId, string fleetId, int hulls, FleetRules rules, ShipClassCatalog? classes = null) { ActorId = actorId; _fleetId = fleetId; _hulls = hulls; _rules = rules; _classes = classes ?? ShipClassCatalog.Empty; }
     public string ActorId { get; }
-    public string Describe() => $"pay off {_hulls} hull(s) of {_fleetId}";
+    public string Describe() => $"pay off {Counted.Hulls(_hulls)} of {_fleetId}";
     public List<(ShipClassDef cls, int n)> Which(World w) => w.Fleets.TryGetValue(_fleetId, out var f) ? FleetHulls.Lightest(f, _hulls, _classes, _rules) : new();
     /// <summary>The materials the breakers give back for them.</summary>
     public int Scrap(World w) => Which(w).Sum(x => x.cls.Cost.Materials * x.n) * ScrapPct / 100;
@@ -461,7 +461,7 @@ public sealed class PayOffHullsCommand : ICommand
         if (f.LevyOf.Length > 0) return "a levy is its own house's: send it home instead";
         if (f.IsAway) return "it is beyond the Reach"; if (f.Moving) return "it is under way: hulls are paid off in port";
         if (!w.Holdings.Values.Any(h => h.OwnerId == actor.HouseId && h.SystemId == f.SystemId)) return $"only at a world or station of your own: {w.Galaxy?.System(f.SystemId)?.Name ?? "this system"} is not";
-        return _hulls >= 1 && _hulls <= f.Strength ? null : $"{f.Name} has {f.Strength} hull(s)";
+        return _hulls >= 1 && _hulls <= f.Strength ? null : $"{f.Name} has {Counted.Hulls(f.Strength)}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -470,7 +470,7 @@ public sealed class PayOffHullsCommand : ICommand
         FleetHulls.Take(f, took, _rules); house.Treasury.Add(Resource.Materials, scrap);
         string where = w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId;
         if (f.Strength <= 0) { w.Fleets.Remove(f.Id); w.Intel.Remove(f.Id); FleetSystem.RefreshAdmiralFlags(w); w.Log($"{f.Name} is paid off at {where} ({FleetHulls.Say(took)}); the breakers give back {scrap} materials."); }
-        else w.Log($"{FleetHulls.Say(took)} of {f.Name} {(took.Sum(x => x.n) == 1 ? "is" : "are")} paid off at {where}; the breakers give back {scrap} materials, and {f.Name} keeps {f.Strength} hull(s).");
+        else w.Log($"{FleetHulls.Say(took)} of {f.Name} {(took.Sum(x => x.n) == 1 ? "is" : "are")} paid off at {where}; the breakers give back {scrap} materials, and {f.Name} keeps {Counted.Hulls(f.Strength)}.");
     }
 }
 

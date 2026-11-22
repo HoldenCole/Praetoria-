@@ -17,13 +17,13 @@
     string swayWhy = general == null ? "" : string.Join(" · ", CaesarSystem.SwayParts(w, general).Select(x => $"{x.what} {x.points}"));
     string generalLine = general == null ? "" : (mineIsMe ? "You are the house's general. " : general.Name + " is the house's general. It is " + general.Name + "'s name the crews know. ")
         + (swayWhy.Length > 0 ? Cap(swayWhy) + ". " : "No victories yet. ") + "At " + CaesarSystem.RecallSway + " the Senate may order " + (mineIsMe ? "you" : "them") + " home.";
-    string crewsLine = hulls + " hull(s) would follow " + who + " before the house" + (triumphs > 0 ? " · " + triumphs + " triumph(s)" : "") + ". A triumph asks " + CaesarSystem.TriumphLaurels + " victories since the last: " + whose + " count is";
+    string crewsLine = Counted.Hulls(hulls) + " would follow " + who + " before the house" + (triumphs > 0 ? " · " + Counted.Triumphs(triumphs) + "" : "") + ". A triumph asks " + CaesarSystem.TriumphLaurels + " victories since the last: " + whose + " count is";
     string watchedLine = string.Join("; ", watched.Select(x => x.g!.Name + " of " + x.h.Name + " (sway " + CaesarSystem.Sway(w, x.g) + (CaesarSystem.Triumphs(w, x.g) > 0 ? ", a triumph" : "") + (w.Recalls.Any(r => r.HouseId == x.h.Id) ? ", under recall" : "") + ")"));
     var troubles = CaesarSystem.Troubles(w); var gates = CaesarSystem.Gates(w, house); var forecast = cz.Forecast(w, house);
     string republic = troubles.Count == 0 ? "sound" : troubles.Count < CaesarSystem.TroubledAt ? "uneasy" : "troubled";
     string republicLine = troubles.Count == 0 ? "Nothing is wrong that the Senate cannot manage. A general who marched now would be marching on a Republic its houses will defend."
         : Cap(string.Join("; ", troubles)) + (troubles.Count < CaesarSystem.TroubledAt ? ". One thing wrong is not enough to make the houses look for a strong hand." : ". These are the times a general waits for.");
-    string forecastLine = general == null ? "" : "If the house crossed the line today, " + forecast.forGeneral.Count + " house(s) would declare for " + who + " and " + forecast.forSenate.Count + " for the Senate"
+    string forecastLine = general == null ? "" : "If the house crossed the line today, " + Counted.Houses(forecast.forGeneral.Count) + " would declare for " + who + " and " + forecast.forSenate.Count + " for the Senate"
         + (forecast.forGeneral.Count > 0 ? " (for: " + string.Join(", ", forecast.forGeneral.Take(4).Select(h => h.Name)) + (forecast.forGeneral.Count > 4 ? ", and others" : "") + ")" : "") + ". The rest would stand aside.";
     string greatNames = string.Join("; ", w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && x.g.Flags.Contains(CaesarSystem.GreatNameChar)).Select(x => x.g!.Name + " of " + x.h.Name));
     string Names(IEnumerable<string> ids) => string.Join(", ", ids.Select(id => id == house.Id ? "your house" : w.House(id)?.Name ?? id).DefaultIfEmpty("nobody"));

@@ -489,7 +489,7 @@ public class PlaythroughFixTests
         var (w, tc, house, me, _) = Start(); tc.BeginTurn();
         var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id));
         tc.Fleets.DeclareWar(w, foe.Id, house.Id);
-        var war = Assert.Single(w.NewsNow().Where(n => n.Text.Contains("declared war on your house"))); Assert.Equal("military", war.Target); Assert.Contains("Why:", war.Text); Assert.Contains("hull(s)", war.Text);
+        var war = Assert.Single(w.NewsNow().Where(n => n.Text.Contains("declared war on your house"))); Assert.Equal("military", war.Target); Assert.Contains("Why:", war.Text); Assert.Contains("hulls", war.Text);
         var kin = w.LivingCharacters().First(c => c.HouseId == house.Id && c.Id != me.Id); var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); seat.GovernorId = kin.Id;
         DynastySystem.Die(w, kin.Id);
         var death = Assert.Single(w.NewsNow().Where(n => n.Text.Contains(kin.Name + " of your house has died"))); Assert.Contains("the governing of " + seat.Name, death.Text); Assert.Equal(kin.Id, death.SubjectId);
@@ -645,7 +645,7 @@ public class PlaythroughFixTests
         Assert.Contains(foe.Name, facts); Assert.Contains("a debt of long standing", facts); Assert.Contains("15 credits", facts); Assert.Contains("Eamon Thalen", facts);
         w.Battles.Add(new BattleRecord { Turn = 4, Place = "Cinder Gate", AttackerId = foe.Id, DefenderId = house.Id, WinnerId = foe.Id, AttackerHulls = 9, DefenderHulls = 4, AttackerLost = 1, DefenderLost = 3 });
         string fight = Praetoria.Core.Presentation.ReportFacts.For(w, line, Content);
-        Assert.Contains("Cinder Gate", fight); Assert.Contains("your 4 hull(s) against 9", fight); Assert.Contains("You lost 3", fight);
+        Assert.Contains("Cinder Gate", fight); Assert.Contains("your 4 hulls against 9", fight); Assert.Contains("You lost 3", fight);
     }
     [Fact]
     public void An_article_fits_the_good_and_every_skill_says_what_it_is_for()
@@ -799,7 +799,7 @@ public class PlaythroughFixTests
         Assert.Equal(Math.Clamp(why.Sum(x => x.by), 0, 100), eco.ProsperityTarget(w, world));
         Assert.Contains(why, x => x.what == "where any world begins" && x.by == 50);
         // a building standing is a cause, and taking it away moves the target by exactly that
-        int before = eco.ProsperityTarget(w, world), per = why.FirstOrDefault(x => x.what.Contains("building(s) standing")).by;
+        int before = eco.ProsperityTarget(w, world), per = why.FirstOrDefault(x => x.what.Contains("standing") && x.what.Contains("building")).by;
         if (world.Buildings.Count > 0 && before is > 0 and < 100) { var keep = world.Buildings.ToList(); world.Buildings.Clear(); Assert.Equal(Math.Clamp(before - per, 0, 100), eco.ProsperityTarget(w, world)); world.Buildings.AddRange(keep); }
         // unrest: the year applies the sum of the causes shown
         house.Treasury.Credits = 500; world.Unrest = 40; int drift = eco.UnrestWhy(w, world).Sum(x => x.by);
@@ -931,7 +931,7 @@ public class PlaythroughFixTests
         w.Wars.Clear(); fleets.DeclareWar(w, house.Id, foe.Id); fleets.DeclareWar(w, ally.Id, foe.Id);
         w.Fleets["mine"] = new Fleet { Id = "mine", Name = "Mine", OwnerId = house.Id, SystemId = target.SystemId, Strength = 6, ArrivedTurn = w.Turn };
         // an enemy's world says how it is taken, in the years this one would take
-        string how = fleets.HowToTake(w, target, house.Id); Assert.Contains(fleets.SiegeRequired(w, target) + " year(s)", how); Assert.Contains("Your fleet is over it", how);
+        string how = fleets.HowToTake(w, target, house.Id); Assert.Contains(Praetoria.Core.Counted.Years(fleets.SiegeRequired(w, target)), how); Assert.Contains("Your fleet is over it", how);
         Assert.Equal("", fleets.HowToTake(w, w.HoldingsOf(house.Id).First(), house.Id));
         // and a fleet far from home says what its supply will do there
         string fed = fleets.SupplySays(w, w.Fleets["mine"], w.HoldingsOf(house.Id).First(x => x.IsPlanet).SystemId); Assert.Contains("in supply", fed);
@@ -1014,10 +1014,10 @@ public class PlaythroughFixTests
         var theirs = new Fleet { Id = "theirs", Name = "Theirs", OwnerId = other.Id, SystemId = home.SystemId, Strength = 6, ArrivedTurn = w.Turn - 2, Errand = "to stand over your seat as a threat: its head thinks ill of you" };
         w.Fleets[theirs.Id] = theirs; var head = Economy.HeadOf(w, other)!;
         string doing = FleetSystem.Doing(w, theirs, house.Id);
-        Assert.Contains("Not at war with you", doing); Assert.Contains("to stand over your seat", doing); Assert.Contains("2 year(s)", doing);
+        Assert.Contains("Not at war with you", doing); Assert.Contains("to stand over your seat", doing); Assert.Contains("2 years", doing);
         // a head who thinks ill of you, with more hulls there than you, says no, and the refusal gives both figures
         w.Relationship(head.Id, me.Id).Disposition = -60; var ask = new AskFleetToLeaveCommand(me.Id, theirs.Id);
-        string? no = ask.Refusal(ctx); Assert.NotNull(no); Assert.Contains("-60", no); Assert.Contains("0 hull(s) here to its 6", no);
+        string? no = ask.Refusal(ctx); Assert.NotNull(no); Assert.Contains("-60", no); Assert.Contains("0 hulls here to its 6", no);
         // as many hulls there as it has, and it goes; or a head who thinks no worse of you than the mark
         w.Fleets["mine"] = new Fleet { Id = "mine", Name = "Mine", OwnerId = house.Id, SystemId = home.SystemId, Strength = 6 }; Assert.Null(ask.Refusal(ctx));
         w.Fleets.Remove("mine"); w.Relationship(head.Id, me.Id).Disposition = FleetSystem.ObligesAt; Assert.Null(ask.Refusal(ctx));

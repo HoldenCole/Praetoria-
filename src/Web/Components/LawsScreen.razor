@@ -4,7 +4,7 @@
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var ch = m.Chancery;
     var held = ch?.Laws.Where(l => l.Held).ToList() ?? new List<LawCard>(); var notHeld = ch?.Laws.Where(l => !l.Held && l.Scope != "senate").ToList() ?? new List<LawCard>();
     var positions = new List<string> { "head of " + house.Name };
-    if (PolicySystem.HoldsScope(w, house.Id, "world")) positions.Add($"holder of {w.HoldingsOf(house.Id).Count(h => h.IsPlanet)} world(s)");
+    if (PolicySystem.HoldsScope(w, house.Id, "world")) positions.Add($"holder of {Counted.Worlds(w.HoldingsOf(house.Id).Count(h => h.IsPlanet))}");
     var dom = PolicySystem.RegionsDominated(w, house.Id).Select(r => w.Galaxy?.Regions.FirstOrDefault(x => x.Id == r)?.Name ?? r).ToList(); if (dom.Count > 0) positions.Add("dominant in " + string.Join(", ", dom));
     if (PolicySystem.HoldsScope(w, house.Id, "chair")) positions.Add("the chair"); if (PolicySystem.HoldsScope(w, house.Id, "emperor")) positions.Add("the throne"); if (PolicySystem.HoldsScope(w, house.Id, "bench")) positions.Add("leader of a bench");
     foreach (var o in OfficeSystem.HeldBy(w, house.Id)) positions.Add(c.Offices.Def(o.OfficeId)?.Name ?? o.OfficeId);
@@ -81,7 +81,7 @@
                                 else if (e.Mood == "hostile") { <span class="warn">costs the house: @e.Effects</span> @if (e.Wants != null) { <span> · would warm to: @e.Wants</span> } }
                                 else if (e.Wants != null) { <span>would warm to: @e.Wants</span> }
                                 else { <span>no law in your gift would move them</span> }
-                                @if (e.HostileIn > 0) { <span class="muted"> · hostile in @e.HostileIn house(s) of the Reach</span> }
+                                @if (e.HostileIn > 0) { <span class="muted"> · hostile in @Counted.Houses(e.HostileIn) of the Reach</span> }
                                 @if (e.Petition != null) { <span class="petition"> · ⚖ @e.Petition</span> } else if (e.HostileIn >= SenateSystem.PetitionMinHouses) { <span class="muted"> · a petition to the Senate is near</span> }
                             </div>
                         </div>
@@ -100,7 +100,7 @@
                         <tbody>
                         @foreach (var r in reach)
                         {
-                            <tr title="@(r.Act && r.CooldownLeft > 0 ? $"settled: {r.CooldownLeft} year(s) before the chamber will hear it again" : "")">
+                            <tr title="@(r.Act && r.CooldownLeft > 0 ? $"settled: {Counted.Years(r.CooldownLeft)} before the chamber will hear it again" : "")">
                                 <td><b>@r.Name</b></td><td class="@(r.Mine ? "good" : "")">@r.OptionName.ToLowerInvariant()</td><td class="muted">@r.Effects</td><td class="muted">@r.SetBy@(r.Act && r.CooldownLeft > 0 ? $" · settled {r.CooldownLeft}y" : "")</td>
                             </tr>
                         }
@@ -123,7 +123,7 @@
                     {
                         var inForce = l.Options.First(o => o.InForce);
                         <div class="law @(_open == l.Id ? "open" : "") @(inForce.Id != c.Policies.Law(l.Id)?.DefaultOption.Id ? "custom" : "")">
-                            <div class="law-head" @onclick="() => _open = _open == l.Id ? null : l.Id"><b>@l.Name</b> <span class="muted small">@l.ScopeName</span><div class="small"><b class="inforce">@inForce.Name</b> <span class="muted">@(l.CooldownLeft > 0 ? $"· settled for {l.CooldownLeft} more year(s)" : $"· {l.Cost} influence to change")</span> <span class="law-open" data-law-open="@l.Id">@(_open == l.Id ? "close ▴" : l.CooldownLeft > 0 ? "see it ▾" : "change ▾")</span></div>
+                            <div class="law-head" @onclick="() => _open = _open == l.Id ? null : l.Id"><b>@l.Name</b> <span class="muted small">@l.ScopeName</span><div class="small"><b class="inforce">@inForce.Name</b> <span class="muted">@(l.CooldownLeft > 0 ? $"· settled for {Counted.MoreYears(l.CooldownLeft)}" : $"· {l.Cost} influence to change")</span> <span class="law-open" data-law-open="@l.Id">@(_open == l.Id ? "close ▴" : l.CooldownLeft > 0 ? "see it ▾" : "change ▾")</span></div>
                                 @if (inForce.Opinions.Count > 0) { <div class="lo-op">@foreach (var op in inForce.Opinions) { <span class="opin @(op.Opinion > 0 ? "pos" : "neg")" title="@op.Name">@op.Name.Replace("The ", "") @(op.Opinion > 0 ? "+" : "")@op.Opinion</span> }</div> }</div>
                             @if (_open == l.Id)
                             {

@@ -66,8 +66,8 @@
                 </div>
             }
             <div class="ac-end">
-                <button class="btn primary big" @onclick="OnEndTerm" title="@(open > 0 ? $"{open} matter(s) unanswered: ending the term sets them aside" : "")">@(a.FinalTerm ? "Pass out ▸" : "End the term ▸")@if (open > 0) { <span class="badge">@open</span> }</button>
-                <span class="muted small">@(a.FinalTerm ? $"You leave at seventeen, commissioned into {(asked != null ? asked.Name : "the service")}. The world begins." : $"{a.Terms - a.Term} term(s) remain after this one.")</span>
+                <button class="btn primary big" @onclick="OnEndTerm" title="@(open > 0 ? $"{Counted.Matters(open)} unanswered: ending the term sets them aside" : "")">@(a.FinalTerm ? "Pass out ▸" : "End the term ▸")@if (open > 0) { <span class="badge">@open</span> }</button>
+                <span class="muted small">@(a.FinalTerm ? $"You leave at seventeen, commissioned into {(asked != null ? asked.Name : "the service")}. The world begins." : $"{Counted.Terms(a.Terms - a.Term)} {Counted.Remain(a.Terms - a.Term)} after this one.")</span>
             </div>
         </section>
 

@@ -88,7 +88,7 @@ public static class ChoiceStakes
             case TitleCondition tt: return (want == tt.Present ? "needs the rank of " : "not for a ") + Progression.Title.StyleOf(tt.TitleId, ctx.World.Era);
             case ClaimCondition cl: return want == cl.Present ? "needs a claim to the rank of " + Progression.Title.StyleOf(cl.TitleId, ctx.World.Era) : "not while the house holds that claim";
             case AgeCondition ag: return want ? $"needs an age {Op(ag.Op)} {ag.Value}" : "not at that age";
-            case FleetStrengthCondition fl: { var a = ctx.Actor(fl.Role); int have = a != null ? Systems.FleetSystem.StrengthOf(ctx.World, a.HouseId) : 0; return want ? $"needs {Op(fl.Op)} {fl.Value} hull(s) (the house has {have})" : "not with a fleet of that size"; }
+            case FleetStrengthCondition fl: { var a = ctx.Actor(fl.Role); int have = a != null ? Systems.FleetSystem.StrengthOf(ctx.World, a.HouseId) : 0; return want ? $"needs {Op(fl.Op)} {Counted.Hulls(fl.Value)} (the house has {have})" : "not with a fleet of that size"; }
             case AtWarCondition aw: return want == aw.Present ? "only in a war" : "not while at war";
             case PeaceTermCondition pc: { var t = pc.Terms(ctx).FirstOrDefault(); return !want ? "" : t == null ? (pc.Kind == Systems.HousePeace.Tribute ? "tribute is asked by the side ahead in the war, and you are not ahead (a battle won is 2, a world taken 3)" : "there is no such term to ask in this war") : t.Why.Length > 0 ? t.Why : "they will not take that term"; }
             case BondCondition: return want ? "needs a tie between the two that is not there" : "not between two so tied";

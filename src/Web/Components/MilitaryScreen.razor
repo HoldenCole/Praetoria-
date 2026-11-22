@@ -59,23 +59,23 @@
     if (m.Fleets.Count == 0) { story = "No hull flies your colours. Lay one down at a world with a shipyard, on the House screen."; storyTone = "warn"; }
     else if (firstBattle != null)
     {
-        story = $"Battle at {firstBattle.SystemName} at the year's end against {firstBattle.EnemyName}: your {firstBattle.OurHulls} hull(s) against {firstBattle.EnemyHulls} as reported, odds {odds} in a hundred." + (firstBattle.Edge < 0 ? " Their stance has the edge of yours: change it below." : "");
+        story = $"Battle at {firstBattle.SystemName} at the year's end against {firstBattle.EnemyName}: your {Counted.Hulls(firstBattle.OurHulls)} against {firstBattle.EnemyHulls} as reported, odds {odds} in a hundred." + (firstBattle.Edge < 0 ? " Their stance has the edge of yours: change it below." : "");
         storyTone = odds >= 50 ? "warn" : "bad";
     }
     else if (dry) { story = "Your fleets cannot sail. The tanks are dry, and readiness falls fifteen a year until helium-3 is found: buy it on the Exchange, or hold a world that skims it."; storyTone = "bad"; }
     else if (m.Wars.Count > 0)
     {
         var war0 = m.Wars[0]; var wr0 = w.Wars.First(x => x.Between(house.Id, war0.EnemyHouseId)); int sa = wr0.Score(house.Id), sb = wr0.Score(war0.EnemyHouseId);
-        story = $"At war with {war0.EnemyName} since year {war0.Since}. The score stands {sa} to {sb}; they have about {war0.EnemyHulls} hull(s) to your {ours}." + (war0.TheyAreSuing ? " They are suing for peace." : "") + (m.Wars.Count > 1 ? $" And {m.Wars.Count - 1} other war(s)." : "");
+        story = $"At war with {war0.EnemyName} since year {war0.Since}. The score stands {sa} to {sb}; they have about {Counted.Hulls(war0.EnemyHulls)} to your {ours}." + (war0.TheyAreSuing ? " They are suing for peace." : "") + (m.Wars.Count > 1 ? $" And {Counted.OtherWars(m.Wars.Count - 1)}." : "");
         storyTone = sa >= sb ? "warn" : "bad";
     }
-    else if (anyDanger && danger.j.d <= 2) { story = $"{Who(danger.f!)}: {danger.f!.Strength} hull(s) {JumpWord(danger.j.d)} {danger.j.from}. You have {ours}."; storyTone = "warn"; }
-    else { story = $"At peace. Your {ours} hull(s) in commission{laidSays} make the {Ordinal(navyRank)} navy of {navies}" + (anyDanger ? $"; the nearest hostile sail is {danger.j.d} jumps off." : "; nothing hostile sails within three jumps of your worlds."); storyTone = "good"; }
+    else if (anyDanger && danger.j.d <= 2) { story = $"{Who(danger.f!)}: {Counted.Hulls(danger.f!.Strength)} {JumpWord(danger.j.d)} {danger.j.from}. You have {ours}."; storyTone = "warn"; }
+    else { story = $"At peace. Your {Counted.Hulls(ours)} in commission{laidSays} make the {Ordinal(navyRank)} navy of {navies}" + (anyDanger ? $"; the nearest hostile sail is {danger.j.d} jumps off." : "; nothing hostile sails within three jumps of your worlds."); storyTone = "good"; }
     if (!dry && m.Fleets.Count > 0 && firstBattle == null && ours > 0 && (avgLoyal < 40 || avgSupply < 50 || avgReady < 50)) { story += avgLoyal < 40 ? " The crews are wavering." : avgSupply < 50 ? " The fleets are short of supply." : " The fleets are not ready to fight."; }
     string condition = m.Fleets.Count == 0 ? "No fleet" : avgLoyal < 30 ? "Will not sail" : avgSupply < 40 ? "Short of supply" : avgReady < 50 ? "Not ready" : avgLoyal < 50 ? "Wavering" : "Ready";
     string conditionTone = condition == "Ready" ? "good" : condition is "Wavering" or "Not ready" ? "warn" : "bad";
     var conditionBars = new List<(string name, int pct, bool low)> { ("ready", avgReady, avgReady < 50), ("loyal", avgLoyal, avgLoyal < 30), ("supply", avgSupply, avgSupply < 40) };
-    string StatusOf(FleetLine f) => w.Fleets.TryGetValue(f.Id, out var lf) && lf.LaidUp ? "laid up" : f.Away.Length > 0 ? "beyond the Reach" : f.Loyalty < 30 ? "will not sail" : dry ? "cannot sail" : f.Moving ? $"under way · {f.Eta} jump(s)" : f.Supply < 40 ? "short of supply" : f.Readiness < 50 ? "not ready" : "ready";
+    string StatusOf(FleetLine f) => w.Fleets.TryGetValue(f.Id, out var lf) && lf.LaidUp ? "laid up" : f.Away.Length > 0 ? "beyond the Reach" : f.Loyalty < 30 ? "will not sail" : dry ? "cannot sail" : f.Moving ? $"under way · {Counted.Jumps(f.Eta)}" : f.Supply < 40 ? "short of supply" : f.Readiness < 50 ? "not ready" : "ready";
     string StatusTone(FleetLine f) => f.Away.Length > 0 || f.Moving ? "" : f.Loyalty < 30 || dry ? "bad" : f.Supply < 40 || f.Readiness < 50 ? "warn" : "good";
 }
 <div class="dash deck" style="--accent:@m.HouseAccent">
@@ -122,8 +122,8 @@
                     <div class="battle @(won ? "won" : "lost")">
                         <div><b>@(won ? "Won" : "Lost"): the battle of @b.Place</b> <span class="muted small">year @b.Turn · against @Nm(att ? b.DefenderId : b.AttackerId) · you were @(att ? "attacking" : "holding")</span></div>
                         <div class="battle-sides">
-                            <span><b>@Nm(b.AttackerId)</b> (attacking): @b.AttackerHulls hull(s), lost @b.AttackerLost · weight @b.AttackerPower.ToString("0.#")</span>
-                            <span><b>@Nm(b.DefenderId)</b> (holding): @b.DefenderHulls hull(s), lost @b.DefenderLost · weight @b.DefenderPower.ToString("0.#")</span>
+                            <span><b>@Nm(b.AttackerId)</b> (attacking): @Counted.Hulls(b.AttackerHulls), lost @b.AttackerLost · weight @b.AttackerPower.ToString("0.#")</span>
+                            <span><b>@Nm(b.DefenderId)</b> (holding): @Counted.Hulls(b.DefenderHulls), lost @b.DefenderLost · weight @b.DefenderPower.ToString("0.#")</span>
                         </div>
                         <div class="small">Before a shot was fired your chance was @ch in 100.</div>
                         @foreach (var n in b.Notes) { <div class="small muted">· @n.</div> }
@@ -134,7 +134,7 @@
             {
                 <section class="panel" data-battles="others">
                     <h3>Battles between others</h3>
-                    @foreach (var b in othersB) { <div class="line small">Year @b.Turn, @b.Place: @Nm(b.WinnerId) beat @Nm(b.WinnerId == b.AttackerId ? b.DefenderId : b.AttackerId) · @b.AttackerHulls against @b.DefenderHulls hull(s), lost @b.AttackerLost and @b.DefenderLost</div> }
+                    @foreach (var b in othersB) { <div class="line small">Year @b.Turn, @b.Place: @Nm(b.WinnerId) beat @Nm(b.WinnerId == b.AttackerId ? b.DefenderId : b.AttackerId) · @b.AttackerHulls against @Counted.Hulls(b.DefenderHulls), lost @b.AttackerLost and @b.DefenderLost</div> }
                 </section>
             }
         </div></div>
@@ -150,7 +150,7 @@
                     @if (warAbroad != null)
                     {
                         int tot = Math.Max(1, warAbroad.ScoreReach + warAbroad.ScoreNation);
-                        <div class="war abroad-war"><div><b>War with @warAbroad.Name</b> <span class="muted">since turn @warAbroad.WarSince · @(warAbroad.OnMap ? "fought on the map" : warAbroad.Expeditions + " fleet(s) of the Reach in their space") · they hold @warAbroad.Strength hull(s)</span></div>
+                        <div class="war abroad-war"><div><b>War with @warAbroad.Name</b> <span class="muted">since turn @warAbroad.WarSince · @(warAbroad.OnMap ? "fought on the map" : Counted.Fleets(warAbroad.Expeditions) + " of the Reach in their space") · they hold @Counted.Hulls(warAbroad.Strength)</span></div>
                             <div class="tally"><span class="for" style="width:@(100 * warAbroad.ScoreReach / tot)%"></span><span class="against" style="width:@(100 * warAbroad.ScoreNation / tot)%"></span></div>
                             <div class="kv"><span>The tally</span><b>@warAbroad.ScoreReach : @warAbroad.ScoreNation <i class="muted">· @warAbroad.Threshold clear subdues them; @warAbroad.Threshold the other way and the chair buys peace</i></b></div>
                             @if (warAbroad.OnMap) { <div class="muted small">@(G.World!.Nation(warAbroad.Id) is { WarOf.Length: > 0 } own ? $"Only {G.World!.House(own.WarOf)?.Name ?? own.WarOf} is at war with them: no other house's fleets will fight theirs, and theirs come only for that house." : "Every house of the Reach is at war with them.") Sail to their worlds by the lanes. A fleet that raids sacks a world in a season and leaves it; one that takes and holds besieges it. Their host beaten counts two; a world of the Reach freed, or one of theirs taken, three; their capital, @warAbroad.Capital, ends it. A squadron of the Reach beaten counts one for them and a world occupied three. The house that does most takes the triumph.</div> }
@@ -161,7 +161,7 @@
                         <div class="nation @(n.AtWar ? "war" : n.SubduedUntil > 0 ? "tributary" : "")" title="@n.Description">
                             <div class="nrow"><b>@n.Name</b> <span class="muted small">@n.Temper · holds @n.Holds</span> @if (n.Fallen) { <span class="pill small">no more</span> } else if (n.OnMap) { <span class="pill small good" title="This nation holds worlds on the map, beyond its march. Its fleets move by the lanes and fight by the ordinary rules; a war with it is every house's war.">on the map</span> }</div>
                             @if (n.Ruler.Length > 0) { <div class="nrow small" title="The one who rules it leans on its regard for the Reach: the warlike sour it, the wary raid only in a real quarrel, the grasping raid for twice the cargo, the mild sweeten it. Rulers die and are followed, sometimes by the commander of the fleets. Every point of the commander's skill over four makes its fleets fight six in a hundred harder, and every point under, as much less; a commander who beats you learns from it, and one who is routed may be killed."><span><b>@n.Ruler</b>, @n.RulerNature by nature</span><span class="muted"> · the fleets under <b>@n.Commander</b>, skill @n.CommanderSkill of 9</span></div> }
-                            @if (n.Marches.Length > 0) { <div class="nrow small" title="Its raids come through these systems and fall on worlds within two lanes of them. A fleet of three hulls or more standing at the march turns a raid back before it lands. An expedition's voyage is the nation's depth beyond the march, and a year for every three lanes between the fleet and the march."><span class="muted">Its march:</span> <b>@n.Marches</b>@if (!n.OnMap) { <span class="muted"> · @(n.Nearest) year(s) out from your nearest fleet</span> }@if (n.Guard.Length > 0) { <span class="pill small good">held by @n.Guard</span> } else { <span class="pill small">unguarded</span> }</div> }
+                            @if (n.Marches.Length > 0) { <div class="nrow small" title="Its raids come through these systems and fall on worlds within two lanes of them. A fleet of three hulls or more standing at the march turns a raid back before it lands. An expedition's voyage is the nation's depth beyond the march, and a year for every three lanes between the fleet and the march."><span class="muted">Its march:</span> <b>@n.Marches</b>@if (!n.OnMap) { <span class="muted"> · @Counted.Years(n.Nearest) out from your nearest fleet</span> }@if (n.Guard.Length > 0) { <span class="pill small good">held by @n.Guard</span> } else { <span class="pill small">unguarded</span> }</div> }
                             @if (n.OnMap && !n.Fallen)
                             {
                                 <div class="nrow small" title="Taking the world its ruler sits at ends a war with it. @(n.HoldYears > 0 ? $"A world of its own held by a house of the Reach rises again after {n.HoldYears} years without a fleet of three hulls over it, unless the nation is paying tribute." : "A world of its own held by a house of the Reach does not rise: the nation makes war to take it back.")"><span class="muted">Sits at</span> <b>@n.Capital</b><span class="muted"> · holds</span> @n.Worlds</div>
@@ -185,7 +185,7 @@
                             }
                             <div class="nrow"><span class="muted small">strength</span><span class="mbar"><i style="width:@(100 * n.Strength / maxStr)%; background:@(n.AtWar ? "#E63946" : n.SubduedUntil > 0 ? "#2EC27E" : "#C9D1DC")"></i></span><b title="The hulls it can put in the field. The bar is against the strongest nation at its full strength.">@n.Strength hulls</b>
                                 <span class="pill small @(n.Disposition <= -30 ? "warn" : n.Disposition >= 20 ? "good" : "")" title="Their regard for the Reach, from −100 to +100. An aggressive or decaying nation raids the rim once its regard is at −20 or lower.">regard @(n.Disposition >= 0 ? "+" : "")@n.Disposition</span>
-                                @if (n.AtWar) { <span class="pill small warn">at war</span> } else if (n.SubduedUntil > 0) { <span class="pill small good">pays @n.Tribute a year until year @n.SubduedUntil</span> } @if (n.RaidedLately) { <span class="pill small warn">raiding the rim</span> }@if (n.Wars > 0 && !n.AtWar) { <span class="pill small">@n.Wars war(s) fought</span> }
+                                @if (n.AtWar) { <span class="pill small warn">at war</span> } else if (n.SubduedUntil > 0) { <span class="pill small good">pays @n.Tribute a year until year @n.SubduedUntil</span> } @if (n.RaidedLately) { <span class="pill small warn">raiding the rim</span> }@if (n.Wars > 0 && !n.AtWar) { <span class="pill small">@Counted.Wars(n.Wars) fought</span> }
                                 @if (!n.AtWar && n.SubduedUntil == 0 && !n.Fallen) { <button class="opt inline tiny" disabled="@(n.War.Refusal != null)" title="@(n.War.Refusal ?? "move in the Senate that the Reach make war upon them (3 influence)")" @onclick="() => MoveWar(n.Id)">@n.War.Label</button> }</div>
                         </div>
                     }
@@ -215,7 +215,7 @@
                     bool mine = n.IsPlayerTerritory; bool enemy = Enemy(n);
                     @if (inSupply.Contains(n.SystemId)) { <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="24" class="supply" /> }
                     @if (campaign == n.SystemId) { <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="18" class="campaign" /> }
-                    <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="@(mine ? 10 : enemy || n.Capital ? 8 : n.OwnerHouseId != null ? 5.5 : 3.5)" class="node @(mine ? "mine" : "") @(enemy ? "enemy" : "") @(!mine && !enemy && !n.Capital ? "far" : "")" style="fill:@(n.OwnerHouseId != null ? n.AccentColor : "#3a4152")"><title>@n.Name@(n.OwnerHouseName != null ? $" · {n.OwnerHouseName}" : " · unclaimed")@(jumps.TryGetValue(n.SystemId, out var jn) && jn.d > 0 ? $" · {jn.d} jump(s) from {jn.from}" : "")</title></circle>
+                    <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="@(mine ? 10 : enemy || n.Capital ? 8 : n.OwnerHouseId != null ? 5.5 : 3.5)" class="node @(mine ? "mine" : "") @(enemy ? "enemy" : "") @(!mine && !enemy && !n.Capital ? "far" : "")" style="fill:@(n.OwnerHouseId != null ? n.AccentColor : "#3a4152")"><title>@n.Name@(n.OwnerHouseName != null ? $" · {n.OwnerHouseName}" : " · unclaimed")@(jumps.TryGetValue(n.SystemId, out var jn) && jn.d > 0 ? $" · {Counted.Jumps(jn.d)} from {jn.from}" : "")</title></circle>
                     @((MarkupString)$"<text x=\"{F(PX(n.X))}\" y=\"{F(PY(n.Y) - (mine ? 17 : 12))}\" class=\"nlabel {(mine ? "mine" : enemy ? "enemy" : n.Capital ? "" : "far")}\">{System.Net.WebUtility.HtmlEncode(n.Name)}{(n.Capital && !mine ? " · the capital" : "")}</text>")
                 }
                 @foreach (var f in mapFleets.Where(f => byId.ContainsKey(f.SystemId) && inFocus.Contains(f.SystemId)))
@@ -225,7 +225,7 @@
                     <g class="fleet @(f.IsPlayer ? "mine" : hostile ? "enemy" : shown ? "other" : "faint")" transform="translate(@F(x),@F(y))">
                         <path d="M0 -11 L10 0 L0 11 L-10 0 Z" style="fill:@(hostile ? "#c0392b" : f.AccentColor)" />@if (shown) { @((MarkupString)$"<text y=\"5\" class=\"fl\">{f.Strength}</text>") }
                         @if (shown) { @((MarkupString)$"<text y=\"23\" class=\"flabel {(f.IsPlayer ? "mine" : hostile ? "enemy" : "")}\">{System.Net.WebUtility.HtmlEncode(who)}</text>") }
-                        <title>@f.Name · @f.OwnerHouseName · @f.Strength hull(s)@(f.IsPlayer ? "" : $" · confidence {f.Confidence}%")@(f.Moving ? $" · under way, {f.Eta} jump(s)" : "")</title>
+                        <title>@f.Name · @f.OwnerHouseName · @Counted.Hulls(f.Strength)@(f.IsPlayer ? "" : $" · confidence {f.Confidence}%")@(f.Moving ? $" · under way, {Counted.Jumps(f.Eta)}" : "")</title>
                     </g>
                 }
             </svg>
@@ -282,22 +282,22 @@
                 <div class="brief">
                     @foreach (var b in mil.Brief)
                     {
-                        <div class="line battle @(b.OurPower >= b.TheirPower ? "" : "warn")"><b>Battle at @b.SystemName at the turn's end</b> — @b.EnemyName, @b.EnemyHulls hull(s) as reported (@b.Confidence%) against our @b.OurHulls.
+                        <div class="line battle @(b.OurPower >= b.TheirPower ? "" : "warn")"><b>Battle at @b.SystemName at the turn's end</b> — @b.EnemyName, @Counted.Hulls(b.EnemyHulls) as reported (@b.Confidence%) against our @b.OurHulls.
                             Our @b.OurStance against their @b.TheirStance: @(b.Edge > 0 ? "the edge is ours" : b.Edge < 0 ? "the edge is theirs — change the stance" : "no edge either way").
                             <span class="odds">Odds @((int)Math.Round(100 * b.OurPower / Math.Max(0.01, b.OurPower + b.TheirPower)))%</span></div>
                     }
                     <div class="row small"><span class="muted">You command from</span>@foreach (var o in mil.MyStyleOptions) { <button class="opt inline tiny @(mil.MyStyle == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StyleHelp(o.Id))" @onclick="() => G.Execute(new SetCommandStyleCommand(pid, pid, o.Id))">@(o.Id == "none" ? "the staff" : "the " + o.Label)</button> }
-                        <span class="muted">· <span title="A commander can lead this many hulls well: it comes of rank and tactics. A fleet larger than its commander's number fights worse.">commands up to @mil.MyCap hull(s) without loss</span>@(mil.MyValour > 0 ? $" · valour {mil.MyValour}" : "")</span></div>
+                        <span class="muted">· <span title="A commander can lead this many hulls well: it comes of rank and tactics. A fleet larger than its commander's number fights worse.">commands up to @Counted.Hulls(mil.MyCap) without loss</span>@(mil.MyValour > 0 ? $" · valour {mil.MyValour}" : "")</span></div>
                 </div>
             }
-            @if (officeHulls > 0) { <div class="kv good"><span>The Admiralty</span><b>@officeHulls office hull(s) sail under your colours · the chair pays their upkeep and the state fuels them · war on the chair is treason</b></div> }
+            @if (officeHulls > 0) { <div class="kv good"><span>The Admiralty</span><b>@Counted.OfficeHulls(officeHulls) @Counted.Sail(officeHulls) under your colours · the chair pays their upkeep and the state fuels them · war on the chair is treason</b></div> }
             @foreach (var hired in MercenarySystem.HiredOutBy(w, house.Id))
             {
                 /* a company out on hire: whose pay it is in, where, for how long, and a way to call it back */
                 var recall = new RecallHiredFleetCommand(pid, hired.Id); string? recallNo = recall.Refusal(G.Ctx); string hiredId = hired.Id, hiredName = hired.Name, employerName = w.House(hired.OwnerId)?.Name ?? hired.OwnerId;
                 <div class="fcard" data-hired-out="@hired.Id">
                     <div class="hc-head"><Icon Name="fleet" Size="18" /><div><b>@hired.Name</b> <span class="pill small status">out on hire</span> <span class="muted small">@fs.Describe(hired) · in the pay of @employerName · @(hired.IsAway ? "beyond the Reach" : hired.Moving ? "under way" : "at " + (w.Galaxy?.System(hired.SystemId)?.Name ?? hired.SystemId))</span></div></div>
-                    <div class="small">@employerName pays @MercenarySystem.PayOf(hired) credits a year for it (@MercenarySystem.CreditsPerHull a hull) and keeps and fuels it. It sails and fights at @employerName's orders; hulls it loses are lost. @MercenarySystem.YearsLeft(w, hired) year(s) of its term are left, and it comes home sooner if that house's wars end or the pay is not found.</div>
+                    <div class="small">@employerName pays @MercenarySystem.PayOf(hired) credits a year for it (@MercenarySystem.CreditsPerHull a hull) and keeps and fuels it. It sails and fights at @employerName's orders; hulls it loses are lost. @Counted.Years(MercenarySystem.YearsLeft(w, hired)) of its term are left, and it comes home sooner if that house's wars end or the pay is not found.</div>
                     <button class="opt inline tiny" data-recall-hired="@hired.Id" disabled="@(recallNo != null)" title="@(recallNo ?? $"The contract is broken: {employerName}'s head thinks {MercenarySystem.BreakRegard} the worse of you, and your house is thought the less of (legitimacy −{MercenarySystem.BreakLegitimacy}). The company is yours again at once and sails for home.")" @onclick="() => AskRecallHired(hiredId, hiredName, employerName)">Call it back</button>
                 </div>
             }
@@ -323,7 +323,7 @@
                         @if (f.Expedition != null) { <button class="opt inline tiny" disabled="@(f.Expedition.Refusal != null)" title="@(f.Expedition.Refusal ?? "1 treasury action: the fleet leaves the map, sails the nation's distance, fights a season of four battles and comes home with plunder, valour and fewer hulls")" @onclick="() => G.Execute(new SendExpeditionCommand(pid, f.Id, f.Expedition.Id, c.Fleets, c.Nations))">@f.Expedition.Label</button> }
                         @if (f.Recall != null) { <button class="opt inline tiny" disabled="@(f.Recall.Refusal != null)" title="@(f.Recall.Refusal ?? "turn for home before the season is done")" @onclick="() => G.Execute(new RecallExpeditionCommand(pid, f.Id, c.Nations))">@f.Recall.Label</button> }
                         @if (fleet.Moving && !fleet.IsAway) { var rc = new RecallFleetCommand(pid, f.Id); var why = rc.Refusal(G.Ctx); int back = RecallFleetCommand.YearsBack(fleet);
-                            <button class="opt inline tiny" data-recall="@f.Id" disabled="@(why != null)" title="@(why ?? (back == 0 ? "The order was given this year: it is struck out and the fleet stays" : $"It has sailed {back} year(s): it takes as long to come back"))" @onclick="() => G.Execute(rc)">@(back == 0 ? "Strike out the order" : $"Call it back ({back} yr)")</button> }
+                            <button class="opt inline tiny" data-recall="@f.Id" disabled="@(why != null)" title="@(why ?? (back == 0 ? "The order was given this year: it is struck out and the fleet stays" : $"It has sailed {Counted.Years(back)}: it takes as long to come back"))" @onclick="() => G.Execute(rc)">@(back == 0 ? "Strike out the order" : $"Call it back ({back} yr)")</button> }
                         <button class="opt inline tiny" disabled="@(f.Refit.Refusal != null)" title="@f.Refit.Refusal" @onclick="() => G.Execute(new RefitFleetCommand(pid, f.Id))">@f.Refit.Label</button>
                         @if (!fleet.Office && fleet.LevyOf.Length == 0)
                         {
@@ -336,7 +336,7 @@
                             /* lay up: the hulls kept and the crews paid off, for a part of the keep (docs/MILITARY.md, "Laid up") */
                             bool laidUp = fleet.LaidUp; var lay = new LayUpFleetCommand(pid, f.Id, !laidUp, fs); string? layNo = lay.Refusal(G.Ctx); var (keepNow, keepLaid) = lay.Keep(w); string layTitle = fleet.Name + (laidUp ? " is back in commission" : " is laid up"), layChose = laidUp ? "Put it back in commission" : "Lay it up";
                             <button class="opt inline tiny @(laidUp ? "on" : "")" data-layup="@f.Id" disabled="@(layNo != null)"
-                                    title="@(layNo ?? (laidUp ? $"Put it back in commission: it may sail again and is counted in your strength, costs {SavedSays(keepNow)} a year and burns fuel again. Its crews are new to it: it starts with no readiness and gains {c.Fleets.ReadinessRecovery} a year at anchor. One treasury action." : $"Lay it up here: the {fleet.Strength} hull(s) are kept and the crews paid off. It costs {SavedSays(keepLaid)} a year in place of {SavedSays(keepNow)}, and burns no fuel. While it lies there it has no readiness, takes no order to sail, drill or detach, and is not counted in your strength; if it is attacked it fights at half weight. It can be put back in commission in any year. One treasury action. Nothing is broken up."))"
+                                    title="@(layNo ?? (laidUp ? $"Put it back in commission: it may sail again and is counted in your strength, costs {SavedSays(keepNow)} a year and burns fuel again. Its crews are new to it: it starts with no readiness and gains {c.Fleets.ReadinessRecovery} a year at anchor. One treasury action." : $"Lay it up here: the {Counted.Hulls(fleet.Strength)} {Counted.Are(fleet.Strength)} kept and the crews paid off. It costs {SavedSays(keepLaid)} a year in place of {SavedSays(keepNow)}, and burns no fuel. While it lies there it has no readiness, takes no order to sail, drill or detach, and is not counted in your strength; if it is attacked it fights at half weight. It can be put back in commission in any year. One treasury action. Nothing is broken up."))"
                                     @onclick="() => G.ExecuteTold(lay, layTitle, layChose)">@(laidUp ? "Laid up · recommission" : "Lay up")</button>
                         }
                         @if (!fleet.Office && fleet.LevyOf.Length == 0)
@@ -357,7 +357,7 @@
                                 <span class="muted small">How many</span>
                                 <input class="qty" type="number" min="1" max="@fleet.Strength" value="@hn" @onchange="e => _hulls[f.Id] = int.TryParse(e.Value?.ToString(), out var v) ? v : 1" />
                                 <button class="opt" data-detach="@f.Id" disabled="@(detNo != null)" title="@(detNo ?? $"{FleetHulls.Say(det.Which(w))} {(hn == 1 ? "stays" : "stay")} here as a squadron of {(hn == 1 ? "its" : "their")} own, without an admiral until you name one; {f.Name} keeps the rest. The lightest hulls go. It costs nothing.")" @onclick="() => G.Execute(det)">Detach @hn as a guard</button>
-                                <button class="opt" data-payoff="@f.Id" disabled="@(payNo != null)" title="@(payNo ?? $"{FleetHulls.Say(pay.Which(w))} {(hn == 1 ? "is" : "are")} broken up. It saves {SavedSays(pay.Saved(w))} a year, and the breakers give back {pay.Scrap(w)} materials ({PayOffHullsCommand.ScrapPct}% of what they cost). It cannot be undone.")" @onclick='() => G.Ask("Pay off " + hn + " hull(s) of " + f.Name + "?", FleetHulls.Say(pay.Which(w)) + (hn == 1 ? " is" : " are") + " broken up for " + pay.Scrap(w) + " materials. That saves " + SavedSays(pay.Saved(w)) + " a year. It cannot be undone.", "Pay them off", () => G.Execute(pay))'>Pay off @hn</button>
+                                <button class="opt" data-payoff="@f.Id" disabled="@(payNo != null)" title="@(payNo ?? $"{FleetHulls.Say(pay.Which(w))} {(hn == 1 ? "is" : "are")} broken up. It saves {SavedSays(pay.Saved(w))} a year, and the breakers give back {pay.Scrap(w)} materials ({PayOffHullsCommand.ScrapPct}% of what they cost). It cannot be undone.")" @onclick='() => G.Ask("Pay off " + Counted.Hulls(hn) + " of " + f.Name + "?", FleetHulls.Say(pay.Which(w)) + (hn == 1 ? " is" : " are") + " broken up for " + pay.Scrap(w) + " materials. That saves " + SavedSays(pay.Saved(w)) + " a year. It cannot be undone.", "Pay them off", () => G.Execute(pay))'>Pay off @hn</button>
                             </details>
                         }
                         @if (!fleet.IsAway && !fleet.Office && fleet.LevyOf.Length == 0)
@@ -403,7 +403,7 @@
                 </tbody>
             </table>
             @if (board.Count > 6) { <button class="opt inline tiny" @onclick="() => _allNavies = !_allNavies">@(_allNavies ? "Show fewer" : $"Show all {board.Count}")</button> }
-            @if (raidersAtLarge > 0) { <div class="small bad">Raiders on the lanes: @raidersAtLarge hull(s) in all.</div> }
+            @if (raidersAtLarge > 0) { <div class="small bad">Raiders on the lanes: @Counted.Hulls(raidersAtLarge) in all.</div> }
         </section>
         }
         @if (_view == "deck" && m.Wars.Count == 0 && m.Sieges.Count == 0 && !nations.Any(n => n.AtWar)) { <div class="empty-line peace">At peace: no war, no siege, no campaign. A house declares a war on the Houses window; the Senate makes war beyond the Reach.</div> }
@@ -434,7 +434,7 @@
         @if (_view == "deck" && (mil.Campaign.TargetName != null || mil.Campaign.Targets.Count > 0)) {
                 <section class="panel">
                     <h3><Icon Name="galaxy" Size="13" /> The campaign <span class="muted">an enemy's world named as the war's object for eight turns</span></h3>
-                    @if (mil.Campaign.TargetName != null) { <div class="kv good"><span>Object</span><b>@mil.Campaign.TargetName · @mil.Campaign.TurnsLeft year(s) more</b></div><div class="muted small">Fleets within two lanes of it fight at +10% and count as supplied.</div> }
+                    @if (mil.Campaign.TargetName != null) { <div class="kv good"><span>Object</span><b>@mil.Campaign.TargetName · @Counted.Years(mil.Campaign.TurnsLeft) more</b></div><div class="muted small">Fleets within two lanes of it fight at +10% and count as supplied.</div> }
                     else
                     {
                         <select class="sel" @onchange="SetCampaign">

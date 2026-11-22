@@ -24,6 +24,13 @@ Ranked by how much closer each brings the game to "it has to look like a game of
 | 5 | **FastSD CPU** (OpenVINO) or **stable-diffusion.cpp** | MIT, MIT (both pushed this week) | The painter runs at half a minute to a minute a picture here. FastSD reports about one to three seconds on a desktop processor *(reported, on a Core i7)*. That turns "paint 400 pictures overnight" into "repaint the library when the style changes" | Medium: a second backend for `tools/art/*.py`, and the pictures compared side by side before anything is replaced |
 | 6 | **CsCheck** and **Verify** | Apache-2.0, MIT | CsCheck throws random sequences of commands at a world and, when one breaks it, shrinks the sequence to the shortest that still does. Verify keeps a projection or a chronicle as a file and fails when it changes. Both suit a game tested by soak | Small each |
 
+## What has been taken up
+
+| When | What | Where it is written up |
+|---|---|---|
+| 2026-11-22 | **Floating UI**: tooltips that hold tooltips, placed on the screen | docs/WEB_CLIENT.md, "Tooltips" |
+| 2026-11-22 | The map: looked at with pmndrs/postprocessing and troika in mind, and done without either | docs/GALAXY.md, "The chart at three distances" |
+
 ## By area
 
 ### Sound and music

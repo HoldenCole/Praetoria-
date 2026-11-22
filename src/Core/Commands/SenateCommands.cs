@@ -29,7 +29,7 @@ public sealed class ProposeMotionCommand : ICommand
             var law = _senate.Policies.Law(_lawId); if (law == null || law.Scope != "senate") return "name a law of the Senate";
             var opt = law.Option(_optionId); if (opt == null) return "name one of its options";
             if ((PolicySystem.ReachOption(w, _senate.Policies, law) ?? law.DefaultOption).Id == opt.Id) return "already the law of the Reach";
-            if (PolicySystem.OnCooldown(w, PolicySystem.SenateHolder, law.Id)) return $"the Senate settled that lately — {w.Counter($"law_cd:{PolicySystem.SenateHolder}:{law.Id}") - w.Turn} year(s) more";
+            if (PolicySystem.OnCooldown(w, PolicySystem.SenateHolder, law.Id)) return $"the Senate settled that lately — {Counted.MoreYears(w.Counter($"law_cd:{PolicySystem.SenateHolder}:{law.Id}") - w.Turn)}";
             if (w.Motions.Any(m => m.Open && m.LawId == law.Id)) return "that law is already before the Senate";
         }
         if (def.Office)
@@ -292,7 +292,7 @@ public sealed class StandForConsulCommand : ICommand
         ctx.PoolsOf(ActorId).Spend(new Dictionary<string, int> { [Pool.Influence] = ElectionSystem.StandInfluence });
         w.WorldFlags.Add(ElectionSystem.StandFlag(actor.HouseId));
         var who = OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), actor.HouseId);
-        w.Log($"{w.House(actor.HouseId)?.Name} declares for the consulship{(who != null && who.Id != actor.Id ? $", in the person of {who.Name}" : "")}; the election is in {ElectionSystem.NextIn(w)} year(s).");
+        w.Log($"{w.House(actor.HouseId)?.Name} declares for the consulship{(who != null && who.Id != actor.Id ? $", in the person of {who.Name}" : "")}; the election is in {Counted.Years(ElectionSystem.NextIn(w))}.");
     }
 }
 

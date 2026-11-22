@@ -38,7 +38,7 @@
             <Tile Label="Unwed and of age" Value="@unwed.Count.ToString()" Note="@(unwed.Count == 0 ? "every grown one of the blood is wed" : string.Join(", ", unwed.Take(3).Select(k => First(k.Name))) + (unwed.Count > 3 ? " and others" : ""))" Title="A match is an alliance, a dowry and the next generation. They court for themselves, and ask your blessing." />
             <Tile Label="Health of the house" Value="@(ailing.Count == 0 ? "all sound" : $"{ailing.Count} ailing")" Tone="@(ailing.Count == 0 ? "good" : "warn")"
                   Note="@(ailing.Count == 0 ? "nobody ill or frail" : string.Join(", ", ailing.Take(2).Select(k => $"{First(k.Name)} {LifeSystem.HealthName(k.Health)}")))" Title="Send your physicians to one who is ailing, from the You screen." />
-            <Tile Label="Generation" Value="@Ordinal(generation)" Note="@(w.Successions.Count == 0 ? "the seat has not yet passed" : $"the seat has passed {w.Successions.Count} time(s)")" />
+            <Tile Label="Generation" Value="@Ordinal(generation)" Note="@(w.Successions.Count == 0 ? "the seat has not yet passed" : $"the seat has passed {Counted.Times(w.Successions.Count)}")" />
         </div>
     </header>
     @* The Dynasty window (docs/ART_DIRECTION.md, "The windows, one by one"): the tree first, and whoever is picked on it beside the

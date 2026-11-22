@@ -25,7 +25,7 @@ public static class ReportFacts
             var war = w.Wars.FirstOrDefault(x => x.Between(mine, envoy.HouseId)); if (war == null) return "";
             var rules = content.Fleets; var terms = HousePeace.Terms(w, new FleetSystem(rules), rules, mine, envoy.HouseId);
             int lead = war.Lead(mine);
-            string stands = $"The war with {Nm(envoy.HouseId)}, begun in year {war.Since}: {(lead > 0 ? $"you are {lead} ahead" : lead < 0 ? $"you are {-lead} behind" : "neither side is ahead")} by the score (a battle won is 2, a world taken 3), with {FleetSystem.StrengthOf(w, mine)} hull(s) to their {FleetSystem.StrengthOf(w, envoy.HouseId)}.";
+            string stands = $"The war with {Nm(envoy.HouseId)}, begun in year {war.Since}: {(lead > 0 ? $"you are {lead} ahead" : lead < 0 ? $"you are {-lead} behind" : "neither side is ahead")} by the score (a battle won is 2, a world taken 3), with {Counted.Hulls(FleetSystem.StrengthOf(w, mine))} to their {FleetSystem.StrengthOf(w, envoy.HouseId)}.";
             var asks = terms.Where(t => t.Kind != HousePeace.White).Select(t => t.Accepted ? $"{t.Label}: {t.What}" : $"{t.Label}: not to be had ({t.Why}).").ToList();
             return stands + (asks.Count > 0 ? " What may be asked: " + string.Join(" ", asks) : " Nothing may be asked beyond the peace itself.") + " While the envoy waits, the same terms are under Wars in the Military window.";
         }
@@ -41,7 +41,7 @@ public static class ReportFacts
             var b = w.Battles.LastOrDefault(x => x.Involves(mine) && (x.WinnerId == mine) == won);
             if (b == null) return "";
             bool att = b.AttackerId == mine;
-            return $"The battle of {b.Place}, year {b.Turn}: your {(att ? b.AttackerHulls : b.DefenderHulls)} hull(s) against {(att ? b.DefenderHulls : b.AttackerHulls)} of {Nm(att ? b.DefenderId : b.AttackerId)}. You lost {(att ? b.AttackerLost : b.DefenderLost)}, they lost {(att ? b.DefenderLost : b.AttackerLost)}. The full account is under Military, Battles.";
+            return $"The battle of {b.Place}, year {b.Turn}: your {Counted.Hulls((att ? b.AttackerHulls : b.DefenderHulls))} against {(att ? b.DefenderHulls : b.AttackerHulls)} of {Nm(att ? b.DefenderId : b.AttackerId)}. You lost {(att ? b.AttackerLost : b.DefenderLost)}, they lost {(att ? b.DefenderLost : b.AttackerLost)}. The full account is under Military, Battles.";
         }
         if (flags.Contains(LadderSystem.ElectedFlag) || flags.Contains(LadderSystem.KinElectedFlag) || flags.Contains(LadderSystem.LostFlag))
         {
@@ -74,7 +74,7 @@ public static class ReportFacts
             var war = w.Wars.LastOrDefault(x => x.HouseB == mine && x.Since >= w.Turn - 2); if (war == null) return "";
             var fleets = new FleetSystem(content.Fleets); string foe = war.HouseA; int theirs = FleetSystem.StrengthOf(w, foe), ours = FleetSystem.StrengthOf(w, mine);
             var terms = HousePeace.Terms(w, fleets, content.Fleets, mine, foe).Where(t => t.Accepted).Select(t => t.Label.ToLowerInvariant()).ToList();
-            return $"{Nm(foe)} declared war on your house in year {war.Since}: its {theirs} hull(s) to your {ours}."
+            return $"{Nm(foe)} declared war on your house in year {war.Since}: its {Counted.Hulls(theirs)} to your {ours}."
                 + (war.Why.Length > 0 ? $" Why: {war.Why}." : "")
                 + (terms.Count > 0 ? $" If you sued for peace today it would take: {string.Join(", or ", terms)}." : " It would take no peace you could offer today: the war must turn first.")
                 + " The war and its terms are under Military, on the deck.";

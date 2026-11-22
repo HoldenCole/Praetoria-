@@ -24,7 +24,7 @@ internal static class Commands
         foreach (var issue in issues) Console.WriteLine(issue);
 
         Console.WriteLine($"\n{content.Events.Count} events, {content.Texts.Count} text entries — " +
-                          $"{errors} error(s), {issues.Count - errors} warning(s).");
+                          $"{Counted.Errors(errors)}, {Counted.Warnings(issues.Count - errors)}.");
         return errors > 0 ? 1 : 0;
     }
 
@@ -98,7 +98,7 @@ internal static class Commands
         for (int t = 0; t < Math.Max(o.Turns, 5); t++)
         {
             var briefing = tc.BeginTurn();
-            Console.WriteLine($"T{world.Turn}  BRIEFING — {briefing.Count} report(s); " +
+            Console.WriteLine($"T{world.Turn}  BRIEFING — {Counted.Reports(briefing.Count)}; " +
                               $"pools I{tc.PlayerPools.Influence}/T{tc.PlayerPools.Treasury}/A{tc.PlayerPools.Agents}");
 
             foreach (var item in briefing)
@@ -222,7 +222,7 @@ internal static class Commands
 
         int living = w.LivingCharacters().Count(c => c.HouseId == "vega");
         Console.WriteLine($"\nAfter 20 years: House Vega is led by {Head()}, {living} living members, " +
-                          $"{w.Counter("dynasty_births")} born, {w.Counter("generation")} succession(s).");
+                          $"{w.Counter("dynasty_births")} born, {Counted.Successions(w.Counter("generation"))}.");
         Console.WriteLine("The character is mortal; the dynasty is the save. (GDD §14)");
         return 0;
     }
@@ -518,7 +518,7 @@ internal static class Commands
             ? Directory.EnumerateFiles(Path.Combine(contentRoot, "scenarios"), "*.json").Select(Path.GetFileNameWithoutExtension).Select(s => s!).OrderBy(s => s, StringComparer.Ordinal).ToList()
             : new List<string> { o.Scenario };
         int turns = Math.Max(o.Turns, 40);
-        Console.WriteLine($"=== SIMULATE — {o.Seeds} seed(s) × {turns} turns, difficulty {o.Difficulty}, intensity {o.Intensity} ===\n");
+        Console.WriteLine($"=== SIMULATE — {Counted.Seeds(o.Seeds)} × {turns} turns, difficulty {o.Difficulty}, intensity {o.Intensity} ===\n");
         Console.WriteLine($"{"scenario",-20} {"ended",5} {"gens",5} {"wars",5} {"battl",5} {"conq",5} {"throne",6} {"crises",6} {"births",6} {"plots",5} {"broke",5} {"events",6}");
         foreach (var sid in scenarios)
         {
@@ -598,7 +598,7 @@ internal static class Commands
         {
             Console.WriteLine($"\nFrom {world.Galaxy.System(home.SystemId)!.Name}, the rivals' seats lie:");
             foreach (var h in world.Holdings.Values.Where(h => h.OwnerId != home.OwnerId && h.SystemId != "").OrderBy(h => h.Id, StringComparer.Ordinal))
-                Console.WriteLine($"   {world.Galaxy.System(h.SystemId)!.Name,-20} {world.House(h.OwnerId)!.Name,-16} {world.Galaxy.Hops(home.SystemId, h.SystemId)} jump(s)");
+                Console.WriteLine($"   {world.Galaxy.System(h.SystemId)!.Name,-20} {world.House(h.OwnerId)!.Name,-16} {Counted.Jumps(world.Galaxy.Hops(home.SystemId, h.SystemId))}");
         }
         return 0;
     }

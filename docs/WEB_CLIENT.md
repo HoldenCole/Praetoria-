@@ -88,6 +88,32 @@ Both ways were tried in a headless browser by taking the context away with `WEBG
 Found while in that file and fixed: the map's "Back to your seat" button had done nothing since the seat was first
 stored under the same name as the function that goes to it.
 
+## Tooltips
+
+Every window keeps its detail in tooltips, so they are the game's own and not the browser's (`js/tips.js`). Anything with a
+`title` gets one: a heading when the text has one, a row a line for a breakdown.
+
+**A tooltip may hold a tooltip.** A word of the game's own (legitimacy, clout, a bench, a war score: the 74 terms of the
+glossary in `content/academy/academy.json`) is underlined where it stands in a tooltip. The tooltip stays while the
+pointer is on it, and resting on the word opens what it means beside it, level with the word. That one may hold words
+too, four deep at most. Each word is underlined once in a tooltip, five at most, never the word the tooltip is itself
+about, and not the everyday ones (year, world, fleet, the Senate) that would mark every line. A label in a window
+that is exactly one of the glossary's words explains itself the same way, and so does anything given `data-gloss="id"`.
+
+They are placed by **Floating UI** (MIT, 1.8.0, kept in `js/vendor` and not loaded from a CDN: the detail of every
+window must work offline). A tooltip opens beside the pointer, or under the thing itself when it was reached by the
+keyboard; it is turned over or slid along when the edge of the screen is in the way and is never taller than the room
+there is. They close when the pointer leaves, on a click elsewhere, on scrolling and on any key.
+
+`tools/browser/tooltips.js` checks it in a real browser: a tooltip, one inside it and one inside that, all wholly on the
+screen, closed on leaving, turned upward at the foot of the screen.
+
+## Words
+
+A count is said as a person says it. `Counted` (in the core) writes "1 hull" and "4 hulls", "3 more years", and gives
+the verb that agrees ("1 seat is counted", "4 seats are"). About 170 lines across the game used to write "hull(s)" and
+"year(s)"; none does now, and a test reads the source to keep it so.
+
 ## Running and testing it locally
 
 ```bash

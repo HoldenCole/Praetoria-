@@ -34,12 +34,12 @@
     string Held(Character x) => x.Cursus.Count == 0 ? "nothing yet" : string.Join(", then ", x.Cursus.Select(id => offices.Rung(id)?.Name.ToLowerInvariant() ?? id));
 }
 <section class="panel cursus">
-    <h3><Icon Name="senate" Size="13" /> The ladder of offices <span class="muted">@(active ? $"the next election in {next} year(s)" : "there are no elections under a throne")</span></h3>
+    <h3><Icon Name="senate" Size="13" /> The ladder of offices <span class="muted">@(active ? $"the next election in {Counted.Years(next)}" : "there are no elections under a throne")</span></h3>
     @if (!active) { <div class="muted small">Under the Imperium offices are the throne's to give. The ladder belongs to the Republic.</div> }
     else
     {
         <div class="muted small">Each rung is held by a person, for five years, and filled by election. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides. You have been: <b>@Held(p)</b>.</div>
-        <div class="small" data-next-election="@next"><b>The next election is @(next <= 0 ? "at the end of this year" : next == 1 ? "at the end of next year (year " + (w.Turn + 1) + ")" : "in " + next + " years, at the end of year " + (w.Turn + next))</b>: every rung below the consulship is filled then, and names go down before it. @w.Candidacies.Count name(s) are down so far.</div>
+        <div class="small" data-next-election="@next"><b>The next election is @(next <= 0 ? "at the end of this year" : next == 1 ? "at the end of next year (year " + (w.Turn + 1) + ")" : "in " + next + " years, at the end of year " + (w.Turn + next))</b>: every rung below the consulship is filled then, and names go down before it. @Counted.Names(w.Candidacies.Count) @Counted.Are(w.Candidacies.Count) down so far.</div>
         <div class="small">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span> <span class="muted small">@trustDoes</span></div>
         @if (LadderSystem.TrustApartSays(w) is { Length: > 0 } apart) { <div class="muted small" title="An office's own name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a little less closely to the Reach each year.">@apart</div> }
         @if (taintLine.Length > 0) { <div class="small bad">@taintLine</div> }
@@ -74,14 +74,14 @@
             string rid = rung.Id; var holders = LadderSystem.Holders(w, rung.Id); var ours = w.Candidacies.Where(x => x.RungId == rung.Id).ToList();
             var stand = new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices).Refusal(G.Ctx);
             <div class="rung-row">
-                <div><b>@rung.Name</b> <span class="muted small">@rung.Seats seat(s) · from @rung.MinAge@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {rung.Stipend} a year" : "")</span></div>
+                <div><b>@rung.Name</b> <span class="muted small">@Counted.Seats(rung.Seats) · from @rung.MinAge@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {rung.Stipend} a year" : "")</span></div>
                 <div class="muted small">@rung.Description</div>
                 <div class="small">Sitting: @(holders.Count == 0 ? "nobody" : string.Join("; ", holders.Select(h => { var x = w.Char(h.CharacterId); return x == null ? "" : x.HouseId == house.Id ? $"{x.Name} (yours)" : $"{x.Name} of {w.House(x.HouseId)?.Name}"; })))</div>
                 @foreach (var cd in ours)
                 {
                     var x = w.Char(cd.CharacterId); if (x == null) continue; string xid = x.Id; var back = new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices).Refusal(G.Ctx);
                     <div class="suit-acts">
-                        <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="muted">(the count is @(next <= 0 ? "at this year's end" : "in " + next + " year(s)") · @w.Candidacies.Count(o => o.RungId == cd.RungId) name(s) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
+                        <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="muted">(the count is @(next <= 0 ? "at this year's end" : "in " + Counted.Years(next) + "") · @Counted.Names(w.Candidacies.Count(o => o.RungId == cd.RungId)) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
                         <button class="opt inline tiny" disabled="@(back != null)" title="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))">@(x.Id == pid ? "Call in what is owed" : "Speak for them") · @LadderSystem.BackInfluence influence</button>
                         @if (x.Id == pid) { <button class="opt inline tiny" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Withdraw, pid, string.Empty, offices))">Withdraw</button> }
                         else

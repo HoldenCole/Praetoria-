@@ -106,7 +106,7 @@ public static partial class LadderSystem
         if (!Committees.Contains(committee)) return "no such committee";
         if (!OrderSystem.Seated(w, house)) return "a committee is made up of houses that sit, and yours has no seat yet";
         if (CommitteeOf(w, house) == committee) return "you sit on it already";
-        return w.WorldCounters.TryGetValue(ChangedKey(house.Id), out int last) && w.Turn - last < ChangeEvery ? $"you changed committees not long ago (again in {ChangeEvery - (w.Turn - last)} year(s))" : null;
+        return w.WorldCounters.TryGetValue(ChangedKey(house.Id), out int last) && w.Turn - last < ChangeEvery ? $"you changed committees not long ago (again in {Counted.Years(ChangeEvery - (w.Turn - last))})" : null;
     }
     /// <summary>Move to another committee. One starts at the bottom of a new table.</summary>
     public static void ChangeCommittee(World w, Character head, string committee)

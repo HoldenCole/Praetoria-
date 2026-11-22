@@ -47,7 +47,7 @@ public static class HousePeace
         string them = w.House(other)?.Name ?? other; int lead = war.Lead(asker), mine = FleetSystem.StrengthOf(w, asker), theirs = FleetSystem.StrengthOf(w, other);
         bool suing = w.LivingCharacters().Any(c => c.HouseId == other && c.Flags.Contains(FleetSystem.SuingForPeaceFlag));
         bool listens = suing || fleets.WouldAcceptPeace(w, other, asker);
-        string deaf = $"{them} smells victory ({theirs} hull(s) to your {mine}{(war.Lead(other) > 0 ? ", and ahead by " + war.Lead(other) : "")}): it will not hear of peace yet";
+        string deaf = $"{them} smells victory ({Counted.Hulls(theirs)} to your {mine}{(war.Lead(other) > 0 ? ", and ahead by " + war.Lead(other) : "")}): it will not hear of peace yet";
         int owed = Math.Abs(lead) * rules.TributePerScore;
         if (lead >= 0)
         {
@@ -64,7 +64,7 @@ public static class HousePeace
                 terms.Add(new Term(Cede, h.Id, "Peace for " + h.Name, $"{them} gives up {h.Name} ({Presentation.Census.Say(Presentation.Census.Citizens(w, h))} citizens) and the war ends.",
                     lead >= WorldLead && beaten && (listens || lead >= FleetSystem.CessionLead),
                     lead < WorldLead ? $"a world is asked for from {WorldLead} ahead; you are {lead} ahead (a battle won is 2, a world taken 3)"
-                    : !beaten ? $"{them} still has the stronger fleet ({theirs} hull(s) to your {mine}) and will not give a world while it can hope to win one back: beat its fleet, or lead by {FleetSystem.CessionLead}" : listens || lead >= FleetSystem.CessionLead ? "" : deaf));
+                    : !beaten ? $"{them} still has the stronger fleet ({Counted.Hulls(theirs)} to your {mine}) and will not give a world while it can hope to win one back: beat its fleet, or lead by {FleetSystem.CessionLead}" : listens || lead >= FleetSystem.CessionLead ? "" : deaf));
             if (worlds.Count == 0 && lead >= WorldLead) terms.Add(new Term(Cede, "", "Peace for a world", "", false, them + " has only its last world, or only the capital: there is none it can give"));
         }
         else

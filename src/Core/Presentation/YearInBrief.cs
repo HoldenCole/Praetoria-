@@ -103,7 +103,7 @@ public static class YearInBrief
         foreach (var b in w.Battles.Where(b => b.Turn == year && b.Involves(mine)))
         {
             bool won = b.WinnerId == mine, att = b.AttackerId == mine; string foe = Nm(att ? b.DefenderId : b.AttackerId);
-            lines.Add(new BriefLine(War, won ? "good" : "warn", $"The battle of {b.Place}: {(won ? "won against" : "lost to")} {foe}. You lost {(att ? b.AttackerLost : b.DefenderLost)} hull(s), they lost {(att ? b.DefenderLost : b.AttackerLost)}.", "military:battles"));
+            lines.Add(new BriefLine(War, won ? "good" : "warn", $"The battle of {b.Place}: {(won ? "won against" : "lost to")} {foe}. You lost {Praetoria.Core.Counted.Hulls((att ? b.AttackerLost : b.DefenderLost))}, they lost {(att ? b.DefenderLost : b.AttackerLost)}.", "military:battles"));
         }
         foreach (var war in w.Wars.Where(x => x.Since == year && x.Involves(mine)))
         {

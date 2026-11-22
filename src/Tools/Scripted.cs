@@ -319,7 +319,7 @@ internal static class Scripted
         string root = ContentLocator.FindContentDir(); var content = ContentLoader.LoadFromDirectory(root);
         var scenarios = o.Scenario is "academy_crucible" or "all" ? Starts(root) : new List<string> { o.Scenario };
         int seeds = Math.Max(1, Math.Min(o.Seeds, 10)), turns = o.Turns > 6 ? o.Turns : 60; int failures = 0;
-        Console.WriteLine($"=== Players with an end in view: {SoakRoads.Length} roads × {scenarios.Count} start(s) × {seeds} seed(s) × {turns} years ===");
+        Console.WriteLine($"=== Players with an end in view: {SoakRoads.Length} roads × {Counted.Starts(scenarios.Count)} × {Counted.Seeds(seeds)} × {turns} years ===");
         var everything = new Dictionary<string, int>(StringComparer.Ordinal);
         foreach (var road in SoakRoads)
         {
@@ -373,7 +373,7 @@ internal static class Scripted
         string root = ContentLocator.FindContentDir(); var content = ContentLoader.LoadFromDirectory(root);
         int seeds = Math.Max(1, Math.Min(o.Seeds, 10)), turns = o.Turns > 6 ? o.Turns : 60; int failures = 0; var road = Upstart;
         var tracks = new[] { "military", "stewardship", "law" };
-        Console.WriteLine($"=== The upstart: a new house from nothing · {tracks.Length} services × {seeds} seed(s) × {turns} years ===");
+        Console.WriteLine($"=== The upstart: a new house from nothing · {tracks.Length} services × {Counted.Seeds(seeds)} × {turns} years ===");
         var spec0 = Nothing("military"); var (cost, _) = Praetoria.Core.Creation.CharacterWorkshop.Cost(spec0, content);
         Console.WriteLine($"    the start: landless, a new name, legitimacy {spec0.Legitimacy}, {spec0.Treasury["credits"]} credits, no seat, no patron, no family · {cost} of {Praetoria.Core.Creation.WorkshopLimits.Standard.Budget} points");
         var runs = new List<(string track, Result r)>();

@@ -595,7 +595,7 @@ public static class ProvinceSystem
             w.Fleets[id] = new Fleet { Id = id, Name = "The " + of + " Levy", OwnerId = planet.OwnerId, LevyOf = senderId, AdmiralId = officer?.Id ?? "", SystemId = planet.SystemId, HomeSystemId = planet.SystemId,
                 Strength = rules.LevySquadron * Math.Max(1, p.Level), Loyalty = DuesOf(w, p) >= Heavy ? 35 : 60 };
             p.Levied = true; w.WorldCounters["levies_raised"] = w.Counter("levies_raised") + 1;
-            w.Log($"{sender.Name} sends the levy of {p.Name} to {over?.Name ?? "the holder of the world"}: {rules.LevySquadron * Math.Max(1, p.Level)} hull(s){(officer != null ? " under " + officer.Name : "")}, until the peace.");
+            w.Log($"{sender.Name} sends the levy of {p.Name} to {over?.Name ?? "the holder of the world"}: {Counted.Hulls(rules.LevySquadron * Math.Max(1, p.Level))}{(officer != null ? " under " + officer.Name : "")}, until the peace.");
         }
     }
 
@@ -661,7 +661,7 @@ public static class ProvinceSystem
                     string holder = HolderOf(h, i); if (holder == owner.Id) continue;
                     int defied = w.Counter(DefiedKey(owner.Id, holder)); bool provoked = h.Provinces[i].Withheld || defied >= rules.Defiances;
                     if (!provoked || FleetSystem.StrengthOf(w, owner.Id) < FleetSystem.StrengthOf(w, holder) || DemandRefusal(w, cat, owner, h, i, owner.Id, false) != null) continue;
-                    string why = h.Provinces[i].Withheld ? "you are withholding the dues the province owes it" : $"you have voted against it in the Senate {defied} time(s) on what touched it, and it bears {rules.Defiances - 1}";
+                    string why = h.Provinces[i].Withheld ? "you are withholding the dues the province owes it" : $"you have voted against it in the Senate {Counted.Times(defied)} on what touched it, and it bears {rules.Defiances - 1}";
                     w.WorldCounters.Remove(DefiedKey(owner.Id, holder)); Demand(w, cat, owner, h, i, owner.Id, why); changed = true; break;
                 }
             // a rival who holds a world asks for one of its provinces for itself, when it is at peace and at least the holder's match

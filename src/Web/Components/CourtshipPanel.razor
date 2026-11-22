@@ -53,7 +53,7 @@
                 <Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Accent="@(wh?.AccentColor ?? "#888")" Size="40" />
                 <Portrait Id="@kin.Id" Name="@kin.Name" Sex="@kin.Sex" Age="@kin.Age" Accent="@house.AccentColor" Size="40" />
                 <div><b>@who.Name</b> of @wh?.Name asks for <b>@kin.Name</b>
-                    <div class="muted small">@who.Age, @(c.Careers.RankName(who.CareerTrack, who.CareerRank, w.Era) ?? "of no office") · @(wh == null ? "" : Praetoria.Core.Progression.Title.StyleOf(wh.Title, w.Era)) house, legitimacy @wh?.Legitimacy · the suit is withdrawn in @Math.Max(1, left) year(s) if unanswered</div></div>
+                    <div class="muted small">@who.Age, @(c.Careers.RankName(who.CareerTrack, who.CareerRank, w.Era) ?? "of no office") · @(wh == null ? "" : Praetoria.Core.Progression.Title.StyleOf(wh.Title, w.Era)) house, legitimacy @wh?.Legitimacy · the suit is withdrawn in @Counted.Years(Math.Max(1, left)) if unanswered</div></div>
             </div>
             <div class="gauges"><div class="gauge" title="What your own kin feels about the suitor. Give them to someone they cannot bear and they will hold it against you; refuse someone they want and they will too."><span>@First(kin.Name)'s wish</span><i><b style="width:@s.Favour%" class="@(s.Favour >= CourtshipSystem.LoveAt ? "high" : s.Favour < 25 ? "low" : "")"></b></i><em>@s.Favour</em></div></div>
             <TermsPicker W="w" Suit="s" Dowry="@dowry" Kids="@kids" OnChange="t => _terms[sid] = t" />
@@ -80,7 +80,7 @@
             @if (s.Betrothed)
             {
                 int wait = Math.Max(0, Math.Max(16 - who.Age, 16 - t.Age));
-                <div class="muted small">The families have agreed. They wed when both are of age@(wait > 0 ? $", in {wait} year(s)" : " this year"). Dowry: @s.Dowry.@(s.ChildrenTo.Length > 0 ? $" The children will carry the name of {w.House(s.ChildrenTo)?.Name}." : "")</div>
+                <div class="muted small">The families have agreed. They wed when both are of age@(wait > 0 ? $", in {Counted.Years(wait)}" : " this year"). Dowry: @s.Dowry.@(s.ChildrenTo.Length > 0 ? $" The children will carry the name of {w.House(s.ChildrenTo)?.Name}." : "")</div>
                 <div class="suit-acts">
                     @if (_confirm == BrkKey + sid) { <button class="opt inline veto" @onclick="() => { _confirm = null; G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.BreakOff)); }">Yes, break it</button> <button class="opt inline" @onclick="() => _confirm = null">No</button> }
                     else { <button class="opt inline" title="it costs the house standing and their head's regard" @onclick="() => Ask(BrkKey, sid)">Break the promise</button> }
@@ -91,7 +91,7 @@
                 var (dowry, kids) = TermsOf(sid); var ans = CourtshipSystem.Answer(w, s, dowry, kids); bool acted = s.ActedTurn >= w.Turn;
                 var elope = CourtshipSystem.ElopeRefusal(w, s); var ask = new SettleSuitCommand(pid, sid, SettleSuitCommand.Propose, dowry, kids).Refusal(G.Ctx);
                 @if (s.Forbidden) { <div class="small bad">You forbade it. @First(who.Name) has not given it up.</div> }
-                else if (asking) { <div class="small"><b>@First(who.Name) wants this match and has asked for your blessing.</b> <span class="muted">They will wait @Math.Max(1, CourtshipSystem.BlessingWaitYears - (w.Turn - s.AskingSince)) more year(s) for an answer.</span></div> }
+                else if (asking) { <div class="small"><b>@First(who.Name) wants this match and has asked for your blessing.</b> <span class="muted">They will wait @Counted.MoreYears(Math.Max(1, CourtshipSystem.BlessingWaitYears - (w.Turn - s.AskingSince))) for an answer.</span></div> }
                 else if (theirOwn) { <div class="muted small">@First(who.Name) sees to the courting. When it is serious they will ask your leave. You can help with the family, or not.</div> }
                 else if (!mine && !child) { <div class="muted small">A match you are arranging. @First(who.Name) @(s.Wish >= CourtshipSystem.LoveAt ? "likes the idea" : s.Wish >= 40 ? "is willing" : s.Wish >= CourtshipSystem.UnwillingWish ? "is not keen" : "does not want it, and will hold it against you")@(s.Wish >= 40 ? " and will do their own part of the courting." : ".")</div> }
                 <div class="gauges">

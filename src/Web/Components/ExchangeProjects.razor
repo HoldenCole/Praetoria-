@@ -6,7 +6,7 @@
 <div class="dash-grid deck-one">
     <div class="deck-col">
     <section class="panel">
-        <h3><Icon Name="build" Size="13" /> Under construction <span class="muted">@projects.Count site(s) · paid by the year · done when the last year is up</span></h3>
+        <h3><Icon Name="build" Size="13" /> Under construction <span class="muted">@Counted.Sites(projects.Count) · paid by the year · done when the last year is up</span></h3>
         @if (projects.Count == 0)
         {
             <div class="empty-line">Nothing is being built. A site would show here with its years left, what is paid and what is still owed, and could be paused, rushed or abandoned.</div>
@@ -20,7 +20,7 @@
             int done = p.TurnsTotal - p.TurnsLeft;
             <div class="vcard @(p.Stalled ? "distress" : "")">
                 <div class="vc-head"><b>@Cap(p.Name)</b> <span class="muted small">@(p.Kind == "building" ? "building" : p.Kind == "venture" ? "new venture" : p.Kind == "work" ? (p.Great ? "great work" : "building in a system") : p.Kind == "colony" ? "colony" : p.Kind == "infra" ? "infrastructure" : p.Kind == "upgrade" ? "a building taken a level higher" : p.Kind == "province" ? "building in a province" : "enlargement")@(p.CompanyName != null ? $" · paid by {p.CompanyName}" : "")</span>
-                    @if (p.Paused) { <span class="pill">paused</span> } else if (p.Stalled) { <span class="pill warn">stalled: the instalment was not met</span> } else { <span class="pill good">@p.TurnsLeft year(s) left</span> }</div>
+                    @if (p.Paused) { <span class="pill">paused</span> } else if (p.Stalled) { <span class="pill warn">stalled: the instalment was not met</span> } else { <span class="pill good">@Counted.Years(p.TurnsLeft) left</span> }</div>
                 <div class="gauge" title="years built"><span>Built</span><i><b style="width:@(100 * done / Math.Max(1, p.TurnsTotal))%" class="high"></b></i><em>@done/@p.TurnsTotal</em></div>
                 <div class="kv"><span>Paid</span><b>@p.Paid</b></div>
                 <div class="kv"><span>Still owed</span><b>@p.Remaining <i class="muted">· next year: @(p.Hastened && p.Great && p.TurnsLeft > 1 ? p.HastenYear + " (hastened: " + p.HastenExtra + " of it for the speed)" : p.Next)</i>@if (p.HastenMissed) { <i class="warnline" data-hasten-missed> · not hastened last year: the treasury could not stand it</i> }</b></div>

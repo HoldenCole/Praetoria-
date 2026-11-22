@@ -373,7 +373,7 @@ public sealed partial class CompanySystem
     {
         var m = Market(w);
         if (Offices == null || Offices.Def(TreasurerOffice) == null || !OfficeSystem.Holds(w, houseId, TreasurerOffice)) return "only the Treasurer may open the Reach's purse";
-        if (m.SteadiedTurn >= 0 && w.Turn - m.SteadiedTurn < SteadyTerm) return $"the purse was opened {w.Turn - m.SteadiedTurn} year(s) ago: once a term";
+        if (m.SteadiedTurn >= 0 && w.Turn - m.SteadiedTurn < SteadyTerm) return $"the purse was opened {Counted.Years(w.Turn - m.SteadiedTurn)} ago: once a term";
         bool falling = m.Confidence < 0.95 || (m.IndexHistory.Count >= 2 && m.Index < m.IndexHistory[^2] * 0.97) || w.WorldFlags.Contains(CrashFlag);
         if (!falling) return "the market is not falling";
         var chair = RegionSystem.CapitalHolder(w);

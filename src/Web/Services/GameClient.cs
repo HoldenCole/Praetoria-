@@ -62,8 +62,8 @@ public sealed class GameClient
         var w = World!; var me = w.Protagonist!; var t = w.House(targetId); if (t == null) return;
         int mine = FleetSystem.StrengthOf(w, me.HouseId), theirs = FleetSystem.StrengthOf(w, targetId), levies = 0, myLevies = 0;
         foreach (var h in w.Holdings.Values) { if (!h.IsPlanet) continue; for (int i = 1; i < h.Provinces.Count; i++) { string holder = ProvinceSystem.HolderOf(h, i); if (holder == h.OwnerId || ProvinceSystem.Dues(w, Content!.Holdings, h, i).IsEmpty() && !w.EnemiesOf(h.OwnerId).Any() && h.Provinces[i].Dues <= 0) continue; if (h.OwnerId == targetId && holder != me.HouseId) levies++; else if (h.OwnerId == me.HouseId && holder != targetId) myLevies++; } }
-        string text = t.Name + " has about " + theirs + " hull(s) of its own to your " + mine + "."
-            + (levies > 0 ? " The houses with provinces under it may send it as many as " + levies + " squadron(s)." : "") + (myLevies > 0 ? " Those under you may send you " + myLevies + "." : "")
+        string text = t.Name + " has about " + Praetoria.Core.Counted.Hulls(theirs) + " of its own to your " + mine + "."
+            + (levies > 0 ? " The houses with provinces under it may send it as many as " + Praetoria.Core.Counted.Squadrons(levies) + "." : "") + (myLevies > 0 ? " Those under you may send you " + myLevies + "." : "")
             + " Its head will think far worse of you. The war ends when either side sues for peace and the other will have it, or when one cannot fight on. It costs 2 influence of this year's.";
         Ask("Declare war on " + t.Name + "?", text, "Declare war", () => Execute(new DeclareWarCommand(me.Id, targetId, Content!.Fleets)));
     }
@@ -74,8 +74,8 @@ public sealed class GameClient
         bool yields = ProvinceSystem.WillYield(w, cat, me.HouseId, againstId); int mine = FleetSystem.StrengthOf(w, me.HouseId), theirs = FleetSystem.StrengthOf(w, againstId);
         string what = ProvinceSystem.What(planet, index), to = forId == me.HouseId ? "your own house" : w.House(forId)?.Name ?? "another house"; int cost = ProvinceSystem.DemandCost(cat, planet, index);
         string text = what + " was " + against.Name + "'s for life. You ask it to give it up to " + to + (cost > 0 ? ", for " + cost + " influence" : ", at no cost: it is withholding its dues") + ". "
-            + (yields ? against.Name + " cannot hope to stand against you (" + theirs + " hull(s) to your " + mine + "): it will step down." + (index == 0 ? " It takes the province the new holder had, and is a rung the lower for it." : "")
-                      : against.Name + " can hope to win (" + theirs + " hull(s) to your " + mine + "): it will not step down. Asking is war with " + against.Name + ".");
+            + (yields ? against.Name + " cannot hope to stand against you (" + Praetoria.Core.Counted.Hulls(theirs) + " to your " + mine + "): it will step down." + (index == 0 ? " It takes the province the new holder had, and is a rung the lower for it." : "")
+                      : against.Name + " can hope to win (" + Praetoria.Core.Counted.Hulls(theirs) + " to your " + mine + "): it will not step down. Asking is war with " + against.Name + ".");
         Ask(yields ? "Ask " + against.Name + " to step down?" : "This means war with " + against.Name, text, yields ? "Ask" : "Ask, and go to war", () => Execute(new DemandSeatCommand(me.Id, planet.Id, index, forId, cat)));
     }
     /// <summary>A marriage by treaty is made at once, with no courtship and no terms.</summary>

@@ -259,11 +259,11 @@ public static class CharacterWorkshop
             int cap = k == Resource.Credits ? lim.MaxCredits : k == Resource.Influence ? lim.MaxInfluence : lim.MaxGoods;
             if (v < 0 || v > cap) no.Add($"{Resource.Label(k)} may be 0 to {cap} in this mode");
         }
-        if (c.Worlds.Count > lim.MaxWorlds) no.Add($"at most {lim.MaxWorlds} world(s) in this mode");
+        if (c.Worlds.Count > lim.MaxWorlds) no.Add($"at most {Counted.Worlds(lim.MaxWorlds)} in this mode");
         if (c.Worlds.Distinct().Count() != c.Worlds.Count) no.Add("a world is listed twice");
         if (c.Hulls < 0 || c.Hulls > lim.MaxHulls) no.Add($"hulls may be 0 to {lim.MaxHulls} in this mode");
         if (c.Hulls > 0 && c.Worlds.Count == 0 && c.Ventures.Count == 0) no.Add("a fleet needs a world or a venture to berth at");
-        if (c.Ventures.Count > lim.MaxVentures) no.Add($"at most {lim.MaxVentures} venture(s) in this mode");
+        if (c.Ventures.Count > lim.MaxVentures) no.Add($"at most {Counted.Ventures(lim.MaxVentures)} in this mode");
         foreach (var v in c.Ventures) if (content.Businesses.Def(v.Kind) == null) no.Add($"no such venture as '{v.Kind}'");
         if (c.Ventures.GroupBy(v => v.Kind + "@" + v.System).Any(g => g.Count() > 1)) no.Add("one venture of a kind in a system");
         if (c.Children.Count > lim.MaxChildren) no.Add($"at most {lim.MaxChildren} children in this mode");

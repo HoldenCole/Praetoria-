@@ -26,7 +26,7 @@
             <b>@(year.IsImperium ? "The Institute" : "The Academy")</b> · passed out @AcademySystem.Ordinal(year.Place) of @year.Of@(laurels.Length > 0 ? " · " + laurels : "")
         </div>
     }
-    <div class="muted small">You are <b class="@(p.Health < LifeSystem.Sound ? "bad" : "")">@LifeSystem.HealthName(p.Health)</b>@(p.Flags.Contains(LifeSystem.IllChar) ? ", and ill" : "")@(p.Flags.Contains(LifeSystem.WoundedChar) ? ", and carrying a wound" : "")@(life is { Wounds: > 0 } ? $" · wounded {life.Wounds} time(s)" : "") · at @p.Age you can be no better than @cap.@(p.Health < LifeSystem.Frail ? " The frail lay their commands down, and do not live long." : "")</div>
+    <div class="muted small">You are <b class="@(p.Health < LifeSystem.Sound ? "bad" : "")">@LifeSystem.HealthName(p.Health)</b>@(p.Flags.Contains(LifeSystem.IllChar) ? ", and ill" : "")@(p.Flags.Contains(LifeSystem.WoundedChar) ? ", and carrying a wound" : "")@(life is { Wounds: > 0 } ? $" · wounded {Counted.Times(life.Wounds)}" : "") · at @p.Age you can be no better than @cap.@(p.Health < LifeSystem.Frail ? " The frail lay their commands down, and do not live long." : "")</div>
     <div class="suit-acts">
         <button class="opt inline" disabled="@(rest != null)" title="@(rest ?? "health +8, strain −10")" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Rest))">A season away · @LifeSystem.RestInfluence influence</button>
         <button class="opt inline" disabled="@(phys != null)" title="@(phys ?? "health +6, and an illness cured; from your own purse")" @onclick="() => G.Execute(new LifeCommand(pid, LifeCommand.Physicians))">The physicians · @LifeSystem.PhysicianCredits credits</button>

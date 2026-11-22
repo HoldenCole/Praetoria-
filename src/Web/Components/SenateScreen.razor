@@ -77,7 +77,7 @@
             <Tile Label="Trust in the magistrates" Value="@trust.ToString()" Share="@trust" Tone="@(trust < LadderSystem.TrustLow ? "bad" : trust < 50 ? "warn" : trust >= LadderSystem.TrustHigh ? "good" : "")"
                   Note="@(trust < LadderSystem.TrustLow ? "the squares blame whoever holds office" : trust < 50 ? "a scandal costs twice the votes" : trust >= LadderSystem.TrustHigh ? "office is honoured" : "neither honoured nor blamed")"
                   Title="@LadderSystem.TrustSays(w)" />
-            @if (sen?.Embargoed == true) { <Tile Label="Embargo" Value="@($"{sen.EmbargoLifts} year(s)")" Tone="bad" Note="the Reach does not trade with you until it lifts" /> }
+            @if (sen?.Embargoed == true) { <Tile Label="Embargo" Value="@($"{Counted.Years(sen.EmbargoLifts)}")" Tone="bad" Note="the Reach does not trade with you until it lifts" /> }
         </div>
     </header>
 
@@ -104,7 +104,7 @@
                 @foreach (var o in sen.Offices.Where(o => !o.Elected))
                 {
                     <div class="off-card @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
-                        <div class="of-head"><b>@o.Name</b> <span class="muted small">@o.Track rank @o.MinRank+@(o.Hulls > 0 ? $" · {o.Hulls} office hull(s)" : "")</span></div>
+                        <div class="of-head"><b>@o.Name</b> <span class="muted small">@o.Track rank @o.MinRank+@(o.Hulls > 0 ? $" · {Counted.OfficeHulls(o.Hulls)}" : "")</span></div>
                         <div class="small">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="12" /> <span>@o.HolderName of @o.HolderHouse</span> <span class="muted">since turn @o.Since</span> } else { <span class="muted">vacant</span> }
                             @if (o.MyCandidate != null && !o.Mine) { <span class="muted"> · @o.MyCandidate qualifies@(sen.MayPropose ? ": move a Commission" : ", but your house may not move a motion yet")</span> }</div>
                     </div>
@@ -232,7 +232,7 @@
                             /* the houses you hold a province under, and what each wants of this motion (docs/PLAYTHROUGH.md, Medium, The Senate, P90) */
                             foreach (var ow in ProvinceSystem.Wishes(w, c.Holdings, motionNow, wishDef.Interest, wishDef.Target == "house", house.Id))
                             {
-                                <div class="small warn" data-overlord-wish="@ow.over.Id">@ow.over.Name, which you hold @ow.province under, wants this @(ow.want > 0 ? "carried" : "thrown out"). Vote its way and its head thinks @SenateSystem.ObligeRegard the better of you@(ow.defied > 0 ? " and one of your votes against it is forgotten" : ""); vote the other way and it thinks @Math.Abs(SenateSystem.DefyRegard) the worse. You have voted against it @ow.defied time(s) on what touched it: at @ow.bears, if it is at least your match in arms and at peace, it asks for the province back.</div>
+                                <div class="small warn" data-overlord-wish="@ow.over.Id">@ow.over.Name, which you hold @ow.province under, wants this @(ow.want > 0 ? "carried" : "thrown out"). Vote its way and its head thinks @SenateSystem.ObligeRegard the better of you@(ow.defied > 0 ? " and one of your votes against it is forgotten" : ""); vote the other way and it thinks @Math.Abs(SenateSystem.DefyRegard) the worse. You have voted against it @Counted.Times(ow.defied) on what touched it: at @ow.bears, if it is at least your match in arms and at peace, it asks for the province back.</div>
                             }
                         }
                         <div class="tally"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
@@ -268,7 +268,7 @@
                                     <button class="opt inline tiny" disabled="@(st.LobbyRefusal != null)" title="@(st.LobbyRefusal ?? "1 influence. " + MoveSays(st, leanNow, side, SenateSystem.LobbyWeight))" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1))">whip</button>
                                     <button class="opt inline tiny" disabled="@(st.BribeRefusal != null)" title="@(st.BribeRefusal ?? BribeTip(st))" @onclick="() => AskBribe(mo.Id, st, mo.MyStance >= 0 ? 1 : -1)">bribe · @st.BribePrice</button>
                                 </div>
-                                @if (why.Count > 0) { <div class="bench-why muted small" data-why-vote="@st.HouseId">leans @Signed(leanNow): @string.Join("; ", why.Take(3).Select(x => $"{x.why} ({Signed(x.by)})"))@(why.Count > 3 ? $"; and {why.Count - 3} lesser thing(s) ({Signed(why.Skip(3).Sum(x => x.by))})" : "")</div> }
+                                @if (why.Count > 0) { <div class="bench-why muted small" data-why-vote="@st.HouseId">leans @Signed(leanNow): @string.Join("; ", why.Take(3).Select(x => $"{x.why} ({Signed(x.by)})"))@(why.Count > 3 ? $"; and {Counted.LesserThings(why.Count - 3)} ({Signed(why.Skip(3).Sum(x => x.by))})" : "")</div> }
                             }
                             <div class="muted small">Whipping leans a house toward your own stance (for, unless you voted against).</div>
                         </details>
@@ -359,7 +359,7 @@
                 {
                     int st = watched != null && stanceOf.TryGetValue(seat.houseId, out var sv) ? sv : 0;
                     string cls = (seat.houseId == house.Id ? "mine " : "") + (seat.houseId == _focus ? "focus " : "") + (watched == null ? "" : st > 0 ? "for" : st < 0 ? "against" : "abstain");
-                    <circle cx="@seat.x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" cy="@seat.y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" r="8.5" class="seat @cls" style="fill:@(seatFill.TryGetValue(seat.houseId, out var sf) ? sf : seat.accent)" @onclick="() => _focus = seat.houseId"><title>@seat.name · @seat.weight seat(s)@(seat.bench != null ? $" · {seat.bench}" : "")</title></circle>
+                    <circle cx="@seat.x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" cy="@seat.y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" r="8.5" class="seat @cls" style="fill:@(seatFill.TryGetValue(seat.houseId, out var sf) ? sf : seat.accent)" @onclick="() => _focus = seat.houseId"><title>@seat.name · @Counted.Seats(seat.weight)@(seat.bench != null ? $" · {seat.bench}" : "")</title></circle>
                 }
             </svg>
             <div class="chamber-legend">
@@ -379,7 +379,7 @@
                 <div class="seat-card">
                     @if (focusHead != null) { <Portrait Id="@focusHead.Id" Name="@focusHead.Name" Sex="@focusHead.Sex" Age="@focusHead.Age" Accent="@focusHouse.AccentColor" Size="56" /> }
                     <div class="sc-body">
-                        <div class="sc-name"><Sigil HouseId="@focusHouse.Id" Accent="@focusHouse.AccentColor" Size="14" /> @focusHouse.Name <span class="muted">@(c.Titles.NameOf(focusHouse.Title, G.World!.Era)) · @senate.Weight(w, focusHouse.Id) seat(s)@(fb != null ? $" · {fb.Name}{(fb.LeaderHouseId == focusHouse.Id ? " (leads)" : "")}" : "")</span></div>
+                        <div class="sc-name"><Sigil HouseId="@focusHouse.Id" Accent="@focusHouse.AccentColor" Size="14" /> @focusHouse.Name <span class="muted">@(c.Titles.NameOf(focusHouse.Title, G.World!.Era)) · @Counted.Seats(senate.Weight(w, focusHouse.Id))@(fb != null ? $" · {fb.Name}{(fb.LeaderHouseId == focusHouse.Id ? " (leads)" : "")}" : "")</span></div>
                         <div class="muted small">@(focusHead != null ? $"{focusHead.Name}, {c.Careers.RankName(focusHead.CareerTrack, focusHead.CareerRank, G.World!.Era) ?? "head"}" : "no head") · legitimacy @focusHouse.Legitimacy · @string.Join(" · ", focusHouse.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}"))
                             @if (focusHouse.Id != house.Id) { <span> · <span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">disposition @d</span>@(w.AtWar(house.Id, focusHouse.Id) ? " · AT WAR" : "")</span> }</div>
                         @if (watched != null && focusStance != null && focusHouse.Id != house.Id)
@@ -428,7 +428,7 @@
                 @if (em != null)
                 {
                     <div class="off-card emergency @(emMine ? "mine" : "")" title="While the powers run the other consul has no veto, the holder may strike one motion a year, the Senate leans toward what the holder moves, the houses can be levied without a vote, and no election is held. They are to be laid down when the term is up or the danger is past.">
-                        <div class="of-head"><b>Emergency powers</b> <span class="muted small">voted for @em.Cause · @(em.Due ? (em.KeptYears > 0 ? $"kept {em.KeptYears} year(s) past leave" : "due to be laid down") : $"until year {em.Until}")@(em.Renewals > 0 ? $" · extended {em.Renewals} time(s)" : "")</span></div>
+                        <div class="of-head"><b>Emergency powers</b> <span class="muted small">voted for @em.Cause · @(em.Due ? (em.KeptYears > 0 ? $"kept {Counted.Years(em.KeptYears)} past leave" : "due to be laid down") : $"until year {em.Until}")@(em.Renewals > 0 ? $" · extended {Counted.Times(em.Renewals)}" : "")</span></div>
                         <div class="small">@(emHolder?.Name ?? "A consul") of @(w.House(em.HouseId)?.Name) holds them, since year @em.Since.@(emMine && em.Due ? $" Each year you keep them costs the Reach's trust, your house's standing and every head's regard; after {EmergencySystem.KeptMax} the Senate takes them." : "")</div>
                         @if (emMine)
                         {
@@ -455,7 +455,7 @@
                     /* your seats can be pledged to a nominee (docs/PLAYTHROUGH.md, Medium, The Senate, P59) */
                     string? pledged = ElectionSystem.PledgedTo(w, house.Id);
                     <div class="suit-acts" data-pledge="@(pledged ?? "")">
-                        <span class="small">@(pledged != null ? "Your seats are pledged to " + (w.House(pledged)?.Name ?? pledged) + "." : "Your " + G.Turn!.Senate.Weight(w, house.Id) + " seat(s) go as your bench or your patron has it. Pledge them to:")</span>
+                        <span class="small">@(pledged != null ? "Your seats are pledged to " + (w.House(pledged)?.Name ?? pledged) + "." : "Your " + Counted.Seats(G.Turn!.Senate.Weight(w, house.Id)) + " " + Counted.Go(G.Turn!.Senate.Weight(w, house.Id)) + " as your bench or your patron has it. Pledge them to:")</span>
                         @if (pledged != null)
                         {
                             var back = new PledgeVotesCommand(pid, string.Empty, c.Offices, G.Turn!.Senate);
@@ -526,7 +526,7 @@
     private static string MoveSays(Praetoria.Core.Presentation.StanceLine st, int lean, int side, int worth)
     {
         int after = lean + side * worth; bool turns = Math.Sign(after) != Math.Sign(lean);
-        return $"{st.HouseName} leans {Signed(lean)} and would lean {Signed(after)}: " + (turns ? $"it goes from {VoteWord(lean)} to {VoteWord(after)}, and its {st.Weight} seat(s) with it." : $"it is still {VoteWord(after)}. This one would change nothing in the count.");
+        return $"{st.HouseName} leans {Signed(lean)} and would lean {Signed(after)}: " + (turns ? $"it goes from {VoteWord(lean)} to {VoteWord(after)}, and its {Counted.Seats(st.Weight)} with it." : $"it is still {VoteWord(after)}. This one would change nothing in the count.");
     }
     /* who of the house would be consul: the head when qualified, else the relative who is, and the button says which */
     private Praetoria.Core.State.Character? Stands(Praetoria.Core.Data.OfficeCatalog offices)

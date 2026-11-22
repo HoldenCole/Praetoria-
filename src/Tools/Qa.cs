@@ -36,7 +36,7 @@ internal static class Qa
         var caesar = new Dictionary<string, int>(); var fell = new List<string>();
         int runs = 0;
 
-        Console.WriteLine($"=== QA — {scenarios.Count} scenario(s) × {o.Seeds} seed(s) × {turns} turns, randomised player ===\n");
+        Console.WriteLine($"=== QA — {Counted.Scenarios(scenarios.Count)} × {Counted.Seeds(o.Seeds)} × {turns} turns, randomised player ===\n");
 
         foreach (var sid in scenarios)
         {
@@ -126,7 +126,7 @@ internal static class Qa
         Section("Flags content reads that no run ever raised", readFlags.Where(f => !flagsSeen.Contains(f) && !flagsSeen.Any(x => x.StartsWith(f + ":"))).OrderBy(f => f, StringComparer.Ordinal));
 
         Section("FAILURES", failures);
-        Console.WriteLine(failures.Count == 0 && tokens.Count == 0 ? "\n=== QA PASSED ===" : $"\n=== QA FAILED — {failures.Count} failure(s), {tokens.Count} token issue(s) ===");
+        Console.WriteLine(failures.Count == 0 && tokens.Count == 0 ? "\n=== QA PASSED ===" : $"\n=== QA FAILED — {Counted.Failures(failures.Count)}, {Counted.TokenIssues(tokens.Count)} ===");
         return failures.Count == 0 && tokens.Count == 0 ? 0 : 1;
     }
 

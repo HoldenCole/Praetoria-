@@ -136,7 +136,7 @@ public static class EducationSystem
         if (!All.Contains(skill)) return "no such study";
         if (who.Skill(skill) >= Ceiling(who, skill)) return "they have gone as far in it as they can";
         if (who.Study == skill) return "it is what they study already";
-        return w.WorldCounters.TryGetValue(AskedKey(who.Id), out int last) && w.Turn - last < AskEvery ? $"you asked them not long ago (again in {AskEvery - (w.Turn - last)} year(s))" : null;
+        return w.WorldCounters.TryGetValue(AskedKey(who.Id), out int last) && w.Turn - last < AskEvery ? $"you asked them not long ago (again in {Counted.Years(AskEvery - (w.Turn - last))})" : null;
     }
     /// <summary>Whether they would do it for the asking: the loyal and those who think well of the head will; the wilful who do not, will not.</summary>
     public static bool WouldStudy(World w, Character head, Character who, string skill) =>

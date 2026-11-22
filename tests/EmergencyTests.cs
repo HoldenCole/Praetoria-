@@ -87,7 +87,7 @@ public class EmergencyTests
         Assert.Equal(Math.Min(100, standing + EmergencySystem.LaidDownStanding), other.Legitimacy); Assert.Contains(EmergencySystem.LaidDownChar, consul.Flags); Assert.DoesNotContain(EmergencySystem.HoldsChar, consul.Flags);
         Assert.True(Eligible(w, "the_powers_laid_down"));
         // and not again for some years
-        Assert.Contains("year(s) ago", EmergencySystem.GrantRefusal(w, other, Content.Offices));
+        Assert.Matches("[0-9]+ years? ago", EmergencySystem.GrantRefusal(w, other, Content.Offices));
         // the danger passing ends them early
         w.WorldCounters.Remove(EmergencySystem.EndedKey); EmergencySystem.GrantVoted(w, other, null, Content.Offices, passed: true); Danger(w, false);
         w.Turn++; EmergencySystem.Tick(w, Content.Offices); Assert.Null(w.Emergency); Assert.Equal(2, w.Counter(EmergencySystem.LaidDownKey));

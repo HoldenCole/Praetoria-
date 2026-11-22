@@ -116,7 +116,7 @@ public static class ElectionSystem
     public static string PledgeSays(World w, OfficeCatalog offices, Func<string, int> weight, House by, string toId)
     {
         var to = w.House(toId); string? own = BenchNominee(w, offices, weight, by.Id);
-        return $"Your {weight(by.Id)} seat(s) are counted for {to?.Name}, whatever your bench or your patron would have had. Its head thinks {PledgeRegard} the better of you now, and owes you a favour if it is elected with your pledge kept."
+        return $"Your {Counted.Seats(weight(by.Id))} {Counted.Are(weight(by.Id))} counted for {to?.Name}, whatever your bench or your patron would have had. Its head thinks {PledgeRegard} the better of you now, and owes you a favour if it is elected with your pledge kept."
             + (own != null && own != toId ? $" {w.House(own)?.Name}, whom your bench puts forward, thinks {BenchSlight} the worse of you for it." : "")
             + $" Taken back before the count, its head thinks {UnpledgeRegard} the worse of you.";
     }

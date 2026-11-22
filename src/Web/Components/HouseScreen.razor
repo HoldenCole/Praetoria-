@@ -36,11 +36,11 @@
 <div class="dash keep" style="--accent:@m.HouseAccent">
     <header class="dash-head picture">
         <div class="dh-title"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="22" /> <b>@house.Name</b>
-            <span class="muted">@titleName · @house.Culture culture · @planets world(s)@(stations > 0 ? $" · {stations} station(s)" : "")@(claims > 0 ? $" · {claims} claim(s)" : "") · <span data-house-citizens="@citizens" title="The citizens of every world and station of the house. On the scale the rules reckon by, they come to @pop.">@Census.Say(citizens) citizens</span> · tithe @(m.Standing?.TaxPolicy ?? "customary")</span></div>
+            <span class="muted">@titleName · @house.Culture culture · @Counted.Worlds(planets)@(stations > 0 ? $" · {Counted.Stations(stations)}" : "")@(claims > 0 ? $" · {Counted.Claims(claims)}" : "") · <span data-house-citizens="@citizens" title="The citizens of every world and station of the house. On the scale the rules reckon by, they come to @pop.">@Census.Say(citizens) citizens</span> · tithe @(m.Standing?.TaxPolicy ?? "customary")</span></div>
         <p class="headline @storyTone">@story</p>
         <div class="tiles">
             <Tile Label="In the treasury" Value="@($"{credits} credits")" Tone="@(m.Treasury.Insolvent ? "bad" : net < 0 ? "warn" : net > 0 ? "good" : "")"
-                  Note="@(net > 0 ? $"+{net} a year" : net < 0 ? $"−{-net} a year · {(lasts <= 0 ? "gone within the year" : lasts + " year(s) left")}" : "neither growing nor shrinking")"
+                  Note="@(net > 0 ? $"+{net} a year" : net < 0 ? $"−{-net} a year · {(lasts <= 0 ? "gone within the year" : Counted.Years(lasts) + " left")}" : "neither growing nor shrinking")"
                   Title="What the house has in hand, and what a year adds to it or takes from it." />
             <Tile Label="Takes in" Value="@($"+{gross} a year")" Tone="@(spend > gross ? "warn" : "")" Share="@(gross > 0 ? 100 * spend / gross : spend > 0 ? 100 : 0)"
                   Note="@(gross == 0 ? (spend > 0 ? $"nothing, and spends {spend}" : "nothing, and spends nothing") : (spend > gross ? $"spends {spend}, which is {spend - gross} more" : $"spends {spend} of it ({100 * spend / gross}%)") + (drain != null ? $" · most on {drain.Source}" : ""))"
@@ -135,7 +135,7 @@
         <div class="deck-col">
         @if (_view == "estate") {
         <section class="panel">
-            <h3><Icon Name="worlds" Size="13" /> The domain <span class="muted">@m.Holdings.Count holding(s)</span></h3>
+            <h3><Icon Name="worlds" Size="13" /> The domain <span class="muted">@Counted.Holdings(m.Holdings.Count)</span></h3>
             @if (m.Holdings.Count == 0) { <div class="muted">Your house holds no land. A fief is won, granted, or married into.</div> }
             @if (m.Petition != null && !m.Holdings.Any(h => h.Kind == "planet"))
             {
@@ -297,7 +297,7 @@
                         @foreach (int part in new[] { 5, 10, 20, 50 }.Where(x => x < lg.Debt))
                         {
                             int pt = part; var payPart = new RepayLoanCommand(pid, pt); var partNo = payPart.Refusal(G.Ctx);
-                            <button class="opt inline tiny" data-repay-part="@pt" disabled="@(partNo != null)" title="@(partNo ?? $"{lg.Debt - pt} would be owed: {Lending.Years(lg.Debt - pt, instal)} year(s) at {instal} a year.")" @onclick="() => G.Execute(payPart)">@pt</button>
+                            <button class="opt inline tiny" data-repay-part="@pt" disabled="@(partNo != null)" title="@(partNo ?? $"{lg.Debt - pt} would be owed: {Counted.Years(Lending.Years(lg.Debt - pt, instal))} at {instal} a year.")" @onclick="() => G.Execute(payPart)">@pt</button>
                         }
                         <button class="opt inline" disabled="@(lg.Repay.Refusal != null)" title="@lg.Repay.Refusal" @onclick="() => G.Execute(new RepayLoanCommand(pid))">@lg.Repay.Label</button>
                     </div>
@@ -323,7 +323,7 @@
                                     <button class="opt inline tiny" disabled="@(amt >= room)" @onclick="() => _borrow[lid] = amt + Lending.Step">+@Lending.Step</button>
                                     <button class="opt inline tiny" disabled="@(amt >= room)" @onclick="() => _borrow[lid] = room">all @room</button>
                                     <button class="opt inline" data-take-loan disabled="@(takeNo != null)" title="@(takeNo ?? lt.Why)" @onclick="() => G.Execute(take)">Borrow @amt</button>
-                                    <span class="muted small" data-loan-terms>owe @owedNew for it@(owedAll != owedNew ? $" ({owedAll} in all)" : ""): @instNew a year for @Lending.Years(owedAll, instNew) year(s)</span>
+                                    <span class="muted small" data-loan-terms>owe @owedNew for it@(owedAll != owedNew ? $" ({owedAll} in all)" : ""): @instNew a year for @Counted.Years(Lending.Years(owedAll, instNew))</span>
                                 </div>
                             }
                         </div>
@@ -348,7 +348,7 @@
         }
         @if (_view == "ventures") {
         <section class="panel">
-            <h3><Icon Name="trade_hub" Size="13" /> Ventures <span class="muted">@(m.Businesses?.Count ?? 0) · @(m.Assets?.Projects.Count ?? 0) site(s) under construction</span></h3>
+            <h3><Icon Name="trade_hub" Size="13" /> Ventures <span class="muted">@(m.Businesses?.Count ?? 0) · @Counted.Sites(m.Assets?.Projects.Count ?? 0) under construction</span></h3>
             @if (m.Businesses is { Count: > 0 } bz)
             {
                 foreach (var b in bz) { <div class="line small"><b>@b.Name</b> <span class="muted">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")</span> <span class="pill small @(b.Earnings <= 0 ? "warn" : "good")">@(b.Earnings >= 0 ? "+" : "")@b.Earnings a year · worth @b.Value</span></div> }

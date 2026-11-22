@@ -131,7 +131,7 @@ public sealed class Economy
         }
         // patronage (docs/REPUBLIC.md stage 3): a patron keeps its clients, a credit a year each
         int kept = world.Houses.Values.Count(o => o.PatronId == houseId);
-        if (kept > 0) ledger.Add($"{kept} client(s) kept", "clients", new Resources { Credits = -kept * OrderSystem.ClientStipend });
+        if (kept > 0) ledger.Add($"{Counted.Clients(kept)} kept", "clients", new Resources { Credits = -kept * OrderSystem.ClientStipend });
         if (house.PatronId.Length > 0 && world.House(house.PatronId) is { } patron) ledger.Add($"the bounty of {patron.Name}", "clients", new Resources { Credits = OrderSystem.ClientStipend });
         // dividends: what each company declared last year, by the shares held now; and the yearly coupon on the Reach's war bonds
         foreach (var co in world.Companies.OrderBy(c => c.Id, StringComparer.Ordinal))
@@ -284,7 +284,7 @@ public sealed class Economy
         var governor = holding.GovernorId.Length > 0 ? world.Char(holding.GovernorId) : null;
         Add("where any world begins", 50);
         Add(governor != null ? $"{governor.Name}'s administration ({governor.Skill("administration")})" : "the governor's administration", (governor?.Skill("administration") ?? 0) * ProsperityPerAdministration);
-        Add($"{holding.Buildings.Count} building(s) standing", holding.Buildings.Count * ProsperityPerBuilding);
+        Add($"{Counted.Buildings(holding.Buildings.Count)} standing", holding.Buildings.Count * ProsperityPerBuilding);
         Add($"unrest of {holding.Unrest}", -(holding.Unrest / 2));
         Add($"the tithe ({tax?.Name ?? "customary"})", -(tax?.CreditsBonus ?? 0) * 4);
         if (house != null) Add("the laws in force", Law(world, house.Id, "prosperity_drift", world.Galaxy?.System(holding.SystemId)?.RegionId) * 2);   // justice, settlement, the magistrates' regard

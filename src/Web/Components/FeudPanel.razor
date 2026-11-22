@@ -27,7 +27,7 @@
         var knife = blamed != null ? new AssassinateCommand(pid, blamed.Id, G.Content!.Friction) : null; bool canKnife = knife != null && knife.CanExecute(G.Ctx);
         <div class="health-row">
             <b>@f.VictimName</b>, @Years(f) · <span class="bad">@Name(f.OwingId) owes you blood</span>@(blamed != null ? $" · held against {blamed.Name}" : "")
-            <div class="muted small">@(f.Unanswered > FeudSystem.GraceYears ? $"Unanswered {f.Unanswered} years: it has cost the house {f.Shame} standing, and your near kin hold it against you. " : f.Unanswered > 0 ? $"Unanswered {f.Unanswered} year(s). After {FeudSystem.GraceYears} it begins to cost the house standing. " : "")After @FeudSystem.LetLieYears years it is let lie whether you say so or not.@(f.Refused ? " They have refused you once: what you do now is on them." : "")</div>
+            <div class="muted small">@(f.Unanswered > FeudSystem.GraceYears ? $"Unanswered {f.Unanswered} years: it has cost the house {f.Shame} standing, and your near kin hold it against you. " : f.Unanswered > 0 ? $"Unanswered {Counted.Years(f.Unanswered)}. After {FeudSystem.GraceYears} it begins to cost the house standing. " : "")After @FeudSystem.LetLieYears years it is let lie whether you say so or not.@(f.Refused ? " They have refused you once: what you do now is on them." : "")</div>
             @if (f.Asked == "offer")
             {
                 <div class="suit-acts"><span class="small">They offer <b>@f.Price credits</b> to end it.</span>

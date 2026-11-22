@@ -307,7 +307,7 @@ which scroll and by how much, and any section that is a heading over nothing.
 ### Not done yet
 
 See docs/GAPS.md, "The look". The windows were converted by rule (what was a card is now an entry), not redesigned
-one by one: several still read as long pages and want tabs. Tooltips are the browser's own. The Academy and the
+one by one: several still read as long pages and want tabs. Tooltips are the game's own and may hold one another (docs/WEB_CLIENT.md, "Tooltips"). The Academy and the
 character creation pages have not been through the pass. Traits, skills and offices are still words, not icons.
 
 ### The rule for pictures of things (the owner, 2026-11-20)

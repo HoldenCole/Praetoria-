@@ -57,7 +57,7 @@ public static class MercenarySystem
     public static string Says(World w, Fleet f, House employer)
     {
         var foes = w.EnemiesOf(employer.Id).Distinct().Select(e => w.House(e)?.Name ?? e).ToList();
-        return $"{f.Name} ({f.Strength} hull(s)) sails under {employer.Name}'s colours and at its orders for up to {TermYears} years, against {string.Join(" and ", foes)}. {employer.Name} pays you {CreditsPerHull} credits a hull each year ({PayOf(f)} now) and keeps and fuels the ships. "
+        return $"{f.Name} ({Counted.Hulls(f.Strength)}) sails under {employer.Name}'s colours and at its orders for up to {TermYears} years, against {string.Join(" and ", foes)}. {employer.Name} pays you {CreditsPerHull} credits a hull each year ({PayOf(f)} now) and keeps and fuels the ships. "
             + $"Hulls lost in its battles are lost to you. Your house is thought the less of for selling its sword (legitimacy −{Legitimacy}), and the head of each house it is turned on thinks {FoeRegard} the worse of you; {employer.Name}'s head thinks {EmployerRegard} the better. "
             + "It comes home when that house's wars are over, the term is up or the pay is not found. Calling it back sooner breaks the contract.";
     }
@@ -73,7 +73,7 @@ public static class MercenarySystem
         Pay(w, f, employer, home);
         w.WorldCounters[OutKey(home.Id, f)] = w.Turn;   // so that a company destroyed in service can be told of
         w.WorldCounters["companies_hired"] = w.Counter("companies_hired") + 1;
-        w.Log($"{home.Name} hires {f.Name} ({f.Strength} hull(s)) out to {employer.Name} at {where}. It sails under {employer.Name}'s colours now.");
+        w.Log($"{home.Name} hires {f.Name} ({Counted.Hulls(f.Strength)}) out to {employer.Name} at {where}. It sails under {employer.Name}'s colours now.");
         FleetSystem.RefreshAdmiralFlags(w);
     }
 
@@ -111,7 +111,7 @@ public static class MercenarySystem
             if (w.Turn >= f.HireTurn + TermYears) { ComeHome(w, f, "its term is up"); continue; }
             if (w.Turn <= f.HireTurn) continue;   // the first year was paid when it was hired
             if (!Pay(w, f, employer, home)) { ComeHome(w, f, $"{employer.Name} could not find its pay"); continue; }
-            if (home.Id == mine) w.Tell("good", $"{employer.Name} pays {PayOf(f)} credits for {f.Name} ({f.Strength} hull(s)), {YearsLeft(w, f)} year(s) of its term left", "military", employer.Id);
+            if (home.Id == mine) w.Tell("good", $"{employer.Name} pays {PayOf(f)} credits for {f.Name} ({Counted.Hulls(f.Strength)}), {Counted.Years(YearsLeft(w, f))} of its term left", "military", employer.Id);
         }
     }
 
@@ -126,7 +126,7 @@ public static class MercenarySystem
         bool there = w.Holdings.Values.Any(h => h.OwnerId == home.Id && h.SystemId == f.SystemId);
         if (!there && port != null && !f.Moving) { f.DestinationId = port; f.Eta = w.Galaxy!.Hops(f.SystemId, port); f.Voyage = f.Eta; }
         w.Log($"{f.Name} leaves {employerName}'s service ({why}) and is {home.Name}'s again.");
-        if (home.Id == w.Protagonist?.HouseId) w.Tell("info", $"{f.Name} has left {employerName}'s service: {why}. It is yours again, with {f.Strength} hull(s){(f.Moving ? $", and is {f.Eta} year(s) from home" : "")}", "military", f.OwnerId);
+        if (home.Id == w.Protagonist?.HouseId) w.Tell("info", $"{f.Name} has left {employerName}'s service: {why}. It is yours again, with {Counted.Hulls(f.Strength)}{(f.Moving ? $", and is {Counted.Years(f.Eta)} from home" : "")}", "military", f.OwnerId);
         FleetSystem.RefreshAdmiralFlags(w);
     }
 

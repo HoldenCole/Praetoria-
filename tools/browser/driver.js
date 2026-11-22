@@ -30,12 +30,13 @@ const OUTLINE = (max) => {
       if (u.pathname === '/choose') { const r = await page.evaluate(([i, v]) => { const e = document.querySelector('[data-pi="' + i + '"]'); if (!e || e.tagName !== 'SELECT') return 'not a select'; const o = [...e.options].find(o => o.text.toLowerCase().startsWith(v.toLowerCase()) || o.value === v); if (!o) return 'no such option'; e.value = o.value; e.dispatchEvent(new Event('change', { bubbles: true })); return 'chose ' + o.text; }, [q.i, q.v || '']); await settle(); return send({ r }); }
       if (u.pathname === '/select') { await page.evaluate(n => window.praetoriaSpace && window.praetoriaSpace.select(n), q.name); await page.waitForTimeout(1200); return send(await page.evaluate(OUTLINE, +(q.max || 120))); }
       if (u.pathname === '/endturn') { const t0 = Date.now(); const r = await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (!b) return 'no end turn button here'; if (b.disabled) return 'disabled: ' + b.title; b.click(); return 'ended'; }); await page.waitForTimeout(2500); return send({ r, ms: Date.now() - t0, ui: await page.evaluate(OUTLINE, +(q.max || 60)) }); }
+      if (u.pathname === '/hover') { if (q.sel) await page.locator(q.sel).nth(+(q.nth || 0)).hover({ timeout: 5000 }); else await page.mouse.move(+q.x, +q.y, { steps: +(q.steps || 8) }); await page.waitForTimeout(+(q.wait || 500)); return send({ ok: true }); }
       if (u.pathname === '/eval') return send({ r: await page.evaluate(body || q.js) });
       if (u.pathname === '/shot') { await page.screenshot({ path: q.path }); return send({ saved: q.path }); }
       if (u.pathname === '/scroll') { await page.evaluate(([sel, y]) => { const e = document.querySelector(sel); if (e) e.scrollTo(0, y); }, [q.sel || '.screen.window .win-body', +(q.y || 0)]); return send('ok'); }
       if (u.pathname === '/errors') return send(errors);
       if (u.pathname === '/quit') { send('bye'); await browser.close(); process.exit(0); }
-      send('routes: /ui /text?sel=&n= /click?i=|text=|sel= /choose?i=&v= /select?name= /endturn /eval(POST js) /shot?path= /scroll?sel=&y= /errors /quit');
+      send('routes: /ui /text?sel=&n= /click?i=|text=|sel= /choose?i=&v= /select?name= /endturn /hover?sel=&nth=|x=&y= /eval(POST js) /shot?path= /scroll?sel=&y= /errors /quit');
     } catch (e) { send({ error: String(e).slice(0, 300) }); }
   }).listen(port, () => console.log('driver ready on ' + port));
 })();

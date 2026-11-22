@@ -147,6 +147,30 @@ Holding a chokepoint's world pays **tolls** (two credits a turn on the ledger), 
 there, a house at war with the holder cannot route *through* it — its fleets must go round, or cannot go at all. The
 map marks chokepoints with a brass diamond; the planet card names them.
 
+## The chart at three distances
+
+What a system shows depends on how far off it is seen from (`js/space.js`; pictures in `tools/browser/shots`:
+`map-far.png`, `map-near.png`, `map-system.png`).
+
+- **From far off** a system is its star and no more. The star is drawn larger as the chart draws back (up to 2.3 times),
+  and its orbits, worlds, moons and the lights of what is built are put away. Before, every star at the far zoom carried
+  a set of rings too small to read, and the Reach looked like a field of targets.
+- **From the middle distance in** the orbits and worlds are shown as before.
+- **Lanes** stop short of the star at each end, so no line is drawn through a sun, and a lane between two systems of the
+  same holder takes some of that holder's colour: a holding reads as a web, and its edge as where the web changes colour.
+- **Lines are smooth.** The bloom is drawn off-screen, and the renderer's antialiasing did not reach it, so every lane,
+  orbit and border had stepped edges. The off-screen target is now multisampled.
+- **The corners fall away** into the dark (a vignette laid over the picture, under the names).
+- **The note on a star goes when the pointer does.** It used to stay up for good once shown: the label layer re-shows
+  whatever is visible on every frame, so hiding it by its style lasted one frame. It is put away by its own flag, and
+  also when the pointer leaves the chart for a window or the list.
+- **In the close map a fleet is a formation**: its flagship and a hull behind it for each of the rest, six at most, in
+  echelon, with its name beside it on a dark plate.
+
+Two of the libraries found for this (docs/TOOLS.md: pmndrs/postprocessing, troika-three-text) turned out not to be
+needed. Multisampling the existing target fixed the lines, and a layer of CSS is a vignette with no change to the
+colour of anything.
+
 ## On the map
 
 The galaxy screen is laid out twice as wide as before, draws every region as a soft highlighted area around its systems (the ring's tint, the dominant house's hairline), every system with its bodies on their orbits, the three rings as faint ellipses, the capital with a double ring, a world in revolt with a red

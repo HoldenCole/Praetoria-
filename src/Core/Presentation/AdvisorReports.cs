@@ -54,8 +54,8 @@ public static class AdvisorReports
         int laidUpHulls = w.Fleets.Values.Where(f => f.OwnerId == house.Id && f.LaidUp).Sum(f => f.Strength);
         string admiralLine = ours == 0 && laidUpHulls > 0 ? $"We have no hull in commission: {laidUpHulls} lie laid up, with no crews aboard. Until they are put back in commission any house with a squadron can dictate to us."
             : ours == 0 ? "We keep no ships. Any house with a squadron can dictate to us."
-            : biggest.name == null ? $"We field {ours} hull(s). Of the rivals' fleets we have no reliable picture."
-            : $"We field {ours} hull(s); {biggest.name} is reported at {(biggest.conf >= 90 ? "" : "perhaps ")}{biggest.hulls}{(biggest.conf < 60 ? " — an old report, trust it lightly" : "")}.";
+            : biggest.name == null ? $"We field {Counted.Hulls(ours)}. Of the rivals' fleets we have no reliable picture."
+            : $"We field {Counted.Hulls(ours)}; {biggest.name} is reported at {(biggest.conf >= 90 ? "" : "perhaps ")}{biggest.hulls}{(biggest.conf < 60 ? " — an old report, trust it lightly" : "")}.";
         var enemies = w.EnemiesOf(house.Id).Select(e => w.House(e)?.Name ?? e).ToList();
         if (enemies.Count > 0) admiralLine += $" We are at war with {string.Join(", ", enemies)}.";
         if (w.HasFlag("fuel_short")) admiralLine += " The tanks are dry: no fleet of ours can sail until we find helium-3 — a skimmer, the exchange, or the open market.";

@@ -99,7 +99,7 @@
                     <td class="muted small">@v.SystemName</td>
                     <td class="small">@v.Cost@(v.BuildTurns > 1 ? $" · {v.First} a year" : "")</td>
                     <td class="small">@(v.BuildTurns <= 0 ? "at once" : v.BuildTurns == 1 ? "a year" : $"{v.BuildTurns} years")</td>
-                    <td><span class="@(v.PerYear > 0 ? "good" : "warn")" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter. Prices move.">@(v.PerYear >= 0 ? "+" : "")@v.PerYear cr worth</span></td>
+                    <td><span class="@(v.PerYear > 0 ? "good" : "warn")" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter. Prices move.">@(v.PerYear >= 0 ? "+" : "")@v.PerYear cr worth</span>@if (v.Swing.Length > 0) { <div class="muted small" data-swing>@v.Swing</div> }</td>
                     <td class="small">@v.Payback</td>
                     <td>@{ var foundCmd = new FoundBusinessCommand(pid, v.DefId, v.SystemId, c.Businesses, c.Holdings, c.Titles, _payFrom); var foundNo = _payFrom.Length > 0 ? foundCmd.Refusal(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0))) : null; }<button class="opt inline tiny" disabled="@(foundNo != null)" title="@foundNo" @onclick="() => G.Execute(foundCmd)">Found</button></td>
                 </tr>

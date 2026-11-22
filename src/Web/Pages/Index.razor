@@ -106,7 +106,7 @@ else
             @if (!m.DynastyDead)
             {
                 var open = m.Briefing.Count(b => !b.Resolved);
-                <button class="btn primary endturn" @onclick="EndTurn" title="@((open > 0 ? $"{open} report(s) still unanswered: ending the year sets them aside. " : "The year ends and the next begins. ") + "Key: Enter.")">End Turn ▸@if (open > 0) { <span class="badge">@open</span> }</button>
+                <button class="btn primary endturn" @onclick="EndTurn" title="@((open > 0 ? $"{Counted.Reports(open)} still unanswered: ending the year sets them aside. " : "The year ends and the next begins. ") + "Key: Enter.")">End Turn ▸@if (open > 0) { <span class="badge">@open</span> }</button>
             }
         </div>
 

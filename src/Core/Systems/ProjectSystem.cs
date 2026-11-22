@@ -49,7 +49,7 @@ public static class ProjectSystem
     {
         var due = NextInstalment(p); if (!Pay(w, p, due)) return;
         p.Stalled = false; p.TurnsLeft = Math.Max(1, p.TurnsLeft - 1);
-        w.Log($"The instalment that was missed on {p.Name} is paid ({Presentation.CourtProjection.Bundle(due)}). The work goes on: {p.TurnsLeft} year(s) to go.");
+        w.Log($"The instalment that was missed on {p.Name} is paid ({Presentation.CourtProjection.Bundle(due)}). The work goes on: {Counted.Years(p.TurnsLeft)} to go.");
     }
 
     /// <summary>Whose purse pays: the company's cash for a company's project (credits only: it buys the rest at market), else the house's treasury.</summary>

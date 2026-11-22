@@ -46,7 +46,7 @@
                 }
             }
             <Tile Label="Wars in the Reach" Value="@wars.ToString()" Tone="@(wars > 0 ? "warn" : "")" Note="@(wars > 0 ? "each lifts fuel, isotopes, crews and materials" : "peace: yards and magazines are not buying ahead")" />
-            <Tile Label="Your ventures" Value="@(ventures == 0 ? "none" : ventures.ToString())" Tone="@(ventures > 0 && earning > 0 ? "good" : "")" Note="@(ventures == 0 ? (sites > 0 ? $"{sites} site(s) being built" : "coin that is not land still counts") : $"{Signed(earning)} a year between them{(sites > 0 ? $" · {sites} site(s) being built" : "")}")" Title="Found, enlarge, buy and sell them on the Ventures tab." />
+            <Tile Label="Your ventures" Value="@(ventures == 0 ? "none" : ventures.ToString())" Tone="@(ventures > 0 && earning > 0 ? "good" : "")" Note="@(ventures == 0 ? (sites > 0 ? $"{Counted.Sites(sites)} being built" : "coin that is not land still counts") : $"{Signed(earning)} a year between them{(sites > 0 ? $" · {Counted.Sites(sites)} being built" : "")}")" Title="Found, enlarge, buy and sell them on the Ventures tab." />
         </div>
     </header>
 

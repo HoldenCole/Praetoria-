@@ -45,7 +45,11 @@ public sealed record OfferCard(string Id, string BusinessName, string KindName, 
 /// <summary>The house's assets beyond land: projects under way, ventures for sale in the Reach, offers on the table.</summary>
 public sealed record AssetsCard(IReadOnlyList<ProjectCard> Projects, IReadOnlyList<ForSaleCard> ForSale, IReadOnlyList<OfferCard> Offers);
 /// <summary>A venture the house could found: a kind in a system, with the reason it cannot (null = it can).</summary>
-public sealed record VentureOption(string DefId, string Name, string Description, string SystemId, string SystemName, string Cost, string? Refusal, int PerYear = 0, string Payback = "", int BuildTurns = 0, string First = "", string Sector = "");
+public sealed record VentureOption(string DefId, string Name, string Description, string SystemId, string SystemName, string Cost, string? Refusal, int PerYear = 0, string Payback = "", int BuildTurns = 0, string First = "", string Sector = "")
+{
+    /// <summary>What its earnings swing on, where they do: a war, the peace, a price that is spiking. Empty for a steady trade.</summary>
+    public string Swing { get; init; } = "";
+}
 /// <summary>A belt the house could stake a claim in.</summary>
 public sealed record ClaimOption(string SystemId, string SystemName, int Belt, int Staked, string? Refusal);
 /// <summary>A world of the house's that broke away and may be bought back.</summary>
@@ -218,7 +222,7 @@ public static class CourtProjection
                 var cmd = new BuildCommand(p.Id, h.Id, b.Id, content.Holdings, content.Titles);
                 // the prospectus: what it would net a year at this year's prices, and how long until it has paid for itself
                 double perYear = Economy.WorthOf(w, b.Yield) * (b.RequiresDeposit != null ? Math.Max(1, w.Galaxy?.System(h.SystemId)?.Deposit(b.RequiresDeposit) ?? 1) : 1) - Economy.WorthOf(w, b.Upkeep); double cost = Economy.WorthOf(w, b.Cost);
-                string payback = perYear > 0.5 ? $"pays for itself in {Math.Ceiling(cost / perYear):0} year(s)" : "does not pay in coin";
+                string payback = perYear > 0.5 ? $"pays for itself in {Counted.Years((long)(Math.Ceiling(cost / perYear)))}" : "does not pay in coin";
                 string years = b.BuildTurns > 1 ? $" · {b.BuildTurns} years, {Bundle(ProjectSystem.Split(b.Cost, b.BuildTurns).First)} a year" : b.BuildTurns == 1 ? " · a year" : "";
                 builds.Add(new BuildOption(h.Id, b.Id, $"{(b.Megastructure ? "Raise" : "Build")} {b.Name}  ({Bundle(b.Cost)}{years})",
                     (b.Id == Economy.GranaryId ? $"unrest eases {Economy.GranaryCalm} more each year" : b.Id == "supply_depot" ? "your fleets are in supply within 2 lanes of here, not 1" : $"yield {Bundle(b.Yield)}") + (b.Upkeep.IsEmpty() ? "" : $" · upkeep {Bundle(b.Upkeep)}") + $" · worth {perYear:0.#} credits a year now · {payback}" + (b.MinTitleRank > 0 ? $" · needs the rank of {Progression.Title.StyleOf(Progression.Title.OfRank(b.MinTitleRank), w.Era)}" : "") + (cmd.Refusal(ctx) is { } why ? $" · {why}" : ""), cmd.CanExecute(ctx)));
@@ -280,8 +284,8 @@ public static class CourtProjection
                         var refusal = new FoundBusinessCommand(p.Id, def.Id, sys.Id, bc, content.Holdings, content.Titles).Refusal(ctx);
                         if (refusal != null && !own.Contains(sys.Id)) continue;
                         var (perYear, payback) = vs != null ? vs.Prospectus(w, house.Id, def, sys.Id) : (0, double.PositiveInfinity);
-                        ventureOptions.Add(new VentureOption(def.Id, def.Name, def.Description, sys.Id, sys.Name, Bundle(def.Cost), refusal, perYear, double.IsInfinity(payback) ? "never, at these prices" : $"{Math.Ceiling(payback):0} year(s)",
-                            def.BuildTurns, Bundle(ProjectSystem.Split(def.Cost, def.BuildTurns).First), def.Sector));
+                        ventureOptions.Add(new VentureOption(def.Id, def.Name, def.Description, sys.Id, sys.Name, Bundle(def.Cost), refusal, perYear, double.IsInfinity(payback) ? "never, at these prices" : $"{Counted.Years((long)(Math.Ceiling(payback)))}",
+                            def.BuildTurns, Bundle(ProjectSystem.Split(def.Cost, def.BuildTurns).First), def.Sector) { Swing = SwingOf(def) });
                     }
                 foreach (var sys in w.Galaxy.Systems.Values.Where(s => s.Belt > 0).OrderBy(s => s.Id, StringComparer.Ordinal))
                     claimOptions.Add(new ClaimOption(sys.Id, sys.Name, sys.Belt, w.Holdings.Values.Count(h => h.IsClaim && h.SystemId == sys.Id), new StakeClaimCommand(p.Id, sys.Id, content.Holdings, bc).Refusal(ctx)));
@@ -477,6 +481,16 @@ public static class CourtProjection
         var (due, extra) = ProjectSystem.HastenDue(x, pct); if (extraOnly) return Bundle(extra);
         var all = due.Clone(); foreach (var r in Resource.All) all.Add(r, extra.Get(r)); return Bundle(all);
     }
+    /// <summary>A venture whose earnings are a bet says what on (docs/UPSTART.md, U2): the figure in the list is this year's, and a
+    /// warehouse or a shipyard that shows nothing this year is not broken, it is waiting.</summary>
+    public static string SwingOf(BusinessDef def)
+    {
+        var parts = new List<string>();
+        if (def.WarCredits > 0) parts.Add($"+{def.WarCredits} a level for each war being fought"); else if (def.WarCredits < 0) parts.Add($"{def.WarCredits} a level for each war being fought");
+        if (def.PeaceCredits > 0) parts.Add($"+{def.PeaceCredits} a level while there is no war");
+        if (def.SpikeCredits > 0) parts.Add($"+{def.SpikeCredits} a level for each good whose price is spiking");
+        return string.Join(" · ", parts);
+    }
     public static string Bundle(Resources r)
     {
         var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{r.Get(k)} {Resource.Label(k)}").ToList();
@@ -584,7 +598,7 @@ public static class CourtProjection
                 int perYear = (int)Math.Round(Economy.WorthOf(w, vs.Economy.VentureLine(w, ghost)));
                 bool distressed = owner.Treasury.Credits < 0 || owner.Debt > 0;
                 forSale.Add(new ForSaleCard(b.Id, b.Name, bc.Def(b.Kind)!.Name, owner.Id, owner.Name, owner.AccentColor, w.Galaxy?.System(b.SystemId)?.Name, b.Level, perYear, ask,
-                    refusal ?? (house.Treasury.Credits < ask ? $"needs {ask} credits" : null), ask > 0 && perYear > 0 ? $"{Math.Ceiling((double)ask / perYear):0} year(s)" : "never", distressed, w.PlanetHolder(b.SystemId) == house.Id));
+                    refusal ?? (house.Treasury.Credits < ask ? $"needs {ask} credits" : null), ask > 0 && perYear > 0 ? $"{Counted.Years((long)(Math.Ceiling((double)ask / perYear)))}" : "never", distressed, w.PlanetHolder(b.SystemId) == house.Id));
             }
             forSale = forSale.OrderBy(x => x.Refusal != null && !x.Refusal.StartsWith("needs ") ? 1 : 0).ThenByDescending(x => x.Distressed).ThenBy(x => x.PerYear > 0 ? (double)x.Ask / x.PerYear : 999).ThenBy(x => x.BusinessId, StringComparer.Ordinal).Take(14).ToList();
             foreach (var o in w.Offers.Where(o => o.ToHouseId == house.Id).OrderBy(o => o.Id, StringComparer.Ordinal))

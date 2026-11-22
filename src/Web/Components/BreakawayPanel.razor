@@ -18,13 +18,13 @@
     string promisedLine = own == null || own.Promised.Count == 0 ? "" : "Promised a place, and paid " + PolitySystem.PromiseCredits + " credits a year by its ruler until year " + (own.Since + PolitySystem.PledgeYears) + ": " + string.Join(", ", own.Promised.Select(id => id == house.Id ? "your house" : w.House(id)?.Name ?? id)) + ".";
     var court = own != null && own.HeadHouseId == house.Id ? w.Houses.Values.Where(h => PolitySystem.Courtable(w, own, h)).OrderBy(h => h.Id, StringComparer.Ordinal).Take(6).ToList() : new List<House>();
     string stirLine = stirring ? "Somebody's money is setting the great houses against one another, until year " + w.Counter(PolitySystem.StirKey) + "." : "";
-    string peace = warOver ? "The Reach has fought its great war" + (wars > 1 ? " (" + wars + " of them now)" : "") + ". For " + peaceLeft + " more year(s) nobody will be stirred to another; after that it is something people were told about, and what is wrong with the Reach can bring one again. " : greatWar ? "" : near == 0 && pressure.Count == 0 ? "The Reach is at peace with itself, and nothing is pushing it toward a great war. "
+    string peace = warOver ? "The Reach has fought its great war" + (wars > 1 ? " (" + wars + " of them now)" : "") + ". For " + Counted.MoreYears(peaceLeft) + " nobody will be stirred to another; after that it is something people were told about, and what is wrong with the Reach can bring one again. " : greatWar ? "" : near == 0 && pressure.Count == 0 ? "The Reach is at peace with itself, and nothing is pushing it toward a great war. "
         : (near < 15 ? "The Reach is quiet" : near < 50 ? "The Reach is uneasy" : "The houses are counting each other's fleets") + " (" + near + " in a hundred of the way to a great war). "
           + (pressure.Count == 0 ? "Nothing is pushing it that way this year, and it is easing." : "What is pushing it: " + string.Join("; ", pressure.Select(x => x.what)) + ". Put those right and it recedes.");
     string treatyLine = own == null || own.Recognised == 0 ? "" : "The Reach named it in a treaty in year " + own.Recognised + ". "
         + (w.Turn < own.TreatyUntil ? "Until year " + own.TreatyUntil + " no house of the Reach may make war on it, nor it on them. After that the Senate may vote to come back for it, if the Reach is rested and thinks it can."
                                     : "The treaty's years have run out. The Senate may vote to come back for it, if the Reach is rested and thinks it can.")
-        + (own.Reconquests > 0 ? " It has been come back for " + own.Reconquests + " time(s) already." : "");
+        + (own.Reconquests > 0 ? " It has been come back for " + Counted.Times(own.Reconquests) + " already." : "");
     string ownLine = "", ownWar = "";
     if (own != null)
     {
@@ -35,7 +35,7 @@
         if (own.Recognised == 0)
         {
             int will = PolitySystem.Will(w, own), share = PolitySystem.Share(w, own), lead = PolitySystem.Standing(w, own), years = w.Turn - own.WarSince;
-            ownWar = "The Reach has not accepted it. " + string.Join(", ", own.Foes.Select(id => w.House(id)?.Name ?? id)) + " are at war to bring it back, " + years + " year(s) now. "
+            ownWar = "The Reach has not accepted it. " + string.Join(", ", own.Foes.Select(id => w.House(id)?.Name ?? id)) + " are at war to bring it back, " + Counted.Years(years) + " now. "
                 + "Its houses hold " + share + "% of the region (lose it below " + PolitySystem.LostShare + "% and the state is finished). The war stands at " + (lead > 0 ? "+" : "") + lead + ". "
                 + (will <= 0 ? "The Reach has no will left for it" : "The Reach's will for it is " + will + ", and falls by one every " + PolitySystem.TemperFallsEvery + " years")
                 + ": hold more than half the region for " + PolitySystem.WinYears + " years and outlast or beat them, and they make peace.";

@@ -69,8 +69,8 @@ public partial class GalaxyView : HBoxContainer
             row.AddChild(swatch);
             int hulls = FleetSystem.StrengthOf(w, h.Id);
             bool mine = h.Id == w.Protagonist?.HouseId;
-            string fleet = mine ? $" · {hulls} hull(s)" : (GalaxyProjection.Fleets(w).Where(f => f.OwnerHouseId == h.Id).Sum(f => f.Strength) is var seen && seen > 0 ? $" · ~{seen} hull(s) reported" : "");
-            row.AddChild(CourtTheme.Body($"  {h.Name} — {systems.Count} system(s){fleet}{(mine ? "  (you)" : "")}", CourtTheme.Ink(era), 12, wrap: false, serif: false));
+            string fleet = mine ? $" · {Praetoria.Core.Counted.Hulls(hulls)}" : (GalaxyProjection.Fleets(w).Where(f => f.OwnerHouseId == h.Id).Sum(f => f.Strength) is var seen && seen > 0 ? $" · ~{Praetoria.Core.Counted.Hulls(seen)} reported" : "");
+            row.AddChild(CourtTheme.Body($"  {h.Name} — {Praetoria.Core.Counted.Systems(systems.Count)}{fleet}{(mine ? "  (you)" : "")}", CourtTheme.Ink(era), 12, wrap: false, serif: false));
             lv.AddChild(row);
         }
         _panel.AddChild(legend);
@@ -120,7 +120,7 @@ public partial class GalaxyView : HBoxContainer
                 // mixed visibility (GDD §19): your own domain in depth, a rival's only as the public record
                 sv.AddChild(CourtTheme.Muted(mine
                     ? $"pop {h.Population} · unrest {h.Unrest} · buildings: {(h.Buildings.Count == 0 ? "—" : string.Join(", ", h.Buildings.Select(b => _state.Content.Holdings.Building(b)?.Name ?? b)))}"
-                    : $"pop ~{Rough(h.Population)} · {h.Buildings.Count} building(s) reported", era, 11));
+                    : $"pop ~{Rough(h.Population)} · {Praetoria.Core.Counted.Buildings(h.Buildings.Count)} reported", era, 11));
             }
             var here = GalaxyProjection.Fleets(w).Where(f => f.SystemId == node.SystemId).ToList();
             if (here.Count > 0)
@@ -128,8 +128,8 @@ public partial class GalaxyView : HBoxContainer
                 sv.AddChild(CourtTheme.Rule());
                 foreach (var f in here)
                     sv.AddChild(CourtTheme.Body(f.IsPlayer
-                            ? $"⚓ {f.Name}{(f.Office ? " (office)" : "")} — {f.Strength} hull(s), readiness {f.Readiness}{(f.Moving ? $", en route to {w.Galaxy.System(f.DestinationId)?.Name}" : "")}"
-                            : $"◦ {f.Name} ({f.OwnerHouseName}) — ~{f.Strength} hull(s), reported {f.Confidence}% as of turn {f.TurnObserved}",
+                            ? $"⚓ {f.Name}{(f.Office ? " (office)" : "")} — {Praetoria.Core.Counted.Hulls(f.Strength)}, readiness {f.Readiness}{(f.Moving ? $", en route to {w.Galaxy.System(f.DestinationId)?.Name}" : "")}"
+                            : $"◦ {f.Name} ({f.OwnerHouseName}) — ~{Praetoria.Core.Counted.Hulls(f.Strength)}, reported {f.Confidence}% as of turn {f.TurnObserved}",
                         f.IsPlayer ? CourtTheme.Ink(era) : CourtTheme.Muted(era), 12, serif: false));
             }
             // orders: send one of your idle fleets here (GDD §9 fleet orders spend Treasury)
@@ -144,7 +144,7 @@ public partial class GalaxyView : HBoxContainer
                     var cmd = new MoveFleetCommand(pid, f.Id, node.SystemId, _state.Content.Fleets);
                     int hops = w.Galaxy.Hops(f.SystemId, node.SystemId);
                     bool can = cmd.CanExecute(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0)));
-                    var btn = CourtTheme.Action($"Order {f.Name} here  ({(hops < 0 ? "unreachable" : hops + " jump(s)")}, 1 treasury)", can,
+                    var btn = CourtTheme.Action($"Order {f.Name} here  ({(hops < 0 ? "unreachable" : Praetoria.Core.Counted.Jumps(hops))}, 1 treasury)", can,
                         can ? null : "Unreachable, already underway, or no Treasury left this turn.");
                     btn.Pressed += () => _state.Execute(cmd);
                     sv.AddChild(btn);
@@ -157,7 +157,7 @@ public partial class GalaxyView : HBoxContainer
             if (home != null && home.SystemId != node.SystemId)
             {
                 int hops = w.Galaxy.Hops(home.SystemId, node.SystemId);
-                sv.AddChild(CourtTheme.Muted(hops < 0 ? "Unreachable from your seat." : $"{hops} jump(s) from {w.Galaxy.System(home.SystemId)!.Name}.", era, 12));
+                sv.AddChild(CourtTheme.Muted(hops < 0 ? "Unreachable from your seat." : $"{Praetoria.Core.Counted.Jumps(hops)} from {w.Galaxy.System(home.SystemId)!.Name}.", era, 12));
             }
         }
         _panel.AddChild(sel);

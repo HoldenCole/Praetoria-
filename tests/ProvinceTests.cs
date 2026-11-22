@@ -212,7 +212,7 @@ public class ProvinceTests
         its.Votes[house.Id] = -1; ProvinceSystem.NoteVotes(w, Cat, its, "", false, house.Id, SenateSystem.ObligeRegard, SenateSystem.DefyRegard);
         Assert.Equal(1, ProvinceSystem.Wishes(w, Cat, its, "", false, house.Id).Single().defied);
         // when it asks for the province, the demand says why, and the house is told
-        ProvinceSystem.Demand(w, Cat, over, planet, idx, over.Id, "you have voted against it in the Senate 2 time(s) on what touched it, and it bears 1");
+        ProvinceSystem.Demand(w, Cat, over, planet, idx, over.Id, "you have voted against it in the Senate 2 times on what touched it, and it bears 1");
         var d = w.SeatDemands.Single(); Assert.Contains("voted against it", d.Why);
         Assert.Contains(w.News, n => n.Text.Contains("asks you to give up") && n.Text.Contains("voted against it") && n.Target == "galaxy:" + planet.SystemId);
     }

@@ -76,7 +76,7 @@ public sealed class OrderSystem
                 break;
             case Arms:
                 int hulls = w.Fleets.Values.Where(f => f.OwnerId == h.Id && !f.Office).Sum(f => f.Strength);
-                Add($"{hulls} hull(s) of its own", Math.Min(40, hulls * 4));
+                Add($"{Counted.Hulls(hulls)} of its own", Math.Min(40, hulls * 4));
                 Add("rank in the Navy", Best("military") * 5);
                 Add("victories beyond the Reach", Math.Min(10, w.Fleets.Values.Where(f => f.OwnerId == h.Id).Sum(f => f.ExpeditionWins) * 2));
                 Add("victories still talked about", Math.Min(24, h.Glory * 4));
@@ -85,7 +85,7 @@ public sealed class OrderSystem
                 break;
             case Commerce:
                 Add($"{Wealth.TierFor(w, h.Id)} among the houses", Wealth.TierIndex(Wealth.TierFor(w, h.Id)) * 5);
-                var ventures = w.BusinessesOf(h.Id).ToList(); Add($"{ventures.Count} venture(s)", Math.Min(14, ventures.Sum(b => 1 + b.Level)));
+                var ventures = w.BusinessesOf(h.Id).ToList(); Add($"{Counted.Ventures(ventures.Count)}", Math.Min(14, ventures.Sum(b => 1 + b.Level)));
                 Add("companies it directs", Math.Min(12, w.Companies.Count(c => c.ControllerId == h.Id) * 4));
                 Add("paper on the Exchange", Math.Min(10, CompanySystem.PaperOf(w, h.Id) / 30));
                 Add("houses in its debt", Math.Min(9, w.Houses.Values.Count(o => o.Debt > 0 && o.LenderId == h.Id && o.Id != h.Id) * 3));
@@ -240,7 +240,7 @@ public sealed class OrderSystem
         if (client.PatronId.Length > 0) return $"already the client of {w.House(client.PatronId)?.Name}";
         if (patron.PatronId.Length > 0) return "a client takes no clients";
         if (w.AtWar(patron.Id, client.Id)) return "you are at war with it";
-        if (ClientsOf(w, patron.Id).Count() >= ClientCap(patron)) return $"the house can keep {ClientCap(patron)} client(s) at its standing";
+        if (ClientsOf(w, patron.Id).Count() >= ClientCap(patron)) return $"the house can keep {Counted.Clients(ClientCap(patron))} at its standing";
         if (patron.Wealth < client.Wealth * 2 || patron.Wealth < 60) return "a patron must be twice as rich as the client";
         if (ClientsOf(w, client.Id).Any()) return "it is a patron itself";
         bool needy = client.Debt > 0 || client.Treasury.Credits < 20 || Wealth.TierIndex(Wealth.TierFor(w, client.Id)) <= 1 || !w.HoldingsOf(client.Id).Any(x => x.IsPlanet);

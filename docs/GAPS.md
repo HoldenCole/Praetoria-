@@ -291,7 +291,6 @@ Measured by `upstart` (three services, four seeds, sixty years). U8 to U11 are c
 | | Gap | Size | Needs |
 |---|---|---|---|
 | U1 | A new house never overtakes the old ones in wealth: with 650 credits and five ventures at year 60 it is 30th of 32, and one game in twelve reached the richer half. | L | the owner: how rich a new house may get |
-| U2 | A commodity warehouse and a shipyard company pay nothing on every world in an ordinary year, and are wound up after three. Nothing on the founding screen warns that they are a bet on a spike or a war. | S | |
 | U3 | A landless house is given a province on the first day, so a house with "nothing" holds ground and a levy. | S | the owner |
 | U4 | A house with no seat still votes, has a bench and a party and can be bought. | S | the owner: what no seat forbids |
 | U5 | Event texts written for a great house are told of a landless or seatless one ("older than the panic", "crosses the floor", "the house's worlds"). | M | |
@@ -418,3 +417,7 @@ look-and-feel pass is planned and not begun, there is no sound.
 | U9 | The head of a house with no seat was given a senator's year, and the house lost 2 legitimacy every three years for not being seen in a chamber it did not sit in. | 2026-11-21 | A house that has come in by none of the four doors has no senator's year, owes no attendance and has no place on a committee. |
 | U10 | In the creator a relative was a name, a sex and an age; parents were always dead; the eight backgrounds were for written starts only. | 2026-11-21 | A background on the person's page, priced by what it gives; a father and a mother who may be living; a service, a step, a nature and a gift for each relative of age; an Upstart preset. docs/CHARACTER.md. |
 | U11 | Asking for the next rank was refused with no reason; a child could be named for its own surname. | 2026-11-21 | The petition says what is wanting. Nobody of a house is given its name for a first name. |
+| U2 | A commodity warehouse and a shipyard company pay nothing on every world in an ordinary year, and nothing on the founding list said they are a bet. | 2026-11-22 | The list says under the year's figure what a venture's earnings swing on: each war being fought, the peace, each good whose price is spiking. |
+| V20 | Tooltips could not hold a tooltip, followed the pointer so they could not be entered, and the map's own note on a star stayed up for good once shown. | 2026-11-22 | docs/WEB_CLIENT.md, "Tooltips": the game's words are underlined inside a tooltip and open their own, four deep, placed by Floating UI. The map's note goes when the pointer does. |
+| V21 | From far off every star carried rings too small to read, lanes ran through the suns, and every line had stepped edges. | 2026-11-22 | docs/GALAXY.md, "The chart at three distances". |
+| V22 | About 170 lines wrote a count as "4 hull(s)". | 2026-11-22 | `Counted` says "1 hull", "4 hulls", and the verb agrees. A test keeps the brackets out. |

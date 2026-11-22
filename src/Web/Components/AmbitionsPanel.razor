@@ -51,7 +51,7 @@
                 <div><b>@c.Name</b> wants @AmbitionSystem.Wants(u.Goal)@(" ")
                     @if (u.Fulfilled) { <span class="pill small good">has it</span> }
                     @if (c.Flags.Contains(AmbitionSystem.ThwartedChar)) { <span class="pill small warn">thwarted</span> }
-                    <div class="muted small">@(u.Note.Length > 0 ? u.Note : "Nothing to note this year.")@(u.Helped + u.Refused > 0 ? $" · you have helped {u.Helped} time(s) and said no {u.Refused}" : "")</div></div>
+                    <div class="muted small">@(u.Note.Length > 0 ? u.Note : "Nothing to note this year.")@(u.Helped + u.Refused > 0 ? $" · you have helped {Counted.Times(u.Helped)} and said no {u.Refused}" : "")</div></div>
             </div>
             @if (AmbitionSystem.HelpSays(w, c) is { Length: > 0 } helps) { <div class="muted small" data-help-for="@cid"><b>What would help:</b> @helps</div> }
             @if (!u.Fulfilled) { <div class="gauges"><div class="gauge" title="How near they are to what they want, from 0 to 100 by their own reckoning. At 100 they have it."><span>How near (of 100)</span><i><b style="width:@u.Progress%" class="@(u.Progress >= 70 ? "high" : u.Progress < 25 ? "low" : "")"></b></i><em>@u.Progress</em></div></div> }
@@ -66,7 +66,7 @@
             @if (asks)
             {
                 var no = new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys).Refusal(G.Ctx); int left = Math.Max(1, AmbitionSystem.RequestYears - (w.Turn - u.RequestSince));
-                <div class="small"><b>@First(c.Name) @AmbitionSystem.RequestSays(w, c).</b> <span class="muted">They will take silence for a no in @left year(s).</span></div>
+                <div class="small"><b>@First(c.Name) @AmbitionSystem.RequestSays(w, c).</b> <span class="muted">They will take silence for a no in @Counted.Years(left).</span></div>
                 <div class="suit-acts">
                     <button class="opt inline" disabled="@(no != null)" title="@(no ?? "It costs: " + AmbitionSystem.GrantCosts(w, c) + ".")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys))">Grant it</button>
                     @{ var later = new AmbitionCommand(pid, AmbitionCommand.Later, cid, sys); var laterNo = later.Refusal(G.Ctx); }

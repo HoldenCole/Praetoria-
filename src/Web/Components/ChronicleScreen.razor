@@ -19,8 +19,8 @@
     int ownAll = w.History.Count(Own), standing = w.Houses.Values.Count(h => h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null);
     int battles = w.Counter(FleetSystem.BattlesCounter), won = w.Counter(FleetSystem.BattlesWonCounter), gen = Math.Max(1, w.Counter("generation"));
     string story = w.History.Count == 0 ? "Nothing is written yet. The chronicle fills as the years pass: what your house did, and what the Reach did around it."
-        : ownThis.Count > 0 ? $"Year {lastYear}, of your house: {ownThis[^1].Text}{(ownThis.Count > 1 ? $" And {ownThis.Count - 1} more." : "")} Of the rest of the Reach, {thisYear.Count - ownThis.Count} thing(s) were written."
-        : $"Year {lastYear}: nothing was written of your house. Of the Reach, {thisYear.Count} thing(s); the latest: {thisYear[^1].Text}";
+        : ownThis.Count > 0 ? $"Year {lastYear}, of your house: {ownThis[^1].Text}{(ownThis.Count > 1 ? $" And {ownThis.Count - 1} more." : "")} Of the rest of the Reach, {Counted.Things(thisYear.Count - ownThis.Count)} {Counted.Were(thisYear.Count - ownThis.Count)} written."
+        : $"Year {lastYear}: nothing was written of your house. Of the Reach, {Counted.Things(thisYear.Count)}; the latest: {thisYear[^1].Text}";
     var shown = turns.Select(g => (year: g.Key, all: g.Count(), lines: g.Where(h => (!_onlyNotable || h.EventId != null || Notable(h.Text)) && Kind(h.Text) && (_whose == "all" || (_whose == "house") == Own(h))).ToList())).Where(x => x.lines.Count > 0).ToList();
     int every = last <= 20 ? 1 : last <= 60 ? 5 : 10;
 }
@@ -32,7 +32,7 @@
             <Tile Label="Written" Value="@($"{w.History.Count} entries")" Share="@(w.History.Count > 0 ? 100 * ownAll / w.History.Count : 0)" Note="@($"{ownAll} of your house · about {w.History.Count / Math.Max(1, w.Turn)} a year")" Title="The bar is the share of the record that is about your own house." />
             <Tile Label="Wars declared" Value="@w.Counter(FleetSystem.WarsDeclaredCounter).ToString()" Tone="@(w.Wars.Count > 0 ? "warn" : "")" Note="@(w.Wars.Count == 0 ? "none being fought now" : $"{w.Wars.Count} being fought now")" />
             <Tile Label="Battles" Value="@battles.ToString()" Share="@(battles > 0 ? 100 * won / battles : -1)" Note="@(battles == 0 ? "none fought yet" : $"your house won {won}")" />
-            <Tile Label="The Senate carried" Value="@($"{w.Counter("motions_passed")} motions")" Note="@($"{w.Counter("acts_passed")} of them Acts · {w.Counter("laws_enacted")} law(s) changed by houses")" />
+            <Tile Label="The Senate carried" Value="@($"{w.Counter("motions_passed")} motions")" Note="@($"{w.Counter("acts_passed")} of them Acts · {Counted.Laws(w.Counter("laws_enacted"))} changed by houses")" />
             <Tile Label="Houses fallen" Value="@w.Counter("houses_fallen").ToString()" Note="@($"{standing} still stand")" />
             <Tile Label="Seats passed" Value="@w.Successions.Count.ToString()" Note="@($"you are the {Ordinal(gen)} of your line to hold it")" />
         </div>

@@ -570,7 +570,7 @@ public sealed class CaesarSystem
         if (g.Skill("tactics") < GateTactics) lacks.Add($"tactics {g.Skill("tactics")} of {GateTactics}");
         if (Victories(w, g) < GateVictories) lacks.Add($"{Victories(w, g)} of {GateVictories} battles won");
         if (Triumphs(w, g) == 0) lacks.Add("no triumph");
-        list.Add(("A commander of the first rank", lacks.Count == 0, lacks.Count == 0 ? $"tactics {g.Skill("tactics")}, {Victories(w, g)} battles won, {Triumphs(w, g)} triumph(s)" : string.Join(", ", lacks)));
+        list.Add(("A commander of the first rank", lacks.Count == 0, lacks.Count == 0 ? $"tactics {g.Skill("tactics")}, {Victories(w, g)} battles won, {Counted.Triumphs(Triumphs(w, g))}" : string.Join(", ", lacks)));
         lacks = new List<string>();
         if (!Charms(w, g)) lacks.Add($"charisma {g.Skill("charisma")} of {GateCharisma}, no name the Reach has given, not a second triumph, and {Victories(w, g)} of {GateHeroVictories} victories");
         if (DevotedHulls(w, g) < MarchHulls) lacks.Add($"{DevotedHulls(w, g)} of {MarchHulls} hulls would follow");

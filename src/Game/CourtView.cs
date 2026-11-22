@@ -159,14 +159,14 @@ public partial class CourtView : HBoxContainer
             foreach (var o in f.MergeOptions) cmdFold.AddChild(Opt(o, new MergeFleetsCommand(pid, o.Id, f.Id)));
         }
         foreach (var siege in m.Sieges)
-            av.AddChild(CourtTheme.Body(siege.Ours ? $"⚠ {siege.HoldingName} is blockaded by {siege.BesiegerName} — falls in {siege.Required - siege.Turns} turn(s)"
+            av.AddChild(CourtTheme.Body(siege.Ours ? $"⚠ {siege.HoldingName} is blockaded by {siege.BesiegerName} — falls in {Praetoria.Core.Counted.Turns(siege.Required - siege.Turns)}"
                                                    : $"Siege of {siege.HoldingName}: {siege.Turns}/{siege.Required} turns", CourtTheme.Danger, 12));
         if (m.Wars.Count > 0)
         {
             av.AddChild(CourtTheme.Rule());
             foreach (var war in m.Wars)
             {
-                av.AddChild(CourtTheme.Body($"⚔ At war with {war.EnemyName} since turn {war.Since} — they field ~{war.EnemyHulls} hull(s).{(war.TheyAreSuing ? "  Their envoy awaits your answer in the briefing." : "")}", CourtTheme.Danger, 12));
+                av.AddChild(CourtTheme.Body($"⚔ At war with {war.EnemyName} since turn {war.Since} — they field ~{Praetoria.Core.Counted.Hulls(war.EnemyHulls)}.{(war.TheyAreSuing ? "  Their envoy awaits your answer in the briefing." : "")}", CourtTheme.Danger, 12));
                 av.AddChild(Cmd($"Sue for peace with {war.EnemyName}  (1 influence)", war.PeaceAvailable, war.PeaceTooltip, new SueForPeaceCommand(pid, war.EnemyHouseId, _state.Content.Fleets)));
             }
         }

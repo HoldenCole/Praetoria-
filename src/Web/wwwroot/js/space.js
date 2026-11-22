@@ -29,6 +29,8 @@ function textures() {
   TEX.sun = radialTexture(128, [[0, 'rgba(255,255,255,1)'], [0.18, 'rgba(255,245,220,1)'], [0.35, 'rgba(255,220,150,.55)'], [0.6, 'rgba(255,180,90,.12)'], [1, 'rgba(0,0,0,0)']]);
   TEX.glow = radialTexture(128, [[0, 'rgba(255,255,255,.9)'], [0.4, 'rgba(255,255,255,.25)'], [1, 'rgba(255,255,255,0)']]);
   TEX.star = radialTexture(32, [[0, 'rgba(255,255,255,1)'], [0.3, 'rgba(255,255,255,.6)'], [1, 'rgba(255,255,255,0)']]);
+  // a hull seen from above: a long bow, two engine pods and a notch at the stern
+  TEX.hull = glyphTexture(ctx => { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(32, 2); ctx.lineTo(41, 26); ctx.lineTo(54, 40); ctx.lineTo(54, 58); ctx.lineTo(44, 58); ctx.lineTo(41, 48); ctx.lineTo(36, 54); ctx.lineTo(28, 54); ctx.lineTo(23, 48); ctx.lineTo(20, 58); ctx.lineTo(10, 58); ctx.lineTo(10, 40); ctx.lineTo(23, 26); ctx.closePath(); ctx.fill(); });
   TEX.ship = glyphTexture(ctx => { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(32, 4); ctx.lineTo(56, 56); ctx.lineTo(32, 44); ctx.lineTo(8, 56); ctx.closePath(); ctx.fill(); });
   TEX.lane = (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 32; const ctx = c.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 0, 32); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 4, 32); const t = new THREE.CanvasTexture(c); return t; })();
   TEX.flare = (() => { const c = document.createElement('canvas'); c.width = 256; c.height = 16; const ctx = c.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 16); const t = new THREE.CanvasTexture(c); return t; })();
@@ -99,11 +101,15 @@ export class Galaxy {
     this.lost = false; this.lostAt = 0; this.onGiveUp = null;
     this.renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); this.lost = true; this.lostAt = performance.now(); });
     this.renderer.domElement.addEventListener('webglcontextrestored', () => { this.lost = false; this.resize(); this.dirty = true; });
+    const shade = document.createElement('div'); shade.className = 'gl-vignette'; container.appendChild(shade);   // the corners fall away into the dark, so the eye stays on the middle of the chart
     this.labelRenderer = new CSS2DRenderer(); this.labelRenderer.setSize(w, h); this.labelRenderer.domElement.className = 'gl-labels'; container.appendChild(this.labelRenderer.domElement);
     this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(0x02030a);
     this.camera = new THREE.PerspectiveCamera(42, w / h, 1, 20000);
     this.target = new THREE.Vector3(600, -350, 0); this.distance = 1000; this.tilt = 0.42;
-    this.composer = new EffectComposer(this.renderer); this.composer.addPass(new RenderPass(this.scene, this.camera));
+    // the composer's own target is multisampled: without it every lane, orbit and border is drawn with stepped edges, because the
+    // renderer's antialiasing does not reach what is drawn off-screen for the bloom
+    const pr = this.renderer.getPixelRatio(); const smooth = this.renderer.capabilities.isWebGL2 ? new THREE.WebGLRenderTarget(Math.round(w * pr), Math.round(h * pr), { samples: 4, type: THREE.HalfFloatType }) : undefined;
+    this.composer = new EffectComposer(this.renderer, smooth); this.composer.addPass(new RenderPass(this.scene, this.camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.9, 0.55, 0.3); this.composer.addPass(this.bloom);
     this.raycaster = new THREE.Raycaster(); this.mouse = new THREE.Vector2(); this.hitTargets = [];
     this.buildBackdrop(); this.scene.add(this.objects);
@@ -140,7 +146,7 @@ export class Galaxy {
     this.hitTargets = [];
     if (this.tip) { this.tip.element.remove(); this.tip = null; }
     if (!model) return;
-    const tipEl = document.createElement('div'); tipEl.className = 'map-tip'; tipEl.style.display = 'none'; this.tip = new CSS2DObject(tipEl); this.tip.position.set(0, 0, 20); this.objects.add(this.tip); this.labels.push(this.tip);
+    const tipEl = document.createElement('div'); tipEl.className = 'map-tip'; tipEl.style.display = 'none'; this.tip = new CSS2DObject(tipEl); this.tip.visible = false; this.tip.position.set(0, 0, 20); this.objects.add(this.tip); this.labels.push(this.tip);
     const T = textures();
     const byId = {}; for (const s of model.systems) byId[s.id] = s;
     // bounds → home camera
@@ -251,15 +257,23 @@ export class Galaxy {
 
     // lanes
     const laneGeo = new THREE.BufferGeometry(); const lp = [], lc = [];
-    for (const l of model.lanes) { const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const c = l.front ? [0.9, 0.3, 0.2] : l.reach ? [0.9, 0.75, 0.4] : [0.55, 0.62, 0.78]; lp.push(a.x, -a.y, 0, b.x, -b.y, 0); lc.push(...c, ...c); }
+    // a lane stops short of the star at each end, so no line is drawn through a sun; one that runs between two systems of the same
+    // holder takes some of that holder's colour, so a holding reads as a web and its edge as where the web changes colour
+    const GAP = 20, tint = new THREE.Color();
+    for (const l of model.lanes) {
+      const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; let c = l.front ? [0.9, 0.3, 0.2] : l.reach ? [0.9, 0.75, 0.4] : [0.55, 0.62, 0.78];
+      if (!l.front && !l.reach && a.ownerId && a.ownerId === b.ownerId && a.accent) { tint.set(a.accent); c = [c[0] * .45 + tint.r * .75, c[1] * .45 + tint.g * .75, c[2] * .45 + tint.b * .75]; }
+      const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1, g2 = Math.min(GAP, len * .3), ux = dx / len * g2, uy = dy / len * g2;
+      lp.push(a.x + ux, -(a.y + uy), 0, b.x - ux, -(b.y - uy), 0); lc.push(...c, ...c);
+    }
     laneGeo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3)); laneGeo.setAttribute('color', new THREE.Float32BufferAttribute(lc, 3));
-    this.objects.add(new THREE.LineSegments(laneGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.28 })));
+    this.objects.add(new THREE.LineSegments(laneGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.36 })));
     // glow: tubes of light under the hairlines
     for (const l of model.lanes) { if (!l.front && !l.reach) continue; const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const dx = b.x - a.x, dy = -(b.y - a.y); const len = Math.hypot(dx, dy); const tube = new THREE.Mesh(new THREE.PlaneGeometry(len, l.front ? 7 : 4.5), new THREE.MeshBasicMaterial({ map: T.lane, color: l.front ? 0xff5a3c : l.reach ? 0xe6c77a : 0x6f8ad0, transparent: true, opacity: l.front ? .5 : l.reach ? .6 : .22, blending: THREE.AdditiveBlending, depthWrite: false })); tube.position.set((a.x + b.x) / 2, -(a.y + b.y) / 2, -1); tube.rotation.z = Math.atan2(dy, dx); this.objects.add(tube); }
 
     // systems
     const sunMat = (color) => new THREE.SpriteMaterial({ map: T.sun, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
-    const ringGeo = new THREE.RingGeometry(1, 1.08, 64);
+    const ringGeo = new THREE.RingGeometry(1, 1.08, 64); this.suns = []; this.details = []; this.lod = null;
     for (const s of model.systems) {
       const g = new THREE.Group(); g.position.set(s.x, -s.y, 0);
       const h = hash(s.id); const cls = [[0xfff4e0, 1.0], [0xffe2a8, 0.9], [0xffb070, 0.8], [0xbfd4ff, 1.15], [0xffffff, 1.05], [0xffd0a0, 0.85]][h % 6];
@@ -269,6 +283,9 @@ export class Galaxy {
       if (s.sunWorks) { const halo = new THREE.Mesh(new THREE.RingGeometry(sz * .46, sz * .5, 48), new THREE.MeshBasicMaterial({ color: 0xffd36a, transparent: true, opacity: .8, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); halo.userData.spinZ = -0.25; g.add(halo); }   // something is built round the sun itself
       for (let k = 0; k < (s.deepWorks || 0); k++) { const st = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.station, color: 0xffd9a0, transparent: true, depthWrite: false })); st.scale.set(4.4, 4.4, 1); const da = ((h >> 5) % 628) / 100 + k * 1.9; st.position.set(Math.cos(da) * (sz * 1.5 + 30), Math.sin(da) * (sz * 1.5 + 30) * .78, 3); g.add(st); }   // what is built in open space, tied to no world
       if (s.isPlayer) { const home = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffe8a3, transparent: true, opacity: .35, blending: THREE.AdditiveBlending, depthWrite: false })); home.scale.set(sz * 2.2, sz * 2.2, 1); home.userData.pulse = true; g.add(home); }
+      // from far off a system is its star and no more: the star is drawn larger as the chart draws back, and what goes round it
+      // (orbits, worlds, moons, the lights of what is built) is put away until there is room to see it
+      this.suns.push({ parts: [[sun, sz, sz], [core, 7 * cls[1], 7 * cls[1]], [flare, sz * 2.6, sz * .16]] }); const firstBody = g.children.length;
       // the system, not one planet (GDD §19): every body on its own orbit, the primary a lit sphere, the rest sprites
       const bodies = (s.bodies && s.bodies.length) ? s.bodies : [{ name: s.name, cls: s.planetClass, size: 3, primary: true }];
       const orbitMat = new THREE.LineBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: .09 });
@@ -304,6 +321,7 @@ export class Galaxy {
       if (s.planetClass === 'gas') { const ring = new THREE.Mesh(new THREE.RingGeometry(pr * 1.35, pr * 1.9, 48), new THREE.MeshBasicMaterial({ color: 0xf0d0a0, transparent: true, opacity: 0.5, side: THREE.DoubleSide })); ring.position.copy(planet.position); ring.rotation.x = 1.2; g.add(ring); }
       // atmosphere rim
       const atm = new THREE.Mesh(new THREE.SphereGeometry(pr * 1.12, 24, 18), new THREE.MeshBasicMaterial({ color: planetGlow(s.planetClass), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false })); atm.position.copy(planet.position); g.add(atm);
+      { const detail = new THREE.Group(); for (const child of g.children.slice(firstBody)) detail.add(child); g.add(detail); this.details.push(detail); }
       if (s.ownerId) { const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: s.accent, transparent: true, opacity: s.isPlayer ? 0.95 : 0.55, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })); ring.scale.set(sz * 0.62, sz * 0.62, 1); g.add(ring); }
       // a world that has changed sides across the rim: a broken ring in the holder's colour, outside the plain one
       if (s.conquered) { for (let k = 0; k < 8; k++) { const seg = new THREE.Mesh(new THREE.RingGeometry(sz * 0.86, sz * 0.94, 10, 1, k * Math.PI / 4, Math.PI / 7), new THREE.MeshBasicMaterial({ color: s.accent, transparent: true, opacity: s.conquered === 'ceded' ? 0.7 : 1, side: THREE.DoubleSide })); g.add(seg); } }
@@ -347,6 +365,7 @@ export class Galaxy {
 
   // ---- camera ----
   updateCamera(immediate) {
+    if (this.tip) { this.tip.visible = false; this.tip.element.style.display = 'none'; }   // a note on a star belongs to the view it was asked in: when the chart moves it goes
     if (immediate || !this.cur) { this.cur = { x: this.target.x, y: this.target.y, d: this.distance }; }
     this.applyCamera();
   }
@@ -433,16 +452,18 @@ export class Galaxy {
       if (down) { const pt = this.planePoint(e.clientX, e.clientY); if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 3) moved = true; if (pt && down.pt && moved) { this.target.x -= pt.x - down.pt.x; this.target.y -= pt.y - down.pt.y; this.updateCamera(); } el.style.cursor = 'grabbing'; return; }
       const hit = this.pick(e.clientX, e.clientY); el.style.cursor = hit ? 'pointer' : 'grab'; this.showTip(hit);
     });
+    el.addEventListener('pointerleave', () => { if (!down) this.showTip(null); });   // onto a window, the bar or the list: the note does not stay behind
     el.addEventListener('pointerup', e => { if (down && !moved) { const hit = this.pick(e.clientX, e.clientY); if (hit) this.dotnet?.invokeMethodAsync('OnPick', hit.kind, hit.id); else this.dotnet?.invokeMethodAsync('OnPick', 'none', ''); } down = null; el.style.cursor = 'grab'; });
     el.addEventListener('wheel', e => { e.preventDefault(); this.zoom(e.deltaY > 0 ? 1.15 : 0.87, e.clientX, e.clientY); }, { passive: false });
     // twice on a system goes into it; twice on a world, once inside, goes to the world
     el.addEventListener('dblclick', e => { const hit = this.pick(e.clientX, e.clientY); if (!hit) return; if (!this.sys && hit.kind === 'system') this.dotnet?.invokeMethodAsync('OnPick', 'enter', hit.id); else if (this.sys && hit.kind === 'body') this.dotnet?.invokeMethodAsync('OnPick', 'world', hit.id); });
   }
   showTip(hit) {
-    if (this.sys) { const t = this.sysTip; if (!t) return; if (!hit || !hit.tip) { t.element.style.display = 'none'; return; } t.element.style.display = 'block'; t.element.innerHTML = hit.tip; t.position.set(hit.at[0], hit.at[1] + (hit.up || 16), 20); return; }
+    // the label renderer shows whatever is visible on every frame, so a note is put away by its own flag and not by its style
+    if (this.sys) { const t = this.sysTip; if (!t) return; if (!hit || !hit.tip) { t.visible = false; t.element.style.display = 'none'; return; } t.visible = true; t.element.innerHTML = hit.tip; t.position.set(hit.at[0], hit.at[1] + (hit.up || 16), 20); return; }
     if (!this.tip || !this.model) return;
-    if (!hit) { this.tip.element.style.display = 'none'; return; }
-    const el = this.tip.element; el.style.display = 'block';
+    if (!hit) { this.tip.visible = false; this.tip.element.style.display = 'none'; return; }
+    const el = this.tip.element; this.tip.visible = true;
     if (hit.kind === 'system') { const s = this.model.systems.find(x => x.id === hit.id); if (!s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(s.name)}</b><div>${esc(s.planetClass)} world · ${esc(s.ownerName || 'unclaimed')}${s.governor ? ` · gov. ${esc(s.governor)}` : ''}</div>${s.pop ? `<div>${esc(s.citizens || ('scale ' + s.pop))} citizens · loyalty ${100 - s.unrest}</div>` : ''}${s.industry ? `<div>${esc(s.industry)}</div>` : ''}${s.great ? `<div>★ ${esc(s.great)}</div>` : ''}`; }
     else { const f = this.model.fleets.find(x => x.id === hit.id); const s = f && this.model.systems.find(x => x.id === f.systemId); if (!f || !s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(f.name)}</b><div>${esc(f.ownerName || '')} · ${f.strength} hulls${f.isPlayer ? ` · readiness ${f.readiness}` : ` · intel ${f.confidence}%`}</div>`; }
   }
@@ -461,6 +482,9 @@ export class Galaxy {
     if (this.sys) { this.tickSystem(t); this.composer.render(); this.labelRenderer.render(this.scene, this.camera); return; }
     this.objects.traverse(o => { if (o.userData.spin) o.rotation.y = t * o.userData.spin; if (o.userData.spinZ) o.rotation.z = t * o.userData.spinZ; });
     this.objects.traverse(o => { if (o.userData.pulse) { const s = 1 + 0.08 * Math.sin(t * 3 + o.position.x * 0.01); o.scale.setScalar ? (o.isSprite ? null : o.scale.set(s, s, 1)) : null; if (o.material?.opacity != null && o.isSprite) o.material.opacity = 0.45 + 0.25 * Math.sin(t * 2.5); } });
+    // what a system shows changes with distance: its star alone, larger, from far off; its worlds and orbits from the middle distance in
+    { const d = this.cur ? this.cur.d : this.distance, show = d < 2050, grow = Math.round(Math.max(1, Math.min(2.3, d / 1500)) * 20) / 20, key = (show ? 'a' : 'b') + grow;
+      if (key !== this.lod && this.suns) { this.lod = key; for (const dg of this.details) dg.visible = show; for (const sn of this.suns) for (const [sp, sx, sy] of sn.parts) sp.scale.set(sx * grow, sy * grow, 1); } }
     // labels fade with distance
     const lr = this.labelRenderer.domElement; lr.classList.toggle('near', this.distance < 700); lr.classList.toggle('far', this.distance > 1700); lr.classList.toggle('veryfar', this.distance > 3200); lr.classList.toggle('realm', this.distance > 2200);
     // which drawing of the territory shows: the systems close to, the houses in the middle distance, the realms from far off
@@ -474,7 +498,7 @@ export class Galaxy {
   // the belt, the gates where its lanes leave toward the neighbours they lead to, and who is in it. The chart comes from the game
   // (SystemCharts.For); nothing about where a thing is is decided here.
   applyMode() {
-    const inside = !!this.sys; this.objects.visible = !inside; for (const l of this.labels) l.visible = !inside;
+    const inside = !!this.sys; this.objects.visible = !inside; for (const l of this.labels) l.visible = !inside; if (inside && this.tip) this.tip.visible = false;
     if (this.sysGroup) this.sysGroup.visible = inside;
     this.labelRenderer.domElement.classList.toggle('in-system', inside);
   }
@@ -526,7 +550,7 @@ export class Galaxy {
       const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), dashed ? new THREE.LineDashedMaterial({ color, transparent: true, opacity, dashSize: 6, gapSize: 9 }) : new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
       if (dashed) line.computeLineDistances(); return line;
     };
-    const tipEl = document.createElement('div'); tipEl.className = 'map-tip'; tipEl.style.display = 'none'; this.sysTip = new CSS2DObject(tipEl); g.add(this.sysTip); this.sysLabels.push(this.sysTip);
+    const tipEl = document.createElement('div'); tipEl.className = 'map-tip'; tipEl.style.display = 'none'; this.sysTip = new CSS2DObject(tipEl); this.sysTip.visible = false; g.add(this.sysTip); this.sysLabels.push(this.sysTip);
 
     // the sun
     const tint = [[0xfff4e0, 1.0], [0xffe2a8, 0.92], [0xffb070, 0.84], [0xbfd4ff, 1.12], [0xffffff, 1.05], [0xffd0a0, 0.88]][chart.sunTint % 6];
@@ -626,11 +650,15 @@ export class Galaxy {
     const worldOf = i => (this.sysBodies[i] && !this.sysBodies[i].fixed) ? this.sysBodies[i] : null;
     for (const f of chart.fleets) {
       const home = f.atBody >= 0 ? worldOf(f.atBody) : null; const hb = home ? byIndex[f.atBody] : null; const px = home ? f.x - hb.x : f.x, py = home ? f.y - hb.y : f.y; const parent = home ? home.group : g;
-      const pirate = f.ownerId === 'pirates'; const sc = (f.isPlayer ? 13 : 11) * (close && home ? .5 : 1);   // close to a world its fleets are drawn to its scale
-      const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: pirate ? T.skull : T.ship, color: pirate ? 0xff4a3a : f.accent, transparent: true, opacity: f.laidUp ? .45 : f.isPlayer ? 1 : .4 + .6 * (f.confidence || 0) / 100, depthWrite: false })); spr.scale.set(sc, sc, 1); spr.position.set(px, py, 6); parent.add(spr);
+      const pirate = f.ownerId === 'pirates'; const sc = (f.isPlayer ? 13 : 11) * (close && home ? .7 : 1);   // close to a world its fleets are drawn to its scale
+      const seen = f.laidUp ? .45 : f.isPlayer ? 1 : .4 + .6 * (f.confidence || 0) / 100;
+      const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: pirate ? T.skull : T.hull, color: pirate ? 0xff4a3a : f.accent, transparent: true, opacity: seen, depthWrite: false })); spr.scale.set(sc, sc, 1); spr.position.set(px, py, 6); parent.add(spr);
+      // the rest of the fleet behind its flagship, in echelon on either quarter: a hull drawn for each, six at most
+      if (!pirate) for (let k = 1, n = Math.min(6, Math.max(0, (f.strength | 0) - 1)); k <= n; k++) { const row = Math.ceil(k / 2), side = k % 2 ? -1 : 1, ws = sc * .62;
+        const wing = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.hull, color: f.accent, transparent: true, opacity: seen * .8, depthWrite: false })); wing.scale.set(ws, ws, 1); wing.position.set(px + side * row * sc * .62, py - row * sc * .58, 5.8); parent.add(wing); }
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: f.accent, transparent: true, opacity: f.isPlayer ? .6 : .28, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(sc * 2.2, sc * 2.2, 1); glow.position.set(px, py, 5); if (!f.laidUp) glow.userData.pulse = true; parent.add(glow);
       if (f.id === chart.selectedFleet) { const sel = new THREE.Mesh(new THREE.RingGeometry(sc * .9, sc * 1.02, 48), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: .95, side: THREE.DoubleSide })); sel.position.set(px, py, 5.5); sel.userData.spinZ = 0.8; parent.add(sel); }
-      label(`${esc(f.name)} · ${f.strength}${f.isPlayer ? '' : '?'}${f.laidUp ? ' · laid up' : f.moving ? ' · under way' : ''}`, 'sysv-fleet', px + sc, py + 3, 6, parent).element.style.color = f.accent;
+      label(`${esc(f.name)} · ${f.strength}${f.isPlayer ? '' : '?'}${f.laidUp ? ' · laid up' : f.moving ? ' · under way' : ''}`, 'sysv-fleet', px + sc * 1.1, py + 3, 6, parent).element.style.color = f.accent;
       hitAt(px, py, sc * .9, { kind: 'fleet', id: f.id, tip: `<b>${esc(f.name)}</b><div>${esc(f.ownerName || '')} · ${f.strength} hull${f.strength === 1 ? '' : 's'}${f.isPlayer ? '' : ` · reported, ${f.confidence}% sure`}</div>${f.laidUp ? '<div>laid up: no crews aboard</div>' : f.moving ? '<div>making for the lane</div>' : ''}`, at: home ? [hb.x + px, hb.y + py] : [px, py], up: 14 }, parent);
     }
     for (const p of chart.posts) {

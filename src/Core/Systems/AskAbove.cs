@@ -68,7 +68,7 @@ public static class AskAbove
     }
     /// <summary>What would be given, said before the asking.</summary>
     public static string Says(World w, Func<string, int> weight, House by, House of, string what) =>
-        (what == Coin ? $"{of.Name} gives you {CoinOf(of)} credits." : $"{of.Name} pledges its {weight(of.Id)} seat(s) to you for the consulship: they are counted for you, and inside the bench as well.")
+        (what == Coin ? $"{of.Name} gives you {CoinOf(of)} credits." : $"{of.Name} pledges its {Counted.Seats(weight(of.Id))} to you for the consulship: they are counted for you, and inside the bench as well.")
         + $" You owe it a favour: vote for the next motion it moves and the account is even; vote otherwise and its head remembers. You may not ask it again for {EveryYears} years.";
 
     private static void Asked(World w, House by, House of)

@@ -63,7 +63,7 @@ public sealed class GreatCrisisSystem
     {
         var list = new List<(string, int)>();
         foreach (var t in CaesarSystem.Wrong(w).Where(t => !t.Contains("at war with each other"))) list.Add((t, TroublePoints));
-        if (w.Wars.Count > 0) list.Add(($"{w.Wars.Count} war(s) between houses", Math.Min(WarPointsCap, w.Wars.Count * WarPoints)));
+        if (w.Wars.Count > 0) list.Add(($"{Counted.Wars(w.Wars.Count)} between houses", Math.Min(WarPointsCap, w.Wars.Count * WarPoints)));
         var hulls = w.Houses.Values.Where(h => !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id)).Select(h => (h, n: FleetSystem.StrengthOf(w, h.Id))).OrderByDescending(x => x.n).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(2).ToList();
         if (hulls.Count == 2 && hulls[0].n >= 6 && hulls[0].n >= 2 * Math.Max(1, hulls[1].n)) list.Add(($"{hulls[0].h.Name} overshadows every other house in arms", OvershadowPoints));
         if (w.Counter("coalition_pressure") > 0) list.Add(("the houses are drawing together against one of their number", w.Counter("coalition_pressure")));

@@ -54,7 +54,7 @@ public static class CrisisFacts
         lines.Add(new Line("What it did when it began", Does(def.OnTrigger) + "."));
         // the marks it leaves are the gates of other crises: say which
         var feeds = def.OnTrigger.OfType<SetWorldFlagEffect>().Where(f => f.Value)
-            .SelectMany(f => engine.Defs.Where(o => o.Id != def.Id && o.Gates.OfType<WorldFlagCondition>().Any(g => g.Value && g.Flag == f.Flag)).Select(o => $"\"{Word(f.Flag)}\" is one of the {o.Gates.Count} thing(s) {o.Name} waits on")).Distinct().ToList();
+            .SelectMany(f => engine.Defs.Where(o => o.Id != def.Id && o.Gates.OfType<WorldFlagCondition>().Any(g => g.Value && g.Flag == f.Flag)).Select(o => $"\"{Word(f.Flag)}\" is one of the {Counted.Things(o.Gates.Count)} {o.Name} waits on")).Distinct().ToList();
         string heal = recovery is { Count: > 0 } ? $" While any crisis is active, {string.Join(" and ", recovery.Select(r => Word(r.Counter)))} do not drift back toward rest as they otherwise do ({string.Join(", ", recovery.Select(r => r.PerTurn + " a year"))})." : "";
         lines.Add(new Line("What it does each year", "Nothing more of itself: it takes nothing each year, and its severity does not grow with time." + heal
             + (feeds.Count > 0 ? " What it left behind matters: " + string.Join("; ", feeds) + "." : "")

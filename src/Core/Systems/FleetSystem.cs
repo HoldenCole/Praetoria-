@@ -214,12 +214,12 @@ public sealed class FleetSystem
     {
         string where = w.Galaxy?.System(systemId)?.Name ?? systemId;
         if (InSupply(w, f.OwnerId, systemId))
-            return $"{where} is in supply: a world of yours is within {_rules.SupplyRange} lane(s), or a supply depot within {_rules.DepotRange}, or your campaign's target within {_rules.CampaignRange}. Supply recovers {_rules.SupplyRecover} a year there, to 100.";
+            return $"{where} is in supply: a world of yours is within {Counted.Lanes(_rules.SupplyRange)}, or a supply depot within {_rules.DepotRange}, or your campaign's target within {_rules.CampaignRange}. Supply recovers {_rules.SupplyRecover} a year there, to 100.";
         bool near = NearHome(w, f.OwnerId, systemId); int drain = near ? _rules.SupplyDrainNear : _rules.SupplyDrain;
         int toLow = f.Supply < _rules.SupplyLow ? 0 : (f.Supply - _rules.SupplyLow) / drain + 1, toNone = (f.Supply + drain - 1) / drain;
         return $"{where} is out of supply ({(near ? "within two lanes of a world of yours, so the drain is the gentler one" : "more than two lanes from any world of yours")}): supply falls {drain} a year from {f.Supply}. "
-            + (toLow == 0 ? $"It is already under {_rules.SupplyLow}: the fleet fights at {_rules.SupplyLowPower * 100:0}% and loses 5 readiness a year. " : $"In {toLow} year(s) it is under {_rules.SupplyLow}, and the fleet fights at {_rules.SupplyLowPower * 100:0}% and loses 5 readiness a year. ")
-            + $"In {toNone} year(s) it is at nought, and from the year after a hull deserts each year. A supply depot on a world of yours within {_rules.DepotRange} lanes, or a campaign declared on a system within {_rules.CampaignRange}, would feed it.";
+            + (toLow == 0 ? $"It is already under {_rules.SupplyLow}: the fleet fights at {_rules.SupplyLowPower * 100:0}% and loses 5 readiness a year. " : $"In {Counted.Years(toLow)} it is under {_rules.SupplyLow}, and the fleet fights at {_rules.SupplyLowPower * 100:0}% and loses 5 readiness a year. ")
+            + $"In {Counted.Years(toNone)} it is at nought, and from the year after a hull deserts each year. A supply depot on a world of yours within {_rules.DepotRange} lanes, or a campaign declared on a system within {_rules.CampaignRange}, would feed it.";
     }
 
     /// <summary>Within two lanes of a world of the house: out of supply, but near enough that the drain is gentler.</summary>
@@ -429,7 +429,7 @@ public sealed class FleetSystem
             w.WorldCounters[IncursionsCounter] = w.Counter(IncursionsCounter) + 1;
             w.WorldFlags.Add(IncursionFlag(owner));
             w.Log($"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} arrives at {sys?.Name ?? f.SystemId} — {w.House(owner)?.Name ?? owner}'s space.");
-            if (owner == w.Protagonist?.HouseId) w.Tell(w.AtWar(owner, f.OwnerId) ? "warn" : "info", $"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} ({f.Strength} hull(s)) has come into your space at {sys?.Name ?? f.SystemId}" + (w.AtWar(owner, f.OwnerId) ? ": you are at war with it" : ". You are not at war with it"), "galaxy:" + f.SystemId, f.OwnerId);
+            if (owner == w.Protagonist?.HouseId) w.Tell(w.AtWar(owner, f.OwnerId) ? "warn" : "info", $"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} ({Counted.Hulls(f.Strength)}) has come into your space at {sys?.Name ?? f.SystemId}" + (w.AtWar(owner, f.OwnerId) ? ": you are at war with it" : ". You are not at war with it"), "galaxy:" + f.SystemId, f.OwnerId);
         }
         else w.Log($"{f.Name} arrives at {sys?.Name ?? f.SystemId}.");
     }
@@ -445,7 +445,7 @@ public sealed class FleetSystem
     public static string Doing(World w, Fleet f, string viewer)
     {
         string owner = w.House(f.OwnerId)?.Name ?? f.OwnerId; int years = Math.Max(0, w.Turn - f.ArrivedTurn);
-        string lain = f.Moving ? "" : years <= 0 ? " It came this year." : $" It has lain here {years} year(s).";
+        string lain = f.Moving ? "" : years <= 0 ? " It came this year." : $" It has lain here {Counted.Years(years)}.";
         if (f.OwnerId == PirateSystem.HouseId) return "Raiders: they take what passes and the yield of the world they sit over." + lain;
         if (w.AtWar(viewer, f.OwnerId))
         {
@@ -550,7 +550,7 @@ public sealed class FleetSystem
         {
             var theirHead = w.House(a) is { } ah ? Economy.HeadOf(w, ah) : null; int regard = theirHead != null ? w.GetRelationship(theirHead.Id, w.ProtagonistId)?.Disposition ?? 0 : 0;
             string why = FeudSystem.Between(w, a, b) ? "there is blood between the houses" : regard <= -20 ? $"{theirHead?.Name} thinks ill of you ({regard})" : StrengthOf(w, a) > StrengthOf(w, b) * 2 ? "it has the hulls and you have not" : "it wants what you hold";
-            w.Tell("warn", $"{w.House(a)?.Name ?? a} has declared war on your house: {StrengthOf(w, a)} hull(s) to your {StrengthOf(w, b)}. Why: {why}", "military", a);
+            w.Tell("warn", $"{w.House(a)?.Name ?? a} has declared war on your house: {Counted.Hulls(StrengthOf(w, a))} to your {StrengthOf(w, b)}. Why: {why}", "military", a);
             w.Wars[^1].Why = why; w.WorldFlags.Add(DeclaredOnMeFlag); w.WorldCounters["mark:" + DeclaredOnMeFlag] = w.Turn;   // and a report comes of it while it is news
         }
         if (who != null) _friction.Apply(w, who, "declare_war");
@@ -725,7 +725,7 @@ public sealed class FleetSystem
         {
             int prizes = Math.Max(1, loserLosses / _rules.BoardingCapturePer); wh.Treasury.Manpower -= _rules.BoardingManpower;
             var into = w.Fleets.Values.Where(f => f.OwnerId == winner && !f.Moving && f.SystemId == systemId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
-            if (into != null) { if (into.Ships.Count == 0) into.Ships[_rules.DefaultClass] = into.Strength; into.Ships[_rules.DefaultClass] = into.Ships.GetValueOrDefault(_rules.DefaultClass) + prizes; into.Recount(); w.Log($"Prize crews of {into.Name} take {prizes} hull(s) of the enemy as their own."); if (winner == player) w.WorldFlags.Add("hulls_captured"); }
+            if (into != null) { if (into.Ships.Count == 0) into.Ships[_rules.DefaultClass] = into.Strength; into.Ships[_rules.DefaultClass] = into.Ships.GetValueOrDefault(_rules.DefaultClass) + prizes; into.Recount(); w.Log($"Prize crews of {into.Name} take {Counted.Hulls(prizes)} of the enemy as their own."); if (winner == player) w.WorldFlags.Add("hulls_captured"); }
         }
         foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == winner && !f.Moving && f.SystemId == systemId))
         { f.Veterancy = Math.Min(_rules.VeterancyMax, f.Veterancy + 1); f.Loyalty = Math.Min(100, f.Loyalty + _rules.LoyaltyWin); }
@@ -839,8 +839,8 @@ public sealed class FleetSystem
             string.Join(" and ", there.Select(f => w.House(f.OwnerId)?.Name ?? f.OwnerId).Distinct()), ground, (int)Math.Round(100 * bonus), sighted, year);
     }
     /// <summary>The odds in a sentence, for a screen.</summary>
-    public static string Say(Odds o) => $"{o.Enemies} {(o.TheirHulls == 1 ? "has" : "have")} {o.TheirHulls} hull(s) there{(o.Sighted ? "" : $" by the last report (year {o.ReportYear})")}" +
-        (o.TheyHoldTheGround ? $", on their own ground (+{o.GroundPercent}% to them)" : "") + $". With {o.MyHulls} hull(s) of yours the staff gives you {o.Chance} in 100" +
+    public static string Say(Odds o) => $"{o.Enemies} {(o.TheirHulls == 1 ? "has" : "have")} {Counted.Hulls(o.TheirHulls)} there{(o.Sighted ? "" : $" by the last report (year {o.ReportYear})")}" +
+        (o.TheyHoldTheGround ? $", on their own ground (+{o.GroundPercent}% to them)" : "") + $". With {Counted.Hulls(o.MyHulls)} of yours the staff gives you {o.Chance} in 100" +
         (o.Chance >= 65 ? ": the day should be yours." : o.Chance >= 45 ? ": it could go either way." : o.Chance >= 25 ? ": the odds are against you." : ": it would be thrown away.");
 
     /// <summary>One fleet's power on its own: hulls × class stat × readiness × admiral × veterancy × the depth factor. The house-wide flag and
@@ -990,7 +990,7 @@ public sealed class FleetSystem
         bool theirs = StrengthAt(w, h.OwnerId, h.SystemId) > 0, mine = StrengthAt(w, attacker, h.SystemId) > 0;
         string now = w.Sieges.TryGetValue(h.Id, out var s) ? (s.BesiegerId == attacker ? $"Your siege stands at {s.Turns} of {s.Required} years." : $"{w.House(s.BesiegerId)?.Name ?? s.BesiegerId} is besieging it ({s.Turns} of {s.Required}): while its fleet stays, the siege and the world are its.")
             : theirs ? $"A fleet of {them}'s is over it now: it must be beaten or drawn off first." : mine ? "Your fleet is over it: the siege begins when the year turns." : "No fleet of yours is there.";
-        return $"To take {h.Name}: keep a fleet over it while none of {them}'s is there. That is a siege. It takes {years} year(s) here ({_rules.SiegeTurns} for any world, and more for its defences), and while it lasts the world sends out half its yield and loses people. "
+        return $"To take {h.Name}: keep a fleet over it while none of {them}'s is there. That is a siege. It takes {Counted.Years(years)} here ({_rules.SiegeTurns} for any world, and more for its defences), and while it lasts the world sends out half its yield and loses people. "
             + $"When the years are spent the world is yours. If a fleet of {them}'s is over it when a year turns, the siege is lifted and its years are lost. There is no separate raid or blockade between houses: the siege is both. {now}";
     }
 
