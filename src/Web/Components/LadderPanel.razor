@@ -83,6 +83,13 @@
                     <div class="suit-acts">
                         <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="muted">(the count is @(next <= 0 ? "at this year's end" : "in " + Counted.Years(next) + "") · @Counted.Names(w.Candidacies.Count(o => o.RungId == cd.RungId)) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
                         <button class="opt inline tiny" disabled="@(back != null)" title="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))">@(x.Id == pid ? "Call in what is owed" : "Speak for them") · @LadderSystem.BackInfluence influence</button>
+                        @foreach (var size in LadderSystem.CampaignSizes)
+                        {
+                            /* coin behind the canvass, out of the treasury (docs/WEALTH.md, "Things worth a rich house's money") */
+                            string sz = size, fk = xid + "|" + sz; var fundNo = new FundCampaignCommand(pid, xid, sz, offices).Refusal(G.Ctx); int due = Math.Max(0, LadderSystem.CampaignCost(sz) - (LadderSystem.CampaignOf(w, xid)?.Spent ?? 0));
+                            string fundTip = FundTip(sz), fundLabel = FundLabel(sz, due, LadderSystem.CampaignOf(w, xid) != null);
+                            <button class="opt inline tiny" data-fund-canvass="@fk" disabled="@(fundNo != null)" title="@(fundNo ?? fundTip)" @onclick="() => G.Execute(new FundCampaignCommand(pid, xid, sz, offices))">@fundLabel</button>
+                        }
                         @if (x.Id == pid) { <button class="opt inline tiny" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Withdraw, pid, string.Empty, offices))">Withdraw</button> }
                         else
                         {
@@ -90,6 +97,20 @@
                             <button class="opt inline tiny" disabled="@(down != null)" title="@(down ?? AskDown)" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Dissuade, xid, string.Empty, offices))">Ask them to stand down</button>
                         }
                     </div>
+                }
+                @if (ours.Count > 0)
+                {
+                    /* what coin is behind whom for this office, and, for one of the house who keeps a house at the capital, how the count stands */
+                    var rivals = LadderSystem.RivalCampaigns(w, rid); var mineFunds = ours.Select(o => LadderSystem.CampaignOf(w, o.CharacterId)).Where(f => f != null).ToList();
+                    bool hears = G.Turn != null && ours.Any(o => WealthSystem.AtTheCapital(w, o.CharacterId));
+                    if (mineFunds.Count > 0) { <div class="small" data-canvass-paid="@rid">@string.Join("; ", mineFunds.Select(f => (f!.CharacterId == pid ? "Your canvass" : (w.Char(f.CharacterId)?.Name ?? "One of yours") + "'s canvass") + " has " + Money.Credits(f.Spent) + " of the house's behind it, worth " + f.Votes + " votes")).</div> }
+                    if (rivals.Count > 0) { <div class="small warn" data-canvass-rivals="@rid">@string.Join("; ", rivals.Select(f => (w.House(f.HouseId)?.Name ?? "A house") + " has put " + Money.Credits(f.Spent) + " behind its candidate, worth " + f.Votes + " votes")).</div> }
+                    if (hears)
+                    {
+                        var stands = LadderSystem.CountAsItStands(w, offices, rung, id => G.Turn!.Senate.Weight(w, id));
+                        <div class="muted small" data-count-stands="@rid" title="Heard at the capital, where one of yours standing for this office keeps a house. It is how the count would go if it were held today, and it changes as names go down and coin is spent.">As the count stands, for @Counted.Seats(rung.Seats): @string.Join(", ", stands.Take(8).Select(x => (x.who.HouseId == house.Id ? x.who.Name + " (yours)" : x.who.Name + " of " + (w.House(x.who.HouseId)?.Name ?? "")) + " " + x.votes)).</div>
+                    }
+                    else { <div class="muted small">One of the house with a house at the capital would hear how this count stands before it is held (House, Purses and the will).</div> }
                 }
                 @if (myStand == null)
                 {
@@ -126,6 +147,8 @@
         LadderSystem.Law => "Rule on the law", LadderSystem.Friend => "Rule for a friend", LadderSystem.Gift => "Take the gift",
         LadderSystem.Settle => "Bring them to terms", LadderSystem.Both => "Lanes and grain both", _ => choice
     };
+    private static string FundLabel(string size, int due, bool paid) => due == 0 && paid ? Cap(LadderSystem.CampaignName(size)) + ": paid for" : "Pay for " + LadderSystem.CampaignName(size) + " · " + Money.Show(due);
+    private static string FundTip(string size) => "Out of the treasury: " + LadderSystem.CampaignVotes(size) + " votes at the count in all, besides what speaking for them does." + (size == LadderSystem.Lavish ? " It goes on the record as votes bought: any house may charge them with it before a praetor, and one convicted loses the office and may not stand for " + Counted.Years(LadderSystem.BarYears) + "." : "");
     private const string AskDown = "It is their name. The loyal will take it down; the wilful will not, and either will think less of you.";
     private static string You(string s) => s.Replace("they have", "you have").Replace("they must", "you must");
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

@@ -37,6 +37,7 @@ public static partial class LadderSystem
             TookAccounts => $"took money out of the Reach's accounts as {office} in year {d.Turn}",
             TookGift => $"took a gift to rule as {office} in year {d.Turn}" + (against.Length > 0 ? $", against {against}" : ""),
             Bribed => $"bought a praetor in year {d.Turn}",
+            BoughtElection => $"bought votes to be made {office} in year {d.Turn}",
             _ => $"ruled against the law for a friend as {office} in year {d.Turn}" + (against.Length > 0 ? $", against {against}" : "")
         };
     }
@@ -44,7 +45,7 @@ public static partial class LadderSystem
     /// <summary>What could be brought before a court by this house: acts on the record that nobody has answered for, done by someone
     /// living, of another house, who no longer sits in the office they did it in.</summary>
     public static List<OfficeDeed> Chargeable(World w, string accuserHouseId) =>
-        w.OfficeRecord.Where(d => !d.Answered && d.HouseId != accuserHouseId && !UnderCharge(w, d.Id) && w.Char(d.CharacterId) is { Alive: true } c && c.HouseId == d.HouseId && (d.What == Bribed || Seat(w, c.Id)?.OfficeId != d.RungId))
+        w.OfficeRecord.Where(d => !d.Answered && d.HouseId != accuserHouseId && !UnderCharge(w, d.Id) && w.Char(d.CharacterId) is { Alive: true } c && c.HouseId == d.HouseId && (ChargedAtOnce(d) || Seat(w, c.Id)?.OfficeId != d.RungId))
             .OrderByDescending(d => d.Turn).ThenBy(d => d.Id, StringComparer.Ordinal).ToList();
 
     /// <summary>The praetor who would hear it: the longest sitting who is of neither house.</summary>
@@ -122,8 +123,12 @@ public static partial class LadderSystem
                 Judged(w, judge.Name, accuser.Id, accused.Id, fine, null, $"{who.Name} {DeedSays(w, offices, d)}, and it was found proved", "charge");
             }
             LegitimacyBook.Move(w, accuser, 2, LegitimacyBook.Courts, "A prosecution won"); PolicySystem.Sway(w, accuser.Id, "commons", 2); MoveTrust(w, 1); Shift(w, accused, accuser, -25);
-            who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was convicted of what they did in office."); LifeSystem.Note(w, pleader, "office", $"Prosecuted {who.Name} and won.");
-            if (ours) Mark(w, ProsecutionWonFlag); if (theirs) Mark(w, who.Id == mine!.Id ? ExposedFlag : KinExposedFlag);
+            bool election = d.What == BoughtElection;
+            who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", election ? "Was convicted of buying an election." : "Was convicted of what they did in office."); LifeSystem.Note(w, pleader, "office", $"Prosecuted {who.Name} and won.");
+            if (ours) Mark(w, ProsecutionWonFlag);
+            // what is written for one removed from office is about what was done in it: a bought election is told plainly instead
+            if (theirs && election) w.Tell("warn", $"{who.Name} is convicted of buying the election: no office for {Counted.Years(BarYears)}, the house pays, and it is talked of", "senate:ladder");
+            else if (theirs) Mark(w, who.Id == mine!.Id ? ExposedFlag : KinExposedFlag);
             w.WorldCounters["convictions"] = w.Counter("convictions") + 1;
             w.Log($"{charges} {judge.Name}, praetor, finds it proved. {who.Name} may not stand for {BarYears} years, and {accused?.Name} pays.");
         }

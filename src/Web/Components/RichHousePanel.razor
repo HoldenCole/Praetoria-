@@ -1,0 +1,111 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@* Things worth a rich house's money (docs/WEALTH.md, the section of that name; docs/PLAYTHROUGH.md, "Hard": "endow a child, build
+   a seat, fund a relative's campaign"). One block: the acts with their prices now and what each would give, and what has been done. *@
+@{
+    var w = G.World!; var offices = G.Content!.Offices; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
+    var kin = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    var grown = new[] { p }.Concat(kin.Where(c => c.Age >= WealthSystem.Adult)).ToList();
+    var settled = WealthSystem.Settled(w, house.Id); var seatWorld = WealthSystem.SeatWorld(w, house); int grade = house.SeatGrade, next = grade + 1;
+    var sites = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).OrderByDescending(h => h.Population).ThenBy(h => h.Id, StringComparer.Ordinal).Take(4).ToList();
+    var townHouses = w.Heirlooms.Where(h => h.Kind == WealthSystem.TownHouse && w.Char(h.HolderId) is { Alive: true } th && th.HouseId == house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+    var standing = w.Candidacies.Select(cd => (cd, who: w.Char(cd.CharacterId))).Where(x => x.who is { Alive: true }).ToList();
+    var paid = w.Campaigns.Where(f => f.HouseId == house.Id).OrderByDescending(f => f.Turn).ThenBy(f => f.CharacterId, StringComparer.Ordinal).ToList();
+    string seatNow = grade == 0 ? "The house has no seat." : "A " + WealthSystem.SeatName(grade) + " on " + (seatWorld?.Name ?? "a world that is lost") + ", kept for " + Money.Show(WealthSystem.SeatKeep(grade)) + " a year.";
+    string estateFirst = Money.Credits(WealthSystem.EstatePrice), estateMore = Money.Show(WealthSystem.EstateDearer), estatePays = Money.Credits(WealthSystem.EstatePays);
+}
+<div class="rich-house" data-rich-house>
+    <div class="hh-head"><b>What the house's money can do</b> <span class="muted small">The treasury holds @Money.Held(house.Treasury). Four things it can be spent on that are for the house's people and its name, and not for a return.</span></div>
+
+    <div class="hh-head" data-rich-estates="@settled.Count"><b>Land settled on one of the house</b> <span class="muted small">Bought from the treasury and settled on one person, child or grown. It brings them @estatePays a year for life into their own purse (a child's is kept for them until they are of age), it is theirs to leave, and they and whoever they are married to think the better of you. The first costs @estateFirst at the standard setting, about fifteen years' purchase; each further one on the same person @estateMore more; @WealthSystem.EstatesAPerson is the most. Land settled on a son or daughter counts @WealthSystem.EstateMatch with a family asked for a match, to @WealthSystem.EstateMatchMost.</span></div>
+    @if (kin.Count == 0) { <div class="muted small">Nobody of the house but you.</div> }
+    @foreach (var c in kin.Take(_allKin ? 40 : 6))
+    {
+        string cid = c.Id; int held = WealthSystem.EstatesHeld(w, c.Id), cost = WealthSystem.EstateCost(w, c); var no = new EndowCommand(pid, cid).Refusal(G.Ctx);
+        string gives = "Brings them " + estatePays + " a year: " + (WealthSystem.EstatePays * 100.0 / cost).ToString("F1") + " in the hundred on its price. They think " + WealthSystem.EstateRegard + " the better of you.";
+        <div class="rich-row">
+            <b>@c.Name</b> <span class="muted small">@c.Age@(c.Age < WealthSystem.Adult ? ", a child" : "") · @(held == 0 ? "holds no land" : "holds " + Counted.Of(held, "estate"))</span>
+            <span class="suit-acts"><button class="opt inline tiny" data-endow="@cid" disabled="@(no != null)" title="@(no ?? gives)" @onclick="() => G.Execute(new EndowCommand(pid, cid))">Settle an estate · @Money.Show(cost)</button></span>
+        </div>
+    }
+    @if (kin.Count > 6) { <button class="opt inline tiny" data-rich-more="kin" @onclick="() => _allKin = !_allKin">@(_allKin ? "Show fewer" : "Show all " + kin.Count)</button> }
+    @if (settled.Count > 0) { <div class="muted small" data-rich-settled>Settled so far: @string.Join("; ", settled.Select(h => h.Name + ", " + (w.Char(h.HolderId)?.Name ?? "nobody") + "'s")).</div> }
+
+    <div class="hh-head" data-rich-seat="@grade"><b>The seat of the house</b> <span class="muted small">@seatNow A manor, then a great house, then a palace, each built once on a world of your own. It returns nothing in credits: it is for standing. Each time it is built the old blood think @WealthSystem.SeatSway the better of the house and its grown people @WealthSystem.SeatRegard the better of you. Lost with the world it stands on.</span></div>
+    @if (WealthSystem.SeatShut(w, house)) { <div class="small warn">The @WealthSystem.SeatName(grade) is shut up: the treasury could not pay its keep. It gives nothing until it is paid.</div> }
+    @for (int g = 1; g <= WealthSystem.SeatGrades; g++)
+    {
+        int gg = g; string cls = gg <= grade ? "small" : "small muted";
+        <div class="@cls" data-seat-grade="@gg">@(gg <= grade ? "✓ " : "")<b>A @WealthSystem.SeatName(gg)</b> · @Money.Show(WealthSystem.SeatCost(gg)) to build, @Money.Show(WealthSystem.SeatKeep(gg)) a year to keep. @WealthSystem.SeatGives(gg)</div>
+    }
+    @if (grade == 0)
+    {
+        <div class="suit-acts"><span class="muted small">Build the manor on</span>
+            @foreach (var site in sites)
+            {
+                string hid = site.Id; var no = new BuildSeatCommand(pid, hid).Refusal(G.Ctx);
+                <button class="opt inline tiny" data-build-seat="@hid" disabled="@(no != null)" title="@(no ?? WealthSystem.SeatGives(1))" @onclick="() => G.Execute(new BuildSeatCommand(pid, hid))">@site.Name · @Money.Show(WealthSystem.SeatCost(1))</button>
+            }
+            @if (sites.Count == 0) { <span class="muted small">The house holds no world to build on.</span> }
+        </div>
+    }
+    else if (grade < WealthSystem.SeatGrades)
+    {
+        var no = new BuildSeatCommand(pid, string.Empty).Refusal(G.Ctx);
+        <div class="suit-acts"><button class="opt inline tiny" data-build-seat="next" disabled="@(no != null)" title="@(no ?? WealthSystem.SeatGives(next))" @onclick="() => G.Execute(new BuildSeatCommand(pid, string.Empty))">Make it a @WealthSystem.SeatName(next) · @Money.Show(WealthSystem.SeatCost(next))</button></div>
+    }
+
+    <div class="hh-head" data-rich-town-houses="@townHouses.Count"><b>A house at the capital</b> <span class="muted small">For you or one grown person of the house, bought once: @WealthSystem.TownHouseYears years of what that person takes in a year, and never less than @Money.Show(WealthSystem.TownHouseLeast). It is theirs. While they hold it they are at the capital: @WealthSystem.TownHouseVotes more votes at any count they stand in, and you are told how that count stands before it is held. They think @WealthSystem.TownHouseRegard the better of you for it, @WealthSystem.TownHousePurseRegard if the money was your own.</span></div>
+    @foreach (var c in grown.Take(_allGrown ? 40 : 6))
+    {
+        string cid = c.Id; bool has = WealthSystem.AtTheCapital(w, c.Id); int cost = WealthSystem.TownHouseCost(w, c);
+        var noT = new TownHouseCommand(pid, cid, false).Refusal(G.Ctx); var noP = new TownHouseCommand(pid, cid, true).Refusal(G.Ctx);
+        string takes = (c.Id == pid ? "You take in " : "Takes in ") + Money.Show(WealthSystem.YearlyIncome(w, c)) + " a year of " + (c.Id == pid ? "your" : "their") + " own.";
+        <div class="rich-row">
+            <b>@(c.Id == pid ? "You" : c.Name)</b> <span class="muted small">@takes</span>
+            @if (has) { <span class="pill small good">has a house at the capital</span> }
+            else
+            {
+                <span class="suit-acts">
+                    <button class="opt inline tiny" data-town-house="@cid" disabled="@(noT != null)" title="@(noT ?? TreasuryTip)" @onclick="() => G.Execute(new TownHouseCommand(pid, cid, false))">Buy from the treasury · @Money.Show(cost)</button>
+                    <button class="opt inline tiny" data-town-house-purse="@cid" disabled="@(noP != null)" title="@(noP ?? PurseTip)" @onclick="() => G.Execute(new TownHouseCommand(pid, cid, true))">from your own purse</button>
+                </span>
+            }
+        </div>
+    }
+    @if (grown.Count > 6) { <button class="opt inline tiny" data-rich-more="grown" @onclick="() => _allGrown = !_allGrown">@(_allGrown ? "Show fewer" : "Show all " + grown.Count)</button> }
+
+    <div class="hh-head" data-rich-campaigns="@paid.Count"><b>Coin behind a canvass</b> <span class="muted small">When you or one of the house stands for an office of the ladder, the treasury can pay for the canvass, besides what speaking for them does: @SizesSay A lavish canvass is written on the record as votes bought, and any house may charge the candidate with it before a praetor at once. Whoever it was for remembers it, won or lost. The same buttons are under Senate, The ladder of offices.</span></div>
+    @if (standing.Count == 0) { <div class="muted small">Nobody of the house is standing@(LadderSystem.Active(w, offices) ? "" : ": there are no elections under a throne").</div> }
+    @foreach (var (cd, who) in standing)
+    {
+        string xid = who!.Id; var fund = LadderSystem.CampaignOf(w, xid); string office = offices.Rung(cd.RungId)?.Name.ToLowerInvariant() ?? cd.RungId;
+        <div class="rich-row">
+            <b>@(xid == pid ? "You" : who.Name)</b> <span class="muted small">standing for @office@(fund != null ? " · " + LadderSystem.CampaignName(fund.Size) + " paid for, " + Money.Show(fund.Spent) + " in all, worth " + fund.Votes + " votes" : " · nothing paid for yet")</span>
+            <span class="suit-acts">
+                @foreach (var size in LadderSystem.CampaignSizes)
+                {
+                    string sz = size; var no = new FundCampaignCommand(pid, xid, sz, offices).Refusal(G.Ctx); int due = LadderSystem.CampaignCost(sz) - (fund?.Spent ?? 0);
+                    string tip = LadderSystem.CampaignVotes(sz) + " votes at the count in all." + (sz == LadderSystem.Lavish ? " It goes on the record as votes bought: any house that thinks ill enough of yours may charge them with it, and one convicted loses the office and may not stand for " + Counted.Years(LadderSystem.BarYears) + "." : ""); string fk = xid + "|" + sz; string label = due <= 0 && fund != null ? Cap(sz) + ": paid for" : Cap(sz) + " · " + Money.Show(Math.Max(0, due));
+                    <button class="opt inline tiny" data-fund="@fk" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => G.Execute(new FundCampaignCommand(pid, xid, sz, offices))">@label</button>
+                }
+            </span>
+        </div>
+    }
+    @foreach (var f in paid.Where(f => f.Counted).Take(6))
+    {
+        <div class="muted small" data-campaign-past>Year @f.Turn: @Money.Show(f.Spent) behind @(f.CharacterId == pid ? "your own canvass" : (w.Char(f.CharacterId)?.Name ?? "one of the house")) for @(offices.Rung(f.RungId)?.Name.ToLowerInvariant() ?? f.RungId). @(f.Won ? "Elected." : "Not chosen.")</div>
+    }
+</div>
+
+@code {
+    private bool _allKin, _allGrown;
+    private const string TreasuryTip = "Out of the house's treasury. It is theirs for good, and goes as their own things go.";
+    private const string PurseTip = "Out of your own purse. They will remember whose money it was.";
+    private static readonly string SizesSay = string.Join(", ", LadderSystem.CampaignSizes.Select(s => s + " " + Money.Show(LadderSystem.CampaignCost(s)) + " for " + LadderSystem.CampaignVotes(s) + " votes")) + ".";
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

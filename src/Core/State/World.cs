@@ -183,6 +183,8 @@ public sealed class World
     public List<OfficeBusiness> OfficeWork { get; set; } = new();
     /// <summary>What magistrates did that can still be answered for (docs/LADDER.md, "The courts").</summary>
     public List<OfficeDeed> OfficeRecord { get; set; } = new();
+    /// <summary>Coin put behind those who stand for an office of the ladder (docs/WEALTH.md, "Things worth a rich house's money").</summary>
+    public List<CampaignFund> Campaigns { get; set; } = new();
     /// <summary>States that have broken away from the Reach (docs/BREAKAWAY.md).</summary>
     public List<Polity> Polities { get; set; } = new();
     /// <summary>Generals the Senate has ordered home (docs/CAESAR.md).</summary>

@@ -46,7 +46,7 @@ public static partial class WealthSystem
         w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= Adult).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
     public static int AllowanceBill(World w, House house) => Members(w, house).Count(c => c.Id != w.ProtagonistId) * AllowanceOf(house.Allowance);
     public static List<Heirloom> HeldBy(World w, string characterId) => w.Heirlooms.Where(h => h.HolderId == characterId).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-    public static int EstateIncome(World w, string characterId) => w.Heirlooms.Count(h => h.HolderId == characterId && h.Kind == "estate") * 2;
+    public static int EstateIncome(World w, string characterId) => w.Heirlooms.Count(h => h.HolderId == characterId && h.Kind == EstateKind) * EstatePays;
 
     // ---------------- heirlooms ----------------
 
@@ -135,6 +135,7 @@ public static partial class WealthSystem
             "sword" => holder?.CareerTrack == "military" ? "Carried in the fleet, it is something to live up to: its holder learns discipline faster." : "Does nothing on a wall: it wants carrying by someone in the fleet.",
             "library" => "Everyone of its holder's house who has set themselves a study learns it a little faster.",
             "estate" => "Brings its holder 200 credits a year.",
+            TownHouse => $"Its holder is at the capital: {TownHouseVotes} more votes at any count they stand in, and they hear how a count stands before it is held.",
             Regalia => holder != null && w.House(holder.HouseId) is { } wornBy && Economy.HeadOf(w, wornBy)?.Id == holder.Id ? $"Kept by the head of a house, the house's name mends a point a year while its standing is under {RegaliaMendsBelow}." : "Does nothing in a relative's keeping: it wants the head of a house.",
             Shrine => $"The commons think a point better of its holder's house each year, while they think less than {ShrineCeiling} of it.",
             Standard => (holder != null && FlagshipOf(w, holder.Id) != null ? $"Flown from a flagship, the fleet under it is a point more loyal each year, up to {StandardCeiling}." : "Does nothing in a hall: it wants flying from the flagship of whoever holds it."),
@@ -386,7 +387,7 @@ public static partial class WealthSystem
     {
         w.WorldFlags.Remove(DebtFlag); w.WorldFlags.Remove(ResentedFlag);
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
-        Heirlooms(w);
+        Heirlooms(w); RichYear(w);   // seats, and what other houses spend (docs/WEALTH.md, "Things worth a rich house's money")
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null; if (p is not { Alive: true } || house == null) return;
         foreach (var c in w.Characters.Values) { if (!w.HasFlag(KinGaveFlag)) c.Flags.Remove(GaveChar); if (!w.HasFlag(WillReadFlag)) c.Flags.Remove(LegateeChar); if (!w.HasFlag(KinLentFlag)) c.Flags.Remove(KinLentChar); if (!w.HasFlag(StandardWonFlag)) c.Flags.Remove(WonStandardChar); if (!w.HasFlag(WeddingGiftFlag)) c.Flags.Remove(GaveGiftChar); if (!w.HasFlag(StandardAskedFlag)) c.Flags.Remove(AsksChar); if (!w.HasFlag(KinMadeFlag)) c.Flags.Remove(KinMadeChar); if (!w.HasFlag(MendFlag)) c.Flags.Remove(MendChar); if (!w.HasFlag(AsksFavourFlag)) c.Flags.Remove(AsksFavourChar); }
         // the dead keep nothing; a holder who is gone or has left loses nothing, but the dead's things come home
@@ -484,5 +485,6 @@ public static partial class WealthSystem
             }
             else c.Flags.Remove(InDebtChar);
         }
+        RichKin(w, house, p);
     }
 }

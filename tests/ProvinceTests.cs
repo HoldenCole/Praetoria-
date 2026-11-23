@@ -514,6 +514,7 @@ public class ProvinceTests
         for (int t = 0; t < 60 && !w.IsDynastyDead; t++) { foreach (var d in w.SeatDemands.ToList()) ProvinceSystem.Resolve(w, Cat, d, true); tc.BeginTurn(); tc.EndTurn(); }
         Assert.True(w.Counter(ProvinceSystem.DemandsCounter) >= 3, $"{w.Counter(ProvinceSystem.DemandsCounter)} demands in sixty years");
         Assert.True(w.Counter(ProvinceSystem.WarsCounter) <= 12, $"{w.Counter(ProvinceSystem.WarsCounter)} wars over a seat in sixty years");
+        ProvinceSystem.Seed(w, Cat);   // a colony planted in the last year played is laid out at the next year's turn, which this run does not reach
         Assert.All(w.Holdings.Values.Where(h => h.IsPlanet), h => { Assert.Equal(3, h.Provinces.Count); for (int i = 1; i < 3; i++) Assert.NotNull(w.House(ProvinceSystem.HolderOf(h, i))); });
         var back = SaveSystem.Deserialize(SaveSystem.Serialize(w));
         foreach (var h in w.Holdings.Values.Where(h => h.IsPlanet)) Assert.Equal(h.Provinces.Select(p => p.Name + p.Focus + p.HolderId + p.Level), back.Holding(h.Id)!.Provinces.Select(p => p.Name + p.Focus + p.HolderId + p.Level));

@@ -66,8 +66,9 @@ public sealed partial class HouseholdSystem
     private static string UnpaidKey(string id) => "unpaid_years:" + id;
     /// <summary>What the household costs the treasury a year: the keep of those taken in, and the stipends of those who do the head's work.</summary>
     public static int Keep(World w, House house) => Found(w, house.Id).Sum(KeepOf) + house.Duties.Count(d => w.Char(d.HolderId) is { Alive: true }) * Stipend;
-    /// <summary>How many the house can keep who are not of its blood: two, and one more for each step of rank.</summary>
-    public static int Room(House h) => 2 + Title.RankOf(h.Title);
+    /// <summary>How many the house can keep who are not of its blood: two, one more for each step of rank, and one more for each
+    /// grade of its seat (docs/WEALTH.md, "Things worth a rich house's money").</summary>
+    public static int Room(House h) => 2 + Title.RankOf(h.Title) + h.SeatGrade;
 
     /// <summary>How willing this person (or, for a child, their family) is to come. Fifty and they come.</summary>
     public static (int score, List<string> why) Willing(World w, Character head, Character person, string kind)
