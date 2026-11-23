@@ -98,6 +98,66 @@
                         else { <button class="opt inline tiny" disabled="@(seek != null)" title="@(seek ?? "100 credits a year from it, its backing and its clients' in the chamber; your vote is expected at the election")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Seek, fid, os))">Seek it as a patron</button> }
                     </div>
                 }
+                @if (fh.Id != mine.Id && !World.Outsider(fh.Id))
+                {
+                    /* dealings between houses (docs/WEALTH.md): a gift, a favour asked and called in, a vote pledged, a threat, a loan, and what lasts */
+                    var dl = G.Turn!.Dealings; string did = fh.Id; var theirHead = Economy.HeadOf(w, fh); int headRegard = DealingsSystem.RegardOf(w, fh, mine);
+                    var docket = SenateSystem.Docket(w).Take(5).ToList(); bool owesMe = WealthSystem.FavourOwed(w, did, mine.Id); var myLoan = DealingsSystem.LoanBetween(w, mine.Id, did);
+                    var lasting = dl.Lasting(w, mine, fh); var noCoin = Deal(DealingsCommand.AskCoin, did).Refusal(G.Ctx); var noThreat = Deal(DealingsCommand.Threat, did).Refusal(G.Ctx);
+                    <h4 data-dealings="@did">Dealings <span class="muted small">@(theirHead != null ? theirHead.Name : fh.Name) thinks @Signed(headRegard) of you · your treasury holds @Money.Show(mine.Treasury.Credits)</span></h4>
+                    <div class="row small" data-dealing="gift">
+                        <span class="muted">Send a gift of</span>
+                        @foreach (int sum in DealingsSystem.GiftSizes) { int amt = sum; var noGift = Deal(DealingsCommand.Gift, did, amt.ToString()).Refusal(G.Ctx); <button class="opt inline tiny" data-gift="@amt" disabled="@(noGift != null)" title="@(noGift ?? dl.GiftSays(w, fh, amt))" @onclick="() => G.Execute(Deal(DealingsCommand.Gift, did, amt.ToString()))">@Money.Show(amt)</button> }
+                        <span class="muted">from the treasury</span>
+                    </div>
+                    <div class="row small" data-dealing="favour">
+                        <button class="opt inline tiny" data-ask-coin="@did" disabled="@(noCoin != null)" title="@(noCoin ?? dl.AskSays(w, fh, DealingsSystem.Coin))" @onclick="() => G.Execute(Deal(DealingsCommand.AskCoin, did))">Ask a favour: coin · @Money.Show(AskAbove.CoinOf(fh))</button>
+                        @if (owesMe)
+                        {
+                            var noMoney = new WealthCommand(pid, WealthCommand.Favour, did, WealthSystem.ForMoney).Refusal(G.Ctx); var noMatch = new WealthCommand(pid, WealthCommand.Favour, did, WealthSystem.ForMatch).Refusal(G.Ctx);
+                            <button class="opt inline tiny" data-call-money="@did" disabled="@(noMoney != null)" title="@(noMoney ?? CallMoneySays)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Favour, did, WealthSystem.ForMoney))">Call in its favour · @Money.Show(WealthSystem.FavourCredits)</button>
+                            <button class="opt inline tiny" data-call-match="@did" disabled="@(noMatch != null)" title="@(noMatch ?? CallMatchSays)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Favour, did, WealthSystem.ForMatch))">Call it in for consent to the match</button>
+                        }
+                        @if (DealingsSystem.Called(w, mine.Id, did))
+                        {
+                            var noPay = Deal(DealingsCommand.Honour, did).Refusal(G.Ctx);
+                            <button class="opt inline tiny" data-honour="@did" disabled="@(noPay != null)" title="@(noPay ?? HonourSays)" @onclick="() => G.Execute(Deal(DealingsCommand.Honour, did))">Pay the favour it called in · @Money.Show(WealthSystem.FavourCredits)</button>
+                            <button class="opt inline tiny" data-break="@did" title="@BreakSays" @onclick="() => G.Execute(Deal(DealingsCommand.Break, did))">Refuse it</button>
+                        }
+                    </div>
+                    @foreach (var mo in docket)
+                    {
+                        string mid = mo.Id; var noAsk = Deal(DealingsCommand.AskVote, did, mid).Refusal(G.Ctx); var noCall = Deal(DealingsCommand.CallVote, did, mid).Refusal(G.Ctx); var noPledge = Deal(DealingsCommand.Pledge, did, mid).Refusal(G.Ctx);
+                        <div class="line small" data-dealing-motion="@mid">
+                            <span title="@senate.Describe(w, mo)"><b>@MotionName(mo)</b> <span class="muted">@StandsOn(mo, fh)</span></span>
+                            <button class="opt inline tiny" data-ask-vote="@mid" disabled="@(noAsk != null)" title="@(noAsk ?? dl.AskSays(w, fh, DealingsSystem.Vote))" @onclick="() => G.Execute(Deal(DealingsCommand.AskVote, did, mid))">Ask a favour: its vote</button>
+                            @if (owesMe) { <button class="opt inline tiny" data-call-vote="@mid" disabled="@(noCall != null)" title="@(noCall ?? CallVoteSays)" @onclick="() => G.Execute(Deal(DealingsCommand.CallVote, did, mid))">Call in its favour for its vote</button> }
+                            <button class="opt inline tiny" data-pledge="@mid" disabled="@(noPledge != null)" title="@(noPledge ?? dl.PledgeSays(w, mo, fh))" @onclick="() => G.Execute(Deal(DealingsCommand.Pledge, did, mid))">Pledge it your vote</button>
+                        </div>
+                    }
+                    <div class="row small" data-dealing="threat">
+                        <button class="opt inline tiny" data-threat="@did" disabled="@(noThreat != null)" title="@(noThreat ?? dl.ThreatSays(w, mine, fh))" @onclick="() => G.Execute(Deal(DealingsCommand.Threat, did))">Let it understand what your fleets could do</button>
+                    </div>
+                    <div class="row small" data-dealing="loan">
+                        @if (myLoan == null)
+                        {
+                            <span class="muted">Lend at</span>
+                            @foreach (int rate in DealingsSystem.LoanRates) { int rt = rate; <button class="opt inline tiny @(_rate == rt ? "here" : "")" data-loan-rate="@rt" title="@RateSays(fh)" @onclick="() => _rate = rt">@rt</button> }
+                            <span class="muted">in the hundred, the sum of</span>
+                            @foreach (int sum in DealingsSystem.LoanSizes) { int amt = sum; var noLend = Deal(DealingsCommand.Lend, did, amt.ToString(), _rate).Refusal(G.Ctx); <button class="opt inline tiny" data-lend="@amt" disabled="@(noLend != null)" title="@(noLend ?? dl.LendSays(w, fh, amt, _rate))" @onclick="() => G.Execute(Deal(DealingsCommand.Lend, did, amt.ToString(), _rate))">@Money.Show(amt)</button> }
+                        }
+                        else
+                        {
+                            var noPress = Deal(DealingsCommand.Press, did).Refusal(G.Ctx); var noForgive = Deal(DealingsCommand.Forgive, did).Refusal(G.Ctx);
+                            <button class="opt inline tiny" data-forgive="@did" disabled="@(noForgive != null)" title="@(noForgive ?? ForgiveSays(myLoan))" @onclick="() => G.Execute(Deal(DealingsCommand.Forgive, did))">Forgive the @Money.Show(myLoan.Owed) it owes</button>
+                            <button class="opt inline tiny" data-press="@did" disabled="@(noPress != null)" title="@(noPress ?? PressSays)" @onclick="() => G.Execute(Deal(DealingsCommand.Press, did))">Press for it</button>
+                        }
+                    </div>
+                    <div data-dealing="lasting">
+                        @foreach (var (text, tone) in lasting) { <div class="line small @tone">@text</div> }
+                        @if (lasting.Count == 0) { <div class="line small muted">Nothing stands between your houses that is remembered: no favour, loan, gift, threat or pledge.</div> }
+                    </div>
+                }
                 <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
                 <details data-legitimacy-of="@fh.Id"><summary>What it is made of</summary><LegitimacyMade Card="@Praetoria.Core.Presentation.LegitimacyProjection.Of(w, fh)" /></details>
                 <div class="kv"><span>Domain</span><b>@Counted.Worlds(worlds.Count) · @Counted.Stations(stations.Count)</b></div>
@@ -189,6 +249,24 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _focus; private string _sort = "title";
+    // dealings between houses (docs/WEALTH.md): the rate a loan is offered at, and what each act would do, said before it is done
+    private int _rate = DealingsSystem.LoanRates[0];
+    private DealingsCommand Deal(string what, string houseId, string value = "", int rate = 0) => new(G.World!.ProtagonistId, what, houseId, G.Turn!.Dealings, value, rate);
+    private string MotionName(Motion m) => (G.Content!.Motions.Def(m.Kind)?.Name ?? m.Kind) + (G.World!.House(m.ProposerHouseId) is { } mover ? $", moved by {mover.Name}" : "");
+    private string StandsOn(Motion m, House h)
+    {
+        if (m.ProposerHouseId == h.Id) return "its own motion";
+        if (m.Votes.TryGetValue(h.Id, out int cast)) return cast > 0 ? "it has declared for" : cast < 0 ? "it has declared against" : "it has declared that it stays away";
+        int lean = G.Turn!.Senate.Lean(G.World!, m, h.Id); return lean > 0 ? $"it leans for (+{lean})" : lean < 0 ? $"it leans against ({lean})" : "it leans neither way";
+    }
+    private static string RateSays(House h) => $"The rate it bears follows how short it is: {DealingsSystem.BearsShort} in the hundred while it holds under {Money.Show(DealingsSystem.ShortAt)}, {DealingsSystem.BearsPinched} under {Money.Show(DealingsSystem.PinchedAt)}, {DealingsSystem.BearsInTheRed} in the red. It holds {Money.Show(h.Treasury.Credits)}. A low rate is taken as a kindness, a high one as business.";
+    private static string ForgiveSays(HouseLoan l) => $"Let the {Money.Credits(l.Owed)} go. Its head thinks +{DealingsSystem.ForgiveRegard} of you, and the house owes you a favour.";
+    private static string PressSays => $"Say you want your money. Its head thinks −{DealingsSystem.PressRegard} of you. From now on it pays what it has each year; {Counted.Years(DealingsSystem.DefaultYears)} running short of the instalment and it is a default: the rest is written off, its standing falls by {DealingsSystem.DefaultLegitimacy}, and every lender in the Reach charges it more.";
+    private static string CallMoneySays => "They pay it into your treasury, and owe you nothing more.";
+    private static string CallMatchSays => "The family looks more kindly on the suit between your house and theirs.";
+    private static string CallVoteSays => "It declares its vote as yours is on this motion, and owes you nothing more.";
+    private static string HonourSays => $"Pay what it asks. The account is even, and its head thinks +{WealthSystem.FavourKept} of you.";
+    private static string BreakSays => $"Refuse. You owe it nothing more, and its head thinks −{WealthSystem.FavourBroken} of you and remembers.";
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }

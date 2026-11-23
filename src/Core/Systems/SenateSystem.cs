@@ -97,6 +97,7 @@ public sealed class SenateSystem
             int ls = LeaderStance(w, m, f);
             Add(ls * FactionSystem.Discipline, "it follows " + (w.House(f.LeaderHouseId)?.Name ?? "its leader") + ", who leads " + f.Name); Add(m.Lobby.GetValueOrDefault(f.LeaderHouseId) / 2, "its leader has been lobbied");
         }
+        Add(DealingsSystem.CowedLean(w, _motions.Def(m.Kind), m, houseId, lean, out var feared), "it is afraid of " + feared);   // a house that has been threatened stays away (docs/WEALTH.md, "Dealings between houses")
         return lean;
     }
 
@@ -449,6 +450,7 @@ public sealed class SenateSystem
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => FactionSystem.Of(w, h.Id)?.LeaderHouseId == h.Id ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
             if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));
         WealthSystem.FavoursCalled(w, m);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
+        DealingsSystem.MotionCounted(w, m);   // a vote pledged to another house was kept or broken (docs/WEALTH.md, "Dealings between houses")
         // a purse comes out one time in four: the vote it bought is struck, and the house that paid is thought the less of
         foreach (var (boughtId, payerId) in m.BoughtBy.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToList())
         {
@@ -775,6 +777,9 @@ public sealed class SenateSystem
         var m = new Motion { Id = $"motion_{n}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, TitleId = titleId, ProposedTurn = w.Turn };
         w.Motions.Add(m);
         w.Log($"Before the Senate: {Describe(w, m)} The vote is next session.");
+        // a house the player owes a favour to has moved: this is where it is called in, and the player is told so
+        if (w.Protagonist?.HouseId is { } owing && owing != proposerHouseId && WealthSystem.FavourOwed(w, owing, proposerHouseId) && w.House(proposerHouseId) is { } owed)
+            w.Tell("warn", $"{owed.Name} has moved a motion, and you owe it a favour: this is where it is called in. Vote for it and the account is even; vote otherwise and its head thinks {-WealthSystem.FavourBroken:+0;-0} of you.", "senate:chamber", owed.Id);
         return m;
     }
 

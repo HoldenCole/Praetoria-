@@ -175,7 +175,7 @@ public sealed class OrderSystem
         if (voter.PatronId == target.Id) { lean += 3; why.Add("its client"); }
         if (target.PatronId == voter.Id) { lean += 2; why.Add("its patron"); }
         if (voter.PatronId.Length > 0 && voter.PatronId == target.PatronId) { lean += 1; why.Add("a fellow client"); }
-        if (voter.Debt > 0 && voter.LenderId == target.Id) { lean += 2; why.Add("in its debt"); }
+        if (voter.Debt > 0 && voter.LenderId == target.Id || DealingsSystem.LoanBetween(w, target.Id, voter.Id) != null) { lean += 2; why.Add("in its debt"); }
         if (ProvinceSystem.LeanUnder(w, voter.Id, target.Id) is > 0 and var under) { lean += under; why.Add("holds a province under it"); }   // (docs/PROVINCES.md)
         if (target.Corners.Contains(Resource.Helium3) && !voter.Corners.Contains(Resource.Helium3) && w.Fleets.Values.Any(f => f.OwnerId == voter.Id)) { lean += 1; why.Add("its fleets burn that house's fuel"); }
         if (w.Companies.Any(c => c.ControllerId == target.Id && c.HeldBy(voter.Id) * 10 >= c.Shares)) { lean += 1; why.Add("holds its companies' shares"); }
