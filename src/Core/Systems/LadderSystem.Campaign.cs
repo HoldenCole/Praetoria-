@@ -108,7 +108,7 @@ public static partial class LadderSystem
                 var best = w.LivingCharacters().Where(c => c.HouseId == h.Id && Bar(w, offices, c, rung) == null && Next(w, offices, c)?.Id == rung.Id).OrderByDescending(Merit).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (best == null) continue;
                 bool upright = head.NatureTraits.Contains("Honorable") || head.NatureTraits.Contains("Just");
-                string size = CampaignSizes.Reverse().First(s => s == Modest || (h.Treasury.Credits >= CampaignCost(s) * OthersCampaignAfford && !(s == Lavish && upright)));
+                string size = Enumerable.Reverse(CampaignSizes).First(s => s == Modest || (h.Treasury.Credits >= CampaignCost(s) * OthersCampaignAfford && !(s == Lavish && upright)));
                 h.Treasury.Credits -= CampaignCost(size); w.WorldCounters[CampaignsKey] = w.Counter(CampaignsKey) + 1;
                 w.Campaigns.Add(new CampaignFund { HouseId = h.Id, CharacterId = best.Id, RungId = rung.Id, Turn = w.Turn, Size = size, Spent = CampaignCost(size), Votes = CampaignVotes(size) });
                 if (size == Lavish) BoughtVotes(w, best, h.Id, rung.Id);
