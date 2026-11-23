@@ -112,6 +112,9 @@ public class CourtsTests
         LadderSystem.Tick(w, Offices, Content.Policies); Assert.False(deed.Answered);
         w.Relationship(Economy.HeadOf(w, others[0])!.Id, me.Id).Disposition = -50; Sit(w, judge, LadderSystem.Praetor);
         LadderSystem.Tick(w, Offices, Content.Policies);
+        // a charge against the player's house is not heard the year it is brought: it waits a year (docs/LADDER.md, "The docket")
+        Assert.False(deed.Answered); Assert.Single(LadderSystem.ChargesOn(w, mine.Id));
+        w.Turn++; Sit(w, judge, LadderSystem.Praetor); LadderSystem.Tick(w, Offices, Content.Policies);
         Assert.True(deed.Answered); Assert.True(w.Counter(LadderSystem.BarredKey(kin.Id)) > w.Turn); Assert.True(mine.Legitimacy < legit); Assert.True(w.HasFlag(LadderSystem.KinExposedFlag)); Assert.Contains(LadderSystem.ExposedChar, kin.Flags);
         Assert.Equal(1, w.Counter("convictions"));
     }

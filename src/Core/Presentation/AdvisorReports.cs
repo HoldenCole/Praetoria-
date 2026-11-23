@@ -114,9 +114,11 @@ public static class AdvisorReports
         // Advocate — the suits that name the house
         var advocate = Post(HouseholdSystem.Advocate);
         var suits = LadderSystem.SuitsNaming(w, house.Id); int unpleaded = suits.Count(b => w.Char(b.AdvocateId) is not { Alive: true }), stake = suits.Sum(b => LadderSystem.StakeOf(b));
-        string advLine = suits.Count == 0 ? (advocate == null ? "No suit names the house. Nobody is retained to plead for it." : "No suit names the house.")
+        var charged = LadderSystem.ChargesOn(w, house.Id); int unanswered = charged.Count(c => LadderSystem.PleaderOf(w, c) == null);
+        string chargeLine = charged.Count == 0 ? "" : $" {Counted.Of(charged.Count, "charge")} against the house's people {(charged.Count == 1 ? "waits" : "wait")} to be heard" + (unanswered == 0 ? "." : advocate == null ? $", and {unanswered} {(unanswered == 1 ? "has" : "have")} nobody to answer {(unanswered == 1 ? "it" : "them")}." : $", and {unanswered} will be taken up when the year turns.");
+        string advLine = suits.Count == 0 ? (advocate == null ? "No suit names the house. Nobody is retained to plead for it." : "No suit names the house.") + chargeLine
             : $"{Counted.Of(suits.Count, "suit")} {(suits.Count == 1 ? "names" : "name")} the house, and {Money.Credits(stake)} turn on {(suits.Count == 1 ? "it" : "them")}. "
-              + (unpleaded == 0 ? "Each has somebody to plead it." : advocate == null ? $"{unpleaded} {(unpleaded == 1 ? "has" : "have")} nobody to plead {(unpleaded == 1 ? "it" : "them")}: send someone, or come to terms." : $"{unpleaded} will be taken up when the year turns.");
+              + (unpleaded == 0 ? "Each has somebody to plead it." : advocate == null ? $"{unpleaded} {(unpleaded == 1 ? "has" : "have")} nobody to plead {(unpleaded == 1 ? "it" : "them")}: send someone, or come to terms." : $"{unpleaded} will be taken up when the year turns.") + chargeLine;
         list.Add(new AdvisorReport("Advocate", advocate?.Name, advLine, unpleaded > 0 && advocate == null) { Role = HouseholdSystem.Advocate, Vacant = advocate == null, AdvisorId = advocate?.Id, Urgent = unpleaded > 0 && advocate == null });
         return list;
     }

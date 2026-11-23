@@ -44,7 +44,7 @@ public static partial class LadderSystem
     /// <summary>What could be brought before a court by this house: acts on the record that nobody has answered for, done by someone
     /// living, of another house, who no longer sits in the office they did it in.</summary>
     public static List<OfficeDeed> Chargeable(World w, string accuserHouseId) =>
-        w.OfficeRecord.Where(d => !d.Answered && d.HouseId != accuserHouseId && w.Char(d.CharacterId) is { Alive: true } c && c.HouseId == d.HouseId && (d.What == Bribed || Seat(w, c.Id)?.OfficeId != d.RungId))
+        w.OfficeRecord.Where(d => !d.Answered && d.HouseId != accuserHouseId && !UnderCharge(w, d.Id) && w.Char(d.CharacterId) is { Alive: true } c && c.HouseId == d.HouseId && (d.What == Bribed || Seat(w, c.Id)?.OfficeId != d.RungId))
             .OrderByDescending(d => d.Turn).ThenBy(d => d.Id, StringComparer.Ordinal).ToList();
 
     /// <summary>The praetor who would hear it: the longest sitting who is of neither house.</summary>
@@ -66,7 +66,10 @@ public static partial class LadderSystem
     }
 
     /// <summary>How the praetor would find, and why: so that the one who brings the charge can see what they are walking into.</summary>
-    public static (bool guilty, string why) Verdict(World w, OfficeDeed d, string accuserHouseId, Character judge)
+    /// <param name="defence">The law and oratory of whoever answers it. Left out, the accused's house is taken to send its best, as
+    /// it does when a charge is heard the year it is brought; a charge that waited a year (docs/LADDER.md, "The docket") is answered
+    /// only by whoever was sent, and by nobody if nobody was.</param>
+    public static (bool guilty, string why) Verdict(World w, OfficeDeed d, string accuserHouseId, Character judge, int? defence = null)
     {
         bool honest = judge.NatureTraits.Contains("Honorable") || judge.NatureTraits.Contains("Just");
         if (honest) return (true, "upright, and will go by the record");
@@ -74,25 +77,40 @@ public static partial class LadderSystem
         if (BoughtBy(w, judge) is { } buyer && (buyer == d.HouseId || buyer == accuserHouseId)) return (buyer == accuserHouseId, "bought, and will find for whoever paid");
         if (Regard(w, bench, accused) >= 30) return (false, "a friend of the accused's house");
         bool grasping = judge.NatureTraits.Contains("Ruthless") || judge.NatureTraits.Contains("Cruel") || judge.Ambition == "amass_a_fortune";
-        if (grasping) return ((accuser?.Treasury.Credits ?? 0) >= (accused?.Treasury.Credits ?? 0), "known to be for sale, and will find for the richer house");
-        int plead = Advocate(w, accuserHouseId) is { } a ? a.Skill("law") + a.Skill("oratory") : 0, defend = Advocate(w, d.HouseId) is { } df ? df.Skill("law") + df.Skill("oratory") : 0;
-        return (40 + plead * 6 - defend * 4 > (int)(Hash(d.Id + ":verdict") % 100), "neither upright nor a friend: it will go by who pleads better");
+        bool held = grasping && defence >= AdvocateHolds;   // one for sale does not dare sell it in open court against such a pleader
+        if (grasping && !held) return ((accuser?.Treasury.Credits ?? 0) >= (accused?.Treasury.Credits ?? 0), "known to be for sale, and will find for the richer house");
+        int plead = Craft(Advocate(w, accuserHouseId)), defend = defence ?? Craft(Advocate(w, d.HouseId));
+        return (40 + plead * 6 - defend * 4 > (int)(Hash(d.Id + ":verdict") % 100), held ? "neither free to sell it against such a pleader nor a friend: it will go by who pleads better" : "neither upright nor a friend: it will go by who pleads better");
     }
 
     /// <summary>The charge is brought and heard. Whichever way it goes, it is not heard twice.</summary>
-    public static bool Prosecute(World w, OfficeCatalog offices, Character head, OfficeDeed d)
+    /// <param name="judge">The praetor who hears it: whoever would hear it now, unless one is named.</param>
+    /// <param name="held">The charge as it waited a year, when it is one against the player's house: it is answered by whoever
+    /// was sent to plead it, and the house is told how it went.</param>
+    public static bool Prosecute(World w, OfficeCatalog offices, Character head, OfficeDeed d, Character? judge = null, Indictment? held = null)
     {
         // what a court does with an old wrong is set against the office it was done in, and felt where the accused's house lives
         _trustOffice = d.RungId; _trustRegion = HomeRegion(w, d.HouseId) ?? "";
-        try { return ProsecuteIt(w, offices, head, d); } finally { TrustDone(); }
+        try { return ProsecuteIt(w, offices, head, d, judge ?? Court(w, d, head.HouseId)!, held); } finally { TrustDone(); }
     }
-    private static bool ProsecuteIt(World w, OfficeCatalog offices, Character head, OfficeDeed d)
+    private static bool ProsecuteIt(World w, OfficeCatalog offices, Character head, OfficeDeed d, Character judge, Indictment? held)
     {
-        var accuser = w.House(head.HouseId)!; var judge = Court(w, d, accuser.Id)!; var who = w.Char(d.CharacterId)!; var accused = w.House(d.HouseId);
-        var (guilty, why) = Verdict(w, d, accuser.Id, judge); bool bent = !guilty && !why.StartsWith("neither", StringComparison.Ordinal);
-        d.Answered = true; w.WorldCounters[TriedKey(accuser.Id)] = w.Turn + 1; w.WorldCounters["prosecutions"] = w.Counter("prosecutions") + 1;
+        var accuser = w.House(head.HouseId)!; var who = w.Char(d.CharacterId)!; var accused = w.House(d.HouseId);
+        var defender = held != null ? PleaderOf(w, held) : null;
+        var (guilty, why) = Verdict(w, d, accuser.Id, judge, held != null ? DefenceOf(w, defender) : null); bool bent = !guilty && !why.StartsWith("neither", StringComparison.Ordinal);
+        d.Answered = true; if (held == null) w.WorldCounters[TriedKey(accuser.Id)] = w.Turn + 1; w.WorldCounters["prosecutions"] = w.Counter("prosecutions") + 1;
         var mine = w.Protagonist; bool ours = mine != null && accuser.Id == mine.HouseId, theirs = mine != null && d.HouseId == mine.HouseId;
         var pleader = Advocate(w, accuser.Id) ?? head;
+        string charges = held != null ? $"The charge {accuser.Name} brought against {who.Name} of {accused?.Name}, who {DeedSays(w, offices, d)}, is heard{(defender != null ? $", and {(defender.Id == who.Id ? "they answer it themselves" : defender.Name + " answers it")}" : ", and nobody answers it")}."
+            : $"{accuser.Name} charges {who.Name} of {accused?.Name}, who {DeedSays(w, offices, d)}.";
+        if (held != null)
+        {
+            held.Outcome = guilty ? Proved : LetGo;
+            if (defender != null && HouseholdSystem.IsAdvocateOf(w, d.HouseId, defender.Id)) HouseholdSystem.AdvocateHeard(w, !guilty);
+            if (defender != null && !guilty) LifeSystem.Note(w, defender, "office", defender.Id == who.Id ? "Answered a charge in open court, and was let go." : $"Answered the charge against {who.Name}, and they were let go.");
+            if (!guilty && defender?.Id != who.Id) LifeSystem.Note(w, who, "office", $"Was charged by {accuser.Name} with what they did in office, and let go.");
+            if (theirs) w.Tell(guilty ? "warn" : "good", guilty ? $"{judge.Name}, praetor, finds the charge against {who.Name} proved. {who.Name} may not stand for {BarYears} years, and the house pays." : $"{judge.Name}, praetor, lets {who.Name} go: the charge {accuser.Name} brought is not proved.", "senate:ladder", who.Id);
+        }
         if (guilty)
         {
             w.Magistrates.RemoveAll(m => m.CharacterId == who.Id); w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; w.WorldCounters[ScandalKey(d.HouseId)] = w.Turn;
@@ -107,13 +125,13 @@ public static partial class LadderSystem
             who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was convicted of what they did in office."); LifeSystem.Note(w, pleader, "office", $"Prosecuted {who.Name} and won.");
             if (ours) Mark(w, ProsecutionWonFlag); if (theirs) Mark(w, who.Id == mine!.Id ? ExposedFlag : KinExposedFlag);
             w.WorldCounters["convictions"] = w.Counter("convictions") + 1;
-            w.Log($"{accuser.Name} charges {who.Name} of {accused?.Name}, who {DeedSays(w, offices, d)}. {judge.Name}, praetor, finds it proved. {who.Name} may not stand for {BarYears} years, and {accused?.Name} pays.");
+            w.Log($"{charges} {judge.Name}, praetor, finds it proved. {who.Name} may not stand for {BarYears} years, and {accused?.Name} pays.");
         }
         else
         {
             accuser.Legitimacy = Math.Clamp(accuser.Legitimacy - 1, 0, 100); Shift(w, accused, accuser, -15); if (bent) MoveTrust(w, -1);
             if (ours) Mark(w, ProsecutionLostFlag); if (theirs) Mark(w, KinAcquittedFlag);
-            w.Log($"{accuser.Name} charges {who.Name} of {accused?.Name}, who {DeedSays(w, offices, d)}. {judge.Name}, praetor, lets {who.Name} go{(bent ? ", and it is understood why" : "")}.");
+            w.Log($"{charges} {judge.Name}, praetor, lets {who.Name} go{(bent ? ", and it is understood why" : "")}.");
         }
         return guilty;
     }
@@ -176,10 +194,13 @@ public static partial class LadderSystem
     // ---------------- the year ----------------
 
     /// <summary>The record is pruned; a praetor who no longer sits is nobody's; and one house that hates another enough, and finds
-    /// something on the record against one of its people, brings a charge. One such a year in the whole Reach.</summary>
+    /// something on the record against one of its people, brings a charge. One such a year in the whole Reach. A charge against
+    /// one of the player's house is not heard the year it is brought: it waits a year (docs/LADDER.md, "The docket"), and those
+    /// that waited are heard first.</summary>
     private static void Courts(World w, OfficeCatalog offices)
     {
-        w.OfficeRecord.RemoveAll(d => w.Turn - d.Turn > RecordYears || w.Char(d.CharacterId) is not { Alive: true });
+        w.OfficeRecord.RemoveAll(d => (w.Turn - d.Turn > RecordYears && !UnderCharge(w, d.Id)) || w.Char(d.CharacterId) is not { Alive: true });
+        HearCharges(w, offices);
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("bought:", StringComparison.Ordinal)).ToList())
         {
             var parts = f.Split(':'); if (parts.Length < 3 || w.Char(parts[1]) is not { Alive: true } pr || Seat(w, pr.Id)?.OfficeId != Praetor) w.WorldFlags.Remove(f);
@@ -190,7 +211,8 @@ public static partial class LadderSystem
             var head = Economy.HeadOf(w, h); if (head == null) continue;
             var d = Chargeable(w, h.Id).FirstOrDefault(x => Regard(w, h, w.House(x.HouseId)) <= ProsecuteAt && Court(w, x, h.Id) != null);
             if (d == null || ProsecuteRefusal(w, head, d) != null) continue;
-            Prosecute(w, offices, head, d); return;
+            if (d.HouseId == mine) Indict(w, offices, head, d); else Prosecute(w, offices, head, d);
+            return;
         }
     }
 }

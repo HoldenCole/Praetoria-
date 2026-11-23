@@ -146,6 +146,9 @@ public sealed class World
     public List<BattleRecord> Battles { get; set; } = new();
     /// <summary>The rulings of the courts that touched the player's house, newest last (docs/PLAYTHROUGH.md 12).</summary>
     public List<JudgmentRecord> Judgments { get; set; } = new();
+    /// <summary>The charges another house has brought against one of the player's house that wait a year to be heard
+    /// (docs/LADDER.md, "The docket").</summary>
+    public List<Indictment> Indictments { get; set; } = new();
     /// <summary>The deaths in the player's house, each with what it left empty and what passed to whom.</summary>
     public List<DeathRecord> Deaths { get; set; } = new();
     /// <summary>The count at the last election of the ladder: every name, its office and its votes.</summary>

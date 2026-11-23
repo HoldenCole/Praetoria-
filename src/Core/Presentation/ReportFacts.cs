@@ -29,9 +29,9 @@ public static class ReportFacts
             var asks = terms.Where(t => t.Kind != HousePeace.White).Select(t => t.Accepted ? $"{t.Label}: {t.What}" : $"{t.Label}: not to be had ({t.Why}).").ToList();
             return stands + (asks.Count > 0 ? " What may be asked: " + string.Join(" ", asks) : " Nothing may be asked beyond the peace itself.") + " While the envoy waits, the same terms are under Wars in the Military window.";
         }
-        if (flags.Contains("case_won") || flags.Contains("case_lost"))
+        if (flags.Contains("case_won") || flags.Contains("case_lost") || flags.Contains(LadderSystem.SuitWonFlag) || flags.Contains(LadderSystem.SuitLostFlag))
         {
-            bool won = flags.Contains("case_won");
+            bool won = flags.Contains("case_won") || flags.Contains(LadderSystem.SuitWonFlag);
             var j = w.Judgments.LastOrDefault(x => x.Kind == "suit" && (won ? x.WinnerId == mine : x.LoserId == mine));
             return j == null ? "" : $"The case: {Nm(j.WinnerId)} against {Nm(j.LoserId)}{(j.Matter.Length > 0 ? " over " + j.Matter : "")}, year {j.Turn}. {(j.Judge.Length > 0 ? j.Judge + ", praetor, " + j.How : char.ToUpperInvariant(j.How[0]) + j.How[1..])}. {Nm(j.LoserId)} paid {Money.Credits(j.Sum)}.";
         }
@@ -55,11 +55,11 @@ public static class ReportFacts
             }
             return $"The count, year {w.Counts[0].Turn}. " + string.Join(". ", said) + ".";
         }
-        if (flags.Contains(LadderSystem.ExposedFlag) || flags.Contains(LadderSystem.KinExposedFlag))
+        if (flags.Contains(LadderSystem.ExposedFlag) || flags.Contains(LadderSystem.KinExposedFlag) || flags.Contains(LadderSystem.ChargeAdmittedFlag))
         {
             /* which offence it was: the charge a praetor found proved, or the money an audit followed (docs/PLAYTHROUGH.md, Easy, P101) */
             var j = w.Judgments.LastOrDefault(x => x.Kind == "charge" && x.LoserId == mine && x.Turn >= w.Turn - 1);
-            if (j != null) return $"The charge, year {j.Turn}: {j.Matter}. {(j.Judge.Length > 0 ? j.Judge + ", praetor, heard it. " : "")}{Nm(j.WinnerId)} brought it{(j.Sum > 0 ? $", and {Money.Credits(j.Sum)} were paid" : "")}.";
+            if (j != null) return $"The charge, year {j.Turn}: {(j.Matter.Length > 0 ? j.Matter : j.How)}. {(j.Judge.Length > 0 ? j.Judge + ", praetor, heard it. " : "")}{Nm(j.WinnerId)} brought it{(j.Sum > 0 ? $", and {Money.Credits(j.Sum)} were paid" : "")}.";
             string me = Nm(mine);
             return w.History.LastOrDefault(h => h.Turn >= w.Turn - 1 && h.Text.StartsWith("It comes out that") && h.Text.Contains(me))?.Text ?? "";
         }

@@ -190,6 +190,11 @@ public sealed class OfficeBusiness
     public bool Held { get; set; }
     /// <summary>Who of the player's house is to plead a held case, or "".</summary>
     public string AdvocateId { get; set; } = "";
+    /// <summary>For a case: the house that brought it (docs/LADDER.md, "The docket"). The other house is the defendant. "" on a
+    /// case made before suits had a plaintiff.</summary>
+    public string PlaintiffId { get; set; } = "";
+    /// <summary>The defendant has brought a counter-suit on the same matter: the stake was doubled when it did.</summary>
+    public bool Countered { get; set; }
     /// <summary>For a case: the house the ruling went for. A ruling against the law may be appealed.</summary>
     public string WinnerId { get; set; } = "";
     /// <summary>For a judge's hearing: the estate on the other side. For an appeal: nothing.</summary>
