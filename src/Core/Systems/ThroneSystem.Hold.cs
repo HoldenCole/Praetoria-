@@ -141,8 +141,8 @@ public static partial class ThroneSystem
     {
         Bump(w, "pretender_broken_by:" + reason);
         var r = w.Rising; if (r == null) return; var p = w.House(r.HouseId); var e = Emperor(w); var head = p != null ? Economy.HeadOf(w, p) : null; var throne = e != null ? Economy.HeadOf(w, e) : null;
-        if (p != null) { p.Legitimacy = Math.Max(0, p.Legitimacy - BrokenStanding); p.Claims.Remove(Title.Emperor); }
-        if (e != null) e.Legitimacy = Math.Min(100, e.Legitimacy + HeldStanding);
+        if (p != null) { LegitimacyBook.Move(w, p, -BrokenStanding, LegitimacyBook.Titles, "A standard raised against the throne, and broken"); p.Claims.Remove(Title.Emperor); }
+        if (e != null) LegitimacyBook.Move(w, e, HeldStanding, LegitimacyBook.Titles, "The throne held against a pretender");
         if (head != null) { head.Flags.Add(BrokenChar); LifeSystem.Note(w, head, "failure", "Raised a standard against the throne, and was broken."); }
         foreach (var id in r.With) if (w.House(id) is { } with) Move(w, throne, Economy.HeadOf(w, with), CrossedRegard);
         w.Log($"The rising of {p?.Name ?? "the pretender"} is broken: {why}. {e?.Name ?? "The throne"} holds.");

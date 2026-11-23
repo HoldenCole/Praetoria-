@@ -99,6 +99,7 @@
                     </div>
                 }
                 <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
+                <details data-legitimacy-of="@fh.Id"><summary>What it is made of</summary><LegitimacyMade Card="@Praetoria.Core.Presentation.LegitimacyProjection.Of(w, fh)" /></details>
                 <div class="kv"><span>Domain</span><b>@Counted.Worlds(worlds.Count) · @Counted.Stations(stations.Count)</b></div>
                 <div class="kv"><span>Navy</span><b>@Counted.Hulls(FleetSystem.StrengthOf(w, fh.Id))@(FleetSystem.CampaignTarget(w, fh.Id) is { } ct ? $" · campaigning on {w.Galaxy?.System(ct)?.Name ?? ct}" : "")</b></div>
                 <div class="kv"><span>Wealth</span><b>@Money.Show(fh.Wealth) · @if (w.Foreign(fh.Id)) { <span class="muted">a nation: not ranked among the houses</span> } else { <span class="tier @Wealth.TierFor(w, fh.Id)">@Wealth.TierFor(w, fh.Id)</span> }@(fh.Debt > 0 ? " · in debt" : "")</b></div>

@@ -287,7 +287,7 @@ public class CustomCharacterTests
     public void The_upstart_begins_with_nothing_and_is_not_held_to_a_senators_year()
     {
         var c = Preset("The Upstart"); Assert.Equal("modest", CharacterWorkshop.Rating(CharacterWorkshop.Cost(c, Content).total));
-        var (tc, w, house) = Build(c); var p = w.Protagonist!;
+        var (tc, w, house) = Build(c, 4); var p = w.Protagonist!;   // a seed on which no report hands the house a rank, and so a seat, in its first years
         Assert.Equal("landless", house.Title); Assert.Empty(w.HoldingsOf(house.Id)); Assert.Equal("", house.PatronId); Assert.False(house.Enrolled); Assert.False(OrderSystem.Seated(w, house));
         Assert.True(w.Char("custom_mother")!.Alive); Assert.Contains("background:clerks_child", p.Flags);
         // nobody of the house is called by its surname

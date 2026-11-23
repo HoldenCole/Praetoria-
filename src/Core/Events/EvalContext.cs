@@ -35,5 +35,12 @@ public sealed class EvalContext
         return World.Char(id);
     }
 
-    public EvalContext WithBinding(Binding binding) => new(World, binding, Rng, Content);
+    /// <summary>The report whose choice is being applied, when one is: an effect that moves a house's standing says which report
+    /// did it (docs/TITLES.md, "What legitimacy is made of").</summary>
+    public string EventId { get; init; } = "";
+    /// <summary>Where the effects are not a report's (an honour conferred, a stage of the great war): the kind of cause and the
+    /// plain line under which a move in a house's standing is entered.</summary>
+    public (string cause, string line)? Standing { get; init; }
+
+    public EvalContext WithBinding(Binding binding) => new(World, binding, Rng, Content) { EventId = EventId, Standing = Standing };
 }

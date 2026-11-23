@@ -18,6 +18,8 @@ public sealed class Motion
     /// <summary>For an Act of the Senate: the law and the option moved.</summary>
     public string LawId { get; set; } = "";
     public string LawOption { get; set; } = "";
+    /// <summary>For a petition for a rank (docs/TITLES.md, "Rungs that are earned"): the rung asked for.</summary>
+    public string TitleId { get; set; } = "";
     public int ProposedTurn { get; set; }
     /// <summary>Struck from the docket by a consul's veto before the vote (ElectionSystem).</summary>
     public bool Vetoed { get; set; }

@@ -902,7 +902,7 @@ public sealed class FleetSystem
                 {
                     c.Flags.Add(AchillesFlag); w.Log($"{c.Name} has led from the front through {v} victories; the Reach begins to speak the name the way it speaks of Achilles.");
                     if (c.Id == w.ProtagonistId) w.WorldFlags.Add("became_achilles");
-                    if (w.House(c.HouseId) is { } ah) ah.Legitimacy = Math.Min(100, ah.Legitimacy + 2);
+                    if (w.House(c.HouseId) is { } ah) LegitimacyBook.Move(w, ah, 2, LegitimacyBook.War, "An admiral of the house spoken of as Achilles is");
                 }
             }
         }

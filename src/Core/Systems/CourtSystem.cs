@@ -230,7 +230,7 @@ public static class CourtSystem
     public static void Wedding(World w, House house)
     {
         if (Skill(w, house.Id, Ceremonies) == 0) return;
-        house.Legitimacy = Math.Min(100, house.Legitimacy + 1); Mark(w, FeastFlag);
+        LegitimacyBook.Move(w, house, 1, LegitimacyBook.Family, "A wedding ordered as it should be"); Mark(w, FeastFlag);
         w.Log($"The wedding is ordered as such things should be, and it is noticed: {house.Name} has somebody who knows how.");
     }
 }

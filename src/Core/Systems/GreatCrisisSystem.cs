@@ -177,7 +177,7 @@ public sealed class GreatCrisisSystem
     private void Enter(World w, IRng rng, GreatCrisisStage stage)
     {
         w.WorldFlags.Add(StageFlag(stage.Id));
-        var ctx = new EvalContext(w, new Binding(w.ProtagonistId), rng);
+        var ctx = new EvalContext(w, new Binding(w.ProtagonistId), rng) { Standing = (LegitimacyBook.War, "The great war of the Reach") };
         foreach (var e in stage.Effects) e.Apply(ctx);
         if (stage.Log.Length > 0) w.Log($"[{_def!.Name}] {stage.Log}");
         switch (stage.Behavior)
@@ -255,7 +255,7 @@ public sealed class GreatCrisisSystem
         // crushed all resistance holds the Reach, and what it does with it is its own to decide: by the Caesar's road, or by force.
         void Raise(House h, int legitimacy, int glory)
         {
-            h.Legitimacy = Math.Min(100, h.Legitimacy + legitimacy); h.Glory = Math.Min(12, h.Glory + glory);
+            LegitimacyBook.Move(w, h, legitimacy, LegitimacyBook.War, "The great war won"); h.Glory = Math.Min(12, h.Glory + glory);
             if (Progression.Title.RankOf(h.Title) < 4) h.Title = Progression.Title.Duke;
         }
         string after = years > 0 ? $" after {years} years" : ""; string name = WarName(w); int nth = w.Counter(WarsCounter) + 1; w.WorldCounters[WarsCounter] = nth;

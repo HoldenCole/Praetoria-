@@ -226,7 +226,7 @@ public static class PolicySystem
         if (w.Turn > 0 && w.Turn % 5 == 0)
         {
             int legit = Modifier(w, cat, mine, "legitimacy_per_5") + ReachModifier(w, cat, "legitimacy_per_5");
-            if (legit != 0) house.Legitimacy = Math.Clamp(house.Legitimacy + legit, 0, 100);
+            if (legit != 0) LegitimacyBook.Move(w, house, legit, LegitimacyBook.Laws, "What the estates make of the house's laws");
         }
     }
 }

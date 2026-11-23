@@ -74,8 +74,10 @@ public static class FactionSystem
     public static Faction? Of(World w, string houseId) => w.Factions.FirstOrDefault(f => f.Members.Contains(houseId));
     public static bool Leads(World w, string houseId) => w.Factions.Any(f => f.LeaderHouseId == houseId);
 
-    /// <summary>After a motion is decided: every pair that declared draws closer or apart; each bench's platform remembers the kind.</summary>
-    public static void RecordVotes(World w, Motion m, string kind)
+    /// <summary>After a motion is decided: every pair that declared draws closer or apart; each bench's platform remembers the kind.
+    /// A petition for a rank is a judgment of one house, not a line a bench holds (<paramref name="platform"/> false): the benches
+    /// follow their leaders on it, but how they voted on one house's rank is not how they will vote on the next house's.</summary>
+    public static void RecordVotes(World w, Motion m, string kind, bool platform = true)
     {
         var declared = m.Votes.Where(kv => kv.Value != 0 && !World.Outsider(kv.Key) && w.Houses.ContainsKey(kv.Key)).OrderBy(kv => kv.Key, StringComparer.Ordinal).ToList();
         for (int i = 0; i < declared.Count; i++)
@@ -84,7 +86,7 @@ public static class FactionSystem
         foreach (var f in w.Factions)
         {
             int net = f.Members.Sum(h => m.Votes.GetValueOrDefault(h));
-            if (net != 0) f.Platform[kind] = f.Platform.GetValueOrDefault(kind) + Math.Sign(net);
+            if (net != 0 && platform) f.Platform[kind] = f.Platform.GetValueOrDefault(kind) + Math.Sign(net);
             if (f.LeaderHouseId == m.ProposerHouseId) f.Record += m.Passed ? 1 : -1;
         }
     }

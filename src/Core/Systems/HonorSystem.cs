@@ -34,7 +34,8 @@ public sealed class HonorSystem
             if (p.Flags.Contains(Flag(h.Id))) continue;
             if (!Binder.AllHold(h.When, ctx)) continue;
             p.Flags.Add(Flag(h.Id));
-            foreach (var e in h.Effects) e.Apply(ctx);
+            var conferred = new EvalContext(w, new Binding(p.Id), rng) { Standing = (LegitimacyBook.Titles, "An honour conferred: " + h.Name) };   // what it does for the house's standing is entered under its name
+            foreach (var e in h.Effects) e.Apply(conferred);
             w.WorldCounters["honors"] = w.Counter("honors") + 1;
             w.Log($"{p.Name} is invested as {h.Name}.");
         }

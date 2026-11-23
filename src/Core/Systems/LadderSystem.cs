@@ -234,7 +234,7 @@ public static partial class LadderSystem
     public static void Games(World w, OfficeCatalog offices, Character who)
     {
         var seat = Seat(w, who.Id)!; var rung = offices.Rung(seat.OfficeId)!; who.Purse -= rung.Games; w.WorldCounters["games:" + who.Id] = seat.SinceTurn + 1;
-        if (w.House(who.HouseId) is { } h) h.Legitimacy += 2;
+        if (w.House(who.HouseId) is { } h) LegitimacyBook.Move(w, h, 2, LegitimacyBook.Offices, "Games given by an aedile of the house");
         LifeSystem.Note(w, who, "office", "Gave games as aedile that the city remembered."); if (who.HouseId == w.Protagonist?.HouseId) Mark(w, GamesFlag);
         w.Log($"{who.Name}, aedile, gives games at their own cost. The city talks of nothing else for a month.");
     }
@@ -393,14 +393,14 @@ public static partial class LadderSystem
         var inOffice = w.Magistrates.Select(m => m.HouseId).Concat(w.Offices.Select(o => o.HouseId)).Distinct().OrderBy(id => id, StringComparer.Ordinal).ToList();
         if (t < TrustLow)
         {
-            if (chair is { Legitimacy: > 20 }) chair.Legitimacy -= 1;             // it is the chair that is blamed for what sits under it
+            if (chair is { Legitimacy: > 20 }) LegitimacyBook.Move(w, chair, -1, LegitimacyBook.Offices, "The magistrates are not believed, and the chair is blamed");             // it is the chair that is blamed for what sits under it
             // the commons most; the merchants, who must go to those courts and deal with those desks; and the magistrates' own
             // order, whose name it is
             foreach (var id in inOffice) { PolicySystem.Sway(w, id, "commons", -3); PolicySystem.Sway(w, id, "merchants", -TrustEstates); PolicySystem.Sway(w, id, "magistrates", -TrustEstates); }
             if (!was) { w.WorldCounters[TrustLowKey] = 1; Mark(w, TrustFellFlag); w.Log("The Reach no longer believes its magistrates can be had for less than money. It is said openly in the squares, and the houses in office are the ones it is said about."); }
             return;
         }
-        if (t >= TrustHigh) foreach (var id in inOffice) { PolicySystem.Sway(w, id, "commons", 1); PolicySystem.Sway(w, id, "merchants", 1); PolicySystem.Sway(w, id, "magistrates", 1); if (w.House(id) is { Legitimacy: < 70 } h) h.Legitimacy += 1; }
+        if (t >= TrustHigh) foreach (var id in inOffice) { PolicySystem.Sway(w, id, "commons", 1); PolicySystem.Sway(w, id, "merchants", 1); PolicySystem.Sway(w, id, "magistrates", 1); if (w.House(id) is { Legitimacy: < 70 } h) LegitimacyBook.Move(w, h, 1, LegitimacyBook.Offices, "In office while the magistrates were believed again"); }
         if (was && t >= 50) { w.WorldCounters.Remove(TrustLowKey); Mark(w, TrustRestoredFlag); w.Log("The magistrates of the Reach are believed again, more or less. It took years, and it was done by people who could have taken the money."); }
     }
 
@@ -480,7 +480,7 @@ public static partial class LadderSystem
         var b = BusinessOf(w, who.Id)!; b.Choice = choice; var house = w.House(who.HouseId); var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w);
         string office = offices.Rung(b.RungId)?.Name.ToLowerInvariant() ?? b.RungId; bool ours = who.HouseId == mine; bool exposed = false;
         void Region(int by) { if (b.RegionId.Length > 0) { var rs = RegionSystem.StateOf(w, b.RegionId); rs.Lawlessness = Math.Clamp(rs.Lawlessness + by, 0, 100); } }
-        void Legit(int by) { if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy + by, 0, 100); }
+        void Legit(int by) { if (house != null) LegitimacyBook.Move(w, house, by, LegitimacyBook.Offices, "The year's business in office"); }
         switch (choice)
         {
             case Straight: MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); break;
@@ -541,7 +541,7 @@ public static partial class LadderSystem
     {
         var mine = w.Protagonist; var house = w.House(who.HouseId);
         w.Magistrates.RemoveAll(m => m.CharacterId == who.Id); w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; w.WorldCounters[ScandalKey(who.HouseId)] = w.Turn; MoveTrust(w, -3);
-        if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy - 5, 0, 100);
+        if (house != null) LegitimacyBook.Move(w, house, -5, LegitimacyBook.Scandal, "What one of the house did in office came out");
         who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was removed from office for taking money.");
         if (mine != null && who.HouseId == mine.HouseId) Mark(w, who.Id == mine.Id ? ExposedFlag : KinExposedFlag);
         w.Log($"It comes out that {who.Name} of {house?.Name}, {offices.Rung(b.RungId)?.Name.ToLowerInvariant()}, took money in office. {who.Name} is removed and may not stand again for {BarYears} years.");

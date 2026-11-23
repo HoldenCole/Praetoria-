@@ -103,7 +103,14 @@ public sealed record PathOption(string Id, string Label, string Tooltip, bool Av
 }
 public sealed record StandingCard(int Legitimacy, int Instability, IReadOnlyList<string> Claims, string? NextTitle, int NextRequirement,
     IReadOnlyList<PathOption> Paths, string Spheres, int Threat, IReadOnlyList<string> Honors, string SuccessionLaw, IReadOnlyList<Option> LawOptions,
-    string TaxPolicy, IReadOnlyList<Option> TaxOptions, IReadOnlyList<Option> ExchangeOptions, ThroneCard Throne);
+    string TaxPolicy, IReadOnlyList<Option> TaxOptions, IReadOnlyList<Option> ExchangeOptions, ThroneCard Throne)
+{
+    /// <summary>What the next rung asks and what the house has of it, one line for each thing; the same in a sentence; and what the
+    /// house's legitimacy is made of (docs/TITLES.md, "Rungs that are earned" and "What legitimacy is made of").</summary>
+    public IReadOnlyList<RungNeed> Needs { get; init; } = Array.Empty<RungNeed>();
+    public string Earned { get; init; } = "";
+    public LegitimacyCard? Made { get; init; }
+}
 public sealed record FleetLine(string Id, string Name, string Where, int Strength, int Readiness, bool Moving, string? Destination, int Eta, bool Office,
     string Composition, string? AdmiralName, int Veterancy, IReadOnlyList<Option> AdmiralOptions, IReadOnlyList<Option> MergeOptions, Option Refit,
     string Stance = "line", string Loadout = "guns", int Loyalty = 70, int Supply = 100, string? AdmiralId = null, string AdmiralStyle = "none", int Cap = 0,
@@ -323,8 +330,13 @@ public static class CourtProjection
                 bool sz = new SeizeTitleCommand(p.Id, prog).CanExecute(ctx), pt = new PetitionTitleCommand(p.Id, prog).CanExecute(ctx), cl = new ClaimTitleCommand(p.Id, prog).CanExecute(ctx);
                 paths.Add(new PathOption("seize", "Seize it by force", "By arms: the house's own ships behind it. Legitimacy does not rise with the rank, and every house fears you the more.", sz)
                 { Cost = "2 treasury actions, 1 agent", Refusal = sz ? null : Why(prog.SeizeRefusal(w, p.Id), false, "2 treasury actions and 1 agent this year"), Confirm = $"The house takes the rank of {rung} by force. Its legitimacy stays where it is, so the rank stands above what the house is thought to deserve, and every house fears it the more. One rung a year." });
-                paths.Add(new PathOption("petition", w.IsImperium ? "Petition the throne" : "Petition the Senate", "By merit: granted only to a house thought to deserve it, and it arrives clean.", pt)
-                { Cost = "2 influence of this year's", Refusal = pt ? null : Why(prog.PetitionRefusal(w, p.Id), false, "2 influence of this year's"), Confirm = $"The house is granted the rank of {rung}, and is thought the better of for it (+5 legitimacy). One rung a year." });
+                bool voted = prog.Voted(next);
+                paths.Add(new PathOption("petition", voted || !w.IsImperium ? "Petition the Senate" : "Petition the throne", voted ? "By merit: the petition goes before the Senate, which votes on it at the end of next year. The house rises only if it is carried. It gives no legitimacy." : "By merit: granted to a house thought to deserve it. It gives no legitimacy.", pt)
+                {
+                    Cost = "2 influence of this year's", Refusal = pt ? null : Why(prog.PetitionRefusal(w, p.Id), false, "2 influence of this year's"),
+                    Confirm = voted ? $"The house's petition for the rank of {rung} goes before the Senate. It is voted at the end of next year like any motion: the houses may be lobbied until then, and the house rises only if it is carried. Thrown out, the house may ask again in {Counted.Years(ProgressionSystem.AskAgainYears - 1)} after the vote. Its legitimacy stays as it is either way."
+                        : $"The house is granted the rank of {rung}. Its legitimacy stays as it is. One rung a year."
+                });
                 paths.Add(new PathOption("claim", "Press a claim", "By a claim the house holds: it launders the rise, and leaves a trail.", cl)
                 { Cost = "1 influence of this year's, 2 agents", Refusal = cl ? null : Why(prog.ClaimRefusal(w, p.Id), false, "1 influence of this year's and 2 agents"), Confirm = $"The house presses its claim and takes the rank of {rung} (+12 legitimacy). The claim is spent, and the way it was pressed leaves a trail. One rung a year." });
             }
@@ -339,7 +351,8 @@ public static class CourtProjection
             standing = new StandingCard(house.Legitimacy, w.Counter("title_instability"),
                 house.Claims.OrderBy(c => c, StringComparer.Ordinal).ToList(), next?.NameIn(w.Era), next?.LegitimacyRequirement ?? 0, paths,
                 string.Join(" · ", house.SphereInfluence.OrderBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{k.Key} {k.Value}")),
-                w.Counter("threat"), honors, house.SuccessionLaw, laws, house.TaxPolicy, taxes, exchange, throne);
+                w.Counter("threat"), honors, house.SuccessionLaw, laws, house.TaxPolicy, taxes, exchange, throne)
+            { Needs = LegitimacyProjection.Needs(w, house, prog), Earned = LegitimacyProjection.Says(w, house, prog), Made = LegitimacyProjection.Of(w, house) };
         }
 
         var fleetSys = tc.Fleets; var abroad = NationSystem.AtWar(w);
@@ -547,7 +560,7 @@ public static class CourtProjection
         var history = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Take(8).Select(Card).ToList();
         var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Name, StringComparer.Ordinal).Select(h => (Id: h.Id, Name: h.Name)).ToList();
         var regions = w.Galaxy?.ReachRegions.OrderBy(r => r.Name, StringComparer.Ordinal).Select(r => (Id: r.Id, Name: r.Name)).ToList() ?? new List<(string Id, string Name)>();
-        var proposals = senate.Motions.Defs.Where(d => d.Id != "petition").Select(d =>
+        var proposals = senate.Motions.Defs.Where(d => d.Id != "petition" && !d.Rank).Select(d =>
         {
             List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions
                 : d.Target == "nation" ? senate.Nations.Defs.Where(nd => w.Nation(nd.Id) is { } ns && (d.Interest == "foreign_peace" ? NationSystem.PeaceRefusal(w, senate.Nations, nd.Id) == null : (!ns.AtWar || ns.WarOf.Length > 0) && !ns.Fallen && !ns.Subdued(w.Turn))).OrderBy(nd => nd.Name, StringComparer.Ordinal).Select(nd => (Id: nd.Id, Name: nd.Name)).ToList() : new List<(string Id, string Name)>();

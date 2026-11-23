@@ -79,7 +79,7 @@ public static partial class WealthSystem
         if (to.HouseId != giver.HouseId && w.House(to.HouseId) is { } theirs && Economy.HeadOf(w, theirs)?.Id == to.Id && giver.HouseId == w.Protagonist?.HouseId) Owe(w, theirs.Id, giver.HouseId);
         item.HolderId = to.Id; Regard(w, to, giver, to.HouseId == giver.HouseId ? 15 : 20);
         if (giver.Will != null) giver.Will.Items.Remove(item.Id);
-        if (to.HouseId != item.OfHouseId && w.House(item.OfHouseId) is { } of && of.Id == giver.HouseId) of.Legitimacy -= 1;
+        if (to.HouseId != item.OfHouseId && w.House(item.OfHouseId) is { } of && of.Id == giver.HouseId) LegitimacyBook.Move(w, of, -1, LegitimacyBook.Family, "A thing of the family given out of the house");
         Mark(w, HeirloomGivenFlag);
         w.Log($"{giver.Name} gives {item.Name} to {to.Name}.");
     }
@@ -114,7 +114,7 @@ public static partial class WealthSystem
         }
         else
         {
-            house.Legitimacy -= BreakLegitimacy; PolicySystem.Sway(w, house.Id, "old_blood", -EntailSway - 1);
+            LegitimacyBook.Move(w, house, -BreakLegitimacy, LegitimacyBook.Family, "An entail broken in court"); PolicySystem.Sway(w, house.Id, "old_blood", -EntailSway - 1);
             foreach (var k in Members(w, house).Where(k => k.Id != head.Id && !HouseholdSystem.IsFound(k))) Regard(w, k, head, -BreakRegard);
             Mark(w, EntailBrokenFlag); w.Log($"{head.Name} has the entail on {item.Name} broken in court. It is theirs to sell now, and the family knows why.");
         }
@@ -161,8 +161,8 @@ public static partial class WealthSystem
             if (holder?.Alive != true) continue;
             // the house a thing was taken from does not forget who has it
             if (IsSpoil(item) && w.House(item.FromHouseId) is { } lostBy && lostBy.Id != holder.HouseId && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) Regard(w, theirHead, holder, -1, floor: StandardGrudgeFloor);
-            if (item.Kind == "signet" && of != null && head?.Id == holder.Id && of.Legitimacy < SignetMendsBelow) of.Legitimacy += 1;
-            else if (item.Kind == Regalia) { if (w.House(holder.HouseId) is { } worn && Economy.HeadOf(w, worn)?.Id == holder.Id && worn.Legitimacy < RegaliaMendsBelow) worn.Legitimacy += 1; }
+            if (item.Kind == "signet" && of != null && head?.Id == holder.Id && of.Legitimacy < SignetMendsBelow) LegitimacyBook.Move(w, of, 1, LegitimacyBook.Family, "The signet, worn by the head");
+            else if (item.Kind == Regalia) { if (w.House(holder.HouseId) is { } worn && Economy.HeadOf(w, worn)?.Id == holder.Id && worn.Legitimacy < RegaliaMendsBelow) LegitimacyBook.Move(w, worn, 1, LegitimacyBook.Family, "The regalia, worn by the head"); }
             else if (item.Kind == "sword" && holder.CareerTrack == "military") EducationSystem.Gain(w, holder, "discipline", SwordPoints);
             else MadeThings(w, item, holder);
         }
@@ -175,7 +175,7 @@ public static partial class WealthSystem
         w.Heirlooms.Remove(item); seller.Purse += item.Value; if (seller.Will != null) seller.Will.Items.Remove(item.Id);
         if (item.OfHouseId == seller.HouseId && w.House(seller.HouseId) is { } house)
         {
-            house.Legitimacy -= 3;
+            LegitimacyBook.Move(w, house, -3, LegitimacyBook.Family, "A thing of the family sold");
             foreach (var k in Members(w, house).Where(k => k.Id != seller.Id && !HouseholdSystem.IsFound(k))) Regard(w, k, seller, -8);
         }
         Mark(w, HeirloomSoldFlag); SoldAGift(w, seller, item);
@@ -477,7 +477,7 @@ public static partial class WealthSystem
                 if (c.Purse <= ScandalAt && (!w.WorldCounters.TryGetValue("scandal:" + c.Id, out int last) || w.Turn - last > 5))
                 {
                     // the creditors come to the house
-                    int taken = Math.Min(-c.Purse, Math.Max(0, house.Treasury.Credits)); house.Treasury.Credits -= taken; c.Purse += taken; house.Legitimacy -= 2;
+                    int taken = Math.Min(-c.Purse, Math.Max(0, house.Treasury.Credits)); house.Treasury.Credits -= taken; c.Purse += taken; LegitimacyBook.Move(w, house, -2, LegitimacyBook.Family, "The debts of one of the house fell on the house");
                     w.WorldCounters["scandal:" + c.Id] = w.Turn; Mark(w, DebtScandalFlag);
                     w.Log($"{c.Name}'s creditors come to {house.Name} itself{(taken > 0 ? $" and are paid {Money.Credits(taken)} from its treasury" : "")}. It is talked of.");
                 }

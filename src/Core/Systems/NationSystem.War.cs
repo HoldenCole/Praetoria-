@@ -179,7 +179,7 @@ public sealed partial class NationSystem
     private static void Defiance(World w, House h, bool yearly)
     {
         int leeway = Leeway(w, h);
-        h.Legitimacy = Math.Max(0, h.Legitimacy - (yearly ? DefyYearlyCost(leeway) : DefyCost(leeway)));
+        LegitimacyBook.Move(w, h, -(yearly ? DefyYearlyCost(leeway) : DefyCost(leeway)), LegitimacyBook.Beyond, "Fought on against a peace the Senate voted");
         int waver = (3 - leeway) * CrewsWaver / (yearly ? 2 : 1);
         if (waver > 0) foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == h.Id && !f.Office && f.Devotion < CaesarSystem.DevotedAt)) f.Loyalty = Math.Max(0, f.Loyalty - waver);
     }

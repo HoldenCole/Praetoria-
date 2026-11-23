@@ -98,12 +98,12 @@ public static partial class LadderSystem
             w.Magistrates.RemoveAll(m => m.CharacterId == who.Id); w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; w.WorldCounters[ScandalKey(d.HouseId)] = w.Turn;
             if (accused != null)
             {
-                accused.Legitimacy = Math.Clamp(accused.Legitimacy - ConvictLegitimacy, 0, 100);
+                LegitimacyBook.Move(w, accused, -ConvictLegitimacy, LegitimacyBook.Courts, "Convicted of what one of the house did in office");
                 int fine = Math.Min(FineCredits, Math.Max(0, accused.Treasury.Credits)); accused.Treasury.Credits -= fine;
                 if (w.House(d.AgainstId) is { } wronged) wronged.Treasury.Credits += fine; else if (RegionSystem.CapitalHolder(w) is { } chair && chair.Id != accused.Id) chair.Treasury.Credits += fine;
                 Judged(w, judge.Name, accuser.Id, accused.Id, fine, null, $"{who.Name} {DeedSays(w, offices, d)}, and it was found proved", "charge");
             }
-            accuser.Legitimacy = Math.Clamp(accuser.Legitimacy + 2, 0, 100); PolicySystem.Sway(w, accuser.Id, "commons", 2); MoveTrust(w, 1); Shift(w, accused, accuser, -25);
+            LegitimacyBook.Move(w, accuser, 2, LegitimacyBook.Courts, "A prosecution won"); PolicySystem.Sway(w, accuser.Id, "commons", 2); MoveTrust(w, 1); Shift(w, accused, accuser, -25);
             who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was convicted of what they did in office."); LifeSystem.Note(w, pleader, "office", $"Prosecuted {who.Name} and won.");
             if (ours) Mark(w, ProsecutionWonFlag); if (theirs) Mark(w, who.Id == mine!.Id ? ExposedFlag : KinExposedFlag);
             w.WorldCounters["convictions"] = w.Counter("convictions") + 1;
@@ -111,7 +111,7 @@ public static partial class LadderSystem
         }
         else
         {
-            accuser.Legitimacy = Math.Clamp(accuser.Legitimacy - 1, 0, 100); Shift(w, accused, accuser, -15); if (bent) MoveTrust(w, -1);
+            LegitimacyBook.Move(w, accuser, -1, LegitimacyBook.Courts, "A prosecution lost"); Shift(w, accused, accuser, -15); if (bent) MoveTrust(w, -1);
             if (ours) Mark(w, ProsecutionLostFlag); if (theirs) Mark(w, KinAcquittedFlag);
             w.Log($"{accuser.Name} charges {who.Name} of {accused?.Name}, who {DeedSays(w, offices, d)}. {judge.Name}, praetor, lets {who.Name} go{(bent ? ", and it is understood why" : "")}.");
         }
@@ -153,7 +153,7 @@ public static partial class LadderSystem
             var r = w.Relationship(praetor.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition - (honest ? 20 : 5), -100, 100);
             if (!honest) { w.Log($"{praetor.Name}, praetor, does not take what {head.Name} offers, and says nothing of it."); return false; }
             // the upright say so, in open court
-            house.Legitimacy = Math.Clamp(house.Legitimacy - BribeLegitimacy + 1, 0, 100); w.WorldCounters[ScandalKey(house.Id)] = w.Turn; MoveTrust(w, 2);
+            LegitimacyBook.Move(w, house, -BribeLegitimacy + 1, LegitimacyBook.Scandal, "An offer to a praetor, told in open court"); w.WorldCounters[ScandalKey(house.Id)] = w.Turn; MoveTrust(w, 2);
             if (ours) Mark(w, BribeRefusedFlag);
             w.Log($"{praetor.Name}, praetor, says in open court what {head.Name} of {house.Name} offered. Nothing was taken. Everything was heard."); return false;
         }
@@ -167,7 +167,7 @@ public static partial class LadderSystem
     private static void BribeOut(World w, string buyerId, Character praetor)
     {
         var buyer = w.House(buyerId); if (buyer == null) return;
-        buyer.Legitimacy = Math.Clamp(buyer.Legitimacy - BribeLegitimacy, 0, 100); w.WorldCounters[ScandalKey(buyer.Id)] = w.Turn; MoveTrust(w, -2);
+        LegitimacyBook.Move(w, buyer, -BribeLegitimacy, LegitimacyBook.Scandal, "A bought ruling came out"); w.WorldCounters[ScandalKey(buyer.Id)] = w.Turn; MoveTrust(w, -2);
         foreach (var d in w.OfficeRecord.Where(d => d.What == Bribed && d.HouseId == buyerId)) d.Answered = true;
         if (buyer.Id == w.Protagonist?.HouseId) Mark(w, BribeOutFlag);
         w.Log($"It comes out whose money {praetor.Name} had taken: {buyer.Name}'s. The house is thought the less of, and its people will find it harder at the count.");

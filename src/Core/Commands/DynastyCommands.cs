@@ -176,7 +176,7 @@ public sealed class AssassinateCommand : ICommand
                 c.Flags.Add("feud");
             }
             w.WorldFlags.Add($"assassin:{actor.HouseId}"); if (!player) w.WorldFlags.Add("assassin_any");   // a knife from somewhere, for content to trace
-            if (w.House(actor.HouseId) is { } h) h.Legitimacy = Math.Max(0, h.Legitimacy - 5);
+            if (w.House(actor.HouseId) is { } h) LegitimacyBook.Move(w, h, -5, LegitimacyBook.Scandal, "An attempt on a life, traced to the house");
             if (player) { w.WorldCounters["seizures"] = w.Counter("seizures") + 1; w.WorldFlags.Add("plot_exposed"); }
             if (t.Id == w.ProtagonistId || t.HouseId == w.Protagonist?.HouseId) { w.WorldFlags.Add("knife_turned"); CourtSystem.Held(w, t); }
         }
@@ -204,7 +204,7 @@ public sealed class SetSuccessionLawCommand : ICommand
     {
         var w = ctx.World; ctx.PoolsOf(ActorId).Spend(CostMap);
         var h = w.House(w.Char(ActorId)!.HouseId)!;
-        h.SuccessionLaw = _law; h.Legitimacy = Math.Max(0, h.Legitimacy - 2);
+        h.SuccessionLaw = _law; LegitimacyBook.Move(w, h, -2, LegitimacyBook.Family, "The law of succession changed");
         w.Log($"{h.Name} adopts {_law} as its law of succession.");
     }
 }

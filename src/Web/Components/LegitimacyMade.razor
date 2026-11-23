@@ -1,0 +1,25 @@
+@* What a house's legitimacy is made of (docs/TITLES.md): where it began, what each kind of cause has added or taken over the
+   whole game and over the last ten years, where it stands, and the last changes with their year. The figures add up. *@
+@using Praetoria.Core.Presentation
+<div class="legit-made" data-legitimacy-made="@Card.Now">
+    <div class="kv"><span>Began at</span><b data-legitimacy-began="@Card.Began">@Card.Began <span class="muted small">· @(Card.BeganTurn <= 0 ? "as the game opened" : "year " + Card.BeganTurn)</span></b></div>
+    @foreach (var c in Card.Causes)
+    {
+        <div class="kv" data-legitimacy-cause="@c.Id" title="@Lately(c)"><span>@c.Name</span><b class="@(c.Total < 0 ? "warn" : string.Empty)">@LegitimacyProjection.Signed(c.Total) <span class="muted small">· @LegitimacyProjection.Signed(c.Lately) in the last ten years</span></b></div>
+    }
+    @if (Card.Causes.Count == 0) { <div class="muted small">Nothing has moved it since.</div> }
+    <div class="kv"><span>Stands at</span><b data-legitimacy-now="@Card.Now">@Card.Now</b></div>
+    @if (Card.Changes.Count > 0)
+    {
+        <div class="muted small">The last changes, the newest first</div>
+        @foreach (var ch in Card.Changes)
+        {
+            <div class="small" data-legitimacy-change="@ch.Cause"><span class="muted">Year @ch.Turn</span> · <b class="@(ch.By < 0 ? "warn" : string.Empty)">@LegitimacyProjection.Signed(ch.By)</b> · @ch.Line <span class="muted">(@ch.CauseName)</span></div>
+        }
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired] public LegitimacyCard Card { get; set; } = default!;
+    private static string Lately(LegitimacyCause c) => $"{c.Name}: {LegitimacyProjection.Signed(c.Total)} since the house began, {LegitimacyProjection.Signed(c.Lately)} of it in the last ten years.";
+}

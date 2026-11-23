@@ -237,7 +237,7 @@ public sealed class PetitionFiefCommand : ICommand
         var fief = WouldGrant(w, court)!;
         fief.FormerOwnerId = court.Id; fief.OwnerId = house.Id; fief.GovernorId = actor.Id;
         if (Progression.Title.RankOf(house.Title) < Progression.Title.RankOf(Progression.Title.Baron)) house.Title = Progression.Title.Baron;
-        house.Legitimacy += 3; court.Legitimacy = Math.Min(100, court.Legitimacy + 5);
+        Systems.LegitimacyBook.Move(w, house, 3, Systems.LegitimacyBook.Land, "A world granted to the house"); Systems.LegitimacyBook.Move(w, court, 5, Systems.LegitimacyBook.Land, "A world granted to a house that asked for one");
         var crown = Systems.Economy.HeadOf(w, court);
         if (crown != null) { w.Relationship(actor.Id, crown.Id).Disposition = Math.Clamp((w.GetRelationship(actor.Id, crown.Id)?.Disposition ?? 0) + 20, -100, 100); w.Relationship(crown.Id, actor.Id).Disposition = Math.Clamp((w.GetRelationship(crown.Id, actor.Id)?.Disposition ?? 0) + 10, -100, 100); }
         w.WorldCounters["fiefs_granted"] = w.Counter("fiefs_granted") + 1; if (house.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("fief_granted");

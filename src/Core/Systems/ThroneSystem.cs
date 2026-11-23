@@ -101,7 +101,7 @@ public static partial class ThroneSystem
         else
         {
             w.WorldFlags.Add(ProclaimedFlag);
-            h.Legitimacy += 5;
+            LegitimacyBook.Move(w, h, 5, LegitimacyBook.Titles, "The Imperium proclaimed");
         }
         // the Reach thinks less of whoever took it: the head of the house on the throne, who is not always the player
         string taker = Economy.HeadOf(w, h)?.Id ?? w.ProtagonistId;

@@ -170,7 +170,7 @@ public sealed class AmbitionSystem
         if (who == null) { house.NamedHeirId = ""; w.Log($"{head.Name} names no heir: the succession of {house.Name} is by its law."); return; }
         house.NamedHeirId = ""; var lawful = DynastySystem.FindHeir(w, head);
         house.NamedHeirId = who.Id; Mark(w, HeirNamedFlag);
-        if (lawful != null && lawful.Id != who.Id) { house.Legitimacy -= 2; Regard(w, lawful, head, -20); Regard(w, lawful, who, -20); }
+        if (lawful != null && lawful.Id != who.Id) { LegitimacyBook.Move(w, house, -2, LegitimacyBook.Family, "An heir named over the lawful one"); Regard(w, lawful, head, -20); Regard(w, lawful, who, -20); }
         w.Log($"{head.Name} names {who.Name} heir to {house.Name}{(lawful != null && lawful.Id != who.Id ? $", over {lawful.Name}" : "")}.");
     }
 

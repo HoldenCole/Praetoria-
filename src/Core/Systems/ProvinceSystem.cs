@@ -288,7 +288,7 @@ public static class ProvinceSystem
         p.HolderId = to.Id; p.Since = w.Turn; p.Withheld = false; p.Dues = Customary; p.Levied = false; p.LevyLost = false; p.EasedUntil = 0; w.ProvincesChanged();
         var mine = Economy.HeadOf(w, by); var theirs = Economy.HeadOf(w, to);
         if (mine != null && theirs != null && mine.Id != theirs.Id) { var r = w.Relationship(theirs.Id, mine.Id); r.Disposition = Math.Clamp(r.Disposition + GrantRegard, -100, 100); }
-        by.Legitimacy = Math.Clamp(by.Legitimacy + GrantLegitimacy, 0, 100);
+        LegitimacyBook.Move(w, by, GrantLegitimacy, LegitimacyBook.Land, "A province given to another house to hold");
         w.WorldCounters[GrantedCounter] = w.Counter(GrantedCounter) + 1;
         w.Log($"{by.Name} gives {p.Name} on {planet.Name} to {to.Name}, to hold for life under it.");
         if (to.Id == w.Protagonist?.HouseId) w.Tell("good", $"{by.Name} has given your house {p.Name} on {planet.Name}, to hold for life. What it yields is yours, less the customary dues.", "galaxy:" + planet.SystemId);
@@ -491,7 +491,7 @@ public static class ProvinceSystem
             case Court:
                 pools?.Spend(new Dictionary<string, int> { [Pool.Influence] = CourtInfluence }); mine.Treasury.Credits -= CourtFee; w.WorldCounters[CourtCounter] = w.Counter(CourtCounter) + 1;
                 if (!CourtFinds(w, planet, d).forHolder) { w.Log($"The praetor's court hears the matter of {what} and finds for {asker.Name}: {mine.Name} had given cause."); return Resolve(w, cat, d, true); }
-                asker.Legitimacy = Math.Clamp(asker.Legitimacy - CourtLegitimacy, 0, 100);
+                LegitimacyBook.Move(w, asker, -CourtLegitimacy, LegitimacyBook.Courts, "Did not abide by the praetor's court");
                 if (!Abides(w, asker, mine)) { w.Log($"The praetor's court finds that {what} is {mine.Name}'s for life. {asker.Name} does not abide by it."); return Resolve(w, cat, d, false); }
                 Closed(w, d); Settled(w, cat, planet, d);
                 w.Log($"The praetor's court finds that {what} is {mine.Name}'s for life, and {asker.Name} lets it lie."); return "kept";
@@ -554,7 +554,7 @@ public static class ProvinceSystem
             int theirs = ProvinceOf(planet, to.Id);
             planet.OwnerId = to.Id; planet.GovernorId = Economy.HeadOf(w, to)?.Id ?? "";
             if (theirs > 0) { planet.Provinces[theirs].HolderId = against.Id; planet.Provinces[theirs].Since = w.Turn; }
-            against.Legitimacy += cat.Provinces.StepDownLegitimacy; string was = against.Title; against.Title = Below(against.Title, cat.Provinces.StepDownRanks);
+            LegitimacyBook.Move(w, against, cat.Provinces.StepDownLegitimacy, LegitimacyBook.Land, "Stepped down from a world when asked"); string was = against.Title; against.Title = Below(against.Title, cat.Provinces.StepDownRanks);
             w.HoldingsChanged(); w.ProvincesChanged();
             w.Log($"{against.Name} steps down from {planet.Name} at the word of {by.Name}. {to.Name} holds the world now{(theirs > 0 ? ", and " + against.Name + " holds " + planet.Provinces[theirs].Name + " under it" : "")}.{(was != against.Title ? " " + against.Name + " is a rung the lower for it." : "")}");
         }

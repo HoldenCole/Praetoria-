@@ -145,7 +145,7 @@ public sealed class ReclaimFreeholdCommand : ICommand
             foreach (var c in w.Characters.Values.Where(c => c.HouseId == free.Id)) { c.HouseId = house.Id; house.Members.Add(c.Id); }
             WarLedger.Strike(w, x => x.Involves(free.Id), "the free hold swore again to the house it had left"); w.Houses.Remove(free.Id);
         }
-        house.Legitimacy += 2; w.WorldCounters["reclaimed"] = w.Counter("reclaimed") + 1;
+        LegitimacyBook.Move(w, house, 2, LegitimacyBook.Land, "A lost world bought back"); w.WorldCounters["reclaimed"] = w.Counter("reclaimed") + 1;
         w.Log($"{house.Name} buys {h.Name} back for {Money.Credits(price)}; {(leader != null ? leader.Name + (folded ? " keeps the governor's chair under the old banner" : " takes the coin and keeps the rest") : "the free hold")} swears again.");
         Systems.FleetSystem.RefreshWarFlags(w);
     }

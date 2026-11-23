@@ -202,7 +202,7 @@ public sealed class CaesarSystem
         }
         w.WorldCounters[TriumphKey(g.Id)] = Triumphs(w, g) + 1; w.WorldCounters[LaurelKey(g.Id)] = 0; w.WorldCounters["triumphs_voted"] = w.Counter("triumphs_voted") + 1;
         g.Flags.Add(TriumphatorChar); g.Flags.Add(NewTriumphatorChar);
-        target.Legitimacy = Math.Clamp(target.Legitimacy + 6, 0, 100); target.Glory = Math.Min(12, target.Glory + 2);
+        LegitimacyBook.Move(w, target, 6, LegitimacyBook.War, "A triumph voted to the house's general"); target.Glory = Math.Min(12, target.Glory + 2);
         target.SphereInfluence["senate"] = target.SphereInfluence.GetValueOrDefault("senate") + 1;
         foreach (var f in w.Fleets.Values.Where(f => f.AdmiralId == g.Id)) { Attach(w, f, g); f.Devotion = Math.Min(100, f.Devotion + 10); f.Loyalty = Math.Min(100, f.Loyalty + 5); }
         LifeSystem.Note(w, g, "triumph", "Was voted a triumph by the Senate.");
@@ -265,7 +265,7 @@ public sealed class CaesarSystem
         foreach (var f in w.Fleets.Values.Where(f => f.AdmiralId == g.Id)) { if (f.Devotion >= DevotedAt) f.Loyalty = Math.Max(0, f.Loyalty - 5); f.AdmiralId = ""; f.DevotedTo = ""; f.Devotion = 0; }
         FleetSystem.RefreshAdmiralFlags(w);
         w.WorldCounters[BarredKey(g.Id)] = w.Turn + BarredYears; g.Stress = Math.Min(100, g.Stress + 10);
-        house.Legitimacy = Math.Clamp(house.Legitimacy + (late ? -6 : 4), 0, 100);
+        LegitimacyBook.Move(w, house, (late ? -6 : 4), LegitimacyBook.War, late ? "The general came home late to the Senate's recall" : "The general came home at the Senate's recall");
         LifeSystem.Note(w, g, "recall", "Was recalled by the Senate, and came home.");
         NationSystem.CameHome(w, house.Id);   // and if the house was fighting on against a peace the Senate voted, that war is over
         if (ordered && g.Id != w.ProtagonistId && w.Protagonist is { } head && CourtshipSystem.Wilful(g)) { var r = w.Relationship(g.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition - 15, -100, 100); }
@@ -416,7 +416,7 @@ public sealed class CaesarSystem
         {
             if (fights) { cw.Against.Add(house.Id); _fleets.DeclareWar(w, house.Id, cw.HouseId); }
             if (cw.SwordHouseId.Length == 0) { cw.SwordHouseId = house.Id; int hulls = ArmTheSword(w, cw); if (hulls > 0) w.Log($"The Senate puts the Reach's own {hulls} hulls under {house.Name}."); }
-            house.Legitimacy = Math.Clamp(house.Legitimacy + 2, 0, 100);
+            LegitimacyBook.Move(w, house, 2, LegitimacyBook.War, "The Senate put the Reach's own fleet under the house");
         }
         if (general != null && Economy.HeadOf(w, general) is { } gh && Economy.HeadOf(w, house) is { } hh)
         { var r = w.Relationship(gh.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition + (side == General ? 20 : -20), -100, 100); }
@@ -460,7 +460,7 @@ public sealed class CaesarSystem
         foreach (var (id, side) in cw.Declared.OrderBy(kv => kv.Key, StringComparer.Ordinal))
         {
             var h = w.House(id); if (h == null) continue; var hh = Economy.HeadOf(w, h);
-            h.Legitimacy = Math.Clamp(h.Legitimacy + (side == General ? 4 : -6), 0, 100);
+            LegitimacyBook.Move(w, h, (side == General ? 4 : -6), LegitimacyBook.War, side == General ? "Stood with the general who took the capital" : "Stood against the general who took the capital");
             if (ghead != null && hh != null) { var r = w.Relationship(ghead.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition + (side == General ? 20 : -20), -100, 100); }
         }
         if (w.House(cw.SwordHouseId) is { } sword && sword.Treasury.Credits > 0)
@@ -480,17 +480,17 @@ public sealed class CaesarSystem
         w.Log($"The march on the capital is over: {why}. The Republic stands.");
         if (house != null)
         {
-            house.Legitimacy = Math.Clamp(house.Legitimacy - 25, 0, 100); w.WorldCounters[EnemyKey(house.Id)] = w.Turn + 10;
+            LegitimacyBook.Move(w, house, -25, LegitimacyBook.War, "Declared an enemy of the Reach"); w.WorldCounters[EnemyKey(house.Id)] = w.Turn + 10;
             if (house.Treasury.Credits > 0) { int fine = house.Treasury.Credits * 4 / 10; house.Treasury.Credits -= fine; if (sword != null) sword.Treasury.Credits += fine; w.Log($"{house.Name} is declared an enemy of the Reach and fined {Money.Credits(fine)}."); }
             foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) { f.DevotedTo = ""; f.Devotion = 0; f.Loyalty = Math.Max(0, f.Loyalty - 10); }
             OfficeSystem.Vacate(w, _offices, house.Id);
             if (house.Id == mine) Mark(w, BrokenFlag);
         }
         foreach (var (id, side) in cw.Declared.OrderBy(kv => kv.Key, StringComparer.Ordinal))
-            if (w.House(id) is { } h) h.Legitimacy = Math.Clamp(h.Legitimacy + (side == General ? -6 : 2), 0, 100);
+            if (w.House(id) is { } h) LegitimacyBook.Move(w, h, (side == General ? -6 : 2), LegitimacyBook.War, side == General ? "Stood with a general who was broken" : "Stood by the Senate against a general");
         if (sword != null)
         {
-            sword.Legitimacy = Math.Clamp(sword.Legitimacy + 10, 0, 100); sword.Glory = Math.Min(12, sword.Glory + 3);
+            LegitimacyBook.Move(w, sword, 10, LegitimacyBook.War, "Carried the Senate's war against a general"); sword.Glory = Math.Min(12, sword.Glory + 3);
             if (GeneralOf(w, sword) is { } sg) { w.WorldCounters[TriumphKey(sg.Id)] = Triumphs(w, sg) + 1; sg.Flags.Add(TriumphatorChar); LifeSystem.Note(w, sg, "triumph", "Carried the Senate's war against a general who marched on the capital, and won it."); }
         }
         if (mine != null && mine != cw.HouseId && cw.Declared.TryGetValue(mine, out var mineSide)) Mark(w, mineSide == Senate ? SavedFlag : BrokenFlag);

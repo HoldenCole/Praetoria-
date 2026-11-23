@@ -98,7 +98,7 @@ public class ProgressionTests
         prog.Petition(w, "marcus");
 
         Assert.Equal("count", w.House("vega")!.Title);
-        Assert.Equal(50, w.House("vega")!.Legitimacy);       // +5, clean
+        Assert.Equal(45, w.House("vega")!.Legitimacy);       // clean, and no better thought of for it: rank follows standing (docs/TITLES.md)
         prog.Apply(w);
         Assert.Equal(0, w.Counter("title_instability"));    // granted, so no instability
     }

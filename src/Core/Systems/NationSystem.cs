@@ -374,7 +374,7 @@ public sealed partial class NationSystem
                     {
                         commander.Flags.Add(FleetSystem.AchillesFlag); w.Log($"{commander.Name} has led from the front through {v} victories, the last beyond the Reach; the name is spoken the way Achilles' is.");
                         if (commander.Id == w.ProtagonistId) w.WorldFlags.Add("became_achilles");
-                        house.Legitimacy = Math.Min(100, house.Legitimacy + 2);
+                        LegitimacyBook.Move(w, house, 2, LegitimacyBook.Beyond, "A commander of the house spoken of as Achilles is");
                     }
                 }
             }
@@ -424,7 +424,7 @@ public sealed partial class NationSystem
             w.WorldCounters[SubduedCounter] = w.Counter(SubduedCounter) + 1; w.WorldFlags.Add("nation_subdued"); w.WorldFlags.Add("nation_subdued:" + n.Id);
             if (top != null)
             {
-top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legitimacy + LegitimacyTriumph); top.SphereInfluence["senate"] = top.SphereInfluence.GetValueOrDefault("senate") + InfluenceTriumph;
+top.Glory = Math.Min(12, top.Glory + 4); LegitimacyBook.Move(w, top, LegitimacyTriumph, LegitimacyBook.Beyond, "A war beyond the Reach won"); top.SphereInfluence["senate"] = top.SphereInfluence.GetValueOrDefault("senate") + InfluenceTriumph;
                 if (top.Id == mine) w.WorldFlags.Add("triumph");
                 CaesarSystem.Subdued(w, top);
                 w.Log(client ? $"{d.Name} is beaten, and is made a client of the Reach: its ruler keeps the chair and its worlds, and pays {Money.Credits(d.Tribute)} a year to the Reach and {Money.Show(ClientShare(d))} to {top.Name}, whose fleets won it, for as long as the treaty holds. The triumph is {top.Name}'s."
@@ -441,7 +441,7 @@ top.Glory = Math.Min(12, top.Glory + 4); top.Legitimacy = Math.Min(100, top.Legi
             w.WorldCounters[LostCounter] = w.Counter(LostCounter) + 1; w.WorldFlags.Add("war_lost_abroad");
             // a nation that holds worlds of the Reach's keeps them, and is bought off once; one that holds none is paid tribute for ten years
             bool pays = n.OnMap && !Holds(w, n);
-            if (chair != null) { if (!pays) chair.Treasury.Credits -= d.Tribute * 3; chair.Legitimacy = Math.Max(0, chair.Legitimacy - LegitimacyDefeat); }
+            if (chair != null) { if (!pays) chair.Treasury.Credits -= d.Tribute * 3; LegitimacyBook.Move(w, chair, -LegitimacyDefeat, LegitimacyBook.Beyond, "A war beyond the Reach lost, and the chair blamed"); }
             if (pays) { n.PaidUntil = w.Turn + PaidYears; n.TreatyWith = n.WarOf; Mark(w, "reach_pays_tribute", n); }
             n.LastPeace = pays ? "paid" : n.OnMap ? "ceded" : "bought"; Bump(w, PeaceKindCounter + ":" + n.LastPeace, n);
             w.Log(pays ? $"The war with {d.Name} is lost. They hold nothing of the Reach's to keep, so the Reach pays: {Money.Credits(d.Tribute)} a year for {PaidYears} years, from the chair{(chair != null ? $" of {chair.Name}" : "")}, and the Reach is shamed."
