@@ -185,7 +185,8 @@
                     var holding = w.Holding(h.Id)!; var sys = w.Galaxy?.System(holding.SystemId); var (pf, pg) = Svg.Planet(sys?.PlanetClass ?? "terran");
                     <div class="hcard @(h.Besieged ? "besieged" : "") @(h.Unrest >= 50 ? "restless" : "")">
                         <div class="hc-head"><i class="pdot" style="background:radial-gradient(circle at 35% 35%, @pg, @pf)"></i><div><b>@h.Name</b><div class="muted small">@h.SpecName@(h.Kind == "station" ? " · station" : h.Kind == "claim" ? " · claim" : "")@(h.SystemName != null ? $" · {h.SystemName}" : "")@(h.Culture.Length > 0 ? $" · {h.Culture}" : "")@(h.Kind == "planet" && w.Holding(h.Id) is { } hw && SystemWorks.In(w, hw.SystemId).Count() is > 0 and var nw ? $" · {nw} work{(nw == 1 ? "" : "s")} round its sun" : "")</div></div>
-                            @if (h.Besieged) { <span class="pill warn">besieged</span> }</div>
+                            @if (h.Besieged) { <span class="pill warn">besieged</span> }
+                            @if (house.SeatGrade > 0 && house.SeatHoldingId == h.Id) { <span class="pill good" data-seat="@house.SeatGrade" title="@WealthSystem.SeatGives(house.SeatGrade)">the house's seat: a @WealthSystem.SeatName(house.SeatGrade)</span> }</div>
                         @if (h.Kind != "claim")
                         {
                             <div class="gauges">

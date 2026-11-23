@@ -334,7 +334,7 @@ public static class CourtshipSystem
             if (!child && !c.Own && c.Wish < WillNotBelow && Wilful(ours)) return (false, 0, $"{ours.Name} will not be married to {theirs.Name}, whatever you say");
             score = c.Consent + (child ? 0 : c.Favour >= LoveAt ? 15 : c.Favour < 25 ? -10 : 0) + Terms(w, c, dowry, childrenTo);
         }
-        score += OldTie(w, theirs);
+        score += OldTie(w, theirs) + WealthSystem.EstateMatchOf(w, ours);   // and land settled on our own counts with their family (docs/WEALTH.md, "Things worth a rich house's money")
         return score >= AcceptAt ? (true, score, "they will agree") : (false, score, $"they will refuse: the match stands at {score} with them and needs {AcceptAt}");
     }
 

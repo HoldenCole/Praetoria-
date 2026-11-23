@@ -35,6 +35,7 @@ public static class HouseAccounts
         if (allowances > 0) lines.Add(("allowances to the family", new Resources { Credits = allowances }));
         int keep = mine ? HouseholdSystem.Keep(w, house) : 0;
         if (keep > 0) lines.Add(("the household's keep and stipends", new Resources { Credits = keep }));
+        if (WealthSystem.SeatKeep(house.SeatGrade) is > 0 and var seat) lines.Add(($"the keep of the {WealthSystem.SeatName(house.SeatGrade)}", new Resources { Credits = seat }));
         if (economy != null)
             foreach (var b in w.BusinessesOf(house.Id).OrderBy(b => b.Id, StringComparer.Ordinal))
                 if (VentureSystem.HolderOf(w, b) is { } holder && holder.Id != head?.Id && economy.VentureEarnings(w, b) is > 0 and var earns)

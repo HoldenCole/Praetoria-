@@ -101,6 +101,12 @@ public sealed class House
     public string Inheritance { get; set; } = "entail";
     /// <summary>The house's daughters' dowries are paid from the head's own purse first, and only the rest from the treasury.</summary>
     public bool DowryFromPurse { get; set; }
+    /// <summary>The house's seat (docs/WEALTH.md, "Things worth a rich house's money"): 0 for none, 1 a manor, 2 a great house, 3 a palace.</summary>
+    public int SeatGrade { get; set; }
+    /// <summary>The world of the house's own that the seat stands on, or "".</summary>
+    public string SeatHoldingId { get; set; } = "";
+    /// <summary>The year the seat was last built or enlarged.</summary>
+    public int SeatSince { get; set; }
     /// <summary>Standing duties handed to members of the house (docs/HOUSEHOLD.md).</summary>
     public List<Duty> Duties { get; set; } = new();
     /// <summary>The house's own court (docs/COURT.md): the small positions of the household, which follow the house and not any rank it holds.</summary>

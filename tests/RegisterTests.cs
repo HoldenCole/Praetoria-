@@ -1078,7 +1078,7 @@ public class RegisterTests
         var (third, thirdHead) = Another(w, mine, 1); int years = 0;
         while (w.Counter(WealthSystem.GiftsRefusedKey) == 0 && years++ < 300)
         {
-            w.Turn++; foreach (var h in w.Houses.Values) h.Treasury.Credits = 0; theirs.Treasury.Credits = 200;
+            w.Turn++; foreach (var h in w.Houses.Values) h.Treasury.Credits = 0; theirs.Treasury.Credits = 200; theirs.Debt = 1;   // it owes, so it spends on nothing else (docs/WEALTH.md, "Things worth a rich house's money")
             w.Relationship(head.Id, thirdHead.Id).Disposition = -30; w.Relationship(thirdHead.Id, head.Id).Disposition = WealthSystem.RefuseMendAt - 10; WealthSystem.Tick(w);
         }
         Assert.Equal(1, w.Counter(WealthSystem.GiftsRefusedKey)); Assert.DoesNotContain(w.Heirlooms, h => h.Id.StartsWith("gift_")); Assert.Equal(0, w.Counter(WealthSystem.MendKey));

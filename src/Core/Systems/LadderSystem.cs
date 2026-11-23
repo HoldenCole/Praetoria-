@@ -78,7 +78,7 @@ public static partial class LadderSystem
         if (c?.Alive != true || rung == null) return "no such office";
         if (!Active(w, offices)) return "there are no elections under a throne";
         if (!PolitySystem.InReach(w, c.HouseId)) return "the house has left the Reach";
-        if (w.Counter(BarredKey(c.Id)) > w.Turn) return $"they were removed from office for taking money, and may not stand until year {w.Counter(BarredKey(c.Id))}";
+        if (w.Counter(BarredKey(c.Id)) > w.Turn) return $"they were {(w.OfficeRecord.Any(d => d.CharacterId == c.Id && d.What == BoughtElection && d.Answered) ? "convicted of buying an election" : "removed from office for taking money")}, and may not stand until year {w.Counter(BarredKey(c.Id))}";
         if (c.Age < rung.MinAge) return $"not before {rung.MinAge}";
         if (c.CareerRank < rung.MinRank || c.CareerTrack.Length == 0) return "they must first have a place in a service";
         if (rung.Requires.Length > 0 && !c.Cursus.Contains(rung.Requires)) return $"they must first have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant() ?? rung.Requires}";
@@ -103,7 +103,7 @@ public static partial class LadderSystem
         var mine = w.Protagonist?.HouseId; var list = new List<Character>();
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != mine).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
-            if (Hash(h.Id + ":stand:" + rung.Id + ":" + w.Turn / offices.LadderEvery) % 3 == 0) continue;
+            if (SitsOut(h, rung, ComingTerm(w, offices))) continue;
             // a person stands for the highest rung open to them, so a house's best is not wasted on a lower one; one who stood
             // higher this year and was not chosen may still be put up for this, if the house has nobody whose rung it is
             var best = w.LivingCharacters().Where(c => c.HouseId == h.Id && Bar(w, offices, c, rung) == null && (seated == null ? Next(w, offices, c)?.Id == rung.Id : !seated.Contains(c.Id)))
@@ -118,7 +118,8 @@ public static partial class LadderSystem
     /// <summary>The count: each house's weight to a candidate, and each candidate's own merit, backing and canvass.</summary>
     public static Dictionary<string, int> Tally(World w, OfficeCatalog offices, RungDef rung, List<Character> candidates, Func<string, int> weight)
     {
-        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c, rung.Id) + LifeSystem.TieVotes(w, c.HouseId) + AttendanceVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId)));
+        var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c, rung.Id) + LifeSystem.TieVotes(w, c.HouseId) + AttendanceVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId))
+            + CampaignVotesFor(w, c, rung.Id) + (WealthSystem.AtTheCapital(w, c.Id) ? WealthSystem.TownHouseVotes : 0));   // coin behind their canvass, and a house at the capital to canvass from (docs/WEALTH.md)
         if (candidates.Count == 0) return tally;
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
@@ -158,7 +159,7 @@ public static partial class LadderSystem
             {
                 AmbitionSystem.Setback(w, c, $"Stood for {rung.Name.ToLowerInvariant()} and was not chosen.");   // written into their life; it costs them, and counts against what they want
                 if (c.Id == p!.Id) Mark(w, LostFlag);
-                else if ((w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id)?.Backing ?? 0) == 0 && w.Candidacies.Any(cd => cd.CharacterId == c.Id))
+                else if ((w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id)?.Backing ?? 0) == 0 && CampaignOf(w, c.Id) == null && w.Candidacies.Any(cd => cd.CharacterId == c.Id))
                 {
                     // they stood, the head said nothing for them, and they lost: it is the head they blame
                     var r = w.Relationship(c.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition - BlameRegard, -100, 100);
@@ -169,7 +170,7 @@ public static partial class LadderSystem
             }
             if (winners.Count > 0) lines.Add($"{rung.Name.ToLowerInvariant()}s {string.Join(", ", winners.Select(c => $"{c.Name} ({tally[c.Id]})"))}");
         }
-        w.Candidacies.Clear(); Mark(w, HeldFlag);
+        CampaignsCounted(w, taken); w.Candidacies.Clear(); Mark(w, HeldFlag);
         if (lines.Count > 0) w.Log($"The Reach elects its magistrates: {string.Join("; ", Enumerable.Reverse(lines))}.");
     }
 
@@ -605,7 +606,7 @@ public static partial class LadderSystem
         if (!w.HasFlag(FellOutFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(FellOutChar);
         if (!w.HasFlag(TakenAlongFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(TakenAlongChar);
         if (!w.HasFlag(BlamedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(BlamesChar);
-        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear(); return; }
+        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear(); w.Campaigns.RemoveAll(f => !f.Counted); return; }
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
 
         // a seat lapses with its holder; a holder is paid
@@ -616,7 +617,7 @@ public static partial class LadderSystem
             m.HouseId = c.HouseId;
             if (offices.Rung(m.OfficeId) is { Stipend: > 0 } rung && house != null && c.HouseId == house.Id) c.Purse += rung.Stipend;
         }
-        using (Diagnostics.Perf.Time("ladder:business")) Business(w, offices); using (Diagnostics.Perf.Time("ladder:duties")) Duties(w, offices, policy); using (Diagnostics.Perf.Time("ladder:courts")) Courts(w, offices); using (Diagnostics.Perf.Time("ladder:patrons")) Patrons(w);
+        using (Diagnostics.Perf.Time("ladder:business")) Business(w, offices); using (Diagnostics.Perf.Time("ladder:duties")) Duties(w, offices, policy); using (Diagnostics.Perf.Time("ladder:courts")) Courts(w, offices); using (Diagnostics.Perf.Time("ladder:patrons")) Patrons(w); OthersCampaign(w, offices);
         if (p is not { Alive: true } || house == null) return;
         if (BusinessOf(w, p.Id) != null) w.WorldFlags.Add(BusinessFlag);
         if (DutyOf(w, p.Id, Hearing, Appeal) != null) w.WorldFlags.Add(BenchFlag);

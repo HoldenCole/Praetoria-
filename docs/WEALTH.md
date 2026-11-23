@@ -362,6 +362,214 @@ own" and the purses list "Has 1 venture of their own".
 Found while building it, and mapped (W12): no world is a person's, which is the owner's to decide; and a person who
 owns a venture never sells it or enlarges it themselves.
 
+## Things worth a rich house's money
+
+Built 2026-11-23, from the owner's "Hard" list (docs/PLAYTHROUGH.md): *"Things worth a rich house's money: endow a
+child, build a seat, fund a relative's campaign, lend to houses. One treasury reached 303,400 at 20,000 a year with
+nothing to spend it on (F99)."* Of places to live the owner said *"We can have places to live eventually"*, and that the
+real world is the yardstick: a home costs four to six years of the income of the person who lives in it
+(docs/ECONOMY_REVIEW.md, sections 7 and 10).
+
+Three of the four are here. **Lending to other houses is not**: it is built as its own piece.
+
+All of it is on the House window, under Purses and the will, in one block, "What the house's money can do": each act
+with its price now and what it would give, and what has been done. The canvass has its buttons beside "Speak for them"
+on the Senate window as well, and the seat is marked on the card of the world it stands on, under The estate.
+
+### Land settled on one of the house
+
+The head buys an estate out of the treasury and settles it on one person of the house, child or grown.
+
+- **It pays its holder 200 credits a year for life**, into their own purse. A child has no purse to spend from: what
+  their land brings is kept for them, and is there the year they come of age.
+- **It is theirs.** It is the same kind of thing as an estate handed down ("Heirlooms", above), so all that is said
+  there is true of it: it can be given, left, entailed by a head who holds it, and it goes with its holder if they
+  marry out of the house. When its holder dies it comes to the head, as everything of theirs does; a head's own goes
+  by the will.
+- **They think 12 the better of the head** for it, and whoever they are married to 6.
+- **It counts in a match.** Each estate a son or daughter holds adds 4 to what the other family thinks of a match with
+  them, to 8 (docs/MARRIAGE.md: the same reckoning the dowry is weighed in).
+- **Each further one on the same person is dearer**, and three is the most.
+- Bought and sold again it loses money: it is worth two thirds of what it cost, as a thing made to order is.
+
+It is land, and returns what land is meant to: 200 a year on 3,000 is 6.7%, against the 7% a market or a port is
+priced to. Because it returns credits, its price follows the game's setting for how easy money is (docs/MONEY.md): 4,300
+at Lean, 2,000 at Generous, 1,200 at Lavish.
+
+### The seat of the house
+
+A residence on a world of the house's own, in three grades, each built once out of the treasury. The first is built on
+a world the head names; the others where the first stands. **It returns nothing in credits: it is for standing.**
+
+| Grade | To build | Keep a year | What it adds |
+|---|---|---|---|
+| A manor | 6,000 | 100 | Room for one more in the household who is not of the blood |
+| A great house | 15,000 | 300 | Room for a second, and the house's standing mends a point a year while it is under 50 |
+| A palace | 40,000 | 600 | Room for a third, the standing mends while it is under 60, and each year the head of the greatest house that is not yet a friend is received: each thinks 3 the better of the other, up to 40 |
+
+- **Each time it is built** the old blood think 3 the better of the house, and every grown person of the house 4 the
+  better of its head.
+- **The keep** is in the year's outgoings with the household's. If the treasury cannot pay it the house is shut up for
+  the year: it stays the house's and gives nothing until the keep is paid.
+- **It is lost with the world it stands on**, and the house loses 2 standing for each grade.
+- It is built at once: there are no years of building.
+
+### A house at the capital
+
+For the head or one grown person of the house, bought once: out of the treasury, or out of the head's own purse.
+
+- **It costs five years of what that person takes in a year** (the pay of their service, the allowance, what their land
+  brings, the stipend of a post of the council), and never less than 1,000 credits. Someone of the second rank in a
+  service on a customary allowance takes in 400 a year, and their house costs 2,000. Land settled on them makes it
+  dearer: the rich live dearer.
+- **It is theirs**, and is given, left and sold as any thing of theirs is. It is worth two thirds of what it cost.
+- **While they hold it they are at the capital**, for the two things the game has that happen there: their canvass is
+  worth 3 more votes at any count they stand in, and when they stand you are told how that count stands before it is
+  held (who else has a name down, and what each would have today).
+- **They think 10 the better of the head** for it, 14 if the money was the head's own.
+- **They buy their own.** One of the house who is standing for an office or holds one, and has the price and 300 beside
+  in their purse, buys a house there without being asked.
+
+### Coin behind a canvass
+
+When the head or one of the house stands for an office of the ladder (docs/LADDER.md), the head may pay for their
+canvass out of the treasury. It is in addition to speaking for them.
+
+| Canvass | In all | Votes at the count | Votes for each 1,000 credits |
+|---|---|---|---|
+| Modest | 500 | 3 | 6 |
+| Handsome | 1,500 | 6 | 4 |
+| Lavish | 4,000 | 10 | 2.5 |
+
+- **A larger one can be paid for later**, for the difference. The lavish is the most coin can buy.
+- **A lavish canvass is written on the record as votes bought**, against the candidate. Any house may bring it before
+  a praetor at once, without waiting for a term to end; other houses do so as they bring any charge, when they think
+  ill enough of the house (−30). Convicted, the candidate loses the office if they won it and may not stand for five
+  years, the house pays the fine and loses standing, and its candidates carry the scandal at the count for ten years
+  (docs/LADDER.md, "The courts"). It stays on the record eight years.
+- **Whoever it was for remembers it**: 4 the better of the head for each size paid for, and 4 more if they are chosen.
+  One who stood with the house's coin behind them and lost does not blame the head for saying nothing.
+- **What was paid for is kept** on the block for twenty years: the year, the sum, for whom, for what, and how it went.
+
+### Other houses do the same
+
+- **Rich and idle.** A house at war with no other house and owing nothing spends on one of the three in about one such
+  year in three: the next grade of its seat (on its most peopled world), an estate for the child of its head who has
+  least, or a house at the capital for its head. Only what it could pay for three times over. It comes out of the
+  treasury, since nobody but the player's house has purses.
+- **A canvass.** The year before a count, a house of the Reach that owes nothing pays for a canvass for the highest
+  office it has somebody to stand for: the largest it could pay for five times over. An upright head (honourable or
+  just) stops at a handsome one. It is told in the chronicle, and told to you outright when one of yours is standing
+  for the same office, so that it can be answered in the election year. Their lavish ones go on the record too, and
+  you may charge them (Senate, The courts).
+
+Measured over ten runs of forty years (two starts, five seeds each, 307 houses, nobody steering the player's house):
+155 estates settled; 75 seats built, and at the end 50 houses with a manor, 12 with a great house and none with a
+palace; 169 houses at the capital; 435 canvasses paid for (141 modest, 169 handsome, 125 lavish), about five an
+election; 11 lavish canvasses charged before a praetor and 10 of them proved, about one a run.
+
+### The numbers
+
+| What | Number |
+|---|---|
+| An estate pays | 200 a year |
+| The first estate on a person | 3,000 (fifteen years' purchase) |
+| Each further one on the same person | 600 more |
+| Most on one person | 3 |
+| Regard for an estate: the holder, their spouse | +12, +6 |
+| An estate in a match | +4 each, to +8 |
+| Worth of land or a house bought | two thirds of its price |
+| Seat: manor, great house, palace | 6,000, 15,000, 40,000 |
+| Seat: keep a year | 100, 300, 600 |
+| Seat: built | old blood +3, each grown person of the house +4 of the head |
+| Seat: standing mends under | 50 (great house), 60 (palace) |
+| Palace: a guest a year | +3 each way, up to 40 |
+| Seat lost | 2 standing for each grade |
+| A house at the capital | 5 years of its holder's income, at least 1,000 |
+| At the capital | 3 votes at a count |
+| Regard for a house at the capital | +10, or +14 from the head's own purse |
+| One of the house buys their own | with the price and 300 beside |
+| Canvass: modest, handsome, lavish | 500, 1,500, 4,000 for 3, 6, 10 votes |
+| Regard for a canvass | +4 a size, +4 more if chosen |
+| What was paid for is kept on the block | 20 years |
+| Another house spends | one idle year in three, on what it could pay for 3 times over |
+| Another house pays for a canvass | the largest it could pay for 5 times over |
+
+### How it is built
+
+- Commands (`src/Core/Commands/RichHouseCommands.cs`): `EndowCommand(actorId, personId)`,
+  `BuildSeatCommand(actorId, holdingId)`, `TownHouseCommand(actorId, personId, fromPurse)`,
+  `FundCampaignCommand(actorId, personId, size, offices)` with a size of `modest`, `handsome` or `lavish`. None costs
+  influence: the coin is the cost.
+- Rules: `src/Core/Systems/WealthSystem.Rich.cs` (land, the seat, a house at the capital, what other houses spend) and
+  `src/Core/Systems/LadderSystem.Campaign.cs` (the canvass, other houses' canvasses, how a count stands). No dice.
+- Kept: an estate and a house at the capital are `Heirloom`s of kind `estate` and `town_house` (a settled estate's id
+  begins `settled_estate_`); `House.SeatGrade`, `SeatHoldingId`, `SeatSince`; `World.Campaigns`. A lavish canvass is an
+  `OfficeDeed` whose `What` is `election`.
+- Counters: `estates_settled`, `seats_built`, `town_houses_bought`, `campaigns_paid_for`.
+- The screen: `src/Web/Components/RichHousePanel.razor`, shown at the head of `WealthPanel.razor`; the canvass buttons
+  and the line on how a count stands are in `LadderPanel.razor`; the seat's mark is in `HouseScreen.razor`.
+- Tests: `tests/RichHouseTests.cs`.
+
+### What I chose
+
+Every number above is mine. The ones that decide most:
+
+- **Fifteen years' purchase for land** (6.7%), so that an estate is an ordinary investment in land and no better than a
+  market. The second and third on one person return 5.6% and 4.8%: past the first it is being done for the person.
+- **An estate is the old kind of heirloom**, not a new thing, so nothing about holding, giving, leaving or losing one
+  had to be written twice. What a child's land brings is simply kept in the purse they will have.
+- **The seat is a record on the house, not a building in a slot.** A work on a world can be captured and pulled down,
+  takes a slot, and is priced by what it returns; a seat does none of those. It is the house's, and it goes if its
+  world goes.
+- **One thing a grade**: room in the household, a floor under the house's standing, a guest of rank. Each uses a rule
+  the game already had.
+- **Seat prices** are set against what houses hold at year forty in the measured runs: the middle house 8,000 to
+  25,000 credits and the richest 60,000 to 190,000. A manor is within reach of most, a palace of very few.
+- **The seat and a house at the capital are not scaled by how easy money is.** Only what returns credits is; a hull is
+  not either.
+- **Five years' income for a house at the capital**, the middle of the owner's four to six.
+- **"At the capital" is two things**: votes at a count, and hearing how the count stands. The game has nothing else
+  that happens there for a person.
+- **Canvass sizes** are set against the counts measured: a winner is usually 5 to 30 votes clear, and a quaestor's
+  race is often decided by 1 to 5. Three votes turn a close race, ten most of them.
+- **The candidate answers for a lavish canvass, not the head who paid**, as a candidate did for bribery at Rome; and it
+  can be charged at once, as a bought praetor can.
+- **Other houses announce their coin a year ahead**, so that the election year is when it is answered.
+
+### Checked
+
+Fourteen tests. Driven in a headless browser on the published build, with the boost "A full treasury" ticked. On
+*The Old Lion*: an estate settled on a relative (the button then offered the next at 3,600), a manor and then a great
+house built on The Lion's March, the mark "the house's seat: a great house" on that world's card, and a house at the
+capital bought; the treasury went from 52,800 to 25,800 as the prices say. On *The Risen Officer*: the head stood for
+quaestor, a modest canvass was paid for and raised to a lavish one for the 3,500 between them, the courts' list then
+read "bought votes to be made quaestor in year 1 · can be charged", and after a house at the capital was bought the
+ladder read "As the count stands, for 4 seats". No page error. No picture was taken: a screenshot of the page timed
+out in the builder's browser. A canvass for a relative, a charge brought by another house and a seat lost with its
+world were not seen in a browser: they rest on the tests.
+
+### What is not built
+
+- **Lending to other houses** (the fourth thing in the owner's line): another piece.
+- **No events.** Nothing here raises a scene; a conviction for a bought election is told in the news of the year, since
+  the two scenes for a magistrate removed are written about what was done in office.
+- **A seat is not taken by whoever takes its world**: it is lost. It is not besieged or sacked apart from the world.
+- **A seat takes no years to build** and costs credits only: no materials, no gang.
+- **Nobody of another house has a purse**, so an estate settled in another house pays nobody; it is held, counted in a
+  match and left like any other. A house at the capital bought by another house is always its head's.
+- **A relative does not buy land for themselves**, or ask the head for a house or a canvass.
+- **One of the house standing for consul** is not paid for this way: the consulship is contested by houses, and the
+  treasury already canvasses for a house there.
+- **The court of seven places is not made larger by a seat**; only the household's room is.
+- The numbers are first settings.
+
+Found while building it: a colony has no provinces until the turn of the year after it is planted (the provinces are
+laid out before the year's building is finished), and `tests/ProvinceTests.cs` failed whenever a colony landed in the
+last year it plays; the test now lays them out before it looks. And at a count, houses with no candidate, patron or
+party in the race give their whole weight to one name: where their heads like several equally and those are level on
+merit, it goes by the order of the candidates' ids.
+
 ## Not in this piece
 
 - **Only your house has purses.** Everyone else in the Reach still has only their house's treasury.
