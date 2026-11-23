@@ -214,7 +214,10 @@ public sealed partial class HouseholdSystem
             if (d.Favour == SettleBad && plainlyLost && LadderSystem.SettleRefusal(w, head, b) == null && house.Treasury.Credits - LadderSystem.StakeOf(b) / 2 >= d.Reserve) { LadderSystem.SettleOut(w, head, b); settled++; continue; }
             if (b.AdvocateId != holder.Id) { b.AdvocateId = holder.Id; pleaded++; }
         }
-        d.LastReport = suits.Count == 0 ? "No suit names the house this year." : Cap(string.Join("; ", new[] { pleaded > 0 ? $"is to plead {Counted.Of(pleaded, "suit")} at the year's end" : "", settled > 0 ? $"came to terms on {settled}" : "" }.Where(s => s.Length > 0))) is { Length: > 0 } did ? did + "." : "The suits waiting are already in hand.";
+        // and every charge against one of the house (docs/LADDER.md, "The docket"): answered without being asked. Admitting one is the head's.
+        var charges = LadderSystem.ChargesOn(w, house.Id); int answered = 0;
+        foreach (var c in charges) if (c.PleaderId != holder.Id) { c.PleaderId = holder.Id; answered++; }
+        d.LastReport = suits.Count + charges.Count == 0 ? "No suit names the house this year." : Cap(string.Join("; ", new[] { pleaded > 0 ? $"is to plead {Counted.Of(pleaded, "suit")} at the year's end" : "", answered > 0 ? $"is to answer {Counted.Of(answered, "charge")}" : "", settled > 0 ? $"came to terms on {settled}" : "" }.Where(s => s.Length > 0))) is { Length: > 0 } did ? did + "." : "The suits waiting are already in hand.";
     }
     /// <summary>Whether the one pleading a suit for a house is its advocate by post: the courts tell the house how it went.</summary>
     public static bool IsAdvocateOf(World w, string houseId, string characterId) => w.House(houseId)?.Duty(Advocate)?.HolderId == characterId;

@@ -372,10 +372,11 @@ public sealed class ProsecutionCommand : ICommand
 }
 
 /// <summary>Answering a suit that names the house before it is heard (docs/PLAYTHROUGH.md 12). <see cref="Settle"/>: come to terms
-/// out of court, the side the law is against paying half now. <see cref="Plead"/>: send someone of the house to plead it (1 influence).</summary>
+/// out of court, the side the law is against paying half now. <see cref="Plead"/>: send someone of the house to plead it (1 influence).
+/// <see cref="Counter"/>: bring a counter-suit on the same matter, which doubles what turns on it (docs/LADDER.md, "The docket").</summary>
 public sealed class SuitCommand : ICommand
 {
-    public const string Settle = "settle", Plead = "plead";
+    public const string Settle = "settle", Plead = "plead", Counter = "counter";
     private static readonly Dictionary<string, int> Cost = new() { [Pool.Influence] = LadderSystem.PleadInfluence };
     private readonly string _what, _suitId, _advocateId;
     public SuitCommand(string actorId, string what, string suitId, string advocateId = "") { ActorId = actorId; _what = what; _suitId = suitId; _advocateId = advocateId; }
@@ -385,6 +386,7 @@ public sealed class SuitCommand : ICommand
     {
         var w = ctx.World; var head = w.Char(ActorId); var b = w.OfficeWork.FirstOrDefault(x => x.Id == _suitId);
         if (_what == Settle) return LadderSystem.SettleRefusal(w, head, b);
+        if (_what == Counter) return LadderSystem.CounterRefusal(w, head, b);
         if (_what != Plead) return "no such thing";
         return LadderSystem.PleadRefusal(w, head, b, w.Char(_advocateId)) ?? (ctx.PoolsOf(ActorId).Short(Cost));
     }
@@ -393,7 +395,53 @@ public sealed class SuitCommand : ICommand
     {
         var w = ctx.World; var head = w.Char(ActorId)!; var b = w.OfficeWork.First(x => x.Id == _suitId);
         if (_what == Settle) { LadderSystem.SettleOut(w, head, b); return; }
+        if (_what == Counter) { LadderSystem.Counter(w, head, b); return; }
         ctx.PoolsOf(ActorId).Spend(Cost); LadderSystem.SendPleader(w, head, b, w.Char(_advocateId)!);
+    }
+}
+
+/// <summary>Bringing a suit against another house (docs/LADDER.md, "The docket"): the head names the house and the ground (a
+/// matter from <see cref="LadderSystem.Grounds"/>). It costs a filing fee and clout, the other head takes it ill, and it is heard
+/// by a praetor of a third house at the end of next year. Once a year.</summary>
+public sealed class BringSuitCommand : ICommand
+{
+    private readonly string _houseId, _matter; private readonly Data.OfficeCatalog _offices;
+    public BringSuitCommand(string actorId, string houseId, string matter, Data.OfficeCatalog offices) { ActorId = actorId; _houseId = houseId; _matter = matter; _offices = offices; }
+    public string ActorId { get; }
+    public string Describe() => $"bring a suit against {_houseId} over {_matter}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World;
+        return !LadderSystem.Active(w, _offices) ? "there are no courts of the Republic" : LadderSystem.BringRefusal(w, w.Char(ActorId), w.House(_houseId), _matter);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx) { var w = ctx.World; LadderSystem.Bring(w, w.Char(ActorId)!, w.House(_houseId)!, _matter); }
+}
+
+/// <summary>Answering a charge another house has brought against one of the house, in the year before it is heard
+/// (docs/LADDER.md, "The docket"). <see cref="Plead"/>: send someone of the house to answer it (1 influence).
+/// <see cref="Admit"/>: admit it and pay the fine now; it is not heard.</summary>
+public sealed class ChargeCommand : ICommand
+{
+    public const string Plead = "plead", Admit = "admit";
+    private static readonly Dictionary<string, int> Cost = new() { [Pool.Influence] = LadderSystem.PleadInfluence };
+    private readonly string _what, _chargeId, _pleaderId; private readonly Data.OfficeCatalog _offices;
+    public ChargeCommand(string actorId, string what, string chargeId, Data.OfficeCatalog offices, string pleaderId = "") { ActorId = actorId; _what = what; _chargeId = chargeId; _offices = offices; _pleaderId = pleaderId; }
+    public string ActorId { get; }
+    public string Describe() => $"{_what} the charge {_chargeId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId); var c = w.Indictments.FirstOrDefault(x => x.Id == _chargeId);
+        if (_what == Admit) return LadderSystem.AdmitRefusal(w, head, c);
+        if (_what != Plead) return "no such thing";
+        return LadderSystem.ChargePleadRefusal(w, head, c, w.Char(_pleaderId)) ?? (ctx.PoolsOf(ActorId).Short(Cost));
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var head = w.Char(ActorId)!; var c = w.Indictments.First(x => x.Id == _chargeId);
+        if (_what == Admit) { LadderSystem.Admit(w, _offices, head, c); return; }
+        ctx.PoolsOf(ActorId).Spend(Cost); LadderSystem.SendDefender(w, head, c, w.Char(_pleaderId)!);
     }
 }
 

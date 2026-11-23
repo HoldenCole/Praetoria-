@@ -24,7 +24,7 @@ public static partial class LadderSystem
     public const string StandingFlag = "standing_for_office", MagistrateFlag = "is_magistrate", AedileFlag = "is_aedile";
     public const string ElectedChar = "newly_elected", StandingChar = "standing_for_office";
     public const string BlamedFlag = "kin_blames_the_head", BlamesChar = "blames_the_head"; public const int BlameRegard = 10;
-    private static readonly string[] DeedFlags = { PatronFlag, FellOutFlag, TakenAlongFlag, HeldMineFlag, CastingFlag, HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag, ChairFlag, ProsecutionWonFlag, ProsecutionLostFlag, BribeRefusedFlag, BribeOutFlag, KinAcquittedFlag };
+    private static readonly string[] DeedFlags = { PatronFlag, FellOutFlag, TakenAlongFlag, HeldMineFlag, CastingFlag, HeldFlag, ElectedFlag, LostFlag, KinElectedFlag, GamesFlag, ExposedFlag, KinExposedFlag, BlamedFlag, AuditFoundFlag, OverturnedForUsFlag, AbsentFlag, RemittedFlag, SilencedFlag, DeskExposedFlag, TrustFellFlag, TrustRestoredFlag, JuniorCaughtFlag, SpokenForFlag, ChairFlag, ProsecutionWonFlag, ProsecutionLostFlag, BribeRefusedFlag, BribeOutFlag, KinAcquittedFlag, SuitWonFlag, SuitLostFlag, ChargeAdmittedFlag };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -301,8 +301,7 @@ public static partial class LadderSystem
         if (b.Kind == Case && b.HouseA.Length > 0)
         {
             b.Matter = Matters[(int)(Hash(b.Id + ":matter") % (uint)Matters.Length)].id;
-            uint x = Hash(b.Id + ":weight") % 10; b.Weight = x < 4 ? Plain : x < 8 ? Arguable : Doubtful;
-            b.Stake = Damages * (1 + (int)(Hash(b.Id + ":stake") % 3));
+            (b.Weight, b.Stake) = Weigh(b.Id);
         }
         else if (b.Kind == Accounts)
         {
@@ -310,7 +309,15 @@ public static partial class LadderSystem
             b.Stake = Math.Min(4 + (int)(Hash(b.Id + ":stake") % 9), Math.Max(0, RegionSystem.CapitalHolder(w)?.Treasury.Credits ?? 0));
         }
     }
-    public static OfficeBusiness? BusinessOf(World w, string characterId) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0 && b.Kind is Accounts or Works or Case);
+    /// <summary>How plain the law is in a case and what turns on it, from the case's own id: four in ten plain, four arguable, two
+    /// doubtful; five, ten or fifteen hundred credits.</summary>
+    private static (int weight, int stake) Weigh(string id)
+    {
+        uint x = Hash(id + ":weight") % 10;
+        return (x < 4 ? Plain : x < 8 ? Arguable : Doubtful, Damages * (1 + (int)(Hash(id + ":stake") % 3)));
+    }
+    /// <summary>The year's business that waits on its holder. A suit held over for a year is not it: that is heard when its year comes.</summary>
+    public static OfficeBusiness? BusinessOf(World w, string characterId) => w.OfficeWork.FirstOrDefault(b => b.HolderId == characterId && b.Choice.Length == 0 && !b.Held && b.Kind is Accounts or Works or Case);
 
     private static int Regard(World w, House? of, House? toward)
     {
@@ -330,15 +337,19 @@ public static partial class LadderSystem
     /// <summary>The year's quarrels, worked out once for every bench: the houses a case may be between, and every pair of them with a
     /// quarrel worth hearing (at war, or their heads thinking ill of each other), hottest first; a quarrel heard last year is left out.
     /// Each bench used to work this out for itself, which on a large map (docs/GALAXY_SIZE.md) was a fifth of the year.</summary>
+    public const int QuarrelHeat = 30;
+    /// <summary>How hot the quarrel between two houses is: a hundred for a war, and what each head thinks ill of the other.</summary>
+    public static int Heat(World w, House a, House b) => (w.AtWar(a.Id, b.Id) ? 100 : 0) - Regard(w, a, b) - Regard(w, b, a);
     private static (List<House> houses, List<(House a, House b, int heat)> pairs) Quarrels(World w)
     {
         var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-        var last = w.OfficeWork.Where(x => x.Kind == Case && x.Turn == w.Turn - 1 && x.HouseA.Length > 0).Select(x => string.CompareOrdinal(x.HouseA, x.HouseB) < 0 ? x.HouseA + "|" + x.HouseB : x.HouseB + "|" + x.HouseA).ToHashSet();
+        // and a pair with a suit still waiting to be heard is not given a second (docs/LADDER.md, "The docket")
+        var last = w.OfficeWork.Where(x => x.Kind == Case && (x.Turn == w.Turn - 1 || (x.Held && x.Choice.Length == 0)) && x.HouseA.Length > 0).Select(x => string.CompareOrdinal(x.HouseA, x.HouseB) < 0 ? x.HouseA + "|" + x.HouseB : x.HouseB + "|" + x.HouseA).ToHashSet();
         var pairs = new List<(House a, House b, int heat)>();
         for (int i = 0; i < houses.Count; i++) for (int j = i + 1; j < houses.Count; j++)
         {
-            int heat = (w.AtWar(houses[i].Id, houses[j].Id) ? 100 : 0) - Regard(w, houses[i], houses[j]) - Regard(w, houses[j], houses[i]);
-            if (heat >= 30 && !last.Contains(houses[i].Id + "|" + houses[j].Id)) pairs.Add((houses[i], houses[j], heat));
+            int heat = Heat(w, houses[i], houses[j]);
+            if (heat >= QuarrelHeat && !last.Contains(houses[i].Id + "|" + houses[j].Id)) pairs.Add((houses[i], houses[j], heat));
         }
         return (houses, pairs.OrderByDescending(x => x.heat).ThenBy(x => x.a.Id, StringComparer.Ordinal).ThenBy(x => x.b.Id, StringComparer.Ordinal).ToList());
     }
@@ -357,7 +368,14 @@ public static partial class LadderSystem
             var pick = pairs;
             if (pick.Count > 0) { var x = pick[(int)(Hash(b.Id) % (uint)pick.Count)]; b.HouseA = x.a.Id; b.HouseB = x.b.Id; }
             else if (houses.Count >= 2) { int i = (int)(Hash(b.Id) % (uint)houses.Count); b.HouseA = houses[i].Id; b.HouseB = houses[(i + 1) % houses.Count].Id; }
-            if (b.HouseA.Length > 0) { b.RightId = Hash(b.Id + ":right") % 2 == 0 ? b.HouseA : b.HouseB; taken.Add(b.HouseA); taken.Add(b.HouseB); }
+            if (b.HouseA.Length > 0)
+            {
+                b.RightId = Hash(b.Id + ":right") % 2 == 0 ? b.HouseA : b.HouseB; taken.Add(b.HouseA); taken.Add(b.HouseB);
+                // who brought it (docs/LADDER.md, "The docket"): the house whose head thinks worse of the other. The player's house
+                // brings a suit only when its head says so, so a case the bench draws up that names it is the other house's.
+                string? mine = w.Protagonist?.HouseId; var ha = w.House(b.HouseA); var hb = w.House(b.HouseB);
+                b.PlaintiffId = b.HouseA == mine ? b.HouseB : b.HouseB == mine ? b.HouseA : Regard(w, ha, hb) <= Regard(w, hb, ha) ? b.HouseA : b.HouseB;
+            }
         }
         Facts(w, b);
         return b;
@@ -471,13 +489,15 @@ public static partial class LadderSystem
     }
 
     /// <summary>The holder decides the year's business.</summary>
-    public static void Decide(World w, OfficeCatalog offices, Character who, string choice)
+    /// <param name="business">The business decided: the holder's waiting business of the year, unless a held suit is named.</param>
+    public static void Decide(World w, OfficeCatalog offices, Character who, string choice, OfficeBusiness? business = null)
     {
-        TrustOf(w, BusinessOf(w, who.Id)!, who); try { DecideIt(w, offices, who, choice); } finally { TrustDone(); }
+        var b = business ?? BusinessOf(w, who.Id)!;
+        TrustOf(w, b, who); try { DecideIt(w, offices, who, choice, b); } finally { TrustDone(); }
     }
-    private static void DecideIt(World w, OfficeCatalog offices, Character who, string choice)
+    private static void DecideIt(World w, OfficeCatalog offices, Character who, string choice, OfficeBusiness b)
     {
-        var b = BusinessOf(w, who.Id)!; b.Choice = choice; var house = w.House(who.HouseId); var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w);
+        b.Choice = choice; var house = w.House(who.HouseId); var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w);
         string office = offices.Rung(b.RungId)?.Name.ToLowerInvariant() ?? b.RungId; bool ours = who.HouseId == mine; bool exposed = false;
         void Region(int by) { if (b.RegionId.Length > 0) { var rs = RegionSystem.StateOf(w, b.RegionId); rs.Lawlessness = Math.Clamp(rs.Lawlessness + by, 0, 100); } }
         void Legit(int by) { if (house != null) LegitimacyBook.Move(w, house, by, LegitimacyBook.Offices, "The year's business in office"); }
@@ -506,7 +526,7 @@ public static partial class LadderSystem
                 Shift(w, other, house, 4); Shift(w, right, house, WeightOf(b) == Doubtful ? 4 : -3);
                 if (WeightOf(b) == Doubtful) { MoveTrust(w, 1); if (house is { Legitimacy: < 80 }) Legit(1); }
                 if (ours || b.HouseA == mine || b.HouseB == mine) w.Log($"{who.Name}, praetor, brings {right?.Name} and {other?.Name} to terms. {other?.Name} pays {Money.Credits(StakeOf(b) / 2)}.");
-                if (b.RightId == mine) w.WorldFlags.Add("case_won"); else if (b.HouseA == mine || b.HouseB == mine) w.WorldFlags.Add("case_lost");
+                if (b.HouseA == mine || b.HouseB == mine) Ruled(w, b, b.RightId == mine);
                 break;
             }
             case Law: case Friend: case Gift:
@@ -526,7 +546,7 @@ public static partial class LadderSystem
                 }
                 if (ours || winner == mine || loser == mine)
                     w.Log($"{who.Name}, praetor, finds for {win?.Name} against {lose?.Name}{(just ? "" : WeightOf(b) == Doubtful ? ", where the law was doubtful" : ", against the plain reading of the law")}. {lose?.Name} pays {Money.Credits(StakeOf(b))}.");
-                if (winner == mine || loser == mine) w.WorldFlags.Add(winner == mine ? "case_won" : "case_lost");
+                if (winner == mine || loser == mine) Ruled(w, b, winner == mine);
                 break;
         }
         string what = b.Kind == Case ? (choice == Law ? "Sat as praetor and ruled on the law." : choice == Settle ? "Sat as praetor and brought two houses to terms." : choice == Friend ? "Sat as praetor and found for a friend." : "Sat as praetor and took a gift.")
@@ -569,7 +589,8 @@ public static partial class LadderSystem
         var p = w.Protagonist; w.WorldCounters.TryAdd(TrustKey, TrustStart);   // written down, so that what content does to it starts from where it stands
         using (Diagnostics.Perf.Time("ladder:close")) CloseDuties(w);
         HearHeld(w, offices);   // the suits naming the player's house that waited a year (docs/PLAYTHROUGH.md 12)
-        foreach (var b in w.OfficeWork.Where(b => b.Choice.Length == 0).ToList())
+        Answered(w);    // a house the player sued this year answers it: with a counter-suit, if the law leans its way
+        foreach (var b in w.OfficeWork.Where(b => b.Choice.Length == 0 && !b.Held).ToList())   // a held suit waits for its hearing
         {
             b.Choice = "left"; MoveTrust(w, -1);
             if (p != null && b.HolderId == p.Id) w.Log($"The business of {p.Name}'s office went undone last year, and the clerks closed it. It was noticed.");
@@ -583,7 +604,7 @@ public static partial class LadderSystem
             using (Diagnostics.Perf.Time("ladder:decide")) if (p == null || who.Id != p.Id)
             {
                 if (p != null && b.Kind == Case && (b.HouseA == p.HouseId || b.HouseB == p.HouseId)) HoldOver(w, who, b, p.HouseId);   // it waits a year, and the house is told
-                else Decide(w, offices, who, Inclination(w, who, b));
+                else Decide(w, offices, who, Inclination(w, who, b), b);
             }
         }
         // above where it starts, a good name fades a point a year; below it, nothing mends it but honest dealing (a point a year, above)
@@ -605,7 +626,9 @@ public static partial class LadderSystem
         if (!w.HasFlag(FellOutFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(FellOutChar);
         if (!w.HasFlag(TakenAlongFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(TakenAlongChar);
         if (!w.HasFlag(BlamedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(BlamesChar);
-        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear(); return; }
+        if (!w.HasFlag(SuitWonFlag) && !w.HasFlag(SuitLostFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(SuedChar);
+        if (!w.HasFlag(ChargeAdmittedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(AdmittedChar);
+        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear(); w.Indictments.Clear(); return; }
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
 
         // a seat lapses with its holder; a holder is paid

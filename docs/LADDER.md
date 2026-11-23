@@ -439,7 +439,8 @@ if everyone can see why they were let go, trust falls a point. Either way the ac
 **Other houses do the same.** Once a year, in the whole Reach, one house that thinks −30 or worse of another and
 finds something on the record against one of its people brings it. The people of the player's house are not
 excepted: one of them convicted is treated exactly as one removed from office, and the events that follow a removal
-follow this.
+follow this. Since "The docket" below, a charge against one of the player's house waits a year
+before it is heard.
 
 **A praetor can be bought.** 1,500 credits of the head's own, to a sitting praetor of another house. The panel says
 what is known of them. The upright refuse and say so from the bench: the house loses 4 standing and is under a
@@ -451,7 +452,203 @@ Each such ruling in a case comes out one time in three, and then the praetor is 
 that hates yours may find it.
 
 Left, and mapped: a trial is one praetor's decision with no evidence led and no appeal from it, and the accused does
-nothing in their own defence but be well or badly represented (L11).
+nothing in their own defence but be well or badly represented (L11). A charge against one of the player's house can now
+be pleaded or admitted: see "The docket".
+
+## The docket
+
+Built 2026-11-23. The owner's list (docs/PLAYTHROUGH.md, "Hard"): "**A docket**: the suits for and against the house,
+with a plea, an advocate, a settlement and a counter-suit; a notice and a defence when you are charged (P50, P101,
+P79)." The politician's notes: houses sued him every year and "there is no screen for the case"; he "found no way to
+bring a suit against a living house either" (P50); one of his was convicted with "no notice of the charge and no say"
+(P101); and he could not "see which cases are coming" (P79).
+
+What stood before: a suit that named the house waited a year and could be settled or pleaded (docs/PLAYTHROUGH.md
+12), but nobody had brought it, the house could bring none, and a charge against one of the house was heard the year
+it was brought.
+
+### Who brought it
+
+A suit now has a **plaintiff** and a defendant. When the bench draws up the year's cases, the plaintiff is the house
+whose head thinks worse of the other. The player's house brings a suit only when its head says so, so a case the
+bench draws up that names it is always the other house's. The docket says "your suit against House X" and "House X's
+suit against you".
+
+### Bringing a suit
+
+The head may bring a suit against a house it has a **quarrel** with: the two are at war, or the two heads' regard for
+each other comes to -30 or worse. This is the same test the bench uses to find its cases. A house you have no
+quarrel with cannot be sued, and the refusal says how far short the quarrel falls.
+
+The **ground** is chosen from what the world records between the two houses:
+
+| Ground | The record that gives it |
+|---|---|
+| A boundary between two estates | Both houses hold a world in the same region. |
+| A debt of long standing | One house owes the other's bank. |
+| A contract that was not honoured | One house holds a province on a world of the other's. |
+| A contested inheritance | Someone living in one house is of the other's blood (born to it, or a parent is of it). |
+| The salvage of a wreck | The two are at war, or a battle between them is on the record. |
+| The standing quarrel | Always, where there is a quarrel: one of the five matters, drawn for the two houses and the year. |
+
+Each ground has its own facts, drawn exactly as the bench's cases are: what turns on it, how plain the law is, and
+which house it favours. Before the suit is brought the screen says over what, for how much, how the law leans (plain,
+arguable or doubtful; with you or against you), which praetor would hear it and what is known of them. The praetor is
+one of neither house: the one with fewest suits waiting, then the longest sitting.
+
+Bringing it costs a filing fee and clout, and the other head thinks the worse of you. It is entered at the turn of
+the year and **heard at the end of the year after**, exactly as a suit the bench draws up is: by the same praetor's
+choice, with the same pleading, the same settlement out of court and the same appeal of a ruling against the plain
+law. The loser pays what turns on it. The fee goes to the purse of the Reach (the house that holds the capital).
+
+### The counter-suit
+
+A house that is sued may counter-sue **once**, on the same matter. As the courts stood, the loser of a suit already
+paid the winner, so a second claim for the same money would have added nothing. What the counter-suit adds is this:
+**what turns on the suit is doubled, both ways.** Whoever loses pays twice the stake; terms out of court become half
+of the doubled sum, which is the whole of the old one; and the house that brought the suit can no longer get out of
+it for half of what it asked. It costs the same filing fee and 1 clout, and the plaintiff's head takes it ill. It is
+refused when the law, read plainly, is against you.
+
+### A charge against one of the house
+
+When another house charges one of the player's house, it is **no longer heard that year**. It waits a year, and the
+house is told at once: who charges whom, with what, before which praetor and what is known of them, and what a
+conviction would cost. In that year the head may:
+
+- **Send someone to plead** (1 influence, as for a suit). The house's Advocate, if it has one, answers every charge
+  without being asked and without the influence.
+- **Admit it and pay the fine now.** There is no trial. The fine is paid in full and the house loses less standing
+  than a conviction costs; the accused is not put out of office, is not barred, and no scandal is laid on the house's
+  candidates. One of the house with a will of their own (not loyal, and ambitious, arrogant or proud) will not have it
+  admitted for them: it is their name.
+- **Do nothing.** It is heard with nobody to answer it.
+
+It is then heard by the rule of "The courts" above, with two differences. The accused's house is answered for only by
+whoever was sent: nobody sent counts as no law and no oratory at all. And a pleader with 8 or more of law and oratory
+keeps a praetor who is for sale from selling the verdict in open court: it then goes by who pleads better. Before an
+upright praetor the record is enough and pleading moves nothing, which the docket says, so that is when to admit.
+
+If the praetor named no longer sits, whoever would hear it now hears it; if nobody could, the charge lapses, the
+house is told, and what was done stays on the record. Charges between two other houses, and charges the player
+brings, are heard the year they are brought, as before.
+
+### The numbers
+
+| | |
+|---|---|
+| A quarrel a court will hear | A war, or the two heads' regard for each other coming to -30 or worse |
+| What turns on a suit | 500, 1,000 or 1,500 credits, as for the bench's cases |
+| The law | Plain 4 times in 10, arguable 4, doubtful 2; with either house evenly |
+| Filing fee | A fifth of what turns on it (100, 200 or 300 credits) |
+| Clout to bring a suit | 2 |
+| The other head's regard | -10 |
+| Suits a house may bring | One a year, and one at a time against the same house |
+| A counter-suit | The same fee on the stake before it doubles, 1 clout, the plaintiff's head -5; the stake doubles |
+| Sending a pleader, to a suit or a charge | 1 influence (unchanged) |
+| Admitting a charge | The fine of 1,000 credits in full, -2 legitimacy, the accuser's head -10 |
+| A conviction (unchanged) | Up to 1,000 credits, -4 legitimacy, out of office and barred 5 years, votes lost for 10 |
+| A pleader a praetor for sale will not sell against | Law and oratory of 8 or more together |
+| Proved, before a praetor who goes by the pleading | 40 in a hundred, +6 for each point the accuser's best has, -4 for each the pleader sent has |
+
+### The screen
+
+The Senate window, **Ladder and courts**. The courts panel opens with **The docket**: every pending matter that
+touches the house on one list, in this order: suits you brought, suits against you, charges against your people.
+Each line says who, over what, how much, which praetor and what is known of them, how the law leans, when it is
+heard and who is to plead it, and carries the buttons for what can be done now (come to terms, counter-sue, send
+someone to plead, admit). A greyed button says why. Under it, **Bring a suit** lists each house you have a quarrel
+with and every ground against it with its facts and its cost. The old "Suits that name your house" is gone (the
+docket is that list), and "Against your own house" no longer repeats an act that is under charge. The outliner
+tells your own suits from those against you, and lists a charge that waits. The Advocate's seat on the council
+counts the charges.
+
+### Other houses
+
+- Their suits against the player's house come, as before, from the bench's cases: one path, one record, one hearing.
+  A house that sues yours now pays the same filing fee (if it has it).
+- A house the player sues **answers with a counter-suit** at the turn of the year it was brought, when the law leans
+  its way and is not doubtful and it has the fee and the clout. The player is told, and may still come to terms.
+- Their best pleader answers in every suit and brings every charge, as before.
+
+### Events
+
+Three, in `content/events/docket.json` (text in `content/text/docket.json`), each for a choice the docket's line does
+not offer:
+
+- *Your Suit Is Upheld*: take it; send 300 credits back and mend the quarrel (+12); or have the judgment read (+1
+  legitimacy, their head -8).
+- *Your Suit Is Thrown Out*: pay and let it lie (+4); call on them and say it is ended (-1 legitimacy, +12); or say
+  there will be other benches (-8).
+- *A Charge Admitted* (when it was one of the house and not the head): walk in beside them (-1 legitimacy, they +10);
+  let them carry it (-8); or tell them what it cost (-4).
+
+A suit the house brought raises these and not *The Court Finds for You* or *Against You*, which stay for suits brought
+against it. The line under each card names the case and the sum, as it does for those.
+
+### What I chose
+
+Every number here is mine, and a first guess:
+
+- The fee: a fifth of the stake. The clout: 2 to bring, 1 to counter. The regard: -10 to bring, -5 to counter.
+- That a suit the house brings is heard a year later than one brought the same day by the bench would be: it is
+  entered at the turn of the year, so that the other house has the rest of the year to answer it.
+- That a counter-suit doubles the stake rather than adding a second, separate ruling.
+- That the counter-suit's fee is reckoned on the stake before it doubles.
+- That admitting costs 2 legitimacy against a conviction's 4, the fine in full, and carries no bar and no scandal.
+- That nobody sent to a held charge counts as nothing, where a charge heard at once still takes the house's best.
+- That 8 of law and oratory, the figure that already keeps a partial praetor to the law in a suit, also keeps one for
+  sale from selling a verdict on a charge.
+- That a wilful relative refuses to be admitted for.
+- The five records that give grounds, and that the standing quarrel is always one.
+- That the plaintiff in the bench's cases is whoever thinks worse of the other.
+- That a suit whose praetor has died goes to another praetor of neither house, and lapses only if none sits.
+- The events' figures (300 credits; +12, +4, -8; +10, -8, -4; 1 legitimacy).
+
+### What is not built
+
+- No appeal by the house against a ruling it lost, no new court and no new office (the task's limits). A ruling
+  against the plain law is still appealed by the bench's own rule.
+- Other houses do not bring suits beyond the bench's cases, are not held to the clout or to one suit a year (the
+  bench gives each praetor one case a year, which is what limits them), and do not sue each other on chosen grounds.
+- Other houses do not offer terms: coming to terms is always the player's step, as before.
+- A house charged by the player gets no year's notice and cannot admit: charges the player brings, and those between
+  other houses, are heard at once.
+- A suit cannot be withdrawn except by coming to terms.
+- No by-election when a praetor's seat falls empty (P79): with no praetor of a third house a suit cannot be brought
+  and a charge lapses, and the screen says so.
+- The grounds' facts are drawn, not read from the record that gives the ground: a debt on the record does not make
+  the law lean to the lender, and the stake is not the sum owed.
+- Random-play QA (`src/Tools/Qa.cs`) is not wired to the new commands; that file is the owner's to change.
+
+### How it is built
+
+- `src/Core/Systems/LadderSystem.Docket.cs`: `Grounds`, `Bench`, `BringRefusal`/`Bring`, `CounterRefusal`/`Counter`,
+  `ChargesOn`, `ChargePleadRefusal`/`SendDefender`, `AdmitRefusal`/`Admit`, and the turn of the year (`Answered`,
+  `Indict`, `HearCharges`). `LadderSystem.Courts.cs`: `Verdict` and `Prosecute` take the defence that was sent.
+- State: `OfficeBusiness.PlaintiffId`, `OfficeBusiness.Countered`; `Indictment` and `World.Indictments`.
+- Commands (`src/Core/Commands/HouseholdCommands.cs`): `BringSuitCommand(actorId, houseId, matter, offices)`;
+  `SuitCommand(actorId, SuitCommand.Counter, suitId)`; `ChargeCommand(actorId, ChargeCommand.Plead, chargeId, offices,
+  pleaderId)` and `ChargeCommand(actorId, ChargeCommand.Admit, chargeId, offices)`.
+- `src/Core/Presentation/Docket.cs`: the list the screen draws. `src/Web/Components/CourtsPanel.razor`.
+- World flags for content, for a year after the deed: `suit_brought_won`, `suit_brought_lost`, `charge_admitted`.
+  Character flags: `sued_by_the_house` (the head of the house that was sued), `admitted_a_charge`.
+- `tests/DocketTests.cs` (18).
+- Found on the way, and mended: a colony planted in the middle of a game had no provinces until the game was next
+  loaded (`ProjectSystem` did not seed them). The changed courts moved one sixty-year run enough to plant such a
+  colony, and `ProvinceTests` caught it.
+
+### Checked
+
+- `tools/ci.sh` passes: 1,056 tests, 18 of them the docket's. One plays three sagas of fourteen years bringing a suit
+  whenever it may, counter-suing, pleading and admitting, and asserts that no suit the house brought waits past the
+  end of the year after it.
+- In the browser, The Old Lion: the docket was empty in year 1 and said so; the house had a quarrel with House Oriel
+  and two grounds against it (a boundary, and a province Oriel holds on the Lion's March). It brought the first for
+  300 credits and 2 clout after the question said what turned on it and how the law leant; in year 2 the line read
+  "Your suit against House Oriel, and their counter-suit" with 3,000 credits on it. In year 7 House Cask's suit
+  against the house stood beside the house's own against House Ashgrove, and was counter-sued for 200 credits and
+  1 clout. No charge was brought against the house in those nine years, so the charge's line was not seen there.
 
 ## Where it is
 

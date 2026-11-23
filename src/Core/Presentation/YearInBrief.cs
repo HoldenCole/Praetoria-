@@ -119,6 +119,7 @@ public static class YearInBrief
         foreach (var j in w.Judgments.Where(j => j.Turn == year && (j.WinnerId == mine || j.LoserId == mine)))
         {
             bool won = j.WinnerId == mine;
+            if (j.Kind == "charge" && j.Judge.Length == 0) { lines.Add(new BriefLine(Courts, "warn", $"The charge {Nm(j.WinnerId)} brought was admitted before it was heard. {Praetoria.Core.Money.Credits(j.Sum)} left the house.", "senate:ladder")); continue; }
             lines.Add(new BriefLine(Courts, won ? "good" : "warn", $"{(j.Judge.Length > 0 ? j.Judge + ", praetor, ruled" : "It was settled")} {(won ? "for you against " + Nm(j.LoserId) : "against you for " + Nm(j.WinnerId))}{(j.Matter.Length > 0 ? ": " + j.Matter : "")}{(j.Sum > 0 ? $". {Praetoria.Core.Money.Credits(j.Sum)} {(won ? "came to" : "left")} the house" : "")}.", "senate:ladder"));
         }
         foreach (var c in w.Counts.Where(c => c.Turn == year && c.HouseId == mine).OrderBy(c => c.RungId, StringComparer.Ordinal))

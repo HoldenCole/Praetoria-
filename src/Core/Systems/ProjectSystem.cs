@@ -198,6 +198,7 @@ public static class ProjectSystem
                 break;
             case Project.Colony:
                 SystemWorks.Settle(w, holdings, house, p.TargetId);
+                ProvinceSystem.Seed(w, holdings);   // a colony planted in the middle of a game had no provinces until the game was next loaded
                 break;
             case Project.Infrastructure:
                 if (holdings.Track(p.DefId) is { } track) SystemWorks.Lay(w, holdings, p.TargetId, track);

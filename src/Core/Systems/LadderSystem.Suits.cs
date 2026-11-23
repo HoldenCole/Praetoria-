@@ -21,7 +21,7 @@ public static partial class LadderSystem
     public static bool PlainlyRead(OfficeBusiness b) => WeightOf(b) == Plain;
     public static string OtherIn(OfficeBusiness b, string houseId) => b.HouseA == houseId ? b.HouseB : b.HouseA;
 
-    /// <summary>The suits naming a house that wait to be heard.</summary>
+    /// <summary>The suits naming a house that wait to be heard: those brought against it, and those it brought.</summary>
     public static List<OfficeBusiness> SuitsNaming(World w, string houseId) =>
         w.OfficeWork.Where(b => b.Held && b.Choice.Length == 0 && b.Kind == Case && (b.HouseA == houseId || b.HouseB == houseId)).OrderBy(b => b.Id, StringComparer.Ordinal).ToList();
     public static string MatterOf(OfficeBusiness b) => MatterSays(b).Length > 0 ? MatterSays(b) : "a quarrel between the two houses";
@@ -33,6 +33,7 @@ public static partial class LadderSystem
     private static void HoldOver(World w, Character judge, OfficeBusiness b, string mine)
     {
         b.Held = true; var other = w.House(OtherIn(b, mine));
+        if (other != null) { b.PlaintiffId = other.Id; PayFee(w, other, Math.Min(FeeOf(StakeOf(b)), Math.Max(0, other.Treasury.Credits))); }   // the same fee the player's house pays to bring one
         w.Log($"{other?.Name ?? "A house"} brings a suit against {w.House(mine)?.Name} over {MatterOf(b)}: {Money.Credits(StakeOf(b))} turn on it. {judge.Name}, praetor, hears it at the year's end. {LawFor(w, b, mine)}");
     }
 
@@ -40,10 +41,16 @@ public static partial class LadderSystem
     private static void HearHeld(World w, OfficeCatalog offices)
     {
         var mine = w.Protagonist?.HouseId;
-        foreach (var b in w.OfficeWork.Where(b => b.Held && b.Choice.Length == 0).OrderBy(b => b.Id, StringComparer.Ordinal).ToList())
+        foreach (var b in w.OfficeWork.Where(b => b.Held && b.Choice.Length == 0 && b.Turn < w.Turn).OrderBy(b => b.Id, StringComparer.Ordinal).ToList())   // one brought this year waits for the next
         {
             var judge = w.Char(b.HolderId);
-            if (judge is not { Alive: true } || mine == null) { b.Choice = Lapsed; w.Log($"The suit over {MatterOf(b)} lapses: the praetor who was to hear it is gone."); continue; }
+            if (judge is not { Alive: true } && Bench(w, b.HouseA, b.HouseB) is { } next) { b.HolderId = next.Id; judge = next; }   // another praetor of neither house takes it up
+            if (judge is not { Alive: true } || mine == null)
+            {
+                b.Choice = Lapsed; w.Log($"The suit over {MatterOf(b)} lapses: the praetor who was to hear it is gone.");
+                if (mine != null) w.Tell("info", $"The suit with {w.House(OtherIn(b, mine))?.Name} over {MatterOf(b)} has lapsed: the praetor who was to hear it is gone, and no other sits who could.", "senate:ladder");
+                continue;
+            }
             string choice = Inclination(w, judge, b); string other = OtherIn(b, mine); var adv = w.Char(b.AdvocateId) is { Alive: true } a && a.HouseId == mine ? a : null;
             if (adv != null)
             {
@@ -53,8 +60,7 @@ public static partial class LadderSystem
                 if (choice is Friend or Gift && b.RightId == mine && ours >= AdvocateHolds && BoughtWinner(w, b, judge) == null)
                 { choice = Law; w.Log($"{judge.Name}, praetor, would have found another way, and with {adv.Name} pleading in open court did not dare."); }
             }
-            // Decide reads the holder's waiting business: this one, since this year's has not been made yet
-            Decide(w, offices, judge, choice);
+            Decide(w, offices, judge, choice, b);
             if (adv != null && HouseholdSystem.IsAdvocateOf(w, mine, adv.Id) && b.WinnerId.Length > 0) HouseholdSystem.AdvocateHeard(w, b.WinnerId == mine);
         }
     }

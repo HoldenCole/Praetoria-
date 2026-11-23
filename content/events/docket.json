@@ -1,0 +1,316 @@
+{
+  "//": "The docket (docs/LADDER.md, \"The docket\"): a suit the house brought is won or lost, and a charge is admitted. Each clears the flag it reads.",
+  "events": [
+    {
+      "id": "your_suit_is_upheld",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "defendant",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "defendant",
+              "flag": "sued_by_the_house",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "suit_brought_won",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_what_the_court_gave",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "suit_brought_won",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took what the court had given and said nothing more about it. {defendant.name} paid, and did not call."
+            }
+          ]
+        },
+        {
+          "id": "send_part_of_it_back",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "suit_brought_won",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "defendant",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent part of the money back to {defendant.name} with a civil letter: the point had been the law, and the law had been heard. It was read twice in that house, and not thrown away."
+            }
+          ]
+        },
+        {
+          "id": "have_the_judgment_read",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "suit_brought_won",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "defendant",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the judgment read out where it would be repeated. The Reach was reminded that the house goes to law and wins. {defendant.name} was reminded of it too."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "your_suit_is_thrown_out",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "defendant",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "defendant",
+              "flag": "sued_by_the_house",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "suit_brought_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_and_let_it_lie",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "suit_brought_lost",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "defendant",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid what the court had set against the house and let the matter lie. {defendant.name} had expected more noise, and thought a little better of the house for the want of it."
+            }
+          ]
+        },
+        {
+          "id": "go_and_say_it_is_ended",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "suit_brought_lost",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "defendant",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on {defendant.name} in person and said that the house had been wrong to go to law, and that it was ended. It was not a pleasant visit. It was remembered as a handsome one."
+            }
+          ]
+        },
+        {
+          "id": "say_it_will_be_brought_again",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "suit_brought_lost",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "defendant",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that one praetor's reading of the law was not the last, and that there would be other years and other benches. {defendant.name} heard, and began to keep papers."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_charge_admitted",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "admitted",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "admitted",
+              "flag": "admitted_a_charge",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "charge_admitted",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_beside_them",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "charge_admitted",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "admitted",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} walked into the Senate beside {admitted.name} on the day the fine was paid, and sat by them. Some thought the worse of the house for it. {admitted.name} did not forget who had been there."
+            }
+          ]
+        },
+        {
+          "id": "let_them_carry_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "charge_admitted",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "admitted",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the fine and let {admitted.name} carry the rest alone. The house had answered for it in money. The name on the record was theirs."
+            }
+          ]
+        },
+        {
+          "id": "tell_them_what_it_cost",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "charge_admitted",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "admitted",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {admitted.name}, in private and at some length, what the house had paid and why. {admitted.name} listened. There was not much to say back."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
