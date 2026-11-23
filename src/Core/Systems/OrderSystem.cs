@@ -107,7 +107,7 @@ public sealed class OrderSystem
         var made = houses.ToDictionary(h => h.Id, h => _economy.Compute(w, h.Id, _fleets));
         foreach (var good in _market.Goods.Where(g => Resource.IsStrategic(g.Id)).Select(g => g.Id))
         {
-            var by = houses.ToDictionary(h => h.Id, h => made[h.Id].Lines.Sum(l => Math.Max(0, l.Delta.Get(good)))); int total = by.Values.Sum(); if (total < 6) continue;
+            var by = houses.ToDictionary(h => h.Id, h => made[h.Id].Lines.Where(l => l.Kind != HouseTradeSystem.LedgerKind).Sum(l => Math.Max(0, l.Delta.Get(good)))); int total = by.Values.Sum(); if (total < 6) continue;
             foreach (var h in houses) if (by[h.Id] * 100 >= total * CornerPct) h.Corners.Add(good);
         }
     }

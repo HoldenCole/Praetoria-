@@ -52,7 +52,7 @@ public sealed class MarketSystem
         var sums = _trade.Market.Goods.ToDictionary(g => g.Id, _ => (produced: 0.0, needed: 0.0));
         if (_economy == null) return sums;
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
-            foreach (var line in _economy.Compute(w, h.Id, _fleets).Lines)
+            foreach (var line in _economy.Compute(w, h.Id, _fleets).Lines.Where(l => l.Kind != HouseTradeSystem.LedgerKind))   // goods passed from one house's store to another's are neither made nor used up
                 foreach (var g in _trade.Market.Goods)
                 {
                     int v = line.Delta.Get(g.Id); if (v == 0) continue;

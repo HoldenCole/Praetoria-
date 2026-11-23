@@ -205,6 +205,8 @@ public sealed class World
     public List<VotePledge> VotePledges { get; set; } = new();
     /// <summary>What has passed between houses and is remembered: gifts, pledges kept and broken, threats, loans.</summary>
     public List<DealingRecord> Dealings { get; set; } = new();
+    /// <summary>Standing trade deals between houses, while they run (docs/WEALTH.md, "Trade between houses").</summary>
+    public List<TradeDeal> TradeDeals { get; set; } = new();
     /// <summary>Blood owed between houses, standing and ended (docs/FEUD.md).</summary>
     public List<BloodFeud> Feuds { get; set; } = new();
     /// <summary>Courtships under way and suits not yet answered (docs/MARRIAGE.md).</summary>

@@ -431,10 +431,13 @@ good that is short should pay.
   shrinks the share, so the next reckoning takes the premium off and the price comes down.
 - **The plain word** (`CornerSystem.Word`), on the row of any good in which a house holds a third, in the tooltip of every
   row's "of N", and in the fold for every good: who holds it; and for your house, "You hold 9 of the 31 in the Reach: 7 more
-  is half, and the merchants hold 12", or "Half is 164 and the merchants hold only 62: with all the merchants have you would
-  hold 70 of 327, or 21%. It cannot be cornered by buying. The other houses keep 257 in their own stores, and the Reach
-  brings up 55 more a year." Isotopes are not sold on any open market while the Arms Market law keeps them off the
-  exchanges: the word says a corner in them cannot be bought and has to be brought up from the house's own worlds.
+  is half, and the merchants hold 12", or "Half is 25 and the merchants hold only 13: with all the merchants have you would
+  hold 15 of 49, or 31%. The merchants cannot supply a corner: the other 10 would have to be bought out of the houses' own
+  stores, of what each will spare, on its page under Trade. The other houses keep 34: House Ishida holds 12 and House
+  Dreyer 7. The Reach brings up 8 more a year." Isotopes are not sold on any open market while the Arms Market law keeps
+  them off the exchanges: the word says a corner in them cannot be bought there, and is brought up from the house's own
+  worlds or bought out of the stores of the houses that hold them, which it names. (Until trade between houses was built,
+  later the same day, the word ended "It cannot be cornered by buying": see "Bought out of the houses' stores" below.)
 - **It is heard of.** The year a house comes to hold half: a line in the chronicle, the house is told (and the player is
   told when it is another house), and the cause line of the price names the holder for as long as the holding adds a
   hundredth or more. The merchants' estate thinks 3 the worse of the house that year and 1 more every year the corner
@@ -488,6 +491,34 @@ merchants out on top of a large store. Bought and sold again with nothing else g
 mostly did. It pays the house that sells its own production at the higher price, or owns the ventures and companies whose
 earnings follow that price.
 
+**Bought out of the houses' stores** (docs/WEALTH.md, "Trade between houses"; the owner: "Yes you should be able to have
+trade deals and buy stuff directly from other houses"). What was missing above is built: a house sells what it holds
+above what it keeps by (a floor, two years of what it burns, and what it has promised), on its own page under Trade, at
+the market's price moved by what its head thinks of the buyer, and dearer a unit the more of its spare store a lot takes.
+`CornerSystem` needed no change to count such goods: it reads what is in each store, and goods bought of a house leave
+all there is the same and move the share. The word on the Exchange now says how many more than the merchants hold would
+have to come out of the houses' stores and names the two largest holders, and the fold says where to buy. Measured in the
+same game (`the_fallen_house`, seed 1, the player given all the credits it could want), buying all the merchants would
+sell and then all each house would spare, the largest spare store first, until half was held:
+
+| Good, year | All there is | Bought of the merchants | Bought of the houses | Held | At the next reckoning |
+|---|---|---|---|---|---|
+| Exotics, 5 | 28 | 7 for 7,400 | 8 of one house for 6,500 | 15, or 53% | 43% as more was brought up: felt, 16% on the price |
+| Exotics, 13 | 99 | 11 for 6,400 | 44 of two houses for 21,800 | 55, or 55% | the corner stands: 50% on the price, 904 a unit against 380 |
+| Rare earths, 5 | 36 | 9 for 13,100 | 9 of three houses for 10,300 | 18, or 50% | 35%: barely felt |
+| Rare earths, 13 | 166 | 19 for 14,200 | 65 of three houses for 40,600 | 84, or 50% | 44%: felt, 20% on the price |
+| Materials, 5 | 293 | 50 for 13,000 | 64 of nine houses for 14,000 | 130, or 44% | 40%: felt, 7% on the price |
+| Materials, 13 | 624 | 68 for 14,900 | 224 of nine houses for 41,600 | 316, or 50% | the corner stands: 295 a unit against 141 |
+| Helium-3, 5 | 131 | 7 for 11,300 | 38 of eight houses for 52,400 | 45, or 34% | 35%: the houses keep what their fleets burn |
+| Helium-3, 13 | 118 | 9 for 18,900 | 16 of three houses for 28,500 | 25, or 21% | not felt |
+| Isotopes, 13 | 40 | none: off the exchanges | 18 of two houses for 50,200 | 18, or 45% | 43%: felt, 16% on the price |
+
+So a corner in a good the house does not make can now be bought, of exotics and rare earths and later in a game of materials, for 14,000 to
+57,000 credits; it lasts if the Reach is not bringing up much more, and has to be fed if it is. Helium-3 cannot be
+cornered this way, because every house with a fleet keeps two years of fuel by. Isotopes can be had only of the houses,
+at half as much again, and not quite to half. The test is
+`TradeBetweenHousesTests.A_corner_the_merchants_cannot_supply_is_bought_out_of_the_houses_stores`.
+
 **The other houses, measured.** Sixteen games of forty years played by the stewards alone (eight starts, two seeds each):
 no house came to hold half of anything, and no game opens with a house holding a third. A maker's store passed a third in
 thirteen of the sixteen, of exotics or isotopes and once of materials. In most it added under 5% to the price; the most
@@ -517,8 +548,8 @@ is told so in the first year, and their prices rise. The rule was left to say wh
 ### What is not built
 
 - **No new command.** A corner is made with the orders that exist (`BuyGoodCommand`, `SellGoodCommand`) or by not selling.
-- Buying out of another house's store. Without it a corner in a good the house does not make is out of reach in most
-  years, which the screen says.
+- ~~Buying out of another house's store.~~ Built since (`HouseTradeCommand`; docs/WEALTH.md, "Trade between houses"):
+  see "Bought out of the houses' stores" above.
 - Stewards of other houses that set out to corner a good, or that buy to break one.
 - A motion against forestalling in the Senate, or an event for a market corner (`the_corner` is still the maker's one).
 - The premium does not apply the moment the share is bought: like every price, it moves at the year's reckoning. The

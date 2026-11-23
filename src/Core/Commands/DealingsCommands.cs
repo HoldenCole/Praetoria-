@@ -58,3 +58,48 @@ public sealed class DealingsCommand : ICommand
         }
     }
 }
+
+/// <summary>Trade between houses (docs/WEALTH.md, "Trade between houses"), done by the head with a house of the Reach:
+/// <see cref="Buy"/> a lot of a good out of its store, or <see cref="Sell"/> it one out of yours (good; units);
+/// strike a standing deal in which it sends you so many a year (<see cref="DealBuy"/>) or you send it (<see cref="DealSell"/>)
+/// for a term (good; units a year; years); or <see cref="End"/> a deal in force before its term (dealId; the house is not
+/// looked at).</summary>
+public sealed class HouseTradeCommand : ICommand
+{
+    public const string Buy = "buy", Sell = "sell", DealBuy = "deal_buy", DealSell = "deal_sell", End = "end";
+    public static readonly string[] All = { Buy, Sell, DealBuy, DealSell, End };
+    private readonly string _what, _houseId, _good, _dealId; private readonly int _units, _years; private readonly HouseTradeSystem _trade;
+    public HouseTradeCommand(string actorId, string what, string houseId, HouseTradeSystem trade, string good = "", int units = 0, int years = 0, string dealId = "")
+    { ActorId = actorId; _what = what; _houseId = houseId; _trade = trade; _good = good; _units = units; _years = years; _dealId = dealId; }
+    public string ActorId { get; }
+    public string Describe() => _what == End ? $"end {_dealId}" : $"{_what} {_houseId} {_units} {Resource.Label(_good)}{(_what is DealBuy or DealSell ? $" a year for {_years}" : "")}";
+    /// <summary>What a lot would cost or fetch (<see cref="Buy"/> and <see cref="Sell"/> only).</summary>
+    public HouseQuote Quote(World w) => _what == Sell ? _trade.SellQuote(w, w.Char(ActorId), w.House(_houseId), _good, _units) : _trade.BuyQuote(w, w.Char(ActorId), w.House(_houseId), _good, _units);
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var me = w.Char(ActorId); var theirs = w.House(_houseId);
+        return _what switch
+        {
+            Buy => _trade.BuyRefusal(w, me, theirs, _good, _units),
+            Sell => _trade.SellRefusal(w, me, theirs, _good, _units),
+            DealBuy => _trade.DealRefusal(w, me, theirs, _good, _units, _years, selling: false),
+            DealSell => _trade.DealRefusal(w, me, theirs, _good, _units, _years, selling: true),
+            End => _trade.EndRefusal(w, me, _dealId),
+            _ => "no such trade"
+        };
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var mine = w.House(w.Char(ActorId)!.HouseId)!;
+        if (_what == End) { HouseTradeSystem.End(w, HouseTradeSystem.Deal(w, _dealId)!, mine); return; }
+        var theirs = w.House(_houseId)!;
+        switch (_what)
+        {
+            case Buy: _trade.Buy(w, mine, theirs, _good, _units); break;
+            case Sell: _trade.Sell(w, mine, theirs, _good, _units); break;
+            case DealBuy: HouseTradeSystem.Strike(w, theirs, mine, _good, _units, _years, _trade.DealUnitCredits(w, mine, theirs, _good, selling: false)); break;
+            case DealSell: HouseTradeSystem.Strike(w, mine, theirs, _good, _units, _years, _trade.DealUnitCredits(w, mine, theirs, _good, selling: true)); break;
+        }
+    }
+}

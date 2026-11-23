@@ -179,6 +179,8 @@ public sealed class Economy
             if (l.BorrowerId == houseId) ledger.Add($"instalment to {world.House(l.LenderId)?.Name}", "loan", new Resources { Credits = -due });
             else ledger.Add($"instalment from {world.House(l.BorrowerId)?.Name}", "interest", new Resources { Credits = due });
         }
+        // standing trade deals between houses (docs/WEALTH.md, "Trade between houses"): the year's goods one way, the credits the other
+        foreach (var (source, delta) in HouseTradeSystem.LedgerLines(world, houseId, _deliveries)) ledger.Add(source, HouseTradeSystem.LedgerKind, delta);
 
         if (fleets != null)
         {
@@ -333,11 +335,12 @@ public sealed class Economy
         var paying = world.Houses.Values.Where(h => h.Debt > 0).Select(h => h.Id).ToHashSet();
         // what each house-to-house loan pays this year is settled before anyone's treasury moves, so that lender and borrower agree
         _dues = world.HouseLoans.ToDictionary(l => l, l => DealingsSystem.Due(world, l));
+        _deliveries = HouseTradeSystem.Due(world);   // and what each standing trade deal delivers
         foreach (var house in world.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var holdings = world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
             if (holdings.Count == 0 && !world.BusinessesOf(house.Id).Any() && house.Debt == 0 && !world.Businesses.Values.Any(b => world.PlanetHolder(b.SystemId) == house.Id) && !world.Houses.Values.Any(h => h.LenderId == house.Id && paying.Contains(h.Id))
-                && !_dues.Keys.Any(l => l.LenderId == house.Id || l.BorrowerId == house.Id)) continue;
+                && !_dues.Keys.Any(l => l.LenderId == house.Id || l.BorrowerId == house.Id) && !_deliveries.Keys.Any(d => d.SellerId == house.Id || d.BuyerId == house.Id)) continue;
 
             // Snapshot solvency once, before this turn's income, so all of a house's holdings react
             // to the position the player left them in (deterministic regardless of holding order).
@@ -395,10 +398,13 @@ public sealed class Economy
         }
 
         DealingsSystem.Paid(world, _dues); _dues = null;
+        HouseTradeSystem.Settled(world, _deliveries); _deliveries = null;
         Reckon(world);
     }
     /// <summary>What each house-to-house loan pays in the year being accrued; null outside it, when a ledger is a forecast.</summary>
     private Dictionary<HouseLoan, int>? _dues;
+    /// <summary>What each standing trade deal delivers in the year being accrued; null outside it.</summary>
+    private Dictionary<TradeDeal, Delivery>? _deliveries;
 
     /// <summary>Reckon and rank every house's wealth; write the flags and counters content reads
     /// (<c>richest:&lt;house&gt;</c>, <c>wealth_rank</c>, <c>in_debt</c>, <c>business:&lt;kind&gt;</c>, <c>claim_holder</c>).</summary>

@@ -98,6 +98,9 @@ public sealed class TurnController
     /// <summary>Dealings between houses: gifts, favours, pledged votes, threats and loans (docs/WEALTH.md).</summary>
     public DealingsSystem Dealings => _dealings;
     private readonly DealingsSystem _dealings;
+    /// <summary>Trade between houses: a lot out of a store, and standing deals (docs/WEALTH.md).</summary>
+    public HouseTradeSystem HouseTrade => _houseTrade;
+    private readonly HouseTradeSystem _houseTrade;
     private readonly SenateSystem _senate;
 
     public TurnController(World world, ContentDatabase content, Director? director = null, int briefingBudget = 3)
@@ -143,6 +146,7 @@ public sealed class TurnController
         if (world.Counter(CourtshipSystem.OpenedCounter) == 0) { CourtshipSystem.Sync(world, announce: false); world.WorldCounters[CourtshipSystem.OpenedCounter] = 1; }
         _honors = new HonorSystem(content.Honors);
         _dealings = new DealingsSystem(_economy, _senate, content.Motions);
+        _houseTrade = new HouseTradeSystem(content.Trade, _economy, _fleets);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets); _greatCrisis.Polities = _polities;
         _briefingBudget = briefingBudget;
     }
@@ -301,7 +305,7 @@ public sealed class TurnController
         using (Perf.Time("end:throne")) { ThroneSystem.Tick(World, _content.Titles, _fleets); }   // the hold on a throne, and a pretender when it fails (docs/THRONE.md) — RNG-free
         using (Perf.Time("end:emergency")) { EmergencySystem.Tick(World, _content.Offices); }   // emergency powers: due, laid down, kept or taken away (docs/EMERGENCY.md) — RNG-free
         using (Perf.Time("end:feud")) { FeudSystem.Tick(World); }   // blood between houses: asked for, answered, or let lie (docs/FEUD.md) — RNG-free
-        using (Perf.Time("end:wealth")) { WealthSystem.Tick(World); _dealings.Tick(World); _companies?.PrivateHolders(World); }   // allowances are paid, and people do as they like with their own money (docs/WEALTH.md) — RNG-free
+        using (Perf.Time("end:wealth")) { WealthSystem.Tick(World); _dealings.Tick(World); _houseTrade.Tick(World); _companies?.PrivateHolders(World); }   // allowances are paid, and people do as they like with their own money (docs/WEALTH.md) — RNG-free
         using (Perf.Time("end:education")) { EducationSystem.Tick(World); }   // everyone learns by what they do and what they study; children are brought up (docs/EDUCATION.md) — RNG-free
         using (Perf.Time("end:courtship")) { CourtshipSystem.Tick(World); }   // suits advance, rivals press, marriages warm or cool (docs/MARRIAGE.md) — RNG-free
         using (Perf.Time("end:dynasty")) { _dynasty.Tick(World, _rng); }   // age, deaths→succession, births (GDD §14). RNG only where life turns.
