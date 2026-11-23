@@ -157,6 +157,40 @@
                         @foreach (var (text, tone) in lasting) { <div class="line small @tone">@text</div> }
                         @if (lasting.Count == 0) { <div class="line small muted">Nothing stands between your houses that is remembered: no favour, loan, gift, threat or pledge.</div> }
                     </div>
+                    /* trade between houses (docs/WEALTH.md, "Trade between houses"): a lot out of its store or yours, a standing deal, and the deals in force */
+                    var tr = G.Turn!.HouseTrade; var noTrade = HouseTradeSystem.WontTrade(w, mine, fh); var standing = HouseTradeSystem.Between(w, mine.Id, did).ToList();
+                    <h4 data-trade="@did">Trade <span class="muted small">out of its store or yours, at the market's price with no caravaneer between you</span></h4>
+                    @if (noTrade != null) { <div class="line small warn" data-trade-closed="@did">@Capital(noTrade).</div> }
+                    <div class="trade-row" data-trade-terms="@did">
+                        <span class="muted small">A lot of</span>
+                        @foreach (int size in HouseTradeSystem.Lots) { int n = size; <button class="opt inline tiny @Here(_lot == n)" data-trade-lot="@n" title="How many units a purchase or a sale is for, and how many a year a standing deal sends." @onclick="() => _lot = n">@n</button> }
+                        <span class="muted small">· a standing deal for</span>
+                        @foreach (int span in HouseTradeSystem.Terms) { int y = span; <button class="opt inline tiny @Here(_term == y)" data-trade-term="@y" title="@HouseTradeSystem.RulesSay" @onclick="() => _term = y">@y</button> }
+                        <span class="muted small">years</span>
+                    </div>
+                    @foreach (var gd in tr.Goods)
+                    {
+                        string gid = gd.Id; int lot = _lot, term = _term;
+                        var buy = Trade(HouseTradeCommand.Buy, did, gid, lot); var sell = Trade(HouseTradeCommand.Sell, did, gid, lot); var bq = buy.Quote(w); var sq = sell.Quote(w);
+                        var dealIn = Trade(HouseTradeCommand.DealBuy, did, gid, lot, term); var dealOut = Trade(HouseTradeCommand.DealSell, did, gid, lot, term); var noIn = dealIn.Refusal(G.Ctx); var noOut = dealOut.Refusal(G.Ctx);
+                        <div class="trade-good" data-trade-good="@gid">
+                            <div class="line small"><b>@gd.Name</b> <span class="muted">@TradeLine(tr, fh, mine, gid)</span></div>
+                            <div class="trade-row">
+                                <button class="opt inline tiny" data-trade-buy="@gid" disabled="@(bq.Refusal != null)" title="@(bq.Refusal ?? tr.BuySays(w, mine, fh, gid, lot))" @onclick="() => G.Execute(buy)">Buy @lot@(Sum(bq.Credits))</button>
+                                <button class="opt inline tiny" data-trade-sell="@gid" disabled="@(sq.Refusal != null)" title="@(sq.Refusal ?? tr.SellSays(w, mine, fh, gid, lot))" @onclick="() => G.Execute(sell)">Sell @lot@(Sum(sq.Credits))</button>
+                                <button class="opt inline tiny" data-trade-deal="@gid" disabled="@(noIn != null)" title="@(noIn ?? tr.DealSays(w, mine, fh, gid, lot, term, false))" @onclick="() => G.Execute(dealIn)">It sends @lot a year for @term years@(YearSum(noIn == null ? HouseTradeSystem.YearCost(tr.DealUnitCredits(w, mine, fh, gid, false), lot) : 0))</button>
+                                <button class="opt inline tiny" data-trade-deal-sell="@gid" disabled="@(noOut != null)" title="@(noOut ?? tr.DealSays(w, mine, fh, gid, lot, term, true))" @onclick="() => G.Execute(dealOut)">You send @lot a year for @term years@(YearSum(noOut == null ? HouseTradeSystem.YearCost(tr.DealUnitCredits(w, mine, fh, gid, true), lot) : 0))</button>
+                            </div>
+                        </div>
+                    }
+                    <div data-trade-standing="@did">
+                        @foreach (var td in standing)
+                        {
+                            string tid = td.Id; var end = Trade(HouseTradeCommand.End, did, string.Empty, 0, 0, tid); var noEnd = end.Refusal(G.Ctx);
+                            <div class="line small" data-trade-in-force="@tid">@HouseTradeSystem.Describe(w, td, mine.Id) <button class="opt inline tiny" data-trade-end="@tid" disabled="@(noEnd != null)" title="@(noEnd ?? HouseTradeSystem.EndSays(w, td, mine.Id))" @onclick="() => G.Execute(end)">End it early</button></div>
+                        }
+                        @if (standing.Count == 0) { <div class="line small muted">No standing deal runs between your houses.</div> }
+                    </div>
                 }
                 <div class="kv"><span>Legitimacy</span><b>@fh.Legitimacy</b></div>
                 <details data-legitimacy-of="@fh.Id"><summary>What it is made of</summary><LegitimacyMade Card="@Praetoria.Core.Presentation.LegitimacyProjection.Of(w, fh)" /></details>
@@ -267,6 +301,20 @@
     private static string CallVoteSays => "It declares its vote as yours is on this motion, and owes you nothing more.";
     private static string HonourSays => $"Pay what it asks. The account is even, and its head thinks +{WealthSystem.FavourKept} of you.";
     private static string BreakSays => $"Refuse. You owe it nothing more, and its head thinks −{WealthSystem.FavourBroken} of you and remembers.";
+    // trade between houses (docs/WEALTH.md, "Trade between houses"): the lot bought, sold or sent each year, and the term of a standing deal
+    private int _lot = HouseTradeSystem.Lots[1], _term = HouseTradeSystem.Terms[0];
+    private HouseTradeCommand Trade(string what, string houseId, string good, int units, int years = 0, string dealId = "") => new(G.World!.ProtagonistId, what, houseId, G.Turn!.HouseTrade, good, units, years, dealId);
+    private static string Here(bool on) => on ? "here" : "";
+    private static string Sum(int credits) => credits > 0 ? " · " + Money.Show(credits) : "";
+    private static string YearSum(int credits) => credits > 0 ? " · " + Money.Show(credits) + " a year" : "";
+    private static string Capital(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>What that house holds of a good and would spare, what it asks and pays for a unit, and what you hold.</summary>
+    private string TradeLine(HouseTradeSystem tr, House theirs, House mine, string good)
+    {
+        var w = G.World!; int spare = tr.Spare(w, theirs, good), wants = tr.Wants(w, theirs, good);
+        return $"it holds {theirs.Treasury.Get(good)} and would {(spare > 0 ? $"spare {spare}" : wants > 0 ? $"take {wants}" : "spare none")} · it asks {Money.Show(tr.Asks(w, theirs, mine, good))} a unit and pays {Money.Show(tr.Pays(w, theirs, mine, good))}"
+            + (tr.Closed(w, good) ? ", dearer than the market's for being kept off the exchanges" : "") + $" · you hold {mine.Treasury.Get(good)}";
+    }
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }

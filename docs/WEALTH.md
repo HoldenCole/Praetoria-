@@ -567,6 +567,233 @@ Every number in the table above is mine except those marked "as before" or "alre
 - A nation beyond the Reach, and the raiders, are not dealt with this way.
 - The numbers are first guesses.
 
+## Trade between houses
+
+What the owner asked: "Yes you should be able to have trade deals and buy stuff directly from other houses."
+
+A house's page (Houses, then a house) now has a part, **Trade**, under its dealings. The head buys a lot of a good
+out of that house's store, sells it a lot out of his own, or strikes a standing deal for so many units a year. The
+other houses do the same among themselves. It is also the way to a corner that the merchants cannot supply
+(docs/ECONOMY_MARKET.md, section 17): the houses keep far more in their own stores than the merchants ever hold, and
+those stores can now be bought.
+
+### What you can do
+
+- **Buy a lot out of its store.** Pick a lot (1, 5, 10 or 25) and a good. The goods and the credits change hands at
+  once. The house sells only what it holds above what it keeps by (below). The button shows what the lot costs, and
+  its title says what makes the price; a grey button's title says why not, with the figures.
+- **Sell it a lot out of yours.** The house buys if it has a use for the good, which means it holds less than it
+  keeps by, and if paying would leave it 1,000 credits.
+- **Strike a standing deal**, for 5 or 10 years: the lot is sent every year at a price a unit fixed the day the deal
+  is struck, whatever the market does afterwards. Either house can be the one that sends. The first delivery is at
+  the next year's turn.
+- **End a deal early.** It costs what a broken word costs (below).
+
+**The goods** are the ones the exchanges will take from a house: materials, exotics, helium-3, rare earths and
+isotopes. Manpower is not sold between houses: the exchanges hire crews out and no house sells its levies. Isotopes
+are sold between houses even while the law of the Arms Market keeps them off the exchanges, at half as much again:
+it is a private sale, and there is nowhere else to get them.
+
+**What a house keeps by.** A floor of each good (8 materials, 4 helium-3, 2 of anything else), two years of what its
+ledger burns of it, and this year's deliveries under its standing deals. It sells what it holds above that and buys
+up to it. The line for each good says what it holds, and what it would spare or take.
+
+**The price** is the market's price of the good. There is no spread and no tariff: no caravaneer stands between two
+houses, and that is the point of going to the house. Then:
+
+- what its head thinks of you moves it: a point in the hundred dearer for every point he dislikes you, forty at the
+  most; a point cheaper for every ten he likes you, five at the most;
+- a house buying pays 10 in the hundred under the market, moved by regard the same way, so a friend's best price to
+  buy at and his best price to sell at are the same and nothing is made by passing goods round;
+- a lot that is a large part of what the house would spare costs more a unit: each unit is dearer than the last, and
+  the whole of what it would spare costs three-tenths more a unit than the first of it. Lots already bought of it
+  that year count, so splitting a purchase does not help;
+- the sum is in whole hundreds of credits, rounded against whoever asked, as on the exchanges.
+
+**A house will not trade** with one it is at war with, or has blood with, or whose head it thinks -40 or worse of
+(the rule a gift already had), and not while the Senate's embargo is on either of the two. The embargo reads "closes
+the exchanges" in the market's rules; I took it to bind the houses as well, since a private sale would otherwise be
+the plain way round it.
+
+**A fair bargain is remembered.** The other head thinks 1 better of you, once a year however many lots pass. Every
+purchase, sale and deal is entered in the record of dealings and shown in the list under Dealings.
+
+### A standing deal, year by year
+
+- When the year's books are done the seller sends what it promised and the buyer pays for it. It is a line in both
+  ledgers ("materials bought of House Valmont") and in the forecast, with the goods one way and the credits the
+  other. The line shows what will really pass as things stand.
+- **The seller has not the goods**: it sends what it holds and is paid for that. The shortfall is noted, and you are
+  told.
+- **The buyer has not the credits**: nothing is sent.
+- **Two such years running end the deal.** The head of the other house thinks 10 worse of the house at fault (what a
+  loan defaulted on costs), and that house strikes no standing deal with it for eight years. A full year in between
+  clears the count.
+- **Ended early**, by either side: the other's head thinks 15 worse of the one that ended it (what a broken pledge
+  costs), and the same eight years. Lots can still be bought and sold.
+- **Run to its term**: each head thinks 3 better of the other (what a pledge kept earns).
+- **War or blood** between the two ends a deal and is held against neither. **The Senate's embargo** on either holds
+  it up for as long as it lasts: nothing passes, nothing is held against either, and the term runs on.
+- A house promises no more a year than it brings up beyond what it burns and has already promised. It takes no more
+  a year than it burns beyond what it brings up and is already sent, and will not promise more than half of what it
+  takes in. One deal in a good stands between two houses at a time.
+- Where one store will not cover two deals, the one struck first is served first.
+
+### The numbers
+
+| Thing | Number |
+|---|---|
+| Goods | materials, exotics, helium-3, rare earths, isotopes |
+| A lot | 1, 5, 10 or 25 on the page (the command takes 1 to 999) |
+| The floor a house keeps | 8 materials, 4 helium-3, 2 of anything else |
+| Besides the floor | 2 years of what it burns, and this year's deliveries it has promised |
+| No trade | at war; blood between; the embargo on either; regard -40 or worse |
+| The price | the market's, with no spread and no tariff |
+| Regard on the price | 1 in the hundred dearer a point of dislike, 40 at most; 1 cheaper for every 10 of liking, 5 at most |
+| What a house pays | 10 in the hundred under the market, then regard the same way |
+| Isotopes while kept off the exchanges | 50 in the hundred dearer, bought or sold |
+| The lot's weight | the whole of what it would spare costs 30 in the hundred more a unit |
+| A house buying keeps | 1,000 credits by |
+| A fair bargain | regard +1, once a year between two houses |
+| A standing deal | 1 to 25 a year, for 5 or 10 years |
+| It buys no more than | half of what it takes in a year |
+| Failed years that end it | 2 running; regard -10 (as a loan defaulted) |
+| Ended early | regard -15 (as a pledge broken) |
+| No new deal after either | 8 years (as a pledge broken) |
+| Run to its term | regard +3 each way (as a pledge kept) |
+| Another house looks to its stores | one house in 6 each year |
+| It buys a lot | with under a year's burn in store: up to 4 units, of the friendliest house that will spare them |
+| It strikes a deal | burning more than it brings up: 1 to 3 a year for 5 years |
+| Word to the player | from one house in 3, regard 0 or better, for 2 units or more; once in 3 years at the most |
+| What has passed is kept | 20 years (as the other dealings); the last 6 are listed |
+
+### The other houses
+
+- **They buy of each other.** Each year one house in six looks to what it burns. With less than a year of a good in
+  store, it buys up to 4 units of the friendliest house that will spare them, at that house's price, keeping 1,000
+  credits by. If it has a year in store but burns more than it brings up, it strikes a standing deal for its yearly
+  shortfall (3 a year at the most, for 5 years) with the friendliest house that brings up more than it burns.
+- **They end a deal they cannot keep.** A house that could not send what it promised this year without cutting into
+  what it burns ends the last deal it struck, and bears what that costs.
+- **They never help themselves to your store.** When a house is short of a good you have to spare, or has to spare
+  a good you are short of, its head sends word: a notice that opens that house's page, with what it would buy or
+  sell and at what price. You act on it there, or not. One such word in three years at the most, and only from a
+  head who thinks no ill of you.
+
+Measured over six games of thirty years with nobody giving orders (the old lion, the new man and the fallen house,
+seeds 5 and 1): 8 to 12 lots bought between other houses in a game, 8 to 13 standing deals struck, of which 4 to 9
+had run their term by the end, none or one ended early and none or one failed; and none to 7 notices to the player.
+The lots were of 1 to 4 units and the deals of 1 a year, mostly materials and helium-3.
+
+**What it did to the economy.** `dotnet run --project src/Tools -- econ --seeds 2`, before and after. The figures
+are for the middle house of sixty (thirty houses, two seeds) at year 30, in credits:
+
+| Money, salaries | Takes in, before | after | Treasury, before | after | In the red, before | after |
+|---|---|---|---|---|---|---|
+| lean, none | 1,500 | 1,300 | 2,100 | 2,300 | 0 | 0 |
+| standard, none | 2,800 | 2,000 | 2,100 | 2,000 | 0 | 1 |
+| generous, none | 3,700 | 4,700 | 7,500 | 14,000 | 0 | 1 |
+| lavish, none | 5,200 | 5,400 | 17,300 | 19,100 | 0 | 0 |
+| standard, light | 2,600 | 2,600 | 4,051 | 1,796 | 0 | 1 |
+| standard, standard | 1,800 | 1,900 | 1,814 | 1,941 | 1 | 1 |
+| standard, heavy | 1,300 | 2,100 | 1,489 | 1,530 | 1 | 1 |
+| standard, crews | 1,700 | 2,400 | 1,928 | 1,901 | 1 | 1 |
+
+Two seeds are few, and any change in what a house does sends a game down another road, so the same was run on six
+seeds, with the other houses' own trading switched off and on (treasury of the middle house at year 30): lean 2,000
+and 2,300; standard 2,300 and 2,100; generous 7,400 and 13,600; lavish 14,400 and 16,600; light pay 2,930 and
+2,256; standard pay 1,901 and 1,957; heavy 1,540 and 1,594; crews 1,881 and 1,901. Houses in the red: none to 3 of
+about 117 either way. So six rows of eight are within what a seed moves, lavish is up by a seventh, and **generous
+is up by four-fifths on both runs**. At that setting the houses have coin and are short of materials, and a house
+that can buy materials of a neighbour founds more ventures (206 against 182 levels at year 30). I had first set the
+houses to look to their stores one year in four, with lots of 6 and deals of 5 a year: on six seeds that lifted
+what the middle house takes in by a tenth to three-quarters in every row. The numbers in the table above are the
+ones I cut it back to.
+
+Seen in the browser, in one game as the old lion after six years: the Trade part on House Valmont's page; each good
+with what it holds, what it would spare or take, what it asks and pays; the grey buttons' reasons ("House Valmont
+has no helium-3 to spare: it holds 2 and keeps 8 by: 4 whatever comes, 2 years of the 2 it burns a year"); a unit
+of materials bought for 200 credits; a standing deal struck for a unit a year and listed with its button; the two
+lines in the list under Dealings; after the year's turn the line "materials bought of House Valmont, -100" in the
+ledger and the deal still listed; the deal ended; and on the Exchange the fold with the new word. No error on the
+page. The panel is 760 wide there and nothing ran past its edge. The first run showed two buttons with a piece of
+code in their labels, which is mended.
+
+Not seen in play: a lot sold to a house, a deal in which the player sends, a short year, a default, a deal run to
+its term, a notice from another house. Those rest on the tests.
+
+### What I chose
+
+Every number in the table is mine except those marked "as". The choices behind them:
+
+- **Manpower is left out.** The exchanges hire crews out and do not buy them, a house can keep no more under arms
+  than its worlds muster, and a house selling its levies is another thing than trade.
+- **Isotopes are sold between houses**, at half as much again while the law keeps them off the exchanges, as the
+  brief suggested.
+- **The embargo binds the houses too**, both ways, and holds a standing deal up without blame.
+- **The refusal to trade is at -40**, the regard at which a gift is already refused, so there is one number for "will
+  have nothing to do with you".
+- **Floors of 8, 4 and 2.** Most houses hold under 20 materials and a handful of anything else. A floor of 20
+  materials, which I tried first, left almost no house with any to spare.
+- **Two years of burn**, so that a house does not sell the fuel its fleet needs next year.
+- **A friend's discount is small (5) and a house buys at 10 under.** With a larger discount goods bought of one
+  friend could be sold to another, or on the exchanges at the narrow spread, at a profit.
+- **The lot's weight is the market's own rule** (an order moves the price against itself by its share of the stock),
+  with what the house would spare in place of the merchants' stock, and at six-tenths of its strength.
+- **A standing deal is for what a house makes, a lot is for what it holds.** A house with a hoard and no production
+  sells lots and promises nothing.
+- **The price of a deal is fixed** and has no weight for size: that is what a deal is for, and the seller is only
+  promising what it brings up anyway.
+- **Ending early is a broken pledge (-15, eight years) and two failed years are a loan defaulted on (-10)**, the two
+  penalties `DealingsSystem` already had. No standing is lost and no lender hears of it.
+- **A short delivery counts as a failed year**, as a short instalment does.
+- **The seller sends from all it holds.** Another house protects what it burns by ending the deal instead, which
+  costs it the same as it would cost you.
+- **The player's own head is not told what to think.** Where a rule moves each head's regard for the other, only
+  the other house's moves when one of the two is yours.
+- **Other houses do not sell out of, or into, the player's store by themselves.** They send word.
+- **A deal's goods are not production.** The market's supply and demand, and the mark for a house that makes a
+  quarter of a good, leave the ledger's trade lines out.
+
+### How it is built
+
+- `src/Core/Systems/HouseTradeSystem.cs`: the rules, the year's deliveries (`Due`, `LedgerLines`, `Settled`) and
+  the other houses (`Tick`, after the dealings).
+- `src/Core/Commands/DealingsCommands.cs`: `HouseTradeCommand`, one class for the five acts
+  (`buy`, `sell`, `deal_buy`, `deal_sell`, `end`).
+- `src/Core/State/Dealings.cs`: `TradeDeal`; `DealingRecord` gains `Good` and `Units`. `World.TradeDeals`.
+- Hooks: `Economy` (the deal's lines in `Compute`; what is due is settled before any treasury moves and reckoned
+  after, beside the loans), `MarketSystem.Ledgers` and `OrderSystem` (trade lines are not production),
+  `DealingsSystem.Lasting` (the record), `CornerSystem.Take` (the word), `TurnController` (`HouseTrade`).
+- Reused from `DealingsSystem`: who may deal with whom (`Parties`), how regard moves and how the rest of a house
+  hears (`Regard`), the record (`World.Dealings`), and its numbers for a pledge kept and broken and a default.
+- `src/Web/Components/HousesScreen.razor`: the part (`data-trade`, `data-trade-buy`, `data-trade-sell`,
+  `data-trade-deal` for a deal that sends to you and `data-trade-deal-sell` for one you send, `data-trade-end`,
+  and `data-trade-lot`, `data-trade-term` for the two pickers). `src/Web/Components/ExchangeScreen.razor`: the fold.
+- `tests/TradeBetweenHousesTests.cs`: 20 tests. Two existing tests were changed: `tests/CornerTests.cs` asserts the new
+  word on a corner, and `tests/CustomCharacterTests.cs` (the upstart who is not held to a senator's year) moved from
+  seed 4 to seed 5. That test needs a game in which no report hands the house a rank in five years; about half the
+  seeds give one, and with the other houses trading among themselves seed 4 stopped being one of them.
+
+### What is not built
+
+- **No haggling.** The house names its price and the answer is yes or no. There is no counter-offer.
+- **A deal cannot be changed, renewed in one step, or passed to another house.** It is ended and struck again.
+- **Other houses do not end a deal because the market has moved against them**, only when they cannot keep it. They
+  do not offer the player a standing deal, only a lot.
+- **No running the embargo.** A house under it trades with nobody.
+- **Nothing is traded with the nations beyond the Reach or the raiders** this way, and manpower, clout and credits
+  are not goods here.
+- **A standing deal is not counted in a house's wealth.**
+- **The deals in force are listed on the other house's page and as lines in your ledger.** There is no one list of
+  all your deals.
+- **The Exchange's fold names the largest holders but not what each would spare**: that is worked out on the house's
+  own page, from its ledger.
+- **No scene.** Everything is a button and a notice.
+- **Random play (`src/Tools/Qa.cs`) does not give these commands yet**: that file was left for the owner's session.
+- The numbers are first guesses, and what the houses' own trading does at the generous money setting (above) wants
+  looking at.
+
 ## Things worth a rich house's money
 
 Built 2026-11-23, from the owner's "Hard" list (docs/PLAYTHROUGH.md): *"Things worth a rich house's money: endow a

@@ -34,7 +34,8 @@ public sealed class VotePledge
 }
 
 /// <summary>One thing that passed between two houses and is remembered: a gift, a favour kept or broken, a pledge kept or
-/// broken, a threat, a loan made, forgiven, pressed or defaulted on.</summary>
+/// broken, a threat, a loan made, forgiven, pressed or defaulted on; a lot of a good bought, a standing trade deal struck,
+/// kept, ended early or failed.</summary>
 public sealed class DealingRecord
 {
     public int Turn { get; set; }
@@ -45,4 +46,35 @@ public sealed class DealingRecord
     public string ToHouseId { get; set; } = "";
     /// <summary>The sum, where there was one (in the books' hundreds).</summary>
     public int Amount { get; set; }
+    /// <summary>The good, where goods changed hands (docs/WEALTH.md, "Trade between houses"); "" otherwise.</summary>
+    public string Good { get; set; } = "";
+    /// <summary>How many units of it.</summary>
+    public int Units { get; set; }
+}
+
+/// <summary>A standing trade deal between two houses (docs/WEALTH.md, "Trade between houses"): so many units of a good
+/// every year from one to the other, at a price a unit fixed the day it was struck, for a term of years. The goods and the
+/// credits change hands when the year's books are done.</summary>
+public sealed class TradeDeal
+{
+    public string Id { get; set; } = "";
+    /// <summary>The order the deals were struck in: the earlier is served first where a store or a treasury will not cover two.</summary>
+    public int Seq { get; set; }
+    public string SellerId { get; set; } = "";
+    public string BuyerId { get; set; } = "";
+    public string Good { get; set; } = "";
+    /// <summary>Units a year.</summary>
+    public int Units { get; set; }
+    /// <summary>The price of one unit, in single credits (not the books' hundreds), fixed for the term.</summary>
+    public int UnitCredits { get; set; }
+    public int Since { get; set; }
+    /// <summary>The year of the last delivery.</summary>
+    public int Until { get; set; }
+    /// <summary>Years running in which less than the whole was delivered, or it was not paid for.</summary>
+    public int Failed { get; set; }
+    /// <summary>The house that failed in the last such year.</summary>
+    public string FailedById { get; set; } = "";
+    /// <summary>Units delivered so far, and units it has fallen short by.</summary>
+    public int Delivered { get; set; }
+    public int Short { get; set; }
 }

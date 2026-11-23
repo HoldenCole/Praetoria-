@@ -330,6 +330,8 @@ input:focus, select:focus { outline: none; border-color: var(--brass); }
 .house-line .pill, .world-line .pill { margin-left: auto; }
 .focus-house h4 { margin: .6rem 0 .2rem; font-family: var(--display); font-size: .78rem; letter-spacing: .08em; color: var(--brass2); text-transform: uppercase; }
 .focus-house .who-head { align-items: center; } .focus-house .who-head .pill { margin-left: auto; }
+/* trade between houses (docs/WEALTH.md): each good is a line of what is held and asked with its buttons beneath, and the buttons wrap */
+.focus-house .trade-row { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .4rem; margin: .15rem 0 .3rem; } .focus-house .trade-good .line { overflow-wrap: anywhere; }
 .office-side .sheet-head { gap: .7rem; } .office-side .sheet-head h2 { font-size: 1.4rem; }
 .vols { display: flex; flex-wrap: wrap; gap: .3rem; margin-bottom: .4rem; } .vols .rung { cursor: pointer; background: none; }
 .sprite.big { width: 64px; height: 64px; }

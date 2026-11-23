@@ -100,6 +100,7 @@
                     </tbody>
                 </table>
                 <details class="orders" data-holders-fold><summary>Who holds what, and what a corner would take</summary>
+                <div class="muted small" data-holders-trade style="max-width:38rem;white-space:normal;margin:.2rem 0 .35rem">@FromStores()</div>
                 @foreach (var g in mk.Goods)
                 {
                     <div class="ac-fact" data-holding="@g.Id"><span>@g.Name</span><p><b>@g.All</b> in the Reach: the merchants hold @g.Stock, the houses @(g.All - g.Stock).
@@ -166,6 +167,9 @@
     private static string HoldTitle(GoodLine g) => $"{g.All} in the Reach: the merchants hold {g.Stock}, the houses {g.All - g.Stock}. {HoldersLine(g)} {CornerWord(g)}";
     private static string CornerRule() =>
         $"A house that holds a third of all there is of a good, the merchants' stock and every house's store together, and no fewer than {CornerSystem.LeastUnits} units, is felt in its price. One that holds half has cornered it: the price settles {CornerSystem.HalfPremiumPct}% higher at half and {CornerSystem.WholePremiumPct}% higher at the whole, for as long as the share is held. While a corner stands the merchants bring a quarter of what they would, and they think the worse of the house that holds it. Selling the hoard brings the price down as it is sold: one order of the whole of it fetches little more than half the quoted price. A house that makes a quarter of what the Reach brings up of a good has not cornered it by that: it is the store that counts here.";
+    /// <summary>Where the rest of a corner is bought when the merchants cannot supply it (docs/WEALTH.md, "Trade between houses").</summary>
+    private static string FromStores() =>
+        $"The merchants seldom hold enough to corner a good. The rest is in the stores of the houses named here, and can be bought of them: open a house under Houses and look under Trade. A house sells what it holds above what it keeps by ({HouseTradeSystem.KeepYears} years of what it burns, and a little whatever comes), at the market's price moved by what its head thinks of you, and a lot that is a large part of what it would spare costs more a unit. Isotopes are sold that way even while the law keeps them off the exchanges, and are {HouseTradeSystem.ClosedPct}% dearer for it.";
     private static string CornersNow(IReadOnlyList<GoodLine> goods)
     {
         var held = goods.Where(g => g.CornerHouseId.Length > 0).Select(g => $"{(g.CornerMine ? "your house" : g.CornerHouseName)} {(g.Cornered ? "has cornered" : $"holds {g.CornerSharePct}% of the")} {g.Name.ToLowerInvariant()}").ToList();

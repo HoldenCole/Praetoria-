@@ -154,7 +154,7 @@ public class CornerTests
         Assert.Equal(new[] { "exotics" }, CornerSystem.HeldBy(w2, rival.Id).ToArray()); Assert.Empty(CornerSystem.HeldBy(w2, Mine(w2).Id));
         // the player is told plainly who holds it, and what it would take to have it from them
         string word = CornerSystem.Word(w2, Content.Trade, Mine(w2).Id, "exotics");
-        Assert.StartsWith($"{rival.Name} has cornered it: it holds ", word); Assert.Contains("It cannot be cornered by buying", word);
+        Assert.StartsWith($"{rival.Name} has cornered it: it holds ", word); Assert.Contains("The merchants cannot supply a corner", word); Assert.Contains("bought out of the houses' own stores", word);
         var line = Build(tc2).Single(g => g.Id == "exotics"); Assert.Equal(rival.Id, line.CornerHouseId); Assert.True(line.Cornered); Assert.False(line.CornerMine); Assert.True(line.PremiumPct >= 50);
     }
     private static IReadOnlyList<GoodLine> Build(TurnController tc) { tc.BeginTurn(); return CourtProjection.Build(tc, Content).Market!.Goods; }
@@ -243,26 +243,32 @@ public class CornerTests
         Assert.StartsWith(Houses(w).First(h => h.Id != house.Id).Name + " holds 13 of the 31 in the Reach, a third or more, and the price feels it.", CornerSystem.Word(w, t, house.Id, "exotics"));
         Assert.Contains(" You hold 12 of the 31 in the Reach: 4 more is half, and the merchants hold 6.", CornerSystem.Word(w, t, house.Id, "exotics"));
         // half out of reach, a third within it
-        Lay(w, "exotics", 6, 5, 20);
-        Assert.Equal("You hold 5 of the 31 in the Reach. Half is 16 and the merchants hold only 6: with all the merchants have you would hold 11 of 31, or 35%. It cannot be cornered by buying. The other houses keep 20 in their own stores"
-            + $", and the Reach brings up {Good(w, "exotics").LastProduction:0} more a year. A third, from which the price begins to feel it, is 6 more.", CornerSystem.Take(w, t, house.Id, "exotics"));
+        // (what the merchants cannot supply is bought out of the other houses' stores: docs/WEALTH.md, "Trade between houses")
+        string rivalName = Lay(w, "exotics", 6, 5, 20).Name; const string fromStores = "would have to be bought out of the houses' own stores, of what each will spare, on its page under Trade.";
+        Assert.Equal($"You hold 5 of the 31 in the Reach. Half is 16 and the merchants hold only 6: with all the merchants have you would hold 11 of 31, or 35%. The merchants cannot supply a corner: the other 5 {fromStores} The other houses keep 20: {rivalName} holds 20."
+            + $" The Reach brings up {Good(w, "exotics").LastProduction:0} more a year. A third, from which the price begins to feel it, is 6 more.", CornerSystem.Take(w, t, house.Id, "exotics"));
         // the shelves bare
         Lay(w, "exotics", 0, 5, 20);
-        Assert.Equal($"You hold 5 of the 25 in the Reach. Half is 13 and the merchants hold none: it cannot be cornered by buying. The other houses keep 20 in their own stores, and the Reach brings up {Good(w, "exotics").LastProduction:0} more a year.", CornerSystem.Take(w, t, house.Id, "exotics"));
+        Assert.Equal($"You hold 5 of the 25 in the Reach. Half is 13 and the merchants hold none. The merchants cannot supply a corner: the other 8 {fromStores} The other houses keep 20: {rivalName} holds 20. The Reach brings up {Good(w, "exotics").LastProduction:0} more a year.", CornerSystem.Take(w, t, house.Id, "exotics"));
         // a good the Reach makes in plenty: it cannot be done, and the figures say why
         var st = CornerSystem.Standing(w, Content.Market, "materials"); string word = CornerSystem.Take(w, t, house.Id, "materials"); int me = st.Of(house.Id);
         Assert.True(st.Merchants + me < CornerSystem.ThirdOf(st.All), $"{st.Merchants} + {me} of {st.All}");
         Assert.StartsWith($"You hold {me} of the {st.All} in the Reach. Half is {CornerSystem.HalfOf(st.All)} and the merchants hold only {st.Merchants}: with all the merchants have you would hold {me + st.Merchants} of {st.All}, or ", word);
-        Assert.Contains("It cannot be cornered by buying.", word); Assert.Contains($"The other houses keep {st.Houses - me} in their own stores, and the Reach brings up {Good(w, "materials").LastProduction:0} more a year.", word);
+        Assert.Contains($"The merchants cannot supply a corner: the other {CornerSystem.HalfOf(st.All) - me - st.Merchants} {fromStores}", word);
+        Assert.Contains($"The other houses keep {st.Houses - me}: {CornerSystem.Largest(st, house.Id)}. The Reach brings up {Good(w, "materials").LastProduction:0} more a year.", word);
         Assert.DoesNotContain("A third, from which", word);
         // isotopes are not sold on any open market: a corner in them cannot be bought at all
         Assert.NotNull(MarketSystem.QuoteBuy(w, t, house.Id, "isotopes", 1).Refusal); Assert.False(CornerSystem.Open(w, t, Content.Market.Good("isotopes")!)); Assert.True(CornerSystem.Open(w, t, Content.Market.Good("exotics")!));
         Lay(w, "isotopes", 5, 2, 13); word = CornerSystem.Take(w, t, house.Id, "isotopes");
-        Assert.Equal("You hold 2 of the 20 in the Reach. Isotopes are not sold on any open market while the law of the Arms Market keeps them off the exchanges, so a corner in them cannot be bought: it would have to be brought up from your own worlds. 8 more is half.", word);
+        Assert.Equal("You hold 2 of the 20 in the Reach. Isotopes are not sold on any open market while the law of the Arms Market keeps them off the exchanges, so a corner in them cannot be bought there: "
+            + $"it is brought up from your own worlds, or bought out of the stores of the houses that hold them, on their pages under Trade ({rivalName} holds 13). 8 more is half.", word);
         // a handful: where half of all there is would be fewer than six, six is the least
         Lay(w, "exotics", 5, 0, 2);
-        Assert.Equal("You hold 0 of the 7 in the Reach. The least that makes a corner (half of all there is, and no fewer than 6) is 6 and the merchants hold only 5: with all the merchants have you would hold 5 of 7, or 71%. It cannot be cornered by buying. The other houses keep 2 in their own stores"
-            + $", and the Reach brings up {Good(w, "exotics").LastProduction:0} more a year.", CornerSystem.Take(w, t, house.Id, "exotics"));
+        Assert.Equal($"You hold 0 of the 7 in the Reach. The least that makes a corner (half of all there is, and no fewer than 6) is 6 and the merchants hold only 5: with all the merchants have you would hold 5 of 7, or 71%. The merchants cannot supply a corner: the other 1 {fromStores} The other houses keep 2: {rivalName} holds 2."
+            + $" The Reach brings up {Good(w, "exotics").LastProduction:0} more a year.", CornerSystem.Take(w, t, house.Id, "exotics"));
+        // with nothing in any other house's store there is nowhere to buy the rest
+        Lay(w, "exotics", 5, 0, 0);
+        Assert.Contains("and the merchants hold only 5: with all the merchants have you would hold 5 of 5, or 100%. It cannot be cornered by buying.", CornerSystem.Take(w, t, house.Id, "exotics"));
         Lay(w, "exotics", 0, 0, 0); Assert.Equal("There is none in the Reach to corner.", CornerSystem.Take(w, t, house.Id, "exotics"));
         // the holder of a corner is told what breaks it and nothing about making one
         Lay(w, "exotics", 4, 20, 6);

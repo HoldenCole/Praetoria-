@@ -156,16 +156,29 @@ public static class CornerSystem
         if (!Open(w, t, d))
         {
             string shut = good == Resource.Isotopes ? "Isotopes are not sold on any open market while the law of the Arms Market keeps them off the exchanges" : $"{d.Name} cannot be bought on the exchanges";
-            return (held.Length > 0 ? held + ". " : "") + $"{shut}, so a corner in them cannot be bought: it would have to be brought up from your own worlds. {need} more is {mark}.";
+            string kept = Largest(s, houseId);
+            return (held.Length > 0 ? held + ". " : "") + $"{shut}, so a corner in them cannot be bought there: it is brought up from your own worlds, or bought out of the stores of the houses that hold them, on their pages under Trade"
+                + (kept.Length > 0 ? $" ({kept})" : "") + $". {need} more is {mark}.";
         }
         int reach = me + s.Merchants, others = s.Houses - me; double made = g.LastProduction;
         if (need <= s.Merchants)
             return (held.Length > 0 ? held + ": " : "") + $"{need} more is {mark}, and the merchants hold {s.Merchants}." + (made >= 1 ? $" The Reach brings up {made:0} more a year, so a corner that is not fed is soon a smaller share." : "");
         string why = $"with all the merchants have you would hold {reach} of {s.All}, or {(int)Math.Round(100.0 * reach / s.All)}%";
-        string stores = others > 0 ? $"The other houses keep {others} in their own stores" + (made >= 1 ? $", and the Reach brings up {made:0} more a year." : ".") : made >= 1 ? $"The Reach brings up {made:0} more a year." : "";
+        string up = made >= 1 ? $" The Reach brings up {made:0} more a year." : "";
         string close = !Felt(me, s.All) && third - me <= s.Merchants ? $" A third, from which the price begins to feel it, is {third - me} more." : "";
-        string shelves = s.Merchants == 0 ? $"{Cap(mark)} is {half} and the merchants hold none: it cannot be cornered by buying." : $"{Cap(mark)} is {half} and the merchants hold only {s.Merchants}: {why}. It cannot be cornered by buying.";
-        return (held.Length > 0 ? held + ". " : "") + $"{shelves} {stores}".TrimEnd() + close;
+        string shelves = s.Merchants == 0 ? $"{Cap(mark)} is {half} and the merchants hold none" : $"{Cap(mark)} is {half} and the merchants hold only {s.Merchants}: {why}";
+        // what the merchants cannot supply is in the other houses' stores, and can be bought of them (docs/WEALTH.md, "Trade between houses")
+        string rest = others > 0
+            ? $". The merchants cannot supply a corner: the other {need - s.Merchants} would have to be bought out of the houses' own stores, of what each will spare, on its page under Trade. The other houses keep {others}: {Largest(s, houseId)}.{up}"
+            : $"{(s.Merchants == 0 ? ": it" : ". It")} cannot be cornered by buying.{up}";
+        return (held.Length > 0 ? held + ". " : "") + shelves + rest + close;
+    }
+
+    /// <summary>The largest stores other than this house's, in a phrase: "House Wren holds 90 and House Marrow 60".</summary>
+    public static string Largest(GoodHolding s, string houseId)
+    {
+        var top = s.Holders.Where(h => h.HouseId != houseId).Take(2).ToList();
+        return top.Count == 0 ? "" : top.Count == 1 ? $"{top[0].Name} holds {top[0].Units}" : $"{top[0].Name} holds {top[0].Units} and {top[1].Name} {top[1].Units}";
     }
 
     /// <summary>The plain word on a good for one house: whether it is cornered and by whom, and what a corner would take.</summary>

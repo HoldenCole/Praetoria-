@@ -52,7 +52,7 @@ public sealed class DealingsSystem
     private static Character? Head(World w, House? h) => h != null ? Economy.HeadOf(w, h) : null;
     /// <summary>What one house's head thinks of another's moves by this much, and what the rest of its grown people think
     /// by half as much: they hear of it, and whoever has the house next has not forgotten it.</summary>
-    private static void Regard(World w, House of, House toward, int delta)
+    internal static void Regard(World w, House of, House toward, int delta)
     {
         var a = Head(w, of); var b = Head(w, toward); if (a == null || b == null || a.Id == b.Id || delta == 0) return;
         var r = w.Relationship(a.Id, b.Id); r.Disposition = Math.Clamp(r.Disposition + delta, -100, 100);
@@ -77,7 +77,7 @@ public sealed class DealingsSystem
 
     /// <summary>Who is dealing with whom, or why they cannot: only the head of a house deals in its name, and only with a
     /// house of the Reach that has a head to answer.</summary>
-    private static string? Parties(World w, Character? me, House? theirs, out House mine, out Character head)
+    internal static string? Parties(World w, Character? me, House? theirs, out House mine, out Character head)
     {
         mine = null!; head = null!;
         var house = me != null ? w.House(me.HouseId) : null; if (me?.Alive != true || house == null) return "no house";
@@ -490,6 +490,7 @@ public sealed class DealingsSystem
         if (honoured + refused > 0) Say($"Favours it called in: honoured {Counted.Times(honoured)}, refused {Counted.Times(refused)}.", refused > 0 ? "warn" : "good");
         foreach (var d in w.Dealings.Where(d => d.Kind == ForgivenKind && d.FromHouseId == mine.Id && d.ToHouseId == theirs.Id || d.Kind is DefaultKind or RepaidKind && d.FromHouseId == theirs.Id && d.ToHouseId == mine.Id).OrderByDescending(d => d.Turn).Take(3))
             Say(d.Kind == ForgivenKind ? $"You forgave it {Money.Credits(d.Amount)} in year {d.Turn}." : d.Kind == DefaultKind ? $"It defaulted on {Money.Credits(d.Amount)} it owed you in year {d.Turn}." : $"It paid back in year {d.Turn} the {Money.Credits(d.Amount)} you lent it.", d.Kind == DefaultKind ? "warn" : "");
+        list.AddRange(HouseTradeSystem.Remembered(w, mine, theirs));   // what was bought and sold, and standing deals struck, kept and broken (docs/WEALTH.md, "Trade between houses")
         return list;
     }
 
