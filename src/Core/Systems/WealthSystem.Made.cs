@@ -323,7 +323,10 @@ public static partial class WealthSystem
             string ower = key[FavourPrefix.Length..^(proposer.Id.Length + 1)]; w.WorldCounters.Remove(key); Count(w, FavoursCalledKey);
             if (ower != mine) continue;
             var theirs = Economy.HeadOf(w, proposer); var me = w.Protagonist; bool kept = m.Votes.TryGetValue(mine!, out int cast) && cast > 0;
-            Regard(w, theirs, me, kept ? FavourKept : -FavourBroken); Count(w, kept ? FavoursKeptKey : FavoursBrokenKey);
+            Regard(w, theirs, me, kept ? FavourKept : -FavourBroken); Count(w, kept ? FavoursKeptKey : FavoursBrokenKey); w.WorldCounters.Remove(DealingsSystem.CalledKey(mine!, proposer.Id));
+            DealingsSystem.Remember(w, kept ? DealingsSystem.FavourKeptKind : DealingsSystem.FavourBrokenKind, mine!, proposer.Id);
+            w.Tell(kept ? "good" : "warn", kept ? $"{proposer.Name} called in the favour you owed it on its motion, and you voted for it. The account is even, and its head thinks {FavourKept:+0;-0} of you."
+                : $"{proposer.Name} called in the favour you owed it on its motion, and you did not vote for it. Its head thinks {-FavourBroken:+0;-0} of you.", "houses", proposer.Id);
             w.Log(kept ? $"{proposer.Name} asked a favour with its gift, and you voted for its motion. The account is even." : $"{proposer.Name} asked a favour with its gift, and you did not vote for its motion. {theirs?.Name ?? "Its head"} will remember who kept the gift.");
         }
     }
@@ -367,6 +370,12 @@ public static partial class WealthSystem
     public static string? TakesRefusal(World w, Character giver, Heirloom item, Character to)
     {
         if (to.HouseId == giver.HouseId || IsSpoil(item) && item.FromHouseId == to.HouseId) return null;
+        return WontTake(w, giver, to);
+    }
+    /// <summary>The same rule for anything else one house would press on another (a sum, a loan, a pledge): not from an enemy
+    /// at war, nor from one their head thinks very ill of.</summary>
+    public static string? WontTake(World w, Character giver, Character to)
+    {
         if (w.AtWar(giver.HouseId, to.HouseId)) return $"{to.Name} is at war with you, and will take nothing";
         return (w.GetRelationship(to.Id, giver.Id)?.Disposition ?? 0) <= RefuseGiftAt ? $"{to.Name} will take nothing from you" : null;
     }

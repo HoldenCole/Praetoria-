@@ -27,6 +27,8 @@ public static class Wealth
         foreach (var b in w.BusinessesOf(house.Id).Where(b => b.CompanyId.Length == 0)) v += economy != null ? economy.VentureValue(w, b) : ventures.Def(b.Kind)?.Value(b.Level) ?? 0;
         foreach (var p in w.ProjectsOf(house.Id).Where(p => p.CompanyId.Length == 0)) v += (int)(Economy.WorthOf(w, p.Paid) / 2);   // a thing half built is worth half what has been sunk in it
         v += PaperOf(w, house.Id);
+        // what one house has lent another (docs/WEALTH.md, "Dealings between houses"): the lender's to come, the borrower's to pay
+        foreach (var l in w.HouseLoans) { if (l.LenderId == house.Id) v += l.Owed; else if (l.BorrowerId == house.Id) v -= l.Owed; }
         return v - house.Debt;
     }
 

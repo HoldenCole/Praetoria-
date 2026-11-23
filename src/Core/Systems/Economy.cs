@@ -172,6 +172,13 @@ public sealed class Economy
         if (house.Debt > 0) ledger.Add("loan instalment", "loan", new Resources { Credits = -Lending.InstalmentOf(house, _ventures.Finance) });
         int interest = world.Houses.Values.Count(h => h.Debt > 0 && h.LenderId == houseId && h.Id != houseId);
         if (interest > 0) ledger.Add("interest on loans", "interest", new Resources { Credits = interest });
+        // what one house has lent another (docs/WEALTH.md, "Dealings between houses"): the year's instalment, where the borrower has it
+        foreach (var l in world.HouseLoans.Where(l => l.Owed > 0 && (l.LenderId == houseId || l.BorrowerId == houseId)).OrderBy(l => l.LenderId, StringComparer.Ordinal).ThenBy(l => l.BorrowerId, StringComparer.Ordinal))
+        {
+            int due = _dues != null ? _dues.GetValueOrDefault(l) : DealingsSystem.Due(world, l); if (due <= 0) continue;
+            if (l.BorrowerId == houseId) ledger.Add($"instalment to {world.House(l.LenderId)?.Name}", "loan", new Resources { Credits = -due });
+            else ledger.Add($"instalment from {world.House(l.BorrowerId)?.Name}", "interest", new Resources { Credits = due });
+        }
 
         if (fleets != null)
         {
@@ -328,10 +335,13 @@ public sealed class Economy
 
         // interest flows to lenders out of this turn's instalments, so snapshot who is paying before anyone's debt moves
         var paying = world.Houses.Values.Where(h => h.Debt > 0).Select(h => h.Id).ToHashSet();
+        // what each house-to-house loan pays this year is settled before anyone's treasury moves, so that lender and borrower agree
+        _dues = world.HouseLoans.ToDictionary(l => l, l => DealingsSystem.Due(world, l));
         foreach (var house in world.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var holdings = world.HoldingsOf(house.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
-            if (holdings.Count == 0 && !world.BusinessesOf(house.Id).Any() && house.Debt == 0 && !world.Businesses.Values.Any(b => world.PlanetHolder(b.SystemId) == house.Id) && !world.Houses.Values.Any(h => h.LenderId == house.Id && paying.Contains(h.Id))) continue;
+            if (holdings.Count == 0 && !world.BusinessesOf(house.Id).Any() && house.Debt == 0 && !world.Businesses.Values.Any(b => world.PlanetHolder(b.SystemId) == house.Id) && !world.Houses.Values.Any(h => h.LenderId == house.Id && paying.Contains(h.Id))
+                && !_dues.Keys.Any(l => l.LenderId == house.Id || l.BorrowerId == house.Id)) continue;
 
             // Snapshot solvency once, before this turn's income, so all of a house's holdings react
             // to the position the player left them in (deterministic regardless of holding order).
@@ -388,8 +398,11 @@ public sealed class Economy
             if (tax is { LegitimacyPerTurn: not 0 } && holdings.Count > 0) house.Legitimacy = Math.Max(0, house.Legitimacy + tax.LegitimacyPerTurn);
         }
 
+        DealingsSystem.Paid(world, _dues); _dues = null;
         Reckon(world);
     }
+    /// <summary>What each house-to-house loan pays in the year being accrued; null outside it, when a ledger is a forecast.</summary>
+    private Dictionary<HouseLoan, int>? _dues;
 
     /// <summary>Reckon and rank every house's wealth; write the flags and counters content reads
     /// (<c>richest:&lt;house&gt;</c>, <c>wealth_rank</c>, <c>in_debt</c>, <c>business:&lt;kind&gt;</c>, <c>claim_holder</c>).</summary>

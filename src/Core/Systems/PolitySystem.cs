@@ -78,7 +78,7 @@ public sealed class PolitySystem
     {
         if (h.Id == leader.Id || !Real(h) || !InReach(w, h.Id) || RegionSystem.CapitalHolder(w)?.Id == h.Id) return false;
         if (h.PatronId == leader.Id) return true;
-        if (Cowed(w, h, leader)) return true;                                    // it is afraid to do otherwise
+        if (Cowed(w, h, leader) && h.Id != w.Protagonist?.HouseId) return true;   // it is afraid to do otherwise (the player's house goes where its head says)
         int regard = Regard(w, h, leader);
         if (regard >= JoinRegard - (Bound(w, h, leader) ? MarriageEases : 0)) return true;   // a marriage between the houses makes it easier asked
         if (regard >= 0 && w.WorldCounters.TryGetValue(PledgeKey(h.Id, leader.Id), out int pledged) && w.Turn - pledged <= PledgeYears) return true;   // it gave its word

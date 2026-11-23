@@ -191,6 +191,12 @@ public sealed class World
     public Dictionary<string, string> Founders { get; set; } = new();
     /// <summary>Things a person owns that are worth leaving to someone (docs/WEALTH.md).</summary>
     public List<Heirloom> Heirlooms { get; set; } = new();
+    /// <summary>What one house has lent another at interest, while any of it is owed (docs/WEALTH.md, "Dealings between houses").</summary>
+    public List<HouseLoan> HouseLoans { get; set; } = new();
+    /// <summary>Votes one house has given its word on to another, until the motion is counted.</summary>
+    public List<VotePledge> VotePledges { get; set; } = new();
+    /// <summary>What has passed between houses and is remembered: gifts, pledges kept and broken, threats, loans.</summary>
+    public List<DealingRecord> Dealings { get; set; } = new();
     /// <summary>Blood owed between houses, standing and ended (docs/FEUD.md).</summary>
     public List<BloodFeud> Feuds { get; set; } = new();
     /// <summary>Courtships under way and suits not yet answered (docs/MARRIAGE.md).</summary>
