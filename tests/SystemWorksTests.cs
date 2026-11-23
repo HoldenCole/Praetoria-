@@ -584,8 +584,9 @@ public class SystemWorksTests
     [Fact]
     public void TheOtherHouses_BuildAndSettleToo_AndASaveKeepsIt()
     {
-        // (seed 16: a colony is a rare thing, nought to three in forty years, and on seed 11 the houses' petitions for rank moved the year's dice to nought)
-        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 16);
+        // (seed 14: a colony is a rare thing, nought to three in forty years. Seed 11 fell to nought when houses began to petition for rank, and seed 16 when they
+        // began to trade and the eldest began to lead; seven seeds of the eight from 12 to 19 settle one)
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 14);
         GalaxyGrowth.Grow(w, Content, GrowthCatalog.Medium); var tc = new TurnController(w, Content);
         for (int t = 0; t < 40 && !w.IsDynastyDead; t++) Year(tc);
         Assert.True(w.Counter(SystemWorks.BuiltCounter) >= 8, $"{w.Counter(SystemWorks.BuiltCounter)} works built in forty years");

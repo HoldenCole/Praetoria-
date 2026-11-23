@@ -77,12 +77,17 @@ econ --seeds 2`); the middle house, in credits:
 
 | Setting | Takes in a year at year 30 | Treasury at year 30 | Buildings standing at year 10 / 30 | Venture levels at year 10 / 30 |
 |---|---|---|---|---|
-| Lean | 1,400 | 1,900 | 42 / 101 | 9 / 79 |
-| Standard | 3,100 | 2,100 | 62 / 108 | 11 / 134 |
-| Generous | 4,000 | 6,800 | 67 / 120 | 23 / 177 |
-| Lavish | 5,800 | 33,600 | 84 / 143 | 43 / 236 |
+| Lean | 1,500 | 2,200 | 43 / 99 | 9 / 84 |
+| Standard | 2,700 | 1,800 | 62 / 102 | 12 / 117 |
+| Generous | 5,100 | 14,800 | 67 / 125 | 26 / 207 |
+| Lavish | 5,800 | 23,900 | 82 / 142 | 44 / 259 |
 
 Lavish is about what the game was before the prices were changed: money piles up and stops mattering.
+
+These were measured again on 2026-11-23, after houses began to trade with one another and the eldest began to lead a house.
+Lean, Standard and Lavish moved by no more than one game differs from another. **Generous more than doubled** (6,800 to
+14,800 in the treasury): with coin to spare and a way to buy materials from another house, houses found more ventures
+(207 levels against 177). At Generous money now piles up as it does at Lavish. It is in the register as M10.
 
 **Boosts** are ticked on the same screen, are your house's alone, and are given once when the game begins. None is on
 unless it is ticked.

@@ -465,6 +465,15 @@ internal static class Qa
                     : what is DealingsCommand.AskVote or DealingsCommand.CallVote or DealingsCommand.Pledge ? motion : "";
                 cands.Add(new DealingsCommand(p.Id, what, them.Id, deals, value, what == DealingsCommand.Lend ? DealingsSystem.LoanRates[decisions.NextInt(0, DealingsSystem.LoanRates.Length)] : 0));
             }
+            // trade between houses (docs/WEALTH.md): a lot bought or sold out of a house's store, a standing deal, and one ended
+            if (tc.HouseTrade is { } trade && others.Count > 0 && decisions.NextInt(0, 2) == 0)
+            {
+                var them = others[decisions.NextInt(0, others.Count)]; string what = HouseTradeCommand.All[decisions.NextInt(0, HouseTradeCommand.All.Length)];
+                var goods = trade.Goods.Select(g => g.Id).OrderBy(g => g, StringComparer.Ordinal).ToList(); string good = goods.Count > 0 ? goods[decisions.NextInt(0, goods.Count)] : "";
+                bool deal = what is HouseTradeCommand.DealBuy or HouseTradeCommand.DealSell; int lot = HouseTradeSystem.Lots[decisions.NextInt(0, HouseTradeSystem.Lots.Length)];
+                string dealId = w.TradeDeals.Count > 0 ? w.TradeDeals[decisions.NextInt(0, w.TradeDeals.Count)].Id : "";
+                cands.Add(new HouseTradeCommand(p.Id, what, them.Id, trade, good, lot, deal ? HouseTradeSystem.Terms[decisions.NextInt(0, HouseTradeSystem.Terms.Length)] : 0, what == HouseTradeCommand.End ? dealId : ""));
+            }
             // the courts (docs/LADDER.md): a charge against a former magistrate, and now and then an offer to a sitting praetor
             if (LadderSystem.Active(w, content.Offices) && decisions.NextInt(0, 3) == 0)
             {
