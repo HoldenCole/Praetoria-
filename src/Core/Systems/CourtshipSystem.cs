@@ -400,7 +400,7 @@ public static class CourtshipSystem
     {
         var s = w.Char(c.SuitorId)!; var t = w.Char(c.TargetId)!; var ours = w.House(s.HouseId)!;
         Wed(w, s, t, Love, None, s.HouseId, favour: c.Favour);
-        Sour(w, Head(w, t.HouseId), Head(w, s.HouseId), -40); ours.Legitimacy -= 4; Mark(w, ElopedFlag);
+        Sour(w, Head(w, t.HouseId), Head(w, s.HouseId), -40); LegitimacyBook.Move(w, ours, -4, LegitimacyBook.Family, "A marriage without the other family's leave"); Mark(w, ElopedFlag);
         w.Log($"{s.Name} and {t.Name} married without {w.House(t.HouseId)?.Name}'s leave. It will not be forgotten there.");
     }
 
@@ -410,7 +410,7 @@ public static class CourtshipSystem
         if (c.Betrothed)
         {
             string? mine = w.Protagonist?.HouseId; var breaker = s.HouseId == mine ? s : t; var other = breaker == s ? t : s;
-            if (w.House(breaker.HouseId) is { } bh) bh.Legitimacy -= 3;
+            if (w.House(breaker.HouseId) is { } bh) LegitimacyBook.Move(w, bh, -3, LegitimacyBook.Family, "A promise of marriage broken");
             Sour(w, Head(w, other.HouseId), Head(w, breaker.HouseId), -20); Mark(w, BetrothalBrokenFlag);
             w.Log($"{w.House(breaker.HouseId)?.Name} broke the promise between {s.Name} and {t.Name}.");
             return;
@@ -432,7 +432,7 @@ public static class CourtshipSystem
     {
         var s = w.Char(c.SuitorId)!; var t = w.Char(c.TargetId)!; var ours = w.House(s.HouseId)!;
         Wed(w, s, t, Love, None, "", favour: c.Favour, log: false);
-        Sour(w, Head(w, t.HouseId), Head(w, s.HouseId), -25); ours.Legitimacy -= 2; Mark(w, KinElopedFlag); s.Flags.Add(ElopedChar);
+        Sour(w, Head(w, t.HouseId), Head(w, s.HouseId), -25); LegitimacyBook.Move(w, ours, -2, LegitimacyBook.Family, "One of the house married without anyone's leave"); Mark(w, KinElopedFlag); s.Flags.Add(ElopedChar);
         w.Log($"{s.Name} of {ours.Name} and {t.Name} of {w.House(t.HouseId)?.Name} have married without anyone's leave.");
     }
 
@@ -459,9 +459,9 @@ public static class CourtshipSystem
         if (ha != null && hb != null && ha.Id != hb.Id)
         {
             int ra = Title.RankOf(ha.Title), rb = Title.RankOf(hb.Title);
-            if (rb > ra) { ha.Claims.Add(hb.Title); ha.Legitimacy += 5; }
-            else if (ra > rb) { hb.Claims.Add(ha.Title); hb.Legitimacy += 5; }
-            else { ha.Legitimacy += 2; hb.Legitimacy += 2; }
+            if (rb > ra) { ha.Claims.Add(hb.Title); LegitimacyBook.Move(w, ha, 5, LegitimacyBook.Family, "A marriage into a house of higher rank"); }
+            else if (ra > rb) { hb.Claims.Add(ha.Title); LegitimacyBook.Move(w, hb, 5, LegitimacyBook.Family, "A marriage into a house of higher rank"); }
+            else { LegitimacyBook.Move(w, ha, 2, LegitimacyBook.Family, "A marriage between houses of the same rank"); LegitimacyBook.Move(w, hb, 2, LegitimacyBook.Family, "A marriage between houses of the same rank"); }
         }
         string? mine = w.Protagonist?.HouseId; bool ourWedding = mine != null && (a.HouseId == mine || b.HouseId == mine);
         if (ourWedding && w.House(mine!) is { } ourHouse) CourtSystem.Wedding(w, ourHouse);
@@ -546,7 +546,7 @@ public static class CourtshipSystem
             var rel = w.Relationship(x, y); rel.Bond = BondType.None; rel.BondStrength = 0; rel.Disposition = Math.Clamp(rel.Disposition - 30, -100, 100);
         }
         who.Flags.Remove("wed"); spouse.Flags.Remove("wed"); w.Marriages.Remove(m);
-        ours.Legitimacy -= (w.IsImperium ? 8 : 4) - (m.Estranged ? 2 : 0);
+        LegitimacyBook.Move(w, ours, -((w.IsImperium ? 8 : 4) - (m.Estranged ? 2 : 0)), LegitimacyBook.Family, "A marriage ended");
         if (theirs != null && theirs.Id != ours.Id)
         {
             Sour(w, Head(w, theirs.Id), Head(w, ours.Id), m.Estranged ? -10 : -25);

@@ -146,7 +146,7 @@ public sealed class RegionSystem
             h.FormerOwnerId = house.Id; h.OwnerId = id; h.Unrest = Math.Max(0, h.Unrest - 10);
             w.Fleets[$"militia_{id}"] = new Fleet { Id = $"militia_{id}", Name = $"{sys?.Name.Replace("The ", "") ?? h.Name} Guard", OwnerId = id, SystemId = h.SystemId, Strength = 1, AdmiralId = gov.Id, Readiness = 80 };
             w.Relationship(gov.Id, head.Id).Disposition = -70; w.Relationship(head.Id, gov.Id).Disposition = Math.Clamp((w.GetRelationship(head.Id, gov.Id)?.Disposition ?? 0) - 50, -100, 100);
-            house.Legitimacy = Math.Max(0, house.Legitimacy - 4);
+            LegitimacyBook.Move(w, house, -4, LegitimacyBook.Land, "A governor declared a world for themselves");
             w.WorldCounters["governor_revolts"] = w.Counter("governor_revolts") + 1; if (house.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("governor_revolt");
             w.Log($"{gov.Name}, governor of {h.Name}, declares the world for {(gov.Sex == "female" ? "herself" : "himself")}: {nh.Name} is proclaimed from the palace steps, and {house.Name} learns what it gave away with the chair.");
         }
@@ -173,7 +173,7 @@ public sealed class RegionSystem
                                     : $"{name} stands masterless; {(w.IsImperium ? "the court is dark" : "the chair stands empty")}.");
             }
         }
-        if (holder != null && w.Turn > 0 && w.Turn % 3 == 0) holder.Legitimacy = Math.Min(100, holder.Legitimacy + 1);
+        if (holder != null && w.Turn > 0 && w.Turn % 3 == 0) LegitimacyBook.Move(w, holder, 1, LegitimacyBook.Land, "Holds the capital");
     }
 
     /// <summary>A world four turns in rebellion breaks away under a new house: its governor, if of another house, else a leader
@@ -202,7 +202,7 @@ public sealed class RegionSystem
         w.Fleets[$"militia_{id}"] = new Fleet { Id = $"militia_{id}", Name = $"{sys.Name.Replace("The ", "")} Militia", OwnerId = id, SystemId = sys.Id, Strength = 1, AdmiralId = leader.Id, Readiness = 80 };
         if (old != null)
         {
-            old.Legitimacy = Math.Max(0, old.Legitimacy - 5);
+            LegitimacyBook.Move(w, old, -5, LegitimacyBook.Land, "A world broke away");
             var head = Economy.HeadOf(w, old); if (head != null) w.Relationship(leader.Id, head.Id).Disposition = -60;
             if (old.Id == w.Protagonist?.HouseId) w.WorldFlags.Add("lost_a_world_to_rebellion");
         }
@@ -213,7 +213,7 @@ public sealed class RegionSystem
 
     public static void DeclareFreeMarch(World w, House house, Region region, House capital)
     {
-        house.Bloc = FreeholdsBloc; house.Legitimacy += 5; capital.Legitimacy = Math.Max(0, capital.Legitimacy - 5);
+        house.Bloc = FreeholdsBloc; LegitimacyBook.Move(w, house, 5, LegitimacyBook.Land, "Declared a free march"); LegitimacyBook.Move(w, capital, -5, LegitimacyBook.Land, "A march declared itself free of the capital");
         var head = Economy.HeadOf(w, house); var crown = Economy.HeadOf(w, capital);
         if (head != null && crown != null) { w.Relationship(crown.Id, head.Id).Disposition = Math.Clamp(w.Relationship(crown.Id, head.Id).Disposition - 30, -100, 100); w.Relationship(head.Id, crown.Id).Disposition = Math.Clamp(w.Relationship(head.Id, crown.Id).Disposition - 20, -100, 100); }
         w.WorldCounters["free_marches"] = w.Counter("free_marches") + 1; w.WorldFlags.Add("free_march:" + region.Id);
@@ -225,8 +225,8 @@ public sealed class RegionSystem
     {
         var mine = w.Protagonist?.HouseId; if (mine == null) return;
         var house = w.House(mine); var rebels = w.HoldingsOf(mine).Where(h => h.InRebellion).ToList();
-        if (w.WorldFlags.Remove("concede_to_rebels") && house != null) foreach (var h in rebels) { h.Rebellion = 0; h.Unrest = Math.Max(0, h.Unrest - 30); h.Prosperity = Math.Max(0, h.Prosperity - 10); house.Legitimacy = Math.Max(0, house.Legitimacy - 3); w.Log($"{house.Name} concedes the rising on {h.Name}: the tithe is forgiven and the ringleaders go home as councillors."); }
-        if (w.WorldFlags.Remove("purge_rebels") && house != null) foreach (var h in rebels) { h.Rebellion = 0; h.Unrest = Math.Max(0, h.Unrest - 20); h.Population = Math.Max(0, h.Population - 3); house.Legitimacy = Math.Max(0, house.Legitimacy - 6); w.WorldCounters["threat"] = w.Counter("threat") + 3; w.Log($"{house.Name} breaks the rising on {h.Name}. The square is quiet. The Reach takes note."); }
+        if (w.WorldFlags.Remove("concede_to_rebels") && house != null) foreach (var h in rebels) { h.Rebellion = 0; h.Unrest = Math.Max(0, h.Unrest - 30); h.Prosperity = Math.Max(0, h.Prosperity - 10); LegitimacyBook.Move(w, house, -3, LegitimacyBook.Land, "Conceded a rising"); w.Log($"{house.Name} concedes the rising on {h.Name}: the tithe is forgiven and the ringleaders go home as councillors."); }
+        if (w.WorldFlags.Remove("purge_rebels") && house != null) foreach (var h in rebels) { h.Rebellion = 0; h.Unrest = Math.Max(0, h.Unrest - 20); h.Population = Math.Max(0, h.Population - 3); LegitimacyBook.Move(w, house, -6, LegitimacyBook.Land, "Broke a rising by force"); w.WorldCounters["threat"] = w.Counter("threat") + 3; w.Log($"{house.Name} breaks the rising on {h.Name}. The square is quiet. The Reach takes note."); }
     }
 
     /// <summary>Flags content reads: <c>holds_capital</c>, <c>rebellion</c>, <c>region_lawless</c>, <c>secession_tempting</c>, <c>free_march</c>, <c>ring:&lt;ring&gt;</c> (the ring of the seat).</summary>

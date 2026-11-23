@@ -36,6 +36,8 @@ public sealed class SenateSystem
     public CaesarSystem? Caesar { get; set; }
     /// <summary>States that have left the Reach (docs/BREAKAWAY.md): going back for one is voted here.</summary>
     public PolitySystem? Polities { get; set; }
+    /// <summary>The ladder of titles (docs/TITLES.md, "Rungs that are earned"): a petition for a rung above Prefect is voted here.</summary>
+    public ProgressionSystem? TitleLadder { get; set; }
     public static bool IsPetition(Motion m) => m.ProposerHouseId.StartsWith(EstatePrefix);
     public static string? PetitionEstate(Motion m) => IsPetition(m) ? m.ProposerHouseId[EstatePrefix.Length..] : null;
     /// <summary>Who brings the motion: a house's name, or an estate's for a petition.</summary>
@@ -134,6 +136,8 @@ public sealed class SenateSystem
         return BribeCredits + target.SphereInfluence.GetValueOrDefault("senate") + 2 * Progression.Title.RankOf(target.Title) + (leads ? BenchLeaderBribe : 0) + Math.Max(0, -disp) / 10;
     }
     public const int BenchLeaderBribe = 5, BribeOutOneIn = 4, BribeOutLegitimacy = 3, BribeRefusedRegard = 5;
+    /// <summary>A house whose legitimacy is this far above what a rung asks is thought to deserve it: a point of lean for its petition.</summary>
+    public const int ElevationWellAbove = 15;
     /// <summary>Why a house's head would not take the purse, or null: the upright will not, nor one who hates the buyer.</summary>
     public static string? BribeRefused(World w, House target, Character? buyer)
     {
@@ -189,6 +193,22 @@ public sealed class SenateSystem
                 if (houseId == m.TargetId) Add(4, "it is the house to be recognised");
                 else if (targetHouse != null && h.Claims.Contains(targetHouse.Title)) Add(-2, "it claims the same rank");          // a rival claimant to the same rung
                 else Add(toTarget >= 10 ? 1 : toTarget <= -20 ? -1 : 0, "what its head thinks of " + tn);
+                break;
+            case "elevation":
+                // a petition for a rank (docs/TITLES.md, "Rungs that are earned"): what the head thinks of the house that asks, whether
+                // its standing is well above what the rung wants, and who would be passed, who claims the rung, who is at war with it
+                if (targetHouse != null && houseId != m.TargetId)
+                {
+                    Add(toTarget >= 10 ? 1 : toTarget <= -20 ? -1 : 0, "whether its head would see " + tn + " raised");
+                    if (_titles.ById(m.TitleId) is { } rung)
+                    {
+                        if (targetHouse.Legitimacy >= rung.LegitimacyRequirement + ElevationWellAbove) Add(1, tn + " stands well above what the rank asks");
+                        if (h.Claims.Contains(rung.Id)) Add(-2, "it claims the same rank");
+                        if (_titles.RankOf(h.Title) == rung.Rank - 1) Add(-1, "it is of " + tn + "'s rank today, and would be passed");
+                    }
+                    if (targetHouse.Origin == "new" && h.Origin == "old") Add(-1, "an old family does not care to see a new name rise");
+                    if (w.AtWar(houseId, m.TargetId)) Add(-2, "it is at war with " + tn);
+                }
                 break;
             case "levy":
                 if (RegionSystem.CapitalHolder(w)?.Id == houseId) Add(3, "the levy fills its own treasury: it holds the capital");
@@ -375,7 +395,7 @@ public sealed class SenateSystem
     {
         var def = _motions.Def(m.Kind); if (def == null) return m.Kind;
         string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : def.Target == "nation" ? Nations.Def(m.TargetId)?.Name ?? m.TargetId : "";
-        return def.Description.Replace("{proposer}", ProposerName(w, m)).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId)
+        return def.Description.Replace("{proposer}", ProposerName(w, m)).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId).Replace("{rank}", _titles.ById(m.TitleId)?.NameIn(w.Era) ?? m.TitleId)
             .Replace("{law}", Policies.Law(m.LawId)?.Name.ToLowerInvariant() ?? m.LawId).Replace("{option}", Policies.Law(m.LawId)?.Option(m.LawOption)?.Name.ToLowerInvariant() ?? m.LawOption);
     }
 
@@ -433,7 +453,7 @@ public sealed class SenateSystem
         foreach (var (boughtId, payerId) in m.BoughtBy.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToList())
         {
             if (!BribeComesOut(w, m, boughtId)) continue;
-            m.Votes[boughtId] = 0; var payer = w.House(payerId); if (payer != null) payer.Legitimacy = Math.Clamp(payer.Legitimacy - BribeOutLegitimacy, 0, 100);
+            m.Votes[boughtId] = 0; var payer = w.House(payerId); if (payer != null) LegitimacyBook.Move(w, payer, -BribeOutLegitimacy, LegitimacyBook.Scandal, "A bought vote came out on the floor");
             if (payerId == mine) w.WorldFlags.Add("bribe_out");
             w.Log($"It comes out on the floor that {payer?.Name ?? "a house"} paid {w.House(boughtId)?.Name} for its vote. The vote is struck, and {payer?.Name} is thought the less of.");
         }
@@ -453,7 +473,7 @@ public sealed class SenateSystem
             int expected = LeaderStance(w, m, bench);
             if (expected != 0 && m.Votes[mine] == -expected) FactionSystem.BreakWhip(w, mine, bench);
         }
-        FactionSystem.RecordVotes(w, m, m.Kind);
+        FactionSystem.RecordVotes(w, m, m.Kind, platform: !def.Rank);
         if (!IsPetition(m)) { string standingKey = "senate_standing:" + m.ProposerHouseId; w.WorldCounters[standingKey] = Math.Max(0, w.Counter(standingKey) + (m.Passed ? 1 : -1)); }
         if (PetitionEstate(m) is { } estate) Answer(w, m, estate, mine);
         string text = Describe(w, m);
@@ -469,6 +489,7 @@ public sealed class SenateSystem
         {
             if (m.ProposerHouseId == mine) w.WorldFlags.Add("motion_failed_mine");
             if (def.Law) w.WorldFlags.Add("act_failed");
+            if (def.Rank) TitleLadder?.Refused(w, m);
             if (def.Target == "house" && w.House(m.TargetId) is { } spared)
             {
                 if (def.Interest == "triumph") Caesar?.TriumphVoted(w, spared, w.House(m.ProposerHouseId), passed: false);
@@ -536,11 +557,11 @@ public sealed class SenateSystem
         var proposer = w.House(m.ProposerHouseId); var target = def.Target == "house" ? w.House(m.TargetId) : null;
         if (target != null && def.LegitimacyTarget != 0)
         {
-            target.Legitimacy = Math.Clamp(target.Legitimacy + def.LegitimacyTarget, 0, 100);
+            LegitimacyBook.Move(w, target, def.LegitimacyTarget, LegitimacyBook.Senate, def.Name + ", carried in the Senate");
             if (target.Id == mine) w.WorldFlags.Add(def.LegitimacyTarget < 0 ? "censured" : "recognised");
             if (def.LegitimacyTarget < 0) w.WorldCounters[CaesarSystem.CensuredKey(target.Id)] = w.Turn;   // a cause, to a general who wants one
         }
-        if (proposer != null && def.LegitimacyProposer != 0) proposer.Legitimacy = Math.Clamp(proposer.Legitimacy + def.LegitimacyProposer, 0, 100);
+        if (proposer != null && def.LegitimacyProposer != 0) LegitimacyBook.Move(w, proposer, def.LegitimacyProposer, LegitimacyBook.Senate, def.Name + ", moved and carried");
         if (def.LevyCredits > 0)
         {
             var chair = RegionSystem.CapitalHolder(w);
@@ -550,7 +571,7 @@ public sealed class SenateSystem
                 if (chair != null) chair.Treasury.Credits += paid;
                 if (h.Id == mine) w.WorldFlags.Add("levied");
             }
-            if (chair != null) chair.Legitimacy = Math.Min(100, chair.Legitimacy + 2);
+            if (chair != null) LegitimacyBook.Move(w, chair, 2, LegitimacyBook.Senate, "The levy, paid to the chair");
         }
         if (def.Target == "region" && w.Galaxy != null)
         {
@@ -561,6 +582,7 @@ public sealed class SenateSystem
             rs.Lawlessness = Math.Clamp(rs.Lawlessness + def.LawlessnessRegion / scale, 0, 100); rs.Allegiance = Math.Clamp(rs.Allegiance + def.AllegianceRegion / scale, 0, 100);
             foreach (var h in w.Holdings.Values.Where(x => x.IsPlanet && w.Galaxy.System(x.SystemId)?.RegionId == m.TargetId)) h.Prosperity = Math.Clamp(h.Prosperity + def.ProsperityRegion / scale, 0, 100);
         }
+        if (def.Rank && target != null) TitleLadder?.Carried(w, m);
         if (def.Interest == "triumph" && target != null) Caesar?.TriumphVoted(w, target, proposer, passed: true);
         if (def.Interest == "recall" && target != null) Caesar?.RecallVoted(w, target, proposer, passed: true);
         if (def.Interest == "emergency" && target != null) EmergencySystem.GrantVoted(w, target, proposer, _offices, passed: true);
@@ -738,19 +760,19 @@ public sealed class SenateSystem
     /// <summary>How a motion would stand if it were moved now, before anything is paid to move it: the weight for and against as the
     /// houses lean today, reckoned exactly as the docket's own count is (docs/PLAYTHROUGH.md, the Senate: "how it would fare, before
     /// paying to move it"). Nothing is written. The vote itself is at the end of the next year, and leans move in between.</summary>
-    public (int forWeight, int againstWeight) Forecast(World w, string proposerHouseId, string kind, string targetId, string officeId = "", string lawId = "", string lawOption = "")
+    public (int forWeight, int againstWeight) Forecast(World w, string proposerHouseId, string kind, string targetId, string officeId = "", string lawId = "", string lawOption = "", string titleId = "")
     {
-        var m = new Motion { Id = $"motion_{w.Counter("motions_proposed") + 1}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, ProposedTurn = w.Turn };
+        var m = new Motion { Id = $"motion_{w.Counter("motions_proposed") + 1}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, TitleId = titleId, ProposedTurn = w.Turn };
         int f = 0, a = 0;
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) { int s = Math.Sign(LeanNow(w, m, h.Id, null)); if (s > 0) f += Weight(w, h.Id); else if (s < 0) a += Weight(w, h.Id); }
         return (f, a);
     }
 
-    public Motion Add(World w, string proposerHouseId, string kind, string targetId, string officeId = "", string lawId = "", string lawOption = "")
+    public Motion Add(World w, string proposerHouseId, string kind, string targetId, string officeId = "", string lawId = "", string lawOption = "", string titleId = "")
     {
         int n = w.Counter("motions_proposed") + 1; w.WorldCounters["motions_proposed"] = n;
-        w.WorldCounters[$"motion_cd:{proposerHouseId}:{kind}:{(lawId.Length > 0 ? lawId + ":" + lawOption : officeId.Length > 0 ? targetId + ":" + officeId : targetId)}"] = w.Turn + RepeatTurns;
-        var m = new Motion { Id = $"motion_{n}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, ProposedTurn = w.Turn };
+        w.WorldCounters[$"motion_cd:{proposerHouseId}:{kind}:{(lawId.Length > 0 ? lawId + ":" + lawOption : officeId.Length > 0 ? targetId + ":" + officeId : titleId.Length > 0 ? targetId + ":" + titleId : targetId)}"] = w.Turn + RepeatTurns;
+        var m = new Motion { Id = $"motion_{n}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, TitleId = titleId, ProposedTurn = w.Turn };
         w.Motions.Add(m);
         w.Log($"Before the Senate: {Describe(w, m)} The vote is next session.");
         return m;

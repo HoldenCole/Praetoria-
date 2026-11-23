@@ -16,6 +16,7 @@ public sealed class SeizeTitleCommand : ICommand
 
     public string ActorId { get; }
     public string Describe() => "seize title";
+    public string? Refusal(CommandContext ctx) => _prog.SeizeRefusal(ctx.World, ActorId) ?? ctx.PoolsOf(ActorId).Short(CostMap);
     public bool CanExecute(CommandContext ctx) =>
         _prog.CanSeize(ctx.World, ActorId) && ctx.PoolsOf(ActorId).CanAfford(CostMap);
     public void Execute(CommandContext ctx)
@@ -25,7 +26,9 @@ public sealed class SeizeTitleCommand : ICommand
     }
 }
 
-/// <summary>Merit path — be granted the title. Capped by the soft-lock; arrives clean.</summary>
+/// <summary>Merit path — be granted the title. Capped by the soft-lock. Up to Prefect it is granted at once; from Legate up the
+/// house must have the land or the seats, and the petition goes before the Senate, which votes on it at the end of next year
+/// (docs/TITLES.md, "Rungs that are earned"). It gives no legitimacy.</summary>
 public sealed class PetitionTitleCommand : ICommand
 {
     private static readonly Dictionary<string, int> CostMap = new() { [Pool.Influence] = 2 };
@@ -34,7 +37,7 @@ public sealed class PetitionTitleCommand : ICommand
 
     public string ActorId { get; }
     public string Describe() => "petition for title";
-    public string? Refusal(CommandContext ctx) => _prog.PetitionRefusal(ctx.World, ActorId) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "needs 2 influence to hand");
+    public string? Refusal(CommandContext ctx) => _prog.PetitionRefusal(ctx.World, ActorId) ?? ctx.PoolsOf(ActorId).Short(CostMap);
     public bool CanExecute(CommandContext ctx) =>
         _prog.CanPetition(ctx.World, ActorId) && ctx.PoolsOf(ActorId).CanAfford(CostMap);
     public void Execute(CommandContext ctx)
@@ -53,7 +56,7 @@ public sealed class ClaimTitleCommand : ICommand
 
     public string ActorId { get; }
     public string Describe() => "claim title by blood";
-    public string? Refusal(CommandContext ctx) => _prog.ClaimRefusal(ctx.World, ActorId) ?? (ctx.PoolsOf(ActorId).CanAfford(CostMap) ? null : "needs 1 influence and 2 agents to hand");
+    public string? Refusal(CommandContext ctx) => _prog.ClaimRefusal(ctx.World, ActorId) ?? ctx.PoolsOf(ActorId).Short(CostMap);
     public bool CanExecute(CommandContext ctx) =>
         _prog.CanClaimByBlood(ctx.World, ActorId) && ctx.PoolsOf(ActorId).CanAfford(CostMap);
     public void Execute(CommandContext ctx)

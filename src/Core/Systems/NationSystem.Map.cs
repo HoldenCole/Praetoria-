@@ -371,7 +371,7 @@ public sealed partial class NationSystem
     {
         if (w.NationOfHouse(old) is { } lost && w.OfTheReach(conqueror))
         {
-            if (freedFor != null) { if (h.IsPlanet) Bump(w, FreedCounter, lost); if (w.House(conqueror) is { } liberator && freedFor != conqueror) liberator.Legitimacy = Math.Min(100, liberator.Legitimacy + 1); }
+            if (freedFor != null) { if (h.IsPlanet) Bump(w, FreedCounter, lost); if (w.House(conqueror) is { } liberator && freedFor != conqueror) LegitimacyBook.Move(w, liberator, 1, LegitimacyBook.Beyond, "A world of the Reach freed from a nation"); }
             else if (h.IsPlanet)
             {
                 Bump(w, WorldsTakenCounter, lost);
@@ -380,7 +380,7 @@ public sealed partial class NationSystem
                     Bump(w, CapitalsCounter, lost); Mark(w, CapitalTakenFlag, lost);
                     if ((lost.Treasure > 0 || lost.Titles > 0) && w.House(conqueror) is { } taker)
                     {   // what was in its vaults, and the name of having taken them: once, for whoever is first
-                        taker.Treasury.Credits += lost.Treasure; taker.Legitimacy = Math.Min(100, taker.Legitimacy + lost.Titles); Bump(w, TreasureCounter, lost, Math.Max(1, lost.Treasure));
+                        taker.Treasury.Credits += lost.Treasure; LegitimacyBook.Move(w, taker, lost.Titles, LegitimacyBook.Beyond, "A nation's capital taken, and what it held"); Bump(w, TreasureCounter, lost, Math.Max(1, lost.Treasure));
                         Mark(w, conqueror == w.Protagonist?.HouseId ? "treasure_taken_by_us" : "treasure_taken", lost);
                         var crowned = WealthSystem.TakeRegalia(w, taker, lost.Regalia, lost.Id);
                         w.Log($"{taker.Name} opens the vaults under {h.Name}: {Money.Credits(lost.Treasure)}{(crowned != null ? $", and {crowned.Name} carried home through the Reach" : "")}.");

@@ -240,7 +240,11 @@ public sealed class AdjustLegitimacyEffect : IEffect
     {
         var c = ctx.Actor(Role);
         if (c != null && ctx.World.Houses.TryGetValue(c.HouseId, out var house))
-            house.Legitimacy = Math.Max(0, house.Legitimacy + Delta);
+        {
+            string title = ctx.Content?.Text(ctx.EventId)?.Title is { Length: > 0 } t ? TextRenderer.Substitute(t, ctx) : "";
+            if (ctx.Standing is { } said) Systems.LegitimacyBook.Move(ctx.World, house, Delta, said.cause, said.line);
+            else Systems.LegitimacyBook.Move(ctx.World, house, Delta, Systems.LegitimacyBook.Events, title.Length > 0 ? "A report: " + title : "A report answered");
+        }
     }
 }
 

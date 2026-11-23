@@ -252,7 +252,10 @@ public class PlaythroughFixTests
         w.Turn++; Assert.Null(prog.PetitionRefusal(w, me.Id)); prog.Petition(w, me.Id); Assert.Equal(Title.Baron, house.Title);
         // from Legate up the rank wants land under it, however well the house is thought of
         w.Turn++; Assert.Contains("holds a world", prog.PetitionRefusal(w, me.Id)); house.Claims.Add(Title.Count); Assert.Contains("holds a world", prog.ClaimRefusal(w, me.Id));
-        w.Holdings.Values.First(h => h.IsPlanet).OwnerId = house.Id; w.HoldingsChanged(); Assert.Null(prog.PetitionRefusal(w, me.Id)); prog.Petition(w, me.Id); Assert.Equal(Title.Count, house.Title);
+        // with the land, the petition goes before the Senate and is voted there: asking is not rising (tests/EarnedTitlesTests.cs)
+        w.Holdings.Values.First(h => h.IsPlanet).OwnerId = house.Id; w.HoldingsChanged(); foreach (var open in w.Motions.Where(x => x.Open).ToList()) w.Motions.Remove(open);
+        Assert.Null(prog.PetitionRefusal(w, me.Id)); var asked = prog.Petition(w, me.Id); Assert.NotNull(asked); Assert.Equal(Title.Baron, house.Title);
+        asked!.ForWeight = 1; Assert.True(prog.Carried(w, asked)); w.Motions.Remove(asked); Assert.Equal(Title.Count, house.Title);
         w.Turn++; Assert.Contains("2 worlds", prog.PetitionRefusal(w, me.Id));
         // legitimacy is still asked for, and said
         house.Title = Title.Landless; house.Legitimacy = 3; w.Turn++; Assert.StartsWith("needs legitimacy 10", prog.PetitionRefusal(w, me.Id));

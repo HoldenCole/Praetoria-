@@ -38,6 +38,8 @@ public sealed class NpcAi
     public OrderSystem? Orders { get; init; }
     /// <summary>The holdings catalog, for a company's steward founding a venture (set by the turn controller).</summary>
     public HoldingCatalog? HoldingCatalogForFounding { get; init; }
+    /// <summary>The ladder of titles: a rival house petitions for its next rung by the player's own command (docs/TITLES.md, "Rungs that are earned").</summary>
+    public ProgressionSystem? Progression { get; init; }
     private BusinessCatalog _ventures = BusinessCatalog.Empty;
 
     public void Act(CommandExecutor executor, CommandContext ctx, CrisisEngine? crises = null,
@@ -57,6 +59,7 @@ public sealed class NpcAi
         using (Diagnostics.Perf.Time("npc:sail")) if (fleetRules != null && world.Galaxy != null) Sail(npcs, fleetRules, executor, ctx);
 
         using (Diagnostics.Perf.Time("npc:dynasty")) Dynasty(npcs, executor, ctx);
+        using (Diagnostics.Perf.Time("npc:rise")) Rise(executor, ctx);
 
         using (Diagnostics.Perf.Time("npc:each")) foreach (var npc in npcs)
         {
@@ -66,6 +69,20 @@ public sealed class NpcAi
         }
 
         using (Diagnostics.Perf.Time("npc:crisis")) if (crises != null) AuthorCrisis(npcs, crises, executor, ctx);
+    }
+
+    /// <summary>The other houses climb the ladder of titles by the road the player's house climbs it (docs/TITLES.md, "Rungs that
+    /// are earned"): a head whose house has the standing for its next rung, and from Legate up the land or the seats, petitions,
+    /// about one year in four. Up to Prefect it is granted; above that it goes before the Senate, one house's petition at a time,
+    /// and the player's house votes on it with the rest.</summary>
+    private void Rise(CommandExecutor executor, CommandContext ctx)
+    {
+        var prog = Progression; if (prog == null) return; var world = ctx.World; var mine = world.Protagonist?.HouseId;
+        foreach (var house in world.Houses.Values.Where(h => h.Id != mine).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        {
+            var head = Economy.HeadOf(world, house); if (head == null || head.Id == world.ProtagonistId) continue;
+            if (prog.RivalWouldPetition(world, house, head)) executor.TryExecute(new PetitionTitleCommand(head.Id, prog), ctx);
+        }
     }
 
     /// <summary>Rival houses keep ships (GDD §3 abstracted realms): a house with a comfortable treasury lays

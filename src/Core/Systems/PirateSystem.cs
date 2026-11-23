@@ -81,7 +81,7 @@ public sealed class PirateSystem
             string hunter = IsPirate(b.Attacker) ? b.Defender : b.Attacker;
             if (b.Winner != hunter) continue;
             var house = w.House(hunter); if (house == null) continue;
-            house.Legitimacy = Math.Min(100, house.Legitimacy + HuntLegitimacy);
+            LegitimacyBook.Move(w, house, HuntLegitimacy, LegitimacyBook.War, "Raiders hunted down");
             if (g.System(b.SystemId) is { } sys) { var rs = RegionSystem.StateOf(w, sys.RegionId); rs.Lawlessness = Math.Max(0, rs.Lawlessness - HuntLawlessnessRelief); w.WorldCounters["raiders_hunted:" + sys.RegionId] = w.Turn; }
             w.WorldCounters["pirates_hunted"] = w.Counter("pirates_hunted") + 1;
             if (hunter == w.Protagonist?.HouseId) w.WorldFlags.Add("pirate_hunter");

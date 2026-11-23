@@ -139,7 +139,7 @@ public static class FeudSystem
     public static void PayPrice(World w, BloodFeud f)
     {
         var owing = w.House(f.OwingId)!; var wronged = w.House(f.WrongedId)!; int price = Math.Min(f.Price, Math.Max(0, owing.Treasury.Credits));
-        owing.Treasury.Credits -= price; wronged.Treasury.Credits += price; owing.Legitimacy = Math.Max(0, owing.Legitimacy - PriceAdmits);
+        owing.Treasury.Credits -= price; wronged.Treasury.Credits += price; LegitimacyBook.Move(w, owing, -PriceAdmits, LegitimacyBook.Family, "A blood price paid, and the death admitted");
         var head = Economy.HeadOf(w, wronged); var victim = w.Char(f.VictimId);
         if (head != null && victim != null) foreach (var kin in w.LivingCharacters().Where(c => c.HouseId == wronged.Id && c.Id != head.Id && CloseKin(c, victim)).ToList()) Regard(w, kin, head, LetLieKin / 2);
         w.Log($"{owing.Name} pays {wronged.Name} {Money.Credits(price)} for {f.VictimName}. The blood between them is bought off.");
@@ -152,7 +152,7 @@ public static class FeudSystem
         var wronged = w.House(f.WrongedId)!; var head = Economy.HeadOf(w, wronged); var victim = w.Char(f.VictimId);
         if (chosen)
         {
-            int cost = Math.Max(0, LetLieStanding - f.Shame); wronged.Legitimacy = Math.Max(0, wronged.Legitimacy - cost);
+            int cost = Math.Max(0, LetLieStanding - f.Shame); LegitimacyBook.Move(w, wronged, -cost, LegitimacyBook.Family, "A death in the family let lie");
             if (head != null) foreach (var kin in w.LivingCharacters().Where(c => c.HouseId == wronged.Id && c.Id != head.Id && (victim == null || CloseKin(c, victim))).ToList()) Regard(w, kin, head, LetLieKin);
             Regard(w, Head(w, f.OwingId), head, LetLieThanks);
             w.Log($"{wronged.Name} lets the death of {f.VictimName} lie, and says so. {w.House(f.OwingId)?.Name} had not expected it.");
@@ -167,7 +167,7 @@ public static class FeudSystem
     public static void RefuseField(World w, BloodFeud f, Character blamed, Character challenger)
     {
         f.Refused = true; f.FieldRefused = true; blamed.Flags.Add(RefusedFieldChar); Bump(w, FieldRefusedKey);
-        if (w.House(f.OwingId) is { } owing) owing.Legitimacy = Math.Max(0, owing.Legitimacy - FieldRefusedStanding);
+        if (w.House(f.OwingId) is { } owing) LegitimacyBook.Move(w, owing, -FieldRefusedStanding, LegitimacyBook.Family, "Called out over a death, and did not come");
         LifeSystem.Note(w, blamed, "failure", $"Was called out by {challenger.Name} for the death of {f.VictimName}, and did not come.");
         w.Log($"{challenger.Name} of {w.House(f.WrongedId)?.Name} calls {blamed.Name} out for the death of {f.VictimName}. {blamed.Name} does not come.");
     }
@@ -233,7 +233,7 @@ public static class FeudSystem
         f.Unanswered++; var house = w.House(f.WrongedId)!; var head = Economy.HeadOf(w, house); var victim = w.Char(f.VictimId);
         if (f.Unanswered > GraceYears)
         {
-            if (f.Shame < ShameCap) { f.Shame++; house.Legitimacy = Math.Max(0, house.Legitimacy - 1); }
+            if (f.Shame < ShameCap) { f.Shame++; LegitimacyBook.Move(w, house, -1, LegitimacyBook.Family, "A death in the family left unanswered"); }
             if (head != null && victim != null) foreach (var kin in w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != head.Id && CloseKin(c, victim)).ToList()) Regard(w, kin, head, -3);
             Mark(w, UnansweredFlag);
         }

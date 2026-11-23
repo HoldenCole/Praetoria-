@@ -63,7 +63,7 @@ public static class OfficeSystem
         var old = Holding(w, def.Id);
         if (old != null) Strip(w, def, "the Senate commissions another", false);
         w.Offices.Add(new OfficeHolding { OfficeId = def.Id, HouseId = houseId, CharacterId = who.Id, SinceTurn = w.Turn });
-        var house = w.House(houseId); if (house != null) house.Legitimacy = Math.Min(100, house.Legitimacy + GrantLegitimacy);
+        var house = w.House(houseId); if (house != null) LegitimacyBook.Move(w, house, GrantLegitimacy, LegitimacyBook.Offices, "An office granted: " + def.Name);
         who.Flags.Add("office:" + def.Id);
         if (def.CommandsFleets) foreach (var f in w.Fleets.Values.Where(f => f.Office)) f.OwnerId = houseId;
         w.WorldCounters["offices_granted"] = w.Counter("offices_granted") + 1;
@@ -77,7 +77,7 @@ public static class OfficeSystem
         var mine = w.Protagonist?.HouseId; var h = Holding(w, def.Id); if (h == null) return;
         w.Offices.Remove(h);
         var house = w.House(h.HouseId); var who = w.Char(h.CharacterId); who?.Flags.Remove("office:" + def.Id);
-        if (house != null) house.Legitimacy = Math.Max(0, house.Legitimacy - (treason ? TreasonLegitimacy : GrantLegitimacy));
+        if (house != null) LegitimacyBook.Move(w, house, -(treason ? TreasonLegitimacy : GrantLegitimacy), LegitimacyBook.Offices, (treason ? "An office taken away for treason: " : "An office lost: ") + def.Name);
         if (def.CommandsFleets) { var back = FleetsDefaultOwner(w); foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId == h.HouseId)) f.OwnerId = back ?? f.OwnerId; }
         if (h.HouseId == mine) { w.WorldFlags.Add("office_lost"); if (treason) w.WorldFlags.Add("treason"); }
         w.Log(treason

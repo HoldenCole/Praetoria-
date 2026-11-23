@@ -196,7 +196,7 @@ public sealed partial class AcademySystem
         string track = Tracks.Contains(a.Service) ? a.Service : RecommendedService(w);
         a.Place = Place(w); a.Of = 1 + a.Cohort.Count(id => w.Char(id) is { Alive: true });
         p.CareerTrack = track; p.CareerRank = Math.Max(1, p.CareerRank); p.Age = EntryAge + 1;
-        if (a.Place == 1) { p.Flags.Add(FirstFlag); if (house != null) house.Legitimacy = Math.Min(100, house.Legitimacy + 3); }
+        if (a.Place == 1) { p.Flags.Add(FirstFlag); if (house != null) LegitimacyBook.Move(w, house, 3, LegitimacyBook.Family, "One of the house passed out first at the Academy"); }
         if (a.Place <= Math.Max(1, a.Of / 3)) p.Flags.Add(HonoursFlag);
         foreach (var id in a.Cohort)
             if (w.Char(id) is { Alive: true } c && c.CareerRank == 0) { if (!Tracks.Contains(c.CareerTrack)) c.CareerTrack = Tracks[(int)(Hash("svc:" + id) % (uint)Tracks.Length)]; c.CareerRank = 1; }

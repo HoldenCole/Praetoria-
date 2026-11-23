@@ -46,6 +46,10 @@ public sealed class House
     public int Legitimacy { get => _legitimacy; set => _legitimacy = Math.Clamp(value, 0, 100); }   // held to 0..100 here, so no system that adds to it can run it past the top
     private int _legitimacy;
 
+    /// <summary>What that number is made of (docs/TITLES.md, "What legitimacy is made of"): where it began, what has moved it
+    /// since and why. Written by <see cref="Systems.LegitimacyBook"/>.</summary>
+    public LegitimacyRecord LegitimacyRecord { get; set; } = new();
+
     /// <summary>Title ids this house holds a claim to (GDD §13 Intrigue path — marriage/inheritance).
     /// A claim is the key the Intrigue path needs to convert influence into a title.</summary>
     public HashSet<string> Claims { get; set; } = new();

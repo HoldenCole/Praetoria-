@@ -1,7 +1,7 @@
 @* One figure at the top of a dashboard (docs/DASHBOARDS.md, rule 2: no number alone). A label that is a question's subject, the
    value, what it is to be read against, and a tone that says whether it is well or ill. Optional small bars for a value that is
    really three (a fleet's readiness, loyalty and supply). The tooltip carries the detail. *@
-<div class="tile @Tone" title="@(Note.Length > 0 && Title.Length > 0 ? Note + "\n" + Title : Note.Length > 0 ? Note : Title)">
+<div class="tile @Tone @(OnClick.HasDelegate ? "click" : string.Empty)" title="@(Note.Length > 0 && Title.Length > 0 ? Note + "\n" + Title : Note.Length > 0 ? Note : Title)" @onclick="OnClick" @attributes="Attrs">
     <span class="t-label">@Label</span>
     <b class="t-value">@Value</b>
     @if (Bars != null)
@@ -25,4 +25,7 @@
     [Parameter] public IReadOnlyList<(string name, int pct, bool low)>? Bars { get; set; }
     /// <summary>A single bar under the value, nought to a hundred; below nought for none.</summary>
     [Parameter] public int Share { get; set; } = -1;
+    /// <summary>A tile that opens something when it is clicked; and whatever data- attributes it is given.</summary>
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
 }

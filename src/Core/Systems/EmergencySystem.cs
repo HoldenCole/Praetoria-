@@ -173,7 +173,7 @@ public static class EmergencySystem
     {
         var e = w.Emergency; if (e == null) return; var holder = w.Char(e.HolderId); var house = w.House(e.HouseId);
         bool early = !e.Due && e.KeptYears == 0, late = e.KeptYears > 0;
-        if (house != null && !late) house.Legitimacy = Math.Min(100, house.Legitimacy + LaidDownStanding + (early ? 2 : 0));
+        if (house != null && !late) LegitimacyBook.Move(w, house, LaidDownStanding + (early ? 2 : 0), LegitimacyBook.Offices, "Emergency powers laid down");
         if (!late) Trust(w, LaidDownTrust);
         if (holder != null)
         {
@@ -188,7 +188,7 @@ public static class EmergencySystem
     public static void Strip(World w)
     {
         var e = w.Emergency; if (e == null) return; var holder = w.Char(e.HolderId); var house = w.House(e.HouseId);
-        if (house != null) { house.Legitimacy = Math.Max(0, house.Legitimacy + StrippedStanding); w.WorldCounters[KeptOnceKey(house.Id)] = w.Turn; }
+        if (house != null) { LegitimacyBook.Move(w, house, StrippedStanding, LegitimacyBook.Offices, "Emergency powers taken away"); w.WorldCounters[KeptOnceKey(house.Id)] = w.Turn; }
         if (holder != null) { RegardOfAll(w, holder, StrippedRegard); LifeSystem.Note(w, holder, "failure", "Was stripped of the emergency powers by the Senate."); }
         w.Log($"The emergency powers of {holder?.Name ?? "the consul"} of {house?.Name} are ended by the Senate, not by {(holder?.Sex == "female" ? "her" : "his")} own hand.");
         Bump(w, StrippedKey); if (Mine(w, e.HouseId)) Mark(w, StrippedFlag); End(w);
@@ -254,7 +254,7 @@ public static class EmergencySystem
             if (!player) { LayDown(w); return; }
             if (w.Motions.Any(m => m.Open && m.Kind is "emergency" or "for_life" && m.TargetId == e.HouseId)) return;   // the Senate is being asked: this year is not held against them
             e.KeptYears++; Bump(w, KeptKey); Trust(w, KeptTrust); RegardOfAll(w, holder, KeptRegard);
-            if (w.House(e.HouseId) is { } house) { house.Legitimacy = Math.Max(0, house.Legitimacy + KeptStanding); w.WorldCounters[KeptOnceKey(house.Id)] = w.Turn; }
+            if (w.House(e.HouseId) is { } house) { LegitimacyBook.Move(w, house, KeptStanding, LegitimacyBook.Offices, "Emergency powers kept past the Senate's leave"); w.WorldCounters[KeptOnceKey(house.Id)] = w.Turn; }
             Mark(w, KeptFlag); w.Log($"{holder.Name} keeps the emergency powers, a year past the Senate's leave. It is noticed.");
             if (e.KeptYears >= KeptMax) { w.Log("The consuls-elect are sworn all the same, and the lictors do not come when they are sent for."); Strip(w); }
             return;

@@ -175,7 +175,7 @@ public static class LifeSystem
         var heir = DynastySystem.FindHeir(w, head)!; var house = w.House(head.HouseId);
         Note(w, head, "retired", $"Laid down the headship of {house?.Name} in life, to {heir.Name}.");
         DynastySystem.HandOver(w, heir);
-        head.Flags.Add(RetiredChar); heir.MentorId = head.Id; heir.JoinedTurn = w.Turn; if (house != null) { house.Legitimacy += 2; if (house.NamedHeirId == heir.Id) house.NamedHeirId = ""; }
+        head.Flags.Add(RetiredChar); heir.MentorId = head.Id; heir.JoinedTurn = w.Turn; if (house != null) { LegitimacyBook.Move(w, house, 2, LegitimacyBook.Family, "The head laid the house down in life"); if (house.NamedHeirId == heir.Id) house.NamedHeirId = ""; }
         foreach (var (a, b) in new[] { (heir.Id, head.Id), (head.Id, heir.Id) }) { var r = w.Relationship(a, b); r.Disposition = Math.Clamp(r.Disposition + 10, -100, 100); }
         Mark(w, RetiredNowFlag);
     }

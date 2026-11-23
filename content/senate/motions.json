@@ -7,6 +7,8 @@
     { "id": "recognition", "name": "Recognition", "target": "house", "interest": "recognition", "proposeInfluence": 2, "targetSelfAllowed": true,
       "description": "{proposer} moves that the Senate recognise the title and standing of {target}.",
       "legitimacyTarget": 6 },
+    { "id": "elevation", "name": "Petition for a rank", "target": "house", "interest": "elevation", "proposeInfluence": 2, "targetSelfAllowed": true, "rank": true,
+      "description": "{proposer} petitions the Senate that {target} be raised to the rank of {rank}." },
     { "id": "levy", "name": "The Levy", "target": "none", "interest": "levy", "proposeInfluence": 2,
       "description": "{proposer} moves that every landed house pay a levy of three hundred credits to the chair for the common defence.",
       "levyCredits": 3, "legitimacyProposer": 0 },

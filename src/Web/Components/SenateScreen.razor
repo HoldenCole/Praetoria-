@@ -151,9 +151,20 @@
             <section class="panel">
                 <h3><Icon Name="throne" Size="13" /> The ladder of titles</h3>
                 <div class="ladder">
-                    @foreach (var t in ladder) { int r = c.Titles.RankOf(t.Id); int mr = c.Titles.RankOf(house.Title); <span class="rung @(r == mr ? "here" : r < mr ? "past" : "")" title="@(t.LegitimacyRequirement > 0 ? $"needs legitimacy {t.LegitimacyRequirement}" : "")">@t.NameIn(G.World!.Era)</span> }
+                    @foreach (var t in ladder) { int r = c.Titles.RankOf(t.Id); int mr = c.Titles.RankOf(house.Title); <span class="rung @(r == mr ? "here" : r < mr ? "past" : "")" data-rung="@t.Id" title="@RungTip(t)">@t.NameIn(G.World!.Era)</span> }
                 </div>
                 <div class="kv"><span>Legitimacy</span><b>@s.Legitimacy@(s.NextTitle != null ? $" / {s.NextRequirement} for {s.NextTitle}" : "")</b></div>
+                @if (s.Made is { } made)
+                {
+                    <details data-legitimacy-details><summary title="@made.Line">What it is made of</summary><LegitimacyMade Card="made" /></details>
+                }
+                @if (s.NextTitle != null)
+                {
+                    <div class="rung-needs" data-rung-needs="@s.NextTitle">
+                        <div class="muted small" data-rung-earned>@s.Earned</div>
+                        @foreach (var need in s.Needs) { <div class="kv small @(need.Met ? string.Empty : "warn")" data-rung-need="@need.Id" data-met="@(need.Met ? 1 : 0)"><span>@need.Asks</span><b>@(need.Met ? "✓" : "✗") @need.Has</b></div> }
+                    </div>
+                }
                 @if (s.Instability > 0) { <div class="kv warn"><span>Instability</span><b>@s.Instability</b></div> }
                 @if (s.Claims.Count > 0) { <div class="kv"><span>Claims held</span><b>@string.Join(", ", s.Claims.Select(cl => c.Titles.NameOf(cl, w.Era)))</b></div> }
                 @if (s.NextTitle != null) { foreach (var path in s.Paths) { var pth = path; string ptip = path.Available ? path.Tooltip : PathWhy(path); <button class="opt" data-path="@path.Id" disabled="@(!path.Available)" title="@ptip" @onclick="() => AskPath(pth, s.NextTitle)">@path.Label <span class="muted small">· @path.Cost</span></button> @if (!path.Available && path.Refusal != null) { <div class="sw-no path-no">@path.Label: @path.Refusal.</div> } } }
@@ -624,6 +635,15 @@
                 list.Add((cx + rr * Math.Cos(a), cy - rr * Math.Sin(a), h.Id, h.Name, h.AccentColor, weight, bench?.Name));
             }
         return list;
+    }
+    /* what a rung of the ladder asks: the standing; from Legate up, land or seats, and the Senate's vote on a petition */
+    private static string RungTip(Praetoria.Core.Progression.TitleDef t)
+    {
+        if (t.LegitimacyRequirement <= 0) return string.Empty;
+        string tip = $"needs legitimacy {t.LegitimacyRequirement}";
+        if (t.Id == Praetoria.Core.Progression.Title.Emperor) return tip + ". It is not petitioned for: it is proclaimed, or taken";
+        if (t.Rank < ProgressionSystem.LandedFromRank) return tip + ". A petition is granted to a house that has it";
+        return tip + $", and {Counted.Worlds(ProgressionSystem.WorldsFor(t.Rank))} or {Counted.Seats(ProgressionSystem.SeatsFor(t.Rank))} in the Senate. A petition for it is voted by the Senate";
     }
     private static string PathWhy(PathOption p) { string r = p.Refusal ?? p.Tooltip; return r.Length == 0 ? r : char.ToUpperInvariant(r[0]) + r[1..] + "."; }
     /// <summary>A rise in rank is asked about first: what it is, what it costs, what follows (docs/PLAYTHROUGH.md 3).</summary>

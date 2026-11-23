@@ -889,6 +889,9 @@ table.reach-table td { font-size: .78rem; } table.reach-table td:first-child { w
 .game .tiles { display: flex; flex-wrap: wrap; gap: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.12)); }
 .game .tile { flex: 1 1 104px; border: 0; border-left: 1px solid var(--line); border-radius: 0; background: none; padding: .45rem .7rem .5rem; gap: .05rem; cursor: help; } .game .tile:first-child { border-left: 0; }
 .game .tile .t-note { display: none; } .game .tile .t-label { font-size: .6rem; letter-spacing: .14em; } .game .tile .t-value { font-family: var(--display); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* a tile that opens something (the Legitimacy tile: what it is made of), and the lines under the ladder of titles that say what the next rung asks */
+.tile.click, .game .tile.click { cursor: pointer; } .tile.click:hover .t-label { color: var(--accent, #c9a24a); }
+.rung-needs { margin: .25rem 0 .35rem; } .rung-needs .kv.small { font-size: .82rem; } .legit-made { margin: .2rem 0 .4rem; }
 /* words, not pills; plates, not chips */
 .game .pill { border: 0; background: none; padding: 0; margin-left: .5rem; border-radius: 0; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); } .game .pill.good { color: var(--good); } .game .pill.warn { color: var(--warn); }
 .game .trait { border: 0; border-radius: 0; background: none; padding: 0 .9rem 0 0; font-size: .86rem; font-family: var(--serif); font-style: italic; }

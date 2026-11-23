@@ -66,7 +66,7 @@ public static class MercenarySystem
     {
         var home = w.House(actor.HouseId)!; string where = w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId;
         f.HiredFrom = home.Id; f.LevyOf = home.Id; f.HireTurn = w.Turn; f.OwnerId = employer.Id; f.Errand = ""; f.Drilling = false; w.Intel.Remove(f.Id);
-        home.Legitimacy = Math.Clamp(home.Legitimacy - Legitimacy, 0, 100);
+        LegitimacyBook.Move(w, home, -Legitimacy, LegitimacyBook.War, "A company of the house hired out");
         foreach (var foe in w.EnemiesOf(employer.Id).Distinct().ToList())
             if (w.House(foe) is { } fh && Economy.HeadOf(w, fh) is { } foeHead) { var r = w.Relationship(foeHead.Id, actor.Id); r.Disposition = Math.Clamp(r.Disposition - FoeRegard, -100, 100); }
         if (Economy.HeadOf(w, employer) is { } eh) { var r = w.Relationship(eh.Id, actor.Id); r.Disposition = Math.Clamp(r.Disposition + EmployerRegard, -100, 100); }
@@ -142,7 +142,7 @@ public static class MercenarySystem
     {
         var employer = w.House(f.OwnerId); var home = w.House(actor.HouseId)!;
         if (employer != null && Economy.HeadOf(w, employer) is { } eh) { var r = w.Relationship(eh.Id, actor.Id); r.Disposition = Math.Clamp(r.Disposition - BreakRegard, -100, 100); }
-        home.Legitimacy = Math.Clamp(home.Legitimacy - BreakLegitimacy, 0, 100);
+        LegitimacyBook.Move(w, home, -BreakLegitimacy, LegitimacyBook.War, "A hired company called back, and the contract broken");
         ComeHome(w, f, "you called it back before its term, and the contract is broken");
     }
 }

@@ -277,7 +277,7 @@ public static partial class WealthSystem
         var holder = w.Char(item.HolderId); if (holder?.Will != null) holder.Will.Items.Remove(item.Id);
         item.HolderId = commander.Id; item.Entailed = false; if (item.FromHouseId.Length == 0) item.FromHouseId = loserId;   // one already taken from a third house is still that house's to want back
         if (item.Kind == Standard) item.OfHouseId = takerId;
-        loser.Legitimacy -= PlunderLegitimacy; Count(w, PlunderedKey); LifeSystem.Note(w, commander, "victory", $"Carried {item.Name} off from {world.Name}.");
+        LegitimacyBook.Move(w, loser, -PlunderLegitimacy, LegitimacyBook.War, "A thing of the family carried off when a world fell"); Count(w, PlunderedKey); LifeSystem.Note(w, commander, "victory", $"Carried {item.Name} off from {world.Name}.");
         if (loserId == mine) { Mark(w, PlunderedFlag); w.Log($"{world.Name} falls, and {commander.Name} of {takers.Name} carries off {item.Name}."); }
         else if (takerId == mine) w.Log($"{commander.Name} carries off {item.Name} from {world.Name}. {loser.Name} will want it back.");
         return item;

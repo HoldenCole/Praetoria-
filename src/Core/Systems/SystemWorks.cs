@@ -325,7 +325,7 @@ public static class SystemWorks
         else if (target.Contains('#')) { var (sysId, body) = Parse(target); w.BodyWorks.RemoveAll(o => o.SystemId == sysId && o.Body == body && o.DefId == defId); }
         else { var h = w.Holding(target)!; h.Buildings.Remove(defId); h.Upgrades.Remove(defId); }
         house.Treasury.Materials += scrap;
-        if (s.legitimacy > 0) house.Legitimacy = Math.Clamp(house.Legitimacy - s.legitimacy, 0, 100);
+        if (s.legitimacy > 0) LegitimacyBook.Move(w, house, -s.legitimacy, LegitimacyBook.Works, "A work pulled down");
         w.WorldCounters[PulledDownCounter] = w.Counter(PulledDownCounter) + 1;
         w.Log($"{house.Name} pulls down {s.name} {s.where}{(scrap > 0 ? $": {scrap} materials come back from the breakers" : "")}.");
     }
@@ -403,7 +403,7 @@ public static class SystemWorks
         var sys = w.Galaxy!.System(systemId)!; var b = sys.Bodies[body];
         var work = new BodyWork { Id = $"work_{systemId}_{body}_{def.Id}", SystemId = systemId, Body = body, DefId = def.Id, Turn = w.Turn, BuiltBy = house.Id };
         w.BodyWorks.Add(work);
-        if (def.Legitimacy != 0) house.Legitimacy = Math.Clamp(house.Legitimacy + def.Legitimacy, 0, 100);
+        if (def.Legitimacy != 0) LegitimacyBook.Move(w, house, def.Legitimacy, LegitimacyBook.Works, "A work finished: " + def.Name);
         if (def.Glory != 0) house.Glory += def.Glory;
         w.WorldCounters[BuiltCounter] = w.Counter(BuiltCounter) + 1; bool wonder = def.IsMegastructure;
         if (wonder) { w.WorldCounters[WondersCounter] = w.Counter(WondersCounter) + 1; w.WorldCounters["megastructures"] = w.Counter("megastructures") + 1; }   // (the old counter and flag: an event and the epilogue read them)

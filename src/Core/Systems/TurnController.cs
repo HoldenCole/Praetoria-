@@ -126,8 +126,10 @@ public sealed class TurnController
         _orders = new OrderSystem(_economy, _fleets, content.Titles, content.Offices, content.Market); if (!world.InAcademy && world.Houses.Values.All(h => h.Orders.Count == 0)) _orders.Tick(world);
         _polities = new PolitySystem(_fleets, content.Offices, _economy, content.Holdings, content.Businesses);
         _caesar = new CaesarSystem(_fleets, content.Offices); _senate.Caesar = _caesar; _senate.Polities = _polities; _regions.Polities = _polities;
+        _senate.TitleLadder = _progression; if (_progression != null) _progression.Senate = _senate;   // a petition for a rung above Prefect is the Senate's to vote (docs/TITLES.md)
+        if (world.Turn == 0) LegitimacyBook.Open(world);   // where each house's legitimacy began (docs/TITLES.md, "What legitimacy is made of")
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
-        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings };
+        _npcAi = new NpcAi { ShipClasses = content.ShipClasses, Titles = content.Titles, Policies = content.Policies, Nations = content.Nations, Trade = content.Trade, VentureTrade = _ventures, Exchange = _companies, Orders = _orders, HoldingCatalogForFounding = content.Holdings, Progression = _progression };
         _dynasty = new DynastySystem { Content = content };
         _ambitions = new AmbitionSystem(content.Businesses, content.Holdings, content.Titles, content.Careers);
         if (world.Counter("health_opened") == 0) { world.WorldCounters["health_opened"] = 1; foreach (var c in world.Characters.Values) c.Health = Math.Min(c.Health, LifeSystem.Cap(c.Age)); }   // nobody opens a saga haler than their years allow
@@ -301,6 +303,7 @@ public sealed class TurnController
         using (Perf.Time("end:dynasty")) { _dynasty.Tick(World, _rng); }   // age, deaths→succession, births (GDD §14). RNG only where life turns.
         using (Perf.Time("end:family")) { _family.Tick(World); }          // kin with wills of their own (GDD §18) — RNG-free
         using (Perf.Time("end:houses")) { HouseSystem.Tick(World); }      // names that have lost everything pass out of the rolls (GDD §13) — RNG-free
+        LegitimacyBook.CloseYear(World);   // what moved each house's legitimacy this year is entered, and adds up (docs/TITLES.md) — RNG-free
 
         SyncRng();
         Phase = TurnPhase.Idle;

@@ -118,7 +118,7 @@ public sealed class EventEngine
         var choice = fired.Def.Choice(choiceId)
             ?? throw new ArgumentException($"Event '{fired.Def.Id}' has no choice '{choiceId}'.");
 
-        var ctx = new EvalContext(world, fired.Binding, Rng, _content);
+        var ctx = new EvalContext(world, fired.Binding, Rng, _content) { EventId = fired.Def.Id };
         if (!Binder.AllHold(choice.Requirements, ctx))
             throw new InvalidOperationException($"Choice '{choiceId}' requirements are not met.");
 

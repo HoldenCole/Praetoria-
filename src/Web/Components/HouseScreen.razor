@@ -65,9 +65,18 @@
             <Tile Label="Legitimacy" Value="@house.Legitimacy.ToString()" Tone="@(m.Standing is { Instability: > 0 } ? "warn" : "")"
                   Share="@(m.Standing is { NextTitle: not null, NextRequirement: > 0 } st ? 100 * house.Legitimacy / st.NextRequirement : house.Legitimacy)"
                   Note="@(m.Standing is { Instability: > 0 } si ? $"the rank of {titleName} outstrips it by {si.Instability}" : m.Standing is { NextTitle: not null, NextRequirement: > 0 } sn ? $"{sn.NextRequirement} is wanted for {sn.NextTitle} · {Ordinal(legitRank)} of {legitOf}" : $"{Ordinal(legitRank)} of {legitOf} houses")"
-                  Title="How rightful the house is held to be. It is what a petition for a higher title is judged on." />
+                  Title="How rightful the house is held to be. It is what a petition for a higher title is judged on. Click to see what it is made of."
+                  OnClick="@(() => _made = !_made)" data-legitimacy-tile="@house.Legitimacy" />
         </div>
     </header>
+    @if (_made && m.Standing?.Made is { } made)
+    {
+        <section class="panel" data-legitimacy-panel>
+            <h3>What the house's legitimacy is made of <button class="opt inline tiny" data-legitimacy-close @onclick="() => _made = false">Close</button></h3>
+            <LegitimacyMade Card="made" />
+            @if (m.Standing.NextTitle != null) { <div class="muted small">@m.Standing.Earned The ladder is in the Senate window.</div> }
+        </section>
+    }
     @if (w.Boosts.Count > 0 || w.MoneyEase != MoneySettings.Standard)
     {
         <div class="muted small money-settings" data-money-settings title="Chosen when this game was begun. They cannot be changed in a game.">@(w.MoneyEase != MoneySettings.Standard ? "Making money: " + MoneySettings.Name(w.MoneyEase) + ". " : "")@MoneySettings.Says(w)</div>
@@ -387,6 +396,8 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private string? _focus; private string _view = "estate";
+    /// <summary>Whether "what its legitimacy is made of" is open under the tiles.</summary>
+    private bool _made;
     /// <summary>The amount picked at each lender, by lender id.</summary>
     private readonly Dictionary<string, int> _borrow = new();
     /// <summary>The tab an alert asked for, and a stamp that changes each time one asks; a stamp is used once.</summary>

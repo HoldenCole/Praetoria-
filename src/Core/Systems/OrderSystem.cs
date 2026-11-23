@@ -151,7 +151,7 @@ public sealed class OrderSystem
             // a new man in the consul's chair: the first of his name
             if (h.Origin == "new" && !w.WorldFlags.Contains("first_consul:" + h.Id) && OfficeSystem.HeldBy(w, h.Id).Any(o => _offices.Def(o.OfficeId)?.Elected == true))
             {
-                w.WorldFlags.Add("first_consul:" + h.Id); h.Legitimacy = Math.Min(100, h.Legitimacy + 5); if (h.Id == mine) w.WorldFlags.Add(NewManConsulFlag);
+                w.WorldFlags.Add("first_consul:" + h.Id); LegitimacyBook.Move(w, h, 5, LegitimacyBook.Offices, "The first of the name to be consul"); if (h.Id == mine) w.WorldFlags.Add(NewManConsulFlag);
                 w.Log($"{h.Name} holds a consul's chair: the first of that name to do so. The old families take note.");
             }
         }
@@ -223,7 +223,7 @@ public sealed class OrderSystem
     public void Enroll(World w, House h)
     {
         h.Treasury.Credits -= CensusFee; var chair = RegionSystem.CapitalHolder(w); if (chair != null && chair.Id != h.Id) chair.Treasury.Credits += CensusFee;
-        h.Enrolled = true; h.Legitimacy = Math.Min(100, h.Legitimacy + 3);
+        h.Enrolled = true; LegitimacyBook.Move(w, h, 3, LegitimacyBook.Senate, "Enrolled in the Senate by the census");
         if (h.Id == w.Protagonist?.HouseId) Mark(w, SeatBoughtFlag);
         w.Log($"{h.Name} is enrolled in the Senate by the census: a seat held by the purse. The old families say what they always say.");
     }

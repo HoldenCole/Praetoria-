@@ -335,7 +335,7 @@ public static partial class LadderSystem
     private static void DecideDutyIt(World w, OfficeCatalog offices, PolicyCatalog? policy, Character who, string kind, string choice)
     {
         var b = DutyOf(w, who.Id, kind)!; b.Choice = choice; var house = w.House(who.HouseId); var p = w.Protagonist; var mine = p?.HouseId; bool ours = who.HouseId == mine;
-        void Legit(int by) { if (house != null && (by < 0 || house.Legitimacy < 80)) house.Legitimacy = Math.Clamp(house.Legitimacy + by, 0, 100); }
+        void Legit(int by) { if (house != null && (by < 0 || house.Legitimacy < 80)) LegitimacyBook.Move(w, house, by, LegitimacyBook.Offices, "A duty of office decided"); }
         void Approve(int by) => PolicySystem.Sway(w, who.HouseId, b.EstateId, by);
         switch (kind)
         {
@@ -382,7 +382,7 @@ public static partial class LadderSystem
                     who.Purse += SkimCredits; MoveTrust(w, -2);
                     if (Hash(b.Id + ":exposed") % 4 == 0)
                     {
-                        who.CareerRank = Math.Max(0, who.CareerRank - 1); if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy - 3, 0, 100);
+                        who.CareerRank = Math.Max(0, who.CareerRank - 1); if (house != null) LegitimacyBook.Move(w, house, -3, LegitimacyBook.Scandal, "Found to have kept a share of the year's returns");
                         LifeSystem.Note(w, who, "office", "Was broken a grade for keeping a share of the returns.");
                         w.Log($"The year's returns are reopened, and {who.Name} of {house?.Name} is found to have kept a share. {who.Name} is broken a grade.");
                         if (ours && who.Id == p!.Id) Mark(w, DeskExposedFlag);
@@ -502,7 +502,7 @@ public static partial class LadderSystem
                         if (Hash(b.Id + ":exposed") % 4 == 0 && def != null)
                         {
                             OfficeSystem.Strip(w, def, "the Reach's contracts were let to their own house", false);
-                            w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; w.WorldCounters[ScandalKey(who.HouseId)] = w.Turn; MoveTrust(w, -2); if (house != null) house.Legitimacy = Math.Clamp(house.Legitimacy - 5, 0, 100);
+                            w.WorldCounters[BarredKey(who.Id)] = w.Turn + BarYears; w.WorldCounters[ScandalKey(who.HouseId)] = w.Turn; MoveTrust(w, -2); if (house != null) LegitimacyBook.Move(w, house, -5, LegitimacyBook.Scandal, "The Reach's contracts were let to the house itself");
                             who.Flags.Add(ExposedChar); LifeSystem.Note(w, who, "office", "Was removed from office for taking money.");
                             if (ours) Mark(w, who.Id == p!.Id ? ExposedFlag : KinExposedFlag);
                         }
@@ -617,13 +617,13 @@ public static partial class LadderSystem
                 int years = w.Counter(AbsentKey) + 1; w.WorldCounters[AbsentKey] = years;
                 if (years >= AbsentYears && house != null)
                 {
-                    w.WorldCounters.Remove(AbsentKey); house.Legitimacy = Math.Clamp(house.Legitimacy - 2, 0, 100); Mark(w, AbsentFlag);
+                    w.WorldCounters.Remove(AbsentKey); LegitimacyBook.Move(w, house, -2, LegitimacyBook.Senate, "Not seen in the Senate for years"); Mark(w, AbsentFlag);
                     w.Log($"{p?.Name} has not been seen in the Senate for {AbsentYears} years. It is remarked on, and the house is thought the less of.");
                 }
             }
             else if (Junior(b.Kind)) { }   // a junior who lets the year go by has only failed to learn
             else if (b.Kind is Desk or Posting) { if (b.Kind == Desk && house != null) PolicySystem.Sway(w, house.Id, "merchants", -1); }   // the clerks see to it, and the merchants notice who was not at the desk; an officer ashore who does nothing is merely ashore
-            else if (b.Kind == Charge) { MoveTrust(w, -1); if (house != null && p != null && b.HolderId == p.Id) { house.Legitimacy = Math.Clamp(house.Legitimacy - 1, 0, 100); w.Log($"{p.Name} held a great office of the Reach last year and did nothing with it. It was noticed, and said."); } }
+            else if (b.Kind == Charge) { MoveTrust(w, -1); if (house != null && p != null && b.HolderId == p.Id) { LegitimacyBook.Move(w, house, -1, LegitimacyBook.Offices, "A great office held and nothing done with it"); w.Log($"{p.Name} held a great office of the Reach last year and did nothing with it. It was noticed, and said."); } }
             else { if (house != null) PolicySystem.Sway(w, house.Id, "commons", -1); if (p != null && b.HolderId == p.Id) w.Log($"The matter before {p.Name}'s bench went unheard last year. It was noticed, and held against the house."); }   // one bench left empty costs its own house, not the Reach's name
         }
     }

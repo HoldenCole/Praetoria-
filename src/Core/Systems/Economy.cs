@@ -385,7 +385,7 @@ public sealed class Economy
             }
 
             house.Treasury.ClampNonCredit();
-            if (tax is { LegitimacyPerTurn: not 0 } && holdings.Count > 0) house.Legitimacy = Math.Max(0, house.Legitimacy + tax.LegitimacyPerTurn);
+            if (tax is { LegitimacyPerTurn: not 0 } && holdings.Count > 0) LegitimacyBook.Move(world, house, tax.LegitimacyPerTurn, LegitimacyBook.Laws, "The tithe the house takes from its worlds");
         }
 
         Reckon(world);

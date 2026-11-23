@@ -134,7 +134,7 @@ public sealed class PolitySystem
         if (chair != null && Regard(w, target, chair) >= LoyalRegard && Regard(w, target, house) < 10)
         {
             if (Systems.Economy.HeadOf(w, chair) is { } ch && hh != null) { var r = w.Relationship(ch.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition - 15, -100, 100); }
-            house.Legitimacy = Math.Clamp(house.Legitimacy - 2, 0, 100);
+            LegitimacyBook.Move(w, house, -2, LegitimacyBook.Scandal, "Sounded out a house about leaving the Reach, and was reported");
             if (house.Id == mine) Mark(w, ReportedFlag);
             w.Log($"{target.Name} hears {house.Name} out, and sends an account of the conversation to {chair.Name} the same night.");
             return false;
@@ -490,7 +490,7 @@ public sealed class PolitySystem
         var chair = RegionSystem.CapitalHolder(w); bool heard = chair != null && chair.Id != house.Id && Hash($"stir:{house.Id}:{w.Turn}") % 3 == 0;
         if (!heard) return false;
         if (Systems.Economy.HeadOf(w, chair!) is { } ch && Systems.Economy.HeadOf(w, house) is { } hh) { var r = w.Relationship(ch.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition - 15, -100, 100); }
-        house.Legitimacy = Math.Clamp(house.Legitimacy - 3, 0, 100); if (house.Id == mine) Mark(w, ReportedFlag);
+        LegitimacyBook.Move(w, house, -3, LegitimacyBook.Scandal, "Money spent stirring up a war, and traced"); if (house.Id == mine) Mark(w, ReportedFlag);
         if (against != null && Systems.Economy.HeadOf(w, against) is { } victim && Systems.Economy.HeadOf(w, house) is { } me2 && victim.Id != me2.Id) { var r = w.Relationship(victim.Id, me2.Id); r.Disposition = Math.Clamp(r.Disposition - 25, -100, 100); }   // and so does the house it was aimed at
         w.Log($"{chair!.Name} learns whose money it was. {house.Name} is spoken of in the capital as a house that wants a war."); return true;
     }
@@ -537,7 +537,7 @@ public sealed class PolitySystem
     public void Recognise(World w, Polity p, bool letGo = false)
     {
         var mine = w.Protagonist?.HouseId; Peace(w, p); p.Recognised = w.Turn; p.Foes.Clear(); p.TreatyUntil = w.Turn + TreatyYears; p.WarSince = 0;
-        if (w.House(p.HeadHouseId) is { } head) head.Legitimacy = Math.Clamp(head.Legitimacy + 10, 0, 100);
+        if (w.House(p.HeadHouseId) is { } head) LegitimacyBook.Move(w, head, 10, LegitimacyBook.Beyond, "Named in a treaty as the head of a state");
         string counted = IsFreeHold(p) ? "free_states_recognised" : "polities_recognised"; w.WorldCounters[counted] = w.Counter(counted) + 1;
         if (!letGo) w.Log($"The Reach makes peace with {p.Name} and names it in the treaty. It is a state now, and will be on the maps.");
         if (p.Members.Contains(mine ?? "")) Mark(w, letGo ? LetGoFlag : WonFlag);
@@ -551,7 +551,7 @@ public sealed class PolitySystem
         foreach (var id in p.Members)
         {
             var h = w.House(id); if (h == null) continue; h.PolityId = "";
-            bool led = id == p.HeadHouseId; h.Legitimacy = Math.Clamp(h.Legitimacy - (led ? 15 : 6), 0, 100);
+            bool led = id == p.HeadHouseId; LegitimacyBook.Move(w, h, -(led ? 15 : 6), LegitimacyBook.War, led ? "Led a state out of the Reach, and was brought back" : "Left the Reach with a state, and was brought back");
             if (led)
             {
                 w.WorldCounters[CaesarSystem.EnemyKey(id)] = w.Turn + 10;
@@ -628,7 +628,7 @@ public sealed class PolitySystem
         foreach (var id in p.Members)
         {
             var h = w.House(id); if (h == null) continue; h.PolityId = "";
-            if (atWar) h.Legitimacy = Math.Clamp(h.Legitimacy - (id == p.HeadHouseId ? 6 : 2), 0, 100);
+            if (atWar) LegitimacyBook.Move(w, h, -(id == p.HeadHouseId ? 6 : 2), LegitimacyBook.War, "Came back into the Reach with its war unfinished");
         }
         if (chair != null && w.House(p.HeadHouseId) is { } ruler && Systems.Economy.HeadOf(w, chair) is { } ch && Systems.Economy.HeadOf(w, ruler) is { } rh)
         { var r = w.Relationship(ch.Id, rh.Id); r.Disposition = Math.Clamp(r.Disposition + (atWar ? 5 : 15), -100, 100); }

@@ -31,7 +31,7 @@ public static partial class LadderSystem
     {
         Purse => interest is "levy" or "relief" or "rescue",
         FleetCommittee => interest is "foreign_war" or "commission" or "reconquest" or "recall" or "triumph" or "peace",
-        _ => interest is "censure" or "recognition" or "act" or "embargo" or "breakup"
+        _ => interest is "censure" or "recognition" or "elevation" or "act" or "embargo" or "breakup"
     };
     public static string BusinessSays(string id) => id == Purse ? "levies, relief and rescues" : id == FleetCommittee ? "wars, commands, recalls and triumphs" : "censures, recognitions, Acts and embargoes";
 

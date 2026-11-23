@@ -34,6 +34,9 @@ public sealed class MotionDef
     public bool Office { get; init; }
     /// <summary>The motion is an Act: it sets a Senate-scoped law (content/politics/laws.json, scope "senate") for the whole Reach.</summary>
     public bool Law { get; init; }
+    /// <summary>The motion is a house's petition for the next rung of the ladder of titles (docs/TITLES.md, "Rungs that are earned"):
+    /// carried, the house rises. It is brought from the ladder (<c>PetitionTitleCommand</c>), not moved from the floor.</summary>
+    public bool Rank { get; init; }
 }
 
 public sealed class MotionCatalog
@@ -65,7 +68,7 @@ public sealed class MotionCatalog
                     LegitimacyTarget = ConditionParser.Int(el, "legitimacyTarget", 0), LegitimacyProposer = ConditionParser.Int(el, "legitimacyProposer", 0),
                     LevyCredits = ConditionParser.Int(el, "levyCredits", 0), LawlessnessRegion = ConditionParser.Int(el, "lawlessnessRegion", 0),
                     AllegianceRegion = ConditionParser.Int(el, "allegianceRegion", 0), ProsperityRegion = ConditionParser.Int(el, "prosperityRegion", 0),
-                    ReliefCost = ConditionParser.Int(el, "reliefCost", 0), Peace = ConditionParser.Bool(el, "peace", false), EmbargoTurns = ConditionParser.Int(el, "embargoTurns", 0), Breakup = ConditionParser.Bool(el, "breakup", false), Rescue = ConditionParser.Bool(el, "rescue", false), Office = ConditionParser.Bool(el, "office", false), Law = ConditionParser.Bool(el, "law", false)
+                    ReliefCost = ConditionParser.Int(el, "reliefCost", 0), Peace = ConditionParser.Bool(el, "peace", false), EmbargoTurns = ConditionParser.Int(el, "embargoTurns", 0), Breakup = ConditionParser.Bool(el, "breakup", false), Rescue = ConditionParser.Bool(el, "rescue", false), Rank = ConditionParser.Bool(el, "rank", false), Office = ConditionParser.Bool(el, "office", false), Law = ConditionParser.Bool(el, "law", false)
                 });
             }
         }
