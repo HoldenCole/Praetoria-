@@ -29,6 +29,7 @@ public class DocketTests
         w.Houses.Values.Where(h => h.Id != mine.Id && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null && w.Wars.All(x => !x.Between(mine.Id, h.Id))).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
     private static Character Person(World w, House h, string id, params string[] natures)
     {
+        if (h.HeadId.Length == 0 && Economy.HeadOf(w, h) is { } leads) h.HeadId = leads.Id;   // whoever led the house still leads it: a person added for a test is not its new eldest
         var c = new Character { Id = id, Name = "Test " + id, HouseId = h.Id, Age = 40, Sex = "male", CareerTrack = "law", CareerRank = 2 }; foreach (var n in natures) c.NatureTraits.Add(n);
         w.Characters[id] = c; h.Members.Add(id); return c;
     }

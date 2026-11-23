@@ -40,7 +40,7 @@ public class ThroneHoldTests
         Assert.Equal(Math.Clamp(ThroneSystem.HoldBase + parts.Sum(p => p.points), 0, 100), hold); Assert.Contains(parts, p => p.what == "the standing of the house");
         Assert.Contains(parts, p => p.what.Contains("years on the throne") && p.points == 10);   // a throne that was there when the story opened is an old one
         throne.Legitimacy -= 40; Assert.Equal(hold - 20, ThroneSystem.Hold(w)); throne.Legitimacy += 40;
-        var head = Economy.HeadOf(w, throne)!; int age = head.Age; head.Age = 9; Assert.Contains(ThroneSystem.HoldParts(w), p => p.what == "a child on the throne" && p.points == -15); head.Age = age;
+        var head = Economy.HeadOf(w, throne)!; throne.HeadId = head.Id; int age = head.Age; head.Age = 9; Assert.Contains(ThroneSystem.HoldParts(w), p => p.what == "a child on the throne" && p.points == -15); head.Age = age;
         // a throne newly taken by force is weaker for it, for ten years
         w.WorldCounters[ThroneSystem.SinceKey] = w.Turn; w.WorldCounters[ThroneSystem.HowKey] = 1;
         var taken = ThroneSystem.HoldParts(w); Assert.Contains(taken, p => p.what == "new to the throne" && p.points == -5); Assert.Contains(taken, p => p.what == "took it by force" && p.points == -10);

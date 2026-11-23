@@ -206,3 +206,43 @@ A year paid in full starts the count again.
 - Three of the six events were not seen to fire in the soak (they need a protégé, a dishonest steward or a lost mentor,
   which its random player rarely arrives at).
 - The numbers are first guesses.
+
+
+## Who leads another house
+
+**The owner's answer (2026-11-23):** "Table this for now. Let's assume it's the oldest, but can be challenged for good reason. (Heir more
+qualified, head is old and not useful, etc). Keep this simple for now."
+
+Before this, the head of any house but yours was whoever held the highest rank in it, so a promotion changed who you were
+dealing with, and what one head thought of you was not what the next did.
+
+What is built (`HeadSystem`, `House.HeadId`):
+
+- **The eldest grown person of a house leads it.** A child leads only a house with no grown person left.
+- **The head stays the head until death.** A promotion does not change it, and neither does someone older joining the house.
+- **When a head dies the next eldest follows.** The chronicle says so.
+- **A head can be made to stand aside for good reason.** There are two reasons, and no others:
+
+| Reason | What it takes |
+|---|---|
+| Someone better qualified | another grown person of the house stands 2 ranks or more above the head |
+| The head is old and not useful | the head is 65 or older and in failing health (below 35), or is 78 or older, and there is a grown person under 65 to follow |
+
+- **A challenge with a reason is made in about one year in four.** When there is more than one who could, the highest in rank does, then the elder.
+- **The one who stood aside lives on in the house** and does not take it back.
+- **You are told** when it happens in a house you have had dealings with, or whose head had a view of you. The new head starts with half of what the old one thought of you, when they had no view of their own.
+- Your own house is not touched: you are its head.
+
+Measured over thirty years of one game: 3 heads stood aside across all the houses. The rest changed only by death.
+
+### What I chose
+
+- The ages 65 and 78, the health of 35, the lead of 2 ranks, one year in four, and the half of the old head's regard that passes on.
+- That the highest in rank is the one who challenges, since "more qualified" has to mean something a player can see.
+
+### What is not built (tabled by the owner)
+
+- You cannot back, stir or oppose a challenge in another house.
+- A house's own law of succession (eldest child, youngest, merit) does not decide who follows a dead head. The eldest does.
+- Those who married into a house are not told apart from those born to its name: the eldest of either leads.
+- The old head does not resent the one who replaced them.
