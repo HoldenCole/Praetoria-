@@ -1119,10 +1119,10 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .ev-body .facts { border-left: 2px solid var(--brass); padding-left: .6rem; color: var(--ink-2, #b9b3a3); margin-top: .5rem; }
 .mark-word { border-bottom: 1px dotted var(--line); cursor: help; } .mark-word + .mark-word::before { content: " · "; }
 .law-open { margin-left: .45rem; white-space: nowrap; color: var(--brass2); border: 1px solid var(--brass3); border-radius: 3px; padding: 0 .4rem; font-size: .72rem; letter-spacing: .04em; } .law-head:hover .law-open { background: rgba(200,160,80,.15); }
-.setting-cheats { grid-column: 1 / -1; display: grid; gap: .3rem; margin: .2rem 0 .5rem; font-size: .8rem; color: var(--muted); }
-.setting-cheats > span { text-transform: uppercase; letter-spacing: .06em; } .setting-cheats > span .small { text-transform: none; letter-spacing: 0; }
-.setting-cheats label.cheat { display: grid; grid-template-columns: auto auto 1fr; align-items: baseline; gap: .5rem; text-transform: none; letter-spacing: 0; font-size: .88rem; color: var(--text, #e8e2d4); cursor: pointer; }
-.setting-cheats label.cheat input { width: auto; margin: 0; align-self: center; } .setting-cheats label.cheat b { font-weight: 600; white-space: nowrap; }
+.setting-boosts { grid-column: 1 / -1; display: grid; gap: .3rem; margin: .2rem 0 .5rem; font-size: .8rem; color: var(--muted); }
+.setting-boosts > span { text-transform: uppercase; letter-spacing: .06em; } .setting-boosts > span .small { text-transform: none; letter-spacing: 0; }
+.setting-boosts label.boost { display: grid; grid-template-columns: auto auto 1fr; align-items: baseline; gap: .5rem; text-transform: none; letter-spacing: 0; font-size: .88rem; color: var(--text, #e8e2d4); cursor: pointer; }
+.setting-boosts label.boost input { width: auto; margin: 0; align-self: center; } .setting-boosts label.boost b { font-weight: 600; white-space: nowrap; }
 label [data-money-does] { text-transform: none; letter-spacing: 0; line-height: 1.35; }
 .money-settings { margin: -.2rem 0 .6rem; }
 .court-sum { margin: .1rem 0 .6rem; } .court-offers { display: grid; gap: .3rem; margin: .35rem 0; }

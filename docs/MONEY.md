@@ -49,11 +49,12 @@ A scene pays single credits with `adjustResource` on the resource `coin`.
 | `Treasury.Coin`, `Retainer.Wage`, an effect on `coin` | single credits |
 | The docs written before this page | were in the old figures; the amounts in them have been multiplied through, and a figure given "in the books" is in hundreds |
 
-## Settings: how easy money is, and cheats
+## Settings: how easy money is, and boosts
 
 What the owner said (2026-11-23): *"I think having settings for how easy it is to make money and even some cheats to
 select in the beginning is useful. So you can choose the 'difficulty' of making money and how returns are scaled. Let's
-just put our numbers as the default."*
+just put our numbers as the default."* And of the four things first built under that name: *"Those aren't cheats. Just
+boosts."* They are called boosts. Nothing in the game is called a cheat.
 
 **Our numbers are the default.** The content files are priced so that each thing returns what its kind is meant to
 (docs/ECONOMY_REVIEW.md, "Ranged returns"): a market, a port or a power plant 7% a year, farming 8%, finance 9%, a
@@ -83,20 +84,20 @@ econ --seeds 2`); the middle house, in credits:
 
 Lavish is about what the game was before the prices were changed: money piles up and stops mattering.
 
-**Cheats** are ticked on the same screen, are your house's alone, and are given once when the game begins. None is on
+**Boosts** are ticked on the same screen, are your house's alone, and are given once when the game begins. None is on
 unless it is ticked.
 
-| Cheat | What it gives |
+| Boost | What it gives |
 |---|---|
 | A full treasury | 50,000 credits more |
 | Full stores | 200 materials, 100 manpower, and 20 each of helium-3, rare earths, isotopes and exotics |
 | A second income | every year, again all the credits the house took in |
 | A deep purse | 10,000 credits in your own purse |
 
-A game begun with a cheat, or at a setting other than Standard, says so: a line in the chronicle, and a line at the
+A game begun with a boost, or at a setting other than Standard, says so: a line in the chronicle, and a line at the
 head of the House window for as long as the game is played. Neither can be changed in a game.
 
-The figures (the four settings, what each cheat gives) are mine.
+The figures (the four settings, what each boost gives) are mine.
 
 ## What I chose
 

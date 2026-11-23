@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Praetoria.Tests;
 
-/// <summary>The ranged returns as the game's own prices, how easy money is, and the cheats a game may be begun with
+/// <summary>The ranged returns as the game's own prices, how easy money is, and the boosts a game may be begun with
 /// (docs/MONEY.md, "Settings"; docs/ECONOMY_REVIEW.md, "Ranged returns").</summary>
 public class MoneySettingsTests
 {
@@ -46,25 +46,28 @@ public class MoneySettingsTests
         Assert.All(Content.Holdings.Works, x => Assert.All(Resource.All, r => Assert.True(x.Cost.Get(r) >= 0))); Assert.Equal(hull, Content.ShipClasses.Defs[0].Cost.Materials);
         _ = new TurnController(Start(), Content);
         // and the setting is kept by a save
-        var kept = Start(); kept.MoneyEase = MoneySettings.Lean; kept.Cheats.Add(MoneySettings.DeepPurse); var back = SaveSystem.Deserialize(SaveSystem.Serialize(kept));
-        Assert.Equal(MoneySettings.Lean, back.MoneyEase); Assert.Contains(MoneySettings.DeepPurse, back.Cheats);
+        var kept = Start(); kept.MoneyEase = MoneySettings.Lean; kept.Boosts.Add(MoneySettings.DeepPurse); var back = SaveSystem.Deserialize(SaveSystem.Serialize(kept));
+        Assert.Equal(MoneySettings.Lean, back.MoneyEase); Assert.Contains(MoneySettings.DeepPurse, back.Boosts);
+        // a save made in the day they were called cheats still carries them, and what is written now does not use the word
+        string saved = SaveSystem.Serialize(kept); Assert.Contains("\"Boosts\"", saved); Assert.DoesNotContain("Cheats", saved);
+        Assert.Contains(MoneySettings.DeepPurse, SaveSystem.Deserialize(saved.Replace("\"Boosts\"", "\"Cheats\"")).Boosts);
     }
 
     [Fact]
-    public void A_game_begun_with_cheats_gives_the_players_house_what_they_give_once_and_says_so()
+    public void A_game_begun_with_boosts_gives_the_players_house_what_they_give_once_and_says_so()
     {
         var w = Start(); var p = w.Protagonist!; var house = w.House(p.HouseId)!; var other = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id)); int otherHad = other.Treasury.Credits;
         Assert.Equal("", MoneySettings.Says(w)); MoneySettings.Begin(w); Assert.DoesNotContain(w.History, h => h.Text.Contains("Begun with"));
         int credits = house.Treasury.Credits, materials = house.Treasury.Materials, rare = house.Treasury.RareEarths, purse = p.Purse;
-        foreach (var c in MoneySettings.Cheats) { w.Cheats.Add(c); Assert.NotEqual(c, MoneySettings.CheatName(c)); Assert.True(MoneySettings.CheatDoes(c).Length > 20); }
+        foreach (var c in MoneySettings.Boosts) { w.Boosts.Add(c); Assert.NotEqual(c, MoneySettings.BoostName(c)); Assert.True(MoneySettings.BoostDoes(c).Length > 20); }
         MoneySettings.Begin(w); MoneySettings.Begin(w);   // asked twice, given once
         Assert.Equal(credits + MoneySettings.TreasuryGift, house.Treasury.Credits); Assert.Equal(materials + MoneySettings.StoresMaterials, house.Treasury.Materials);
         Assert.Equal(rare + MoneySettings.StoresDear, house.Treasury.RareEarths); Assert.Equal(purse + MoneySettings.PurseGift, p.Purse); Assert.Equal(otherHad, other.Treasury.Credits);
         Assert.Contains("A full treasury", MoneySettings.Says(w)); Assert.Contains(w.History, h => h.Text.Contains("Begun with"));
-        Assert.Contains("50,000 credits", MoneySettings.CheatDoes(MoneySettings.FullTreasury));
+        Assert.Contains("50,000 credits", MoneySettings.BoostDoes(MoneySettings.FullTreasury));
         // the second income is a line of the player's ledger and nobody else's
         var tc = new TurnController(w, ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir())); var led = tc.Economy.Compute(w, house.Id, tc.Fleets);
-        int earned = led.Lines.Where(l => l.Kind != "cheat" && l.Delta.Credits > 0).Sum(l => l.Delta.Credits); Assert.Equal(earned, led.Lines.Single(l => l.Kind == "cheat").Delta.Credits);
-        Assert.DoesNotContain(tc.Economy.Compute(w, other.Id, tc.Fleets).Lines, l => l.Kind == "cheat");
+        int earned = led.Lines.Where(l => l.Kind != "boost" && l.Delta.Credits > 0).Sum(l => l.Delta.Credits); Assert.Equal(earned, led.Lines.Single(l => l.Kind == "boost").Delta.Credits);
+        Assert.DoesNotContain(tc.Economy.Compute(w, other.Id, tc.Fleets).Lines, l => l.Kind == "boost");
     }
 }

@@ -394,7 +394,7 @@ to. The tables of section 2 are the prices **before** this; the kinds and their 
 
 Three things went with it:
 
-- A setting for **how easy money is**, chosen when a game is begun, and four **cheats** (docs/MONEY.md, "Settings").
+- A setting for **how easy money is**, chosen when a game is begun, and four **boosts** (docs/MONEY.md, "Settings").
 - The four great cities' own buildings (the Senate's Precinct, the Institute's Halls, the Great Exchange, the Great
   Pit) are now dearer than some great works, because they pay well and are priced by what they pay.
 - What older pages measured (how fast a new house rises in docs/UPSTART.md, the playthroughs) was measured at the old

@@ -47,13 +47,14 @@ public static class ReturnTargets
 }
 
 /// <summary>
-/// How easy money is in a game, and the cheats a game may be begun with (docs/MONEY.md, "Settings"; the owner, 2026-11-23: "having
+/// How easy money is in a game, and the boosts a game may be begun with (docs/MONEY.md, "Settings"; the owner, 2026-11-23: "having
 /// settings for how easy it is to make money and even some cheats to select in the beginning is useful. So you can choose the
-/// 'difficulty' of making money and how returns are scaled. Let's just put our numbers as the default").
+/// 'difficulty' of making money and how returns are scaled. Let's just put our numbers as the default"; and of what was first built
+/// under that name, "Those aren't cheats. Just boosts").
 /// <para><b>How easy money is</b> scales what everything that is built costs, and so what it returns: at the standard setting a thing
 /// costs what the content says and returns what its kind is meant to (<see cref="ReturnTargets"/>). It is every house's, not only
 /// the player's. Hulls are not scaled.</para>
-/// <para><b>Cheats</b> are the player's house's alone, are chosen when the game is begun, and are written on the save.</para>
+/// <para><b>Boosts</b> are the player's house's alone, are chosen when the game is begun, and are written on the save.</para>
 /// </summary>
 public static class MoneySettings
 {
@@ -71,10 +72,10 @@ public static class MoneySettings
     };
 
     public const string FullTreasury = "full_treasury", FullStores = "full_stores", DoubleIncome = "double_income", DeepPurse = "deep_purse";
-    public static readonly string[] Cheats = { FullTreasury, FullStores, DoubleIncome, DeepPurse };
+    public static readonly string[] Boosts = { FullTreasury, FullStores, DoubleIncome, DeepPurse };
     public const int TreasuryGift = 500, PurseGift = 100, StoresMaterials = 200, StoresManpower = 100, StoresDear = 20;
-    public static string CheatName(string id) => id switch { FullTreasury => "A full treasury", FullStores => "Full stores", DoubleIncome => "A second income", DeepPurse => "A deep purse", _ => id };
-    public static string CheatDoes(string id) => id switch
+    public static string BoostName(string id) => id switch { FullTreasury => "A full treasury", FullStores => "Full stores", DoubleIncome => "A second income", DeepPurse => "A deep purse", _ => id };
+    public static string BoostDoes(string id) => id switch
     {
         FullTreasury => $"Your house begins with {Money.Credits(TreasuryGift)} more.",
         FullStores => $"Your house begins with {StoresMaterials} more materials, {StoresManpower} more manpower and {StoresDear} more of helium-3, rare earths, isotopes and exotics.",
@@ -82,19 +83,19 @@ public static class MoneySettings
         DeepPurse => $"You begin with {Money.Credits(PurseGift)} in your own purse.",
         _ => ""
     };
-    private const string BegunFlag = "cheats_begun";
+    private const string BegunFlag = "boosts_begun";
 
-    /// <summary>What a game begun with cheats says of itself, or "" for a game begun with none.</summary>
-    public static string Says(World w) => w.Cheats.Count == 0 ? "" : "Begun with: " + string.Join(", ", Cheats.Where(w.Cheats.Contains).Select(CheatName));
+    /// <summary>What a game begun with boosts says of itself, or "" for a game begun with none.</summary>
+    public static string Says(World w) => w.Boosts.Count == 0 ? "" : "Begun with: " + string.Join(", ", Boosts.Where(w.Boosts.Contains).Select(BoostName));
 
-    /// <summary>Give the player's house what its cheats give at the start. Once: asking again gives nothing.</summary>
+    /// <summary>Give the player's house what its boosts give at the start. Once: asking again gives nothing.</summary>
     public static void Begin(World w)
     {
-        if (w.Cheats.Count == 0 || w.WorldFlags.Contains(BegunFlag) || w.Protagonist is not { } p || w.House(p.HouseId) is not { } house) return;
+        if (w.Boosts.Count == 0 || w.WorldFlags.Contains(BegunFlag) || w.WorldFlags.Contains("cheats_begun") || w.Protagonist is not { } p || w.House(p.HouseId) is not { } house) return;
         w.WorldFlags.Add(BegunFlag);
-        if (w.Cheats.Contains(FullTreasury)) house.Treasury.Credits += TreasuryGift;
-        if (w.Cheats.Contains(FullStores)) { house.Treasury.Materials += StoresMaterials; house.Treasury.Manpower += StoresManpower; foreach (var r in new[] { Resource.Helium3, Resource.RareEarths, Resource.Isotopes, Resource.Exotics }) house.Treasury.Add(r, StoresDear); }
-        if (w.Cheats.Contains(DeepPurse)) p.Purse += PurseGift;
+        if (w.Boosts.Contains(FullTreasury)) house.Treasury.Credits += TreasuryGift;
+        if (w.Boosts.Contains(FullStores)) { house.Treasury.Materials += StoresMaterials; house.Treasury.Manpower += StoresManpower; foreach (var r in new[] { Resource.Helium3, Resource.RareEarths, Resource.Isotopes, Resource.Exotics }) house.Treasury.Add(r, StoresDear); }
+        if (w.Boosts.Contains(DeepPurse)) p.Purse += PurseGift;
         w.Log($"{house.Name} begins with more than it had. {Says(w)}.");
     }
 

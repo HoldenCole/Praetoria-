@@ -111,9 +111,9 @@ screen, closed on leaving, turned upward at the foot of the screen.
 ## Money settings at the start of a game
 
 The creation screen has **Making money** (`[data-setting=money]`: lean, standard, generous, lavish, with a line under it
-saying what the chosen one does) and **Begin with** (`[data-setting=cheats]`, a tick box for each cheat, `[data-cheat]`).
-`GameClient.Start` and `StartCustom` take them; `MoneySettings.Begin` gives the cheats once. A game at any setting but
-Standard, or begun with a cheat, shows `[data-money-settings]` at the head of the House window. docs/MONEY.md, "Settings".
+saying what the chosen one does) and **Begin with** (`[data-setting=boosts]`, a tick box for each boost, `[data-boost]`).
+`GameClient.Start` and `StartCustom` take them; `MoneySettings.Begin` gives the boosts once. A game at any setting but
+Standard, or begun with a boost, shows `[data-money-settings]` at the head of the House window. docs/MONEY.md, "Settings".
 
 ## Money on the screens
 
