@@ -86,6 +86,134 @@ as it burned was told it had a few years left. It is now `FleetSystem.Outlook`: 
 burn, and what the year's accounts leave of helium-3 once that is burned. When more is burned than comes up, the years
 are the tanks over the shortfall; when not, the tile says the tanks hold or fill, and by how much.
 
+## Commanding a navy
+
+Built 2026-11-23 from the owner's list (docs/PLAYTHROUGH.md, Hard):
+
+> Commanding a navy: captains to appoint from the service, squadrons split and joined, supply lines, hulls laid up, and a
+> year-end report of the war. The pieces are in Medium; together they are a system (S50, S65, S72, S74, S27).
+
+The soldier's notes it comes from (docs/playthroughs/soldier.md): 27 (a world fell with no report), 50 (leave a guard),
+65 (move the flag, "appoint captains from the service"), 72 (supply), 74 (lay up), 76 (an officer who could not be given
+a command). Everything is on the Military window: each fleet's card on "Your fleets", and a new tab, "Wars".
+
+### Captains
+
+Each fleet may have a **flag captain** under its admiral (`Fleet.CaptainId`). A captain is a living member of the fleet's
+house, of age, **in the naval service at the rank of Lieutenant or above**, who is the admiral of nothing
+(`FleetSystem.CaptainRefusal`: one rule, for every house). `AppointCaptainCommand` names one for an agent;
+`RelieveCaptainCommand` takes one off, free. Nobody is admiral and captain at once, nor captain of two fleets: a captain
+named to a second fleet leaves the first, and a captain given a flag (`AssignAdmiralCommand`) leaves the captaincy.
+A captain who dies, grows frail or leaves the house leaves the post. A levy keeps the officers its own house gave it.
+
+What a captain does:
+
+- **Readiness.** At anchor the fleet recovers a point more a year for each point of the captain's discipline. Under way
+  it loses a point less a year for every two points.
+- **Gunnery.** While the admiral commands, the fleet fights a hundredth harder for each point of the captain's gunnery.
+- **Command.** A fleet with no admiral is commanded by its captain: it fights by the captain's own tactics, gunnery and
+  leadership as an admiral's would be reckoned (`FleetSystem.CommandFactor`), not at 0.85, and it is the captain's
+  command cap that the hulls are counted against. When the admiral falls in a battle the captain has the command from
+  that moment, and the house is told. When the admiral is wounded the captain commands if the fleet does better so; a
+  wounded admiral who would still do better keeps the command (`FleetSystem.Commander`).
+- **The record.** A captain who commands in a won battle learns as an admiral does (the weaker of tactics and gunnery
+  rises a point, within what they can learn) and it is written in the record of their life: "Won a battle as captain, in
+  command of ...". One who commands in a lost battle may be wounded or killed, as an admiral may. The appointment is in
+  the record too.
+
+The other houses give their fleets captains by the same rule (`NpcAi`, with the admirals): the officer of the house with
+the most discipline and gunnery who may be one. For them, as with their admirals, it costs no agent.
+
+### Squadrons
+
+- **The merge was backwards.** The option on a fleet's card reads "Fold <other> into <this>", and its refusal was reckoned
+  that way, but the button folded this fleet into the other and so kept the other fleet's admiral. The button now runs
+  the fold its label names, and the label says who commands afterwards. The receiving fleet keeps its admiral and its
+  captain; if it has none it takes the other's.
+- `MergeFleetsCommand.Refusal` gave no reason when one fleet was laid up and the other was not (`CanExecute` refused). It
+  now says which is which and what to do.
+- **A detachment of a chosen class.** `DetachHullsCommand` takes a class of hull (a list on the card: "the lightest", or
+  any class the fleet has). Hulls paid off are still the lightest.
+- **Under its captain.** A detachment may be sent under the fleet's captain. The captain commands the new squadron as its
+  admiral, and the fleet is without a captain until another is named.
+
+### Where a fleet stands
+
+Supply, laying up, command and the cap were each said in a different place on the card. One line now says them
+together (`FleetSystem.Stands`): in commission or laid up, and where; in supply or not, and why (`FleetSystem.SupplyWhy`:
+the world of the house, the depot or the campaign's object that feeds it, or that none is within reach, and how fast the
+supply falls); who commands and who is captain; and the hulls against the commander's cap. No convoys or supply lines
+were added as things of their own.
+
+### The account of a war
+
+Each war between houses keeps an account by year (`War.Years`, kept by `WarLedger`). A year's account is closed when the
+year turns, after the fleets are paid for, the battles fought and the sieges resolved. It holds: the battles and who won
+them; the hulls each side lost, and the hulls taken as prizes by boarding; the worlds, stations and seats that changed
+hands (taken by siege, ceded at the peace, or a province whose holder had no fleet left to keep it), and whether it was
+the last the losing house held; the score as the year opened and as it closed; and what each house's fleets in
+commission cost it in credits and in helium-3. A house in two wars bears its fleets once: the cost is shared between its
+wars. What happens after the close (a peace, and what it cedes) is written into the war's last account, "at its end".
+
+A war that ends, by a peace or because a house or a throne is gone, is kept among `World.PastWars` with its account and
+how it ended. The accounts are kept for every war between houses, the player's or not.
+
+It is shown:
+
+- **In the year in brief**, under War, one paragraph for each war of the house: "The war with House Oriel, its third
+  year: two battles, one won. You lost 3 hulls and sank 5. Cinder Gate was taken. The score stands 7 to 2; it was 4 to
+  2. It cost 1,400 credits and 3 helium-3."
+- **On the Military window, the tab "Wars"**: every year of every war of the house, standing and ended, and below them
+  the wars between other houses.
+- **As news**: a world taken or lost by siege, a world ceded to or by the house at a peace, a seat taken or lost, a
+  captain taking the command when the admiral falls, and a war that is over, with the whole of it added up.
+
+Found while building it: the battle lines in the year in brief were a year late. A battle is fought as the year turns and
+is dated with the year that opens; the brief looked for battles dated with the year before. It now shows the battles
+fought as the year turned.
+
+### The numbers
+
+| what | number |
+|---|---|
+| lowest rank of a captain | Lieutenant, the third rung of the Navy (`FleetSystem.CaptainRank` 2) |
+| lowest age | 16, the age of majority |
+| to appoint a captain | 1 agent; to relieve one, nothing |
+| readiness at anchor | +1 a year for each point of the captain's discipline, to +5 (on the usual 10) |
+| readiness under way | 1 less lost a year for every two points of discipline, to 3 less (of the usual 5) |
+| gunnery, under an admiral | +1% for each point of the captain's gunnery, to +6% |
+| a captain in command | the admiral's reckoning on the captain's own skills (tactics 5%, gunnery 3%, leadership 2% a point), in place of 0.85 |
+| ended wars kept | 40 of the player's house, 12 between other houses |
+| what a war's year cost | the credits of the fleets in commission and the helium-3 burned, shared equally between a house's wars, the odd part to the oldest |
+
+### What I chose
+
+- A captain is a Lieutenant or above. An Ensign or a Cadet is refused, and so is anyone outside the naval service.
+- One agent to appoint, as for an admiral. Relieving is free.
+- The captain's two skills are discipline (readiness) and gunnery (the fight), and the sizes above: +5 readiness at
+  most, 3 less lost under way at most, +6% at most.
+- A captain in command is reckoned exactly as an admiral, with no penalty for being a captain. The only limit is the
+  captain's lower rank, which gives a smaller command cap.
+- A wounded admiral hands over only to a captain who would do better.
+- A detachment under the captain makes the captain its admiral, and empties the captaincy of the fleet it left.
+- A war's first account is the year after it was declared.
+- The cost in the account is credits and helium-3 only, of fleets in commission, and it is divided between a house's wars.
+- 40 and 12 ended wars are kept.
+- A war that ends otherwise than by a peace is kept with a plain reason ("House X was no more").
+- The news of a world taken opens the map at the world. The news of a world lost opens the Wars tab.
+
+### What is not built
+
+- Convoys and supply lines as objects (by the owner's instruction).
+- Pay for captains: the payroll pays admirals only.
+- A captain is at no risk in a battle the admiral commands, and no report (event) is about a captain.
+- A captaincy teaches nothing by the year, as an admiral's post does; a captain learns only by a battle won in command.
+- In the player's house no relative takes up an empty captaincy unasked, as they do an empty command.
+- The other houses do not detach squadrons under their captains.
+- Wars with the nations beyond the Reach are not in the account: they keep their own tally (docs/BEYOND.md).
+- Manpower for drill, materials for refits and isotopes for torpedoes are not in a war year's cost.
+- Hulls paid off are always the lightest: only a detachment takes a chosen class.
+
 ## Flags and counters for content
 `battle_won`, `battle_lost`, `fought_at_the_front`, `hulls_captured`, `became_achilles`, `fleet_deserts`, `out_of_supply`,
 `supply_low`, `fleet_restive`, `fleet_mutinous`, `campaign_declared`, `campaign_open`, `campaign_over`; counters

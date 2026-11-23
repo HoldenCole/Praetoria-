@@ -242,9 +242,70 @@ public sealed class AssignAdmiralCommand : ICommand
         // one command to a person: whoever had another shifts their flag, and the fleet they leave has no admiral until one is named
         var left = w.Fleets.Values.FirstOrDefault(x => x.Id != _fleetId && x.AdmiralId == _characterId);
         if (left != null) left.AdmiralId = "";
+        // nobody is admiral and captain at once: a captain given a flag leaves the captaincy, of this fleet or another
+        var ship = w.Fleets.Values.Where(x => x.CaptainId == c.Id).OrderBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
+        foreach (var x in w.Fleets.Values.Where(x => x.CaptainId == c.Id)) x.CaptainId = "";
         f.AdmiralId = c.Id;
         FleetSystem.RefreshAdmiralFlags(w);
         w.Log(left != null ? $"{c.Name} shifts {(c.Sex == "female" ? "her" : "his")} flag from {left.Name} to {f.Name}; {left.Name} is without an admiral." : $"{c.Name} takes command of {f.Name}.");
+        if (ship != null) w.Log($"{c.Name} was captain of {ship.Name}, which is without a captain now.");
+    }
+}
+
+/// <summary>Give a fleet a flag captain under its admiral (docs/MILITARY.md, "Commanding a navy"; docs/PLAYTHROUGH.md, Hard: "captains
+/// to appoint from the service"). The captain is a living, grown member of the house in the naval service, a Lieutenant or above
+/// (<see cref="FleetSystem.CaptainRefusal"/>); nobody is admiral and captain at once, nor captain of two fleets, so a captain named
+/// to a second fleet leaves the first. The captain keeps the crews to their work (readiness), adds a little by gunnery while the
+/// admiral commands, and commands when the fleet has no admiral or its admiral is dead or wounded. Costs 1 Agent.</summary>
+public sealed class AppointCaptainCommand : ICommand
+{
+    private static readonly Dictionary<string, int> CostMap = new() { [Pool.Agents] = 1 };
+    private readonly string _fleetId, _characterId;
+    public AppointCaptainCommand(string actorId, string fleetId, string characterId) { ActorId = actorId; _fleetId = fleetId; _characterId = characterId; }
+    public string ActorId { get; }
+    public string Describe() => $"make {_characterId} captain of {_fleetId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        return FleetSystem.CaptainRefusal(w, f, w.Char(_characterId)) ?? ctx.PoolsOf(ActorId).Short(CostMap);
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; ctx.PoolsOf(ActorId).Spend(CostMap);
+        var f = w.Fleets[_fleetId]; var c = w.Char(_characterId)!;
+        var left = w.Fleets.Values.Where(x => x.Id != _fleetId && x.CaptainId == c.Id).OrderBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
+        foreach (var x in w.Fleets.Values.Where(x => x.CaptainId == c.Id)) x.CaptainId = "";
+        var was = FleetSystem.CaptainOf(w, f);
+        f.CaptainId = c.Id;
+        LifeSystem.Note(w, c, "post", $"Made captain of {f.Name}.");
+        w.Log($"{c.Name} is made captain of {f.Name}" + (left != null ? $", and leaves {left.Name} without one" : "") + (was != null ? $"; {was.Name} gives up the post" : "") + ".");
+    }
+}
+
+/// <summary>Take a fleet's captain off it (docs/MILITARY.md, "Commanding a navy"). Free: the post is simply empty until another is named.</summary>
+public sealed class RelieveCaptainCommand : ICommand
+{
+    private readonly string _fleetId;
+    public RelieveCaptainCommand(string actorId, string fleetId) { ActorId = actorId; _fleetId = fleetId; }
+    public string ActorId { get; }
+    public string Describe() => $"relieve the captain of {_fleetId}";
+    public string? Refusal(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId);
+        if (actor?.Alive != true) return "no one to give the order";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (f.LevyOf.Length > 0) return "a levy keeps the officers its own house gave it";
+        return FleetSystem.CaptainOf(w, f) == null ? "it has no captain" : null;
+    }
+    public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var f = w.Fleets[_fleetId]; var c = FleetSystem.CaptainOf(w, f)!;
+        f.CaptainId = "";
+        w.Log($"{c.Name} is relieved as captain of {f.Name}" + (FleetSystem.AdmiralOf(w, f) == null ? ", which has now neither admiral nor captain." : "."));
     }
 }
 
@@ -362,15 +423,20 @@ public static class FleetHulls
 }
 
 /// <summary>Detach hulls from a fleet where it lies, as a squadron of their own: a guard left over a world while the rest sails on
-/// (docs/PLAYTHROUGH.md, War and peace: "detach hulls to leave a guard"). The lightest hulls go. The admiral stays with the fleet;
-/// the detachment has none until one is named. It costs nothing.</summary>
+/// (docs/PLAYTHROUGH.md, War and peace: "detach hulls to leave a guard"). The lightest hulls go, or hulls of the class named
+/// (<c>classId</c>). The admiral stays with the fleet; the detachment has none until one is named, unless the fleet's captain is
+/// sent with it (<c>withCaptain</c>): then the captain commands the new squadron as its admiral, and the fleet is without a
+/// captain (docs/MILITARY.md, "Commanding a navy"). It costs nothing.</summary>
 public sealed class DetachHullsCommand : ICommand
 {
     private readonly string _fleetId; private readonly int _hulls; private readonly FleetRules _rules; private readonly ShipClassCatalog _classes;
-    public DetachHullsCommand(string actorId, string fleetId, int hulls, FleetRules rules, ShipClassCatalog? classes = null) { ActorId = actorId; _fleetId = fleetId; _hulls = hulls; _rules = rules; _classes = classes ?? ShipClassCatalog.Empty; }
+    private readonly string? _classId; private readonly bool _withCaptain;
+    public DetachHullsCommand(string actorId, string fleetId, int hulls, FleetRules rules, ShipClassCatalog? classes = null, string? classId = null, bool withCaptain = false)
+    { ActorId = actorId; _fleetId = fleetId; _hulls = hulls; _rules = rules; _classes = classes ?? ShipClassCatalog.Empty; _classId = string.IsNullOrEmpty(classId) ? null : classId; _withCaptain = withCaptain; }
     public string ActorId { get; }
-    public string Describe() => $"detach {Counted.Hulls(_hulls)} from {_fleetId}";
-    public List<(ShipClassDef cls, int n)> Which(World w) => w.Fleets.TryGetValue(_fleetId, out var f) ? FleetHulls.Lightest(f, _hulls, _classes, _rules) : new();
+    public string Describe() => $"detach {Counted.Hulls(_hulls)}{(_classId != null ? " (" + _classId + ")" : "")} from {_fleetId}{(_withCaptain ? " under its captain" : "")}";
+    public List<(ShipClassDef cls, int n)> Which(World w) => !w.Fleets.TryGetValue(_fleetId, out var f) ? new()
+        : _classId != null ? new() { (_classes.Resolve(_classId), Math.Min(_hulls, f.Of(_classId, _rules.DefaultClass))) } : FleetHulls.Lightest(f, _hulls, _classes, _rules);
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId);
@@ -380,7 +446,15 @@ public sealed class DetachHullsCommand : ICommand
         if (f.IsAway) return "it is beyond the Reach"; if (f.Moving) return "it is under way: hulls are detached where a fleet lies";
         if (FleetSystem.LaidUpRefusal(f) is { } laid) return laid;
         if (f.Strength < 2) return "it is one hull: there is nothing to detach";
-        return _hulls >= 1 && _hulls < f.Strength ? null : $"a detachment is at least one hull and leaves at least one: {f.Name} has {f.Strength}";
+        if (_hulls < 1 || _hulls >= f.Strength) return $"a detachment is at least one hull and leaves at least one: {f.Name} has {f.Strength}";
+        if (_classId != null)
+        {
+            int have = f.Of(_classId, _rules.DefaultClass); string name = _classes.Resolve(_classId).Name.ToLowerInvariant();
+            if (have <= 0) return $"{f.Name} has no {name}";
+            if (_hulls > have) return $"{f.Name} has {Counted.Of(have, name)}, not {_hulls}";
+        }
+        if (_withCaptain && FleetSystem.CaptainOf(w, f) == null) return "it has no captain to send with them";
+        return null;
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
@@ -392,7 +466,14 @@ public sealed class DetachHullsCommand : ICommand
             Readiness = f.Readiness, Veterancy = f.Veterancy, Supply = f.Supply, Loyalty = f.Loyalty, Stance = f.Stance, Loadout = f.Loadout, ArrivedTurn = f.ArrivedTurn, Strength = 0 };
         foreach (var (cls, k) in took) d.Ships[cls.Id] = d.Ships.GetValueOrDefault(cls.Id) + k;
         d.Recount(); w.Fleets[d.Id] = d;
-        w.Log($"{FleetHulls.Say(took)} of {f.Name} {(took.Sum(x => x.n) == 1 ? "is" : "are")} detached at {w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId} as {d.Name}; {f.Name} keeps {Counted.Hulls(f.Strength)}.");
+        var captain = _withCaptain ? FleetSystem.CaptainOf(w, f) : null;
+        if (captain != null)
+        {
+            // the captain goes with the squadron as its commander: an admiral's place, so the captaincy of the fleet is empty
+            f.CaptainId = ""; d.AdmiralId = captain.Id; FleetSystem.RefreshAdmiralFlags(w);
+            LifeSystem.Note(w, captain, "post", $"Given the command of {d.Name}, detached from {f.Name}.");
+        }
+        w.Log($"{FleetHulls.Say(took)} of {f.Name} {(took.Sum(x => x.n) == 1 ? "is" : "are")} detached at {w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId} as {d.Name}{(captain != null ? $", under {captain.Name}, who was the fleet's captain" : "")}; {f.Name} keeps {Counted.Hulls(f.Strength)}.");
     }
 }
 
@@ -538,6 +619,7 @@ public sealed class MergeFleetsCommand : ICommand
         if (a.LevyOf.Length > 0 || b.LevyOf.Length > 0) return "a levy sails under its own house's officers and goes home whole: it is not folded into yours";
         if (a.OwnerId != actor.HouseId || b.OwnerId != actor.HouseId) return "not both yours";
         if (a.Office != b.Office) return "one is held by office and is the Reach's, not the house's: they are kept apart";
+        if (a.LaidUp != b.LaidUp) { var laid = a.LaidUp ? a : b; var crewed = a.LaidUp ? b : a; return $"{laid.Name} is laid up, with no crews aboard, and {crewed.Name} is in commission: put {laid.Name} back in commission first, or lay {crewed.Name} up"; }
         if (a.Moving || b.Moving) return "one of them is under way";
         return a.SystemId == b.SystemId ? null : "not in the same system";
     }
@@ -554,9 +636,12 @@ public sealed class MergeFleetsCommand : ICommand
         b.Readiness = (a.Readiness * a.Strength + b.Readiness * (b.Strength - a.Strength)) / Math.Max(1, b.Strength);
         b.Veterancy = Math.Max(a.Veterancy, b.Veterancy);
         if (b.AdmiralId == "" && a.AdmiralId != "") b.AdmiralId = a.AdmiralId;
+        // the receiving fleet keeps its captain too; one that has none takes the other's, unless that officer now has the flag
+        if (b.CaptainId == "" && a.CaptainId != "" && a.CaptainId != b.AdmiralId) b.CaptainId = a.CaptainId;
         w.Fleets.Remove(a.Id); w.Intel.Remove(a.Id);
         FleetSystem.RefreshAdmiralFlags(w);
-        w.Log($"{a.Name} is folded into {b.Name} ({b.Strength} hulls).");
+        string commands = FleetSystem.AdmiralOf(w, b) is { } adm ? $"; {adm.Name} commands it" : FleetSystem.CaptainOf(w, b) is { } cap ? $"; its captain, {cap.Name}, commands it" : "";
+        w.Log($"{a.Name} is folded into {b.Name} ({b.Strength} hulls){commands}.");
     }
 }
 

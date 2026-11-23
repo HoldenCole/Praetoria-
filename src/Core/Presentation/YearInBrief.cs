@@ -103,11 +103,14 @@ public static class YearInBrief
             var ours = a.HouseId == mine ? a : b; var theirs = ours == a ? b : a;
             lines.Add(new BriefLine(Family, "good", $"{ours.Name} married {theirs.Name}{(theirs.HouseId != mine ? " of " + Nm(theirs.HouseId) : "")}{(m.Dowry > 0 ? $", with a dowry of {Praetoria.Core.Money.Credits(m.Dowry)} {(m.DowryFrom == mine ? "paid" : "received")}" : "")}.", "dynasty:marriages"));
         }
-        foreach (var b in w.Battles.Where(b => b.Turn == year && b.Involves(mine)))
+        // a battle is fought as the year turns and is dated with the year that opens: those are the battles this brief is of
+        foreach (var b in w.Battles.Where(b => b.Turn == w.Turn && b.Involves(mine)))
         {
             bool won = b.WinnerId == mine, att = b.AttackerId == mine; string foe = Nm(att ? b.DefenderId : b.AttackerId);
             lines.Add(new BriefLine(War, won ? "good" : "warn", $"The battle of {b.Place}: {(won ? "won against" : "lost to")} {foe}. You lost {Praetoria.Core.Counted.Hulls((att ? b.AttackerLost : b.DefenderLost))}, they lost {(att ? b.DefenderLost : b.AttackerLost)}.", "military:battles"));
         }
+        // the war's year as one account: battles, hulls, worlds, the score and the cost (docs/MILITARY.md, "Commanding a navy")
+        foreach (var (tone, text) in WarLedger.Brief(w, mine)) lines.Add(new BriefLine(War, tone, text, WarLedger.Target));
         foreach (var war in w.Wars.Where(x => x.Since == year && x.Involves(mine)))
         {
             string other = war.HouseA == mine ? war.HouseB : war.HouseA;

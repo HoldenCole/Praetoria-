@@ -218,6 +218,7 @@ public static class LifeSystem
             {
                 bool laidDown = false;
                 foreach (var fl in w.Fleets.Values.Where(x => x.AdmiralId == c.Id)) { fl.AdmiralId = ""; laidDown = true; }
+                foreach (var fl in w.Fleets.Values.Where(x => x.CaptainId == c.Id)) { fl.CaptainId = ""; laidDown = true; }   // and a captaincy with it
                 if (ours && c.Id != p!.Id)
                 {
                     foreach (var d in house!.Duties.Where(d => d.HolderId == c.Id).ToList()) { house.Duties.Remove(d); laidDown = true; }

@@ -787,7 +787,7 @@ public class PlaythroughFixTests
         var (w, tc, house, me, ctx) = Start(); tc.BeginTurn();
         var foe = w.Houses.Values.First(h => h.Id != house.Id && !World.Outsider(h.Id));
         house.Treasury.Credits += 40;                       // spent or earned in the year: the brief says where the treasury went
-        w.Battles.Add(new BattleRecord { Turn = w.Turn, Place = "Cinder Gate", AttackerId = foe.Id, DefenderId = house.Id, WinnerId = house.Id, AttackerHulls = 5, DefenderHulls = 6, AttackerLost = 3, DefenderLost = 1 });
+        w.Battles.Add(new BattleRecord { Turn = w.Turn + 1 /* fought as the year turns, and dated with the year that opens */, Place = "Cinder Gate", AttackerId = foe.Id, DefenderId = house.Id, WinnerId = house.Id, AttackerHulls = 5, DefenderHulls = 6, AttackerLost = 3, DefenderLost = 1 });
         w.Judgments.Add(new JudgmentRecord { Turn = w.Turn, Judge = "Flavian Marrow", WinnerId = foe.Id, LoserId = house.Id, Sum = 7, Matter = "a boundary" });
         tc.EndTurn(); if (!w.IsDynastyDead) tc.BeginTurn();
         var brief = Praetoria.Core.Presentation.YearInBrief.For(w, Content);

@@ -411,6 +411,7 @@ public sealed class DynastySystem
             var rec = new DeathRecord { Turn = world.Turn, PersonId = c.Id, Name = c.Name, Age = c.Age, How = how.Length > 0 ? how : c.Age >= 60 ? "of age" : "" };
             foreach (var h in world.Holdings.Values.Where(h => h.GovernorId == c.Id).OrderBy(h => h.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the governing of " + h.Name, Target = "galaxy:" + h.SystemId });
             foreach (var f in world.Fleets.Values.Where(f => f.AdmiralId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the command of " + f.Name, Target = "military:deck" });
+            foreach (var f in world.Fleets.Values.Where(f => f.CaptainId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the captaincy of " + f.Name, Target = "military:deck" });
             if (world.House(mine.HouseId) is { } hh) foreach (var d in hh.Duties.Where(d => d.HolderId == c.Id)) rec.Posts.Add(new DeathPost { What = "the place of " + d.Role, Target = "house:household" });
             foreach (var m in world.Magistrates.Where(m => m.CharacterId == c.Id)) rec.Posts.Add(new DeathPost { What = "an office of the Reach they held", Target = "senate:ladder" });
             string head = mine.Name;

@@ -143,7 +143,7 @@ public sealed class ReclaimFreeholdCommand : ICommand
             foreach (var b in w.Businesses.Values.Where(b => b.OwnerId == free.Id)) b.OwnerId = house.Id;
             house.Treasury.Add(free.Treasury);
             foreach (var c in w.Characters.Values.Where(c => c.HouseId == free.Id)) { c.HouseId = house.Id; house.Members.Add(c.Id); }
-            w.Wars.RemoveAll(x => x.Involves(free.Id)); w.Houses.Remove(free.Id);
+            WarLedger.Strike(w, x => x.Involves(free.Id), "the free hold swore again to the house it had left"); w.Houses.Remove(free.Id);
         }
         house.Legitimacy += 2; w.WorldCounters["reclaimed"] = w.Counter("reclaimed") + 1;
         w.Log($"{house.Name} buys {h.Name} back for {Money.Credits(price)}; {(leader != null ? leader.Name + (folded ? " keeps the governor's chair under the old banner" : " takes the coin and keeps the rest") : "the free hold")} swears again.");

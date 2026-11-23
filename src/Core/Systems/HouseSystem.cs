@@ -62,7 +62,7 @@ public static class HouseSystem
 
     private static void Strike(World w, House house, string line)
     {
-        w.Wars.RemoveAll(x => x.Involves(house.Id));
+        WarLedger.Strike(w, x => x.Involves(house.Id), $"{house.Name} was no more");
         foreach (var f in w.Factions) f.Members.Remove(house.Id);
         if (w.Motions.RemoveAll(m => m.Open && m.ProposerHouseId == house.Id) > 0) w.Log($"The motion of {house.Name} lapses: there is no one left to speak to it.");   // a dead house's business leaves the docket
         foreach (var m in w.Motions.Where(m => m.Open && m.TargetId == house.Id).ToList()) { w.Motions.Remove(m); }

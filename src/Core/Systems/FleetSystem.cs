@@ -166,11 +166,11 @@ public sealed class FleetSystem
             if (f.Moving)
             {
                 f.Eta -= 1;
-                f.Readiness = Math.Max(0, f.Readiness - _rules.ReadinessDecayMoving);
+                f.Readiness = Math.Max(0, f.Readiness - Math.Max(0, _rules.ReadinessDecayMoving - CaptainHolds(w, f)));   // a captain keeps the crews to their work under way
                 if (f.Eta <= 0) { f.SystemId = f.DestinationId; f.DestinationId = ""; f.Eta = 0; f.Voyage = 0; Arrive(w, f); }
             }
             else if (f.LaidUp) f.Readiness = 0;   // no crews: it gains nothing while it lies there
-            else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness"), 0, 100);
+            else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + CaptainDrills(w, f) + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness"), 0, 100);
         }
 
         Drill(w);
@@ -178,12 +178,15 @@ public sealed class FleetSystem
         foreach (var house in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var bill = new Resources();
-            foreach (var f in w.Fleets.Values.Where(f => BilledTo(f, chairId) == house.Id)) bill.Add(Upkeep(f));
+            int keptAtWar = 0;   // what the fleets in commission cost: a war's account says what the year cost (docs/MILITARY.md, "Commanding a navy")
+            foreach (var f in w.Fleets.Values.Where(f => BilledTo(f, chairId) == house.Id)) { var keep = Upkeep(f); bill.Add(keep); if (!f.LaidUp) keptAtWar += keep.Credits; }
             if (bill.IsEmpty()) continue;
+            int tanks = house.Treasury.Helium3;
             foreach (var r in Resource.All) house.Treasury.Add(r, -bill.Get(r));
             house.Treasury.ClampNonCredit();
             Desert(w, house);
             Refuel(w, house);
+            WarLedger.Cost(w, house.Id, keptAtWar, tanks - house.Treasury.Helium3);
         }
         Loyalty(w);
 
@@ -485,6 +488,113 @@ public sealed class FleetSystem
             if (admirals.Contains(c.Id) && c.Alive) c.Flags.Add(AdmiralFlag); else c.Flags.Remove(AdmiralFlag);
         }
         foreach (var f in w.Fleets.Values) if (f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is not { Alive: true }) f.AdmiralId = "";
+        // captains: a dead one leaves the post, one made an admiral has left it, and nobody is captain of two fleets or of another house's
+        var flags = w.Fleets.Values.Select(f => f.AdmiralId).Where(a => a.Length > 0).ToHashSet(); var captains = new HashSet<string>();
+        foreach (var f in w.Fleets.Values.Where(f => f.CaptainId.Length > 0).OrderBy(f => f.Id, StringComparer.Ordinal))
+        {
+            var c = w.Char(f.CaptainId);
+            if (c is not { Alive: true } || flags.Contains(c.Id) || (c.HouseId != f.OwnerId && c.HouseId != f.HiredFrom) || !captains.Add(c.Id)) f.CaptainId = "";
+        }
+    }
+
+    // ---------------- captains (docs/MILITARY.md, "Commanding a navy") ----------------
+
+    /// <summary>The lowest rank of the naval service that may be a fleet's captain: Lieutenant (Cadet 0, Ensign 1, Lieutenant 2).</summary>
+    public const int CaptainRank = 2;
+    /// <summary>A captain adds a point of readiness a year at anchor for each point of discipline, up to this; and keeps back a point
+    /// of what a year under way wears off for every two points, up to <see cref="CaptainHoldsMax"/>.</summary>
+    public const int CaptainDrillsMax = 5, CaptainHoldsMax = 3;
+    /// <summary>What a captain's gunnery adds to how the fleet fights under its admiral, a point, and at most.</summary>
+    public const double CaptainGunnery = 0.01, CaptainGunneryMax = 0.06;
+
+    public static Character? AdmiralOf(World w, Fleet f) => f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { Alive: true } c ? c : null;
+    public static Character? CaptainOf(World w, Fleet f) => f.CaptainId.Length > 0 && w.Char(f.CaptainId) is { Alive: true } c ? c : null;
+    public static int CaptainDrills(World w, Fleet f) => CaptainOf(w, f) is { } c ? Math.Clamp(c.Skill("discipline"), 0, CaptainDrillsMax) : 0;
+    public static int CaptainHolds(World w, Fleet f) => CaptainOf(w, f) is { } c ? Math.Clamp(c.Skill("discipline") / 2, 0, CaptainHoldsMax) : 0;
+
+    /// <summary>Who commands the fleet in a fight: its admiral; its captain when it has no admiral; and when the admiral is wounded,
+    /// whichever of the two would do the better by it. Null when it has neither.</summary>
+    public static Character? Commander(World w, Fleet f)
+    {
+        var adm = AdmiralOf(w, f); var cap = CaptainOf(w, f);
+        if (adm == null) return cap;
+        if (cap == null || !adm.Flags.Contains(LifeSystem.WoundedChar)) return adm;
+        return CommandFactor(cap) > CommandFactor(adm) ? cap : adm;
+    }
+
+    /// <summary>What a captain's gunnery adds while the admiral commands: nothing when the captain is the one commanding, since their
+    /// gunnery is then counted as the commander's.</summary>
+    public static double CaptainFactor(World w, Fleet f) =>
+        CaptainOf(w, f) is { } c && Commander(w, f) != c ? 1 + Math.Min(CaptainGunneryMax, Math.Max(0, c.Skill("gunnery")) * CaptainGunnery) : 1.0;
+
+    /// <summary>Why this person may not be the fleet's captain, or null: a living, grown member of the fleet's house, in the naval
+    /// service at the rank of Lieutenant or above, who is admiral of nothing. The same rule for every house.</summary>
+    public static string? CaptainRefusal(World w, Fleet f, Character? c)
+    {
+        if (c is not { Alive: true }) return "no one to appoint";
+        if (f.LevyOf.Length > 0) return "a levy keeps the officers its own house gave it";
+        if (c.HouseId != f.OwnerId) return $"{c.Name} is not of the house";
+        if (f.CaptainId == c.Id) return $"{c.Name} is its captain already";
+        if (c.Age < DynastySystem.AgeOfMajority) return $"{c.Name} is {c.Age}: a captain is a grown officer, {DynastySystem.AgeOfMajority} or older";
+        if (c.CareerTrack != "military") return $"{c.Name} is not in the naval service: a captain is an officer of the Navy, a Lieutenant or above";
+        if (c.CareerRank < CaptainRank) return $"{c.Name} is not yet a Lieutenant: a captain is an officer of the Navy, a Lieutenant or above";
+        if (c.Flags.Contains(LifeSystem.FrailChar)) return $"{c.Name} is too frail for the sea";
+        if (w.Fleets.Values.Where(x => x.AdmiralId == c.Id).OrderBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault() is { } flag)
+            return flag.Id == f.Id ? $"{c.Name} is its admiral: nobody is admiral and captain at once" : $"{c.Name} is admiral of {flag.Name}: nobody is admiral and captain at once";
+        if (CaesarSystem.Barred(w, c)) return "the Senate had them lay a command down";
+        return null;
+    }
+
+    /// <summary>Where a fleet stands as a whole, in one line (docs/PLAYTHROUGH.md, Hard: "together they are a system"): in commission
+    /// or laid up, in supply or not and why, who commands and who is captain, and its hulls against the commander's cap.</summary>
+    public string Stands(World w, Fleet f)
+    {
+        string Sys(string id) => w.Galaxy?.System(id)?.Name ?? id;
+        var parts = new List<string>();
+        parts.Add(f.LaidUp ? $"Laid up at {Sys(f.SystemId)}: the hulls are kept and the crews paid off, at {_rules.LaidUpUpkeepPct} in a hundred of the keep."
+            : f.IsAway ? "In commission, beyond the Reach."
+            : f.Moving ? $"In commission, under way to {Sys(f.DestinationId)} ({Counted.Years(Math.Max(1, f.Eta))})."
+            : $"In commission at {Sys(f.SystemId)}.");
+        if (f.IsAway) parts.Add($"Its supply ({f.Supply}) is the expedition's own, and falls each season abroad.");
+        else if (w.Galaxy != null && f.OwnerId != PirateSystem.HouseId)
+        {
+            string at = f.Moving ? f.DestinationId : f.SystemId; string? why = SupplyWhy(w, f.OwnerId, at); string where = f.Moving ? " where it is bound" : "";
+            parts.Add(why != null ? $"In supply{where} ({f.Supply}): {why}."
+                : $"Out of supply{where} ({f.Supply}, falling {(NearHome(w, f.OwnerId, at) ? _rules.SupplyDrainNear : _rules.SupplyDrain)} a year): no world of the house is within {Counted.Lanes(_rules.SupplyRange)}, no supply depot within {_rules.DepotRange}, and no campaign's object within {_rules.CampaignRange}.");
+        }
+        var adm = AdmiralOf(w, f); var cap = CaptainOf(w, f); var cmd = Commander(w, f);
+        parts.Add(adm == null && cap == null ? "It has no admiral and no captain: it fights at 85 in a hundred."
+            : adm == null ? $"It has no admiral: its captain, {cap!.Name}, commands."
+            : cmd != adm ? $"{adm.Name}, its admiral, is wounded: the captain, {cap!.Name}, commands."
+            : $"{adm.Name} commands as admiral{(adm.Flags.Contains(LifeSystem.WoundedChar) ? ", wounded" : "")}{(cap != null ? $", with {cap.Name} as captain" : "; it has no captain")}.");
+        if (cmd != null)
+        {
+            int limit = CommandCap(cmd);
+            parts.Add(f.Strength <= limit ? $"{Counted.Hulls(f.Strength)} against a cap of {limit}."
+                : $"{Counted.Hulls(f.Strength)} against a cap of {limit}: {f.Strength - limit} more than {cmd.Name} leads without strain, and it fights at {_rules.OverCapPenalty * 100:0} in a hundred.");
+        }
+        else parts.Add($"{Counted.Hulls(f.Strength)}, and nobody whose cap they would strain.");
+        return string.Join(" ", parts);
+    }
+
+    /// <summary>Why a system is in a house's supply, or null when it is not: the nearest of the reasons <see cref="InSupply"/> counts.</summary>
+    public string? SupplyWhy(World w, string houseId, string systemId)
+    {
+        var g = w.Galaxy; if (g == null) return null;
+        (int d, string says)? best = null;
+        foreach (var h in w.HoldingsOf(houseId).Where(h => h.IsPlanet && h.SystemId.Length > 0).OrderBy(h => h.Id, StringComparer.Ordinal))
+        {
+            bool depot = h.Buildings.Contains("supply_depot") || (SystemWorks.Any(w) && SystemWorks.Depot(w, _catalog, h.SystemId));
+            int d = h.SystemId == systemId ? 0 : g.Hops(h.SystemId, systemId);
+            if (d < 0 || (d == 0 && h.SystemId != systemId) || d > (depot ? _rules.DepotRange : _rules.SupplyRange)) continue;
+            if (best != null && best.Value.d <= d) continue;
+            best = (d, d == 0 ? $"it lies at {h.Name}, a world of the house" : depot ? $"the supply depot at {h.Name} is {Counted.Lanes(d)} off, and a depot reaches {_rules.DepotRange}" : $"{h.Name}, a world of the house, is {Counted.Lanes(d)} off");
+        }
+        if (best != null) return best.Value.says;
+        var target = CampaignTarget(w, houseId);
+        if (target != null && (target == systemId || g.Hops(target, systemId) is > 0 and var cd && cd <= _rules.CampaignRange))
+            return $"the campaign's object, {g.System(target)?.Name ?? target}, is {(target == systemId ? "here" : Counted.Lanes(g.Hops(target, systemId)) + " off")}, and a campaign feeds the fleets within {_rules.CampaignRange}";
+        return null;
     }
 
     /// <summary>Long wars grind: past the weariness threshold, every holding of a warring house grows restless each turn.</summary>
@@ -540,7 +650,7 @@ public sealed class FleetSystem
     public void DeclareWar(World w, string a, string b, string? byCharacterId = null)
     {
         if (a == b || w.AtWar(a, b)) return;
-        w.Wars.Add(new War { HouseA = a, HouseB = b, Since = w.Turn });
+        w.Wars.Add(new War { HouseA = a, HouseB = b, Since = w.Turn, ClosedThrough = w.Turn });
         w.WorldCounters[WarsDeclaredCounter] = w.Counter(WarsDeclaredCounter) + 1;
         if (a == w.Protagonist?.HouseId) w.WorldCounters[WarsBegunCounter] = w.Counter(WarsBegunCounter) + 1;
         RefreshWarFlags(w);
@@ -569,7 +679,7 @@ public sealed class FleetSystem
         if (war == null) return;
         // blockades still standing end with the war, and what they cost is billed with the rest
         foreach (var s in w.Sieges.Values.Where(s => war.Involves(s.BesiegerId) && war.Involves(w.Holding(s.HoldingId)?.OwnerId ?? "")).OrderBy(s => s.HoldingId, StringComparer.Ordinal).ToList()) VentureSystem.SiegeLifted(w, s);
-        w.Wars.Remove(war);
+        w.Wars.Remove(war); WarLedger.Archive(w, war);   // kept, with its account by year (docs/MILITARY.md, "Commanding a navy")
         VentureSystem.SettleClaims(w, war, CessionLead);   // the bills for what was sacked are presented (docs/ECONOMY_MARKET.md, section 14)
         if (terms)
         {
@@ -586,6 +696,7 @@ public sealed class FleetSystem
         RefreshWarFlags(w);
         RefreshSiegeFlag(w);
         w.Log($"{w.House(a)?.Name ?? a} and {w.House(b)?.Name ?? b} make peace.");
+        WarLedger.Finish(w, war, "peace was made");
     }
 
     /// <summary>A world changes hands at a peace: its new house's head governs it, and its people take it badly for a while.</summary>
@@ -595,7 +706,11 @@ public sealed class FleetSystem
         var newGov = Economy.HeadOf(w, w.House(winner)!); if (newGov != null) ceded.GovernorId = newGov.Id;
         w.WorldCounters["cessions"] = w.Counter("cessions") + 1;
         var player = w.Protagonist?.HouseId; if (winner == player) w.WorldFlags.Add("won_a_world"); if (loser == player) w.WorldFlags.Add("ceded_a_world");
+        WarLedger.Changed(w, ceded, loser, winner, "ceded");
         w.Log($"By the terms of the peace, {w.House(loser)?.Name ?? loser} cedes {ceded.Name} to {w.House(winner)?.Name ?? winner}.");
+        // a world that changes hands is news to the house that gains or loses it
+        if (winner == player) w.Tell("good", $"By the terms of the peace {w.House(loser)?.Name ?? loser} cedes {ceded.Name} to you. You govern it yourself until you name another, and its people take the change badly for a while.", "galaxy:" + ceded.SystemId, ceded.Id);
+        else if (loser == player) w.Tell("warn", $"By the terms of the peace {ceded.Name} is ceded to {w.House(winner)?.Name ?? winner}. It is yours no longer.", WarLedger.Target, ceded.Id);
     }
 
     /// <summary>Tribute the lower-scoring side pays the higher on peace (credits), from the war's score difference.</summary>
@@ -663,7 +778,7 @@ public sealed class FleetSystem
                     WealthSystem.StandardWon(w, report.Winner, report.Winner == a ? b : a, systemId, Admirals(w, report.Winner, systemId));   // sometimes a standard comes home (docs/WEALTH.md)
                     w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1;
                     if (w.House(report.Winner) is { } victor && !World.Outsider(victor.Id)) victor.Glory = Math.Min(12, victor.Glory + 1);   // a victory is talked about (docs/REPUBLIC.md stage 3)
-                    var scored = w.Wars.FirstOrDefault(x => x.Between(a, b)); if (scored != null) { scored.AddScore(report.Winner, 2); scored.LastBattleTurn = w.Turn; }   // raiders have no war to score
+                    var scored = w.Wars.FirstOrDefault(x => x.Between(a, b)); if (scored != null) { bool attWon = report.Winner == report.Attacker; WarLedger.Battle(w, scored, report.Winner, attWon ? report.AttackerLosses : report.DefenderLosses, attWon ? report.DefenderLosses : report.AttackerLosses); scored.AddScore(report.Winner, 2); scored.LastBattleTurn = w.Turn; }   // raiders have no war to score
                     if (player != null && (a == player || b == player))
                     {
                         w.WorldFlags.Add(BattleFoughtFlag);
@@ -700,7 +815,7 @@ public sealed class FleetSystem
         {
             var led = Admirals(w, side, systemId); var here = w.Fleets.Values.Where(f => f.OwnerId == side && !f.Moving && f.SystemId == systemId).ToList();
             int ready = here.Count == 0 ? 0 : (int)here.Average(f => f.Readiness);
-            notes.Add($"{w.House(side)?.Name ?? side}: " + (led.Count > 0 ? "led by " + string.Join(" and ", led.Select(c => $"{c.Name} (tactics {c.Skill("tactics")})")) : "no admiral aboard") + $", readiness {ready}"
+            notes.Add($"{w.House(side)?.Name ?? side}: " + (led.Count > 0 ? "led by " + string.Join(" and ", led.Select(c => $"{c.Name} ({(here.Any(f => f.CaptainId == c.Id) ? "its captain, " : "")}tactics {c.Skill("tactics")})")) : "no admiral aboard") + $", readiness {ready}"
                 + (here.Any(f => f.Supply < _rules.SupplyLow) ? ", short of supply" : "") + (here.Any(f => f.Loadout == "torpedoes") ? ", torpedoes loaded" : ""));
         }
         double roll = rng.NextDouble();
@@ -725,7 +840,7 @@ public sealed class FleetSystem
         {
             int prizes = Math.Max(1, loserLosses / _rules.BoardingCapturePer); wh.Treasury.Manpower -= _rules.BoardingManpower;
             var into = w.Fleets.Values.Where(f => f.OwnerId == winner && !f.Moving && f.SystemId == systemId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
-            if (into != null) { if (into.Ships.Count == 0) into.Ships[_rules.DefaultClass] = into.Strength; into.Ships[_rules.DefaultClass] = into.Ships.GetValueOrDefault(_rules.DefaultClass) + prizes; into.Recount(); w.Log($"Prize crews of {into.Name} take {Counted.Hulls(prizes)} of the enemy as their own."); if (winner == player) w.WorldFlags.Add("hulls_captured"); }
+            if (into != null) { if (into.Ships.Count == 0) into.Ships[_rules.DefaultClass] = into.Strength; into.Ships[_rules.DefaultClass] = into.Ships.GetValueOrDefault(_rules.DefaultClass) + prizes; into.Recount(); w.Log($"Prize crews of {into.Name} take {Counted.Hulls(prizes)} of the enemy as their own."); WarLedger.Prizes(w, winner, loser, prizes); if (winner == player) w.WorldFlags.Add("hulls_captured"); }
         }
         foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == winner && !f.Moving && f.SystemId == systemId))
         { f.Veterancy = Math.Min(_rules.VeterancyMax, f.Veterancy + 1); f.Loyalty = Math.Min(100, f.Loyalty + _rules.LoyaltyWin); }
@@ -737,7 +852,9 @@ public sealed class FleetSystem
         }
         CaesarSystem.Victory(w, winner, loser, systemId);   // the crews take to the one who led them; a victory to his name (docs/CAESAR.md)
         NationSystem.BattleOnMap(w, winner, loser);        // and if it was fought against a nation, it counts in that war (docs/BEYOND.md)
+        var ledBefore = w.Fleets.Values.Where(f => !f.Moving && f.SystemId == systemId && (f.OwnerId == winner || f.OwnerId == loser)).ToDictionary(f => f.Id, f => Commander(w, f)?.Id ?? "");
         AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals, winner);
+        CaptainsTakeOver(w, ledBefore, player);
         Retreat(w, loser, systemId);
 
         var sys = w.Galaxy!.System(systemId)?.Name ?? systemId;
@@ -751,8 +868,20 @@ public sealed class FleetSystem
     }
 
     private static List<Character> Admirals(World w, string houseId, string systemId) =>
-        w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId && f.AdmiralId.Length > 0)
-            .Select(f => w.Char(f.AdmiralId)).Where(c => c is { Alive: true }).Select(c => c!).Distinct().OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+        w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && f.SystemId == systemId)
+            .Select(f => Commander(w, f)).Where(c => c is { Alive: true }).Select(c => c!).Distinct().OrderBy(c => c.Id, StringComparer.Ordinal).ToList();   // (a captain commands a fleet that has no admiral fit to)
+
+    /// <summary>After a battle: where a fleet's admiral fell or was wounded and its captain has the command for it, say so.</summary>
+    private static void CaptainsTakeOver(World w, Dictionary<string, string> ledBefore, string? player)
+    {
+        foreach (var (id, was) in ledBefore.OrderBy(k => k.Key, StringComparer.Ordinal))
+        {
+            if (!w.Fleets.TryGetValue(id, out var f) || CaptainOf(w, f) is not { } cap || was == cap.Id || Commander(w, f) != cap) continue;
+            var adm = w.Char(f.AdmiralId); string why = adm == null ? "it has no admiral" : adm.Alive ? $"{adm.Name} is wounded" : $"{adm.Name} is dead";
+            w.Log($"{cap.Name}, captain of {f.Name}, has the command: {why}.");
+            if (f.OwnerId == player) w.Tell("warn", $"{cap.Name}, captain of {f.Name}, has the command: {why}. The fleet fights under the captain until {(adm is { Alive: true } ? "the admiral is well again" : "you name an admiral")}.", "military:deck", f.Id);
+        }
+    }
 
     /// <summary>The victor's admiral learns (tactics, then gunnery); the loser's is wounded — or, on a seeded roll, killed
     /// (GDD §5 "losing a Fleet Admiral means the heir starts as a green cadet"; a dead protagonist triggers succession).</summary>
@@ -765,7 +894,7 @@ public sealed class FleetSystem
             string skill = c.Skill("tactics") <= c.Skill("gunnery") ? "tactics" : "gunnery", other = skill == "tactics" ? "gunnery" : "tactics";
             if (c.Skill(skill) >= EducationSystem.Ceiling(c, skill)) skill = other;
             if (c.Skill(skill) < EducationSystem.Ceiling(c, skill)) { c.Skills[skill] = c.Skill(skill) + 1; w.Log($"{c.Name} learns from the victory ({skill} {c.Skill(skill)})."); }
-            LifeSystem.Note(w, c, "victory", "Won a battle in command of a fleet.");
+            LifeSystem.Note(w, c, "victory", w.Fleets.Values.Where(f => f.CaptainId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault() is { } ship ? $"Won a battle as captain, in command of {ship.Name}." : "Won a battle in command of a fleet.");
             if (c.Flags.Contains(FrontFlag))
             {
                 int v = w.Counter(ValourKey(c.Id)) + 1; w.WorldCounters[ValourKey(c.Id)] = v;
@@ -849,7 +978,7 @@ public sealed class FleetSystem
     {
         double hulls = 0;
         foreach (var (cls, n) in Composition(f)) hulls += n * (defending ? cls.Defense : cls.Attack);
-        return hulls * (0.5 + f.Readiness / 200.0) * AdmiralFactor(w, f) * (1 + f.Veterancy * _rules.VeterancyBonus) * DepthFactor(w, f);
+        return hulls * (0.5 + f.Readiness / 200.0) * AdmiralFactor(w, f) * CaptainFactor(w, f) * (1 + f.Veterancy * _rules.VeterancyBonus) * DepthFactor(w, f);
     }
 
     /// <summary>The military depth's per-fleet factor (docs/MILITARY.md): stance, torpedoes with isotopes in store, a commander at the front
@@ -858,7 +987,7 @@ public sealed class FleetSystem
     {
         double k = f.Stance switch { "press" => _rules.PressPower, "boarding" => _rules.PressPower, "skirmish" => _rules.SkirmishPower, _ => 1.0 };
         if (f.Loadout == "torpedoes" && (w.House(f.OwnerId)?.Treasury.Isotopes ?? 0) > 0) k *= 1 + _rules.TorpedoBonus;
-        var c = f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId) : null;
+        var c = Commander(w, f);
         if (c is { Alive: true })
         {
             if (c.Flags.Contains(FrontFlag)) k *= 1 + _rules.FrontBonus + (c.Flags.Contains(AchillesFlag) ? _rules.AchillesBonus : 0);
@@ -878,10 +1007,11 @@ public sealed class FleetSystem
 
     /// <summary>The admiral's skill (GDD §6): tactics 5%, gunnery 3%, leadership 2% per point; Tactician +10%, Strategist +5%;
     /// a wounded or broken admiral −10%. Unled fleets fight at 0.85.</summary>
-    public static double AdmiralFactor(World w, Fleet f)
+    public static double AdmiralFactor(World w, Fleet f) => Commander(w, f) is { } c ? CommandFactor(c) : 0.85;
+
+    /// <summary>What a commander is worth to the fleet they command, by the admiral's reckoning: the same for a captain who commands.</summary>
+    public static double CommandFactor(Character c)
     {
-        var c = f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId) : null;
-        if (c is not { Alive: true }) return 0.85;
         double k = 1.0 + c.Skill("tactics") * 0.05 + c.Skill("gunnery") * 0.03 + c.Skill("leadership") * 0.02;
         if (c.AptitudeTraits.Contains("Tactician")) k += 0.10;
         if (c.AptitudeTraits.Contains("Strategist")) k += 0.05;
@@ -1044,6 +1174,7 @@ public sealed class FleetSystem
             if (sack) NationSystem.Sack(w, h, besieger); else Conquer(w, h, besieger, player);
         }
         RefreshSiegeFlag(w);
+        WarLedger.Close(w);   // the year's fighting is done: each war's account for the year is closed (docs/MILITARY.md, "Commanding a navy")
     }
 
     private void Conquer(World w, Holding h, string conqueror, string? player)
@@ -1062,8 +1193,13 @@ public sealed class FleetSystem
         h.OwnerId = conqueror; h.FormerOwnerId = old;
         if (h.IsPlanet) { WealthSystem.Plunder(w, old, conqueror, h, Admirals(w, conqueror, h.SystemId)); VentureSystem.Sack(w, h.SystemId, conqueror); }   // some of the enemy's ventures there do not survive the storming (docs/ECONOMY_MARKET.md)
         h.Unrest = Math.Clamp(h.Unrest + _rules.ConquestUnrest, 0, 100);
+        WarLedger.Changed(w, h, old, conqueror, "taken");   // written into the war's account before the score moves
         w.Wars.FirstOrDefault(x => x.Between(old, conqueror))?.AddScore(conqueror, 3);
         NationSystem.WorldTaken(w, h, conqueror, old, null);
+        // a world taken or lost is news (docs/playthroughs/soldier.md 27: a world fell with no report)
+        bool scores = w.Wars.Any(x => x.Between(old, conqueror));
+        if (conqueror == player) w.Tell("good", $"{h.Name} is taken from {w.House(old)?.Name ?? old}: it is yours. Its people take it badly (unrest {h.Unrest}){(scores ? ", and it counts three in the war's score" : "")}.", "galaxy:" + h.SystemId, h.Id);
+        else if (old == player) w.Tell("warn", $"{h.Name} is lost: {w.House(conqueror)?.Name ?? conqueror} has taken it{(scores ? ", and it counts three for them in the war's score" : "")}.", WarLedger.Target, h.Id);
         if (conqueror == player)
         {
             w.WorldCounters[ConquestsCounter] = w.Counter(ConquestsCounter) + 1;
