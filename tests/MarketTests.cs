@@ -51,7 +51,14 @@ public class MarketTests
         {
             var g = Good(w, d.Id); string trace = $"{d.Id}: {before[d.Id]:F2} → {g.Price:F2} [{g.Cause}] hist {string.Join(",", g.History.Select(x => x.ToString("F2")))}";
             Assert.True(g.History.All(x => x >= d.Base * 0.5 && x <= d.Base * 2.0), trace);                                       // half to double: the band
-            if (d.Id is "exotics" or "rare_earths" or "isotopes") Assert.True(g.Price >= before[d.Id] * 0.85 && g.Price <= before[d.Id] * 1.15, trace);   // nothing made them move
+            // nothing made them move, unless a maker that sold nothing in all those years has come to hold a third of all there is
+            // (docs/ECONOMY_MARKET.md, "Cornering a good"): then the price answers to that and to nothing else, and says so
+            if (d.Id is "exotics" or "rare_earths" or "isotopes")
+            {
+                double lift = 1 + g.CornerPremium;
+                Assert.True(g.Price >= before[d.Id] * 0.85 && g.Price <= before[d.Id] * 1.15 * lift, trace);
+                if (g.CornerPremium >= 0.01) Assert.Contains("of all there is", g.Cause);
+            }
         }
         Assert.Equal(Content.Market.Rules.HistoryKept, Good(w, "materials").History.Count);
         Assert.False(w.HasFlag("price_spike:exotics"));

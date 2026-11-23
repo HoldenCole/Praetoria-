@@ -22,7 +22,7 @@
     @if (door == null && !w.IsImperium) { <button class="opt" disabled="@(enroll != null)" title="@(enroll ?? "the fee goes to the chair; the house may move motions and stand for office from then on")" @onclick="() => G.Execute(new EnrollCommand(pid, os, c.Titles))">Enrol by the census · @Money.Show(OrderSystem.CensusFee) credits</button> }
     <div class="ac-fact"><span>In the chamber</span><p>Standing adds @Counted.Seats(OrderSystem.WeightOf(w, house)) to the house's voice: one for each step in Arms and in Commerce, and one for every two clients.</p></div>
     <div class="ac-fact"><span>Sway</span><p>@(swayed.Count == 0 ? "No house leans your way because it depends on you. Debtors, clients, holders of your companies' shares and fleets that burn fuel you corner all do." : $"{Counted.Houses(swayed.Count)} lean your way on what you move, on a post for you, and against what is aimed at you: " + string.Join("; ", swayed.Take(6).Select(x => $"{x.house.Name} (+{x.lean}: {string.Join(", ", x.why)})")) + (swayed.Count > 6 ? "; and more" : "") + ".")</p></div>
-    @if (house.Corners.Count > 0) { <div class="ac-fact"><span>Cornered</span><p>The house brings up a quarter or more of the Reach's @string.Join(" and ", house.Corners.Select(g => Resource.Label(g))).</p></div> }
+    @if (house.Corners.Count > 0) { <div class="ac-fact" data-makes-quarter><span>Makes a quarter</span><p>The house brings up a quarter or more of all the @string.Join(" and ", house.Corners.Select(g => Resource.Label(g))) the Reach makes in a year. That is a maker's share, and counts toward Commerce; it is not a corner in the market, which is held in store (the Exchange, Goods).</p></div> }
     @if (!w.IsImperium)
     {
         <div class="ac-fact"><span>Patronage</span><p>

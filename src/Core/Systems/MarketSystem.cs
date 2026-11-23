@@ -20,7 +20,9 @@ public sealed record TradeQuote(int Credits, double UnitPrice, string? Refusal);
 /// unusual surplus or shortfall move and which drifts back over years, adds depth: a house that buys a large share of it pays
 /// more and leaves the price higher.</item>
 /// </list>
-/// Houses buy and sell through <see cref="Buy"/> and <see cref="Sell"/>: a spread, the tariff law, an order's own weight.
+/// A house that holds a third or more of all there is of a good lifts its price and slows the merchants' refill for as long as it
+/// holds it (<see cref="CornerSystem"/>). Houses buy and sell through <see cref="Buy"/> and <see cref="Sell"/>: a spread, the tariff
+/// law, an order's own weight.
 /// </summary>
 public sealed class MarketSystem
 {
@@ -139,13 +141,18 @@ public sealed class MarketSystem
             double target = TargetStock(d, rules, g);
             // only the ABNORMAL part of the year's surplus or shortfall reaches the stock: the Reach's usual surplus is already where it usually goes
             g.Stock = Math.Max(0, g.Stock + rules.SharePct / 100.0 * ((supply - demand) - (prevSupplyLong - prevDemandLong)));
-            g.Stock += (target - g.Stock) * (g.Stock > target ? rules.ExcessRelaxPct : rules.RelaxPct) / 100.0;   // a shortage refills slowly; a glut is carried beyond the Reach quickly
+            // a house that holds a third or more of all there is (CornerSystem): the merchants bring back half of what they would, a
+            // quarter while it holds half, because what they bring is bought as it lands or priced out of reach
+            double refill = CornerSystem.Standing(w, _trade.Market, d.Id) is { Top: { } most } held ? CornerSystem.Refill(most.Units, held.All) : 1;
+            g.Stock += (target - g.Stock) * (g.Stock > target ? rules.ExcessRelaxPct : rules.RelaxPct * refill) / 100.0;   // a shortage refills slowly; a glut is carried beyond the Reach quickly
+            double premiumBefore = g.CornerPremium; string holderBefore = g.CornerHouse;
+            CornerSystem.Reckon(w, _trade.Market, d, g);   // who holds the most of it now, and what that adds to the price
             double depth = Math.Clamp(1 + rules.DepthPct / 100.0 * (1 - g.Stock / Math.Max(1, target)), 0.75, 1.75);
-            double factor = (1 + d.Sensitivity * (pressure - 1)) * (1 + rules.DeficitPct / 100.0 * g.Deficit) * depth;
+            double factor = (1 + d.Sensitivity * (pressure - 1)) * (1 + rules.DeficitPct / 100.0 * g.Deficit) * depth * (1 + g.CornerPremium);
             double targetPrice = d.Base * Math.Clamp(factor, rules.FloorPct / 100.0, rules.CapPct / 100.0);
             double before = g.Price;
             g.Price += (targetPrice - g.Price) * rules.EasePct / 100.0;
-            g.Cause = Cause(w, d, g, before, wars, produced + imports, prevSupplyLong - d.MinDemand, demand, prevDemandLong, target);
+            g.Cause = Cause(w, d, g, before, wars, produced + imports, prevSupplyLong - d.MinDemand, demand, prevDemandLong, target, premiumBefore, holderBefore);
             g.History.Add(g.Price); while (g.History.Count > rules.HistoryKept) g.History.RemoveAt(0);
             g.LastProduction = produced; g.LastConsumption = consumed; g.LastTotal = total; g.Bought = 0; g.Sold = 0; g.TopBuyer = ""; g.TopBought = 0; g.StockRef = g.Stock;
             if (g.Price >= d.Base * rules.SpikePct / 100.0) { w.WorldFlags.Add("price_spike"); w.WorldFlags.Add("price_spike:" + d.Id); }
@@ -156,10 +163,13 @@ public sealed class MarketSystem
 
     /// <summary>Why the price moved, in the world's terms: wars, sieges, worlds in revolt, raiders, closed ports, a house buying heavily,
     /// a standing shortage — or the market settling.</summary>
-    private string Cause(World w, GoodDef d, GoodState g, double before, int wars, double supplyNow, double supplyNorm, double demandNow, double demandNorm, double targetStock)
+    private string Cause(World w, GoodDef d, GoodState g, double before, int wars, double supplyNow, double supplyNorm, double demandNow, double demandNorm, double targetStock, double premiumBefore = 0, string holderBefore = "")
     {
         double move = before <= 0 ? 0 : (g.Price - before) / before * 100;
         var why = new List<string>();
+        // a house whose holding adds a hundredth or more to the price is named, whichever way the price went
+        string holder = g.CornerPremium >= 0.01 && w.House(g.CornerHouse) is { } hoarder
+            ? $"{(hoarder.Id == w.Protagonist?.HouseId ? "your house" : hoarder.Name)} {(g.Cornered ? "has cornered it and holds" : "holds")} {g.CornerShare * 100:0}% of all there is" : "";
         bool up = g.Price > before + 0.005, down = g.Price < before - 0.005;
         if (up)
         {
@@ -177,6 +187,7 @@ public sealed class MarketSystem
             if (closed != null) why.Add($"no ships from {closed}");
             if (g.TopBought >= Math.Max(2, g.StockRef / 10) && w.House(g.TopBuyer) is { } buyer)
                 why.Add(buyer.Id == w.Protagonist?.HouseId ? $"your own order of {g.TopBought:0} took {100 * g.TopBought / Math.Max(1, g.StockRef):0}% of what the merchants held" : $"heavy buying by {buyer.Name}");
+            if (holder.Length > 0) why.Add(holder);
             if (g.Deficit >= 0.15) why.Add("the Reach burns more than it brings up");
             if (why.Count == 0) why.Add(g.Stock < targetStock * 0.9 ? "the merchants' stocks are thin" : "demand is rising");
         }
@@ -185,9 +196,12 @@ public sealed class MarketSystem
             if (wars == 0 && before > d.Base * 1.05) why.Add("peace");
             if (g.Sold > Math.Max(2, g.StockRef / 10)) why.Add("heavy selling");
             if (supplyNow > supplyNorm * 1.05) why.Add("more is coming up");
+            if (premiumBefore >= 0.01 && g.CornerPremium <= 0 && w.House(holderBefore) is { } gone) why.Add($"{(gone.Id == w.Protagonist?.HouseId ? "your house" : gone.Name)} no longer holds a third of all there is");
+            else if (holder.Length > 0 && g.CornerPremium < premiumBefore - 0.005) why.Add("the hoard is a smaller share of all there is");
             if (why.Count == 0) why.Add(before > d.Base ? "the market settles" : "the merchants' stocks are full");
+            if (holder.Length > 0) why.Add("though " + holder);
         }
-        else return "steady";
+        else return holder.Length > 0 ? "steady: " + holder : "steady";
         return $"{(up ? "up" : "down")} {Math.Abs(move):0}% on the year: {string.Join("; ", why)}";
     }
     private static string Number(int n) => n switch { 2 => "two", 3 => "three", 4 => "four", 5 => "five", _ => n.ToString() };

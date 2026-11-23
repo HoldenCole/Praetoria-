@@ -122,7 +122,25 @@ public sealed record CampaignCard(string? TargetId, string? TargetName, int Turn
 /// <summary>A good on the Reach's market as the house sees it (docs/ECONOMY_MARKET.md): the price, what this house would pay and get for
 /// one unit, the merchants' stock, the last years' prices, why it moved, and what the house holds and makes of it.</summary>
 public sealed record GoodLine(string Id, string Name, double Price, double Base, double BuyUnit, double SellUnit, int Stock, int ChangePct, IReadOnlyList<double> History, string Cause,
-    int Held, int NetPerTurn, bool CanBuy, bool CanSell, string? BuyRefusal, string? SellRefusal, int Deficit);
+    int Held, int NetPerTurn, bool CanBuy, bool CanSell, string? BuyRefusal, string? SellRefusal, int Deficit)
+{
+    /// <summary>All there is of the good in the Reach: the merchants' stock and every house's store (docs/ECONOMY_MARKET.md, "Cornering a good").</summary>
+    public int All { get; init; }
+    /// <summary>Who holds the most: the first few, and this house if it holds any.</summary>
+    public IReadOnlyList<HolderLine> Holders { get; init; } = Array.Empty<HolderLine>();
+    /// <summary>The house that holds a third or more of all there is now, if one does; whether that is half (a corner); its share; what it adds to the price the market aims at.</summary>
+    public string CornerHouseId { get; init; } = "";
+    public string CornerHouseName { get; init; } = "";
+    public bool Cornered { get; init; }
+    public bool CornerMine { get; init; }
+    public int CornerSharePct { get; init; }
+    public int PremiumPct { get; init; }
+    /// <summary>The plain word: who holds it, if a house holds a third or more; and what a corner would take this house, or why it cannot be bought.</summary>
+    public string CornerHeld { get; init; } = "";
+    public string CornerTake { get; init; } = "";
+}
+/// <summary>One house's store of a good and its share of all there is.</summary>
+public sealed record HolderLine(string HouseId, string Name, string Accent, int Units, int SharePct, bool Mine);
 /// <summary>The markets panel: every good, whether the house trades at the narrow spread, and whether an embargo closes them.</summary>
 /// <summary>A house's public stake in a company: a tenth or more.</summary>
 public sealed record StakeLine(string HouseId, string HouseName, string Accent, int Pct);
@@ -650,9 +668,16 @@ public static class CourtProjection
         {
             var g = m.Goods[d.Id]; var buy = MarketSystem.QuoteBuy(w, t, house.Id, d.Id, 1); var sell = MarketSystem.QuoteSell(w, t, house.Id, d.Id, 1);
             double then = g.History.Count > 5 ? g.History[^6] : g.History.Count > 0 ? g.History[0] : g.Price;
+            var standing = CornerSystem.Standing(w, t.Market, d.Id); var top = standing.Top; bool felt = top != null && CornerSystem.Felt(top.Units, standing.All);
             return new GoodLine(d.Id, d.Name, g.Price, d.Base, MarketSystem.BuyPrice(w, t, house.Id, d.Id), MarketSystem.SellPrice(w, t, house.Id, d.Id), (int)Math.Floor(g.Stock),
                 then <= 0 ? 0 : (int)Math.Round((g.Price - then) / then * 100), g.History.ToList(), g.Cause, house.Treasury.Get(d.Id), net?.Get(d.Id) ?? 0, d.Buy, d.Sell,
-                buy.Refusal != null && !buy.Refusal.StartsWith("needs ") ? buy.Refusal : null, sell.Refusal != null && !sell.Refusal.StartsWith("you hold only") ? sell.Refusal : null, (int)Math.Round(g.Deficit * 100));
+                buy.Refusal != null && !buy.Refusal.StartsWith("needs ") ? buy.Refusal : null, sell.Refusal != null && !sell.Refusal.StartsWith("you hold only") ? sell.Refusal : null, (int)Math.Round(g.Deficit * 100))
+            {
+                All = standing.All, Holders = CornerSystem.Listed(standing, house.Id).Select(h => new HolderLine(h.HouseId, h.Name, h.Accent, h.Units, h.SharePct, h.HouseId == house.Id)).ToList(),
+                CornerHouseId = felt ? top!.HouseId : "", CornerHouseName = felt ? top!.Name : "", Cornered = felt && CornerSystem.Cornered(top!.Units, standing.All), CornerMine = felt && top!.HouseId == house.Id,
+                CornerSharePct = felt ? top!.SharePct : 0, PremiumPct = felt ? (int)Math.Round(100 * CornerSystem.Premium(top!.Units, standing.All)) : 0,
+                CornerHeld = CornerSystem.Held(w, t, house.Id, d.Id), CornerTake = CornerSystem.Take(w, t, house.Id, d.Id),
+            };
         }).ToList();
         bool own = MarketSystem.HasMarket(w, house.Id, t.Holdings);
         return new MarketCard(goods, own, SenateSystem.Embargoed(w, house.Id), own ? t.Market.Rules.SpreadPct : t.Market.Rules.CaravanSpreadPct);

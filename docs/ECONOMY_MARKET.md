@@ -403,3 +403,123 @@ with the midpoint of the offer and the asking, or its least if that is higher, a
 until the year turns. Under half the asking the owner does not answer and its head thinks 3 the worse of the buyer.
 
 Not built: a lender paying a loan out of its own treasury; houses other than the player offering below an asking.
+
+## 17. Cornering a good (2026-11-23)
+
+The owner's list (docs/PLAYTHROUGH.md, Hard): *"Cornering a good: who holds what, how much there is, and a price that
+answers to a majority held; or a plain word that it cannot be done (F46)."* F46 (docs/playthroughs/family.md): the player
+bought 5 of the 6 exotics the merchants held; the next year the stock was back to 6 and the price had fallen, and no screen
+said how much there was, who held it or what a corner would need. Since then (docs/ECONOMY_REVIEW.md, section 10): a dear
+good that is short should pay.
+
+**What was built.** Both halves: the price answers, and where a corner cannot be bought the screen says so in numbers.
+
+- **All there is.** For each good: the merchants' stock and every house's store of it, added together
+  (`CornerSystem.Standing`). The Exchange shows it under what you hold ("of 31"), and a fold under the table, *Who holds
+  what, and what a corner would take*, lists for every good the total, the merchants' part, the three largest holders with
+  their units and share, and your own house if it holds any.
+- **A third is felt, half is a corner.** A house that holds a third of all there is, and no fewer than 6 units, is felt in
+  the price. One that holds half has cornered the good. The premium multiplies the price the market aims at (after war,
+  shortage and the merchants' stock, inside the same floor and cap) and lasts exactly as long as the share does: it is
+  worked out afresh at every yearly reckoning from what is then in store.
+- **The merchants bring less.** Their stock drifts back toward what they like to hold by a fifth of the gap a year. While
+  a house holds a third it is half of that, and while a corner stands a quarter: what they bring is bought as it lands or
+  priced out of reach. A glut still leaves at the usual rate.
+- **Selling it.** Nothing new was needed. An order to sell is weighed against the merchants' stock as the year opened
+  (never less than 4), and under a corner that stock is next to nothing: one order of the whole hoard fetches between half
+  and seven-tenths of the quoted price a unit, the less the larger it is. What is sold fills the merchants' shelves and
+  shrinks the share, so the next reckoning takes the premium off and the price comes down.
+- **The plain word** (`CornerSystem.Word`), on the row of any good in which a house holds a third, in the tooltip of every
+  row's "of N", and in the fold for every good: who holds it; and for your house, "You hold 9 of the 31 in the Reach: 7 more
+  is half, and the merchants hold 12", or "Half is 164 and the merchants hold only 62: with all the merchants have you would
+  hold 70 of 327, or 21%. It cannot be cornered by buying. The other houses keep 257 in their own stores, and the Reach
+  brings up 55 more a year." Isotopes are not sold on any open market while the Arms Market law keeps them off the
+  exchanges: the word says a corner in them cannot be bought and has to be brought up from the house's own worlds.
+- **It is heard of.** The year a house comes to hold half: a line in the chronicle, the house is told (and the player is
+  told when it is another house), and the cause line of the price names the holder for as long as the holding adds a
+  hundredth or more. The merchants' estate thinks 3 the worse of the house that year and 1 more every year the corner
+  stands. When the share falls under half the chronicle says the corner is broken. The player is also told when their own
+  house first passes a third.
+- **On the screen besides.** The Exchange's headline names a corner when one stands. On the Houses screen a house that
+  holds one is marked "holds a corner in ...".
+- **Every house.** The rule reads stores, not who the player is. The stewards of other houses do not set out to corner
+  anything; they already sell a surplus when the price is fair, which is what breaks a corner.
+
+`OrderSystem`'s older mark, a house that *makes* a quarter of the Reach's yearly production of helium-3, rare earths or
+isotopes, is a different thing and is unchanged. Its comment said "a third" and now says a quarter; the House and Houses
+screens call it "makes a quarter of the Reach's ..." and keep "corner" for the market.
+
+### The numbers
+
+| | |
+|---|---|
+| All there is | the merchants' stock (whole units) and the store of every house of the Reach; raiders and nations are not counted |
+| Felt | a third of it or more, and at least 6 units |
+| Cornered | half of it or more, and at least 6 units |
+| The merchants' refill | 20% of the gap a year as before; 10% while a third is held; 5% while a corner stands |
+| The merchants' regard | 3 the worse the year a corner is made, 1 more each year it stands |
+| Holders listed | the 3 largest, and your own house |
+| Named in the cause line | when the holding adds 1% or more |
+
+The premium, on the price the market aims at (the price itself moves half of the way there each year, as always):
+
+| Share of all there is | under 33% | 36% | 40% | 45% | 50% | 60% | 75% | all of it |
+|---|---|---|---|---|---|---|---|---|
+| Added to the price | nothing | 1% | 8% | 25% | 50% | 60% | 75% | 100% |
+
+From a third to a half it is the square of the way there, times 50%; from a half, 1% for each point of share.
+
+### What it comes to in a game
+
+Measured with `the_fallen_house`, seed 1, the other houses played by their stewards, the player given all the credits it
+could want:
+
+| What the player did | What happened |
+|---|---|
+| Year 4: bought all 7 exotics the merchants held (7,700 credits) | Held 7 of 23, under a third. The word: "Half is 12 and the merchants hold none: it cannot be cornered by buying." Sold a year or three later for 3,100 to 3,400 |
+| Years 4 to 7: bought every exotic the merchants had each year (21,200 credits) | Held 17 of 44, then 17 of 52 as the Reach brought up more: never a third. Sold over three years for 5,900 |
+| The same with rare earths, helium-3 and materials | Never a third of any. A loss of between 5,300 and 20,600 credits |
+
+So F46 has its answer: a house that makes none of a good cannot corner it by buying the merchants out, after the first
+year or two of a game, and the screen now says so with the figures. The houses keep far more in their own stores than the
+merchants ever hold, and the Reach brings up more every year. A corner is within reach of a house that **makes** the good
+and keeps it (a maker of exotics that sells nothing holds over two-fifths of them in twelve years), or that buys the
+merchants out on top of a large store. Bought and sold again with nothing else gained, a corner loses money, as corners
+mostly did. It pays the house that sells its own production at the higher price, or owns the ventures and companies whose
+earnings follow that price.
+
+**The other houses, measured.** Sixteen games of forty years played by the stewards alone (eight starts, two seeds each):
+no house came to hold half of anything, and no game opens with a house holding a third. A maker's store passed a third in
+thirteen of the sixteen, of exotics or isotopes and once of materials. In most it added under 5% to the price; the most
+was 48% of the isotopes in one game, which added 41%.
+
+**One start does open with corners**: a game begun with the boost *Full stores*, which gives the player's house 20 each
+of exotics, rare earths and isotopes when the whole Reach has 8 to 14 of each. The house holds two-thirds of all three,
+is told so in the first year, and their prices rise. The rule was left to say what is true of that store.
+
+### What I chose
+
+- A third for "felt" and a half for "cornered" (the task named both).
+- 6 units as the least that counts: in the first year there are 8 to 14 of a thin good in the whole Reach, and a handful
+  is not a corner.
+- The premium: nothing at a third, 50% at half, 100% at the whole; the square between a third and a half, so that a
+  maker whose store has crept to 36% adds 1% and not 9%.
+- The merchants' refill at a half and a quarter of the usual.
+- 3 and then 1 a year off the merchants' regard, and the merchants as the estate that minds.
+- 3 holders listed. The holder named in the cause line from 1%.
+- Telling the player when their own house passes a third, and when any house makes or loses a corner. Nothing is said
+  when another house merely passes a third: the row and the cause line show it.
+- The row shows "of 31" and the tooltip and the fold say "in the Reach": the table has no room for more.
+- One existing test was changed (`tests/MarketTests.cs`, twelve years of peace): it asserted that nothing moved the price
+  of exotics, and in that test no steward ever sells, so the largest maker comes to hold 44% of them. The test now allows
+  for the premium of a holder it can see, and checks that the cause line names it.
+
+### What is not built
+
+- **No new command.** A corner is made with the orders that exist (`BuyGoodCommand`, `SellGoodCommand`) or by not selling.
+- Buying out of another house's store. Without it a corner in a good the house does not make is out of reach in most
+  years, which the screen says.
+- Stewards of other houses that set out to corner a good, or that buy to break one.
+- A motion against forestalling in the Senate, or an event for a market corner (`the_corner` is still the maker's one).
+- The premium does not apply the moment the share is bought: like every price, it moves at the year's reckoning. The
+  screen's word changes at once.
