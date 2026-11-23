@@ -73,7 +73,7 @@ public static class MoneySettings
 
     public const string FullTreasury = "full_treasury", FullStores = "full_stores", DoubleIncome = "double_income", DeepPurse = "deep_purse";
     public static readonly string[] Boosts = { FullTreasury, FullStores, DoubleIncome, DeepPurse };
-    public const int TreasuryGift = 500, PurseGift = 100, StoresMaterials = 200, StoresManpower = 100, StoresDear = 20;
+    public const int TreasuryGift = 500, PurseGift = 100, StoresMaterials = 200, StoresManpower = 100, StoresDear = 5;   // under six of a dear good: a boost does not open the game holding a corner (docs/ECONOMY_MARKET.md, "Cornering a good")
     public static string BoostName(string id) => id switch { FullTreasury => "A full treasury", FullStores => "Full stores", DoubleIncome => "A second income", DeepPurse => "A deep purse", _ => id };
     public static string BoostDoes(string id) => id switch
     {

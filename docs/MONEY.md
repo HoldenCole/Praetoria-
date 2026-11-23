@@ -90,7 +90,7 @@ unless it is ticked.
 | Boost | What it gives |
 |---|---|
 | A full treasury | 50,000 credits more |
-| Full stores | 200 materials, 100 manpower, and 20 each of helium-3, rare earths, isotopes and exotics |
+| Full stores | 200 materials, 100 manpower, and 5 each of helium-3, rare earths, isotopes and exotics (few enough that the game does not open with a good cornered) |
 | A second income | every year, again all the credits the house took in |
 | A deep purse | 10,000 credits in your own purse |
 
