@@ -464,6 +464,22 @@ save (N79). A demand made of you should say that refusing is war (F91).
 
 ## Hard
 
+Worked through on 2026-11-23, at the owner's word ("let's finish the list of heavy things that needed to be done"). What
+each became, and where it is written up:
+
+| | what was built | where |
+|---|---|---|
+| A docket | A suit has a plaintiff. The head may bring one (a ground from the record, a fee of a fifth of the stake, 2 clout), counter-sue when sued (the stake doubles both ways), and when one of the house is charged it is held a year: a pleader may be sent, or the charge admitted and the fine paid. One docket at the head of the courts' page lists every pending matter. | docs/LADDER.md, "The docket" |
+| Dealings between houses | On every house's page: a gift of credits, a favour asked (coin or a vote) and called in, a vote pledged, a threat, a loan at interest that is forgiven, pressed or defaulted on. What lasts is listed there. Other houses lend to and threaten each other. | docs/WEALTH.md, "Dealings between houses" |
+| A title ladder with rungs that must be earned | From Legate up a petition is a motion the Senate votes on; seats in the Senate (8, 12, 16) may stand in place of worlds; rising no longer adds legitimacy. Other houses petition the same way. Every change to legitimacy is kept by cause and shown. | docs/TITLES.md |
+| Things worth a rich house's money | An estate settled on a child, the house's seat, a town house at the capital, coin behind a relative's election. Lending to houses is under "Dealings". | docs/WEALTH.md, "Things worth a rich house's money" |
+| Cornering a good | All there is of each good and who holds it; a third held lifts the price and half is a corner; a plain word on what it would take. Measured: a corner cannot be bought, only held by a house that makes the good. | docs/ECONOMY_MARKET.md, "Cornering a good" |
+| Commanding a navy | A flag captain from the service under each admiral; squadrons detached by class and under the captain; the merge that folded the wrong way mended; a year-by-year account of every war; one line on each fleet's card for how it stands. | docs/MILITARY.md, "Commanding a navy" |
+
+What each left out is in docs/GAPS.md, "The Hard list of the playthroughs".
+
+The list as it was written:
+
 - **A docket**: the suits for and against the house, with a plea, an advocate, a settlement and a counter-suit; a notice
   and a defence when you are charged (P50, P101, P79).
 - **Dealings between houses**: gifts, favours asked and called in, a pledged vote, a threat, a loan at interest, with

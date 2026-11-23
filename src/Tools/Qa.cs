@@ -314,6 +314,9 @@ internal static class Qa
                 if (nbrs.Count > 0) cands.Add(new MoveFleetCommand(p.Id, f.Id, nbrs[decisions.NextInt(0, nbrs.Count)], content.Fleets));
                 if (g.Capital.Length > 0) cands.Add(new MoveFleetCommand(p.Id, f.Id, g.Capital, content.Fleets));
                 if (members.Count > 0) cands.Add(new AssignAdmiralCommand(p.Id, f.Id, members[decisions.NextInt(0, members.Count)]));
+                // a flag captain under the admiral, now and then relieved (docs/MILITARY.md, "Commanding a navy")
+                if (members.Count > 0 && decisions.NextInt(0, 3) == 0) cands.Add(new AppointCaptainCommand(p.Id, f.Id, members[decisions.NextInt(0, members.Count)]));
+                if (f.CaptainId.Length > 0 && decisions.NextInt(0, 12) == 0) cands.Add(new RelieveCaptainCommand(p.Id, f.Id));
                 cands.Add(new RefitFleetCommand(p.Id, f.Id));
                 cands.Add(new SetStanceCommand(p.Id, f.Id, FleetSystem.Stances[decisions.NextInt(0, FleetSystem.Stances.Length)]));
                 cands.Add(new SetLoadoutCommand(p.Id, f.Id, FleetSystem.Loadouts[decisions.NextInt(0, FleetSystem.Loadouts.Length)]));
@@ -434,6 +437,25 @@ internal static class Qa
                 else cands.Add(new EducationCommand(p.Id, EducationCommand.Teach, kin.Id, grownKin[decisions.NextInt(0, grownKin.Count)].Id));
             }
             if (decisions.NextInt(0, 12) == 0) cands.Add(new CommitteeCommand(p.Id, LadderSystem.Committees[decisions.NextInt(0, 3)]));
+            // the docket (docs/LADDER.md): a suit brought, a counter-suit, and an answer to a charge
+            if (LadderSystem.Active(w, content.Offices) && others.Count > 0 && decisions.NextInt(0, 3) == 0)
+            {
+                var sued = others[decisions.NextInt(0, others.Count)]; var grounds = LadderSystem.Grounds(w, house, sued);
+                if (grounds.Count > 0) cands.Add(new BringSuitCommand(p.Id, sued.Id, grounds[decisions.NextInt(0, grounds.Count)].Matter, content.Offices));
+                foreach (var s in LadderSystem.SuitsNaming(w, house.Id)) if (decisions.NextInt(0, 2) == 0) cands.Add(new SuitCommand(p.Id, SuitCommand.Counter, s.Id));
+                foreach (var ch in LadderSystem.ChargesOn(w, house.Id))
+                    cands.Add(decisions.NextInt(0, 2) == 0 ? new ChargeCommand(p.Id, ChargeCommand.Admit, ch.Id, content.Offices) : new ChargeCommand(p.Id, ChargeCommand.Plead, ch.Id, content.Offices, members.Count > 0 ? members[decisions.NextInt(0, members.Count)] : p.Id));
+            }
+            // dealings between houses (docs/WEALTH.md): a gift, a favour asked, a pledge, a threat, a loan and what follows one
+            if (tc.Dealings is { } deals && others.Count > 0 && decisions.NextInt(0, 2) == 0)
+            {
+                var them = others[decisions.NextInt(0, others.Count)]; string what = DealingsCommand.All[decisions.NextInt(0, DealingsCommand.All.Length)];
+                string motion = w.Motions.Count > 0 ? w.Motions[decisions.NextInt(0, w.Motions.Count)].Id : "";
+                string value = what == DealingsCommand.Gift ? DealingsSystem.GiftSizes[decisions.NextInt(0, DealingsSystem.GiftSizes.Length)].ToString()
+                    : what == DealingsCommand.Lend ? DealingsSystem.LoanSizes[decisions.NextInt(0, DealingsSystem.LoanSizes.Length)].ToString()
+                    : what is DealingsCommand.AskVote or DealingsCommand.CallVote or DealingsCommand.Pledge ? motion : "";
+                cands.Add(new DealingsCommand(p.Id, what, them.Id, deals, value, what == DealingsCommand.Lend ? DealingsSystem.LoanRates[decisions.NextInt(0, DealingsSystem.LoanRates.Length)] : 0));
+            }
             // the courts (docs/LADDER.md): a charge against a former magistrate, and now and then an offer to a sitting praetor
             if (LadderSystem.Active(w, content.Offices) && decisions.NextInt(0, 3) == 0)
             {
