@@ -346,7 +346,7 @@ Measured by `upstart` (three services, four seeds, sixty years). U8 to U11 are c
 | X5 | Titles: other houses only petition (no claim, no seizure); a petition cannot be withdrawn; a rank is not lost when the land or seats that earned it are; no scene is written for a petition carried or thrown out. Over 60 years about half the Wardens rise to Prefect. | M | |
 | X6 | A corner cannot be bought: the houses keep far more in store than the merchants sell, and there is no way to buy out of another house's store. No house sets out to corner anything or to break a corner. No motion against forestalling. | M | the owner: should a house be able to buy from another house's store |
 | X7 | The navy: captains draw no pay, are at no risk while the admiral commands and have no scenes; relatives do not step into an empty captaincy unasked; wars with the nations beyond are not in the year's account; no convoys or supply lines as things that can be cut. `AssignAdmiralCommand` does not check age. | M | |
-| X8 | The Exchange's goods table is wider than its panel and the Sell button is cut off at the right edge. | S | |
+| X8 | ~~The Exchange's goods table is wider than its panel and the Sell button is cut off at the right edge.~~ **Closed**: the buy and sell quotes sit under the price and the buttons wrap, so the table is as wide as its panel. | S | closed |
 
 ## Older, from docs/ROADMAP.md section 3
 
