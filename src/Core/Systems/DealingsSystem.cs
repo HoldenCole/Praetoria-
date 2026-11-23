@@ -412,7 +412,7 @@ public sealed class DealingsSystem
     /// <summary>A pressed loan has gone <see cref="DefaultYears"/> years short: it is written off, and the Reach hears of it.</summary>
     private static void Default(World w, HouseLoan l, House lender, House borrower)
     {
-        w.HouseLoans.Remove(l); borrower.Legitimacy -= DefaultLegitimacy; Regard(w, lender, borrower, -DefaultRegard);
+        w.HouseLoans.Remove(l); LegitimacyBook.Move(w, borrower, -DefaultLegitimacy, LegitimacyBook.Scandal, $"Defaulted on a loan from {lender.Name}"); Regard(w, lender, borrower, -DefaultRegard);
         w.WorldCounters[VentureSystem.BadNameKey(borrower.Id)] = Math.Max(w.Counter(VentureSystem.BadNameKey(borrower.Id)), w.Turn + VentureSystem.BadNameYears);
         Count(w, LoansDefaultedKey); Remember(w, DefaultKind, borrower.Id, lender.Id, l.Owed);
         w.Log($"{borrower.Name} has defaulted on what it owed {lender.Name}: {Money.Credits(l.Owed)} is written off, and every counting-house in the Reach has heard of it.");
