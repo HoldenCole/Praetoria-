@@ -108,6 +108,13 @@ there is. They close when the pointer leaves, on a click elsewhere, on scrolling
 `tools/browser/tooltips.js` checks it in a real browser: a tooltip, one inside it and one inside that, all wholly on the
 screen, closed on leaving, turned upward at the foot of the screen.
 
+## Money settings at the start of a game
+
+The creation screen has **Making money** (`[data-setting=money]`: lean, standard, generous, lavish, with a line under it
+saying what the chosen one does) and **Begin with** (`[data-setting=cheats]`, a tick box for each cheat, `[data-cheat]`).
+`GameClient.Start` and `StartCustom` take them; `MoneySettings.Begin` gives the cheats once. A game at any setting but
+Standard, or begun with a cheat, shows `[data-money-settings]` at the head of the House window. docs/MONEY.md, "Settings".
+
 ## Money on the screens
 
 A house's books are in hundreds of credits and every screen shows credits (docs/MONEY.md). Nothing in a page prints a

@@ -79,6 +79,7 @@ public class EconomyDeterminismTests
 
         // Invest in the agri-world's farm complex through the bus.
         var ctx = new CommandContext(world, WorldBuilder.RngFor(world));
+        world.House("vega")!.Treasury.Materials += 100;   // what is tested is that a building's yield compounds, not what one costs
         bool built = tc.Executor.TryExecute(
             new BuildCommand("vega_marcus", "vega_barony", "farm_complex", content.Holdings), ctx);
         Assert.True(built);

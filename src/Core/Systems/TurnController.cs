@@ -101,6 +101,7 @@ public sealed class TurnController
     {
         World = world;
         _content = content;
+        MoneySettings.Apply(content, world);   // what things cost at this game's setting for how easy money is (docs/MONEY.md, "Settings")
         _rng = WorldBuilder.RngFor(world);
         Engine = new EventEngine(content, _rng, director);
         _economy = content.Holdings.IsEmpty ? null : new Economy(content.Holdings, content.Businesses);

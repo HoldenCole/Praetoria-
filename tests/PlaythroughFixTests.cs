@@ -264,7 +264,14 @@ public class PlaythroughFixTests
     public void AVentureJustFounded_SellsForWhatItCost_NotForWhatItWillEarn()
     {
         // 4: a skimmer fleet that cost 12 credits and 6 materials sold for 105 the year it was finished
-        var (w, tc, _, _, _) = Start(); var vs = tc.Ventures!; var b = w.Businesses.Values.OrderByDescending(x => vs.Value(w, x)).First(x => vs.Value(w, x) > (Content.Businesses.Def(x.Kind)?.Value(x.Level) ?? 0));
+        // (a venture priced to return what its kind is meant to is worth about what it cost, so the case is made: one that cost little)
+        var (w, tc, _, _, _) = Start(); var vs = tc.Ventures!; var b = w.Businesses.Values.OrderByDescending(x => vs.Value(w, x)).First(); var kind = Content.Businesses.Def(b.Kind)!; var cost = kind.Cost.Clone(); var more = kind.ExpandCost.Clone();
+        foreach (var r in Resource.All) { kind.Cost.Set(r, 0); kind.ExpandCost.Set(r, 0); } kind.Cost.Credits = 4; kind.ExpandCost.Credits = 1;
+        try { Assert.True(vs.Value(w, b) > kind.Value(b.Level), $"{b.Kind} worth {vs.Value(w, b)} against {kind.Value(b.Level)}"); AVentureJustFoundedAt(w, vs, b); }
+        finally { foreach (var r in Resource.All) { kind.Cost.Set(r, cost.Get(r)); kind.ExpandCost.Set(r, more.Get(r)); } }
+    }
+    private static void AVentureJustFoundedAt(World w, VentureSystem vs, Business b)
+    {
         int value = vs.Value(w, b), book = Content.Businesses.Def(b.Kind)!.Value(b.Level); w.Turn = 10;
         b.Founded = 10; Assert.Equal(book, vs.Trading(w, b)); Assert.True(vs.MarketPrice(w, b) <= book);
         b.Founded = 8; Assert.InRange(vs.Trading(w, b), book + 1, value - 1);

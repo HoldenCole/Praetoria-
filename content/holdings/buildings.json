@@ -7,23 +7,23 @@
   "buildings": [
     {
       "id": "power_plant", "name": "Power Plant",
-      "cost":  { "materials": 6 },
+      "cost":  { "materials": 20 },
       "yield": { "credits": 2 }
     },
     {
       "id": "mine", "name": "Deep Mine", "requires": "forge_world",
-      "cost":   { "credits": 4 },
+      "cost":   { "credits": 35 },
       "yield":  { "materials": 3 },
       "upkeep": { "credits": 1 }
     },
     {
       "id": "farm_complex", "name": "Hydroponic Complex", "requires": "agri_world",
-      "cost":  { "materials": 5 },
+      "cost":  { "materials": 42 },
       "yield": { "manpower": 2, "credits": 1 }
     },
     {
       "id": "market", "name": "Free Market", "requires": "trade_hub",
-      "cost":   { "materials": 6 },
+      "cost":   { "materials": 20 },
       "yield":  { "credits": 3 },
       "upkeep": { "credits": 1 }
     }

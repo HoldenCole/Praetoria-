@@ -99,8 +99,8 @@ All of them share **one row of slots**, the largest in the system. Which to spen
 | building | what it does | cost | years | note |
 |---|---|---|---|---|
 | Governor's Palace | +1 inf · upkeep 100 cr · unrest −1/yr · legitimacy +2 once | 2,400 cr, 14 mat, 1 inf | 2 | one to a system |
-| Forum | +200 cr, 1 inf · upkeep 100 cr · prosperity +3 | 1,800 cr, 12 mat | 2 | one to a system |
-| Academy | +2 inf · upkeep 200 cr · prosperity +2 | 2,000 cr, 10 mat, 1 inf | 3 | one to a system |
+| Forum | +200 cr, 1 inf · upkeep 100 cr · prosperity +3 | 3,500 cr, 24 mat | 2 | one to a system |
+| Academy | +2 inf · upkeep 200 cr · prosperity +2 | 4,900 cr, 25 mat, 3 inf | 3 | one to a system |
 | Great Temple | upkeep 100 cr · unrest −2/yr · legitimacy +1 once | 2,200 cr, 16 mat | 3 | one to a system |
 | Barracks Quarter | +2 men · upkeep 100 cr · defence +0.25 | 1,600 cr, 14 mat, 2 men | 2 | one to a system |
 | Spaceport | +300 cr · upkeep 1 mat · room +6 · prosperity +2 | 2,000 cr, 16 mat | 2 | one to a system |
@@ -126,9 +126,9 @@ the world, all three provinces and every holding in the system has the slot more
 
 | building | what it does | cost | years | note |
 |---|---|---|---|---|
-| Settled Sister-World | +300 cr, 3 men · upkeep 100 cr · room +16 · prosperity +3 | 2,600 cr, 14 mat, 8 men | 4 |  |
-| Terrace Farms | +2 men, 200 cr · upkeep 100 cr · room +6 | 1,200 cr, 8 mat, 3 men | 1 | only here |
-| Game Parks | +1 inf · upkeep 100 cr · prosperity +3 | 1,600 cr, 6 mat, 1 inf | 2 | only here |
+| Settled Sister-World | +300 cr, 3 men · upkeep 100 cr · room +16 · prosperity +3 | 4,200 cr, 23 mat, 13 men | 4 |  |
+| Terrace Farms | +2 men, 200 cr · upkeep 100 cr · room +6 | 2,500 cr, 17 mat, 7 men | 1 | only here |
+| Game Parks | +1 inf · upkeep 100 cr · prosperity +3 | 2,600 cr, 10 mat, 2 inf | 2 | only here |
 | Orbital Batteries | upkeep 100 cr, 1 mat · defence +0.5 | 1,800 cr, 14 mat | 2 |  |
 
 ### An ocean sister-world
@@ -136,8 +136,8 @@ the world, all three provinces and every holding in the system has the slot more
 | building | what it does | cost | years | note |
 |---|---|---|---|---|
 | Settled Sister-World | +300 cr, 3 men · upkeep 100 cr · room +16 · prosperity +3 | 2,600 cr, 14 mat, 8 men | 4 |  |
-| Sea Farms | +2 men, 200 cr · upkeep 100 cr · room +6 | 1,200 cr, 8 mat, 3 men | 1 | only here |
-| Tidal Mills | +2 mat, 200 cr · upkeep 100 cr | 1,400 cr, 12 mat | 2 | only here |
+| Sea Farms | +2 men, 200 cr · upkeep 100 cr · room +6 | 2,500 cr, 17 mat, 7 men | 1 | only here |
+| Tidal Mills | +2 mat, 200 cr · upkeep 100 cr | 1,800 cr, 15 mat | 2 | only here |
 | Deep Harbour | +300 cr · upkeep 1 mat · prosperity +2 | 1,800 cr, 12 mat | 2 | only here |
 | Orbital Batteries | upkeep 100 cr, 1 mat · defence +0.5 | 1,800 cr, 14 mat | 2 |  |
 
@@ -145,12 +145,12 @@ the world, all three provinces and every holding in the system has the slot more
 
 | building | what it does | cost | years | note |
 |---|---|---|---|---|
-| Outpost | +1 mat, 1 men · upkeep 100 cr · room +4 | 800 cr, 6 mat, 2 men | 1 |  |
-| Domed Colony | +300 cr, 2 men · upkeep 1 mat · room +12 · prosperity +2 | 2,200 cr, 16 mat, 6 men | 3 | needs an outpost there |
+| Outpost | +1 mat, 1 men · upkeep 100 cr · room +4 | 1,000 cr, 8 mat, 3 men | 1 |  |
+| Domed Colony | +300 cr, 2 men · upkeep 1 mat · room +12 · prosperity +2 | 2,700 cr, 19 mat, 8 men | 3 | needs an outpost there |
 | Sun Fields | +300 cr · upkeep 1 mat | 1,400 cr, 10 mat | 1 | only here |
 | Caravanserai | +200 cr · upkeep 100 cr · prosperity +3 | 1,400 cr, 8 mat | 1 | only here |
-| Strip Mine | +3 mat · upkeep 100 cr | 1,200 cr, 8 mat, 2 men | 1 |  |
-| Rare-Earth Diggings | +1 rare earths ×richness · upkeep 100 cr | 1,600 cr, 10 mat, 2 men | 1 | needs a rare earths deposit |
+| Strip Mine | +3 mat · upkeep 100 cr | 1,500 cr, 10 mat, 3 men | 1 |  |
+| Rare-Earth Diggings | +1 rare earths ×richness · upkeep 100 cr | 2,500 cr, 16 mat, 4 men | 1 | needs a rare earths deposit |
 | Orbital Batteries | upkeep 100 cr, 1 mat · defence +0.5 | 1,800 cr, 14 mat | 2 |  |
 
 ### A forge world
@@ -159,7 +159,7 @@ the world, all three provinces and every holding in the system has the slot more
 |---|---|---|---|---|
 | Outpost | +1 mat, 1 men · upkeep 100 cr · room +4 | 800 cr, 6 mat, 2 men | 1 |  |
 | Strip Mine | +3 mat · upkeep 100 cr | 1,200 cr, 8 mat, 2 men | 1 |  |
-| Smelter Row | +4 mat · upkeep 100 cr | 1,600 cr, 10 mat, 2 men | 2 | only here |
+| Smelter Row | +4 mat · upkeep 100 cr | 2,300 cr, 15 mat, 3 men | 2 | only here |
 | Geothermal Tap | +300 cr · upkeep 1 mat | 1,400 cr, 12 mat | 2 | only here |
 | Orbital Batteries | upkeep 100 cr, 1 mat · defence +0.5 | 1,800 cr, 14 mat | 2 |  |
 
@@ -169,12 +169,12 @@ the world, all three provinces and every holding in the system has the slot more
 |---|---|---|---|---|
 | Outpost | +1 mat, 1 men · upkeep 100 cr · room +4 | 800 cr, 6 mat, 2 men | 1 |  |
 | Domed Colony | +300 cr, 2 men · upkeep 1 mat · room +12 · prosperity +2 | 2,200 cr, 16 mat, 6 men | 3 | needs an outpost there |
-| Ice Works | +200 cr, 1 mat · upkeep 100 cr | 1,000 cr, 6 mat | 1 |  |
+| Ice Works | +200 cr, 1 mat · upkeep 100 cr | 1,400 cr, 8 mat | 1 |  |
 | Cold Granaries | upkeep 100 cr · room +4 · unrest -1/yr | 1,400 cr, 10 mat | 1 | only here |
-| Penal Colony | +2 mat, 1 men · upkeep 100 cr · prosperity -1 · unrest -1/yr | 1,000 cr, 8 mat | 1 |  |
-| Isotope Pits | +1 isotopes ×richness · upkeep 200 cr | 2,000 cr, 12 mat, 3 men | 2 | needs a isotopes deposit; rank 1 |
-| Hermitage | +1 inf · upkeep 100 cr · unrest -1/yr | 1,000 cr, 6 mat, 1 inf | 1 | one to a system |
-| Observatory | +1 inf · upkeep 100 cr | 1,400 cr, 8 mat, 1 exo | 2 | one to a system |
+| Penal Colony | +2 mat, 1 men · upkeep 100 cr · prosperity -1 · unrest -1/yr | 1,900 cr, 15 mat | 1 |  |
+| Isotope Pits | +1 isotopes ×richness · upkeep 200 cr | 3,100 cr, 19 mat, 5 men | 2 | needs a isotopes deposit; rank 1 |
+| Hermitage | +1 inf · upkeep 100 cr · unrest -1/yr | 2,000 cr, 12 mat, 2 inf | 1 | one to a system |
+| Observatory | +1 inf · upkeep 100 cr | 2,200 cr, 13 mat, 2 exo | 2 | one to a system |
 | Listening Post | upkeep 100 cr · defence +0.25 | 1,000 cr, 6 mat | 1 | one to a system |
 | Orbital Batteries | upkeep 100 cr, 1 mat · defence +0.5 | 1,800 cr, 14 mat | 2 |  |
 
@@ -186,7 +186,7 @@ the world, all three provinces and every holding in the system has the slot more
 | Domed Colony | +300 cr, 2 men · upkeep 1 mat · room +12 · prosperity +2 | 2,200 cr, 16 mat, 6 men | 3 | needs an outpost there |
 | Strip Mine | +3 mat · upkeep 100 cr | 1,200 cr, 8 mat, 2 men | 1 |  |
 | Penal Colony | +2 mat, 1 men · upkeep 100 cr · prosperity -1 · unrest -1/yr | 1,000 cr, 8 mat | 1 |  |
-| Proving Ground | +2 men · upkeep 100 cr · defence +0.25 | 1,400 cr, 10 mat, 2 men | 1 | only here |
+| Proving Ground | +2 men · upkeep 100 cr · defence +0.25 | 1,600 cr, 12 mat, 3 men | 1 | only here |
 | Rare-Earth Diggings | +1 rare earths ×richness · upkeep 100 cr | 1,600 cr, 10 mat, 2 men | 1 | needs a rare earths deposit |
 | Isotope Pits | +1 isotopes ×richness · upkeep 200 cr | 2,000 cr, 12 mat, 3 men | 2 | needs a isotopes deposit; rank 1 |
 | Observatory | +1 inf · upkeep 100 cr | 1,400 cr, 8 mat, 1 exo | 2 | one to a system |
@@ -197,9 +197,9 @@ the world, all three provinces and every holding in the system has the slot more
 
 | building | what it does | cost | years | note |
 |---|---|---|---|---|
-| Skimmer Fleet | +1 He-3 ×richness · upkeep 100 cr | 1,400 cr, 10 mat | 1 | needs a helium3 deposit; only here |
+| Skimmer Fleet | +1 He-3 ×richness · upkeep 100 cr | 1,700 cr, 12 mat | 1 | needs a helium3 deposit; only here |
 | Cloud Habitat | +400 cr, 1 men · upkeep 100 cr · room +8 | 2,400 cr, 18 mat, 4 men, 1 exo | 3 | only here |
-| Aerostat Refinery | +2 mat, 200 cr · upkeep 100 cr | 1,600 cr, 14 mat | 2 | only here |
+| Aerostat Refinery | +2 mat, 200 cr · upkeep 100 cr | 1,800 cr, 16 mat | 2 | only here |
 | Orbital Batteries | upkeep 100 cr, 1 mat · defence +0.5 | 1,800 cr, 14 mat | 2 |  |
 | Fleet Anchorage | upkeep 200 cr · defence +0.25 · depot | 2,200 cr, 18 mat | 2 | one to a system |
 
@@ -207,9 +207,9 @@ the world, all three provinces and every holding in the system has the slot more
 
 | building | what it does | cost | years | note |
 |---|---|---|---|---|
-| Belt Foundry | +4 mat · upkeep 100 cr | 1,600 cr, 10 mat, 2 men | 2 | only here |
-| Prospectors' Exchange | +300 cr · upkeep 100 cr | 1,400 cr, 8 mat | 1 | only here |
-| Hidden Dock | +400 cr · unrest +1/yr | 1,200 cr, 8 mat | 1 | only here |
+| Belt Foundry | +4 mat · upkeep 100 cr | 2,300 cr, 15 mat, 3 men | 2 | only here |
+| Prospectors' Exchange | +300 cr · upkeep 100 cr | 1,600 cr, 9 mat | 1 | only here |
+| Hidden Dock | +400 cr · unrest +1/yr | 2,900 cr, 20 mat | 1 | only here |
 | Rare-Earth Diggings | +1 rare earths ×richness · upkeep 100 cr | 1,600 cr, 10 mat, 2 men | 1 | needs a rare earths deposit |
 | Fleet Anchorage | upkeep 200 cr · defence +0.25 · depot | 2,200 cr, 18 mat | 2 | one to a system |
 
@@ -222,7 +222,7 @@ the world, all three provinces and every holding in the system has the slot more
 | Strip Mine | +3 mat · upkeep 100 cr | 1,200 cr, 8 mat, 2 men | 1 |  |
 | Rare-Earth Diggings | +1 rare earths ×richness · upkeep 100 cr | 1,600 cr, 10 mat, 2 men | 1 | needs a rare earths deposit |
 | Isotope Pits | +1 isotopes ×richness · upkeep 200 cr | 2,000 cr, 12 mat, 3 men | 2 | needs a isotopes deposit; rank 1 |
-| Mass Driver | +3 mat · upkeep 100 cr | 1,600 cr, 12 mat | 2 | only here |
+| Mass Driver | +3 mat · upkeep 100 cr | 1,700 cr, 13 mat | 2 | only here |
 | Moon Fort | upkeep 100 cr · defence +0.5 | 1,800 cr, 16 mat, 2 men | 2 | only here |
 | Hermitage | +1 inf · upkeep 100 cr · unrest -1/yr | 1,000 cr, 6 mat, 1 inf | 1 | one to a system |
 | Observatory | +1 inf · upkeep 100 cr | 1,400 cr, 8 mat, 1 exo | 2 | one to a system |
@@ -246,8 +246,8 @@ the world, all three provinces and every holding in the system has the slot more
 | Listening Post | upkeep 100 cr · defence +0.25 | 1,000 cr, 6 mat | 1 | one to a system |
 | Fleet Anchorage | upkeep 200 cr · defence +0.25 · depot | 2,200 cr, 18 mat | 2 | one to a system |
 | Waystation | +200 cr · upkeep 1 mat · prosperity +3 | 1,600 cr, 12 mat | 2 | only here |
-| Customs Cordon | +400 cr · upkeep 100 cr · prosperity -1 | 1,400 cr, 10 mat | 1 | only here |
-| Relay Beacon | +1 inf · upkeep 100 cr | 1,200 cr, 8 mat, 1 exo | 1 | only here |
+| Customs Cordon | +400 cr · upkeep 100 cr · prosperity -1 | 2,100 cr, 15 mat | 1 | only here |
+| Relay Beacon | +1 inf · upkeep 100 cr | 2,000 cr, 13 mat, 2 exo | 1 | only here |
 | Patrol Base | upkeep 100 cr · defence +0.5 · unrest -1/yr | 1,600 cr, 14 mat, 2 men | 2 | only here |
 | Minefields | upkeep 1 mat · defence +0.75 · prosperity -2 | 1,200 cr, 16 mat | 1 | only here |
 
@@ -284,32 +284,32 @@ One to a body, on its site. All are years in the raising and wanted for the name
 | The Hollowed World | belt | +5 mat, 2 men · upkeep 200 cr · defence +0.5 · room +12 · glory +4 | 5,000 cr, 80 mat, 6 men | 7 | rank 2 |
 | The Fortress Moon | moon | upkeep 200 cr, 1 mat · defence +1.5 · glory +4 | 5,000 cr, 80 mat, 6 men | 6 | rank 2 |
 | The Mausoleum of the House | moon, dead world, frozen world | +1 inf · upkeep 100 cr · legitimacy +5 once · glory +6 | 5,000 cr, 50 mat, 4 inf | 6 | one to a house; rank 1 |
-| The Lane Gate Anchor | open space | +4 inf · upkeep 300 cr · defence +0.5 · glory +8 | 6,000 cr, 110 mat, 6 exo | 9 | rank 4 |
+| The Lane Gate Anchor | open space | +4 inf · upkeep 300 cr · defence +0.5 · glory +8 | 9,500 cr, 174 mat, 10 exo | 9 | rank 4 |
 | The Grand Arsenal | open space | upkeep 300 cr, 1 mat · defence +1 · depot · glory +6 | 6,000 cr, 120 mat, 6 men | 9 | one to a house; rank 3 |
 | The Long Cylinder | open space | +500 cr, 3 men · upkeep 200 cr · room +24 · glory +5 | 6,000 cr, 110 mat, 8 men | 8 | rank 2 |
-| The Lighthouse of the Lanes | open space | +600 cr, 4 inf · upkeep 300 cr · legitimacy +6 once · glory +12 | 8,000 cr, 100 mat, 6 exo, 5 inf | 10 | one in the galaxy; at a key of the lanes; rank 3 |
+| The Lighthouse of the Lanes | open space | +600 cr, 4 inf · upkeep 300 cr · legitimacy +6 once · glory +12 | 14,400 cr, 179 mat, 11 exo, 9 inf | 10 | one in the galaxy; at a key of the lanes; rank 3 |
 
 ### Only where the feature is
 
 | great work | the feature | on | what it does | cost | years |
 |---|---|---|---|---|---|
-| The Ring Habitat | Great rings | gas giant | +800 cr, 4 men · upkeep 200 cr · room +20 · prosperity +3 · glory +5 | 5,600 cr, 90 mat, 4 exo | 7 |
-| The Storm Tap | An eternal storm | gas giant | +4 He-3, 2 exo · upkeep 200 cr · glory +4 | 5,000 cr, 80 mat, 3 exo | 6 |
-| The Breaker's Yard | A wreck field | belt | +8 mat, 400 cr · upkeep 100 cr · glory +4 | 4,000 cr, 50 mat, 4 men | 5 |
-| The Lode Works | The mother lode | belt | +7 mat, 2 rare earths, 2 exo · upkeep 200 cr · glory +4 | 4,400 cr, 56 mat, 4 men | 5 |
-| The Great Dig | Ruins older than the Reach | dead world, arid world, moon | +4 inf, 2 exo · upkeep 200 cr · glory +6 | 5,000 cr, 40 mat, 3 inf | 6 |
-| The Vault Archive | Deep vaults | dead world, frozen world, moon | +3 inf, 400 cr · upkeep 100 cr · prosperity +4 · legitimacy +2 once · glory +4 | 4,600 cr, 50 mat, 3 inf | 6 |
-| The Sunless Cities | A buried sea | frozen world, moon | +600 cr, 4 men · upkeep 1 mat · room +18 · glory +4 | 5,000 cr, 70 mat, 8 men | 6 |
-| The Ice Choir | Singing ice | frozen world, comet | +3 inf · upkeep 100 cr · unrest -1/yr · legitimacy +2 once · glory +4 | 4,000 cr, 36 mat, 3 inf | 5 |
-| The Garden Estates | A garden country | living world | +700 cr, 2 inf · upkeep 100 cr · prosperity +6 · glory +4 | 5,000 cr, 40 mat, 3 inf | 5 |
-| The Old Capital Restored | A capital of the old kings | living world, ocean world, arid world | +4 inf, 500 cr · upkeep 300 cr · prosperity +5 · legitimacy +8 once · glory +8 | 8,000 cr, 80 mat, 6 inf | 8 |
-| The Reef Cities | The great reefs | ocean world | +600 cr, 3 men · upkeep 100 cr · room +14 · prosperity +3 · glory +4 | 4,600 cr, 60 mat, 6 men | 6 |
+| The Ring Habitat | Great rings | gas giant | +800 cr, 4 men · upkeep 200 cr · room +20 · prosperity +3 · glory +5 | 7,200 cr, 116 mat, 6 exo | 7 |
+| The Storm Tap | An eternal storm | gas giant | +4 He-3, 2 exo · upkeep 200 cr · glory +4 | 7,900 cr, 126 mat, 5 exo | 6 |
+| The Breaker's Yard | A wreck field | belt | +8 mat, 400 cr · upkeep 100 cr · glory +4 | 4,900 cr, 61 mat, 5 men | 5 |
+| The Lode Works | The mother lode | belt | +7 mat, 2 rare earths, 2 exo · upkeep 200 cr · glory +4 | 11,000 cr, 139 mat, 10 men | 5 |
+| The Great Dig | Ruins older than the Reach | dead world, arid world, moon | +4 inf, 2 exo · upkeep 200 cr · glory +6 | 11,800 cr, 94 mat, 8 inf | 6 |
+| The Vault Archive | Deep vaults | dead world, frozen world, moon | +3 inf, 400 cr · upkeep 100 cr · prosperity +4 · legitimacy +2 once · glory +4 | 13,900 cr, 152 mat, 10 inf | 6 |
+| The Sunless Cities | A buried sea | frozen world, moon | +600 cr, 4 men · upkeep 1 mat · room +18 · glory +4 | 7,400 cr, 103 mat, 12 men | 6 |
+| The Ice Choir | Singing ice | frozen world, comet | +3 inf · upkeep 100 cr · unrest -1/yr · legitimacy +2 once · glory +4 | 12,200 cr, 110 mat, 10 inf | 5 |
+| The Garden Estates | A garden country | living world | +700 cr, 2 inf · upkeep 100 cr · prosperity +6 · glory +4 | 14,100 cr, 113 mat, 9 inf | 5 |
+| The Old Capital Restored | A capital of the old kings | living world, ocean world, arid world | +4 inf, 500 cr · upkeep 300 cr · prosperity +5 · legitimacy +8 once · glory +8 | 17,700 cr, 177 mat, 14 inf | 8 |
+| The Reef Cities | The great reefs | ocean world | +600 cr, 3 men · upkeep 100 cr · room +14 · prosperity +3 · glory +4 | 6,900 cr, 90 mat, 9 men | 6 |
 | The Rift Citadel | The Rift | arid world, dead world | +3 men · upkeep 200 cr · defence +1 · glory +4 | 5,000 cr, 80 mat, 6 men | 6 |
 | The Mantle Forge | An open mantle | forge world | +11 mat · upkeep 200 cr · glory +5 | 5,000 cr, 110 mat, 4 exo | 8 |
 | The Moon-Port | One face to its world | moon | +600 cr · upkeep 100 cr · defence +0.25 · depot · glory +4 | 4,400 cr, 60 mat | 5 |
 | The Hollow Arsenal | A hollow moon | moon | upkeep 200 cr, 1 mat · defence +1.25 · depot · glory +4 | 5,000 cr, 90 mat, 4 men | 7 |
-| The Comet Watch | The long comet | comet | +3 inf · upkeep 100 cr · legitimacy +3 once · glory +4 | 3,400 cr, 30 mat, 2 inf | 4 |
-| The Flare Harvesters | A flare star | the sun | +3 He-3, 2 exo, 500 cr · upkeep 1 mat · glory +4 | 5,000 cr, 90 mat, 4 exo | 7 |
+| The Comet Watch | The long comet | comet | +3 inf · upkeep 100 cr · legitimacy +3 once · glory +4 | 12,800 cr, 113 mat, 8 inf | 4 |
+| The Flare Harvesters | A flare star | the sun | +3 He-3, 2 exo, 500 cr · upkeep 1 mat · glory +4 | 7,000 cr, 125 mat, 6 exo | 7 |
 | The Twin Crown | A companion sun | the sun | +1,400 cr · upkeep 2 mat · prosperity +3 · glory +7 | 7,000 cr, 130 mat, 6 exo | 10 |
 
 ## Infrastructure
@@ -335,23 +335,23 @@ moved to its site.
 
 | building | only on | what it does | cost |
 |---|---|---|---|
-| Power Plant | any world | +200 cr | 6 mat |
-| Deep Mine | Forge-World | +3 mat · upkeep 100 cr | 400 cr |
-| Hydroponic Complex | Agri-World | +2 men, 100 cr | 5 mat |
-| Free Market | Trade Hub | +300 cr · upkeep 100 cr | 6 mat |
-| Helium Skimmers | any world with a helium3 deposit | +1 He-3 · upkeep 100 cr | 800 cr, 6 mat |
-| Rare-Earth Refinery | any world with a rare earths deposit | +1 rare earths, 100 cr · upkeep 100 cr | 1,000 cr, 6 mat |
-| Isotope Works | any world with a isotopes deposit | +1 isotopes · upkeep 100 cr | 1,200 cr, 8 mat |
-| Deep-Sky Sensor Array | any world | +1 inf · defence +0.1 | 600 cr, 2 rare earths |
+| Power Plant | any world | +200 cr | 20 mat |
+| Deep Mine | Forge-World | +3 mat · upkeep 100 cr | 3,500 cr |
+| Hydroponic Complex | Agri-World | +2 men, 100 cr | 42 mat |
+| Free Market | Trade Hub | +300 cr · upkeep 100 cr | 20 mat |
+| Helium Skimmers | any world with a helium3 deposit | +1 He-3 · upkeep 100 cr | 1,600 cr, 12 mat |
+| Rare-Earth Refinery | any world with a rare earths deposit | +1 rare earths, 100 cr · upkeep 100 cr | 3,200 cr, 19 mat |
+| Isotope Works | any world with a isotopes deposit | +1 isotopes · upkeep 100 cr | 3,700 cr, 25 mat |
+| Deep-Sky Sensor Array | any world | +1 inf · defence +0.1 | 1,500 cr, 5 rare earths |
 | Planetary Arsenal | any world | defence +0.3 | 8 mat, 2 isotopes |
 | Fleet Supply Depot | any world | upkeep 100 cr · defence +0.1 | 6 mat, 400 cr |
-| Deep-Core Drill | Mining Outpost | +3 mat · upkeep 100 cr | 800 cr, 4 mat |
+| Deep-Core Drill | Mining Outpost | +3 mat · upkeep 100 cr | 2,000 cr, 10 mat |
 | Orbital Foundry | Shipyard World | +4 mat, 100 cr · upkeep 300 cr | 16 mat, 1,000 cr, 2 rare earths |
-| Conscription Hall | Agri-Collective | +3 men · upkeep 100 cr | 600 cr, 3 mat |
+| Conscription Hall | Agri-Collective | +3 men · upkeep 100 cr | 3,600 cr, 18 mat |
 | Bastion Batteries | Fortress-Station | upkeep 1 mat · defence +0.4 | 14 mat, 400 cr, 2 isotopes |
-| Exotics Laboratory | Research Enclave | +2 exo · upkeep 300 cr | 1,200 cr, 1 exo, 1 rare earths |
-| Free Port | Trade Consortium | +400 cr · upkeep 1 men | 1,000 cr |
-| Patronage Office | any world | +2 inf · upkeep 200 cr | 900 cr |
+| Exotics Laboratory | Research Enclave | +2 exo · upkeep 300 cr | 3,200 cr, 3 exo, 3 rare earths |
+| Free Port | Trade Consortium | +400 cr · upkeep 1 men | 2,900 cr |
+| Patronage Office | any world | +2 inf · upkeep 200 cr | 10,000 cr |
 | Public Granary | any world | upkeep 100 cr | 700 cr, 4 mat |
 
 ## Artwork

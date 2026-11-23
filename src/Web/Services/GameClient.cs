@@ -132,15 +132,17 @@ public sealed class GameClient
     public Scenario Scenario(string id) => ScenarioLoader.LoadFromContent(ContentRoot, id);
 
     /// <summary>Start a run: build the world, apply character creation, open the first turn's briefing.</summary>
-    public void Start(string scenarioId, ulong seed, CreationOptions creation, string mode, double difficulty, string intensity, double autonomy, string beyond = "default", string aggression = "default", string size = "small")
+    public void Start(string scenarioId, ulong seed, CreationOptions creation, string mode, double difficulty, string intensity, double autonomy, string beyond = "default", string aggression = "default", string size = "small", string ease = "standard", IEnumerable<string>? cheats = null)
     {
         var content = Content ?? throw new InvalidOperationException("Content not loaded.");
         Changing();
         var world = WorldBuilder.FromScenario(Scenario(scenarioId), seed);
         world.Mode = mode; world.Difficulty = difficulty; world.CrisisIntensity = intensity; world.FamilyAutonomy = autonomy; world.Beyond = beyond; world.BeyondAggression = aggression;
+        world.MoneyEase = ease; foreach (var ch in cheats ?? Array.Empty<string>()) world.Cheats.Add(ch);   // how easy money is, and what the game is begun with (docs/MONEY.md, "Settings")
         Praetoria.Core.Galaxy.GalaxyGrowth.Grow(world, content, size);   // a larger map, if one was asked for (docs/GALAXY_SIZE.md)
         if (!creation.IsEmpty) CharacterCreation.Apply(world, content, creation);
         ScenarioId = scenarioId; Seed = seed;
+        MoneySettings.Begin(world);
         Turn = new TurnController(world, content);
         Turn.SyncRng();
         _base = null; _done.Clear();
@@ -159,15 +161,17 @@ public sealed class GameClient
     }
 
     /// <summary>Start a run with a character of the player's own making.</summary>
-    public void StartCustom(CustomCharacter spec, ulong seed, string mode, double difficulty, string intensity, double autonomy, string beyond = "default", string aggression = "default", string size = "small")
+    public void StartCustom(CustomCharacter spec, ulong seed, string mode, double difficulty, string intensity, double autonomy, string beyond = "default", string aggression = "default", string size = "small", string ease = "standard", IEnumerable<string>? cheats = null)
     {
         var content = Content ?? throw new InvalidOperationException("Content not loaded.");
         Changing();
         var world = WorldBuilder.FromScenario(Scenario(CharacterWorkshop.BaseFor(spec)), seed);
         world.Mode = mode; world.Difficulty = difficulty; world.CrisisIntensity = intensity; world.FamilyAutonomy = autonomy; world.Beyond = beyond; world.BeyondAggression = aggression;
+        world.MoneyEase = ease; foreach (var ch in cheats ?? Array.Empty<string>()) world.Cheats.Add(ch);   // how easy money is, and what the game is begun with (docs/MONEY.md, "Settings")
         Praetoria.Core.Galaxy.GalaxyGrowth.Grow(world, content, size);   // a larger map, if one was asked for (docs/GALAXY_SIZE.md)
         CharacterWorkshop.Apply(world, content, spec);
         ScenarioId = "a character of your own"; Seed = seed;
+        MoneySettings.Begin(world);
         Turn = new TurnController(world, content);
         CharacterWorkshop.Finish(Turn, spec);
         Turn.SyncRng();

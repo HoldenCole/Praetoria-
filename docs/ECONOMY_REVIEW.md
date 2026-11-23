@@ -386,6 +386,22 @@ Four schemes of yearly pay, in single credits (`PayrollSystem`). They are off in
    tenth of its hull's cost a year, and measure the same way.
 3. Then the prices of single acts (section 4), against the new incomes.
 
+## 12. What was decided (2026-11-23)
+
+*"Let's just put our numbers as the default."* The ranged returns of section 11 are now what the content files say:
+72 buildings, works, great works and ventures cost more than they did, so that each returns what its kind is meant
+to. The tables of section 2 are the prices **before** this; the kinds and their returns are in section 11.
+
+Three things went with it:
+
+- A setting for **how easy money is**, chosen when a game is begun, and four **cheats** (docs/MONEY.md, "Settings").
+- The four great cities' own buildings (the Senate's Precinct, the Institute's Halls, the Great Exchange, the Great
+  Pit) are now dearer than some great works, because they pay well and are priced by what they pay.
+- What older pages measured (how fast a new house rises in docs/UPSTART.md, the playthroughs) was measured at the old
+  prices and has not been measured again.
+- **Salaries are still on trial** and off in every game. Flat rates measured too small to matter; the next thing to
+  try is pay as a share of what a thing earns.
+
 ## Sources
 
 - Return on capital: McKinsey, *A long-term look at ROIC* (https://www.mckinsey.com/capabilities/strategy-and-corporate-finance/our-insights/a-long-term-look-at-roic)

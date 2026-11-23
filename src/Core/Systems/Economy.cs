@@ -179,6 +179,9 @@ public sealed class Economy
             foreach (var f in world.Fleets.Values.Where(f => FleetSystem.BilledTo(f, chairId) == houseId).OrderBy(f => f.Id, StringComparer.Ordinal)) { var up = fleets.Upkeep(f); var d = new Resources(); foreach (var r in Resource.All) d.Add(r, -up.Get(r)); ledger.Add(f.Office ? f.Name + " (office)" : f.Name, "fleet", d); }
             int fuel = fleets.FuelBill(world, houseId); if (fuel > 0) ledger.Add("fuel for the fleet", "fuel", new Resources { Helium3 = -fuel });
         }
+        // a cheat the game was begun with: the player's house takes in its credits twice (docs/MONEY.md, "Settings")
+        if (world.Cheats.Contains(MoneySettings.DoubleIncome) && world.Protagonist?.HouseId == houseId)
+        { int again = ledger.Lines.Where(l => l.Delta.Credits > 0).Sum(l => l.Delta.Credits); if (again > 0) ledger.Add("a second income (begun with)", "cheat", new Resources { Credits = again }); }
         _law = null;
         return ledger;
     }

@@ -193,6 +193,15 @@ public class VentureTests
     [Fact]
     public void AProject_IsPaidByTheYear_Stalls_Pauses_Rushes_AndIsAbandonedForHalf()
     {
+        // The sums below are of a shipping line at 14 credits and 6 materials, enlarged for 12 and 4. What is tested is how a project is
+        // paid for, stalled and rushed, not what one costs, so the price is set for the test and put back after it.
+        var line = Content.Businesses.Def("shipping_line")!; var cost = line.Cost.Clone(); var more = line.ExpandCost.Clone();
+        line.Cost.Credits = 14; line.Cost.Materials = 6; line.ExpandCost.Credits = 12; line.ExpandCost.Materials = 4;
+        try { AProjectAtThatPrice(); }
+        finally { foreach (var r in Resource.All) { line.Cost.Set(r, cost.Get(r)); line.ExpandCost.Set(r, more.Get(r)); } }
+    }
+    private void AProjectAtThatPrice()
+    {
         var (w, _, _) = Reach(); var ex = new CommandExecutor(); var v = Content.Businesses; var vega = w.House("vega")!; vega.Treasury.Materials = 100;
         // a shipping line takes two years: 14 credits and 6 materials, half now and half next year
         var def = v.Def("shipping_line")!; Assert.Equal(2, def.BuildTurns);

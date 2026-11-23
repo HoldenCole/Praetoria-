@@ -64,6 +64,20 @@
                         @foreach (var sz in GrowthCatalog.Sizes) { <option value="@sz">@GrowthCatalog.SizeName(sz): @SizeNote(sz)</option> }
                     </select>
                 </label>
+                <label title="How much everything that is built costs, and so what it returns, for every house. At Standard a thing returns what its kind is meant to: a market 7% a year, a mine 10%, the dear goods 15%.">Making money
+                    <select @bind="_ease" data-setting="money">
+                        @foreach (var lv in MoneySettings.Levels) { <option value="@lv">@MoneySettings.Name(lv): returns @(MoneySettings.ReturnPct(lv) == 100 ? "as priced" : "×" + (MoneySettings.ReturnPct(lv) / 100.0).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))</option> }
+                    </select>
+                    <span class="muted small" data-money-does>@MoneySettings.Does(_ease)</span>
+                </label>
+                <div class="setting-cheats" data-setting="cheats" title="For your house alone, given once when the game begins. A game begun with any of these says so in its chronicle and on the House window.">
+                    <span>Begin with <span class="muted small">(cheats: none are on unless you tick them)</span></span>
+                    @foreach (var ch in MoneySettings.Cheats)
+                    {
+                        string id = ch;
+                        <label class="cheat" title="@MoneySettings.CheatDoes(ch)"><input type="checkbox" data-cheat="@ch" checked="@_cheats.Contains(ch)" @onchange="e => { if (e.Value is true) _cheats.Add(id); else _cheats.Remove(id); }" /> <b>@MoneySettings.CheatName(ch)</b> <span class="muted small">@MoneySettings.CheatDoes(ch)</span></label>
+                    }
+                </div>
                 <label title="The nations that border the Reach: the Khanates, the Free Cities, the Concord, the Compact, the Crown. Each has fleets and worlds of its own on the map's rim, raids when it thinks ill of the Reach, and can be fought, bought off or subdued. This sets how strong their fleets are.">The powers beyond
                     <select @bind="_beyond">
                         <option value="gentle">Gentle: a fifth weaker</option>
@@ -206,7 +220,8 @@
     private string _scenario = "";
     private string _protagonistName = "";
     private int _seed = 1;
-    private string _mode = "ironman", _intensity = "default", _beyond = "default", _aggression = "default", _size = "small";
+    private string _mode = "ironman", _intensity = "default", _beyond = "default", _aggression = "default", _size = "small", _ease = MoneySettings.Standard;
+    private readonly HashSet<string> _cheats = new();
     private int _written;
     /// <summary>What a size of map holds: the written map's systems, more of them at each size (docs/GALAXY_SIZE.md).</summary>
     private string SizeNote(string size)
@@ -292,7 +307,7 @@
             try
             {
                 G.StartCustom(_spec, (ulong)Math.Max(1, _seed), _mode, double.Parse(_difficulty, System.Globalization.CultureInfo.InvariantCulture), _intensity,
-                    double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression, _size);
+                    double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression, _size, _ease, _cheats);
             }
             catch (Exception ex) { _error = ex.Message; }
             return;
@@ -310,7 +325,7 @@
         {
             G.Start(_scenario, (ulong)Math.Max(1, _seed), creation, _mode,
                 double.Parse(_difficulty, System.Globalization.CultureInfo.InvariantCulture), _intensity,
-                double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression, _size);
+                double.Parse(_autonomy, System.Globalization.CultureInfo.InvariantCulture), _beyond, _aggression, _size, _ease, _cheats);
         }
         catch (Exception ex) { _error = ex.Message; }
     }

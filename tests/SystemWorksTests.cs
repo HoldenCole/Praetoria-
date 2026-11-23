@@ -155,7 +155,8 @@ public class SystemWorksTests
         }
         Assert.DoesNotContain(Cat.Works, d => !d.IsMegastructure && d.Bodies.Contains("star"));   // nothing ordinary is built on a sun
         // a great work costs far more than any building and takes years; a building takes at most four
-        int dearest = Cat.Works.Where(d => !d.IsMegastructure).Max(d => d.Cost.Credits + d.Cost.Materials);
+        // (the four great cities' own buildings are as singular as a great work, and are priced by what they return: docs/ECONOMY_REVIEW.md)
+        int dearest = Cat.Works.Where(d => !d.IsMegastructure && d.City.Length == 0).Max(d => d.Cost.Credits + d.Cost.Materials);
         Assert.All(Cat.Works.Where(d => d.IsMegastructure), d => { Assert.True(d.BuildTurns >= 4, d.Id); Assert.True(d.Cost.Credits + d.Cost.Materials > dearest, d.Id); });
         Assert.All(Cat.Works.Where(d => !d.IsMegastructure), d => Assert.True(d.BuildTurns <= 4 && d.Feature.Length == 0, d.Id));
         Assert.DoesNotContain(Cat.Buildings, b => b.Megastructure);   // none is left among a world's own buildings

@@ -49,6 +49,55 @@ A scene pays single credits with `adjustResource` on the resource `coin`.
 | `Treasury.Coin`, `Retainer.Wage`, an effect on `coin` | single credits |
 | The docs written before this page | were in the old figures; the amounts in them have been multiplied through, and a figure given "in the books" is in hundreds |
 
+## Settings: how easy money is, and cheats
+
+What the owner said (2026-11-23): *"I think having settings for how easy it is to make money and even some cheats to
+select in the beginning is useful. So you can choose the 'difficulty' of making money and how returns are scaled. Let's
+just put our numbers as the default."*
+
+**Our numbers are the default.** The content files are priced so that each thing returns what its kind is meant to
+(docs/ECONOMY_REVIEW.md, "Ranged returns"): a market, a port or a power plant 7% a year, farming 8%, finance 9%, a
+mine, a trading house or a seat of clout 10%, shipping 12%, the dear goods (helium-3, rare earths, isotopes, exotics)
+15%, a salvage guild 20%. A test fails if anything returns more than its kind is meant to.
+
+**Making money** is chosen when a game is begun, on the same screen as the map's size. It scales what everything that
+is built costs (buildings, works, great works, infrastructure, ventures and their enlargement), and so what it
+returns. It is every house's, not only yours. Hulls are not scaled.
+
+| Setting | A thing returns | An ordinary building pays back in |
+|---|---|---|
+| Lean | seven tenths of what its kind is meant to | fourteen years and more |
+| **Standard** (the default) | what its kind is meant to | ten to fourteen years |
+| Generous | half as much again | about seven years |
+| Lavish | two and a half times | about four years |
+
+Measured over 30 years, every house, two seeds, nobody steering the player's house (`dotnet run --project src/Tools --
+econ --seeds 2`); the middle house, in credits:
+
+| Setting | Takes in a year at year 30 | Treasury at year 30 | Buildings standing at year 10 / 30 | Venture levels at year 10 / 30 |
+|---|---|---|---|---|
+| Lean | 1,400 | 1,900 | 42 / 101 | 9 / 79 |
+| Standard | 3,100 | 2,100 | 62 / 108 | 11 / 134 |
+| Generous | 4,000 | 6,800 | 67 / 120 | 23 / 177 |
+| Lavish | 5,800 | 33,600 | 84 / 143 | 43 / 236 |
+
+Lavish is about what the game was before the prices were changed: money piles up and stops mattering.
+
+**Cheats** are ticked on the same screen, are your house's alone, and are given once when the game begins. None is on
+unless it is ticked.
+
+| Cheat | What it gives |
+|---|---|
+| A full treasury | 50,000 credits more |
+| Full stores | 200 materials, 100 manpower, and 20 each of helium-3, rare earths, isotopes and exotics |
+| A second income | every year, again all the credits the house took in |
+| A deep purse | 10,000 credits in your own purse |
+
+A game begun with a cheat, or at a setting other than Standard, says so: a line in the chronicle, and a line at the
+head of the House window for as long as the game is played. Neither can be changed in a game.
+
+The figures (the four settings, what each cheat gives) are mine.
+
 ## What I chose
 
 - **The scale is 100.** Ten would have left a tutor at a hundredth of a great house's whole treasury a year. A thousand

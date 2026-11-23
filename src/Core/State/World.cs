@@ -43,6 +43,12 @@ public sealed class World
     /// that is played. Set only by the measuring tool (docs/ECONOMY_REVIEW.md, "Salaries on trial").</summary>
     public string Payroll { get; set; } = "";
 
+    /// <summary>How easy money is in this game (<see cref="Systems.MoneySettings"/>): "lean", "standard", "generous" or "lavish". It scales
+    /// what everything that is built costs, for every house.</summary>
+    public string MoneyEase { get; set; } = "standard";
+    /// <summary>The cheats this game was begun with (<see cref="Systems.MoneySettings.Cheats"/>): the player's house's alone.</summary>
+    public HashSet<string> Cheats { get; set; } = new();
+
     /// <summary>GDD §20 "crisis intensity": off / low / default / dominant — how fast the Great Crisis clock runs.</summary>
     public string CrisisIntensity { get; set; } = "default";
 

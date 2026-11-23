@@ -68,6 +68,10 @@
                   Title="How rightful the house is held to be. It is what a petition for a higher title is judged on." />
         </div>
     </header>
+    @if (w.Cheats.Count > 0 || w.MoneyEase != MoneySettings.Standard)
+    {
+        <div class="muted small money-settings" data-money-settings title="Chosen when this game was begun. They cannot be changed in a game.">@(w.MoneyEase != MoneySettings.Standard ? "Making money: " + MoneySettings.Name(w.MoneyEase) + ". " : "")@MoneySettings.Says(w)</div>
+    }
     <div class="ex-tabs">
         <button class="rung @(_view == "estate" ? "here" : "")" @onclick='() => _view = "estate"'>The estate</button>
         <button class="rung @(_view == "ledger" ? "here" : "")" @onclick='() => _view = "ledger"'>The ledger</button>

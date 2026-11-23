@@ -5,49 +5,49 @@
     {
       "id": "skimmer_fleet", "name": "Skimmer Fleet", "buildTurns": 2, "sector": "extraction",
       "description": "Ramscoops in a giant's upper clouds, run on contract. Fuel for whoever holds the paper, and a charter to whoever holds the world.",
-      "cost": { "credits": 12, "materials": 6 }, "yield": { "helium3": 1 }, "expandCost": { "credits": 10, "materials": 4 }, "maxLevel": 3, "charter": 1,
+      "cost": { "credits": 23, "materials": 12 }, "yield": { "helium3": 1 }, "expandCost": { "credits": 20, "materials": 8 }, "maxLevel": 3, "charter": 1,
       "requires": { "deposit": "helium3" }
     },
     {
       "id": "enrichment_concern", "name": "Enrichment Concern", "buildTurns": 2, "sector": "arms",
       "description": "Centrifuges behind a wall of guards. Weapons-grade isotopes do not reach the open market; they reach whoever owns this.",
-      "cost": { "credits": 20, "materials": 10 }, "yield": { "isotopes": 1 }, "expandCost": { "credits": 16, "materials": 8 }, "maxLevel": 2, "charter": 2,
+      "cost": { "credits": 46, "materials": 23 }, "yield": { "isotopes": 1 }, "expandCost": { "credits": 37, "materials": 19 }, "maxLevel": 2, "charter": 2,
       "requires": { "deposit": "isotopes", "minTitleRank": 2 }
     },
     {
       "id": "trading_company", "name": "Trading Company", "buildTurns": 1, "sector": "trade",
       "description": "Factors, warehouses and a seal on the customs house. The first thing a house with coin and no land buys.",
-      "cost": { "credits": 12, "materials": 4 }, "yield": { "credits": 3 }, "expandCost": { "credits": 10, "materials": 3 }, "maxLevel": 3, "charter": 1,
+      "cost": { "credits": 20, "materials": 7 }, "yield": { "credits": 3 }, "expandCost": { "credits": 17, "materials": 5 }, "maxLevel": 3, "charter": 1,
       "requires": { "populated": true }
     },
     {
       "id": "mining_concern", "name": "Mining Concern", "buildTurns": 1, "sector": "extraction",
       "description": "Tugs, crushers and a company of belt-rats on contract. Works a belt without owning a claim in it.",
-      "cost": { "credits": 10, "materials": 6 }, "yield": { "materials": 3, "credits": 1 }, "expandCost": { "credits": 8, "materials": 4 }, "maxLevel": 3, "charter": 1,
+      "cost": { "credits": 29, "materials": 18 }, "yield": { "materials": 3, "credits": 1 }, "expandCost": { "credits": 24, "materials": 12 }, "maxLevel": 3, "charter": 1,
       "requires": { "belt": true }
     },
     {
       "id": "shipping_line", "name": "Shipping Line", "buildTurns": 2, "sector": "shipping",
       "description": "Hulls on the lanes under your colours. Where three lanes meet, everything pays to pass.",
-      "cost": { "credits": 14, "materials": 6 }, "yield": { "credits": 2 }, "flat": { "influence": 1 }, "expandCost": { "credits": 12, "materials": 4 }, "maxLevel": 3, "charter": 2,
+      "cost": { "credits": 41, "materials": 18 }, "yield": { "credits": 2 }, "flat": { "influence": 1 }, "expandCost": { "credits": 35, "materials": 12 }, "maxLevel": 3, "charter": 2,
       "requires": { "minLanes": 3 }
     },
     {
       "id": "merchant_bank", "name": "Merchant Bank", "buildTurns": 2, "sector": "finance",
       "description": "A counting-house with the house's seal on its door. Other houses' debts come here, and so does their interest.",
-      "cost": { "credits": 24 }, "yield": { "credits": 2 }, "flat": { "influence": 1 }, "expandCost": { "credits": 16 }, "maxLevel": 3, "charter": 0, "lender": true,
+      "cost": { "credits": 89 }, "yield": { "credits": 2 }, "flat": { "influence": 1 }, "expandCost": { "credits": 60 }, "maxLevel": 3, "charter": 0, "lender": true,
       "requires": { "ownWorld": true, "minTitleRank": 2 }
     },
     {
       "id": "salvage_guild", "name": "Salvage Guild", "buildTurns": 1, "sector": "extraction",
       "description": "Wreckers and scrap-smelters on a world nobody wanted. Now and then they bring up something stranger than steel.",
-      "cost": { "credits": 8, "materials": 2 }, "yield": { "materials": 2 }, "flat": { "exotics": 1 }, "upkeep": { "credits": 1 }, "expandCost": { "credits": 8 }, "maxLevel": 2, "charter": 1,
+      "cost": { "credits": 33, "materials": 9 }, "yield": { "materials": 2 }, "flat": { "exotics": 1 }, "upkeep": { "credits": 1 }, "expandCost": { "credits": 33 }, "maxLevel": 2, "charter": 1,
       "requires": { "planetClasses": ["barren", "frozen", "belt"] }
     },
     {
       "id": "spice_syndicate", "name": "Spice Syndicate", "buildTurns": 1, "sector": "trade",
       "description": "Licences, laboratories and a quiet arrangement with the archivists. Exotics by the gram, credits by the crate.",
-      "cost": { "credits": 16, "materials": 2 }, "yield": { "credits": 2 }, "flat": { "exotics": 1 }, "expandCost": { "credits": 12 }, "maxLevel": 2, "charter": 2,
+      "cost": { "credits": 51, "materials": 7 }, "yield": { "credits": 2 }, "flat": { "exotics": 1 }, "expandCost": { "credits": 38 }, "maxLevel": 2, "charter": 2,
       "requires": { "specializations": ["research_station", "research_enclave"] }
     },
     {
@@ -59,7 +59,7 @@
     {
       "id": "academy_patronage", "name": "Academy Patronage", "buildTurns": 1, "sector": "services",
       "description": "Chairs endowed, cadets sponsored, names remembered. It earns nothing a steward can count and everything a chancellor can.",
-      "cost": { "credits": 12, "influence": 1 }, "flat": { "influence": 1 }, "upkeep": { "credits": 1 }, "expandCost": { "credits": 10 }, "maxLevel": 2, "charter": 0,
+      "cost": { "credits": 34, "influence": 3 }, "flat": { "influence": 1 }, "upkeep": { "credits": 1 }, "expandCost": { "credits": 28 }, "maxLevel": 2, "charter": 0,
       "requires": { "ownWorld": true, "populated": true }
     },
     {

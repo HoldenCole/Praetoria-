@@ -383,9 +383,9 @@
     "comet"
    ],
    "cost": {
-    "credits": 8,
-    "materials": 6,
-    "manpower": 2
+    "credits": 10,
+    "materials": 8,
+    "manpower": 3
    },
    "upkeep": {
     "credits": 1
@@ -409,9 +409,9 @@
     "moon"
    ],
    "cost": {
-    "credits": 22,
-    "materials": 16,
-    "manpower": 6
+    "credits": 27,
+    "materials": 19,
+    "manpower": 8
    },
    "requires": "outpost",
    "buildTurns": 3,
@@ -436,9 +436,9 @@
     "ocean"
    ],
    "cost": {
-    "credits": 26,
-    "materials": 14,
-    "manpower": 8
+    "credits": 42,
+    "materials": 23,
+    "manpower": 13
    },
    "buildTurns": 4,
    "upkeep": {
@@ -461,9 +461,9 @@
     "terran"
    ],
    "cost": {
-    "credits": 12,
-    "materials": 8,
-    "manpower": 3
+    "credits": 25,
+    "materials": 17,
+    "manpower": 7
    },
    "upkeep": {
     "credits": 1
@@ -483,9 +483,9 @@
     "terran"
    ],
    "cost": {
-    "credits": 16,
-    "materials": 6,
-    "influence": 1
+    "credits": 26,
+    "materials": 10,
+    "influence": 2
    },
    "buildTurns": 2,
    "upkeep": {
@@ -505,9 +505,9 @@
     "ocean"
    ],
    "cost": {
-    "credits": 12,
-    "materials": 8,
-    "manpower": 3
+    "credits": 25,
+    "materials": 17,
+    "manpower": 7
    },
    "upkeep": {
     "credits": 1
@@ -527,8 +527,8 @@
     "ocean"
    ],
    "cost": {
-    "credits": 14,
-    "materials": 12
+    "credits": 18,
+    "materials": 15
    },
    "buildTurns": 2,
    "upkeep": {
@@ -611,9 +611,9 @@
     "moon"
    ],
    "cost": {
-    "credits": 12,
-    "materials": 8,
-    "manpower": 2
+    "credits": 15,
+    "materials": 10,
+    "manpower": 3
    },
    "upkeep": {
     "credits": 1
@@ -631,9 +631,9 @@
     "forge"
    ],
    "cost": {
-    "credits": 16,
-    "materials": 10,
-    "manpower": 2
+    "credits": 23,
+    "materials": 15,
+    "manpower": 3
    },
    "buildTurns": 2,
    "upkeep": {
@@ -673,8 +673,8 @@
     "comet"
    ],
    "cost": {
-    "credits": 10,
-    "materials": 6
+    "credits": 14,
+    "materials": 8
    },
    "upkeep": {
     "credits": 1
@@ -712,8 +712,8 @@
     "barren"
    ],
    "cost": {
-    "credits": 10,
-    "materials": 8
+    "credits": 19,
+    "materials": 15
    },
    "upkeep": {
     "credits": 1
@@ -734,9 +734,9 @@
     "barren"
    ],
    "cost": {
-    "credits": 14,
-    "materials": 10,
-    "manpower": 2
+    "credits": 16,
+    "materials": 12,
+    "manpower": 3
    },
    "upkeep": {
     "credits": 1
@@ -755,8 +755,8 @@
     "gas"
    ],
    "cost": {
-    "credits": 14,
-    "materials": 10
+    "credits": 17,
+    "materials": 12
    },
    "deposit": "helium3",
    "upkeep": {
@@ -800,8 +800,8 @@
     "gas"
    ],
    "cost": {
-    "credits": 16,
-    "materials": 14
+    "credits": 18,
+    "materials": 16
    },
    "buildTurns": 2,
    "upkeep": {
@@ -821,9 +821,9 @@
     "belt"
    ],
    "cost": {
-    "credits": 16,
-    "materials": 10,
-    "manpower": 2
+    "credits": 23,
+    "materials": 15,
+    "manpower": 3
    },
    "buildTurns": 2,
    "upkeep": {
@@ -842,8 +842,8 @@
     "belt"
    ],
    "cost": {
-    "credits": 14,
-    "materials": 8
+    "credits": 16,
+    "materials": 9
    },
    "upkeep": {
     "credits": 1
@@ -861,8 +861,8 @@
     "belt"
    ],
    "cost": {
-    "credits": 12,
-    "materials": 8
+    "credits": 29,
+    "materials": 20
    },
    "yield": {
     "credits": 4
@@ -881,9 +881,9 @@
     "moon"
    ],
    "cost": {
-    "credits": 16,
-    "materials": 10,
-    "manpower": 2
+    "credits": 25,
+    "materials": 16,
+    "manpower": 4
    },
    "deposit": "rare_earths",
    "upkeep": {
@@ -904,9 +904,9 @@
     "moon"
    ],
    "cost": {
-    "credits": 20,
-    "materials": 12,
-    "manpower": 3
+    "credits": 31,
+    "materials": 19,
+    "manpower": 5
    },
    "deposit": "isotopes",
    "minTitleRank": 1,
@@ -927,8 +927,8 @@
     "moon"
    ],
    "cost": {
-    "credits": 16,
-    "materials": 12
+    "credits": 17,
+    "materials": 13
    },
    "buildTurns": 2,
    "upkeep": {
@@ -968,9 +968,9 @@
     "frozen"
    ],
    "cost": {
-    "credits": 10,
-    "materials": 6,
-    "influence": 1
+    "credits": 20,
+    "materials": 12,
+    "influence": 2
    },
    "limit": "system",
    "upkeep": {
@@ -993,9 +993,9 @@
     "barren"
    ],
    "cost": {
-    "credits": 14,
-    "materials": 8,
-    "exotics": 1
+    "credits": 22,
+    "materials": 13,
+    "exotics": 2
    },
    "limit": "system",
    "buildTurns": 2,
@@ -1106,8 +1106,8 @@
     "space"
    ],
    "cost": {
-    "credits": 14,
-    "materials": 10
+    "credits": 21,
+    "materials": 15
    },
    "upkeep": {
     "credits": 1
@@ -1126,9 +1126,9 @@
     "space"
    ],
    "cost": {
-    "credits": 12,
-    "materials": 8,
-    "exotics": 1
+    "credits": 20,
+    "materials": 13,
+    "exotics": 2
    },
    "upkeep": {
     "credits": 1
@@ -1225,8 +1225,8 @@
    ],
    "limit": "system",
    "cost": {
-    "credits": 18,
-    "materials": 12
+    "credits": 35,
+    "materials": 24
    },
    "buildTurns": 2,
    "upkeep": {
@@ -1256,9 +1256,9 @@
    ],
    "limit": "system",
    "cost": {
-    "credits": 20,
-    "materials": 10,
-    "influence": 1
+    "credits": 49,
+    "materials": 25,
+    "influence": 3
    },
    "buildTurns": 3,
    "upkeep": {
@@ -1703,9 +1703,9 @@
     "space"
    ],
    "cost": {
-    "credits": 60,
-    "materials": 110,
-    "exotics": 6
+    "credits": 95,
+    "materials": 174,
+    "exotics": 10
    },
    "buildTurns": 9,
    "minTitleRank": 4,
@@ -1779,10 +1779,10 @@
     "space"
    ],
    "cost": {
-    "credits": 80,
-    "materials": 100,
-    "exotics": 6,
-    "influence": 5
+    "credits": 144,
+    "materials": 179,
+    "exotics": 11,
+    "influence": 9
    },
    "buildTurns": 10,
    "limit": "galaxy",
@@ -1810,9 +1810,9 @@
    "feature": "great_rings",
    "minTitleRank": 2,
    "cost": {
-    "credits": 56,
-    "materials": 90,
-    "exotics": 4
+    "credits": 72,
+    "materials": 116,
+    "exotics": 6
    },
    "buildTurns": 7,
    "upkeep": {
@@ -1838,9 +1838,9 @@
    "feature": "eternal_storm",
    "minTitleRank": 2,
    "cost": {
-    "credits": 50,
-    "materials": 80,
-    "exotics": 3
+    "credits": 79,
+    "materials": 126,
+    "exotics": 5
    },
    "buildTurns": 6,
    "upkeep": {
@@ -1862,9 +1862,9 @@
    ],
    "feature": "wreck_field",
    "cost": {
-    "credits": 40,
-    "materials": 50,
-    "manpower": 4
+    "credits": 49,
+    "materials": 61,
+    "manpower": 5
    },
    "buildTurns": 5,
    "upkeep": {
@@ -1888,9 +1888,9 @@
    ],
    "feature": "mother_lode",
    "cost": {
-    "credits": 44,
-    "materials": 56,
-    "manpower": 4
+    "credits": 110,
+    "materials": 139,
+    "manpower": 10
    },
    "buildTurns": 5,
    "upkeep": {
@@ -1917,9 +1917,9 @@
    ],
    "feature": "old_ruins",
    "cost": {
-    "credits": 50,
-    "materials": 40,
-    "influence": 3
+    "credits": 118,
+    "materials": 94,
+    "influence": 8
    },
    "buildTurns": 6,
    "upkeep": {
@@ -1945,9 +1945,9 @@
    ],
    "feature": "deep_vaults",
    "cost": {
-    "credits": 46,
-    "materials": 50,
-    "influence": 3
+    "credits": 139,
+    "materials": 152,
+    "influence": 10
    },
    "buildTurns": 6,
    "upkeep": {
@@ -1974,9 +1974,9 @@
    ],
    "feature": "buried_sea",
    "cost": {
-    "credits": 50,
-    "materials": 70,
-    "manpower": 8
+    "credits": 74,
+    "materials": 103,
+    "manpower": 12
    },
    "buildTurns": 6,
    "upkeep": {
@@ -2002,9 +2002,9 @@
    ],
    "feature": "singing_ice",
    "cost": {
-    "credits": 40,
-    "materials": 36,
-    "influence": 3
+    "credits": 122,
+    "materials": 110,
+    "influence": 10
    },
    "buildTurns": 5,
    "upkeep": {
@@ -2029,9 +2029,9 @@
    ],
    "feature": "garden_country",
    "cost": {
-    "credits": 50,
-    "materials": 40,
-    "influence": 3
+    "credits": 141,
+    "materials": 113,
+    "influence": 9
    },
    "buildTurns": 5,
    "upkeep": {
@@ -2060,9 +2060,9 @@
    "feature": "old_capital",
    "minTitleRank": 2,
    "cost": {
-    "credits": 80,
-    "materials": 80,
-    "influence": 6
+    "credits": 177,
+    "materials": 177,
+    "influence": 14
    },
    "buildTurns": 8,
    "upkeep": {
@@ -2086,9 +2086,9 @@
    ],
    "feature": "great_reefs",
    "cost": {
-    "credits": 46,
-    "materials": 60,
-    "manpower": 6
+    "credits": 69,
+    "materials": 90,
+    "manpower": 9
    },
    "buildTurns": 6,
    "upkeep": {
@@ -2218,9 +2218,9 @@
    ],
    "feature": "long_comet",
    "cost": {
-    "credits": 34,
-    "materials": 30,
-    "influence": 2
+    "credits": 128,
+    "materials": 113,
+    "influence": 8
    },
    "buildTurns": 4,
    "upkeep": {
@@ -2246,9 +2246,9 @@
    "feature": "flare_star",
    "minTitleRank": 2,
    "cost": {
-    "credits": 50,
-    "materials": 90,
-    "exotics": 4
+    "credits": 70,
+    "materials": 125,
+    "exotics": 6
    },
    "buildTurns": 7,
    "upkeep": {
@@ -2313,8 +2313,8 @@
    "category": "orbital",
    "city": "resort",
    "cost": {
-    "credits": 16,
-    "materials": 6
+    "credits": 19,
+    "materials": 7
    },
    "buildTurns": 2,
    "upkeep": {
@@ -2332,8 +2332,8 @@
    "category": "orbital",
    "city": "port",
    "cost": {
-    "credits": 16,
-    "materials": 10
+    "credits": 19,
+    "materials": 12
    },
    "buildTurns": 2,
    "upkeep": {
@@ -2370,8 +2370,8 @@
    "category": "orbital",
    "city": "university",
    "cost": {
-    "credits": 18,
-    "materials": 8
+    "credits": 30,
+    "materials": 14
    },
    "buildTurns": 3,
    "upkeep": {
@@ -2407,9 +2407,9 @@
    "category": "extraction",
    "city": "mining",
    "cost": {
-    "credits": 14,
-    "materials": 10,
-    "manpower": 2
+    "credits": 22,
+    "materials": 16,
+    "manpower": 4
    },
    "buildTurns": 2,
    "upkeep": {
@@ -2485,8 +2485,8 @@
    "category": "orbital",
    "city": "old_city",
    "cost": {
-    "credits": 14,
-    "materials": 6
+    "credits": 31,
+    "materials": 14
    },
    "buildTurns": 2,
    "upkeep": {
@@ -2504,8 +2504,8 @@
    "category": "orbital",
    "city": "exchange_city",
    "cost": {
-    "credits": 30,
-    "materials": 16
+    "credits": 40,
+    "materials": 22
    },
    "buildTurns": 4,
    "upkeep": {
@@ -2523,9 +2523,9 @@
    "category": "extraction",
    "city": "lode_city",
    "cost": {
-    "credits": 26,
-    "materials": 18,
-    "manpower": 4
+    "credits": 43,
+    "materials": 30,
+    "manpower": 7
    },
    "buildTurns": 4,
    "upkeep": {
@@ -2542,8 +2542,8 @@
    "category": "military",
    "city": "academy_city",
    "cost": {
-    "credits": 28,
-    "materials": 16
+    "credits": 76,
+    "materials": 44
    },
    "buildTurns": 4,
    "upkeep": {
@@ -2563,8 +2563,8 @@
    "city": "reach_capital",
    "on": "world",
    "cost": {
-    "credits": 34,
-    "materials": 20
+    "credits": 101,
+    "materials": 60
    },
    "buildTurns": 4,
    "upkeep": {
