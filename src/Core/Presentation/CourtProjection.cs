@@ -108,7 +108,8 @@ public sealed record FleetLine(string Id, string Name, string Where, int Strengt
     string Composition, string? AdmiralName, int Veterancy, IReadOnlyList<Option> AdmiralOptions, IReadOnlyList<Option> MergeOptions, Option Refit,
     string Stance = "line", string Loadout = "guns", int Loyalty = 70, int Supply = 100, string? AdmiralId = null, string AdmiralStyle = "none", int Cap = 0,
     IReadOnlyList<Option>? StanceOptions = null, IReadOnlyList<Option>? LoadoutOptions = null, IReadOnlyList<Option>? StyleOptions = null, int Valour = 0, bool Achilles = false,
-    string Away = "", string AwayName = "", string AwayPhase = "", int AwayTurns = 0, int Plunder = 0, int ExpeditionWins = 0, Option? Expedition = null, Option? Recall = null);
+    string Away = "", string AwayName = "", string AwayPhase = "", int AwayTurns = 0, int Plunder = 0, int ExpeditionWins = 0, Option? Expedition = null, Option? Recall = null,
+    string? CaptainId = null, string? CaptainName = null, string CaptainSays = "", IReadOnlyList<Option>? CaptainOptions = null, Option? RelieveCaptain = null, string Standing = "");
 /// <summary>A nation beyond the Reach as the Reach sees it (docs/FOREIGN_NATIONS.md): its strength and regard, the war if there is one, its tribute if it pays.</summary>
 public sealed record NationCard(string Id, string Name, string Temper, string Description, string Holds, int Strength, int FullStrength, int Disposition, bool AtWar, int WarSince, int ScoreReach, int ScoreNation,
     int Threshold, int Tribute, int Wealth, int Distance, int SubduedUntil, int Wars, bool RaidedLately, int Expeditions, Option War,
@@ -329,9 +330,9 @@ public static class CourtProjection
                 f.Moving ? w.Galaxy?.System(f.DestinationId)?.Name ?? f.DestinationId : null, f.Eta, f.Office,
                 fleetSys.Describe(f), f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId)?.Name : null, f.Veterancy,
                 w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority).OrderByDescending(c => c.Skill("tactics")).ThenBy(c => c.Id, StringComparer.Ordinal)   // no child is offered a fleet
-                    .Select(c => new Option(c.Id, $"Give {f.Name} to {c.Name} (tactics {c.Skill("tactics")}, {c.Age}){(w.Fleets.Values.FirstOrDefault(x => x.Id != f.Id && x.AdmiralId == c.Id) is { } has ? $", who shifts flag from {has.Name} and leaves it without an admiral" : "")} · 1 agent", new AssignAdmiralCommand(p.Id, f.Id, c.Id).Refusal(ctx))).ToList(),
+                    .Select(c => new Option(c.Id, $"Give {f.Name} to {c.Name} (tactics {c.Skill("tactics")}, {c.Age}){(w.Fleets.Values.FirstOrDefault(x => x.Id != f.Id && x.AdmiralId == c.Id) is { } has ? $", who shifts flag from {has.Name} and leaves it without an admiral" : "")}{(w.Fleets.Values.FirstOrDefault(x => x.CaptainId == c.Id) is { } ship ? $", who leaves the captaincy of {ship.Name}" : "")} · 1 agent", new AssignAdmiralCommand(p.Id, f.Id, c.Id).Refusal(ctx))).ToList(),
                 w.Fleets.Values.Where(o => o.Id != f.Id && o.OwnerId == house.Id).OrderBy(o => o.Id, StringComparer.Ordinal)
-                    .Select(o => new Option(o.Id, $"Fold {o.Name} into {f.Name}", new MergeFleetsCommand(p.Id, o.Id, f.Id).Refusal(ctx))).ToList(),
+                    .Select(o => new Option(o.Id, $"Fold {o.Name} into {f.Name} · {((FleetSystem.AdmiralOf(w, f) ?? FleetSystem.AdmiralOf(w, o)) is { } keeps ? keeps.Name + " commands" : "no admiral")}", new MergeFleetsCommand(p.Id, o.Id, f.Id).Refusal(ctx))).ToList(),
                 new Option("refit", $"Refit {f.Name}  ({RefitFleetCommand.MaterialsPerHull * f.Strength} materials → readiness 100)", new RefitFleetCommand(p.Id, f.Id).Refusal(ctx)),
                 StanceOptions: FleetSystem.Stances.Select(st => new Option(st, st, new SetStanceCommand(p.Id, f.Id, st).Refusal(ctx))).ToList(),
                 LoadoutOptions: FleetSystem.Loadouts.Select(l => new Option(l, l, new SetLoadoutCommand(p.Id, f.Id, l).Refusal(ctx))).ToList(),
@@ -341,7 +342,15 @@ public static class CourtProjection
                 Valour: f.AdmiralId.Length > 0 ? w.Counter(FleetSystem.ValourKey(f.AdmiralId)) : 0, Achilles: f.AdmiralId.Length > 0 && (w.Char(f.AdmiralId)?.Flags.Contains(FleetSystem.AchillesFlag) ?? false),
                 Away: f.Away, AwayName: f.IsAway ? content.Nations.Def(f.Away)?.Name ?? f.Away : "", AwayPhase: f.AwayPhase, AwayTurns: f.AwayTurns, Plunder: f.Plunder, ExpeditionWins: f.ExpeditionWins,
                 Expedition: abroad != null && !f.IsAway && !NationSystem.OnMap(w, abroad.Id) ? new Option(abroad.Id, $"Send against {content.Nations.Def(abroad.Id)?.Name ?? abroad.Id}", new SendExpeditionCommand(p.Id, f.Id, abroad.Id, content.Fleets, content.Nations).Refusal(ctx)) : null,
-                Recall: f.IsAway ? new Option(f.Id, "Recall", new RecallExpeditionCommand(p.Id, f.Id, content.Nations).Refusal(ctx)) : null)).ToList();
+                Recall: f.IsAway ? new Option(f.Id, "Recall", new RecallExpeditionCommand(p.Id, f.Id, content.Nations).Refusal(ctx)) : null,
+                // the captain under the admiral, the officers of the service who could be one, and where the fleet stands as a whole (docs/MILITARY.md, "Commanding a navy")
+                CaptainId: FleetSystem.CaptainOf(w, f)?.Id, CaptainName: FleetSystem.CaptainOf(w, f)?.Name,
+                CaptainSays: FleetSystem.CaptainOf(w, f) is { } cap ? $"{content.Careers.RankName(cap.CareerTrack, cap.CareerRank, w.Era) ?? "officer"} · discipline {cap.Skill("discipline")}, gunnery {cap.Skill("gunnery")}: readiness +{FleetSystem.CaptainDrills(w, f)} a year at anchor, {FleetSystem.CaptainHolds(w, f)} less lost a year under way"
+                    + (FleetSystem.Commander(w, f) == cap ? " · commands the fleet" : $" · +{(FleetSystem.CaptainFactor(w, f) - 1) * 100:0}% in a fight by gunnery") : "",
+                CaptainOptions: w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Age >= DynastySystem.AgeOfMajority && c.CareerTrack == "military").OrderByDescending(c => c.CareerRank).ThenByDescending(c => c.Skill("discipline")).ThenBy(c => c.Id, StringComparer.Ordinal)
+                    .Select(c => new Option(c.Id, $"Make {c.Name} captain ({content.Careers.RankName(c.CareerTrack, c.CareerRank, w.Era) ?? "officer"}, {c.Age} · discipline {c.Skill("discipline")}, gunnery {c.Skill("gunnery")}){(w.Fleets.Values.FirstOrDefault(x => x.Id != f.Id && x.CaptainId == c.Id) is { } leaves ? $", who leaves {leaves.Name} without a captain" : "")} · 1 agent", new AppointCaptainCommand(p.Id, f.Id, c.Id).Refusal(ctx))).ToList(),
+                RelieveCaptain: new Option("relieve", "Relieve the captain", new RelieveCaptainCommand(p.Id, f.Id).Refusal(ctx)),
+                Standing: fleetSys.Stands(w, f))).ToList();
 
         var wars = new List<WarLine>();
         foreach (var enemy in w.EnemiesOf(house.Id))

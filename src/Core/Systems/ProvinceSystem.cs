@@ -620,7 +620,10 @@ public static class ProvinceSystem
                 if (holder == null) { p.HolderId = ""; changed = true; continue; }
                 if (w.AtWar(holder.Id, h.OwnerId) && FleetSystem.StrengthOf(w, holder.Id) == 0 && !World.Outsider(h.OwnerId))
                 {
-                    w.Log($"{holder.Name} has no fleet left to keep {p.Name}: {w.House(h.OwnerId)?.Name ?? "the holder of the world"} takes it."); p.HolderId = ""; p.Since = w.Turn; changed = true;
+                    w.Log($"{holder.Name} has no fleet left to keep {p.Name}: {w.House(h.OwnerId)?.Name ?? "the holder of the world"} takes it."); WarLedger.Seat(w, h, p.Name, holder.Id, h.OwnerId); p.HolderId = ""; p.Since = w.Turn; changed = true;
+                    // a seat taken or lost in a war is news, and is in the war's account for the year (docs/MILITARY.md, "Commanding a navy")
+                    if (w.Protagonist?.HouseId is { } told && (told == holder.Id || told == h.OwnerId))
+                        w.Tell(told == holder.Id ? "warn" : "good", told == holder.Id ? $"{p.Name} is lost: your house has no fleet left to keep it, and {w.House(h.OwnerId)?.Name ?? "the holder of the world"} has taken it." : $"{p.Name} is yours: {holder.Name} has no fleet left to keep it.", "galaxy:" + h.SystemId, h.Id);
                 }
             }
             Levies(w, cat, h);

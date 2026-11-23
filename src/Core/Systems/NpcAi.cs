@@ -346,6 +346,17 @@ public sealed class NpcAi
                 fleet.AdmiralId = best.Id;
                 world.Log($"{best.Name} takes command of {fleet.Name}.");
             }
+            // and a captain under the admiral, where the house has an officer of the service to give: the rule the player is held to
+            // (docs/MILITARY.md, "Commanding a navy"), and free of pool cost as the admiral's commission is
+            foreach (var fleet in world.Fleets.Values.Where(f => f.OwnerId == house.Id && f.CaptainId == "" && f.LevyOf.Length == 0).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal))
+            {
+                var posted = world.Fleets.Values.Select(f => f.CaptainId).Where(id => id.Length > 0).ToHashSet();
+                var officer = npcs.Where(c => c.HouseId == house.Id && !posted.Contains(c.Id) && FleetSystem.CaptainRefusal(world, fleet, c) == null)
+                                  .OrderByDescending(c => c.Skill("discipline") * 2 + c.Skill("gunnery") + c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+                if (officer == null) break;
+                fleet.CaptainId = officer.Id;
+                world.Log($"{officer.Name} is made captain of {fleet.Name}.");
+            }
 
             // otherwise, keep the yards busy when the treasury is comfortable: the heaviest class it can field
             var holding = world.HoldingsOf(house.Id).Where(h => h.SystemId != "").OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();

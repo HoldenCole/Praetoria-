@@ -86,6 +86,9 @@ public sealed class World
 
     /// <summary>Standing wars between houses (GDD §6). Fleets of warring houses fight where they meet.</summary>
     public List<War> Wars { get; set; } = new();
+    /// <summary>The wars that are over, oldest first, each with its account by year (docs/MILITARY.md, "Commanding a navy"): every war
+    /// of the player's house that <see cref="Systems.WarLedger.KeptOwn"/> allows, and the last few between other houses.</summary>
+    public List<War> PastWars { get; set; } = new();
 
     /// <summary>Two houses are at war when a war stands between them — or when either is the lawless (raiders fight everyone).</summary>
     public bool AtWar(string a, string b) => a != b && (a == "pirates" || b == "pirates" || Wars.Any(w => w.Between(a, b)) || NationWar(a, b) || NationWar(b, a));

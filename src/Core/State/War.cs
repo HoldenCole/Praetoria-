@@ -15,6 +15,17 @@ public sealed class War
     public string Why { get; set; } = "";
     /// <summary>The last turn a battle was fought in this war (0 = none yet): a war with no battle for long is exhaustion, not war.</summary>
     public int LastBattleTurn { get; set; }
+    /// <summary>The account of the war by year (docs/MILITARY.md, "Commanding a navy"), oldest first: one entry for each year's turn
+    /// the war has stood through, and after the last of them the year now running. Kept by <see cref="Systems.WarLedger"/>.</summary>
+    public List<WarYear> Years { get; set; } = new();
+    /// <summary>The last year whose account is closed: what happens after it is written into the next year's.</summary>
+    public int ClosedThrough { get; set; }
+    /// <summary>The year the war ended (0 while it stands), and how, as a clause that follows the houses' names ("made peace").</summary>
+    public int Ended { get; set; }
+    public string Ending { get; set; } = "";
+    /// <summary>The houses' names as they were when the war ended: a house that is no more is still named in the account.</summary>
+    public string NameA { get; set; } = "";
+    public string NameB { get; set; } = "";
     public int Score(string houseId) => HouseA == houseId ? ScoreA : HouseB == houseId ? ScoreB : 0;
     public void AddScore(string houseId, int delta) { if (HouseA == houseId) ScoreA += delta; else if (HouseB == houseId) ScoreB += delta; }
     /// <summary>How far ahead <paramref name="houseId"/> is (negative = behind).</summary>
@@ -22,6 +33,49 @@ public sealed class War
     public bool Involves(string houseId) => HouseA == houseId || HouseB == houseId;
     public bool Between(string a, string b) => (HouseA == a && HouseB == b) || (HouseA == b && HouseB == a);
     public string Other(string houseId) => HouseA == houseId ? HouseB : HouseA;
+}
+
+/// <summary>One year of a war, as it is written down when the year turns: the battles and who won them, the hulls each side lost
+/// and took as prizes, the worlds and stations that changed hands, the score as the year opened and as it closed, and what each
+/// house's fleets in commission cost it in credits (hundreds, as the books keep them) and in helium-3.</summary>
+public sealed class WarYear
+{
+    /// <summary>The year whose turn closed this account: its battles are dated with it.</summary>
+    public int Turn { get; set; }
+    public int Battles { get; set; }
+    public int WonA { get; set; }
+    public int WonB { get; set; }
+    public int LostA { get; set; }
+    public int LostB { get; set; }
+    /// <summary>Hulls taken as prizes by boarding, by each side.</summary>
+    public int TakenA { get; set; }
+    public int TakenB { get; set; }
+    public List<WarChange> Changed { get; set; } = new();
+    public int OpenA { get; set; }
+    public int OpenB { get; set; }
+    public int CloseA { get; set; }
+    public int CloseB { get; set; }
+    public int CreditsA { get; set; }
+    public int CreditsB { get; set; }
+    public int FuelA { get; set; }
+    public int FuelB { get; set; }
+    /// <summary>The house bore the keep of its fleets for more than one war this year, and this is its share of it.</summary>
+    public bool SharedA { get; set; }
+    public bool SharedB { get; set; }
+    public bool Empty() => Battles == 0 && Changed.Count == 0 && TakenA + TakenB + CreditsA + CreditsB + FuelA + FuelB == 0;
+}
+
+/// <summary>A world or a station that changed hands in a war: which, from whom to whom, and how ("taken" by siege, "ceded" at the
+/// peace, "freed" for the house it had been taken from). <see cref="Seat"/>: it was the last the losing house held.</summary>
+public sealed class WarChange
+{
+    public string HoldingId { get; set; } = "";
+    public string Name { get; set; } = "";
+    public string FromId { get; set; } = "";
+    public string ToId { get; set; } = "";
+    public string How { get; set; } = "taken";
+    public bool World { get; set; } = true;
+    public bool Seat { get; set; }
 }
 
 /// <summary>What happened in one battle — logged, and surfaced to the UI/chronicle.</summary>

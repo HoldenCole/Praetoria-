@@ -104,6 +104,7 @@
         <button class="rung @(_view == "near" ? "here" : "")" @onclick='() => _view = "near"'>What is near</button>
         <button class="rung @(_view == "navies" ? "here" : "")" @onclick='() => _view = "navies"'>The navies</button>
         <button class="rung @(_view == "battles" ? "here" : "")" data-view="battles" @onclick='() => _view = "battles"'>Battles@(w.Battles.Any(b => b.Involves(house.Id) && b.Turn >= w.Turn - 1) ? " ●" : "")</button>
+        <button class="rung @(_view == "wars" ? "here" : "")" data-view="wars" @onclick='() => _view = "wars"'>Wars</button>
         <button class="rung @(_view == "general" ? "here" : "")" @onclick='() => _view = "general"'>The general and the Senate</button>
         @if (nations.Count > 0) { <button class="rung @(_view == "abroad" ? "here" : "") @(warAbroad != null ? "warn" : "")" @onclick='() => _view = "abroad"'>Beyond the Reach · @(warAbroad != null ? "war with " + warAbroad.Name : nations.Count + " nations")</button> }
     </div>
@@ -135,6 +136,41 @@
                 <section class="panel" data-battles="others">
                     <h3>Battles between others</h3>
                     @foreach (var b in othersB) { <div class="line small">Year @b.Turn, @b.Place: @Nm(b.WinnerId) beat @Nm(b.WinnerId == b.AttackerId ? b.DefenderId : b.AttackerId) · @b.AttackerHulls against @Counted.Hulls(b.DefenderHulls), lost @b.AttackerLost and @b.DefenderLost</div> }
+                </section>
+            }
+        </div></div>
+    }
+    else if (_view == "wars")
+    {
+        /* every year of every war, standing and ended (docs/MILITARY.md, "Commanding a navy") */
+        var hist = WarLedger.History(w, house.Id);
+        <div class="dash-grid deck-one"><div class="deck-col">
+            <section class="panel" data-wars="mine">
+                <h3><Icon Name="war" Size="13" /> Your wars <span class="muted">every year of every war, standing and ended</span></h3>
+                <div class="muted small">A war's year is written down when the year turns, after the battles are fought and the sieges resolved: the battles, the hulls lost and sunk and taken, the worlds that changed hands, the score, and what your fleets in commission cost. A war with a nation beyond the Reach is kept under Beyond the Reach.</div>
+                @if (hist.own.Count == 0) { <div class="muted small" data-wars-none="1">Your house has fought no war with another house.</div> }
+                @foreach (var wr in hist.own)
+                {
+                    var years = WarLedger.ClosedYears(wr).ToList();
+                    <div class="battle @(wr.Ended > 0 ? "" : "lost")" data-war="@WarKey(wr)" data-war-ended="@wr.Ended">
+                        <div><b>@(wr.Ended > 0 ? WarLedger.Over(w, wr, house.Id) : WarLedger.Standing(w, wr, house.Id))</b></div>
+                        @if (years.Count == 0) { <div class="small muted">No year of it has turned yet: its first account is written when this year ends.</div> }
+                        @foreach (var y in years) { <div class="small" data-war-year="@y.Turn">· @WarLedger.Say(w, wr, y, house.Id, false)</div> }
+                    </div>
+                }
+            </section>
+            @if (hist.others.Count > 0)
+            {
+                <section class="panel" data-wars="others">
+                    <h3>Wars between other houses <span class="muted">standing, and the last @WarLedger.KeptOthers that ended</span></h3>
+                    @foreach (var wr in hist.others.Take(24))
+                    {
+                        var years = WarLedger.ClosedYears(wr).ToList();
+                        <details class="orders" data-war="@WarKey(wr)"><summary>@(wr.Ended > 0 ? WarLedger.Over(w, wr, house.Id) : WarLedger.Standing(w, wr, house.Id))</summary>
+                            @if (years.Count == 0) { <div class="small muted">No year of it has turned yet.</div> }
+                            @foreach (var y in years) { <div class="small muted" data-war-year="@y.Turn">· @WarLedger.Say(w, wr, y, house.Id, false)</div> }
+                        </details>
+                    }
                 </section>
             }
         </div></div>
@@ -306,6 +342,7 @@
                 var fleet = w.Fleets[f.Id];
                 <div class="fcard @(f.Loyalty < 30 || f.Supply < 40 ? "warn" : "")">
                     <div class="hc-head"><Icon Name="fleet" Size="18" /><div><b>@f.Name</b> <span class="pill small status @StatusTone(f)">@StatusOf(f)</span> <span class="muted small">@f.Composition · @(f.Away.Length > 0 ? $"beyond the Reach · against {f.AwayName} · {AwayWord(f.AwayPhase)} ({f.AwayTurns})" : f.Moving ? $"→ {f.Destination} ({f.Eta})" : f.Where)@(f.Office ? " · held by office" : "")</span></div></div>
+                    <div class="small" data-standing="@f.Id" title="Where this fleet stands as a whole: in commission or laid up, in supply or not and why, who commands and who is captain, and its hulls against what its commander leads without strain.">@f.Standing</div>
                     @if (f.Away.Length > 0) { <div class="kv good"><span>Expedition</span><b>@f.ExpeditionWins victor@(f.ExpeditionWins == 1 ? "y" : "ies")@(f.Plunder > 0 ? $" · {Money.Show(f.Plunder)} credits of plunder aboard" : "") · @(f.AwayPhase == "fighting" ? "fighting in their space" : f.AwayPhase == "home" ? "sailing home" : "outward bound")</b></div> }
                     <div class="gauges">
                         <div class="gauge" title="@($"Readiness, 0 to 100: a fleet at 100 fights at full weight, one at 0 at half. Each year at anchor it recovers {c.Fleets.ReadinessRecovery}; each year under way it falls {c.Fleets.ReadinessDecayMoving}. A battle won costs {c.Fleets.WinnerReadinessCost} and one lost {c.Fleets.LoserReadinessCost}. Dry tanks cost {FleetSystem.FuelReadinessLoss} a year, unpaid upkeep {FleetSystem.UnpaidReadinessLoss}, and short supply 5. A refit at a world of yours puts it back to 100 at once.")"><span>Readiness</span><i><b style="width:@f.Readiness%" class="@(f.Readiness < 50 ? "low" : "")"></b></i><em>@f.Readiness</em></div>
@@ -314,6 +351,7 @@
                     </div>
                     <div class="ships">@foreach (var (cls, n) in fs.Composition(fleet)) { <span class="pill" title="atk @cls.Attack / def @cls.Defense"><Icon Name="@(Icons.Paths.ContainsKey(cls.Id) ? cls.Id : "fleet")" Size="12" /> @n × @cls.Name</span> }@if (f.Veterancy > 0) { <span class="pill">veterancy @f.Veterancy</span> }</div>
                     <div class="kv"><span>Admiral</span><b>@(f.AdmiralName ?? "no admiral")@(f.AdmiralName != null ? $" · {(f.AdmiralStyle == "front" ? "leads from the front" : f.AdmiralStyle == "flag" ? "commands from the flag" : "leaves the line to the captains")} · cap {f.Cap}" : "")@(f.Valour > 0 ? $" · valour {f.Valour}" : "")@(f.Achilles ? " · ACHILLES" : "")</b></div>
+                    <div class="kv" title="@CaptainHelp"><span>Captain</span><b data-captain="@f.Id">@(f.CaptainName ?? "no captain")@(f.CaptainName != null ? " · " + f.CaptainSays : "")</b></div>
                     @if (fleet.Office) { <div class="small muted" data-office-terms="@f.Id">@OfficeSystem.FleetTerms(w, c.Offices, fleet)</div> }
                     <details class="orders" open="@(m.Fleets.Count <= 2)"><summary>Orders</summary>
                     <div class="row small"><span class="muted">Stance</span>@if (f.StanceOptions != null) { foreach (var o in f.StanceOptions) { <button class="opt inline tiny @(f.Stance == o.Id ? "here" : "")" disabled="@(o.Refusal != null && o.Refusal != "already so")" title="@(o.Refusal ?? StanceHelp(o.Id))" @onclick="() => G.Execute(new SetStanceCommand(pid, f.Id, o.Id))">@o.Label</button> } }</div>
@@ -348,15 +386,33 @@
                             </details>
                         }
                         <details class="inline"><summary>Command</summary>@foreach (var o in f.AdmiralOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AssignAdmiralCommand(pid, f.Id, o.Id))">@o.Label</button> }</details>
+                        @if (fleet.LevyOf.Length == 0)
+                        {
+                            <details class="inline" data-captain-of="@f.Id"><summary>Captain</summary>
+                                <span class="muted small">@CaptainHelp</span>
+                                @if (Opts(f.CaptainOptions).Count == 0) { <span class="muted small" data-no-officers="@f.Id">Nobody of your house is in the naval service.</span> }
+                                @foreach (var o in Opts(f.CaptainOptions)) { <button class="opt" data-make-captain="@o.Id" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AppointCaptainCommand(pid, f.Id, o.Id))">@o.Label</button> }
+                                @if (f.RelieveCaptain != null && f.CaptainId != null) { <button class="opt" data-relieve-captain="@f.Id" disabled="@(f.RelieveCaptain.Refusal != null)" title="@(f.RelieveCaptain.Refusal ?? RelieveHelp)" @onclick="() => G.Execute(new RelieveCaptainCommand(pid, f.Id))">Relieve @f.CaptainName</button> }
+                            </details>
+                        }
                         @if (!fleet.IsAway && fleet.LevyOf.Length == 0)
                         {
                             int hn = Math.Clamp(_hulls.GetValueOrDefault(f.Id, 1), 1, Math.Max(1, fleet.Strength));
-                            var det = new DetachHullsCommand(pid, f.Id, hn, c.Fleets, c.ShipClasses); var detNo = det.Refusal(G.Ctx);
+                            string pickCls = _classOf.GetValueOrDefault(f.Id, string.Empty); if (pickCls.Length > 0 && fleet.Of(pickCls, c.Fleets.DefaultClass) <= 0) { pickCls = string.Empty; }
+                            bool withCap = _withCap.Contains(f.Id) && f.CaptainId != null;
+                            var det = new DetachHullsCommand(pid, f.Id, hn, c.Fleets, c.ShipClasses, pickCls, withCap); var detNo = det.Refusal(G.Ctx);
+                            string detTitle = detNo ?? DetachSays(FleetHulls.Say(det.Which(w)), hn, f.Name, withCap ? f.CaptainName : null, pickCls.Length == 0);
                             var pay = new PayOffHullsCommand(pid, f.Id, hn, c.Fleets, c.ShipClasses); var payNo = pay.Refusal(G.Ctx);
                             <details class="inline" data-hulls="@f.Id"><summary>Hulls</summary>
                                 <span class="muted small">How many</span>
                                 <input class="qty" type="number" min="1" max="@fleet.Strength" value="@hn" @onchange="e => _hulls[f.Id] = int.TryParse(e.Value?.ToString(), out var v) ? v : 1" />
-                                <button class="opt" data-detach="@f.Id" disabled="@(detNo != null)" title="@(detNo ?? $"{FleetHulls.Say(det.Which(w))} {(hn == 1 ? "stays" : "stay")} here as a squadron of {(hn == 1 ? "its" : "their")} own, without an admiral until you name one; {f.Name} keeps the rest. The lightest hulls go. It costs nothing.")" @onclick="() => G.Execute(det)">Detach @hn as a guard</button>
+                                <span class="muted small">Detach which</span>
+                                <select class="sel" data-detach-class="@f.Id" title="The hulls a detachment takes: the lightest, or a class you name. Hulls paid off are always the lightest." @onchange="e => _classOf[f.Id] = e.Value?.ToString() ?? string.Empty">
+                                    <option value="" selected="@(pickCls.Length == 0)">the lightest</option>
+                                    @foreach (var (cls, n) in fs.Composition(fleet)) { <option value="@cls.Id" selected="@(pickCls == cls.Id)">@cls.Name (@n)</option> }
+                                </select>
+                                <label class="small" title="@(f.CaptainId == null ? NoCaptainToSend : SendCaptainHelp)"><input type="checkbox" data-detach-captain="@f.Id" checked="@withCap" disabled="@(f.CaptainId == null)" @onchange="e => SendCaptain(f.Id, e.Value is true)" /> under its captain</label>
+                                <button class="opt" data-detach="@f.Id" disabled="@(detNo != null)" title="@detTitle" @onclick="() => Detach(det, f.Id)">Detach @hn as a guard</button>
                                 <button class="opt" data-payoff="@f.Id" disabled="@(payNo != null)" title="@(payNo ?? $"{FleetHulls.Say(pay.Which(w))} {(hn == 1 ? "is" : "are")} broken up. It saves {SavedSays(pay.Saved(w))} a year, and the breakers give back {pay.Scrap(w)} materials ({PayOffHullsCommand.ScrapPct}% of what they cost). It cannot be undone.")" @onclick='() => G.Ask("Pay off " + Counted.Hulls(hn) + " of " + f.Name + "?", FleetHulls.Say(pay.Which(w)) + (hn == 1 ? " is" : " are") + " broken up for " + pay.Scrap(w) + " materials. That saves " + SavedSays(pay.Saved(w)) + " a year. It cannot be undone.", "Pay them off", () => G.Execute(pay))'>Pay off @hn</button>
                             </details>
                         }
@@ -373,7 +429,7 @@
                                 }
                             </details>
                         }
-                        @if (f.MergeOptions.Count > 0) { <details class="inline"><summary>Merge</summary>@foreach (var o in f.MergeOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new MergeFleetsCommand(pid, f.Id, o.Id))">@o.Label</button> }</details> }
+                        @if (f.MergeOptions.Count > 0) { <details class="inline"><summary>Merge</summary>@foreach (var o in f.MergeOptions) { <button class="opt" data-merge-from="@o.Id" data-merge-into="@f.Id" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? MergeHelp)" @onclick="() => G.Execute(new MergeFleetsCommand(pid, o.Id, f.Id))">@o.Label</button> }</details> }
                     </div>
                     </details>
                 </div>
@@ -456,6 +512,19 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string _campaign = "", _view = "deck"; private bool _allNavies; private readonly Dictionary<string, string> _names = new();
     private readonly Dictionary<string, int> _hulls = new();
+    /* a detachment: the class of hull chosen for each fleet (none is the lightest), and the fleets whose captain is to go with it */
+    private readonly Dictionary<string, string> _classOf = new(); private readonly HashSet<string> _withCap = new();
+    private void SendCaptain(string fleetId, bool on) { if (on) { _withCap.Add(fleetId); } else { _withCap.Remove(fleetId); } }
+    private void Detach(DetachHullsCommand det, string fleetId) { G.Execute(det); _withCap.Remove(fleetId); }
+    private static IReadOnlyList<Option> Opts(IReadOnlyList<Option>? o) => o ?? Array.Empty<Option>();
+    private static string WarKey(Praetoria.Core.State.War wr) => wr.HouseA + "|" + wr.HouseB + "|" + wr.Since;
+    private static readonly string CaptainHelp = $"A captain serves under the admiral: an officer of your house in the naval service, a Lieutenant or above. The captain's discipline adds a point of readiness a year at anchor (to {FleetSystem.CaptainDrillsMax}) and keeps back a point lost under way for every two (to {FleetSystem.CaptainHoldsMax}); their gunnery adds {FleetSystem.CaptainGunnery * 100:0}% a point in a fight (to {FleetSystem.CaptainGunneryMax * 100:0}%). With no admiral, or the admiral dead or wounded, the captain commands, and the fleet does not fight at 85 in a hundred. Nobody is admiral and captain at once, nor captain of two fleets. 1 agent.";
+    private const string RelieveHelp = "The post is empty until you name another. It costs nothing.";
+    private const string MergeHelp = "The other fleet's hulls join this one, which keeps its name, its admiral and its captain. If this one has no admiral or no captain it takes the other's.";
+    private const string NoCaptainToSend = "This fleet has no captain to send with a detachment.";
+    private const string SendCaptainHelp = "The captain goes with the detachment and commands it as its admiral. This fleet is then without a captain until you name one.";
+    private static string DetachSays(string hulls, int n, string fleetName, string? captain, bool lightest) =>
+        $"{hulls} {(n == 1 ? "stays" : "stay")} here as a squadron of {(n == 1 ? "its" : "their")} own, " + (captain != null ? $"under {captain}, who leaves the captaincy to command it" : "without an admiral until you name one") + $"; {fleetName} keeps the rest." + (lightest ? " The lightest hulls go." : "") + " It costs nothing.";
     /* hiring a fleet out costs the house its name: say all of it before it is done */
     private void AskHire(string fleetId, string employerId)
     {

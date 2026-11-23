@@ -84,7 +84,7 @@ public static partial class ThroneSystem
             if (former.Id == w.Protagonist?.HouseId) Mark(w, CastDownFlag);
             string by = Economy.HeadOf(w, h)?.Id ?? w.ProtagonistId;
             foreach (var c in w.LivingCharacters().Where(c => c.HouseId == former.Id)) { c.Flags.Add(DeposedFlag); if (c.Id != by) w.Relationship(c.Id, by).Disposition = -100; }
-            w.Wars.RemoveAll(x => x.Between(houseId, former.Id));
+            WarLedger.Strike(w, x => x.Between(houseId, former.Id), "the throne was taken, and the war with it");
             FleetSystem.RefreshWarFlags(w);
         }
         h.Title = Title.Emperor; w.WorldCounters[SinceKey] = w.Turn; w.WorldCounters[HowKey] = seized ? 1 : 0; w.WorldCounters.Remove(WeakYearsKey);

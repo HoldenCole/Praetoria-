@@ -26,6 +26,10 @@ public sealed class Fleet
 
     /// <summary>The character commanding it, or "" for an unled fleet (GDD §6 "the admiral's skill").</summary>
     public string AdmiralId { get; set; } = "";
+    /// <summary>The flag captain under the admiral, or "" (docs/MILITARY.md, "Commanding a navy"): an officer of the house in the naval
+    /// service, a Lieutenant or above. The captain keeps the crews to their work, adds a little by gunnery, and commands when the
+    /// fleet has no admiral or its admiral is dead or wounded. Nobody is admiral and captain at once, nor captain of two fleets.</summary>
+    public string CaptainId { get; set; } = "";
     /// <summary>A levy squadron (docs/PROVINCES.md): the house that sent it. It sails under the house that holds the world until the peace.</summary>
     public string LevyOf { get; set; } = "";
     /// <summary>The fleet is kept at drill (the owner, 2026-11-21: "you can have maybe smaller forces but ... you train them better"):

@@ -129,7 +129,7 @@ public static partial class ThroneSystem
 
     private static void EndWars(World w, ThroneRising r)
     {
-        foreach (var pair in r.Wars) { var ab = pair.Split('|'); w.Wars.RemoveAll(x => x.Between(ab[0], ab[1])); }
+        foreach (var pair in r.Wars) { var ab = pair.Split('|'); WarLedger.Strike(w, x => x.Between(ab[0], ab[1]), "the rising for the throne was over"); }
         FleetSystem.RefreshWarFlags(w); if (w.Char(Economy.HeadOf(w, w.House(r.HouseId) ?? new House())?.Id ?? "") is { } head) head.Flags.Remove(PretenderChar);
         foreach (var c in w.LivingCharacters().Where(c => c.HouseId == r.HouseId)) c.Flags.Remove(PretenderChar);
         w.Rising = null;
