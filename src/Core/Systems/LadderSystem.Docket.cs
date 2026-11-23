@@ -287,7 +287,7 @@ public static partial class LadderSystem
             var house = w.House(head.HouseId)!; var who = w.Char(c.AccusedId)!; var accuser = w.House(c.AccuserId);
             house.Treasury.Credits -= FineCredits;
             if (w.House(d.AgainstId) is { } wronged && wronged.Id != house.Id) wronged.Treasury.Credits += FineCredits; else if (RegionSystem.CapitalHolder(w) is { } chair && chair.Id != house.Id) chair.Treasury.Credits += FineCredits;
-            house.Legitimacy = Math.Clamp(house.Legitimacy - AdmitLegitimacy, 0, 100); d.Answered = true; c.Outcome = Admitted; MoveTrust(w, 1); Shift(w, house, accuser, -AdmitRegard);
+            LegitimacyBook.Move(w, house, -AdmitLegitimacy, LegitimacyBook.Courts, "A charge admitted and the fine paid"); d.Answered = true; c.Outcome = Admitted; MoveTrust(w, 1); Shift(w, house, accuser, -AdmitRegard);
             w.WorldCounters["charges_admitted"] = w.Counter("charges_admitted") + 1;
             LifeSystem.Note(w, who, "office", "Admitted what they did in office before it was heard, and the house paid for it.");
             Judged(w, "", c.AccuserId, house.Id, FineCredits, null, $"{who.Name} {DeedSays(w, offices, d)}: admitted before it was heard, and the fine paid", "charge");
