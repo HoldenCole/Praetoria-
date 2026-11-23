@@ -716,6 +716,14 @@ election; 11 lavish canvasses charged before a praetor and 10 of them proved, ab
   and the line on how a count stands are in `LadderPanel.razor`; the seat's mark is in `HouseScreen.razor`.
 - Tests: `tests/RichHouseTests.cs`.
 
+### Where it sits
+
+The block is at the head of "Purses and the will", and it is as tall as everything else on that page put together, so the
+page no longer opens on your purse. The owner asked to see both ways before choosing (2026-11-23: "Show me a mockup of both
+and I'll tell you which one looks better"). Both are built: `HouseScreen.RichOwnPage` is false for the block where it is now
+and true for a tab of its own, "Seat and estates", after "Purses and the will". The picture of the two side by side is
+`tools/browser/shots/rich-placement-compare.png`. Until the owner chooses, it stays where it is.
+
 ### What I chose
 
 Every number above is mine. The ones that decide most:

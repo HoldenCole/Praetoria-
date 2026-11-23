@@ -18,7 +18,7 @@
 }
 <section class="panel wealth">
     <h3><Icon Name="house" Size="13" /> Purses, heirlooms and the will <span class="muted">your own purse @Money.Show(p.Purse) · the allowance costs @Money.Show(bill) a year@(keepLine)</span></h3>
-    <RichHousePanel />
+    @if (!HouseScreen.RichOwnPage) { <RichHousePanel /> }
     <div class="hh-cols">
     <div>
         <div class="hh-head"><b>Your own purse</b> <span class="muted small">@Money.Show(p.Purse) credits@(income > 0 ? $", and {Money.Show(income)} a year from your service and estates" : ""). It is yours, not the house's: it goes by your will, and the house's creditors cannot touch it.</span></div>
