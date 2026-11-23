@@ -31,6 +31,18 @@ public sealed class GoodState
     public string Cause { get; set; } = "";
     /// <summary>Recent prices, oldest first.</summary>
     public List<double> History { get; set; } = new();
+
+    // ---- cornering (docs/ECONOMY_MARKET.md, "Cornering a good"): who held the most of all there is at the last reckoning
+    /// <summary>The house that held the largest share of all there is of the good, if that share was a third or more; "" otherwise.</summary>
+    public string CornerHouse { get; set; } = "";
+    /// <summary>That house's share of all there is (the merchants' stock and every house's store), 0..1.</summary>
+    public double CornerShare { get; set; }
+    /// <summary>Whether that house holds half or more: the good is cornered.</summary>
+    public bool Cornered { get; set; }
+    /// <summary>The turn the corner that stands was made (-1 = no corner stands).</summary>
+    public int CornerSince { get; set; } = -1;
+    /// <summary>What the holding adds to the price the market aims at, as a share of it: 0 = nothing, 0.5 = half as much again.</summary>
+    public double CornerPremium { get; set; }
 }
 
 /// <summary>The Reach's markets: the commodity prices now, and (stage C) the Exchange's confidence and index.</summary>

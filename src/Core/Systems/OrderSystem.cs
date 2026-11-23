@@ -89,7 +89,7 @@ public sealed class OrderSystem
                 Add("companies it directs", Math.Min(12, w.Companies.Count(c => c.ControllerId == h.Id) * 4));
                 Add("paper on the Exchange", Math.Min(10, CompanySystem.PaperOf(w, h.Id) / 30));
                 Add("houses in its debt", Math.Min(9, w.Houses.Values.Count(o => o.Debt > 0 && o.LenderId == h.Id && o.Id != h.Id) * 3));
-                foreach (var g in h.Corners) Add($"a quarter of the Reach's {Resource.Label(g)}", 8);
+                foreach (var g in h.Corners) Add($"making a quarter of the Reach's {Resource.Label(g)}", 8);
                 Add("rank in the Administration", Best("stewardship") * 2);
                 Add("the Reach's purse", held.Where(d => d.Track == "stewardship").Sum(d => 8));
                 break;
@@ -98,7 +98,8 @@ public sealed class OrderSystem
         return (Math.Min(100, parts.Sum(x => x.Item2)), parts);
     }
 
-    /// <summary>Which houses bring up a third or more of the Reach's production of a strategic good.</summary>
+    /// <summary>Which houses bring up a quarter or more (<see cref="CornerPct"/>) of the Reach's production of a strategic good. This
+    /// is the maker's share, marked on <see cref="House.Corners"/>; a corner in the market, held in store, is <see cref="CornerSystem"/>'s.</summary>
     private void Corner(World w, List<House> houses)
     {
         foreach (var h in houses) h.Corners.Clear();
