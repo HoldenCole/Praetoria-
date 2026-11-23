@@ -446,6 +446,15 @@ internal static class Qa
                 foreach (var ch in LadderSystem.ChargesOn(w, house.Id))
                     cands.Add(decisions.NextInt(0, 2) == 0 ? new ChargeCommand(p.Id, ChargeCommand.Admit, ch.Id, content.Offices) : new ChargeCommand(p.Id, ChargeCommand.Plead, ch.Id, content.Offices, members.Count > 0 ? members[decisions.NextInt(0, members.Count)] : p.Id));
             }
+            // what a rich house's money can do (docs/WEALTH.md): land settled on one of the house, the seat, a house at the capital, a canvass paid for
+            if (decisions.NextInt(0, 4) == 0)
+            {
+                string one = members.Count > 0 && decisions.NextInt(0, 3) > 0 ? members[decisions.NextInt(0, members.Count)] : p.Id;
+                cands.Add(new EndowCommand(p.Id, one)); cands.Add(new TownHouseCommand(p.Id, one, decisions.NextInt(0, 2) == 0));
+                var home = w.HoldingsOf(house.Id).Where(h => h.IsPlanet).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault(); cands.Add(new BuildSeatCommand(p.Id, home?.Id ?? ""));
+                foreach (var cd in w.Candidacies.Where(c => w.Char(c.CharacterId)?.HouseId == house.Id).ToList())
+                    cands.Add(new FundCampaignCommand(p.Id, cd.CharacterId, LadderSystem.CampaignSizes[decisions.NextInt(0, LadderSystem.CampaignSizes.Length)], content.Offices));
+            }
             // dealings between houses (docs/WEALTH.md): a gift, a favour asked, a pledge, a threat, a loan and what follows one
             if (tc.Dealings is { } deals && others.Count > 0 && decisions.NextInt(0, 2) == 0)
             {
