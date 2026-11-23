@@ -23,3 +23,6 @@ Thumbs.db
 # Web client: staged copy of /content (build output)
 src/Web/wwwroot/content/
 __pycache__/
+
+# Temporary working copies made for parallel builders
+.claude/worktrees/
