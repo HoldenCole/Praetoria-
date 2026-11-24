@@ -114,4 +114,33 @@ public class LawsAuditTests
         Assert.Equal(was * 125 / 100, now);   // a quarter more, to the single credit, whatever the size of the fleet
         Own(w, mine, "household_guard", "none"); var cheap = tc.Fleets.Upkeep(fleet); Assert.Equal(was * 85 / 100, 100L * cheap.Credits + cheap.Coin);
     }
+
+    [Fact]
+    public void The_Speaker_s_standing_orders_make_a_motion_dearer_for_every_house_but_the_Speaker_s()
+    {
+        var (tc, w, mine, other) = Start(); var def = Content.Motions.Def("censure")!;
+        var cmd = new Praetoria.Core.Commands.ProposeMotionCommand(w.Protagonist!.Id, "censure", other.Id, tc.Senate);
+        int plain = cmd.Cost(w, mine.Id, def);
+        w.Offices.RemoveAll(o => o.OfficeId == "speaker"); w.Offices.Add(new OfficeHolding { OfficeId = "speaker", HouseId = other.Id, CharacterId = Economy.HeadOf(w, other)!.Id, SinceTurn = w.Turn });
+        int withSpeaker = cmd.Cost(w, mine.Id, def);
+        Own(w, other, "standing_orders", "tight"); Assert.Equal(withSpeaker + 1, cmd.Cost(w, mine.Id, def));
+        Own(w, other, "standing_orders", "open_docket"); Assert.Equal(Math.Max(1, withSpeaker - 1), cmd.Cost(w, mine.Id, def));
+        Assert.True(plain >= 1);
+    }
+
+    [Fact]
+    public void A_doubled_guard_brings_a_fleet_that_is_not_ready_back_to_readiness_sooner()
+    {
+        // A fleet lying at full readiness gains nothing from the law, which is why the probe saw nothing move with a player who sends
+        // no fleet anywhere: the law only shows on crews that have been worked down.
+        int After(string option)
+        {
+            var (tc, w, mine, _) = Start(); foreach (var e in Cat.Estates) w.WorldCounters[PolicySystem.ApprovalKey(w, mine.Id, e.Id)] = 0;
+            w.Laws.Remove(mine.Id); if (option.Length > 0) Own(w, mine, "household_guard", option);
+            var fleet = w.Fleets.Values.Where(f => f.OwnerId == mine.Id && !f.LaidUp).OrderBy(f => f.Id, StringComparer.Ordinal).First(); fleet.Readiness = 40; fleet.DestinationId = ""; fleet.Eta = 0;
+            tc.Fleets.Tick(w); return fleet.Readiness;
+        }
+        int standing = After(""), doubled = After("doubled"), none = After("none");
+        Assert.Equal(standing + 5, doubled); Assert.Equal(standing - 2, none);
+    }
 }
