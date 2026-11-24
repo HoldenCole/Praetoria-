@@ -64,14 +64,14 @@ internal static class LawsProbe
     {
         var cat = content.Policies; int seeds = Math.Max(1, Math.Min(o.Seeds, 4)), years = 30;
         Console.WriteLine($"=== Which laws anybody changes: {sid}, {seeds} games of {years} years, a passive player ===\n");
-        var changes = new Dictionary<string, int>(); var ends = new Dictionary<string, Dictionary<string, int>>(); var starts = new Dictionary<string, Dictionary<string, int>>(); int houses = 0, acts = 0, edictYears = 0;
+        var motions = new SortedDictionary<(string, bool), int>(); var changes = new Dictionary<string, int>(); var ends = new Dictionary<string, Dictionary<string, int>>(); var starts = new Dictionary<string, Dictionary<string, int>>(); int houses = 0, acts = 0, edictYears = 0;
         for (ulong seed = 1; seed <= (ulong)seeds; seed++)
         {
             var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, sid), seed); var tc = new TurnController(w, content);
             string Now(string holder, LawDef law) => PolicySystem.OptionId(w, cat, holder, law.Id);
             List<string> Holders(LawDef law) => law.Scope == "senate" ? new List<string> { PolicySystem.SenateHolder } : w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != w.Protagonist!.HouseId && PolicySystem.HoldsScope(w, h.Id, law.Scope)).Select(h => h.Id).OrderBy(x => x, StringComparer.Ordinal).ToList();
             void Tally(Dictionary<string, Dictionary<string, int>> into) { foreach (var law in cat.Laws) foreach (var h in Holders(law)) { if (!into.TryGetValue(law.Id, out var d)) into[law.Id] = d = new(); string oid = Now(h, law); d[oid] = d.GetValueOrDefault(oid) + 1; } }
-            var last = new Dictionary<(string, string), string>(); Tally(starts);
+            var last = new Dictionary<(string, string), string>(); Tally(starts); var seen = new HashSet<string>();
             for (int y = 0; y < years && !w.IsDynastyDead; y++)
             {
                 PassiveTurn(tc);
@@ -80,6 +80,7 @@ internal static class LawsProbe
                     string oid = Now(h, law); if (last.TryGetValue((h, law.Id), out var was) && was != oid) changes[law.Id] = changes.GetValueOrDefault(law.Id) + 1; last[(h, law.Id)] = oid;
                 }
                 if (ThroneSystem.Emperor(w) != null) edictYears++;
+                foreach (var m in w.Motions.Where(m => m.Resolved && seen.Add(m.Id))) { var k = (m.Kind + (m.Kind is "commission" ? ":" + m.OfficeId : m.Kind is "act" or "petition" ? ":" + m.LawId : ""), m.Passed); motions[k] = motions.GetValueOrDefault(k) + 1; }
             }
             Tally(ends); houses += w.Houses.Values.Count(h => !World.Outsider(h.Id)); acts += w.Counter("acts_carried");
         }
@@ -91,6 +92,8 @@ internal static class LawsProbe
             Console.WriteLine($"{law.Id,-20} {by,-30} {changes.GetValueOrDefault(law.Id),8}   {S(starts)}  ->  {S(ends)}");
         }
         Console.WriteLine($"\n{houses} houses in all; years with an emperor on the throne: {edictYears}.");
+        Console.WriteLine("\nmotions decided, by kind: carried / lost");
+        foreach (var kind in motions.Keys.Select(k => k.Item1).Distinct()) Console.WriteLine($"   {kind,-34} {motions.GetValueOrDefault((kind, true)),4} / {motions.GetValueOrDefault((kind, false)),-4}");
         return 0;
     }
 
