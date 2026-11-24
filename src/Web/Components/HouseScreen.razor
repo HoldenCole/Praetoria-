@@ -89,7 +89,7 @@
         <button class="rung @(_view == "council" ? "here" : "")" data-tab-council @onclick='() => _view = "council"'>The council · @house.Duties.Count of @HouseholdSystem.Roles.Length</button>
         <button class="rung @(_view == "court" ? "here" : "")" data-tab-court title="The house's own court: tutor, wet nurse, physician, guard, duel master, shipwright, master of ceremonies. It goes with the house whatever rank or office it holds." @onclick='() => _view = "court"'>The court · @house.Court.Count of @CourtSystem.Positions.Length</button>
         <button class="rung @(_view == "purse" ? "here" : "")" @onclick='() => _view = "purse"'>Purses and the will</button>
-        @if (RichOwnPage) { <button class="rung @(_view == "riches" ? "here" : "")" data-tab-riches title="What the treasury can be spent on for the house's people and its name: a seat, land for a relative, a town house, a campaign." @onclick='() => _view = "riches"'>Seat and estates</button> }
+        <button class="rung @(_view == "riches" ? "here" : "")" data-tab-riches title="What the treasury can be spent on for the house's people and its name: a seat, land for a relative, a town house, a campaign." @onclick='() => _view = "riches"'>Seat and estates</button>
     </div>
     @if (_view == "household")
     {
@@ -147,7 +147,7 @@
     else if (_view == "council") { <div class="dash-grid deck-one"><div class="deck-col"><CouncilPanel /></div></div> }
     else if (_view == "court") { <div class="dash-grid deck-one"><div class="deck-col"><CourtPanel /></div></div> }
     else if (_view == "purse") { <div class="dash-grid deck-one"><div class="deck-col"><WealthPanel /></div></div> }
-    else if (_view == "riches" && RichOwnPage) { <div class="dash-grid deck-one"><div class="deck-col"><section class="panel wealth"><RichHousePanel /></section></div></div> }
+    else if (_view == "riches") { <div class="dash-grid deck-one"><div class="deck-col"><section class="panel wealth"><RichHousePanel /></section></div></div> }
     else
     {
     <div class="dash-grid deck2-grid">
@@ -398,9 +398,6 @@
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }
-    /// <summary>Where "What the house's money can do" sits: false, at the head of Purses and the will; true, on a page of its own.
-    /// Both are kept until the owner has chosen between the two pictures (docs/WEALTH.md, "Where it sits").</summary>
-    public static readonly bool RichOwnPage = false;
     private string? _focus; private string _view = "estate";
     /// <summary>Whether "what its legitimacy is made of" is open under the tiles.</summary>
     private bool _made;

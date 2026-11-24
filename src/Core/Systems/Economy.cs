@@ -106,7 +106,7 @@ public sealed class Economy
             if (holding.IsPlanet && !Policies.IsEmpty)   // the law of the house, and the estates' regard (PolicySystem)
             {
                 string? rid = depSys?.RegionId;
-                d.Add(Resource.Credits, Law(world, houseId, "credits_per_world", rid)); d.Add(Resource.Materials, Law(world, houseId, "materials_per_world", rid)); d.Add(Resource.Manpower, Law(world, houseId, "manpower_per_world", rid));
+                d.Add(Resource.Credits, Law(world, houseId, "credits_per_world", rid)); d.Add(Resource.Materials, Law(world, houseId, "materials_per_world", rid)); d.Add(Resource.Manpower, Law(world, houseId, "manpower_per_world", rid) + ReachLaw(world, "manpower_per_world"));   // the house's own levies, and the Levy of the Reach where the Senate has carried one
             }
             // a governor who hates the head skims; an able one finds a credit the ledger did not know it had
             if (holding.GovernorId.Length > 0 && (world.Char(holding.GovernorId)?.Skill("administration") ?? 0) >= AbleGovernorAdministration && holding.IsPlanet) d.Add(Resource.Credits, 1);
@@ -222,7 +222,7 @@ public sealed class Economy
         if (def.PeaceCredits != 0 && wars == 0) d.Credits += def.PeaceCredits * b.Level;
         if (def.SpikeCredits != 0) d.Credits += def.SpikeCredits * b.Level * world.WorldFlags.Count(f => f.StartsWith("price_spike:"));
         if (SenateSystem.Embargoed(world, houseId) && d.Credits > 0) d.Credits /= 2;                      // the Senate's embargo: the factors cannot sell
-        int vyp = Law(world, houseId, "venture_yield_pct"); if (vyp != 0 && d.Credits > 0) d.Credits = d.Credits * (100 + vyp) / 100;   // tariffs and the merchants' regard
+        int vyp = Law(world, houseId, "venture_yield_pct") + ReachLaw(world, "venture_yield_pct"); if (vyp != 0 && d.Credits > 0) d.Credits = d.Credits * (100 + vyp) / 100;   // tariffs and the merchants' regard
         int vl = world.Galaxy?.System(b.SystemId) is { } vs && world.Regions.TryGetValue(vs.RegionId, out var vr) ? vr.Lawlessness : 0;
         if (vl > 0) foreach (var r in new[] { Resource.Credits, Resource.Materials }) if (d.Get(r) > 0) d.Set(r, d.Get(r) * (200 - vl) / 200);
         if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -(def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level);

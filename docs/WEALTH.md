@@ -945,11 +945,9 @@ election; 11 lavish canvasses charged before a praetor and 10 of them proved, ab
 
 ### Where it sits
 
-The block is at the head of "Purses and the will", and it is as tall as everything else on that page put together, so the
-page no longer opens on your purse. The owner asked to see both ways before choosing (2026-11-23: "Show me a mockup of both
-and I'll tell you which one looks better"). Both are built: `HouseScreen.RichOwnPage` is false for the block where it is now
-and true for a tab of its own, "Seat and estates", after "Purses and the will". The picture of the two side by side is
-`tools/browser/shots/rich-placement-compare.png`. Until the owner chooses, it stays where it is.
+On a tab of its own, "Seat and estates", after "Purses and the will" on the House window. It was first put at the head of
+"Purses and the will", where it was as tall as everything else on that page put together. The owner was shown both
+(`tools/browser/shots/rich-placement-compare.png`) and chose the tab of its own (2026-11-24: "B").
 
 ### What I chose
 

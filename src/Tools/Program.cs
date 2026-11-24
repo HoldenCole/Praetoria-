@@ -48,6 +48,7 @@ try
         "survive"  => Probes.Survive(opts),
         "balance"  => Probes.Balance(opts),
         "econ"     => Probes.Econ(opts),
+        "laws"     => LawsProbe.Run(opts),
         "caesar"   => Probes.Caesar(opts),
         "throne"   => Probes.Throne(opts),
         _ => Unknown(command)

@@ -162,6 +162,18 @@ public static class PolicySystem
         return sum;
     }
 
+    /// <summary>The standing a house draws from the Reach-wide laws it holds the position for itself.</summary>
+    public static int ReachLegitimacy(World w, PolicyCatalog cat, string houseId)
+    {
+        int sum = 0;
+        foreach (var law in cat.Laws.Where(l => l.Reach && l.Scope != "senate"))
+        {
+            string? holder = law.Scope == "chair" ? RegionSystem.CapitalHolder(w)?.Id : law.Scope == "emperor" ? ThroneSystem.Emperor(w)?.Id : law.Scope.StartsWith("office:") ? OfficeSystem.HolderHouse(w, law.Scope["office:".Length..]) : null;
+            if (holder == houseId) sum += Option(w, cat, holder, law.Id)?.Effects.GetValueOrDefault("legitimacy_per_5") ?? 0;
+        }
+        return sum;
+    }
+
     /// <summary>What the player's laws say about an estate: the sum of the options' opinions, where the house holds the scope.</summary>
     public static int LawOpinion(World w, PolicyCatalog cat, string houseId, string estateId) =>
         cat.Laws.Where(l => !l.Reach && HoldsScope(w, houseId, l.Scope)).Sum(l => Option(w, cat, houseId, l.Id)?.Opinions.GetValueOrDefault(estateId) ?? 0)
@@ -225,8 +237,13 @@ public static class PolicySystem
         foreach (var law in cat.Laws) w.WorldFlags.Add($"law:{law.Id}:{(law.Reach ? (ReachOption(w, cat, law) ?? law.DefaultOption).Id : OptionId(w, cat, mine, law.Id))}");   // a Reach-wide law reads as the Reach has it
         if (w.Turn > 0 && w.Turn % 5 == 0)
         {
-            int legit = Modifier(w, cat, mine, "legitimacy_per_5") + ReachModifier(w, cat, "legitimacy_per_5");
-            if (legit != 0) LegitimacyBook.Move(w, house, legit, LegitimacyBook.Laws, "What the estates make of the house's laws");
+            // every house's own laws and estates move its standing, not the player's alone; and what a Reach-wide law gives in standing
+            // (the proscriptions of a throne) goes to whoever holds the position it is made from, not to whoever is reading
+            foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+            {
+                int legit = Modifier(w, cat, h.Id, "legitimacy_per_5") + ReachLegitimacy(w, cat, h.Id);
+                if (legit != 0) LegitimacyBook.Move(w, h, legit, LegitimacyBook.Laws, "What the estates make of the house's laws");
+            }
         }
     }
 }
