@@ -579,8 +579,8 @@ public static class CourtProjection
                 {
                     string inForce = (PolicySystem.ReachOption(w, senate.Policies, l) ?? l.DefaultOption).Id;
                     var now = l.Option(inForce) ?? l.DefaultOption;   // what each option would do to the player's own house, in figures (docs/SENATE.md, "The Senate's law, enlarged")
-                    return new ActLawChoice(l.Id, l.Name, l.Description, inForce, l.Options.Select(o => (o.Id, o.Name, Effects(o.Effects) + (o.Id != inForce && SenateActs.ToHouse(w, house, now, o, senate.Offices, fleets) is { Length: > 0 } you ? " " + you : ""), new ProposeMotionCommand(p.Id, d.Id, "", senate, lawId: l.Id, optionId: o.Id).Refusal(ctx),
-                        string.Join(", ", o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => $"{(senate.Policies.Estate(kv.Key)?.Name ?? kv.Key).Replace("The ", "")} {(kv.Value > 0 ? "+" : "")}{kv.Value}")))).ToList(), l.Category);
+                    return new ActLawChoice(l.Id, l.Name, l.Description, inForce, l.Options.Select(o => (o.Id, o.Name, Effects(o.Effects) + (o.Id != inForce && SenateActs.ToHouse(w, house, now, o, senate.Offices, fleets) is { Length: > 0 } you ? ". " + you.TrimEnd('.') : ""), new ProposeMotionCommand(p.Id, d.Id, "", senate, lawId: l.Id, optionId: o.Id).Refusal(ctx),
+                        string.Join(", ", o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => $"{(senate.Policies.Estate(kv.Key)?.Name ?? kv.Key).Replace("The ", "")} {(kv.Value > 0 ? "+" : kv.Value < 0 ? "−" : "")}{Math.Abs(kv.Value)}")))).ToList(), l.Category);
                 }).ToList();
                 var firstOpen = laws.SelectMany(l => l.Options).FirstOrDefault(o => o.Refusal == null); probe = firstOpen.Refusal ?? laws.SelectMany(l => l.Options).Select(o => o.Refusal).FirstOrDefault(r => r != "already the law of the Reach") ?? probe;
                 if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;

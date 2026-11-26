@@ -291,7 +291,55 @@ Two games of thirty years, fifty-eight houses, a player who does nothing.
 
 ## 6. More laws
 
-Three kinds, as the owner named them. Each is being built with the same two rules the review taught: an effect must be read
+Three kinds, as the owner named them. Each was built with the same two rules the review taught: an effect must be read
 where the law puts it, with a test that shows a number moving; and other houses must use it at a rate a player notices.
 
-LAWS_MORE_PLACEHOLDER
+### What was built
+
+| | What it is | Where it is told in full |
+|---|---|---|
+| **Local law** | A law for one world. Eight laws (the tithe of this world, the garrison, the charter, the port, settlement, the labour levy, bread and games, the gates), each with a custom and one or two other options, set on one world by the head of the house that holds it. A world carries two off the custom (three on the house's seat or a world well developed); a decree costs influence and is settled for some years. Each falls on that world alone, in its ledger line and its unrest, prosperity and people; the estates feel it by the share of the house's worlds that keep it. A world that changes hands keeps its laws. | docs/POLITICS.md, "Local law" |
+| **Edicts** | What a person decrees on their own authority, without a vote. Eighteen, hung on positions people really hold: the head of a house over its own worlds (six), a consul or the holder of the capital while no consul sits, or the Emperor, for the whole Reach (six), a praetor (two), an aedile (one), the holder of emergency powers or the Emperor (three). An edict bites at once, lasts its years and lapses, or ends as soon as its issuer leaves the position (three outlive their issuer). The Senate may strike down a Reach-wide edict by a new motion, an annulment, except under a throne or emergency powers. A relative of the player who holds a position issues edicts of their own will and pays for them out of their own purse. | docs/EDICTS.md |
+| **Ten more Acts, and a chamber that legislates** | The Usury Law, the Law on Canvassing, the Law against Forestalling, the Law of Hired Companies, the Corn Law, the Land Law, the Law of Service, the Navigation Act, the Law of the Years and the Citizenship of the Reach, each hooked to the rule it names. The benches now move the Acts of their platforms when they count the votes, and a house a law in force hurts moves its repeal. A house leans on an Act by what it does to that house, and the player is told in figures what an Act would do to theirs. | docs/SENATE.md, "The Senate's law, enlarged" |
+
+All three were built in parallel, merged, and then reviewed by four readers (one for each, and one for where they meet), with
+every finding checked by a second reader who tried to disprove it. Twenty-one defects held up and were mended, each with a
+test that fails without the mend: among them a world taken at its limit of laws that no house would touch again; an edict
+that ran on for a year after its issuer left office; an annulment that still struck down an edict once emergency powers had
+begun; the edict of maximum prices not reaching trade between houses; a relative's edicts paid for out of the house's
+treasury; the Navigation Act's levy and the Usury Law's cap rounded past what the law says; the Law of Service making the
+raiders' and the nations' fleets readier; and the Law of the Years not shown on the ladder of offices.
+
+### The estates and the law of the Reach
+
+With fifteen Acts the Reach's law alone said +65 to the magistrates and -55 to the merchants, so that in every house at once
+the magistrates were loyal (33 houses at year 20, each paid 100 credits a world for it) and the old blood and the merchants
+hostile (26 houses each). A house was judged by laws it had no hand in. **The Reach's law now counts at half, and at most
+15 either way, in what an estate thinks of a house** (`PolicySystem.ReachCounts`): it tilts an estate, and cannot of itself
+make it loyal or hostile. A house leans on an Act by what its estates would really feel. The estates' card on the Laws
+window says the sum and what it counts for. Half and 15 are my numbers (docs/GAPS.md, Y2).
+
+### Measured
+
+Two games of thirty years of the Old Lion, a player who does nothing (`LAWS_USE=1 dotnet run --project src/Tools -- laws
+--seeds 2`, `-- locallaws --seeds 2`, `-- edicts --seeds 2`):
+
+| | Before | After |
+|---|---|---|
+| Acts of the Senate moved | 7 | 37 (19 by a bench for its platform, 5 repeals by a house the law hurt, 3 petitions of an estate) |
+| Acts carried, lost | 6, 0 | 30, 6; nine of them moved a law back to the custom |
+| Years in which an Act was moved | 7 of 60 | 37 of 60 |
+| All motions the Senate decided | 40 | 68 (4 annulments of an edict, 3 carried) |
+| Local laws set or lifted by other houses | none could be | 73, by 27 of 56 houses: a surcharge on the tithe 25, a garrison quartered 9, settlers' grants 6, and each lifted again when its reason passed |
+| Edicts issued by other people | none could be | 56: heads of house 27, consuls and the holder of the capital 13, praetors 8, aediles 8; 46 lapsed, 6 ended with their issuer's position, 3 were struck down. The player was told 32 times |
+| Houses with the magistrates loyal, year 30 | (no new Acts) | 10 of about 58; no estate hostile in more than 2 houses at any year measured |
+
+MONEY_PLACEHOLDER
+
+### For the owner
+
+1. **The estates and the Reach's law** (Y2): half, and at most 15. Is a house rightly judged so little by the law of the
+   whole Reach?
+2. **A house that broke away** (Y1): a Reach-wide edict no longer falls on it, but the Senate's Acts and the chair's laws
+   still do. Should a breakaway state be free of the Senate's law?
+3. What the three leave thin is in the register as Y1 to Y10 (docs/GAPS.md, "Laws").

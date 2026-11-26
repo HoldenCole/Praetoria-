@@ -59,6 +59,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('Act picker groups: ' + groups.join(', '));
   const chosen = await page.evaluate(() => { const sel = [...document.querySelectorAll('select.sel')].find(s => s.querySelector('optgroup[data-act-category]')); if (!sel) return ''; const o = [...sel.querySelectorAll('option')].find(x => x.value === 'usury') || sel.querySelectorAll('option')[1]; sel.value = o.value; sel.dispatchEvent(new Event('change', { bubbles: true })); sel.closest('.proposal').scrollIntoView(); return o.value; });
   await page.waitForTimeout(600); console.log('Act chosen in the picker: ' + chosen);
+  console.log('option chosen: ' + await page.evaluate(() => { const s = [...document.querySelectorAll('select.sel')].find(x => x.querySelector('optgroup[data-act-category]')); const p = s && s.closest('.proposal'); const o = p && [...p.querySelectorAll('select.sel')].find(x => x !== s); if (!o) return 'no option picker'; const v = [...o.options].find(x => x.value === 'capped') || o.options[1]; if (!v) return 'none'; o.value = v.value; o.dispatchEvent(new Event('change', { bubbles: true })); return v.value; }));
+  await page.waitForTimeout(600);
   const prop = await page.evaluate(() => { const s = [...document.querySelectorAll('select.sel')].find(x => x.querySelector('optgroup[data-act-category]')); return s ? s.closest('.proposal').innerText.replace(/\s+/g, ' ').slice(0, 700) : 'NOT FOUND'; });
   console.log('the Act proposal: ' + suspicious(prop) + ' · ' + prop);
   const el = await page.evaluateHandle(() => { const s = [...document.querySelectorAll('select.sel')].find(x => x.querySelector('optgroup[data-act-category]')); return s ? s.closest('.proposal') : null; });

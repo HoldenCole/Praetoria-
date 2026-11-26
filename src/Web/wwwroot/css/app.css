@@ -391,6 +391,7 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 .bench-row { display: flex; align-items: center; gap: .35rem; padding: .15rem 0; border-bottom: 1px dashed rgba(255,255,255,.06); font-size: .82rem; } .bench-row .bn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .bench-row .stance { min-width: 3.6rem; font-size: .78rem; text-align: right; } .bench-row .stance.for { color: var(--good); } .bench-row .stance.against { color: var(--warn); }
 .opt.inline.tiny { padding: .05rem .4rem; font-size: .72rem; } .opt.inline.here { border-color: var(--brass2); color: var(--brass2); }
 .proposal { padding: .35rem 0; border-bottom: 1px dashed rgba(255,255,255,.06); } .proposal .sel { background: rgba(0,0,0,.4); color: inherit; border: 1px solid var(--line); border-radius: 3px; padding: .2rem .4rem; margin: .2rem .4rem .2rem 0; max-width: 14rem; }
+.proposal:has(optgroup) .sel { max-width: 100%; min-width: 22rem; }   /* an Act of the Reach: the law, what is in force now and what each option would do, read whole */
 .hist { padding: .15rem 0; } .hist .good { color: var(--good); } .hist .warn { color: var(--warn); }
 
 /* the seat passes · the primer */

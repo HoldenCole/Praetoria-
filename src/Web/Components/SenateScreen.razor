@@ -330,8 +330,9 @@
                                     <div class="muted small">@al.Description</div>
                                     <select class="sel" @onchange="e => SetOption(pr.KindId, e)">
                                         <option value="">— be set to —</option>
-                                        @foreach (var o in al.Options.Where(o => o.Id != al.InForce)) { <option value="@o.Id">@o.Name — @o.Effects@(o.Opinions.Length > 0 ? " · " + o.Opinions : "")</option> }
+                                        @foreach (var o in al.Options.Where(o => o.Id != al.InForce)) { <option value="@o.Id">@o.Name · @o.Effects@(o.Opinions.Length > 0 ? " · " + o.Opinions : "")</option> }
                                     </select>
+                                    @if (ActOption(pr) is { } chosenOpt) { <div class="small" data-act-option-does="@chosenOpt.Id"><b>@chosenOpt.Name</b>: @(chosenOpt.Effects.TrimEnd('.')). @(chosenOpt.Opinions.Length > 0 ? "The estates: " + chosenOpt.Opinions + "." : "")</div> }
                                 }
                                 <button class="opt inline" disabled="@(!CanMoveAct(pr))" title="@ActRefusal(pr)" @onclick="() => MoveAct(pr.KindId)">Move it</button>
                                 @if (ActRefusal(pr) is { } ar && ActOption(pr) != null) { <span class="muted small">@ar</span> }
