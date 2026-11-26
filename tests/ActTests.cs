@@ -82,12 +82,30 @@ public class ActTests
         Assert.Equal("open_lanes", PolicySystem.ReachOption(w, Content.Policies, Content.Policies.Law("trade_charter")!)!.Id);
         Assert.Equal(-10, PolicySystem.ReachModifier(w, Content.Policies, "market_price_pct"));
         Assert.Equal(20, PolicySystem.ReachOpinion(w, Content.Policies, "merchants"));
-        Assert.True(PolicySystem.LawOpinion(w, Content.Policies, "corwin", "merchants") >= 20);
+        Assert.Equal(10, PolicySystem.ReachCounts(20));   // the Reach's law counts at half in what an estate thinks of a house
+        Assert.True(PolicySystem.LawOpinion(w, Content.Policies, "corwin", "merchants") >= 10);
         Assert.Contains(w.History, h => h.Text.StartsWith("An Act of the Senate: the trade charter is now open lanes"));
         Assert.StartsWith("the Senate settled that lately", new ProposeMotionCommand("self", "act", "", senate, lawId: "trade_charter", optionId: "protected").Refusal(ctx));
         // the Senate holder's laws survive a save round-trip
         var back = SaveSystem.Deserialize(SaveSystem.Serialize(w));
         Assert.Equal("open_lanes", PolicySystem.ReachOption(back, Content.Policies, Content.Policies.Law("trade_charter")!)!.Id);
+    }
+
+    [Fact]
+    public void TheReachsLaw_CountsAtHalf_AndNeverMakesAnEstateLoyalOrHostileOfItself()
+    {
+        Assert.Equal(0, PolicySystem.ReachCounts(0)); Assert.Equal(2, PolicySystem.ReachCounts(3)); Assert.Equal(-4, PolicySystem.ReachCounts(-7));
+        Assert.Equal(PolicySystem.ReachCap, PolicySystem.ReachCounts(65)); Assert.Equal(-PolicySystem.ReachCap, PolicySystem.ReachCounts(-55));
+        Assert.True(PolicySystem.ReachCap < PolicySystem.Loyal && -PolicySystem.ReachCap > PolicySystem.Hostile);
+        // a house whose own laws leave an estate cold feels the Reach's law at half: what it adds is ReachCounts of what the Reach says
+        var (w, senate, ctx) = Chamber(); var ex = new CommandExecutor();
+        int before = PolicySystem.LawOpinion(w, Content.Policies, "corwin", "merchants"), saidBefore = PolicySystem.ReachOpinion(w, Content.Policies, "merchants");
+        ex.TryExecute(new ProposeMotionCommand("self", "act", "", senate, lawId: "trade_charter", optionId: "open_lanes"), ctx);
+        var m = SenateSystem.Docket(w).Single(); foreach (var h in w.Houses.Values) m.Votes[h.Id] = 1;
+        w.Turn++; senate.Tick(w);
+        int said = PolicySystem.ReachOpinion(w, Content.Policies, "merchants");
+        Assert.True(said > saidBefore);
+        Assert.Equal(before - PolicySystem.ReachCounts(saidBefore) + PolicySystem.ReachCounts(said), PolicySystem.LawOpinion(w, Content.Policies, "corwin", "merchants"));
     }
 
     [Fact]

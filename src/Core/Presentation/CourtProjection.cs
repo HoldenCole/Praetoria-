@@ -847,6 +847,7 @@ public static class CourtProjection
                 .Select(x => $"{x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}").ToList();
             says.AddRange(cat.Laws.Where(l => l.Reach).Select(l => (l, o: PolicySystem.ReachOption(w, cat, l))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
                 .Select(x => $"the Reach's {x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}"));
+            if (PolicySystem.ReachOpinion(w, cat, e.Id) is var said && said != 0) { int counts = PolicySystem.ReachCounts(said); says.Add($"the Reach's law in all {(said > 0 ? "+" : "")}{said}, counted at half and at most {PolicySystem.ReachCap}: {(counts > 0 ? "+" : "")}{counts}"); }
             says.AddRange(LocalLawSystem.Says(w, cat, house.Id, e.Id));   // the law of single worlds, by the share of the house's worlds that keep it
             var pet = w.Motions.FirstOrDefault(m => m.Open && SenateSystem.PetitionEstate(m) == e.Id);
             string? petition = pet != null ? $"petitioning the Senate: that {cat.Law(pet.LawId)?.Name.ToLowerInvariant()} be {cat.Law(pet.LawId)?.Option(pet.LawOption)?.Name.ToLowerInvariant()}" : null;

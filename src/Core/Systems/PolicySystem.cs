@@ -178,7 +178,13 @@ public static class PolicySystem
     /// <summary>What the player's laws say about an estate: the sum of the options' opinions, where the house holds the scope.</summary>
     public static int LawOpinion(World w, PolicyCatalog cat, string houseId, string estateId) =>
         cat.Laws.Where(l => !l.Reach && HoldsScope(w, houseId, l.Scope)).Sum(l => Option(w, cat, houseId, l.Id)?.Opinions.GetValueOrDefault(estateId) ?? 0)
-        + ReachOpinion(w, cat, estateId) + LocalLawSystem.Opinion(w, cat, houseId, estateId);   // the Reach's law weighs on every house's estates; a local law by the share of the house's worlds that keep it
+        + ReachCounts(ReachOpinion(w, cat, estateId)) + LocalLawSystem.Opinion(w, cat, houseId, estateId);   // the Reach's law weighs on every house's estates, at half and within a cap; a local law by the share of the house's worlds that keep it
+
+    /// <summary>How much the Reach's law counts in what an estate thinks of a house: half of what it says, rounded away from zero,
+    /// and never more than <see cref="ReachCap"/> either way. A house is judged first by what it does itself; the law of the whole Reach
+    /// tilts an estate but cannot of itself make it loyal or hostile (docs/LAWS_REVIEW.md, section 6). Both numbers are mine.</summary>
+    public static int ReachCounts(int said) => Math.Clamp((int)Math.Round(said / (double)ReachShare, MidpointRounding.AwayFromZero), -ReachCap, ReachCap);
+    public const int ReachShare = 2, ReachCap = 15;
 
     /// <summary>What the laws of the whole Reach — the chair's, the throne's, the offices', the Senate's Acts — say about an estate, for every house alike.</summary>
     public static int ReachOpinion(World w, PolicyCatalog cat, string estateId)

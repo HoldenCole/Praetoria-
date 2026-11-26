@@ -354,7 +354,10 @@ public sealed class SenateSystem
         int score = 0;
         foreach (var e in Policies.Estates)
         {
-            int delta = next.Opinions.GetValueOrDefault(e.Id) - cur.Opinions.GetValueOrDefault(e.Id); if (delta == 0) continue;
+            // what the estate would feel: the Reach's law counts at half and within a cap, so an estate the Reach's law already holds at
+            // the cap is moved no further; put back on the scale of the opinions themselves, which the lean below is reckoned in
+            int said = PolicySystem.ReachOpinion(w, Policies, e.Id);
+            int delta = (PolicySystem.ReachCounts(said - cur.Opinions.GetValueOrDefault(e.Id) + next.Opinions.GetValueOrDefault(e.Id)) - PolicySystem.ReachCounts(said)) * PolicySystem.ReachShare; if (delta == 0) continue;
             int a = PolicySystem.Approval(w, h.Id, e.Id);
             int mult = (delta > 0 && a <= PolicySystem.Hostile) || (delta < 0 && a >= PolicySystem.Loyal) ? 2 : 1;
             score += delta * mult;

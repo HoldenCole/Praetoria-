@@ -66,6 +66,7 @@ internal static class LawsProbe
         Console.WriteLine($"=== Which laws anybody changes: {sid}, {seeds} games of {years} years, a passive player ===\n");
         var motions = new SortedDictionary<(string, bool), int>(); var changes = new Dictionary<string, int>(); var ends = new Dictionary<string, Dictionary<string, int>>(); var starts = new Dictionary<string, Dictionary<string, int>>(); int houses = 0, edictYears = 0;
         int moved = 0, carried = 0, lost = 0, petitions = 0, repeals = 0, yearsWithAct = 0, yearsPlayed = 0, byBench = 0, byHurt = 0; var movedBy = new Dictionary<string, int>(); var movedLaw = new Dictionary<string, int[]>();
+        var estates = new SortedDictionary<(int, string), int[]>();   // (year, estate) -> houses loyal, houses hostile, the Reach's law's own opinion summed over the games
         for (ulong seed = 1; seed <= (ulong)seeds; seed++)
         {
             var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, sid), seed); var tc = new TurnController(w, content);
@@ -95,6 +96,13 @@ internal static class LawsProbe
                     if (m.Resolved && counted.Add(m.Id)) { if (m.Passed) { carried++; ml[1]++; } else { lost++; ml[2]++; } }
                 }
                 if (any) yearsWithAct++;
+                if ((y + 1) % 10 == 0)   // what the estates make of the houses, and what the Reach's law alone says to them
+                    foreach (var e in cat.Estates)
+                    {
+                        if (!estates.TryGetValue((y + 1, e.Id), out var et)) estates[(y + 1, e.Id)] = et = new int[3];
+                        foreach (var h in w.Houses.Values.Where(x => !World.Outsider(x.Id))) { int a = w.Counter(PolicySystem.ApprovalKey(w, h.Id, e.Id)); if (a >= PolicySystem.Loyal) et[0]++; else if (a <= PolicySystem.Hostile) et[1]++; }
+                        et[2] += PolicySystem.ReachOpinion(w, cat, e.Id);
+                    }
                 foreach (var m in w.Motions.Where(m => m.Resolved && decided.Add(m.Id))) { var k = (m.Kind + (m.Kind is "commission" ? ":" + m.OfficeId : m.Kind is "act" or "petition" ? ":" + m.LawId : ""), m.Passed); motions[k] = motions.GetValueOrDefault(k) + 1; }
             }
             Tally(ends); houses += w.Houses.Values.Count(h => !World.Outsider(h.Id)); byBench += w.Counter(SenateActs.BenchMovedKey); byHurt += w.Counter(SenateActs.RepealMovedKey);
@@ -111,6 +119,8 @@ internal static class LawsProbe
         Console.WriteLine($"  of them moved by the chamber's own business (SenateActs.Legislate): a bench's platform {byBench}, a repeal by a house the law hurt {byHurt}");
         Console.WriteLine("  moved by: " + (movedBy.Count == 0 ? "nobody" : string.Join(", ", movedBy.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => $"{kv.Key} {kv.Value}"))));
         Console.WriteLine("  by law (moved/carried/lost): " + string.Join(", ", movedLaw.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => $"{kv.Key} {kv.Value[0]}/{kv.Value[1]}/{kv.Value[2]}")));
+        Console.WriteLine($"\nthe estates, summed over the {seeds} games: houses loyal / houses hostile / what the Reach's law alone says to the estate");
+        foreach (var yr in estates.Keys.Select(k => k.Item1).Distinct()) Console.WriteLine($"   year {yr,2}: " + string.Join(", ", estates.Where(kv => kv.Key.Item1 == yr).Select(kv => $"{kv.Key.Item2} {kv.Value[0]}/{kv.Value[1]}/{kv.Value[2]:+0;-0;0}")));
         Console.WriteLine("\nmotions decided, by kind: carried / lost");
         foreach (var kind in motions.Keys.Select(k => k.Item1).Distinct()) Console.WriteLine($"   {kind,-34} {motions.GetValueOrDefault((kind, true)),4} / {motions.GetValueOrDefault((kind, false)),-4}");
         return 0;
