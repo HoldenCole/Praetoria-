@@ -81,7 +81,7 @@ public static partial class LadderSystem
         bool held = grasping && defence >= AdvocateHolds;   // one for sale does not dare sell it in open court against such a pleader
         if (grasping && !held) return ((accuser?.Treasury.Credits ?? 0) >= (accused?.Treasury.Credits ?? 0), "known to be for sale, and will find for the richer house");
         int plead = Craft(Advocate(w, accuserHouseId)), defend = defence ?? Craft(Advocate(w, d.HouseId));
-        return (40 + plead * 6 - defend * 4 > (int)(Hash(d.Id + ":verdict") % 100), held ? "neither free to sell it against such a pleader nor a friend: it will go by who pleads better" : "neither upright nor a friend: it will go by who pleads better");
+        return (40 + EdictSystem.CourtLean(w) + plead * 6 - defend * 4 > (int)(Hash(d.Id + ":verdict") % 100), held ? "neither free to sell it against such a pleader nor a friend: it will go by who pleads better" : "neither upright nor a friend: it will go by who pleads better");
     }
 
     /// <summary>The charge is brought and heard. Whichever way it goes, it is not heard twice.</summary>

@@ -132,6 +132,8 @@ public sealed class World
 
     /// <summary>Laws in force, house id → law id → option id (GDD §6.1); a law not named is at its default.</summary>
     public Dictionary<string, Dictionary<string, string>> Laws { get; set; } = new();
+    /// <summary>Edicts in force (docs/EDICTS.md): decrees of the holders of executive positions, each until it lapses.</summary>
+    public List<Edict> Edicts { get; set; } = new();
 
     /// <summary>Everything under construction (docs/ECONOMY_MARKET.md stage B), in the order begun.</summary>
     public List<Project> Projects { get; set; } = new();

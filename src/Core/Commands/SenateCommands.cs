@@ -22,6 +22,7 @@ public sealed class ProposeMotionCommand : ICommand
         if (_kind == "petition") return "only an estate brings a petition";
         if (def.Rank) return "a rank is asked for by petition, from the ladder of titles";
         if (!_senate.MayPropose(w, house.Id)) return w.IsImperium ? $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge" : "the house has its votes but no voice in the Senate: it may not move a motion";
+        if (EdictSystem.Cowed(w, house.Id) is { } cowed) return cowed;   // rule by decree (docs/EDICTS.md)
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";
         if (SenateSystem.Stale(w, house.Id, _kind, def.Law ? _lawId + ":" + _optionId : def.Target == "none" ? "" : def.Office ? _targetId + ":" + _officeId : _targetId)) return "the chamber heard that from you lately";
@@ -55,6 +56,7 @@ public sealed class ProposeMotionCommand : ICommand
             if (def.Interest == "for_life" && EmergencySystem.ForLifeRefusal(w, t) is { } noLife) return noLife;
         }
         else if (def.Target == "region") { if (w.Galaxy?.Regions.Any(r => r.Id == _targetId) != true) return "no such region"; }
+        else if (def.Target == "edict") { if (EdictSystem.AnnulRefusal(w, _targetId, house.Id) is { } noAnnul) return noAnnul; }   // the annulment of an edict (docs/EDICTS.md)
         else if (def.Target == "nation")
         {
             var d = _senate.Nations.Def(_targetId); var n = w.Nation(_targetId); if (d == null || n == null) return "no such nation";

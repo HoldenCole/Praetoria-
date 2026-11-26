@@ -45,6 +45,8 @@
     { "id": "emergency", "name": "Emergency powers", "target": "house", "interest": "emergency", "proposeInfluence": 3, "targetSelfAllowed": true,
       "description": "{proposer} moves that, the Reach being in danger, the consul of {target} be given the Senate's emergency powers for three years." },
     { "id": "for_life", "name": "The powers for life", "target": "house", "interest": "for_life", "proposeInfluence": 4, "targetSelfAllowed": true,
-      "description": "{proposer} moves that the consul of {target} hold the emergency powers for life." }
+      "description": "{proposer} moves that the consul of {target} hold the emergency powers for life." },
+    { "id": "annul", "name": "Annulment of an edict", "target": "edict", "interest": "annul", "proposeInfluence": 2,
+      "description": "{proposer} moves that the Senate strike down {target}, and that it be at an end from the day of the vote." }
   ]
 }

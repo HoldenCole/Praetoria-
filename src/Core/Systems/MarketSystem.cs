@@ -220,9 +220,9 @@ public sealed class MarketSystem
 
     /// <summary>The price a house would pay for the next unit, with its spread and the tariff, before its order's own weight.</summary>
     public static double BuyPrice(World w, TradeRules t, string houseId, string good) =>
-        t.Market.Good(good) is { } d ? Of(w, t.Market).Goods[d.Id].Price * (1 + Spread(w, houseId, t) / 2) * Tariff(w, houseId, t) : double.MaxValue;
+        t.Market.Good(good) is { } d ? EdictSystem.Capped(w, d, Of(w, t.Market).Goods[d.Id].Price) * (1 + Spread(w, houseId, t) / 2) * Tariff(w, houseId, t) : double.MaxValue;   // under an edict of maximum prices, no dearer than its ceiling (docs/EDICTS.md)
     public static double SellPrice(World w, TradeRules t, string houseId, string good) =>
-        t.Market.Good(good) is { } d ? Of(w, t.Market).Goods[d.Id].Price * (1 - Spread(w, houseId, t) / 2) : 0;
+        t.Market.Good(good) is { } d ? EdictSystem.Capped(w, d, Of(w, t.Market).Goods[d.Id].Price) * (1 - Spread(w, houseId, t) / 2) : 0;
 
     /// <summary>What buying <paramref name="units"/> would cost: each unit dearer than the last by the order's share of the stock the
     /// turn opened with, counting what has already been bought this turn (so an order split in ten costs what it costs whole).</summary>

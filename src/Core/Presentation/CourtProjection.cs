@@ -283,7 +283,7 @@ public static class CourtProjection
             if (house.Wealth == 0 && w.Houses.Values.All(h => h.Wealth == 0)) eco.Reckon(w);
             var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.TierFor(w, x.house.Id), x.house.Id == house.Id)).ToList();
             var lender = house.LenderId.Length > 0 ? w.House(house.LenderId)?.Name : null;
-            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, house.Debt > 0 ? Lending.InstalmentOf(house, f) : f.LoanInstalment,
+            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, house.Debt > 0 ? Lending.InstalmentOf(w, house, f) : f.LoanInstalment,
                 new Option("loan", $"Borrow {Money.Credits(f.LoanPrincipal)} (owe {Money.Show(f.LoanRepay)}, {Money.Show(f.LoanInstalment)} a year)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
                 new Option("repay", $"Clear the debt ({Money.Credits(house.Debt)})", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
             var vs = tc.Ventures;
@@ -544,7 +544,7 @@ public static class CourtProjection
         MotionCard Card(Motion m)
         {
             var def = senate.Motions.Def(m.Kind); var proposer = w.House(m.ProposerHouseId);
-            string? targetName = def?.Target == "house" ? w.House(m.TargetId)?.Name : def?.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name : null;
+            string? targetName = def?.Target == "house" ? w.House(m.TargetId)?.Name : def?.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name : def?.Target == "edict" ? EdictSystem.Title(w, m.TargetId) : null;
             var stances = new List<StanceLine>();
             foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal))
                 stances.Add(new StanceLine(h.Id, h.Name, h.AccentColor, senate.Weight(w, h.Id), senate.Stance(w, m, h.Id), m.Votes.ContainsKey(h.Id),
@@ -563,7 +563,8 @@ public static class CourtProjection
         var proposals = senate.Motions.Defs.Where(d => d.Id != "petition" && !d.Rank).Select(d =>
         {
             List<(string Id, string Name)> targets = d.Target == "house" ? houses.Where(x => (x.Id != house.Id || d.TargetSelfAllowed) && (!d.TargetMustBeAtWar || w.Wars.Any(x2 => x2.Involves(x.Id)))).ToList() : d.Target == "region" ? regions
-                : d.Target == "nation" ? senate.Nations.Defs.Where(nd => w.Nation(nd.Id) is { } ns && (d.Interest == "foreign_peace" ? NationSystem.PeaceRefusal(w, senate.Nations, nd.Id) == null : (!ns.AtWar || ns.WarOf.Length > 0) && !ns.Fallen && !ns.Subdued(w.Turn))).OrderBy(nd => nd.Name, StringComparer.Ordinal).Select(nd => (Id: nd.Id, Name: nd.Name)).ToList() : new List<(string Id, string Name)>();
+                : d.Target == "nation" ? senate.Nations.Defs.Where(nd => w.Nation(nd.Id) is { } ns && (d.Interest == "foreign_peace" ? NationSystem.PeaceRefusal(w, senate.Nations, nd.Id) == null : (!ns.AtWar || ns.WarOf.Length > 0) && !ns.Fallen && !ns.Subdued(w.Turn))).OrderBy(nd => nd.Name, StringComparer.Ordinal).Select(nd => (Id: nd.Id, Name: nd.Name)).ToList()
+                : d.Target == "edict" ? EdictSystem.Annullable(w).Select(e => (Id: e.Id, Name: EdictSystem.Title(w, e))).ToList() : new List<(string Id, string Name)>();   // the edicts the Senate may strike down (docs/EDICTS.md)
             var commissionable = senate.Offices.Defs.Where(o => !o.Elected).ToList();
             if (d.Office) targets = targets.Where(x => commissionable.Any(o => OfficeSystem.Candidate(w, o, x.Id) != null)).ToList();   // only houses with someone of the rank
             string firstOffice = d.Office && commissionable.Count > 0 ? commissionable[0].Id : "";
@@ -582,7 +583,7 @@ public static class CourtProjection
                 var firstOpen = laws.SelectMany(l => l.Options).FirstOrDefault(o => o.Refusal == null); probe = firstOpen.Refusal ?? laws.SelectMany(l => l.Options).Select(o => o.Refusal).FirstOrDefault(r => r != "already the law of the Reach") ?? probe;
                 if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;
             }
-            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer} moves", "You move").Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : d.Target == "nation" ? "a nation beyond the Reach" : "").Replace("the office of {office}", "an office of the Reach").Replace("{office}", "an office of the Reach").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
+            return new MotionProposal(d.Id, d.Name, d.Description.Replace("{proposer} moves", "You move").Replace("{proposer}", "You").Replace("{target}", d.Target == "house" ? "a house" : d.Target == "region" ? "a region" : d.Target == "nation" ? "a nation beyond the Reach" : d.Target == "edict" ? "an edict in force" : "").Replace("the office of {office}", "an office of the Reach").Replace("{office}", "an office of the Reach").Replace("{law}", "a law of the Reach").Replace("{option}", "so set"), cost, d.Target, targets, probe, d.Office,
                 d.Office ? commissionable.Select(o => (Id: o.Id, Name: o.Name)).ToList() : null, d.Law, laws);
         }).ToList();
         int total = w.Houses.Values.Where(h => !World.Outsider(h.Id)).Sum(h => senate.Weight(w, h.Id));
@@ -807,6 +808,7 @@ public static class CourtProjection
         if (d.Peace) parts.Add("the war with the house named is ended by the Senate's word");
         if (d.Breakup) parts.Add("the companies of the house named are broken up and their holders paid out");
         if (d.Rescue) parts.Add("the chair's purse steadies the Exchange");
+        if (d.Interest == EdictSystem.AnnulKind) parts.Add($"the edict named ends at once, and the house that issued it loses {EdictSystem.AnnulledStanding} legitimacy");
         return parts.Count == 0 ? "" : "If it carries: " + string.Join("; ", parts) + ".";
     }
 

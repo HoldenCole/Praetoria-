@@ -50,7 +50,7 @@ public static class ContentLoader
         var businesses = BusinessLoader.LoadFromDirectory(contentRoot);
 
         var motions = MotionCatalog.LoadFromDirectory(contentRoot); var offices = OfficeCatalog.LoadFromDirectory(contentRoot); var policies = PolicyCatalog.LoadFromDirectory(contentRoot); var parties = PartyCatalog.LoadFromDirectory(contentRoot); var nations = NationCatalog.LoadFromDirectory(contentRoot); var academy = AcademyCatalog.LoadFromDirectory(contentRoot); var market = MarketCatalog.LoadFromDirectory(contentRoot); var exchange = ExchangeCatalog.LoadFromDirectory(contentRoot);
-        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction, names, greatCrisis, recovery, businesses, motions, offices, policies, parties, nations, academy, market, exchange) { Ancestries = AncestryCatalog.LoadFromDirectory(contentRoot), Growth = GrowthCatalog.LoadFromDirectory(contentRoot) };
+        return new ContentDatabase(events, texts, holdings, crises, spheres, titles, careers, traits, backgrounds, fleets, shipClasses, honors, friction, names, greatCrisis, recovery, businesses, motions, offices, policies, parties, nations, academy, market, exchange) { Ancestries = AncestryCatalog.LoadFromDirectory(contentRoot), Growth = GrowthCatalog.LoadFromDirectory(contentRoot), Edicts = EdictCatalog.LoadFromDirectory(contentRoot) };
     }
 
     private static IEnumerable<string> EnumerateJson(string dir) =>

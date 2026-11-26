@@ -1,0 +1,83 @@
+@using Praetoria.Core.Systems
+@using Praetoria.Core.Data
+@using Praetoria.Core.State
+@inject GameClient G
+@implements IDisposable
+@* Edicts (docs/EDICTS.md): what whoever holds an executive position decrees on their own authority. The edicts in force that touch the
+   player's house, with who issued them and until when; and the edicts the player may issue now by the positions held, each a button whose
+   title says what it costs and does, or why it may not be issued. An annulment is moved from the Senate, where it is offered with its target. *@
+@{
+    var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var mine = p.HouseId;
+    var inForce = w.Edicts.Where(e => EdictSystem.Touches(e, mine)).OrderBy(e => e.Until).ThenBy(e => e.Id, StringComparer.Ordinal).ToList();
+    var held = EdictSystem.Issuers.Select(k => EdictSystem.PositionOf(w, p, k)).Where(x => x != null).Distinct().ToList();
+    var mayIssue = c.Edicts.Defs.Where(d => EdictSystem.PositionOf(w, p, d.Issuer) != null).ToList();
+    var others = w.Houses.Values.Where(h => h.Id != mine && w.OfTheReach(h.Id)).OrderBy(h => h.Name, StringComparer.Ordinal).ToList();
+    int elsewhere = w.Edicts.Count(e => !EdictSystem.Touches(e, mine));
+}
+<section class="panel edicts" data-edicts>
+    <h3><Icon Name="throne" Size="13" /> Edicts <span class="muted">decrees of those who hold an executive position: they bite at once, run their years and lapse, and the Senate may strike some down</span></h3>
+    <div class="law-cat">In force, and touching your house</div>
+    @if (inForce.Count == 0) { <div class="muted small">None. @Elsewhere(elsewhere)</div> }
+    @foreach (var e in inForce)
+    {
+        var eid = e.Id; var wno = new WithdrawEdictCommand(pid, eid).Refusal(G.Ctx);
+        <div class="small reach-line" data-edict-in-force="@e.DefId" title="@Model(e)">
+            <b>@e.Name</b>@Named(e) <span class="muted">· @Who(e) · until year @e.Until · @(e.Domain.Length > 0 ? "on the worlds of " + (w.House(e.Domain)?.Name ?? e.Domain) : "the whole Reach")</span>
+            <div class="muted">@EdictSystem.EffectsSay(e.Effects, e.Domain.Length == 0, e.Domain.Length == 0 ? "every world" : "its worlds", GoodName(e))</div>
+            @if (e.IssuerId == pid)
+            {
+                <button class="opt inline tiny" data-edict-withdraw="@e.DefId" disabled="@(wno != null)" title="@(wno ?? WithdrawSays())" @onclick="() => G.Execute(new WithdrawEdictCommand(pid, eid))">Take it back</button>
+            }
+            else if (e.Annullable && e.Domain.Length == 0)
+            {
+                <span class="muted" data-edict-annul="@e.DefId">@AnnulSays(e)</span>
+            }
+        </div>
+    }
+    <div class="law-cat">What you may decree</div>
+    <div class="muted small">@(held.Count == 0 ? "You hold no position an edict is issued from." : "You may issue edicts as " + string.Join(", and as ", held) + ". Two at a time at most; none of a kind already in force, and none lately ended.")</div>
+    @if (mayIssue.Any(d => d.Target == "house"))
+    {
+        <div class="small">
+            <span class="muted">The house to be named:</span>
+            <select class="sel" data-edict-target @onchange="SetTarget">
+                <option value="">choose a house</option>
+                @foreach (var h in others) { <option value="@h.Id">@h.Name</option> }
+            </select>
+        </div>
+    }
+    <div class="law-grid">
+        @foreach (var d in mayIssue)
+        {
+            var def = d; string target = d.Target == "house" ? _target : string.Empty; var no = new IssueEdictCommand(pid, d.Id, c, target).Refusal(G.Ctx);
+            <button class="opt" data-edict="@d.Id" disabled="@(no != null)" title="@(no ?? Does(def))" @onclick="() => Ask(def, target)">
+                <b>@d.Name</b> <span class="muted small">· @EdictSystem.CostSays(d) · @Counted.Years(d.Years)</span>
+                <div class="muted small">@(no ?? Short(def))</div>
+            </button>
+        }
+    </div>
+</section>
+
+@code {
+    // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself.
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+    private string _target = string.Empty;
+    private void SetTarget(ChangeEventArgs e) => _target = e.Value?.ToString() ?? string.Empty;
+    private string Who(Edict e) => (G.World!.Char(e.IssuerId)?.Name ?? G.World.House(e.IssuerHouseId)?.Name ?? "a magistrate") + ", " + e.Position;
+    private string Named(Edict e) => G.World!.House(e.TargetId) is { } t ? " against " + t.Name : GoodName(e) is { } g ? " on " + g : string.Empty;
+    private string? GoodName(Edict e) => e.TargetId.Length > 0 && G.Content!.Market.Good(e.TargetId) is { } g ? g.Name.ToLowerInvariant() : null;
+    private string Model(Edict e) => G.Content!.Edicts.Def(e.DefId) is { } d ? d.Description + " Modelled on " + d.Model : e.Name;
+    private string? Dear() => EdictSystem.Dearest(G.World!, G.Content!.Market) is { } x ? x.good.Name.ToLowerInvariant() : null;
+    private string Does(EdictDef d) => EdictSystem.Does(d, G.Content!.Policies, d.Target == "good" ? Dear() : null);
+    private string Short(EdictDef d) { var now = EdictSystem.NowSays(d, EdictSystem.Where(d)); var fx = EdictSystem.EffectsSay(d, EdictSystem.Where(d), d.Target == "good" ? Dear() : null); return now.Length > 0 && fx.Length > 0 ? now + "; then " + fx : now + fx; }
+    private static string Elsewhere(int n) => n > 0 ? Counted.Of(n, "edict") + " of other houses stand on their own worlds." : string.Empty;
+    private static string WithdrawSays() => "Take it back now. Nothing paid for it comes back, and it may not be issued again for some years.";
+    private string AnnulSays(Edict e) => EdictSystem.AnnulRefusal(G.World!, e.Id, G.World!.Protagonist!.HouseId) is { } no ? "The Senate cannot be asked to strike it down: " + no + "." : "The Senate may be asked to strike it down: move its annulment from the Senate.";
+    private void Ask(EdictDef d, string target)
+    {
+        string named = target.Length > 0 && G.World!.House(target) is { } t ? " against " + t.Name : string.Empty;
+        G.AskDo("Issue " + EdictSystem.Lower(d.Name) + named + "?", d.Description + " " + Does(d), "Issue it · " + EdictSystem.CostSays(d), new IssueEdictCommand(G.World!.ProtagonistId, d.Id, G.Content!, target));
+    }
+}
