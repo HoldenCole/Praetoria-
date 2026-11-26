@@ -53,9 +53,10 @@ do. A harsh tithe, bonded labour and conscription together put the Commons at âˆ
 world; a standing guard doubled pleases the Officers and costs a quarter more upkeep.
 
 The estates are not only moved: an estate hostile across enough of the Reach **petitions the Senate** for the Act it
-wants (docs/SENATE.md, *Petitions*), and the chamber's answer is felt in every house â€” heard, its regard rises everywhere;
-refused, it falls and its worlds stir. The Chancery's estate cards show a petition in progress, and warn when an estate is
-hostile in enough houses that one is near.
+wants (docs/SENATE.md, *Petitions*), and the chamber's answer is felt in every house of the Reach. Heard, its regard rises
+everywhere; refused, it falls and its worlds stir. A house that has broken away is not counted and does not feel it. The
+Chancery's estate cards show a petition in progress, and warn when an estate is hostile in enough houses of the Reach that
+one is near.
 
 ## Rivals
 

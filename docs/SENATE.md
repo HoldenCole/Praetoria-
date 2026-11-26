@@ -43,13 +43,14 @@ sixty-turn simulations two or three Acts carry a run.
 
 ## Petitions: the estates at the Senate's door
 
-An estate hostile (regard −30 or worse) in three houses or an eighth of them, whichever is more, brings its own Act
+An estate hostile (regard −30 or worse) in three houses of the Reach or an eighth of them, whichever is more, brings its own Act
 (`SenateSystem.Petition`, run each turn before the rivals propose): the Senate law and option that would most please it
 against what is in force (`WantedBy`), as motion kind `petition` with proposer `estate:<id>`, at no cost, one petition on
 the docket at a time, and not again from that estate for twelve turns. It is voted like any Act; every house at whose
 gate the estate stands leans a point further for it. **Heard**, the law moves and the estate's regard rises ten in every
-house (the player's through `estate_offset:<id>`). **Refused**, its regard falls six everywhere and every world of every
-house it already distrusts gains three unrest. No standing accrues to an estate. Flags `petition_open`,
+house of the Reach (the player's through `estate_offset:<id>`). **Refused**, its regard falls six everywhere and every world of every
+house it already distrusts gains three unrest. A house that has broken away neither counts toward a petition nor feels the
+answer (docs/BREAKAWAY.md). No standing accrues to an estate. Flags `petition_open`,
 `petition_open:<estate>`, `petition_carried`, `petition_refused` and the per-estate forms; counters `petitions_heard`,
 `petitions_refused`. Three events: *The Petitioners*, *The Petition Heard*, *The Petition Refused*. One to three petitions
 a sixty-turn run, mostly the Commons' and the old blood's.
@@ -217,7 +218,9 @@ canvasses write on the record (canvassing); `CornerSystem.Reckon` and `CornerSys
 **A house that has broken away is bound by none of them** (2026-11-26, the owner: "If something breaks away then they're
 bound by only their laws"). What an Act does to a house falls on the houses of the Reach only, and a rule between two houses
 binds the one that is of the Reach: the lender under the Usury Law, the seller under the Navigation Act's levy, either party
-under its staple, the holder of a corner, the house that hires its fleet out. The offices, the Senate's procedure, the
+under its staple, the holder of a corner, the house that hires its fleet out. A house of the Reach leans on an Act only for
+what it would do, so a corner held by a house that has broken away, or a company hired from one, is no cause in it. The
+estates' petitions count the houses of the Reach, and the answer falls on them alone. The offices, the Senate's procedure, the
 exchanges' licence, the Exchange's levy and the regions stay as they are (docs/BREAKAWAY.md, "A house that has broken away
 is bound only by its own laws").
 

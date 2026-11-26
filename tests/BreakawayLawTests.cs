@@ -276,6 +276,88 @@ public class BreakawayLawTests
         }
     }
 
+    // ---------------------------------------------------------------- what reaches a house that has broken away through a party of the Reach
+
+    [Fact]
+    public void A_house_that_has_broken_away_is_told_what_falls_on_it_through_a_party_of_the_Reach()
+    {
+        var (_, w, stays, gone, gone2) = Start(twoGo: true);
+        // the staple lifted: the houses of the Reach may deal with it out of their stores again
+        var nav = Cat.Law("navigation_act")!; var staple = nav.Option("staple")!;
+        foreach (var to in new[] { "free", "levy" })
+        {
+            string says = SenateActs.ToHouse(w, gone, staple, nav.Option(to)!, Content.Offices);
+            Assert.Contains("the houses of the Reach could again buy of your house and sell to it out of their stores", says); Assert.DoesNotContain("nothing", says);
+        }
+        // a cap on usury: the banks of the Reach lend to it under the cap, and its own bank and the counting-houses as they like
+        FoundBusinessCommand.Open(w, stays, Content.Businesses.Def("merchant_bank")!, w.Galaxy!.System(FirstWorld(w, stays).SystemId)!);
+        FoundBusinessCommand.Open(w, gone2, Content.Businesses.Def("merchant_bank")!, w.Galaxy!.System(FirstWorld(w, gone2).SystemId)!);
+        var usury = Cat.Law("usury")!;
+        string capped = SenateActs.ToHouse(w, gone, usury.DefaultOption, usury.Option("tenth")!, Content.Offices);
+        Assert.Contains($"the bank of {stays.Name}", capped); Assert.Contains("could lend your house at no more than 10 in the hundred", capped);
+        Assert.DoesNotContain($"the bank of {gone2.Name}", capped); Assert.DoesNotContain("counting-houses", capped); Assert.DoesNotContain("nothing", capped);
+        Assert.Contains("could lend your house at what rate they like", SenateActs.ToHouse(w, gone, usury.Option("tenth")!, usury.DefaultOption, Content.Offices));
+        // a ban on hired companies: a company hired into its line from a house of the Reach would go home, and one from a house that has broken away would not
+        var hc = Cat.Law("hired_companies")!; var ban = hc.Option("forbidden")!;
+        var f = new Fleet { Id = "test_hired", Name = "The Test Company", OwnerId = gone.Id, HiredFrom = stays.Id, SystemId = FirstWorld(w, gone).SystemId, Strength = 3 }; w.Fleets[f.Id] = f;
+        Assert.Contains("The Test Company, hired into your line from a house of the Reach, would go home", SenateActs.ToHouse(w, gone, hc.DefaultOption, ban, Content.Offices));
+        f.HiredFrom = gone2.Id; Assert.DoesNotContain("The Test Company", SenateActs.ToHouse(w, gone, hc.DefaultOption, ban, Content.Offices));
+    }
+
+    [Fact]
+    public void The_chamber_s_answer_to_a_petition_falls_on_the_houses_of_the_Reach_and_not_on_one_that_has_broken_away()
+    {
+        var (tc, w, stays, gone, _) = Start(); var senate = tc.Senate; var me = w.House(w.Protagonist!.HouseId)!;
+        me.PolityId = State; w.Polities.First(x => x.Id == State).Members.Add(me.Id);   // the player's house has broken away too
+        w.Motions.RemoveAll(x => x.Open);
+        foreach (var h in new[] { stays, gone, me }) w.WorldCounters[PolicySystem.ApprovalKey(w, h.Id, "commons")] = -50;
+        var m = senate.Add(w, SenateSystem.EstatePrefix + "commons", "petition", "", lawId: "corn_law", lawOption: "free_corn"); foreach (var h in w.Houses.Values) m.Votes[h.Id] = -1;
+        int Unrest(House h) => w.HoldingsOf(h.Id).Where(x => x.IsPlanet).Sum(x => x.Unrest);
+        int staysU = Unrest(stays), goneU = Unrest(gone), meU = Unrest(me), offset = w.Counter("estate_offset:commons");
+        w.Turn++; senate.Tick(w);
+        Assert.False(m.Passed); Assert.True(w.HasFlag("petition_refused"));
+        Assert.Equal(-50 - SenateSystem.PetitionSpurn, PolicySystem.Approval(w, stays.Id, "commons")); Assert.True(Unrest(stays) > staysU);
+        Assert.Equal(-50, PolicySystem.Approval(w, gone.Id, "commons")); Assert.Equal(goneU, Unrest(gone));
+        Assert.Equal(-50, PolicySystem.Approval(w, me.Id, "commons")); Assert.Equal(offset, w.Counter("estate_offset:commons")); Assert.Equal(meU, Unrest(me));
+    }
+
+    [Fact]
+    public void An_estate_petitions_the_Senate_for_what_it_thinks_in_the_houses_of_the_Reach_alone()
+    {
+        var (tc, w, _, gone, gone2) = Start(twoGo: true); var senate = tc.Senate;
+        w.Motions.RemoveAll(x => x.Open);
+        foreach (var h in w.Houses.Values) foreach (var e in Cat.Estates) w.WorldCounters[PolicySystem.ApprovalKey(w, h.Id, e.Id)] = 0;
+        var reach = w.Houses.Values.Where(h => w.OfTheReach(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList(); int need = Math.Max(SenateSystem.PetitionMinHouses, reach.Count / 8);
+        foreach (var h in reach.Take(need - 1).Append(gone).Append(gone2)) w.WorldCounters[PolicySystem.ApprovalKey(w, h.Id, "commons")] = -50;
+        senate.Petition(w); Assert.DoesNotContain(w.Motions, x => x.Open && SenateSystem.IsPetition(x));   // one short in the Reach: the houses that have left it do not make up the number
+        Assert.Equal(need - 1, CourtProjection.Build(tc, Content).Chancery!.Estates.Single(e => e.Id == "commons").HostileIn);
+        w.WorldCounters[PolicySystem.ApprovalKey(w, reach[need - 1].Id, "commons")] = -50;
+        senate.Petition(w); Assert.Contains(w.Motions, x => x.Open && SenateSystem.PetitionEstate(x) == "commons");
+        Assert.Contains(w.History, x => x.Text.Contains($"hostile in {need} houses of the Reach"));
+    }
+
+    [Fact]
+    public void A_house_of_the_Reach_does_not_lean_on_an_Act_for_what_it_would_not_do_to_a_party_that_has_broken_away()
+    {
+        // a corner: the Law against Forestalling would not touch one held by a house that has broken away, so a house that pays its price has no cause in it
+        var (_, w, stays, gone, _) = Start(); var voter = Another(w, stays, gone); var law = Cat.Law("forestalling")!;
+        w.Fleets["test_line"] = new Fleet { Id = "test_line", Name = "Test", OwnerId = voter.Id, SystemId = FirstWorld(w, voter).SystemId, Strength = 4 };
+        var market = MarketSystem.Of(w, Content.Market); foreach (var x in market.Goods.Values) { x.CornerHouse = ""; x.CornerPremium = 0; x.Cornered = false; }
+        var g = market.Goods.Values.OrderBy(x => x.Id, StringComparer.Ordinal).First(); g.CornerPremium = 0.6; g.CornerShare = 0.66; g.Cornered = true;
+        List<string> Why(House h, LawDef l, string from, string to) { var why = new List<(string why, int by)>(); SenateActs.Interest(w, h, l.Option(from)!, l.Option(to)!, Content.Offices, why); return why.Select(x => x.why).ToList(); }
+        const string Pays = "a corner stands, and it pays the price of it";
+        g.CornerHouse = gone.Id; Assert.DoesNotContain(Pays, Why(voter, law, "free_market", "capped"));
+        g.CornerHouse = stays.Id; Assert.Contains(Pays, Why(voter, law, "free_market", "capped"));
+        // a hired fleet: a ban would not call home a company hired from a house that has broken away
+        foreach (bool broke in new[] { true, false })
+        {
+            var (w2, f, home, employer, _) = Company(broke, ""); w = w2; MercenarySystem.Hire(w2, Economy.HeadOf(w2, home)!, f, employer); Assert.Equal(home.Id, f.HiredFrom);
+            var enemy = w2.House(w2.EnemiesOf(employer.Id).OrderBy(x => x, StringComparer.Ordinal).First())!; var hc = Cat.Law("hired_companies")!;
+            Assert.Equal(!broke, Why(employer, hc, "free", "forbidden").Contains("a hired fleet fights in its line"));
+            Assert.Equal(!broke, Why(enemy, hc, "free", "forbidden").Contains("its enemy fights it with hired fleets"));
+        }
+    }
+
     // ---------------------------------------------------------------- what belongs to the Reach's own places and institutions
 
     [Fact]

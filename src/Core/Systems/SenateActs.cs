@@ -281,7 +281,7 @@ public static class SenateActs
         if (k != 0 && w.Market != null)
         {
             if (w.Market.Goods.Values.Any(g => g.CornerHouse == h.Id && g.CornerPremium > 0)) Add(-Math.Sign(k) * (Math.Abs(k) + 1), "it holds a third or more of a good, and the law would take what that earns");
-            else if (Hulls(w, h) > 0 && w.Market.Goods.Values.Any(g => g.CornerPremium > 0 && g.CornerHouse.Length > 0)) Add(Math.Sign(k), "a corner stands, and it pays the price of it");
+            else if (Hulls(w, h) > 0 && w.Market.Goods.Values.Any(g => g.CornerPremium > 0 && g.CornerHouse.Length > 0 && w.OfTheReach(g.CornerHouse))) Add(Math.Sign(k), "a corner stands, and it pays the price of it");   // the law binds a holder of the Reach
         }
         int m = CompanyTight(next) - CompanyTight(cur);
         if (m != 0)
@@ -290,8 +290,8 @@ public static class SenateActs
             bool banNow = cur.Effects.GetValueOrDefault(CompanyBan) > 0, banNext = next.Effects.GetValueOrDefault(CompanyBan) > 0;
             if (banNow != banNext)
             {
-                if (w.Fleets.Values.Any(f => f.OwnerId == h.Id && f.HiredFrom.Length > 0)) Add(banNext ? -2 : 2, "a hired fleet fights in its line");
-                if (w.EnemiesOf(h.Id).Any(e => w.Fleets.Values.Any(f => f.OwnerId == e && f.HiredFrom.Length > 0))) Add(banNext ? 2 : -2, "its enemy fights it with hired fleets");
+                if (w.Fleets.Values.Any(f => f.OwnerId == h.Id && f.HiredFrom.Length > 0 && w.OfTheReach(f.HiredFrom))) Add(banNext ? -2 : 2, "a hired fleet fights in its line");   // the ban calls home a company hired from a house of the Reach
+                if (w.EnemiesOf(h.Id).Any(e => w.Fleets.Values.Any(f => f.OwnerId == e && f.HiredFrom.Length > 0 && w.OfTheReach(f.HiredFrom)))) Add(banNext ? 2 : -2, "its enemy fights it with hired fleets");
             }
             if (chair && D(cur, next, CompanyLicence) != 0) Add(Math.Sign(D(cur, next, CompanyLicence)), "the licences would be paid to it, as the chair");
         }
@@ -346,7 +346,8 @@ public static class SenateActs
     /// <summary>What setting a law of the Reach from <paramref name="cur"/> to <paramref name="next"/> would do to one house, in figures
     /// where there are figures: "your 5 worlds would pay 500 credits a year". Empty when it would do nothing to the house that a
     /// figure can say. A house that has broken away is told only what still falls on it: what falls on the regions where its worlds
-    /// lie, and the staple, which keeps the houses of the Reach from dealing with it off the exchanges (docs/BREAKAWAY.md).</summary>
+    /// lie, and what comes to it through a party of the Reach: the staple laid or lifted, the cap on what the banks of the Reach would
+    /// lend it, and a ban that calls home a company hired into its line from a house of the Reach (docs/BREAKAWAY.md).</summary>
     public static string ToHouse(World w, House h, LawOptionDef cur, LawOptionDef next, OfficeCatalog offices, FleetSystem? fleets = null)
     {
         if (w.OfTheReach(h.Id)) return Says(Parts(w, h, cur, next, offices, fleets, bound: true), "To your house: ");
@@ -388,6 +389,12 @@ public static class SenateActs
             }
             if (Lends(w, h)) parts.Add(capNext > 0 ? $"your house, which lends, could charge no more than {capNext} in the hundred, and loans already made stand as they were made" : "your house, which lends, could charge what it likes");
         }
+        else if (!bound && UsuryTight(next) != UsuryTight(cur))   // the cap binds the lender: the banks of the Reach lend to a house that has broken away under it
+        {
+            var v = VenturesOf(w); int capNext = next.Effects.GetValueOrDefault(LoanRateCap);
+            var banks = w.Businesses.Values.Where(b => b.OwnerId != h.Id && w.OfTheReach(b.OwnerId) && v.Def(b.Kind)?.Lender == true).Select(b => b.OwnerId).Distinct().OrderBy(x => x, StringComparer.Ordinal).Select(x => Lending.LenderName(w, x)).ToList();
+            if (banks.Count > 0) parts.Add($"{string.Join(" and ", banks)}, of the Reach, could lend your house " + (capNext > 0 ? $"at no more than {capNext} in the hundred, and would lend it the less where they would ask more" : "at what rate they like"));
+        }
         int c = Math.Sign(next.Effects.GetValueOrDefault(CanvassLaw));
         if (bound && c != Math.Sign(cur.Effects.GetValueOrDefault(CanvassLaw)))
             parts.Add(c > 0 ? $"a lavish canvass ({Money.Credits(LadderSystem.CampaignCost(LadderSystem.Lavish))}) would be forbidden to your house, and a handsome one ({Money.Credits(LadderSystem.CampaignCost(LadderSystem.Handsome))}) written down as votes bought"
@@ -410,7 +417,11 @@ public static class SenateActs
                     : $"each fleet your house hired out would cost {Money.Credits(fee)} for the licence, and {LicensedLegitimacy} legitimacy where it costs {MercenarySystem.Legitimacy}");
             else parts.Add($"your house could hire a fleet out freely, for {MercenarySystem.Legitimacy} legitimacy each time");
         }
+        if (next.Effects.GetValueOrDefault(CompanyBan) > 0 && cur.Effects.GetValueOrDefault(CompanyBan) <= 0   // the ban binds the house that hired the fleet out, whoever hired it
+            && w.Fleets.Values.Where(f => f.OwnerId == h.Id && f.HiredFrom.Length > 0 && w.OfTheReach(f.HiredFrom)).OrderBy(f => f.Id, StringComparer.Ordinal).Select(f => f.Name).ToList() is { Count: > 0 } hired)
+            parts.Add($"{string.Join(" and ", hired)}, hired into your line from {(hired.Count == 1 ? "a house" : "houses")} of the Reach, would go home");
         if (!bound && next.Effects.GetValueOrDefault(TradeBan) > 0 && cur.Effects.GetValueOrDefault(TradeBan) <= 0) parts.Add("no house of the Reach could sell your house a lot out of its store, or buy one of it");
+        else if (!bound && cur.Effects.GetValueOrDefault(TradeBan) > 0 && next.Effects.GetValueOrDefault(TradeBan) <= 0) parts.Add("the houses of the Reach could again buy of your house and sell to it out of their stores");
         if (bound && TradeTight(next) != TradeTight(cur))
         {
             var holder = RegionSystem.CapitalHolder(w);

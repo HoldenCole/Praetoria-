@@ -511,12 +511,12 @@ public sealed class SenateSystem
         }
     }
 
-    /// <summary>The chamber's answer to a petition, felt in every house: heard, the estate's regard rises everywhere; turned away, it falls, and
-    /// the worlds of every house it already distrusts stir.</summary>
+    /// <summary>The chamber's answer to a petition, felt in every house of the Reach: heard, the estate's regard rises everywhere; turned away, it
+    /// falls, and the worlds of every house it already distrusts stir. A house that has broken away is not moved by it.</summary>
     private static void Answer(World w, Motion m, string estate, string? mine)
     {
         var name = estate;
-        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
+        foreach (var h in w.Houses.Values.Where(h => w.OfTheReach(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))   // not a house that has broken away: the Senate's law is not its law (docs/BREAKAWAY.md)
         {
             bool hostile = PolicySystem.Approval(w, h.Id, estate) <= PolicySystem.Hostile;
             if (h.Id == mine) { string off = "estate_offset:" + estate; w.WorldCounters[off] = Math.Clamp(w.Counter(off) + (m.Passed ? PetitionSwing : -PetitionSpurn), -100, 100); }
@@ -532,7 +532,7 @@ public sealed class SenateSystem
     public void Petition(World w)
     {
         if (_motions.Def("petition") == null || Policies.IsEmpty || Docket(w).Count() >= DocketSize || w.Motions.Any(m => m.Open && IsPetition(m))) return;
-        var houses = w.Houses.Values.Where(h => !World.Outsider(h.Id)).ToList(); int need = Math.Max(PetitionMinHouses, houses.Count / 8);
+        var houses = w.Houses.Values.Where(h => w.OfTheReach(h.Id)).ToList(); int need = Math.Max(PetitionMinHouses, houses.Count / 8);   // the houses of the Reach, whose law it would be
         foreach (var e in Policies.Estates.OrderByDescending(e => houses.Count(h => PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile)).ThenBy(e => e.Id, StringComparer.Ordinal))
         {
             int hostile = houses.Count(h => PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile);

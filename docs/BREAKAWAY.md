@@ -39,10 +39,15 @@ the throne and the offices) and every edict for the whole Reach (docs/EDICTS.md)
 - what it pays on the exchanges (the Trade Charter, the rates of exchange);
 - what its fleets cost to keep and how fast their crews make ready (the Law of Service);
 - what its estates think of it: the law of the Reach counts for nothing there, and the estates' card says so;
-- the standing a position of the Reach would give it every fifth year (the throne's proscriptions).
+- the standing a position of the Reach would give it every fifth year (the throne's proscriptions);
+- the Senate's answer to an estate's petition: an estate petitions for what it thinks in the houses of the Reach, and only
+  their estates and worlds feel the answer. The estates' card counts the houses of the Reach where an estate is hostile.
 
-What the player is told an Act would do to such a house says only what still reaches it, or that nothing does. The Laws
-window says that the law of the Reach binds the houses of the Reach, and not the player's.
+What the player is told an Act would do to such a house says only what still reaches it, or that nothing does. What still
+reaches it is what falls on the regions where its worlds lie, and what comes to it through a party of the Reach: the staple
+laid or lifted, a cap on usury for the banks of the Reach that would lend to it, and a ban that calls home a company hired
+into its line from a house of the Reach. The Laws window says that the law of the Reach binds the houses of the Reach, and
+not the player's.
 
 **A rule between two parties binds the party that is of the Reach, and only that one.**
 
@@ -52,9 +57,11 @@ window says that the law of the Reach binds the houses of the Reach, and not the
 | The Navigation Act, its levy | the seller, where it is of the Reach | A house that has broken away pays no levy on what it sells. A house of the Reach that sells to it pays the chair as before |
 | The Navigation Act, its staple | either party that is of the Reach | No house of the Reach deals with a house that has broken away out of its store. Two that have broken away deal as they please |
 | The Law against Forestalling | the holder of a corner, where it is of the Reach | A corner held by a house that has broken away is neither capped nor broken up |
-| The Law of Hired Companies | the house that hires its fleet out, where it is of the Reach | A house that has broken away hires a fleet out under a ban and pays no licence. No licence covers it, so it loses the full 3 legitimacy for it |
+| The Law of Hired Companies | the house that hires its fleet out, where it is of the Reach | A house that has broken away hires a fleet out under a ban and pays no licence. No licence covers it, so it loses the full 3 legitimacy for it. A company it hired from a house of the Reach comes home under a ban |
 
-Edicts already followed this rule, and still do (docs/EDICTS.md).
+Edicts already followed this rule, and still do (docs/EDICTS.md). A house of the Reach leans on an Act in the Senate only
+for what the Act would do: a corner held by a house that has broken away, or a company hired from one, gives it no cause
+for the Law against Forestalling or the Law of Hired Companies.
 
 **What stays the Reach's own.** What belongs to the Reach's own places and institutions still binds a house that has
 broken away when it uses them:
@@ -71,9 +78,10 @@ broken away when it uses them:
 a house that is not of the Reach. `Economy`, `MarketSystem.Tariff` and `FleetSystem` read it. `PolicySystem.LawOpinion` and
 `ReachLegitimacy` leave such a house out. The rules between two parties are in `SenateActs`: `LoanCap(w, lender, borrower)`,
 `LendRefusal(w, lender, rate)`, `StandingLoan(w, f, borrower)`, `StapleBetween`, `LevyOn`, `CornerCap(w, holder)`,
-`CornersBroken(w, holder)`, `CompaniesForbidden(w, hirer)` and `CompanyFee(w, hirer)`. `SenateActs.ToHouse` and the
-estates' card say what reaches the house. The raiders and the nations, which the fleets' rule already left out, are now left
-out wherever a house is named. Tested in `tests/BreakawayLawTests.cs` (13).
+`CornersBroken(w, holder)`, `CompaniesForbidden(w, hirer)` and `CompanyFee(w, hirer)`; `SenateActs.Interest` weighs them
+the same way. `SenateActs.ToHouse` and the estates' card say what reaches the house. `SenateSystem.Petition` and the
+chamber's answer count the houses of the Reach. The raiders and the nations, which the fleets' rule already left out, are
+now left out wherever a house is named. Tested in `tests/BreakawayLawTests.cs` (17).
 
 ## Taking a region out
 
