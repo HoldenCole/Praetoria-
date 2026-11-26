@@ -55,8 +55,7 @@ public sealed class Economy
     private PolicySystem.HouseLaw? _law; private string _lawHouse = "";
     private int Law(World w, string houseId, string key, string? regionId = null) =>
         _law != null && _lawHouse == houseId ? _law.Get(key, regionId) : PolicySystem.Modifier(w, Policies, houseId, key, regionId);
-    private readonly Dictionary<string, int> _reach = new();   // the Reach's law, asked once a key for the length of one ledger
-    private int ReachLaw(World w, string key) => _law == null ? PolicySystem.ReachModifier(w, Policies, key) : _reach.TryGetValue(key, out int hit) ? hit : _reach[key] = PolicySystem.ReachModifier(w, Policies, key);
+    private int ReachLaw(World w, string key) => PolicySystem.ReachModifier(w, Policies, key);
     public BusinessCatalog Ventures => _ventures;
 
     /// <summary>What a house's domain will net next turn — the same arithmetic accrual applies, as the resource strip's deltas.
@@ -69,7 +68,7 @@ public sealed class Economy
     {
         var ledger = new Ledger();
         var house = world.House(houseId); if (house == null) return ledger;
-        _law = Policies.IsEmpty ? null : PolicySystem.For(world, Policies, houseId); _lawHouse = houseId; _reach.Clear();
+        _law = Policies.IsEmpty ? null : PolicySystem.For(world, Policies, houseId); _lawHouse = houseId;
         var tax = _catalog.Tax(house.TaxPolicy);
         var head = HeadOf(world, house);
 
@@ -110,7 +109,7 @@ public sealed class Economy
             if (holding.IsPlanet && !Policies.IsEmpty)   // the law of the house, and the estates' regard (PolicySystem)
             {
                 string? rid = depSys?.RegionId;
-                d.Add(Resource.Credits, Law(world, houseId, "credits_per_world", rid) + ReachLaw(world, "credits_per_world")); d.Add(Resource.Materials, Law(world, houseId, "materials_per_world", rid)); d.Add(Resource.Manpower, Law(world, houseId, "manpower_per_world", rid) + ReachLaw(world, "manpower_per_world"));   // the house's own levies, and the Levy of the Reach where the Senate has carried one
+                d.Add(Resource.Credits, Law(world, houseId, "credits_per_world", rid) + ReachLaw(world, "credits_per_world")); d.Add(Resource.Materials, Law(world, houseId, "materials_per_world", rid)); d.Add(Resource.Manpower, Law(world, houseId, "manpower_per_world", rid) + ReachLaw(world, "manpower_per_world"));   // the house's own levies, and the Levy of the Reach and the Corn Law where the Senate has carried them
             }
             // a governor who hates the head skims; an able one finds a credit the ledger did not know it had
             if (holding.GovernorId.Length > 0 && (world.Char(holding.GovernorId)?.Skill("administration") ?? 0) >= AbleGovernorAdministration && holding.IsPlanet) d.Add(Resource.Credits, 1);
@@ -190,13 +189,12 @@ public sealed class Economy
         {
             var chairId = RegionSystem.CapitalHolder(world)?.Id;
             foreach (var f in world.Fleets.Values.Where(f => FleetSystem.BilledTo(f, chairId) == houseId).OrderBy(f => f.Id, StringComparer.Ordinal)) { var up = fleets.Upkeep(f); var d = new Resources(); foreach (var r in Resource.All) d.Add(r, -up.Get(r)); ledger.Add(f.Office ? f.Name + " (office)" : f.Name, "fleet", d); }
-            if (fleets.ServiceBill(world, ledger.Lines.Where(l => l.Kind == "fleet").Sum(l => -l.Delta.Credits)) is var service && service != 0) ledger.Add(fleets.ServiceBillName(world), "fleet", new Resources { Credits = -service });   // the Senate's law of service, on the whole of the house's fleet bill
             int fuel = fleets.FuelBill(world, houseId); if (fuel > 0) ledger.Add("fuel for the fleet", "fuel", new Resources { Helium3 = -fuel });
         }
         // a boost the game was begun with: the player's house takes in its credits twice (docs/MONEY.md, "Settings")
         if (world.Boosts.Contains(MoneySettings.DoubleIncome) && world.Protagonist?.HouseId == houseId)
         { int again = ledger.Lines.Where(l => l.Delta.Credits > 0).Sum(l => l.Delta.Credits); if (again > 0) ledger.Add("a second income (begun with)", "boost", new Resources { Credits = again }); }
-        _law = null; _reach.Clear();
+        _law = null;
         return ledger;
     }
 

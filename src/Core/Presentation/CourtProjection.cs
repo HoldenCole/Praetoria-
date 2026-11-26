@@ -72,7 +72,7 @@ public sealed record MotionCard(string Id, string KindId, string KindName, strin
 public sealed record MotionProposal(string KindId, string KindName, string Description, int Influence, string TargetType, IReadOnlyList<(string Id, string Name)> Targets, string? Refusal, bool NeedsOffice = false, IReadOnlyList<(string Id, string Name)>? Offices = null,
     bool NeedsLaw = false, IReadOnlyList<ActLawChoice>? Laws = null);
 /// <summary>A Senate-scoped law an Act may set: its options (the one in force marked), each with its refusal were it moved now.</summary>
-public sealed record ActLawChoice(string Id, string Name, string Description, string InForce, IReadOnlyList<(string Id, string Name, string Effects, string? Refusal, string Opinions)> Options);
+public sealed record ActLawChoice(string Id, string Name, string Description, string InForce, IReadOnlyList<(string Id, string Name, string Effects, string? Refusal, string Opinions)> Options, string Category = "");
 /// <summary>A law of the whole Reach as it stands: who set it and to what.</summary>
 public sealed record ReachLawLine(string Id, string Name, string Category, string OptionName, string Effects, string SetBy, bool Act, bool Mine, int CooldownLeft);
 /// <summary>An office of the Reach: who holds it, what it confers, and whether the player has a candidate for it.</summary>
@@ -510,7 +510,7 @@ public static class CourtProjection
             new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? (w.IsImperium ? "the court" : "the chair")} for a {(w.IsImperium ? "fief" : "prefecture")}  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
             Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var bc = new BuyGoodCommand(p.Id, r, 3, content.Trade); var q = bc.Quote(w); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the market  ({(q.Credits > 0 ? Money.Show(q.Credits) : "—")} credits)", q.Refusal); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
-            BuildSenate(w, p, house, tc.Senate, ctx),
+            BuildSenate(w, p, house, tc.Senate, ctx, tc.Fleets),
             BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate), Market: BuildMarket(w, p, house, content, tc), Assets: BuildAssets(w, p, house, content, tc, ctx), Exchange: BuildExchange(w, p, house, content, tc));
     }
 
@@ -538,7 +538,7 @@ public static class CourtProjection
     }
 
     /// <summary>The docket and the history with every house's stance, and the motions the player could move with their legal targets.</summary>
-    private static SenateCard BuildSenate(World w, Character p, House house, SenateSystem senate, CommandContext ctx)
+    private static SenateCard BuildSenate(World w, Character p, House house, SenateSystem senate, CommandContext ctx, FleetSystem? fleets = null)
     {
         using var perf_ = Perf.Time("proj:BuildSenate");
         MotionCard Card(Motion m)
@@ -552,7 +552,7 @@ public static class CourtProjection
                     FactionSystem.Of(w, h.Id)?.Name, FactionSystem.Leads(w, h.Id)) { BribePrice = SenateSystem.BribeCost(w, h, p) });
             var (f, a) = m.Open ? senate.Tally(w, m) : (m.ForWeight, m.AgainstWeight);
             bool againstMe = m.TargetId == house.Id && def != null && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0);
-            return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, senate.ProposerName(w, m), SenateSystem.IsPetition(m) ? SenateSystem.EstateAccent : proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m) + (senate.Ground(w, m) is { Length: > 0 } ground ? " " + ground : ""), m.ProposedTurn, m.Open, m.Passed,
+            return new MotionCard(m.Id, m.Kind, def?.Name ?? m.Kind, senate.ProposerName(w, m), SenateSystem.IsPetition(m) ? SenateSystem.EstateAccent : proposer?.AccentColor ?? "#888", targetName, senate.Describe(w, m) + (senate.Ground(w, m) is { Length: > 0 } ground ? " " + ground : "") + (m.Open ? ActToYou(w, house, senate, m, fleets) : ""), m.ProposedTurn, m.Open, m.Passed,
                 f, a, m.Votes.GetValueOrDefault(house.Id), m.ProposerHouseId == house.Id, againstMe, stances, SenateSystem.IsPetition(m),
                 m.Open ? new VetoCommand(p.Id, m.Id, senate.Offices, senate).Refusal(ctx) : "decided", m.Vetoed, m.Vetoed ? w.House(m.VetoedBy)?.Name ?? m.VetoedBy : null) { Swing = m.Swing };
         }
@@ -576,8 +576,9 @@ public static class CourtProjection
                 laws = senate.Policies.Laws.Where(l => l.Scope == "senate").OrderBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal).Select(l =>
                 {
                     string inForce = (PolicySystem.ReachOption(w, senate.Policies, l) ?? l.DefaultOption).Id;
-                    return new ActLawChoice(l.Id, l.Name, l.Description, inForce, l.Options.Select(o => (o.Id, o.Name, Effects(o.Effects), new ProposeMotionCommand(p.Id, d.Id, "", senate, lawId: l.Id, optionId: o.Id).Refusal(ctx),
-                        string.Join(", ", o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => $"{(senate.Policies.Estate(kv.Key)?.Name ?? kv.Key).Replace("The ", "")} {(kv.Value > 0 ? "+" : "")}{kv.Value}")))).ToList());
+                    var now = l.Option(inForce) ?? l.DefaultOption;   // what each option would do to the player's own house, in figures (docs/SENATE.md, "The Senate's law, enlarged")
+                    return new ActLawChoice(l.Id, l.Name, l.Description, inForce, l.Options.Select(o => (o.Id, o.Name, Effects(o.Effects) + (o.Id != inForce && SenateActs.ToHouse(w, house, now, o, senate.Offices, fleets) is { Length: > 0 } you ? " " + you : ""), new ProposeMotionCommand(p.Id, d.Id, "", senate, lawId: l.Id, optionId: o.Id).Refusal(ctx),
+                        string.Join(", ", o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => $"{(senate.Policies.Estate(kv.Key)?.Name ?? kv.Key).Replace("The ", "")} {(kv.Value > 0 ? "+" : "")}{kv.Value}")))).ToList(), l.Category);
                 }).ToList();
                 var firstOpen = laws.SelectMany(l => l.Options).FirstOrDefault(o => o.Refusal == null); probe = firstOpen.Refusal ?? laws.SelectMany(l => l.Options).Select(o => o.Refusal).FirstOrDefault(r => r != "already the law of the Reach") ?? probe;
                 if (laws.SelectMany(l => l.Options).Any(o => o.Refusal == null)) probe = null;
@@ -697,7 +698,7 @@ public static class CourtProjection
             {
                 All = standing.All, Holders = CornerSystem.Listed(standing, house.Id).Select(h => new HolderLine(h.HouseId, h.Name, h.Accent, h.Units, h.SharePct, h.HouseId == house.Id)).ToList(),
                 CornerHouseId = felt ? top!.HouseId : "", CornerHouseName = felt ? top!.Name : "", Cornered = felt && CornerSystem.Cornered(top!.Units, standing.All), CornerMine = felt && top!.HouseId == house.Id,
-                CornerSharePct = felt ? top!.SharePct : 0, PremiumPct = felt ? (int)Math.Round(100 * CornerSystem.Premium(top!.Units, standing.All)) : 0,
+                CornerSharePct = felt ? top!.SharePct : 0, PremiumPct = felt ? (int)Math.Round(100 * Math.Min(CornerSystem.Premium(top!.Units, standing.All), SenateActs.CornerCap(w))) : 0,
                 CornerHeld = CornerSystem.Held(w, t, house.Id, d.Id), CornerTake = CornerSystem.Take(w, t, house.Id, d.Id),
             };
         }).ToList();
@@ -810,7 +811,14 @@ public static class CourtProjection
         return parts.Count == 0 ? "" : "If it carries: " + string.Join("; ", parts) + ".";
     }
 
-    public static string Effects(IReadOnlyDictionary<string, int> fx) => fx.Count == 0 ? "changes no yield and no cost: what it moves is how the estates think of you" : string.Join(" · ", fx.Select(kv => $"{(InCredits(kv.Key) ? Money.Signed(kv.Value) : (kv.Value > 0 ? "+" : "") + kv.Value)} {Prose(kv.Key)}"));
+    public static string Effects(IReadOnlyDictionary<string, int> fx) => fx.Count == 0 ? "changes no yield and no cost: what it moves is how the estates think of you" : string.Join(" · ", fx.Select(kv => SenateActs.Words(kv.Key, kv.Value) ?? $"{(InCredits(kv.Key) ? Money.Signed(kv.Value) : (kv.Value > 0 ? "+" : "") + kv.Value)} {Prose(kv.Key)}"));
+    /// <summary>What an Act before the chamber would do to the player's own house, in figures, for the docket's card.</summary>
+    private static string ActToYou(World w, House house, SenateSystem senate, Motion m, FleetSystem? fleets)
+    {
+        if (m.LawId.Length == 0 || senate.Policies.Law(m.LawId) is not { } law || law.Option(m.LawOption) is not { } next) return "";
+        var cur = PolicySystem.ReachOption(w, senate.Policies, law) ?? law.DefaultOption; if (cur.Id == next.Id) return "";
+        return SenateActs.ToHouse(w, house, cur, next, senate.Offices, fleets) is { Length: > 0 } you ? " " + you : "";
+    }
     /// <summary>The effects of a law or an estate's mood that are an amount of credits, and so are written as credits are (docs/MONEY.md).
     /// A court's wage ("court_wage") is not one of them: it is in single credits.</summary>
     private static bool InCredits(string key) => key is "credits_per_world" or "tolls_bonus" or "informers_cost" or "envoy_cost" or "counsel_cost";

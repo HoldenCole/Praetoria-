@@ -100,6 +100,7 @@
                         <tbody>
                         @foreach (var r in reach)
                         {
+                            @if (r == reach.First(x => x.Category == r.Category)) { <tr class="law-cat-row" data-reach-category="@r.Category"><td colspan="4" class="law-cat">@r.Category</td></tr> }
                             <tr title="@(r.Act && r.CooldownLeft > 0 ? $"settled: {Counted.Years(r.CooldownLeft)} before the chamber will hear it again" : "")">
                                 <td><b>@r.Name</b></td><td class="@(r.Mine ? "good" : "")">@r.OptionName.ToLowerInvariant()</td><td class="muted">@r.Effects</td><td class="muted">@r.SetBy@(r.Act && r.CooldownLeft > 0 ? $" · settled {r.CooldownLeft}y" : "")</td>
                             </tr>

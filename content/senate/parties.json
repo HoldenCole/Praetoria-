@@ -4,12 +4,12 @@
     { "id": "optimates", "name": "The Optimates", "accent": "#3A86FF",
       "description": "The party of the old order: the chair, the courts and the great houses. Order in the lanes, rank in the chamber, the customary law kept and the upstart kept down.",
       "estates": ["old_blood", "magistrates"],
-      "laws": { "common_law": "assizes", "trade_charter": "protected", "land_law": "great_estates", "canvassing": "strict", "law_of_years": "strict", "citizenship": "old_worlds", "navigation_act": "levy", "justice": "iron_law", "court_etiquette": "closed_court", "franchise": "closed", "imperial_edict": "proscriptions" },
+      "laws": { "common_law": "assizes", "trade_charter": "protected", "land_law": "great_estates", "canvassing": "strict", "law_of_years": "strict", "citizenship": "old_worlds", "navigation_act": "levy", "hired_companies": "forbidden", "corn_law": "none", "justice": "iron_law", "court_etiquette": "closed_court", "franchise": "closed", "imperial_edict": "proscriptions" },
       "motions": { "recognition": 1, "censure": 1, "relief": -1, "levy": 1, "peace": 0 } },
     { "id": "populares", "name": "The Populares", "accent": "#E63946",
       "description": "The party of the squares and the frontier: a lenient tithe, open courts, land for the landless, and no common levy that empties the villages for the admirals' wars.",
       "estates": ["commons", "frontier"],
-      "laws": { "levy_of_the_reach": "no_common_levy", "exchange_levy": "light", "corn_law": "cheap_corn", "land_law": "allotments", "usury": "twelfth", "citizenship": "whole_reach", "forestalling": "forbidden", "tithe": "lenient", "justice": "lenient", "franchise": "open_ballot", "settlement": "homesteads", "court_etiquette": "open_hall", "labour": "guild_rights" },
+      "laws": { "levy_of_the_reach": "no_common_levy", "exchange_levy": "light", "corn_law": "cheap_corn", "land_law": "allotments", "usury": "tenth", "citizenship": "whole_reach", "forestalling": "forbidden", "navigation_act": "free", "law_of_service": "short", "tithe": "lenient", "justice": "lenient", "franchise": "open_ballot", "settlement": "homesteads", "court_etiquette": "open_hall", "labour": "guild_rights" },
       "motions": { "relief": 1, "levy": -1, "censure": -1, "peace": 1, "embargo": -1 } },
     { "id": "sword", "name": "The Sword", "accent": "#FFD60A",
       "description": "The admirals' party: the Reach's levy, conscription, the aggressive doctrine, and commissions for men who have seen battle. Peace is what you get when the enemy is beaten.",
@@ -19,7 +19,7 @@
     { "id": "factors", "name": "The Factors", "accent": "#2EC27E",
       "description": "The counting-houses' party: open lanes, free trade, guild rights, no tolls, and an exchange that never closes. War is bad for business; so is a hungry world.",
       "estates": ["merchants"],
-      "laws": { "trade_charter": "open_lanes", "exchange_levy": "none", "usury": "free", "navigation_act": "free", "forestalling": "free_market", "canvassing": "free", "law_of_service": "short", "hired_companies": "licensed", "corn_law": "none", "tariffs": "free_trade", "labour": "guild_rights", "exchange_rates": "open", "reach_tolls": "none", "letters_of_marque": "forbidden" },
+      "laws": { "trade_charter": "open_lanes", "exchange_levy": "none", "usury": "free", "navigation_act": "staple", "forestalling": "free_market", "canvassing": "free", "law_of_service": "short", "hired_companies": "licensed", "corn_law": "none", "tariffs": "free_trade", "labour": "guild_rights", "exchange_rates": "open", "reach_tolls": "none", "letters_of_marque": "forbidden" },
       "motions": { "embargo": -1, "relief": 1, "levy": -1, "peace": 1, "commission": 0 } }
   ]
 }

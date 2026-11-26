@@ -141,3 +141,176 @@ Two elected offices (docs/REPUBLIC.md): every tenth turn the parties' weight ele
 their nominees; the player stands with `StandForConsulCommand`. Consuls weigh more, are paid by the chair, move motions
 cheaper, and may veto one open motion a term (`VetoCommand`; rivals veto what strikes at them). Flags `election_near`,
 `election_held`, `consul_elected`, `consul_lost`, `vetoed_mine`; counters `elections`, `vetoes`, `consul_term:<house>`.
+
+## The Senate's law, enlarged
+
+**The owner asked (2026-11-24):** "Then take a look at laws that are currently in the game and if they do anything and then
+more laws that can be done. Executive edits, laws to vote on, local laws, etc." This section is the laws to vote on: ten
+more Acts of the Senate, and a chamber that makes law by itself at a rate a player notices. The review of the laws that
+were there before is docs/LAWS_REVIEW.md.
+
+### What was built
+
+**Ten more Acts** (`content/politics/laws.json`, the last ten laws, scope `senate`, `reach: true`). Each is a standing law
+of the whole Reach with a custom that does nothing and one or two other options. Each option gives something and costs
+something, and its estates' opinions are balanced: what one option pleases, it galls about as much elsewhere, so that a
+chamber that carries many Acts does not, by that alone, make every estate in the Reach loyal. Every effect is read by a
+rule that already existed, for every house, through the Reach's law (`PolicySystem.ReachModifier`, or
+`SenateActs.Reach` for the rules that are handed no catalogue of laws), and is listed in `ReachRead.Also`
+(`SenateActs.ReadForTheReach`, registered when the assembly loads).
+
+| Act | Option | What it does | Estates who mind | Houses who mind | The bench that wants it | Modelled on |
+|---|---|---|---|---|---|---|
+| **The Common Law** | Local courts | lawlessness +1 a year in every region | frontier +10, old blood +10, magistrates -10 | | | the manorial and hundred courts |
+| | The customary law (default) | as things are | | | | |
+| | The Reach's assizes | lawlessness -1 a year, unrest -1 a year | magistrates +15, commons +5, frontier -10, old blood -10 | a house with worlds in a lawless region (40 or more), or a restless world, is for | Optimates | the Assize of Clarendon (1166) and the king's justices in eyre |
+| **The Trade Charter** | Protected markets | what every house pays on the exchanges +10%; tolls +100 credits to a lane world | merchants -15, magistrates +5, old blood +5 | a house of three worlds or more is for | Optimates | the Statute of the Staple (1353) |
+| | The customary charter (default) | as things are | | | | |
+| | Open lanes | the exchanges -10%; ventures pay +10% | merchants +20, frontier +5, magistrates -5 | a house with a navy to fuel is for | Factors | the Carta Mercatoria (1303) |
+| **The Arms Market** | Closed (default) | as things are | | | | the Roman ban on selling arms beyond the frontier (Codex 4.41) |
+| | A licensed market | isotopes may be bought on the exchanges | officers +10, merchants +10, magistrates -10, commons -5 | | Sword | the licensing of saltpetre and powder under the Tudors |
+| **The Exchange Levy** | No levy (default) | as things are | | | Factors | |
+| | A light levy | 5% on shares traded | merchants -10, commons +5 | | Populares | the stamp duty on the transfer of shares (1694 onward) |
+| | A heavy levy | 15% on shares traded | merchants -25, commons +10, magistrates +5 | | | the same |
+| **The Levy of the Reach** | No common levy | manpower -1 a world | commons +10, officers -10 | | Populares | |
+| | The customary levy (default) | as things are | | | | |
+| | The Reach's levy | manpower +1 a world; unrest +1 a year | officers +15, commons -15 | a house at war is for; one with a restless world against | Sword | the Roman dilectus, the consuls' levy of citizens |
+| **The Usury Law** | Freedom of contract (default) | as things are | | | Factors | |
+| | No more than twenty in the hundred | no loan above 20 in the hundred: the counting-houses and every bank cut their rate to it and lend less in the same proportion (the counting-houses' 3,000 credits at 30 to a house of one world become 2,000 at 20); a house may not lend another above it, and a refused loan names the law | commons +5, frontier +5, merchants -10 | a lender (a bank, or a house another owes) is against, 2; a house in debt or short of coin for, 1 | | the Twelve Tables' cap on interest |
+| | No more than ten in the hundred | the same at 10 (those 3,000 credits become 1,000; the stewards' standing loan of 2,000 becomes 1,000 under the cap of 20 and 500 under this) | commons +10, frontier +5, merchants -15 | a lender against, 3; a borrower for, 2 | Populares | the English Act against Usury (1571), ten in the hundred |
+| **The Law on Canvassing** | Coin forbidden at elections | no lavish canvass (4,000 credits) may be paid for; a handsome one (1,500) is written on the record as votes bought, and may be charged | old blood +10, magistrates +10, merchants -10, commons -10 | a house with 7,500 credits or more is against, 2; a house with under 2,500, or with an upright head, for | Optimates | the Roman laws on ambitus (the lex Calpurnia, 67 BC); the Corrupt and Illegal Practices Act (1883) |
+| | The customary canvass (default) | a lavish canvass is written down, as before | | | | |
+| | Money is free | nothing is written down, however lavish | merchants +10, commons +5, old blood -10, magistrates -5 | the rich are for | Factors | |
+| **The Law against Forestalling** | A free market (default) | as things are | | | Factors | |
+| | The corner's premium capped | a corner adds no more than 20% to a price | commons +5, merchants +5, old blood -10 | whoever holds a third of a good is against, 2; while a corner stands, a house with a navy (which must buy) is for | | the Assize of Bread and Ale, a price set by law |
+| | Engrossing forbidden | a house holding half of a good is made to sell down to under a third at the year's reckoning, to the merchants, at what the good is ordinarily worth | commons +10, magistrates +10, merchants -10, old blood -10 | the holder against, 3 | Populares | the statute against forestallers, regrators and engrossers (1552) |
+| **The Law of Hired Companies** | Free companies (default) | as things are | | | Sword | the condotta of the Italian cities |
+| | Licensed companies | a fleet hired out costs its house 300 credits, paid to the chair, and 1 legitimacy where it costs 3 | magistrates +5, merchants +5, officers -10 | a house with a fleet out on hire is against, 2; the chair, which is paid, for | Factors | the Foreign Enlistment Act (1819), service abroad by licence |
+| | Hired companies forbidden | no fleet may be hired out; companies on hire come home at the year's reckoning; lawlessness -1 a year | magistrates +10, merchants +5, commons +5, officers -15, frontier -10 | a house with a fleet on hire against, 3; a house that has hired one against, 2; a house at war with one that has, for, 2 | Optimates | the Statute of Liveries (1468) against private retinues |
+| **The Corn Law** | No dole (default) | as things are | | | Optimates, Factors | |
+| | Corn at a fixed price | every house pays 100 credits a world a year; unrest -1 a year on every world | commons +10, merchants -5, old blood -5 | a house pays it on every world (half a point a world against, at most 3); a house with a world at unrest 40 or more is for, 2 | Populares | the lex frumentaria of Gaius Gracchus (123 BC) |
+| | The free dole | 200 credits a world a year; unrest -2 | commons +15, merchants -10, old blood -10, magistrates -5 | the same, twice | | the free corn of Clodius (58 BC) |
+| **The Land Law** | The great estates confirmed | prosperity on every world settles 4 higher; its people grow 1 less a year | old blood +15, merchants +5, commons -15, officers -5 | a house with two worlds at prosperity 60 or more is for | Optimates | the great estates (latifundia) the Gracchi meant to break |
+| | The customary holdings (default) | as things are | | | | |
+| | Land for settlers and veterans | the people grow 1 more a year; prosperity settles 4 lower | commons +10, officers +5, frontier +5, old blood -15, merchants -5 | a house with a world on the rim is for | Populares | the lex Sempronia agraria of Tiberius Gracchus (133 BC) |
+| **The Law of Service** | Short service | the fleets' keep -25% for every house; crews recover readiness 2 a year slower | commons +10, merchants +5, officers -15 | a house of four hulls or more at peace is for | Populares, Factors | the citizen levy before Marius |
+| | The customary term (default) | as things are | | | | |
+| | Long service | the keep +25%; readiness 3 a year faster | officers +15, commons -10, merchants -5 | a house at war is for, 2; a large fleet at peace, or a house short of coin, against | Sword | the fixed terms of Augustus (13 BC) |
+| **The Navigation Act** | Free dealing between houses (default) | as things are | | | Populares | |
+| | A levy on private sales | the chair takes 10 in the hundred of every lot one house sells another, out of the seller's pay | magistrates +5, merchants +5, old blood -10, frontier -5 | a house that has traded with another these three years against, 1; the chair for, 2 | Optimates | the customs on alien merchants' goods |
+| | The staple | no house sells another a lot out of its store, and no new standing deal is struck; tolls +100 credits a lane world | merchants +15, magistrates +5, old blood -15, frontier -10 | a trading house against, 2; a house with lane worlds for | Factors | the Navigation Act (1651) and the Ordinance of the Staple (1353) |
+| **The Law of the Years** | The years relaxed | every office of the ladder, and the consulship, may be stood for five years younger (never under 18) | officers +10, commons +5, old blood -10, magistrates -10 | a house with someone it would let stand is for, a point each, at most 2 | Sword | the waivers the Senate gave Scipio and Pompey |
+| | The customary years (default) | as things are | | | | |
+| | The years enforced | five years older | old blood +10, magistrates +5, officers -10, commons -5 | a house with someone it would make wait is against | Optimates | the lex Villia annalis (180 BC) |
+| **The Citizenship of the Reach** | Citizens of the old worlds only | every region's allegiance settles 8 lower | old blood +10, commons +5, frontier -15 | the chair against, 2; a house that has left the capital's order for | Optimates | the Senate's refusal of the Italians before the Social War |
+| | The customary citizenship (default) | as things are | | | | |
+| | Citizenship for the whole Reach | every region settles 8 higher | frontier +15, old blood -15, commons -5 | the chair for, 2; a house whose worlds lie where allegiance is under 45 for, 1 | Populares | the lex Julia (90 BC) and the Constitutio Antoniniana (AD 212) |
+
+Where the effect is read, for every house: `Lending.Lenders`, the stewards' standing loan in `TakeLoanCommand` and
+`DealingsSystem.LendRefusal` (usury); `LadderSystem.CampaignRefusal` and what `LadderSystem.Campaign` and the other houses'
+canvasses write on the record (canvassing); `CornerSystem.Reckon` and `CornerSystem.Held` (forestalling);
+`MercenarySystem.Refusal`, `Hire` and `Tick` (hired companies); the per-world line of `Economy.Compute` and its unrest causes
+(the Corn Law); `Economy.ProsperityWhy` and the yearly growth in `Economy.Accrue` (the Land Law); `FleetSystem.Upkeep` and
+`FleetSystem.Tick` (service); `HouseTradeSystem.WontTrade`, `Trades` and the sale itself (the Navigation Act), and the tolls in
+`Economy.Compute`; `LadderSystem.Bar` and `OfficeSystem.Candidate` (the years); `RegionSystem.AllegianceTarget` (citizenship).
+
+**The chamber legislates** (`SenateActs.Legislate`, called once a year at the end of `SenateSystem.Tick`). Before, an Act
+was moved only as one of the reasons the busiest house in the Senate might have in one year in three, after a war, an
+office, a title, the chair's purse and a lawless region; and only when it pleased an estate already hostile to that house.
+Over two games of thirty years seven were moved. Now, every year in which nothing at all is before the Senate (so that a
+place is always left for the player's own motion), and no Act is on the docket:
+
+1. a house that a law of the Reach in force hurts, by what it does to that house (a lender under a cap, a house with a
+   fleet on hire under a licence, a house paying the dole on many worlds), moves its **repeal**, back to the custom, if it
+   counts at least 60 for every 100 against;
+2. else the **benches** are asked in turn, a different one first each year: each moves the Act of its platform that it
+   counts best placed to carry, if it counts at least 80 for every 100 against. It counts as the Senate screen's own
+   forecast does. A bench the player leads moves nothing of itself.
+
+The vote is a year later, and the leans move in the meantime. Each Act has a place on the platform of the bench that wants
+it (`content/senate/parties.json`, the table above); where two benches want different options, an Act carried by one can be
+carried back by the other once the six years of its settling are out and the benches' weight has changed. The player is
+told when an Act is moved that would touch the house, with what it would do in figures.
+
+**How a house leans on an Act** follows from what the Act does to that house (`SenateActs.Interest`, added to
+`SenateSystem.ActLean`), besides what its estates and its bench make of it: the "houses who mind" column above. The roll
+call names the cause: "it lends, and a cap on usury cuts what it earns".
+
+**What the player sees.** The Senate's Act picker lists the fifteen Acts grouped by their category, and against each option
+says, after what it does, what it would do to the player's own house in figures (`SenateActs.ToHouse`): "To your house:
+your house would pay 500 credits a year, 100 credits for each of its 5 worlds; unrest on each of your 5 worlds would move 1
+a year lower." An Act on the docket says the same on its card. The Laws window's table of the law of the Reach is grouped
+by category. Every new effect has plain words wherever an effect is shown (`SenateActs.Words`).
+
+### The numbers
+
+Measured with `LAWS_USE=1 dotnet run --project src/Tools -- laws --seeds 2`: two games of thirty years of the Old Lion,
+a player who does nothing. Before is the working branch as it stood before this work, measured with the same probe.
+
+| | Before | After |
+|---|---|---|
+| Acts of the Senate in the game | 5 | 15 |
+| Acts and petitions moved | 7 | 48 |
+| of which a bench moved for its platform (`SenateActs.Legislate`) | none: there was no such thing | 21 |
+| of which a house the law in force hurt moved as a repeal | none | 6 |
+| of which petitions of an estate | 0 | 11 |
+| of which moved as the busiest house's business of the year (`WantedAct`, as before) | 7 | 10 |
+| of all these, moved back to the custom | 0 | 9 |
+| Carried | 6 | 34 |
+| Lost | 0 | 12 |
+| Years in which an Act was moved | 7 of 60 | 44 of 60 |
+| Motions of every kind decided | 38 | 70 |
+| Moved by bench | Populares 6, Optimates 1 | Optimates 16, Populares 11, Factors 9, Sword 1; the estates 11 |
+
+`dotnet run --project src/Tools -- econ --seeds 2`, the middle house's treasury at year 30, money standard, no salaries:
+2,110 credits before, 2,370 after; over four games (`--seeds 4`) 2,187 before and 2,515 after. With salaries paid the rise
+is larger: standard salaries 1,654 to 2,684 over four games, light 2,094 to 3,440; Generous 7,771 to 11,775. The cause is the
+estates, not the Acts' own effects (with every new Act's effects set to nothing the treasury still rose): an Act's estates'
+opinions weigh on every house's estates alike, and in these games the Optimates carried most of their platform, so that by
+year 20 the Reach's law gave the magistrates +35 to +50 and they were loyal in 17 to 30 houses, which pays each of them 100
+credits a world and two of prosperity a year; the officers, galled by the same laws, were hostile in up to 23. Which estate
+the law of the Reach makes loyal now follows which bench carries the chamber. This is for the owner (below).
+
+### What I chose
+
+- The ten Acts, their options, effects and estates' opinions as in the table; every option's opinions sum to nothing or
+  less. A first version had options that pleased more than they galled, and the chamber carrying a dozen of them made the
+  magistrates and the merchants loyal in every house: the money table's middle treasury rose from 2,110 to 3,550 credits.
+- The new Acts are settled for six years once carried (the five older ones keep ten), and cost three influence to move.
+- Usury: caps of 20 and 10 in the hundred; a lender's limit is cut in the proportion of the cap to its rate, in steps of 500
+  credits and never below 500. Loans already made keep their rate.
+- Canvassing: the strict law forbids a lavish canvass and writes a handsome one down; money free writes nothing down.
+- Forestalling: the premium capped at 20%; under the ban the holder may keep a third of all there is less one, and is paid
+  the lower of the price and what the good is ordinarily worth.
+- Hired companies: a licence of 300 credits to the chair, and 1 legitimacy for hiring out instead of 3; the ban also takes
+  1 a year from every region's lawlessness.
+- The Corn Law: 100 credits a world and unrest -1, or 200 and -2. The Land Law: prosperity 2 (4 a year in the reckoning,
+  which doubles a law's prosperity) against 1 a year of people's growth. Service: 25% of the keep against 2 or 3 of
+  readiness a year. The Navigation Act: a levy of 10 in the hundred of a lot, at least 100 credits on a sale of 200, none on
+  the chair's own sales; the staple adds 100 credits a toll. The years: 5, never under 18. Citizenship: 8 on where every
+  region's allegiance settles. Citizenship moves where allegiance settles rather than the existing `allegiance_drift`:
+  a drift of a point a year is pulled back by the drift toward where a region settles, so it moves the settled allegiance
+  by that point only.
+- How a house leans for what an Act does to it: the weights in the "houses who mind" column; a world restless at unrest
+  40, rich at prosperity 60; a large fleet four hulls; allegiance thin under 45; a rich house 7,500 credits (five handsome
+  canvasses), a poor one under 2,500.
+- The chamber: only when nothing is before the Senate; a bench moves at 80 for each 100 against, a hurt house at 60; a
+  house is hurt at 2 of interest; the benches are asked in turn.
+
+### What is not built
+
+- Other houses do not hire their fleets out (only the player does), so the Law of Hired Companies touches other houses as
+  employers and enemies of the player's companies, by the licences paid to the chair, and by the lawlessness of the ban.
+- The Navigation Act's levy falls on lots sold out of a store, not on the deliveries of standing deals; the staple lets a
+  deal already struck run out its term.
+- No events were written for the new Acts. They are moved, voted and carried as the five older ones are, with the same
+  flags (`act_open`, `act_passed:<law>`) for content to read.
+- A bench does not whip or lobby for its own Act, and nobody pays to have one moved: a bench that counts short waits.
+
+### For the owner
+
+1. **The estates follow the chamber.** With fifteen Acts, the opinions of what the Senate has carried can push an estate
+   past +30 or under -30 in every house at once, and the estates' loyal and hostile effects are not of the same worth: a
+   loyal magistracy pays 100 credits a world, a loyal commons calms and fills the worlds. Should the Reach's law count for
+   less in what an estate thinks of a house than the house's own laws do (half, say), so that a house is judged first by
+   what it does itself?

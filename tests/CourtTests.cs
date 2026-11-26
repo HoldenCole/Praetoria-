@@ -160,7 +160,7 @@ public class CourtTests
     [Fact]
     public void The_law_on_wages_makes_the_household_dearer_and_more_loyal_or_cheaper_and_less()
     {
-        var law = Content.Policies.Law("household_wages"); Assert.NotNull(law); Assert.Equal("house", law!.Scope); Assert.Equal(3, law.Options.Count); Assert.Equal(law, Content.Policies.Laws.Last());
+        var law = Content.Policies.Law("household_wages"); Assert.NotNull(law); Assert.Equal("house", law!.Scope); Assert.Equal(3, law.Options.Count); Assert.Equal(law, Content.Policies.Laws.Last(l => l.Scope != "senate"));   // the Acts of docs/SENATE.md, "The Senate's law, enlarged", come after it
         int Run(string option)
         {
             var (_, w, house, me, _) = Start(); house.Treasury.Credits = 500; if (option.Length > 0) PolicySystem.Enact(w, Content.Policies, house.Id, "household_wages", option);

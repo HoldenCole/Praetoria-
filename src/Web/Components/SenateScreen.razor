@@ -323,7 +323,7 @@
                             {
                                 <select class="sel" @onchange="e => SetLaw(pr.KindId, e)">
                                     <option value="">— which law of the Reach —</option>
-                                    @foreach (var l in pr.Laws) { <option value="@l.Id">@l.Name · now @l.Options.First(o => o.Id == l.InForce).Name.ToLowerInvariant()</option> }
+                                    @foreach (var grp in pr.Laws.GroupBy(l => l.Category)) { <optgroup label="@grp.Key" data-act-category="@grp.Key">@foreach (var l in grp) { <option value="@l.Id">@l.Name · now @l.Options.First(o => o.Id == l.InForce).Name.ToLowerInvariant()</option> }</optgroup> }
                                 </select>
                                 @if (ActLaw(pr) is { } al)
                                 {

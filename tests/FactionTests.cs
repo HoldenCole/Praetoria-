@@ -26,6 +26,7 @@ public class FactionTests
 
     private static Motion Decided(World w, SenateSystem senate, params (string house, int vote)[] votes)
     {
+        w.Motions.RemoveAll(x => x.Open && x.Kind == "act");   // what the benches moved of their own last year (SenateActs.Legislate) is not what is measured here
         var m = senate.Add(w, "aurelian", "levy", ""); foreach (var (h, v) in votes) m.Votes[h] = v;
         w.Turn++; senate.Tick(w); return m;
     }

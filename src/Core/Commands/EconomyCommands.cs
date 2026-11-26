@@ -194,8 +194,8 @@ public sealed class TakeLoanCommand : ICommand
         if (t.Refusal != null) return t.Refusal;
         if (_amount < Lending.Step) return $"no less than {Money.Credits(Lending.Step)}";
         int room = Lending.Room(w, house, t);
-        if (room < Lending.Step) return $"{t.Lender} will lend you no more: its limit for you is {Money.Show(t.Limit)}, and you owe it {Money.Show(house.Debt)}";
-        return _amount <= room ? null : $"{t.Lender} will lend you {Money.Show(room)} and no more";
+        if (room < Lending.Step) return $"{t.Lender} will lend you no more: its limit for you is {Money.Show(t.Limit)}, and you owe it {Money.Show(house.Debt)}{SenateActs.CapNote(w, t)}";
+        return _amount <= room ? null : $"{t.Lender} will lend you {Money.Show(room)} and no more{SenateActs.CapNote(w, t)}";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)

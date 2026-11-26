@@ -266,7 +266,7 @@ public sealed class SenateSystem
                 if (Polities != null && targetHouse != null) Add(Polities.ReconquestLean(w, h, targetHouse, toTarget), "what it makes of a reconquest");
                 break;
             case "act":
-                Add(ActLean(w, h, m), "the law itself: its own laws, its estates and its bench");
+                Add(ActLean(w, h, m), (why != null ? SenateActs.Because(w, h, Policies, m, _offices) : null) ?? "the law itself: its own laws, its estates and its bench");
                 break;
             case "foreign_war":
                 Add(ForeignWarLean(w, h, m.TargetId), "the war itself: its trade, its bench, how near the nation lies");
@@ -366,6 +366,7 @@ public sealed class SenateSystem
         if (Fx("market_price_pct") < 0 && w.Fleets.Values.Any(f => f.OwnerId == h.Id && !f.Office && f.Strength > 0)) lean += 1;
         if (Fx("market_price_pct") > 0 && w.HoldingsOf(h.Id).Count(x => x.IsPlanet) >= 3) lean += 1;
         if (Fx("unrest_drift") > 0 && w.HoldingsOf(h.Id).Any(x => x.IsPlanet && x.Unrest >= 50)) lean -= 2;
+        lean += SenateActs.Interest(w, h, cur, next, _offices);   // what the Act does to this house: a lender and a cap on usury, a hired fleet and the ban (docs/SENATE.md, "The Senate's law, enlarged")
         return lean;
     }
 
@@ -417,6 +418,7 @@ public sealed class SenateSystem
         FactionSystem.Tick(w, id => Weight(w, id));
         Petition(w);
         Propose(w, mine);
+        SenateActs.Legislate(w, this, mine);   // the chamber's own law: a repeal by the house a law hurts, or an Act of a bench's platform (docs/SENATE.md, "The Senate's law, enlarged")
         // prune history
         var resolved = w.Motions.Where(m => m.Resolved).OrderByDescending(m => m.ResolvedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).Skip(HistoryKept).ToList();
         foreach (var m in resolved) w.Motions.Remove(m);
