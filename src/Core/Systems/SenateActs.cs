@@ -402,7 +402,7 @@ public static class SenateActs
     public static Motion? Legislate(World w, SenateSystem senate, string? mine)
     {
         var cat = senate.Policies; var def = senate.Motions.Def("act");
-        if (def == null || cat.IsEmpty || SenateSystem.Docket(w).Any()) return null;
+        if (def == null || cat.IsEmpty || SenateSystem.Docket(w).Any() || EdictSystem.Cowed(w, "") != null) return null;   // nobody brings business while the holder rules by decree (docs/EDICTS.md)
         var acts = cat.Laws.Where(l => l.Scope == "senate" && !PolicySystem.OnCooldown(w, PolicySystem.SenateHolder, l.Id)).OrderBy(l => l.Id, StringComparer.Ordinal).ToList();
         if (acts.Count == 0) return null;
         bool Free(House h) => h.Id != mine && !World.Outsider(h.Id) && senate.MayPropose(w, h.Id) && Economy.HeadOf(w, h) != null && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id);
