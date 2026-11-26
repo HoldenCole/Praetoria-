@@ -33,7 +33,7 @@ public static class TriumphSystem
     public const string HadKey = "triumphs_had", DeclinedKey = "triumphs_declined", LapsedKey = "triumphs_lapsed", TakenUpKey = "commands_taken_up", NotTakenUpKey = "commands_not_taken_up",
         LeaveMovedKey = "absence_moved", LeaveGrantedKey = "absence_granted", LeaveRefusedKey = "absence_refused", LeaveVetoedKey = "absence_vetoed",
         ElectedAwayKey = "elected_in_absence", LeaveSpentKey = "absence_spent", NamesDroppedKey = "names_taken_down_away", CameHomeKey = "came_home_to_stand",
-        StoodTakenUpKey = "stood_and_took_up", StoodNotTakenUpKey = "stood_and_did_not_take_up";
+        StoodTakenUpKey = "stood_and_took_up", StoodNotTakenUpKey = "stood_and_did_not_take_up", UnderRecallKey = "triumphs_void_under_recall";
     /// <summary>One of another house who laid a command down to stand for office: the year after which they may take another.</summary>
     public static string StandingKey(string characterId) => "home_to_stand:" + characterId;
     public static bool StandingHome(World w, Character c) => w.Counter(StandingKey(c.Id)) > w.Turn;
@@ -51,11 +51,20 @@ public static class TriumphSystem
     public static TriumphVote? Waiting(World w, string characterId) => w.TriumphVotes.FirstOrDefault(t => !t.Done && t.Choice.Length == 0 && t.CharacterId == characterId);
     /// <summary>The year at home of one who came home for a triumph, while it lasts.</summary>
     public static TriumphVote? AtHome(World w, string characterId) => w.TriumphVotes.FirstOrDefault(t => !t.Done && t.Choice == Home && t.CharacterId == characterId);
-    /// <summary>The triumph a fleet is held for: its general is home for it, and nobody else has been given the fleet meanwhile.</summary>
-    public static TriumphVote? HeldBy(World w, Fleet f) => w.TriumphVotes.Count == 0 || f.AdmiralId.Length > 0 ? null : w.TriumphVotes.FirstOrDefault(t => !t.Done && t.Choice is Home or Stand && t.FleetIds.Contains(f.Id));
+    /// <summary>The triumph a fleet is held for: its general is home for it, still living and of the house, and nobody else has been given the
+    /// fleet meanwhile. One who dies or leaves the house while home has nothing waiting for them, and the fleet is the house's to fill.</summary>
+    public static TriumphVote? HeldBy(World w, Fleet f) => w.TriumphVotes.Count == 0 || f.AdmiralId.Length > 0 ? null
+        : w.TriumphVotes.FirstOrDefault(t => !t.Done && t.Choice is Home or Stand && t.FleetIds.Contains(f.Id) && w.Char(t.CharacterId) is { Alive: true } g && g.HouseId == t.HouseId);
     /// <summary>Is the fleet held for a general home for a triumph? Then nobody is given it unasked, and its crews' devotion does not fade.</summary>
     public static bool Held(World w, Fleet f) => HeldBy(w, f) != null;
     public static bool HeldFor(World w, Fleet f, string characterId) => HeldBy(w, f)?.CharacterId == characterId;
+    /// <summary>Is this person under the Senate's recall? Then they come home at its order (<see cref="CaesarSystem.Obey"/>), not to a triumph
+    /// or to stand for office.</summary>
+    public static bool UnderRecall(World w, string characterId) => w.Recalls.Any(r => r.CharacterId == characterId);
+    /// <summary>Why one home for a triumph may hold no command now, or null: said of "you" on the player's own screen, else by name. Null too
+    /// when a longer bar (a recall's) holds them besides, which says its own reason.</summary>
+    public static string? HomeRefusal(World w, Character c) => AtHome(w, c.Id) is { } t && w.Counter(CaesarSystem.BarredKey(c.Id)) <= t.HomeUntil + 1
+        ? (c.Id == w.ProtagonistId ? "you are home for the triumph, and hold" : c.Name + " is home for the triumph, and holds") + $" no command until the end of year {t.HomeUntil}" : null;
 
     /// <summary>The Senate has voted a general a triumph. It is had at the gate, so the general's answer is wanted.</summary>
     public static void Voted(World w, House house, Character g, House? proposer)
@@ -81,7 +90,8 @@ public static class TriumphSystem
     {
         if (who is not { Alive: true }) return "no one to answer";
         if (choice is not (Home or Keep)) return "come home for it, or keep the fleet";
-        return Waiting(w, who.Id) == null ? "the Senate has voted you no triumph to answer" : null;
+        if (Waiting(w, who.Id) == null) return "the Senate has voted you no triumph to answer";
+        return choice == Home && UnderRecall(w, who.Id) ? "the Senate has since recalled you, and one under recall comes home at its order, not to a triumph" : null;
     }
 
     /// <summary>The general comes home for the triumph: the honours are given while the crews still have their commander to march behind,
@@ -99,8 +109,19 @@ public static class TriumphSystem
         g.Flags.Add(HomeChar); Count(w, HadKey);
         string names = laid.Count == 0 ? "" : $" {string.Join(" and ", laid.Select(f => f.Name))} {(laid.Count == 1 ? "waits" : "wait")} for {g.Name} until the end of year {t.HomeUntil}.";
         w.Log($"{g.Name} of {house.Name} comes home and lays the command down to have the triumph.{names}");
+        TellOwner(w, g, laid, $"to have the triumph the Senate voted, until the end of year {t.HomeUntil}");
         if (house.Id == mine && g.Id != w.ProtagonistId)
             w.Tell("good", $"{g.Name} comes home for the triumph the Senate voted{(why.Length > 0 ? " (" + why + ")" : "")}, and lays the command down until the end of year {t.HomeUntil}.", "military", g.Id);
+    }
+
+    /// <summary>One of another house who commands a fleet of the player's house by service has laid it down to come home: the player is told,
+    /// since the fleet waits for them meanwhile and nobody of the house steps into the empty flag unasked.</summary>
+    private static void TellOwner(World w, Character g, List<Fleet> laid, string why)
+    {
+        var mine = w.Protagonist?.HouseId; if (mine == null || g.HouseId == mine) return;
+        foreach (var f in laid.Where(f => f.OwnerId == mine))
+            w.Tell("warn", $"{g.Name} of {Nm(w, g.HouseId)}, who commands {f.Name} for your house by service, lays the command down {why}. {f.Name} waits for them "
+                + (FleetSystem.CaptainOf(w, f) is { } cap ? "under its captain, " + cap.Name : "with nobody in command") + "; give it to another, and it is theirs.", "military:fleets", g.Id);
     }
 
     /// <summary>The general lets the triumph go and keeps the fleet; or (<see cref="Lapsed"/>) the year ran out without an answer, which is
@@ -116,6 +137,16 @@ public static class TriumphSystem
             : $"{t.Name} of {house} declines the triumph the Senate voted, and stays with the fleet{(why.Length > 0 ? ": " + why : "")}.");
         if (t.HouseId == mine && t.CharacterId != w.ProtagonistId)
             w.Tell("info", $"{t.Name} declines the triumph the Senate voted, and keeps the fleet{(why.Length > 0 ? ": " + why : "")}.", "military", t.CharacterId);
+    }
+
+    /// <summary>The general voted a triumph has been recalled before answering it: the triumph is void, and the recall is answered as any other
+    /// (the general comes home at the Senate's order and may hold no command for five years). Coming home for the triumph is no way out of it.</summary>
+    private static void VoidUnderRecall(World w, TriumphVote t, Character g)
+    {
+        t.Choice = Void; t.Why = "recalled"; t.Done = true; Count(w, UnderRecallKey);
+        w.Log($"The Senate has recalled {g.Name} of {Nm(w, t.HouseId)}, and the triumph it voted is void: one under recall comes home at the Senate's order.");
+        if (t.HouseId == w.Protagonist?.HouseId)
+            w.Tell("warn", $"The Senate has recalled {(g.Id == w.ProtagonistId ? "you" : g.Name)}, and the triumph it voted is void: one under recall comes home at its order, not to a triumph.", "military", g.Id);
     }
 
     /// <summary>Why a general would decline the triumph to keep the fleet (positive) or come home for it (negative): by their nature, and by
@@ -190,16 +221,19 @@ public static class TriumphSystem
     }
     public static bool HasLeave(World w, string houseId) => w.WorldCounters.ContainsKey(LeaveKey(houseId));
     /// <summary>Why this person may not stand for office while they command away from the capital, or null: said as the ladder says its
-    /// bars, of "they".</summary>
+    /// bars, of "they", with the ways out there are (a fleet of the house's own is brought to the capital or given to another; a command by
+    /// service is resigned).</summary>
     public static string? AwayRefusal(World w, Character c) => AwayCommand(w, c) is { } f && !HasLeave(w, c.HouseId)
-        ? $"they command {f.Name} away from the capital: lay the command down, or ask the Senate for leave to stand in absence" : null;
+        ? $"they command {f.Name} away from the capital: {(f.OwnerId == c.HouseId ? "bring it to the capital, give the command to another" : "resign the command")}, or ask the Senate for leave to stand in absence" : null;
     /// <summary>The same, said of one person by name, or of "you".</summary>
     public static string? AwaySays(World w, Character c) => AwayRefusal(w, c) is { } no ? (c.Id == w.ProtagonistId ? "you command" : c.Name + " commands") + no["they command".Length..] : null;
     public static bool MayStand(World w, Character c) => AwayRefusal(w, c) == null;
 
-    /// <summary>Why the house could not stand for consul when it would but for one who commands away, or null.</summary>
+    /// <summary>Why the house could not stand for consul when it would but for one who commands away, or null: null too when it is barred
+    /// besides (a consul of the last term, an enemy of the Reach), which says its own reason.</summary>
     public static string? ConsulAway(World w, OfficeCatalog offices, string houseId) =>
-        ElectionSystem.ConsulOffices(offices).FirstOrDefault() is { } d && OfficeSystem.Candidate(w, d, houseId) == null && OfficeSystem.Candidate(w, d, houseId, evenAway: true) is { } c ? AwaySays(w, c) : null;
+        ElectionSystem.ConsulOffices(offices).FirstOrDefault() is { } d && OfficeSystem.Candidate(w, d, houseId) == null && OfficeSystem.Candidate(w, d, houseId, evenAway: true) is { } c
+        && ConsulTermOk(w, houseId) && !CaesarSystem.Enemy(w, houseId) && PolitySystem.InReach(w, houseId) ? AwaySays(w, c) : null;
     /// <summary>One the house would put up for consul but for their command away; the player's head first, as in the count.</summary>
     public static Character? ConsulAwayOne(World w, OfficeCatalog offices, string houseId) =>
         ElectionSystem.ConsulOffices(offices).FirstOrDefault() is { } d && OfficeSystem.Candidate(w, d, houseId, evenAway: true) is { } c && !MayStand(w, c) ? c : null;
@@ -232,8 +266,10 @@ public static class TriumphSystem
     public static bool MayMove(World w, Character? mover, MotionDef? def) =>
         mover is { Alive: true } && def != null && def.Interest is TriumphKind or LeaveKind && !w.IsImperium && PolitySystem.InReach(w, mover.HouseId) && HeldMagistracy(w, mover);
     public static bool HeldMagistracy(World w, Character c) => c.Cursus.Count > 0 || LadderSystem.Seat(w, c.Id) != null;
-    /// <summary>The refusal for a house with no voice that would move the generals' business, or null for any other motion.</summary>
-    public static string? NoVoice(MotionDef def) => def.Interest is TriumphKind or LeaveKind
+    /// <summary>The refusal for a house with no voice that would move the generals' business when the mover has held no magistracy, or null:
+    /// for any other motion, for one who has held one (the door is shut to them for another reason, said by the caller), and under a throne,
+    /// where the door is not opened to anyone.</summary>
+    public static string? NoVoice(World w, Character mover, MotionDef def) => def.Interest is TriumphKind or LeaveKind && !w.IsImperium && !HeldMagistracy(w, mover)
         ? "the house has its votes but no voice in the Senate, and you have held no magistracy: one who has held a magistracy may move it whatever the house's door" : null;
 
     /// <summary>How a house leans on leave for another to stand in absence: for a friend, a fellow of its bench, and (the Sword) a general
@@ -259,7 +295,7 @@ public static class TriumphSystem
         if (passed) w.WorldCounters[LeaveKey(target.Id)] = w.Turn;
         if (target.Id != mine) return;
         w.Tell(passed ? "good" : "warn", passed ? "The Senate gives your house leave to stand in absence: at the next election those of the house who command away from the capital may stand without coming home."
-            : "The Senate will not give your house leave to stand in absence. Those of the house who command away from the capital must lay the command down to stand.", "senate:ladder");
+            : "The Senate will not give your house leave to stand in absence. Those of the house who command away from the capital must bring the fleet to the capital, or give the command up, to stand.", "senate:ladder");
     }
 
     /// <summary>Another house asks leave for one of its own who would stand at an election within two years and commands away: the one it
@@ -292,7 +328,7 @@ public static class TriumphSystem
     public static List<Character> AwayCandidates(World w, SenateSystem senate, House h, bool ladder, bool consul, bool better = false)
     {
         var offices = senate.Offices; var list = new List<Character>();
-        if (consul && ConsulAwayOne(w, offices, h.Id) is { } c && ConsulTermOk(w, h.Id) && !CaesarSystem.Enemy(w, h.Id)
+        if (consul && (better || ConsulAway(w, offices, h.Id) != null) && ConsulAwayOne(w, offices, h.Id) is { } c && ConsulTermOk(w, h.Id) && !CaesarSystem.Enemy(w, h.Id)
             && (FactionSystem.Of(w, h.Id) is not { } bench || bench.Members.Where(id => id == h.Id || ElectionSystem.Eligible(w, offices, id)).OrderByDescending(id => senate.Weight(w, id)).ThenBy(id => id, StringComparer.Ordinal).First() == h.Id))
             list.Add(c);
         if (!ladder) return list;
@@ -318,13 +354,14 @@ public static class TriumphSystem
         bool ladder = LadderSystem.Active(w, offices) && LadderSystem.CountIn(w, offices) == 1, consul = ElectionSystem.ConsulOffices(offices).Any() && w.Emergency == null && ElectionSystem.CountIn(w) == 1;
         if (!ladder && !consul) return;
         foreach (var h in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && !HasLeave(w, h.Id) && !w.Motions.Any(m => m.Open && m.Kind == LeaveKind && m.TargetId == h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
-            foreach (var p in AwayCandidates(w, senate, h, ladder, consul).Where(p => !AtWar(w, p)))
+            foreach (var p in AwayCandidates(w, senate, h, ladder, consul).Where(p => !AtWar(w, p) && !UnderRecall(w, p.Id)))   // one under recall comes home at the Senate's order
             {
                 var laid = w.Fleets.Values.Where(f => f.AdmiralId == p.Id).OrderBy(f => f.Id, StringComparer.Ordinal).ToList(); foreach (var f in laid) f.AdmiralId = "";   // a command by service waits too, and lapses only by its own rules
                 FleetSystem.RefreshAdmiralFlags(w);
                 w.TriumphVotes.Add(new TriumphVote { CharacterId = p.Id, Name = p.Name, HouseId = h.Id, Turn = w.Turn, Choice = Stand, Why = "came home to stand for office", HomeSince = w.Turn, HomeUntil = w.Turn + 1, FleetIds = laid.Select(f => f.Id).ToList() });
                 w.WorldCounters[StandingKey(p.Id)] = w.Turn + 2; Count(w, CameHomeKey);
                 if (laid.Count > 0) w.Log($"{p.Name} of {h.Name} lays down the command of {string.Join(" and ", laid.Select(f => f.Name))} and comes home to stand for office.");
+                TellOwner(w, p, laid, $"to come home and stand for office, until the count at the end of year {w.Turn + 1} is past");
             }
     }
 
@@ -363,6 +400,7 @@ public static class TriumphSystem
         {
             var g = w.Char(t.CharacterId);
             if (g is not { Alive: true } || w.House(t.HouseId) == null || w.IsImperium) { t.Choice = Void; t.Done = true; continue; }
+            if (UnderRecall(w, g.Id)) { VoidUnderRecall(w, t, g); continue; }   // recalled at the same year's end: the recall is answered, and no triumph is had
             if (g.Id == pid) { if (w.Turn > t.Turn) Decline(w, t, Lapsed); continue; }   // the player is asked, and has the year to answer
             var why = Weigh(w, offices, g); bool keep = why.Sum(x => x.by) > 0;
             string because = string.Join(", ", why.Where(x => keep ? x.by > 0 : x.by < 0).Select(x => x.why));

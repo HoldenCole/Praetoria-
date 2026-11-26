@@ -47,9 +47,13 @@ Built 2026-11-26 (docs/IDEAS_FROM_IMPERATOR.md, entry 1; the triumph's half of i
   and may stand in person.
 - **The bar** is the last of the ladder's reasons (`LadderSystem.Bar`), so it is said only when everything else is met,
   and the same rule keeps the house's consul from standing (`OfficeSystem.Candidate`, for the elected offices). Every
-  refusal says it: "you command The Tenth away from the capital: lay the command down, or ask the Senate for leave to
-  stand in absence". A house whose head is away puts up the next of its people who qualifies, as it would for any other
-  bar; the ladder panel says who.
+  refusal says it, with the ways out there are: "you command The Tenth away from the capital: bring it to the capital,
+  give the command to another, or ask the Senate for leave to stand in absence" (of a command by service, "resign the
+  command, or ask the Senate for leave"). A house whose head is away puts up the next of its people who qualifies, as it
+  would for any other bar; the ladder panel says who. The bar is on standing, not on holding: when a consul dies in
+  office, the seat passes within the house to the next who qualifies, though they command away.
+- **A house that would stand for consul** but for its one who commands away is told that only when nothing else bars it;
+  a house that held the consulship last term, or is an enemy of the Reach, is told that instead.
 - **A name already down** is taken down at the year's end if its holder sails away from the capital without leave, and
   the player is told why. A house that has declared for the consulship is told the year before the count if nobody of it
   may stand who is in the capital.
@@ -65,9 +69,11 @@ Built 2026-11-26 (docs/IDEAS_FROM_IMPERATOR.md, entry 1; the triumph's half of i
   best they have for a rung. A house with no voice has a friend of standing (regard 30) move it.
 - **Or the commander comes home to stand.** The year before a count, one of another house who commands away and is the
   only one it has who could stand for a rung (or for consul), with no leave and none asked, lays the command down and
-  comes home, unless the fleet is at war. The fleet waits for them as it waits for a general home for a triumph (held,
-  under its captain, its crews' regard not fading), they take no other command, and when the count is past they take
-  it up again. Most of the Reach's officers command somewhere, and without this the seats went short (the sixty-year
+  comes home, unless the fleet is at war or they are under the Senate's recall (then they come home at its order, as
+  docs/CAESAR.md has it). For the consulship that is only when the house has nobody else who may stand. If the fleet is
+  the player's (they command it as a legate or an officer lent), the player is told. The fleet waits for them as it
+  waits for a general home for a triumph (held, under its captain, its crews' regard not fading), they take no other
+  command, and when the count is past they take it up again. Most of the Reach's officers command somewhere, and without this the seats went short (the sixty-year
   test of the ladder found two magistrates of eight at a count). One at war stays with the fleet, and the house puts up
   whoever else it has.
 - The player's own relatives do not come home by themselves: the head may take them off a fleet.

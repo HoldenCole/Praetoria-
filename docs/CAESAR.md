@@ -71,19 +71,31 @@ Built 2026-11-26 from docs/IDEAS_FROM_IMPERATOR.md, entry 1, which closes the re
 
 **Coming home.** The honours are given at once (above), while the crews still have their commander to march behind.
 Then every fleet the general commands is laid down until the end of the next year: it waits under its captain, who
-commands it in battle, or with nobody in command if it has none. It is **held** for the general: the crews' devotion to
-them does not fade, nobody is put in the empty flag unasked (another house's head, a relative stepping up, a legate, an
-officer borrowed), and the general takes no other command meanwhile (the same bar a recall leaves, for the year). When
+commands it in battle, or with nobody in command if it has none. It is **held** for the general while they live and are
+of the house: the crews' devotion to them does not fade, nobody is put in the empty flag unasked (another house's head, a
+relative stepping up, a legate, an officer borrowed), and the general takes no other command meanwhile (the same bar a
+recall leaves, for the year; the refusals say "you are home for the triumph, and hold no command until the end of year
+N", not the Senate's order). One who dies, marries out or is cast out while home has nothing waiting: the fleet is the
+house's to fill at once. When
 the year is out they take the command up again if it is still theirs. It is not if the fleet is gone, has passed to
 another house, is laid up, or was given to somebody else meanwhile (the player's head may do that; then it is theirs);
 nor if the general has died, left the house, grown frail or retired. A command by service waits too, and lapses
 meanwhile only by its own rules (docs/MILITARY.md, "A command by service"): if the consul who named a legate leaves
-office in that year, there is nothing to take up. Home, the general commands nothing, and may stand for office in person
-(docs/LADDER.md, "Standing in absence").
+office in that year, there is nothing to take up. If the general is of another house and commands a fleet of the
+player's by service (a legate, an officer lent), the player is told, on the Military window's fleets: nobody of the house
+steps into the flag unasked, but the head may give it to another. Home, the general commands nothing, and may stand for
+office in person (docs/LADDER.md, "Standing in absence").
 
 **Declining.** The general keeps the fleet and nothing is given: no triumph is counted, and the victories that earned it
 were counted off when it was voted. It is the general's own choice, and the Senate takes no offence: it is not a cause.
 It is written into their life ("declined it to keep the command").
+
+**Under recall.** A general the Senate recalls before they have answered a triumph (the two carried at the same year's
+end) does not have it: the triumph is void, the house is told if it is the player's, and the recall is answered as any
+other, the command laid down at the Senate's order and none held for five years, the crews' devotion lost. Coming home
+for the triumph is refused while the recall stands ("the Senate has since recalled you, and one under recall comes home
+at its order, not to a triumph"), and one under recall is not brought home to stand for office either: neither is a way
+out of a recall.
 
 **Who chooses.** The player is asked, on the Military window (the general and the Senate) and on the Senate window's
 chamber (`data-triumph-choice="home"`, `"keep"`), and the outliner says so. The answer is wanted by the end of the year
@@ -107,7 +119,8 @@ why. They keep the fleet when what follows sums above nought:
 a great name in arms) could move a triumph. Now anyone who has held a magistracy may, whatever their house's door
 (`Character.Cursus`, or a seat now): a triumph and leave to stand in absence are the generals' business, and the only
 motions so opened. A house with no voice is told so: "the house has its votes but no voice in the Senate, and you have
-held no magistracy". Other houses move by the same rule.
+held no magistracy". Other houses move by the same rule. Under a throne the door is shut to everyone, and the throne's
+rule is said instead ("the Senate hears a Baron, or a Judge").
 
 #### The numbers
 
@@ -127,49 +140,64 @@ held no magistracy". Other houses move by the same rule.
 #### Measured
 
 The Caesar road, as the probe measures it (`praetoria caesar --scenario all --seeds 10`: six Republic starts, ten
-seeds, sixty years, a passive player), before and after. The doc's rule is that another house's general marches about
-one game in ten or less.
+seeds, sixty years, a passive player), before, as first built, and as mended after the review (below). The doc's rule
+is that another house's general marches about one game in ten or less. "Was of the first rank" and the rest count the
+runs in which another house's general ever was.
 
-| another house's general, in 50 Republic runs of 60 years | before | after |
-|---|---|---|
-| triumphs voted, of those moved by other houses | 26 of 47 | 34 of 57 |
-| recalls carried, of those moved | 9 of 17 | 5 of 9 |
-| was of the first rank | 5 | 3 |
-| was loved | 48 | 47 |
-| was both | 0 | 0 |
-| passed all three gates, and would march | 0 and 0 | 0 and 0 |
-| civil wars, and the Republic fell | 0 and 0 | 0 and 0 |
+| another house's general, in 60 Republic runs of 60 years | before | as built | as mended |
+|---|---|---|---|
+| triumphs voted, of those moved by other houses | 26 of 47 | 34 of 57 | 32 of 51 |
+| recalls carried, of those moved | 9 of 17 | 5 of 9 | 3 of 7 |
+| was of the first rank | 5 | 3 | 2 |
+| was loved | 48 | 47 | 44 |
+| was both | 0 | 0 | 0 |
+| passed all three gates, and would march | 0 and 0 | 0 and 0 | 0 and 0 |
+| civil wars, and the Republic fell | 0 and 0 | 0 and 0 | 0 and 0 |
 
-The Caesar rate is where it was: no general of another house marched in fifty runs before or after. What moved: more
+The Caesar rate is where it was: no general of another house marched in sixty runs, before, as built or as mended.
+What moved: more
 triumphs were moved and carried, though hardly any by the new door (none in the sixty-year runs below), so that is
 mostly the world running otherwise; a little fewer generals reach the first rank (a triumph declined counts for nothing,
 and one had costs a year in command); and recalls fall by half (a general home for a triumph, or home to stand for
 office, commands nothing and cannot be recalled, and their sway is lower for the year). A first try that let other
 houses' commanders come home to stand without holding their fleets for them lost a third of the loved generals (33 of
-50), because the crews took to whoever was put in their place; holding the fleet mends it.
+60, against 48), because the crews took to whoever was put in their place; holding the fleet mends it. As mended, the
+counts move by a few runs: once anything in a world differs it runs otherwise from there. Of the mends, only the recall
+takes from a general's crews (one recalled with a triumph waiting, or the year before a count, now obeys the recall and
+the crews' devotion is lost, where before they came home and kept it), and the Senate carried three recalls in the
+sixty runs; no run came near the gates.
 
-The new rules with nobody steering the player's house (`praetoria triumph`, two seeds of each start; the old rules
-measured the same way by a scratch probe):
+The new rules with nobody steering the player's house (`praetoria triumph`, two seeds of each start, as mended; the old
+rules measured the same way by a scratch probe):
 
 | | the Old Lion, 2 games of 30 years | every start, 16 games of 30 years | every start, 16 games of 60 years |
 |---|---|---|---|
-| triumphs moved by other houses, and voted | 0 and 0 | 0 and 0 | 6 and 4 |
-| had at the gate, and declined to keep the fleet | 0 and 0 | 0 and 0 | 3 and 1 |
+| triumphs moved by other houses, and voted | 0 and 0 | 0 and 0 | 5 and 4 |
+| had at the gate, declined to keep the fleet, and void under a recall | 0, 0 and 0 | 0, 0 and 0 | 1, 3 and 0 |
 | moved by a house with no door, as one who has held a magistracy | 0 | 0 | 0 |
-| leave to stand in absence moved, and granted | 3 and 3 | 32 and 16 | 90 and 58 |
+| leave to stand in absence moved, and granted | 3 and 3 | 31 and 16 | 93 and 63 |
 | of them moved by a house with no door | 0 | 3 | 3 |
-| elected while commanding away, by leave | 2 | 9 | 31 |
-| came home the year before a count to stand, and took the command up again after | 75 and 72 | 486 and 471 | 1,099 and 1,041 |
-| could have stood but commanded away without leave, at a count | 44 | 285 | 1,318 |
-| magistrates elected, of whom commanding a fleet at the count's end (before, the same) | 87, 28 (89, 33) | 564, 152 (582, 204) | 1,091, 288 (1,119, 403) |
-| seats left empty at a count (before) | 9 (7) | 124 (106) | 173 (145) |
+| elected while commanding away, by leave | 2 | 9 | 30 |
+| came home the year before a count to stand, and took the command up again after | 75 and 72 | 485 and 471 | 1,118 and 1,055 |
+| of them, for the consulship | (not counted) | 23 | 42 |
+| could have stood but commanded away without leave, at a count | 44 | 287 | 1,314 |
+| magistrates elected, of whom commanding a fleet at the count's end (before, the same) | 87, 28 (89, 33) | 568, 153 (582, 204) | 1,101, 293 (1,119, 403) |
+| seats left empty at a count (before) | 9 (7) | 120 (106) | 163 (145) |
 
 Triumphs are rare in thirty years with a passive player (the old rules moved none in those sixteen games either), so
-the sixty-year run is the one that shows the gate: of four voted, three generals came home for it (they kept the
-Senate's custom) and took the command up again a year later, and one kept the fleet (wanting the throne). The rule on
-standing is felt far more often than the triumph: most of the Reach's officers command somewhere, so at every count a
-few houses have their only candidate come home for it, and a few ask leave instead. Somewhat more seats go unfilled
-than before (173 against 145 at the counts of the sixty-year runs), and far fewer magistrates are commanders.
+the sixty-year run is the one that shows the gate: of four voted, one general came home for it (keeping the Senate's
+custom) and took the command up again a year later, and three kept the fleet (two of them at war). The rule on standing
+is felt far more often than the triumph: most of the Reach's officers command somewhere, so at every count a few houses
+have their only candidate come home for it, and a few ask leave instead. Somewhat more seats go unfilled than before (163
+against 145 at the counts of the sixty-year runs), and far fewer magistrates are commanders.
+
+As first built, a house brought its consul home to stand even when it had another who could stand in the capital. Mended,
+that is only when it has nobody else; a scratch count over the same games found the old rule would have brought four
+more home in the sixty-year runs and none in the thirty-year ones, besides the 42 and 23 above. The other counts moved by
+a few in a hundred either way (the first build's were 1,099 came home, 1,318 could have stood, 173 seats empty in the
+sixty-year runs), because the worlds run otherwise once anything differs. Nobody under recall was in reach of coming home
+in these games (the Senate carried no recall in them), and no commander of another house laid down a fleet of the passive
+player's.
 
 #### What I chose
 
@@ -196,6 +224,11 @@ than before (173 against 145 at the counts of the sixty-year runs), and far fewe
   and the year before a count the only candidate a house has comes home to stand, unless at war, with the fleet held for
   them until the count is past.
 - The player's own relatives are not brought home to stand: the head may take them off a fleet.
+- Mended after the review: a triumph voted to one the Senate has also recalled is void, and nobody under recall comes
+  home to stand, so a recall is always answered by the Senate's rule; a fleet is held only while its general lives and is
+  of the house; the player is told when another house's commander lays down a fleet of theirs; the year at home is said
+  as itself on every refusal; and a consul's seat passes within the house to one who commands away, since succeeding to a
+  seat is not standing for it.
 
 #### What is not built
 
@@ -207,6 +240,8 @@ than before (173 against 145 at the counts of the sixty-year runs), and far fewe
 - Leave is for a house, not for one person, and there is no leave for the consulship alone.
 - A magistrate or consul elected in absence holds the office while commanding; nothing asks them to come home.
 - The random and scripted players (`src/Tools/Qa.cs`) do not yet answer a triumph: theirs lapse, as a passive player's do.
+- There is no act of laying a command down without giving the fleet to someone: one who would stand brings the fleet to
+  the capital, gives it to another, resigns a command by service, or asks leave, and the refusal names those.
 
 ## The recall
 
@@ -340,7 +375,7 @@ What is decided (to come home, to cross, to declare) is decided on the Military 
   `first_emperor`, `great_name`.
 - Counters: `laurels:<id>`, `victories:<id>`, `triumphs:<id>`; `triumphs_voted`, `recalls_voted`, `civil_wars`,
   `republics_ended`, `caesars_broken`; the gate's `triumphs_had`, `triumphs_declined`, `triumphs_lapsed`, `commands_taken_up`,
-  `commands_not_taken_up`; the leave's `absence_leave:<house>` (the year it was given, while it stands), `absence_moved`,
+  `commands_not_taken_up`, `triumphs_void_under_recall`; the leave's `absence_leave:<house>` (the year it was given, while it stands), `absence_moved`,
   `absence_granted`, `absence_refused`, `absence_vetoed`, `absence_spent`, `elected_in_absence`, `names_taken_down_away`.
 - No new effect types.
 

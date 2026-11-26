@@ -21,7 +21,7 @@ public sealed class ProposeMotionCommand : ICommand
         var def = _senate.Motions.Def(_kind); if (def == null) return "no such motion";
         if (_kind == "petition") return "only an estate brings a petition";
         if (def.Rank) return "a rank is asked for by petition, from the ladder of titles";
-        if (!_senate.MayPropose(w, house.Id) && !TriumphSystem.MayMove(w, actor, def)) return TriumphSystem.NoVoice(def) ?? (w.IsImperium ? $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge" : "the house has its votes but no voice in the Senate: it may not move a motion");
+        if (!_senate.MayPropose(w, house.Id) && !TriumphSystem.MayMove(w, actor, def)) return TriumphSystem.NoVoice(w, actor, def) ?? (w.IsImperium ? $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge" : "the house has its votes but no voice in the Senate: it may not move a motion");
         if (EdictSystem.Cowed(w, house.Id) is { } cowed) return cowed;   // rule by decree (docs/EDICTS.md)
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";
@@ -286,8 +286,9 @@ public sealed class StandForConsulCommand : ICommand
         if (w.Era == "imperium") return "the Emperor holds every office";
         if (w.HasFlag(ElectionSystem.StandFlag(house.Id))) return "you already stand";
         if (ElectionSystem.IsConsul(w, _offices, house.Id)) return "you hold the consulship";
-        if (!ElectionSystem.Eligible(w, _offices, house.Id) && TriumphSystem.ConsulAway(w, _offices, house.Id) is { } away) return away;   // the one who would stand commands away from the capital
-        if (!ElectionSystem.Eligible(w, _offices, house.Id)) return OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), house.Id) == null ? $"no one of the house may stand: a consul must be {OfficeSystem.Wants(_offices, ElectionSystem.ConsulOffices(_offices).First(), w)}, and not barred from office" : "a consul may not stand again at the next election";
+        if (CaesarSystem.Enemy(w, house.Id)) return $"the house is an enemy of the Reach until year {w.Counter(CaesarSystem.EnemyKey(house.Id))}, and may not stand for consul";
+        if (!ElectionSystem.Eligible(w, _offices, house.Id) && TriumphSystem.ConsulAway(w, _offices, house.Id) is { } away) return away;   // the one who would stand commands away from the capital, and nothing else bars the house
+        if (!ElectionSystem.Eligible(w, _offices, house.Id)) return OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), house.Id, evenAway: true) == null ? $"no one of the house may stand: a consul must be {OfficeSystem.Wants(_offices, ElectionSystem.ConsulOffices(_offices).First(), w)}, and not barred from office" : "a consul may not stand again at the next election";
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = ElectionSystem.StandInfluence }) ? null : $"needs {ElectionSystem.StandInfluence} influence";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

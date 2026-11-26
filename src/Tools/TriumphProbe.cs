@@ -23,7 +23,7 @@ internal static class TriumphProbe
         int emptySeats = 0, elected = 0, electedCommanding = 0, games = 0, mineVoted = 0, doorless = 0, doorlessLeave = 0, barredAtCount = 0, barredWithLeave = 0, counts = 0, generalsAway = 0, generalYears = 0;
         string[] keys = { TriumphSystem.StoodTakenUpKey, TriumphSystem.StoodNotTakenUpKey, "triumphs_moved", "triumphs_voted", TriumphSystem.HadKey, TriumphSystem.DeclinedKey, TriumphSystem.LapsedKey, TriumphSystem.TakenUpKey, TriumphSystem.NotTakenUpKey,
             TriumphSystem.LeaveMovedKey, TriumphSystem.LeaveGrantedKey, TriumphSystem.LeaveRefusedKey, TriumphSystem.LeaveVetoedKey, TriumphSystem.LeaveSpentKey, TriumphSystem.ElectedAwayKey,
-            TriumphSystem.NamesDroppedKey, TriumphSystem.CameHomeKey, "recalls_voted", "civil_wars", "republics_ended" };
+            TriumphSystem.NamesDroppedKey, TriumphSystem.CameHomeKey, TriumphSystem.UnderRecallKey, "recalls_voted", "civil_wars", "republics_ended" };
         foreach (var sid in scenarios)
             for (ulong seed = 1; seed <= (ulong)seeds; seed++)
             {
@@ -61,7 +61,7 @@ internal static class TriumphProbe
             }
         int S(string k) => sum.GetValueOrDefault(k);
         Console.WriteLine();
-        Console.WriteLine($"   in {Counted.Of(games, "game")}: triumphs moved by other houses {S("triumphs_moved")}, voted {S("triumphs_voted")} ({mineVoted} to the player's house), had at the gate {S(TriumphSystem.HadKey)}, declined to keep the fleet {S(TriumphSystem.DeclinedKey)}, lapsed unanswered {S(TriumphSystem.LapsedKey)}");
+        Console.WriteLine($"   in {Counted.Of(games, "game")}: triumphs moved by other houses {S("triumphs_moved")}, voted {S("triumphs_voted")} ({mineVoted} to the player's house), had at the gate {S(TriumphSystem.HadKey)}, declined to keep the fleet {S(TriumphSystem.DeclinedKey)}, lapsed unanswered {S(TriumphSystem.LapsedKey)}, void under a recall {S(TriumphSystem.UnderRecallKey)}");
         Console.WriteLine($"   moved by a house with no door, as one who has held a magistracy: triumphs {doorless}, leave {doorlessLeave}");
         Console.WriteLine($"   the year at home ended: command taken up {S(TriumphSystem.TakenUpKey)}, not {S(TriumphSystem.NotTakenUpKey)}{(ended.Count > 0 ? " (" + string.Join(" · ", ended.OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{k.Key} {k.Value}")) + ")" : "")}");
         Console.WriteLine($"   why they chose as they did: {string.Join(" · ", why.OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).Select(k => $"{k.Key} {k.Value}"))}");

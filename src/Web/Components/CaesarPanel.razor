@@ -70,7 +70,7 @@
             </div>
         }
         <TriumphGate />
-        @if (general == null && !atTheGate) { <div class="muted small">Nobody of the house commands a fleet. A name is made in command: appoint someone, or take a fleet yourself.</div> }
+        @if (general == null) { if (!atTheGate) { <div class="muted small">Nobody of the house commands a fleet. A name is made in command: appoint someone, or take a fleet yourself.</div> } }   @* home for a triumph, the gate above says who and why *@
         else
         {
             <div class="gauges">

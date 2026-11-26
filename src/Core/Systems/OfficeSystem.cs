@@ -119,7 +119,7 @@ public static class OfficeSystem
             if (house == null) { w.Offices.Remove(h); continue; }
             if (who is not { Alive: true })
             {
-                var next = Candidate(w, def, house.Id);
+                var next = Candidate(w, def, house.Id, evenAway: true);   // succeeding to a seat is not standing for it: one who commands away may take it up (docs/LADDER.md)
                 if (next != null) { h.CharacterId = next.Id; next.Flags.Add("office:" + def.Id); w.Log($"{next.Name} takes up the {def.Name} for {house.Name}."); }
                 else { Strip(w, def, "no one of the house has the rank to hold it", false); continue; }
             }

@@ -82,7 +82,7 @@
                 @foreach (var cd in ours)
                 {
                     var x = w.Char(cd.CharacterId); if (x == null) continue; string xid = x.Id; var back = new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices).Refusal(G.Ctx);
-                    @if (TriumphSystem.AwaySays(w, x) is { } awayNow) { <div class="small warn" data-stand-away="@xid">@Cap(awayNow). The name is taken down at the year's end unless the command is laid down first.</div> }
+                    @if (TriumphSystem.AwaySays(w, x) is { } awayNow) { <div class="small warn" data-stand-away="@xid">@Cap(awayNow). The name is taken down at the year's end unless the fleet is brought to the capital, or the command given up, first.</div> }
                     <div class="suit-acts">
                         <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="muted">(the count is @(next <= 0 ? "at this year's end" : "in " + Counted.Years(next) + "") · @Counted.Names(w.Candidacies.Count(o => o.RungId == cd.RungId)) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
                         <button class="opt inline tiny" disabled="@(back != null)" title="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))">@(x.Id == pid ? "Call in what is owed" : "Speak for them") · @LadderSystem.BackInfluence influence</button>
