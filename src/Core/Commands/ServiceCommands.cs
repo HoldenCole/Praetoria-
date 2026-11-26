@@ -27,8 +27,11 @@ public sealed class NameLegateCommand : ICommand
         if (c is not { Alive: true }) return "no such person";
         if (c.Id == me.Id) return "nobody names themselves legate";
         if (c.HouseId == f.OwnerId) return c.HouseId == me.HouseId ? $"{c.Name} is of your house: give the command on the fleet's card" : $"{c.Name} is of the house that owns {f.Name}, whose head gives its commands";
+        if (World.Outsider(c.HouseId) || w.House(c.HouseId) is not { } ch) return $"{c.Name} is not of a house of the Reach";
+        if (Economy.HeadOf(w, ch)?.Id == c.Id) return $"{c.Name} is the head of {ch.Name}, and a head of house stays at home";
         var free = ServiceSystem.FreeRefusal(w, c); if (free != null) return free;
-        if (w.AtWar(c.HouseId, me.HouseId)) return $"{w.House(c.HouseId)?.Name} is at war with your house";
+        if (w.AtWar(c.HouseId, me.HouseId)) return $"{ch.Name} is at war with your house";
+        if (w.AtWar(c.HouseId, f.OwnerId)) return $"{ch.Name} is at war with {w.House(f.OwnerId)?.Name ?? f.OwnerId}, whose fleet it is";
         if (FleetSystem.AdmiralOf(w, f) is { } cmd && cmd.Id == me.Id) return $"you command {f.Name} yourself";
         int will = w.GetRelationship(c.Id, me.Id)?.Disposition ?? 0;
         if (c.HouseId != me.HouseId && will < ServiceSystem.ServeRegard) return $"{c.Name} thinks too ill of you ({will}) to serve under you: it takes {ServiceSystem.ServeRegard} or better";
@@ -61,6 +64,7 @@ public sealed class BorrowOfficerCommand : ICommand
         if (f.Office || !ServiceSystem.Serviceable(f)) return $"{f.Name} is not a fleet of the house's own in commission: an officer is lent for one of those";
         if (c is not { Alive: true }) return "no such person";
         if (c.HouseId == house.Id) return $"{c.Name} is of your house: give the command on the fleet's card";
+        if (World.Outsider(c.HouseId)) return $"{c.Name} is not of a house of the Reach";
         var free = ServiceSystem.FreeRefusal(w, c); if (free != null) return free;
         if (FleetSystem.AdmiralOf(w, f)?.Id == me.Id) return $"you command {f.Name} yourself";
         if (w.House(c.HouseId) is not { } lender || Economy.HeadOf(w, lender) is not { Alive: true } lenderHead) return $"{c.Name} has no head to give leave";

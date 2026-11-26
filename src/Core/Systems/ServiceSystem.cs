@@ -37,6 +37,13 @@ public static class ServiceSystem
     public const int NpcTactics = 4, NpcFleetLeast = 2, NpcRegard = 20, NpcLegatesMost = 2, SeekAgeMost = 45, SeekEvery = 5, SeekOneIn = 3, KeptPast = 40;
     /// <summary>One agent to name a legate, to borrow an officer or to offer service.</summary>
     public const int AgentCost = 1;
+    /// <summary>What the player's head refused, or left unanswered for the year, is not asked again by the same asker for the same person for
+    /// <see cref="RefusedYears"/> years: they look to the next instead.</summary>
+    public const int RefusedYears = 5;
+    public const string RefusedPrefix = "service_refused:";
+    public static string RefusedKey(string askerId, string characterId) => $"{RefusedPrefix}{askerId}:{characterId}";
+    /// <summary>Did the player's head say no to this asker about this person (or let it lapse) within <see cref="RefusedYears"/> years?</summary>
+    public static bool Refused(World w, string askerId, string characterId) => w.WorldCounters.TryGetValue(RefusedKey(askerId, characterId), out int at) && w.Turn - at < RefusedYears;
 
     public const string GivenFlag = "service_given", EndedFlag = "service_ended", AskedFlag = "service_asked";
     public const string CommandsKey = "service_commands", OthersKey = "service_commands_others", LegatesKey = "legates_named", LentKey = "officers_lent",
@@ -128,16 +135,20 @@ public static class ServiceSystem
         int renown = LifeSystem.Renown(c);
         return renown >= SeekRenown ? null : $"a command asks a name (renown {SeekRenown}), and {c.Name}'s renown is {renown}";
     }
-    /// <summary>Is this fleet free for the seeker: no commander, or one with <see cref="Displaces"/> less tactics who is not the taker, the owner's head,
-    /// the player, or a general on the march?</summary>
+    /// <summary>Is this fleet free for the seeker: of a house the seeker's is at peace with, and with no commander, or one with <see cref="Displaces"/>
+    /// less tactics who is not the taker, the owner's head, the player, or a general on the march?</summary>
     public static bool Open(World w, Fleet f, Character seeker, Character taker)
     {
-        if (f.OwnerId == seeker.HouseId) return false;
+        if (f.OwnerId == seeker.HouseId || w.AtWar(seeker.HouseId, f.OwnerId)) return false;   // nobody commands the fleet of a house their own is at war with
         var cmd = FleetSystem.AdmiralOf(w, f); if (cmd == null) return true;
         if (cmd.Id == taker.Id || cmd.Id == seeker.Id || cmd.Id == w.ProtagonistId || w.CivilWar?.GeneralId == cmd.Id) return false;
         if (w.House(f.OwnerId) is { } owner && Economy.HeadOf(w, owner)?.Id == cmd.Id) return false;
         return seeker.Skill("tactics") >= cmd.Skill("tactics") + Displaces;
     }
+    /// <summary>May a holder give this fleet by their own will, unasked? Not one of the player's house's own: its head gives those (a relative of the
+    /// house in office, whose own fleets they would be, included), and on an office fleet of the player's house only a command that is empty, so that
+    /// nobody the head put there is put out unasked.</summary>
+    public static bool Gives(World w, Character holder, Fleet f) => holder.Id == w.ProtagonistId || !Mine(w, f.OwnerId) || f.Office && FleetSystem.AdmiralOf(w, f) == null;
     private static Fleet? FreeFleet(World w, IEnumerable<Fleet> fleets, Character seeker, Character taker) =>
         fleets.Where(f => Open(w, f, seeker, taker)).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
 
@@ -176,6 +187,7 @@ public static class ServiceSystem
             var fit = FitRefusal(w, c); if (fit != null) return fit;
             int regard = Regard(w, head, seekerHead);
             if (regard < SeekRegard) return $"{head.Name} thinks ill of {(seekerHead.Id == c.Id ? c.Name : seekerHead.Name)} ({regard}), and takes nobody from a house thought ill of";
+            if (WillRefusal(w, c, head) is { } unwilling) return unwilling;
             var fleet = FreeFleet(w, HouseFleets(w, th.Id), c, head);
             if (fleet == null) return $"{th.Name} has no command free: every fleet of it has a commander, none with {Displaces} less tactics than {c.Name}'s {c.Skill("tactics")}";
             plan = new Plan(fleet, head, Lent, ByWar, enemy); return null;
@@ -189,14 +201,22 @@ public static class ServiceSystem
             var fit = FitRefusal(w, c); if (fit != null) return fit;
             var holderHead = HeadOrSelf(w, holder); int regard = Math.Max(Regard(w, holder, seekerHead), Regard(w, holderHead, seekerHead));
             if (regard < SeekRegard) return $"{holder.Name} thinks ill of {(seekerHead.Id == c.Id ? c.Name : seekerHead.Name)} ({regard}), and names nobody from a house thought ill of";
+            if (WillRefusal(w, c, holder) is { } unwilling) return unwilling;
             foreach (var a in auths)
             {
-                var fleet = FreeFleet(w, w.Fleets.Values.Where(f => Under(w, offices, holder, a, f)), c, holder);
+                var fleet = FreeFleet(w, w.Fleets.Values.Where(f => Under(w, offices, holder, a, f) && Gives(w, holder, f)), c, holder);
                 if (fleet != null) { plan = new Plan(fleet, holder, Legate, a, ""); return null; }
             }
             return $"no command under {holder.Name} is free: every fleet under the office has a commander, none with {Displaces} less tactics than {c.Name}'s {c.Skill("tactics")}";
         }
         return "nobody to offer service to";
+    }
+
+    /// <summary>Nobody serves under one they think worse than <see cref="ServeRegard"/> of.</summary>
+    public static string? WillRefusal(World w, Character c, Character taker)
+    {
+        int will = Regard(w, c, taker);
+        return will < ServeRegard ? $"{c.Name} thinks too ill of {taker.Name} ({will}) to serve under them: it takes {ServeRegard} or better" : null;
     }
 
     /// <summary>Why the head of the officer's house would not give leave to lend them to a house at war, or null.</summary>
@@ -259,17 +279,23 @@ public static class ServiceSystem
             if (f.CaptainId.Length > 0 && w.Char(f.CaptainId)?.HouseId == s.CommanderHouseId && s.CommanderHouseId != f.OwnerId) f.CaptainId = "";
         }
         FleetSystem.RefreshAdmiralFlags(w);
-        var c = w.Char(s.CommanderId);
-        if (c is { Alive: true }) LifeSystem.Note(w, c, "post", $"Gave up the command of {s.FleetName} of {Nm(w, s.OwnerId)}: {how}." + (s.Won > 0 ? $" Under them it won {Counted.Of(s.Won, "battle")}." : ""));
-        w.Log($"{c?.Name ?? "The commander"} of {Nm(w, s.CommanderHouseId)} no longer commands {s.FleetName} of {Nm(w, s.OwnerId)}: {how}.");
+        var c = w.Char(s.CommanderId); string won = s.Won > 0 ? $" Under them it won {Counted.Of(s.Won, "battle")}." : "";
+        if (c is { Alive: true }) LifeSystem.Note(w, c, "post", keepCommand ? $"Commanded {s.FleetName} of {Nm(w, s.OwnerId)} by service no longer, and kept the command: {how}.{won}" : $"Gave up the command of {s.FleetName} of {Nm(w, s.OwnerId)}: {how}.{won}");
+        w.Log(keepCommand ? $"{c?.Name ?? "The commander"} of {Nm(w, s.CommanderHouseId)} commands {s.FleetName} of {Nm(w, s.OwnerId)} by service no longer, but keeps the command: {how}."
+                          : $"{c?.Name ?? "The commander"} of {Nm(w, s.CommanderHouseId)} no longer commands {s.FleetName} of {Nm(w, s.OwnerId)}: {how}.");
         var mine = w.Protagonist?.HouseId;
         if (mine != null && (s.CommanderHouseId == mine || s.OwnerId == mine || w.Char(s.NamedById)?.HouseId == mine))
         {
             Mark(w, EndedFlag);
-            string who = s.CommanderId == w.ProtagonistId ? "You no longer command" : $"{c?.Name ?? "The commander"} no longer commands";
-            w.Tell("info", $"{who} {s.FleetName} of {Nm(w, s.OwnerId)} by service: {how}.", Target, s.FleetId);
+            string who = s.CommanderId == w.ProtagonistId ? "You" : c?.Name ?? "The commander";
+            w.Tell("info", keepCommand ? $"{who} {(s.CommanderId == w.ProtagonistId ? "command" : "commands")} {s.FleetName} of {Nm(w, s.OwnerId)} by service no longer, but {(s.CommanderId == w.ProtagonistId ? "keep" : "keeps")} the command: {how}."
+                                       : $"{who} no longer {(s.CommanderId == w.ProtagonistId ? "command" : "commands")} {s.FleetName} of {Nm(w, s.OwnerId)} by service: {how}.", Target, s.FleetId);
         }
     }
+
+    /// <summary>One who commands by service is given another command (a fleet of their own house, by its head or their own wish): the service ends
+    /// first, so the owner is told and the record kept.</summary>
+    public static void Leave(World w, Character c, string how) { if (Held(w, c) is { } s) End(w, s, how); }
 
     /// <summary>The crews were the general's before they were the house's: when the general crosses the line, a fleet they command by service goes with
     /// them, and is their house's from that day (docs/CAESAR.md).</summary>
@@ -296,24 +322,32 @@ public static class ServiceSystem
         if (!w.Fleets.TryGetValue(s.FleetId, out var f) || f.Strength <= 0) return "the fleet is no more";
         var c = w.Char(s.CommanderId);
         if (c is not { Alive: true }) return $"{c?.Name ?? "the commander"} is dead";
+        // the commander's own state before the empty flag: the year's end lays a frail or retired commander's command down after this is read
+        if (c.Flags.Contains(LifeSystem.FrailChar)) return $"{c.Name} is too frail for the sea";
+        if (c.Flags.Contains(LifeSystem.RetiredChar)) return $"{c.Name} has laid down their work";
+        if (CaesarSystem.Barred(w, c)) return "the Senate had them lay it down";
         if (f.AdmiralId != s.CommanderId) return "another was given the command";
         if (w.House(s.CommanderHouseId) == null) return $"{Nm(w, s.CommanderHouseId)} is no more";
         if (c.HouseId != s.CommanderHouseId) return c.HouseId == f.OwnerId ? $"{c.Name} is of {Nm(w, f.OwnerId)} now" : $"{c.Name} has left {Nm(w, s.CommanderHouseId)}";
-        if (f.OwnerId != s.OwnerId) return $"the fleet has passed to {Nm(w, f.OwnerId)}";
+        if (f.OwnerId != s.OwnerId) return f.OwnerId == c.HouseId ? $"the fleet has passed to {Nm(w, f.OwnerId)}, {c.Name}'s own house" : $"the fleet has passed to {Nm(w, f.OwnerId)}";
         if (f.LaidUp) return "the fleet is laid up, and its crews paid off";
         if (w.AtWar(s.CommanderHouseId, f.OwnerId)) return $"{Nm(w, s.CommanderHouseId)} and {Nm(w, f.OwnerId)} are at war";
-        if (c.Flags.Contains(LifeSystem.FrailChar)) return $"{c.Name} is too frail for the sea";
-        if (CaesarSystem.Barred(w, c)) return "the Senate had them lay it down";
         if (s.Kind == Legate)
         {
             var namer = w.Char(s.NamedById);
             if (namer is not { Alive: true }) return $"{namer?.Name ?? "the one who named them"} is dead, and the commission with them";
-            if (!Holds(w, offices, namer, s.Authority) || !Under(w, offices, namer, s.Authority, f)) return $"the commission lapsed: {namer.Name} is no longer {AuthorityName(s.Authority)}";
+            if (!Holds(w, offices, namer, s.Authority)) return $"the commission lapsed: {namer.Name} is no longer {AuthorityName(s.Authority)}";
+            if (!Under(w, offices, namer, s.Authority, f))
+                return s.Authority == ByConsul && f.Office && AdmiralHeld(w, offices) ? $"the commission lapsed: an Admiral of the Reach holds the office fleets now, and {f.Name} is no longer the consul's"
+                    : $"the commission lapsed: {f.Name} is no longer under {namer.Name} as {AuthorityName(s.Authority)}";
         }
         else if (!w.Wars.Any(x => x.Involves(s.OwnerId))) return $"{Nm(w, s.OwnerId)}'s war is over, and the officer goes home";
         return null;
     }
     public static bool Holds(World w, OfficeCatalog offices, Character c, string authority) => Authorities(w, offices, c).Contains(authority);
+    /// <summary>A command that has stopped being one by service only because the commander is now of the house whose fleet it is: it is theirs by right.</summary>
+    private static bool NowOwn(World w, ServiceCommand s) => w.Fleets.TryGetValue(s.FleetId, out var f) && f.AdmiralId == s.CommanderId && w.Char(s.CommanderId) is { Alive: true } c && c.HouseId == f.OwnerId
+        && !c.Flags.Contains(LifeSystem.FrailChar) && !c.Flags.Contains(LifeSystem.RetiredChar) && !CaesarSystem.Barred(w, c);
 
     /// <summary>The office passed within the house that held it (a holder died, or the next of the house took it up): whoever of that house holds it
     /// now keeps the legate on, and the commission is theirs. True when it was carried over.</summary>
@@ -354,8 +388,11 @@ public static class ServiceSystem
     public static void Tick(World w, OfficeCatalog offices)
     {
         foreach (var f in new[] { GivenFlag, EndedFlag, AskedFlag }) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
+        // what the head let lapse is taken as a no: the asker looks to somebody else for the next five years
+        foreach (var a in w.ServiceAsks.Where(a => a.Turn < w.Turn)) w.WorldCounters[RefusedKey(a.AskerId, a.CharacterId)] = w.Turn;
         w.ServiceAsks.RemoveAll(a => a.Turn < w.Turn);
-        foreach (var s in w.Service.ToList()) { Renew(w, offices, s); if (Lapsed(w, offices, s) is { } why) End(w, s, why); }
+        foreach (var k in w.WorldCounters.Where(kv => kv.Key.StartsWith(RefusedPrefix, StringComparison.Ordinal) && w.Turn - kv.Value >= RefusedYears).Select(kv => kv.Key).ToList()) w.WorldCounters.Remove(k);
+        foreach (var s in w.Service.ToList()) { Renew(w, offices, s); if (Lapsed(w, offices, s) is { } why) End(w, s, why, keepCommand: NowOwn(w, s)); }
         // the office's fleet goes with the office: one who commanded it for the house that held it does not keep it for the next
         if (w.CivilWar == null)
             foreach (var f in w.Fleets.Values.Where(f => f.Office && f.AdmiralId.Length > 0 && f.LevyOf.Length == 0 && f.HiredFrom.Length == 0).OrderBy(f => f.Id, StringComparer.Ordinal))
@@ -383,7 +420,7 @@ public static class ServiceSystem
             var holderHead = HeadOrSelf(w, holder); var bench = FactionSystem.Of(w, holder.HouseId);
             foreach (var a in Authorities(w, offices, holder))
             {
-                var fleets = w.Fleets.Values.Where(f => f.Strength >= NpcFleetLeast && Under(w, offices, holder, a, f)).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();
+                var fleets = w.Fleets.Values.Where(f => f.Strength >= NpcFleetLeast && Under(w, offices, holder, a, f) && Gives(w, holder, f)).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();
                 if (fleets.Count == 0) continue;
                 Character? pick = null; Fleet? into = null;
                 foreach (var c in w.LivingCharacters().Where(c => c.Skill("tactics") >= NpcTactics && !World.Outsider(c.HouseId) && FreeRefusal(w, c) == null && FitRefusal(w, c) == null)
@@ -391,6 +428,7 @@ public static class ServiceSystem
                 {
                     if (w.House(c.HouseId) is not { } ch || w.AtWar(c.HouseId, holder.HouseId)) continue;
                     if (Economy.HeadOf(w, ch)?.Id == c.Id && c.Id != w.ProtagonistId) continue;   // a head of house stays at home; the player's head is asked
+                    if (c.Id == w.ProtagonistId && Refused(w, holder.Id, c.Id)) continue;   // and one who said no is not asked again for a while
                     var theirHead = HeadOrSelf(w, c); int regard = Math.Max(Regard(w, holder, theirHead), Regard(w, holderHead, theirHead));
                     bool friend = c.HouseId == holder.HouseId || regard >= NpcRegard || bench != null && FactionSystem.Of(w, c.HouseId)?.Id == bench.Id && regard >= 0;
                     if (!friend || Regard(w, c, holder) < ServeRegard) continue;
@@ -422,6 +460,7 @@ public static class ServiceSystem
                 if (LeaveRefusal(w, lenderHead, head, c, enemy) != null) continue;
                 if (lender.Id == mine)
                 {
+                    if (Refused(w, head.Id, c.Id)) continue;   // the player's head said no to this one: they look to the next
                     if (!w.ServiceAsks.Any(x => x.AskerId == head.Id)) { Ask(w, AskLend, fleet, head, c, ByWar, enemy); }
                     break;
                 }
@@ -449,7 +488,12 @@ public static class ServiceSystem
             {
                 if (SeekRefusal(w, offices, c, t, out var plan) != null || plan == null) continue;
                 if (plan.Kind == Lent && Regard(w, head, plan.Taker) < SeekRegard) continue;   // the head's leave to go
-                if (plan.Taker.Id == w.ProtagonistId) { if (!w.ServiceAsks.Any(x => x.CharacterId == c.Id)) Ask(w, AskOffer, plan.Fleet, c, c, plan.Authority, plan.EnemyId); break; }
+                if (plan.Taker.Id == w.ProtagonistId)
+                {
+                    if (Refused(w, c.Id, c.Id)) continue;   // turned down by the player's head: they offer themselves elsewhere
+                    if (!w.ServiceAsks.Any(x => x.CharacterId == c.Id)) Ask(w, AskOffer, plan.Fleet, c, c, plan.Authority, plan.EnemyId);
+                    break;
+                }
                 Begin(w, plan.Fleet, c, plan.Taker, plan.Kind, plan.Authority, plan.EnemyId, plan.Kind == Lent ? head.Id : "", sought: true);
                 break;
             }
@@ -491,26 +535,43 @@ public static class ServiceSystem
         switch (a.Kind)
         {
             case AskLend:
+                // the one asked for must still be of the house, and not its head: the heir who has come into the house since is not lent
+                if (who!.HouseId != head.HouseId || who.Id == head.Id) return "it no longer stands: " + (who.Id == head.Id ? $"{who.Name} is the head of the house now, and a head is not lent" : $"{who.Name} is no longer of your house");
                 if (f.OwnerId != asker.HouseId || !w.Wars.Any(x => x.Involves(asker.HouseId))) return "it no longer stands: the war is over";
                 if (w.AtWar(head.HouseId, asker.HouseId)) return $"it no longer stands: you are at war with {Nm(w, asker.HouseId)}";
+                if (WillRefusal(w, who, asker) is { } unwilling) return "it no longer stands: " + unwilling;
                 return FleetSystem.AdmiralOf(w, f) == null ? null : $"it no longer stands: {f.Name} has a commander";
             case AskOffer:
                 if (w.AtWar(head.HouseId, who!.HouseId)) return $"you are at war with {Nm(w, who.HouseId)}";
-                if (f.OwnerId == who.HouseId) return "it no longer stands";
-                bool under = f.OwnerId == head.HouseId && !f.Office && Serviceable(f) && w.Wars.Any(x => x.Involves(head.HouseId)) || AuthorityOver(w, offices, head, f) != null;
-                return under ? (FleetSystem.AdmiralOf(w, f)?.Id == head.Id ? $"you command {f.Name} yourself" : null) : $"it no longer stands: {f.Name} is not yours to give";
+                if (f.OwnerId == who.HouseId || who.HouseId == head.HouseId) return $"it no longer stands: {who.Name} is of {Nm(w, who.HouseId)} now";
+                if (w.AtWar(who.HouseId, f.OwnerId)) return $"it no longer stands: {Nm(w, who.HouseId)} is at war with {Nm(w, f.OwnerId)}, whose fleet it is";
+                if (WillRefusal(w, who, head) is { } sour) return "it no longer stands: " + sour;
+                if (OfferAuthority(w, offices, head, a, f) == null) return $"it no longer stands: {f.Name} is not yours to give";
+                return FleetSystem.AdmiralOf(w, f)?.Id == head.Id ? $"you command {f.Name} yourself" : null;
             default:
+                if (w.AtWar(head.HouseId, f.OwnerId)) return $"it no longer stands: your house is at war with {Nm(w, f.OwnerId)}, whose fleet it is";
                 return AuthorityOver(w, offices, asker, f) == a.Authority ? null : $"it no longer stands: {asker.Name} is no longer {AuthorityName(a.Authority)}";
         }
     }
 
-    /// <summary>The player answers: yes begins the command; no is taken a little amiss by whoever asked.</summary>
+    /// <summary>By what the head takes on one who offers service to this fleet: the office the offer was made to, while the fleet is under an office
+    /// the head holds; the house's war, when the offer was to a house at war and the fleet is one of its own; else whichever of the two still stands.</summary>
+    public static string? OfferAuthority(World w, OfficeCatalog offices, Character head, ServiceAsk a, Fleet f)
+    {
+        var byOffice = AuthorityOver(w, offices, head, f);
+        bool war = f.OwnerId == head.HouseId && !f.Office && Serviceable(f) && EnemyOf(w, head.HouseId) != null;
+        return a.Authority != ByWar ? byOffice ?? (war ? ByWar : null) : war ? ByWar : byOffice;
+    }
+
+    /// <summary>The player answers: yes begins the command; no is taken a little amiss by whoever asked, and the same is not asked again for
+    /// <see cref="RefusedYears"/> years.</summary>
     public static void Answer(World w, OfficeCatalog offices, Character head, ServiceAsk a, bool yes)
     {
         w.ServiceAsks.Remove(a);
         var f = w.Fleets.GetValueOrDefault(a.FleetId); var who = w.Char(a.CharacterId); var asker = w.Char(a.AskerId);
         if (!yes)
         {
+            w.WorldCounters[RefusedKey(a.AskerId, a.CharacterId)] = w.Turn;
             Move(w, a.Kind == AskOffer ? who : asker, head, RefusedRegard);
             w.Log(a.Kind switch
             {
@@ -525,8 +586,8 @@ public static class ServiceSystem
         {
             case AskLend: Begin(w, f, who, asker, Lent, ByWar, a.EnemyId, head.Id); Move(w, asker, head, LeaveGivenRegard); break;
             case AskOffer:
-                string auth = f.OwnerId == head.HouseId && !f.Office ? ByWar : AuthorityOver(w, offices, head, f) ?? ByWar;
-                Begin(w, f, who, head, auth == ByWar ? Lent : Legate, auth, auth == ByWar ? EnemyOf(w, head.HouseId) ?? "" : "", auth == ByWar && w.House(who.HouseId) is { } oh && Economy.HeadOf(w, oh) is { } ohd ? ohd.Id : "", sought: true);
+                string auth = OfferAuthority(w, offices, head, a, f) ?? ByWar; bool lent = auth == ByWar;   // taken on as the offer was made: by the office, or for the war
+                Begin(w, f, who, head, lent ? Lent : Legate, auth, lent ? EnemyOf(w, head.HouseId) ?? "" : "", lent && w.House(who.HouseId) is { } oh && Economy.HeadOf(w, oh) is { } ohd ? ohd.Id : "", sought: true);
                 break;
             default: Begin(w, f, head, asker, Legate, a.Authority); break;
         }
@@ -534,9 +595,9 @@ public static class ServiceSystem
 
     // ---------------- for the screens ----------------
 
-    /// <summary>Who of other houses could be given this fleet by service now, the best commanders first.</summary>
+    /// <summary>Who of other houses could be given this fleet by service now, the best commanders first: never a house's head, who stays at home.</summary>
     public static List<Character> Candidates(World w, Fleet f, int take) =>
-        w.LivingCharacters().Where(c => c.HouseId != f.OwnerId && !World.Outsider(c.HouseId) && w.House(c.HouseId) != null && FreeRefusal(w, c) == null)
+        w.LivingCharacters().Where(c => c.HouseId != f.OwnerId && !World.Outsider(c.HouseId) && w.House(c.HouseId) is { } h && Economy.HeadOf(w, h)?.Id != c.Id && FreeRefusal(w, c) == null)
             .OrderByDescending(c => c.Skill("tactics")).ThenByDescending(c => FleetSystem.CommandFactor(c)).ThenBy(c => c.Id, StringComparer.Ordinal).Take(take).ToList();
     /// <summary>Who of the head's house could offer their service: the head, and every grown member who commands nothing.</summary>
     public static List<Character> Seekers(World w, Character head) =>

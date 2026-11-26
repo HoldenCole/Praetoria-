@@ -361,6 +361,216 @@ public class CommandByServiceTests
         Assert.Null(new AnswerServiceCommand("self", ask2.Id, false, Offices).Refusal(new CommandContext(w2, TestContent.Rng())));
     }
 
+    // ---------------- the holes the review found ----------------
+
+    [Fact]
+    public void Nobody_is_given_the_fleet_of_a_house_their_own_is_at_war_with()
+    {
+        var w = Rings(); var ctx = new CommandContext(w, TestContent.Rng()); w.Pools["self"].Agents = 3;
+        // Corwin's head is consul and no Admiral sits, so the state fleet, which sails under Aurelian, is the consul's to give
+        Consul(w, "corwin", "corwin_head"); var state = At(w, "state", "aurelian", "prime", 4, office: true);
+        w.Houses["third"] = new House { Id = "third", Name = "House Third" }; Person(w, "third_head", "third", tactics: 0, rank: 0, age: 60);
+        var lt3 = Person(w, "lt3", "third", tactics: 5, age: 50); Regard(w, "corwin_head", "third_head", 25); War(w, "third", "aurelian");
+        for (int t = 0; t < 3; t++) { w.Turn++; ServiceSystem.Tick(w, Offices); }
+        Assert.Empty(w.Service); Assert.Equal(0, w.Counter(ServiceSystem.CommandsKey)); Assert.Equal("", state.AdmiralId);
+        Assert.False(ServiceSystem.Open(w, state, lt3, w.Char("corwin_head")!));
+        // nor by the player as consul
+        w.Offices.Clear(); Consul(w, "vega", "self");
+        Assert.Equal("House Third is at war with House Aurelian, whose fleet it is", new NameLegateCommand("self", "state", "lt3", Offices).Refusal(ctx));
+    }
+
+    [Fact]
+    public void An_offer_put_to_the_player_as_consul_is_taken_on_by_the_office_or_declined()
+    {
+        World Offered(out ServiceAsk ask)
+        {
+            var w = Rings(); Consul(w, "vega", "self"); At(w, "mine", "vega", "tessaly", 3); Person(w, "lt", "corwin", tactics: 5);
+            for (int t = 0; t < 12 && !w.ServiceAsks.Any(); t++) { w.Turn++; ServiceSystem.Tick(w, Offices); }
+            ask = Assert.Single(w.ServiceAsks); Assert.Equal((ServiceSystem.AskOffer, "lt", ServiceSystem.ByConsul), (ask.Kind, ask.CharacterId, ask.Authority));
+            return w;
+        }
+        // at peace, the player takes the officer on as consul: a legate, not an officer lent for a war there is not
+        var w = Offered(out var ask); var ex = new CommandExecutor();
+        Assert.True(ex.TryExecute(new AnswerServiceCommand("self", ask.Id, true, Offices), new CommandContext(w, TestContent.Rng())));
+        var s = Assert.Single(w.Service);
+        Assert.Equal((ServiceSystem.Legate, ServiceSystem.ByConsul, "self", "", ""), (s.Kind, s.Authority, s.NamedById, s.EnemyId, s.LeaveById));
+        w.Turn++; ServiceSystem.Tick(w, Offices); Assert.Single(w.Service);   // and it stands while the consulship does
+        // or declines: the one who offered thinks the worse of it, and it is remembered
+        var w2 = Offered(out var ask2);
+        Assert.True(ex.TryExecute(new AnswerServiceCommand("self", ask2.Id, false, Offices), new CommandContext(w2, TestContent.Rng())));
+        Assert.Empty(w2.Service); Assert.Empty(w2.ServiceAsks);
+        Assert.Equal(ServiceSystem.RefusedRegard, w2.GetRelationship("lt", "self")!.Disposition);
+        Assert.Contains(w2.History, h => h.Text.Contains("self does not take Officer lt of House Corwin into service."));
+        Assert.True(ServiceSystem.Refused(w2, "lt", "lt"));
+    }
+
+    [Fact]
+    public void Folding_a_fleet_commanded_by_service_carries_the_service_into_the_other_or_ends_it()
+    {
+        var w = Rings(); var ctx = new CommandContext(w, TestContent.Rng()); var ex = new CommandExecutor(); War(w, "vega", "aurelian");
+        var a = At(w, "a", "vega", "tessaly", 2); var b = At(w, "b", "vega", "tessaly", 3); var lt = Person(w, "lt", "corwin"); Person(w, "mate", "corwin");
+        var s = ServiceSystem.Begin(w, a, lt, w.Protagonist!, ServiceSystem.Lent, ServiceSystem.ByWar, "aurelian"); a.CaptainId = "mate";
+        Assert.True(ex.TryExecute(new MergeFleetsCommand("self", "a", "b"), ctx));
+        Assert.Equal("lt", b.AdmiralId); Assert.Same(s, ServiceSystem.Of(w, b)); Assert.Equal(("b", "The b"), (s.FleetId, s.FleetName)); Assert.Equal("mate", b.CaptainId);
+        // the war ends, and the officer goes home from the fleet they now command, the captain of their house with them
+        w.Wars.Clear(); w.Turn++; ServiceSystem.Tick(w, Offices);
+        Assert.Empty(w.Service); Assert.Equal("", b.AdmiralId); Assert.Equal("", b.CaptainId); Assert.Equal("House Vega's war is over, and the officer goes home", w.PastService.Single().How);
+        // folded into a fleet with a commander of its own, the service ends there and then
+        War(w, "vega", "aurelian"); var c2 = At(w, "c2", "vega", "tessaly", 2); var d = At(w, "d", "vega", "tessaly", 2, admiral: "self"); var lt2 = Person(w, "lt2", "corwin");
+        ServiceSystem.Begin(w, c2, lt2, w.Protagonist!, ServiceSystem.Lent, ServiceSystem.ByWar, "aurelian");
+        Assert.True(ex.TryExecute(new MergeFleetsCommand("self", "c2", "d"), ctx));
+        Assert.Empty(w.Service); Assert.Equal("The c2 was folded into The d, which has a commander of its own", w.PastService.Last().How); Assert.Equal("self", d.AdmiralId);
+    }
+
+    [Fact]
+    public void One_the_player_refused_or_left_unanswered_is_not_asked_for_again_and_the_asker_looks_elsewhere()
+    {
+        var w = Rings(); var ctx = new CommandContext(w, TestContent.Rng()); var ex = new CommandExecutor();
+        War(w, "corwin", "aurelian"); var cf = At(w, "cf", "corwin", "mid1", 3);
+        Person(w, "kin", "vega", tactics: 6); Regard(w, "self", "corwin_head", 15);
+        w.Houses["third"] = new House { Id = "third", Name = "House Third" }; Person(w, "third_head", "third", tactics: 0, rank: 0, age: 60);
+        Person(w, "lt3", "third", tactics: 4, age: 50); Person(w, "lt4", "third", tactics: 4, age: 50); Regard(w, "third_head", "corwin_head", 15);
+        w.Turn++; ServiceSystem.Tick(w, Offices);
+        var ask = Assert.Single(w.ServiceAsks); Assert.Equal((ServiceSystem.AskLend, "kin"), (ask.Kind, ask.CharacterId));
+        Assert.True(ex.TryExecute(new AnswerServiceCommand("self", ask.Id, false, Offices), ctx));
+        Assert.Equal(ServiceSystem.RefusedRegard, w.GetRelationship("corwin_head", "self")!.Disposition);
+        // the next year Corwin does not ask again, and borrows from a house that will lend
+        w.Turn++; ServiceSystem.Tick(w, Offices);
+        Assert.Empty(w.ServiceAsks); Assert.Equal("lt3", cf.AdmiralId); Assert.Equal("third_head", ServiceSystem.Of(w, cf)!.LeaveById);
+        Assert.Equal(ServiceSystem.RefusedRegard, w.GetRelationship("corwin_head", "self")!.Disposition);   // no second refusal, no second cost
+        // an ask left unanswered for the year is taken as a no
+        var cf2 = At(w, "cf2", "corwin", "mid1", 2); Person(w, "kin2", "vega", tactics: 7);
+        w.Turn++; ServiceSystem.Tick(w, Offices); Assert.Equal("kin2", w.ServiceAsks.Single().CharacterId);
+        w.Turn++; ServiceSystem.Tick(w, Offices);
+        Assert.True(ServiceSystem.Refused(w, "corwin_head", "kin2")); Assert.Empty(w.ServiceAsks); Assert.Equal("lt4", cf2.AdmiralId);
+        // and after five years it may be asked again
+        w.Turn += ServiceSystem.RefusedYears; Assert.False(ServiceSystem.Refused(w, "corwin_head", "kin2"));
+
+        // a consul whose legacy the player's head declined names the next best instead of asking again
+        var w2 = Rings(); var me = w2.Protagonist!; me.CareerTrack = "military"; me.CareerRank = 3; me.Skills["tactics"] = 6;
+        Consul(w2, "aurelian", "aurelian_head"); var af = At(w2, "af", "aurelian", "prime", 4); Regard(w2, "aurelian_head", "self", 25);
+        w2.Houses["corwin"].HeadId = "corwin_head"; Person(w2, "good", "corwin", tactics: 5, age: 50); Regard(w2, "aurelian_head", "corwin_head", 25);   // too old to seek a command of himself
+        w2.Turn++; ServiceSystem.Tick(w2, Offices); var legate = w2.ServiceAsks.Single(); Assert.Equal(ServiceSystem.AskLegate, legate.Kind);
+        Assert.True(ex.TryExecute(new AnswerServiceCommand("self", legate.Id, false, Offices), new CommandContext(w2, TestContent.Rng())));
+        Assert.Equal(25 + ServiceSystem.RefusedRegard, w2.GetRelationship("aurelian_head", "self")!.Disposition);
+        Assert.Contains(w2.History, h => h.Text.Contains("self declines to be Lucius's legate."));
+        w2.Turn++; ServiceSystem.Tick(w2, Offices);
+        Assert.Empty(w2.ServiceAsks); Assert.Equal("good", af.AdmiralId);
+    }
+
+    [Fact]
+    public void Nobody_seeks_to_serve_under_one_they_think_too_ill_of()
+    {
+        var w = Rings(); var ctx = new CommandContext(w, TestContent.Rng()); w.Pools["self"].Agents = 3;
+        War(w, "corwin", "aurelian"); At(w, "cf", "corwin", "mid1", 3);
+        Person(w, "kin", "vega", tactics: 5); Regard(w, "kin", "corwin_head", -80);
+        Assert.Equal("Officer kin thinks too ill of Mara (-80) to serve under them: it takes -20 or better", new SeekCommandCommand("self", "kin", "corwin", Offices).Refusal(ctx));
+        Regard(w, "kin", "corwin_head", -20); Assert.Null(new SeekCommandCommand("self", "kin", "corwin", Offices).Refusal(ctx));
+        Consul(w, "aurelian", "aurelian_head"); At(w, "af", "aurelian", "prime", 3); Regard(w, "kin", "aurelian_head", -30);
+        Assert.Equal("Officer kin thinks too ill of Lucius (-30) to serve under them: it takes -20 or better", new SeekCommandCommand("self", "kin", "aurelian_head", Offices).Refusal(ctx));
+    }
+
+    [Fact]
+    public void Leave_to_lend_one_who_is_head_now_or_has_left_the_house_no_longer_stands()
+    {
+        var w = Rings(); var ctx = new CommandContext(w, TestContent.Rng());
+        War(w, "corwin", "aurelian"); At(w, "cf", "corwin", "mid1", 3); var kin = Person(w, "kin", "vega", tactics: 5); Regard(w, "self", "corwin_head", 15);
+        w.Turn++; ServiceSystem.Tick(w, Offices); var ask = w.ServiceAsks.Single(); Assert.Equal("kin", ask.CharacterId);
+        // the head dies at the year's end, and the heir asked for is head now
+        w.Protagonist!.Alive = false; w.ProtagonistId = "kin";
+        Assert.Equal("it no longer stands: Officer kin is the head of the house now, and a head is not lent", new AnswerServiceCommand("kin", ask.Id, true, Offices).Refusal(ctx));
+        Assert.Null(new AnswerServiceCommand("kin", ask.Id, false, Offices).Refusal(ctx));
+        // one who has married into another house since is not lent as one of yours
+        w.ProtagonistId = "self"; w.Char("self")!.Alive = true; kin.HouseId = "aurelian";
+        Assert.Equal("it no longer stands: Officer kin is no longer of your house", new AnswerServiceCommand("self", ask.Id, true, Offices).Refusal(ctx));
+    }
+
+    [Fact]
+    public void A_relative_in_office_does_not_give_the_house_s_own_fleets_to_another_house()
+    {
+        var w = Rings(); Person(w, "bro", "vega", tactics: 1, track: "law", rank: 3, age: 45); Consul(w, "vega", "bro");
+        Person(w, "myadm", "vega", tactics: 2); var mine = At(w, "mine", "vega", "tessaly", 4, admiral: "myadm");
+        Person(w, "good", "corwin", tactics: 5); Regard(w, "bro", "corwin_head", 25);
+        for (int t = 0; t < 6; t++) { w.Turn++; ServiceSystem.Tick(w, Offices); }   // years enough for the officer to seek a command too
+        Assert.Equal("myadm", mine.AdmiralId); Assert.Empty(w.Service); Assert.Empty(w.ServiceAsks);
+        Assert.Equal(0, w.GetRelationship("myadm", "bro")?.Disposition ?? 0);
+        // on an office fleet of the house the relative fills a command that is empty, and puts out nobody the head put there
+        Person(w, "keeper", "vega", tactics: 1); var state = At(w, "state", "vega", "prime", 3, admiral: "keeper", office: true);
+        w.Turn++; ServiceSystem.Tick(w, Offices); Assert.Equal("keeper", state.AdmiralId); Assert.Empty(w.Service);
+        state.AdmiralId = ""; w.Turn++; ServiceSystem.Tick(w, Offices);
+        var s = Assert.Single(w.Service); Assert.Equal(("state", "good", "bro"), (s.FleetId, s.CommanderId, s.NamedById));
+    }
+
+    [Fact]
+    public void Another_house_s_head_and_people_not_of_the_Reach_are_not_named_legate_or_borrowed()
+    {
+        var w = Rings(); var ctx = new CommandContext(w, TestContent.Rng()); w.Pools["self"].Agents = 3;
+        Consul(w, "vega", "self"); var own = At(w, "own", "vega", "tessaly", 4); w.Char("corwin_head")!.Skills["tactics"] = 5;
+        Assert.Equal("Mara is the head of House Corwin, and a head of house stays at home", new NameLegateCommand("self", "own", "corwin_head", Offices).Refusal(ctx));
+        Assert.DoesNotContain(ServiceSystem.Candidates(w, own, 50), c => c.Id is "corwin_head" or "aurelian_head");
+        w.Characters["raider"] = new Character { Id = "raider", Name = "Raider", HouseId = "pirates", Age = 30, Alive = true, CareerTrack = "military", CareerRank = 3 };
+        Assert.Equal("Raider is not of a house of the Reach", new NameLegateCommand("self", "own", "raider", Offices).Refusal(ctx));
+        War(w, "vega", "aurelian");
+        Assert.Equal("Raider is not of a house of the Reach", new BorrowOfficerCommand("self", "own", "raider").Refusal(ctx));
+    }
+
+    [Fact]
+    public void A_relative_commanding_by_service_has_a_command_and_one_given_a_house_fleet_lays_the_other_down()
+    {
+        var w = Rings(); var ctx = new CommandContext(w, TestContent.Rng()); var ex = new CommandExecutor(); w.Turn = 5;
+        var ambitions = new AmbitionSystem(Content.Businesses, Content.Holdings, Content.Titles, Content.Careers);
+        Person(w, "weak", "vega", tactics: 1); var own = At(w, "own", "vega", "tessaly", 3, admiral: "weak");
+        var kin = Person(w, "kin", "vega", tactics: 6); kin.Ambition = "command_a_fleet"; Regard(w, "kin", "self", 30);
+        War(w, "corwin", "aurelian"); var cf = At(w, "cf", "corwin", "mid1", 3);
+        ServiceSystem.Begin(w, cf, kin, w.Char("corwin_head")!, ServiceSystem.Lent, ServiceSystem.ByWar, "aurelian", "self");
+        for (int t = 0; t < 2; t++) { w.Turn++; ambitions.Tick(w, ex, ctx); }
+        Assert.Equal("", kin.Pursuit!.Request); Assert.Equal("Commands The cf, of House Corwin, by service.", kin.Pursuit.Note);
+        // granted a fleet of the house all the same, the command by service is laid down first, and Corwin is told
+        kin.Pursuit.Request = AmbitionSystem.Command; kin.Pursuit.RequestArg = "own"; kin.Pursuit.RequestSince = w.Turn;
+        ambitions.Answer(w, w.Protagonist!, kin, true, ex, ctx);
+        Assert.Equal("kin", own.AdmiralId); Assert.Equal("", cf.AdmiralId); Assert.Empty(w.Service);
+        Assert.Equal("Officer kin was given the command of The own, of House Vega", w.PastService.Single().How);
+        // and the same when the head gives them a flag of the house on the fleet's card
+        var kin2 = Person(w, "kin2", "vega"); var cf2 = At(w, "cf2", "corwin", "mid1", 2); var b = At(w, "b", "vega", "tessaly", 2); w.Pools["self"].Agents = 2;
+        ServiceSystem.Begin(w, cf2, kin2, w.Char("corwin_head")!, ServiceSystem.Lent, ServiceSystem.ByWar, "aurelian", "self");
+        Assert.True(ex.TryExecute(new AssignAdmiralCommand("self", "b", "kin2"), ctx));
+        Assert.Empty(w.Service); Assert.Equal("Officer kin2 was given the command of The b, of House Vega", w.PastService.Last().How); Assert.Equal("", cf2.AdmiralId);
+    }
+
+    [Fact]
+    public void A_captain_of_the_commander_s_house_is_not_sent_off_with_a_detachment()
+    {
+        var w = Rings(); var ctx = new CommandContext(w, TestContent.Rng()); War(w, "vega", "aurelian");
+        var a = At(w, "a", "vega", "tessaly", 3); var lt = Person(w, "lt", "corwin"); Person(w, "mate", "corwin");
+        ServiceSystem.Begin(w, a, lt, w.Protagonist!, ServiceSystem.Lent, ServiceSystem.ByWar, "aurelian"); a.CaptainId = "mate";
+        Assert.Equal("Officer mate, the captain, is of House Corwin and serves with the commander of that house: a detachment goes under a captain of your own house, or under none",
+            new DetachHullsCommand("self", "a", 1, Content.Fleets, withCaptain: true).Refusal(ctx));
+        Assert.Null(new DetachHullsCommand("self", "a", 1, Content.Fleets).Refusal(ctx));
+        Person(w, "ours", "vega"); a.CaptainId = "ours"; Assert.Null(new DetachHullsCommand("self", "a", 1, Content.Fleets, withCaptain: true).Refusal(ctx));
+    }
+
+    [Fact]
+    public void A_command_by_service_ends_for_the_reason_it_did_and_one_now_lawful_is_kept()
+    {
+        // the commander grows frail: the year's end lays the command down, and says why
+        var w = Rings(); var own = At(w, "own", "vega", "tessaly", 3); var lt = Person(w, "lt", "corwin"); War(w, "vega", "aurelian"); w.Houses["corwin"].HeadId = "corwin_head";
+        ServiceSystem.Begin(w, own, lt, w.Protagonist!, ServiceSystem.Lent, ServiceSystem.ByWar, "aurelian");
+        lt.Health = 1; LifeSystem.Tick(w, Content); w.Turn++; ServiceSystem.Tick(w, Offices);
+        Assert.Equal("Officer lt is too frail for the sea", w.PastService.Single().How); Assert.Equal("", own.AdmiralId);
+        // a consul's legate on the state fleet, when an Admiral of the same house is commissioned: the consul is consul still
+        Consul(w, "aurelian", "aurelian_head"); var state = At(w, "state", "aurelian", "prime", 3, office: true); var lt2 = Person(w, "lt2", "corwin", age: 50);
+        ServiceSystem.Begin(w, state, lt2, w.Char("aurelian_head")!, ServiceSystem.Legate, ServiceSystem.ByConsul);
+        Person(w, "aurelian_adm", "aurelian", age: 50); Admiral(w, "aurelian", "aurelian_adm");
+        w.Turn++; ServiceSystem.Tick(w, Offices);
+        Assert.Equal("the commission lapsed: an Admiral of the Reach holds the office fleets now, and The state is no longer the consul's", w.PastService.First(p => p.CommanderId == "lt2").How);
+        // one who marries into the house whose fleet it is keeps the command, by right now and not by service
+        var f3 = At(w, "f3", "vega", "tessaly", 2); var lt3 = Person(w, "lt3", "corwin", age: 50);
+        ServiceSystem.Begin(w, f3, lt3, w.Protagonist!, ServiceSystem.Lent, ServiceSystem.ByWar, "aurelian");
+        lt3.HouseId = "vega"; w.Turn++; ServiceSystem.Tick(w, Offices);
+        Assert.Equal("lt3", f3.AdmiralId); Assert.Null(ServiceSystem.Of(w, f3)); Assert.Equal("Officer lt3 is of House Vega now", w.PastService.Single(p => p.CommanderId == "lt3").How);
+        Assert.Contains(lt3.Life!.Deeds, d => d.Text.StartsWith("Commanded The f3 of House Vega by service no longer, and kept the command"));
+    }
+
     // ---------------- the Caesar road ----------------
 
     [Fact]

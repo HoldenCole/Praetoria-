@@ -217,6 +217,7 @@ public static class LifeSystem
             if (frail || (ours && c.Id != p!.Id && c.Age >= KinRetireAge))
             {
                 bool laidDown = false;
+                if (ServiceSystem.Held(w, c) != null) { ServiceSystem.Leave(w, c, frail ? $"{c.Name} is too frail for the sea" : $"{c.Name} has laid down their work, full of years"); laidDown = true; }   // a command by service ends with its reason told (docs/MILITARY.md)
                 foreach (var fl in w.Fleets.Values.Where(x => x.AdmiralId == c.Id)) { fl.AdmiralId = ""; laidDown = true; }
                 foreach (var fl in w.Fleets.Values.Where(x => x.CaptainId == c.Id)) { fl.CaptainId = ""; laidDown = true; }   // and a captaincy with it
                 if (ours && c.Id != p!.Id)
