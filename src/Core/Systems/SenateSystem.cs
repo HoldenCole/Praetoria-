@@ -98,6 +98,7 @@ public sealed class SenateSystem
             Add(ls * FactionSystem.Discipline, "it follows " + (w.House(f.LeaderHouseId)?.Name ?? "its leader") + ", who leads " + f.Name); Add(m.Lobby.GetValueOrDefault(f.LeaderHouseId) / 2, "its leader has been lobbied");
         }
         Add(DealingsSystem.CowedLean(w, _motions.Def(m.Kind), m, houseId, lean, out var feared), "it is afraid of " + feared);   // a house that has been threatened stays away (docs/WEALTH.md, "Dealings between houses")
+        Add(ForeignGoldSystem.Lean(w, m, houseId, lean, out var gold), gold);   // gold from beyond the Reach, taken or shown to the chamber (docs/BEYOND.md, "Foreign gold in the Senate")
         return lean;
     }
 

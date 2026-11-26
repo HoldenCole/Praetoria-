@@ -20,6 +20,7 @@ using Praetoria.Tools;
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
 //   heirs     [--scenario id] [--seeds N]                        friends and enemies handed down at a succession, with the rule and without
 //   disown    [--scenario id] [--seeds N]                        who other houses strike from their lines or cast out, and why (DISOWN_PLAYER=1: the head strikes a child out)
+//   gold      [--scenario id|all] [--seeds N] [--turns N]          foreign gold before a war vote: offers made, taken, refused, exposed, votes turned, charges (GOLD_WAR=thessar:8, GOLD_PLAYER=take)
 // The whole simulation runs here without Godot — the Milestone-1 rule.
 
 var (command, opts) = ParseArgs(args);
@@ -59,6 +60,7 @@ try
         "throne"   => Probes.Throne(opts),
         "heirs"    => HeirsProbe.Run(opts),
         "disown"   => DisownProbe.Run(opts),
+        "gold"     => GoldProbe.Run(opts),
         _ => Unknown(command)
     };
 }

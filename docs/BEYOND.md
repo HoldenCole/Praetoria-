@@ -349,7 +349,8 @@ the Reach taken, 19 freed and 4 ceded. The full account is docs/GAP_ANALYSIS.md,
 - **No house but yours moves a war on the Cities.** See the figures above.
 - **The ransom is answered through a report**, not from the card.
 - **The Cities buy nothing else**: not a peace before any fighting, not a house's vote in the Senate, not the
-  Khanates' swords against the Reach.
+  Khanates' swords against the Reach. (Since 2026-11-26 they buy votes, and the mover of a war: see "Foreign gold in
+  the Senate" below. A peace before any fighting and another nation's swords are still not bought.)
 - **Their trade is the old kind**: goods arrive on the Reach's exchanges. No lane, no convoy, and nothing for the
   houses that hold Wintermoor and Brackwater.
 
@@ -868,6 +869,143 @@ white.
   or a marriage; and the nation never opens the talking.
 - **You negotiate only your own war.** In the Reach's war the Senate's peace takes the best terms on offer; you
   cannot ask it to hold out for more, or settle for less.
+
+## Foreign gold in the Senate
+
+Built 2026-11-26 from docs/IDEAS_FROM_IMPERATOR.md, entry 9, which closes most of GAPS N11. What was asked: "Before a
+war motion against the Free Cities, or a nation they favour, the Cities send senators the same gift that asks a favour
+that houses already send one another. The player is offered a sum to vote against the war or to stay away. Taking it
+fills their purse and goes on the record, where a rival can find it and charge it before a praetor; refusing costs
+nothing; exposing it gains public trust and standing, and the Cities think less of the Reach. Other houses take it by
+nature (the greedy, the short of money). The Cities can also buy off a war before it is voted." And: "Keep the sums
+large and the Cities' purse finite."
+
+### What was built
+
+- **The Cities' purse.** The Free Cities keep a purse for the Reach's Senate, filled every year by their wealth (900
+  credits) up to twelve years of it (10,800 credits). It opens with five years in it. It does not fill while they are
+  at war, when the money goes on hired hulls, or while they pay tribute. The game recorded no favour between nations,
+  so one is written into the Cities' definition: they favour **the Hollow Crown**, an old empire of ceremony and debt
+  whose debts are theirs. A war on the Crown is a war they pay to stop. Both are a line of content each.
+- **The mover first, and sparingly.** When a motion of war on the Cities or the Crown is on the docket and would carry
+  as the benches lean, the Cities offer the house that moved it a sum to withdraw it: 4,000 credits and 300 for each
+  of its seats. They do this at most once in fifteen years. Taken, the motion is withdrawn before it is voted and the
+  mover loses a step of standing in the Senate, as a motion thrown out does. Told to the chamber, the Cities write to
+  nobody else on that motion.
+- **Then the senators.** They write to the heaviest houses that lean for the war or would stay away, until the count
+  as they reckon it turns, four at most; and to you, whenever your house is not already against it. A house that
+  wants the war badly (it leans more than two for it) is asked only to stay away: 1,200 credits and 100 a seat. The
+  rest are asked to vote against: 2,000 credits and 200 a seat. They write to nobody if the war fails anyway by a
+  fifth of the seats that vote, or if every senator they could reach taking the gold would not turn it: the purse is
+  kept for a war that can be stopped. A house that has already given its word on the vote is not written to. What is
+  sent is set aside from the purse until it is answered, and goes home if it is not taken.
+- **What a house does with it, by nature.** A head who is Honourable or Just tells the chamber. One for sale by
+  nature takes it: Ruthless, Cruel, Greedy, or set on amassing a fortune (the natures a praetor is bought by, and the
+  greedy). So does one whose house is in want, holding under 500 credits (where a lender charges it twenty in the
+  hundred). Anyone else refuses it and says nothing.
+- **Your answer**, on the Senate window under the motion: take it, refuse it, or tell the Senate.
+  - **Take it.** The sum goes into your own purse and your vote is declared as asked (against, or away). It goes on
+    the record, where any house may charge you with it before a praetor at once, for eight years, with its facts:
+    "took 3,800 credits from the Free Cities of Thessar to vote against the war on the Hollow Crown in year 34". If you
+    then vote for the war after all, the Cities think five the worse of the Reach and send your house nothing for ten
+    years; the gold is still on the record.
+  - **Refuse it.** Nothing is lost, and nobody hears of it.
+  - **Tell the Senate.** The Reach's trust rises by two and your house's legitimacy by three. The chamber is angry:
+    every house leans a point more for the war on that motion. The Cities think ten the worse of the Reach.
+  - Left unanswered until the vote, it lapses and goes home.
+- **What it does to the count.** A house that took it to vote against votes against; one that took it to stay away
+  stays away. The roll call says so ("it has taken gold to stay away"). A bench does not follow a leader the Cities
+  paid, as it does not follow one another house paid. A vote is marked turned when the war fails and would have
+  carried had those who took the gold voted as they leaned before it; a war bought off is turned too.
+- **What you can know.** On the motion, a line says how many senators the Cities are known to have reached: your own
+  house, any who told the chamber, and those whose head thinks thirty or better of you, who tell you. The rest is not
+  known.
+- **The courts.** Gold taken is a new kind of act on the record (docs/LADDER.md, "The courts"), charged at once like a
+  praetor bought or an election bought, and heard by the praetors as any other charge. Other houses bring it as they
+  bring any charge: one that hates the taker's house enough, one charge a year in the Reach.
+- **Saved**: the offers (kept twenty years), and the purse.
+
+### The numbers
+
+| Thing | Number |
+|---|---|
+| The purse | twelve years of the Cities' wealth: 10,800 credits; opens with five years (4,500) |
+| It fills | by their wealth a year, 900 credits; not at war, not while paying tribute |
+| The nation they favour | the Hollow Crown |
+| To vote against | 2,000 credits and 200 a seat |
+| To stay away | 1,200 credits and 100 a seat; asked of a house leaning more than two for the war |
+| To withdraw the motion | 4,000 credits and 300 a seat; once in fifteen years at most; only a war that would carry |
+| Senators written to | four at most, and you; none if all of them could not turn it |
+| A war not worth buying | it fails by a fifth of the seats that vote, or more |
+| Who takes it | for sale by nature, or in want (under 500 credits) |
+| Who tells the chamber | the Honourable and the Just |
+| Telling the chamber | trust +2; legitimacy +3; every house +1 for the war; the Cities' regard −10 |
+| Withdrawing | the mover's standing in the Senate −1 |
+| Taking it and voting for the war | the Cities' regard −5; nothing to that house for ten years |
+| A friend tells you | regard +30 or better |
+| On the record | eight years, charged at once (the courts' own figure) |
+| Offers kept | twenty years |
+
+### Measured
+
+Games of thirty years in which nobody steers the player's house; a passive player answers nothing, so what is sent to
+it lapses (`praetoria gold`).
+
+**Left to themselves**, the houses moved no war on the Cities or the Crown: none in two games of the_old_lion, and
+none in the twelve games of every start with a Senate (eight starts, two seeds each; the four games that open under a
+throne were left out). A house that wants a war names the Khanates first, whose regard is always the lower. So no gold was sent, nothing on the record came of it, and every
+game ran as it did before: the Caesar road is not touched (one in ten games is unchanged, by construction).
+
+**With a war moved** in year 8 and again ten years after each (`GOLD_WAR`), by the heaviest house that may move one,
+in the same twelve games with a Senate:
+
+| | War on the Cities | War on the Crown | On the Cities, the player takes it | On the Cities, the player tells the Senate |
+|---|---|---|---|---|
+| War motions moved | 23 | 26 | 23 | 23 |
+| Written about | 16 | 14 | 16 | 17 |
+| Offers to the mover to withdraw | 13 | 14 | 13 | 14 |
+| Offers to senators; to the player | 2; 2 | 0; 0 | 2; 2 | 2; 2 |
+| Taken; refused; told the chamber; lapsed | 4; 5; 6; 2 | 4; 5; 5; 0 | 6; 5; 6; 0 | 4; 5; 9; 0 |
+| Gold taken | 32,000 credits | 37,600 credits | 36,400 credits | 32,000 credits |
+| Wars bought off before the vote | 3 | 4 | 3 | 3 |
+| War votes turned by gold to senators | 0 | 0 | 0 | 0 |
+| Took it and voted for the war | 0 | 0 | 0 | 0 |
+| Charges on gold taken (convicted or admitted) | 3 (3) | 4 (4) | 5 (3), 2 of them against you | 3 (3) |
+
+- **The Cities' gold goes to the mover.** A war on the rich Cities or the Crown is popular: most of these motions
+  stood sixty seats or more for the war when they were moved, which four senators cannot turn. So the Cities mostly
+  offer the mover a sum to withdraw, and about one mover in four takes it (7 of 27). In forty-nine motions they wrote
+  to senators three times, all on the war on themselves: once to two houses (one took it, the other told the chamber,
+  and the war carried 124 to 27), and twice to you alone (the war was thrown out without your vote).
+- **The upright spoil it.** Ten of the twenty-seven movers told the chamber; the Cities then wrote to nobody, and the
+  chamber leaned the harder for the war.
+- **What is taken is charged.** Of the eight sums taken by other houses in the first two columns, seven were charged
+  before a praetor and all seven were found proved or admitted. Told to take it, the player took it twice and was
+  charged both times.
+- **The purse is rarely spent down.** It stood at its limit at the end of most games: the Cities' money is a reserve
+  they use once or twice in a generation, which is what was asked.
+
+### What I chose
+
+- The Hollow Crown as the nation the Cities favour, since the game records no favour between nations.
+- Every number in the table above.
+- That the Cities first try the mover, and stop when the mover tells the chamber.
+- That they spend nothing on a war they cannot turn, so the player is written to only in a close vote.
+- That a house that has given its word on the vote is not written to.
+- That the chamber's anger at gold shown to it is a point of lean for the war, in every house, on that motion.
+- That one who took the gold and voted for the war is shut out for ten years.
+
+### What is not built
+
+- **The Cities buy only war votes.** Not a peace vote while at war with them, not another nation's swords against the
+  Reach (the last part of N11), and not a peace before any fighting.
+- **Only the Cities keep a purse.** Another nation could, by a line of content, but none does.
+- **Left alone, nothing happens.** The houses move no war on the Cities or the Crown on their own in thirty years, as
+  before; the rule waits for a war somebody moves, the player's above all.
+- **No report window.** The offer is told in the news and answered on the Senate window. It is not shown on the
+  Cities' card, and the purse is not shown anywhere.
+- **Gold told to the chamber names nobody else.** It does not bring out who else took it.
+- **Another house that took it always votes as paid**, unless it had already given its word.
 
 ## What is yours to decide
 

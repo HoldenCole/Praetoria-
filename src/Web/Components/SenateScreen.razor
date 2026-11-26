@@ -237,6 +237,7 @@
                     <div class="motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : mo.Petition ? "petition" : "") @(watched?.Id == mo.Id ? "watched" : "")" @onclick="() => _watch = mo.Id">
                         <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this year" : "next year")@(motionHeld ? " · held over by the Speaker" : "")@(motionChair != 0 ? $" · the chair has spoken {(motionChair > 0 ? "for" : "against")} it" : "")</span></div>
                         <div class="mo-text">@mo.Text</div>
+                        <ForeignGoldBlock MotionId="@mo.Id" />
                         @{ int patronWish = motionNow != null ? senate.PatronWish(w, motionNow, house.Id) : 0; }
                         @if (patronWish != 0) { <div class="small warn">Your patron, @(w.House(house.PatronId)?.Name), wants this @(patronWish > 0 ? "carried" : "thrown out"). How you vote will be noticed.</div> }
                         @if (motionNow != null && senate.Motions.Def(motionNow.Kind) is { } wishDef)

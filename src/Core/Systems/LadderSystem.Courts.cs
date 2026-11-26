@@ -38,6 +38,7 @@ public static partial class LadderSystem
             TookGift => $"took a gift to rule as {office} in year {d.Turn}" + (against.Length > 0 ? $", against {against}" : ""),
             Bribed => $"bought a praetor in year {d.Turn}",
             BoughtElection => $"bought votes to be made {office} in year {d.Turn}",
+            ForeignGoldSystem.Deed => ForeignGoldSystem.DeedSays(w, d),
             _ => $"ruled against the law for a friend as {office} in year {d.Turn}" + (against.Length > 0 ? $", against {against}" : "")
         };
     }
