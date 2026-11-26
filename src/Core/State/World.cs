@@ -244,6 +244,8 @@ public sealed class World
 
     /// <summary>The foreign nations beyond the Reach as they stand (docs/FOREIGN_NATIONS.md): strength, regard, wars and tribute. Off the map.</summary>
     public List<Nation> Nations { get; set; } = new();
+    /// <summary>Gold the nations have sent the Reach's senators before a war vote, kept twenty years (docs/BEYOND.md, "Foreign gold in the Senate").</summary>
+    public List<GoldOffer> GoldOffers { get; set; } = new();
     public Nation? Nation(string id) => Nations.FirstOrDefault(n => n.Id == id);
 
     /// <summary>Senate factions: benches that vote together (GDD §6.1).</summary>

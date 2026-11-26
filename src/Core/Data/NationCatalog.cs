@@ -60,6 +60,10 @@ public sealed class NationDef
     /// <summary>What its two fleets are called; "" for the plain names.</summary>
     public string HostName { get; init; } = "";
     public string GuardName { get; init; } = "";
+    /// <summary>A nation that buys votes in the Reach's Senate keeps a purse of this many years of its wealth (docs/BEYOND.md, "Foreign gold in
+    /// the Senate"); 0 for one that does not. And the nations it favours: a war on one of them is a war it pays to stop.</summary>
+    public int SenateGold { get; init; }
+    public IReadOnlyList<string> Favours { get; init; } = Array.Empty<string>();
 }
 
 public sealed record NationHouse(string Id, string Name, string Accent, string Title, int Legitimacy);
@@ -94,6 +98,7 @@ public sealed class NationCatalog
                         HoldYears = Math.Max(0, ConditionParser.Int(el, "holdYears", 3)), Hosts = Math.Clamp(ConditionParser.Int(el, "hosts", 1), 1, 3), Strikes = el.TryGetProperty("strikes", out var stk) && stk.ValueKind == JsonValueKind.True, Campaigns = el.TryGetProperty("campaigns", out var cmp) && cmp.ValueKind == JsonValueKind.True,
                         Sorties = ConditionParser.OptStr(el, "sorties", ""), Walls = Math.Max(0, ConditionParser.Int(el, "walls", 0)), Treasure = Math.Max(0, ConditionParser.Int(el, "treasure", 0)), Titles = Math.Max(0, ConditionParser.Int(el, "titles", 0)), Regalia = ConditionParser.OptStr(el, "regalia", ""), GreatTitle = ConditionParser.OptStr(el, "greatTitle", ""), GreatOneIn = Math.Max(0, ConditionParser.Int(el, "greatOneIn", 0)), Mettle = Math.Max(0, ConditionParser.Int(el, "mettle", 0)),
                         Yields = el.TryGetProperty("yields", out var yl) && yl.ValueKind == JsonValueKind.Object ? yl.EnumerateObject().Where(x => x.Value.ValueKind == JsonValueKind.Number).ToDictionary(x => x.Name, x => x.Value.GetInt32()) : new Dictionary<string, int>(), HostName = ConditionParser.OptStr(el, "hostName", ""), GuardName = ConditionParser.OptStr(el, "guardName", ""),
+                        SenateGold = Math.Max(0, ConditionParser.Int(el, "senateGold", 0)), Favours = Strings(el, "favours"),
                         RulerTitle = ConditionParser.OptStr(el, "rulerTitle", "ruler"), CommanderTitle = ConditionParser.OptStr(el, "commanderTitle", "commander"), Names = Strings(el, "names"),
                         Exports = el.TryGetProperty("exports", out var ex) && ex.ValueKind == JsonValueKind.Object ? ex.EnumerateObject().Where(p => p.Value.ValueKind == JsonValueKind.Number).ToDictionary(p => p.Name, p => p.Value.GetInt32()) : new Dictionary<string, int>()
                     });

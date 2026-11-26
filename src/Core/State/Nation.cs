@@ -60,6 +60,13 @@ public sealed class Nation
     /// <summary>The name of the thing in its vaults, until the vaults are opened.</summary>
     public string Regalia { get; set; } = "";
     public bool BeganIt { get; set; }
+    /// <summary>What it keeps to buy votes in the Reach's Senate (docs/BEYOND.md, "Foreign gold in the Senate"), in the books' hundreds:
+    /// filled each year from its wealth, to a limit. A nation that buys no votes keeps none.</summary>
+    public int Purse { get; set; }
+    /// <summary>The purse was opened (it starts part full, once).</summary>
+    public bool PurseOpened { get; set; }
+    /// <summary>The year it last bought off a war before the vote; 0 if never.</summary>
+    public int BoughtOffTurn { get; set; }
     /// <summary>Whose war it is (docs/BEYOND.md, "Whose war"). "" is the Reach's: voted by the Senate or begun by the nation, and every
     /// house is at war with it. A house's id is that house's own war: begun without the Senate's leave, or fought on after the Senate
     /// voted peace. Then only that house is at war with the nation.</summary>

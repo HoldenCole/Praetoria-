@@ -25,8 +25,8 @@ public static partial class LadderSystem
     public static int CampaignVotes(string size) => size switch { Modest => 3, Handsome => 6, Lavish => 10, _ => 0 };
     public static string CampaignName(string size) => size switch { Modest => "a modest canvass", Handsome => "a handsome canvass", Lavish => "a lavish canvass", _ => size };
     private static int SizeRank(string size) => Array.IndexOf(CampaignSizes, size);
-    /// <summary>A deed that can be brought before a praetor while the one who did it still sits: a praetor bought, an election bought.</summary>
-    public static bool ChargedAtOnce(OfficeDeed d) => d.What is Bribed or BoughtElection;
+    /// <summary>A deed that can be brought before a praetor while the one who did it still sits: a praetor bought, an election bought, gold taken from beyond the Reach for a vote.</summary>
+    public static bool ChargedAtOnce(OfficeDeed d) => d.What is Bribed or BoughtElection or ForeignGoldSystem.Deed;
 
     /// <summary>The coin behind this person for the count that is coming, if any.</summary>
     public static CampaignFund? CampaignOf(World w, string characterId) => w.Campaigns.FirstOrDefault(f => !f.Counted && f.CharacterId == characterId);

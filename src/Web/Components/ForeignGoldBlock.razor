@@ -1,0 +1,63 @@
+@inject GameClient G
+@implements IDisposable
+@* Foreign gold on a war motion (docs/BEYOND.md, "Foreign gold in the Senate"): the sum sent to you and the three answers, what you
+   answered, and the senators the nation is known to have reached on this motion, as far as you can know it. Under a throne nothing is sent
+   (the record is not kept there), so the block shows only what was sent before the throne rose. *@
+@{
+    var w = G.World!; var c = G.Content!; var me = w.Protagonist; var m = w.Motions.FirstOrDefault(x => x.Id == MotionId);
+    bool kept = LadderSystem.Active(w, c.Offices);
+    var payer = m != null && me != null && G.Turn != null && ForeignGoldSystem.IsWarMotion(G.Turn.Senate, m) && (kept || w.GoldOffers.Any(o => o.MotionId == MotionId)) ? ForeignGoldSystem.Payer(w, c.Nations, m.TargetId) : null;
+    var waiting = payer != null ? ForeignGoldSystem.WaitingOn(w, MotionId, me!.HouseId) : null;
+    var answered = payer != null ? w.GoldOffers.FirstOrDefault(o => o.MotionId == MotionId && o.HouseId == me!.HouseId && o.Answer.Length > 0) : null;
+    var known = payer != null ? ForeignGoldSystem.Known(w, MotionId, me!.HouseId) : new List<GoldOffer>();
+    string pid = me?.Id ?? string.Empty; string payerName = payer != null ? ForeignGoldSystem.Name(c.Nations, payer.Id) : string.Empty;
+}
+@if (payer != null)
+{
+    <div class="foreign-gold" data-foreign-gold-motion="@MotionId">
+        @if (waiting != null)
+        {
+            string oid = waiting.Id;
+            <div class="small warn" data-foreign-gold-offer="@oid">@Offer(waiting)</div>
+            <div class="row small">
+                @foreach (var ans in ForeignGoldSystem.Answers)
+                {
+                    string a = ans; string? no = new ForeignGoldCommand(pid, oid, a).Refusal(G.Ctx);
+                    <button class="opt inline" data-foreign-gold="@a" disabled="@(no != null)" title="@(no ?? Does(a, waiting))" @onclick="() => G.Execute(new ForeignGoldCommand(pid, oid, a))" @onclick:stopPropagation="true">@Label(a, waiting)</button>
+                }
+            </div>
+        }
+        else if (answered != null) { <div class="small muted" data-foreign-gold-answered="@answered.Answer">@Answered(answered)</div> }
+        <div class="small muted" data-gold-known="@known.Count">@ForeignGoldSystem.KnownSays(w, known, payerName, me?.HouseId)</div>
+    </div>
+}
+@code {
+    [Parameter] public string MotionId { get; set; } = "";
+    // the parent redraws this only when its parameter changes, so it listens for the world changing itself
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+
+    private static string Offer(GoldOffer o) =>
+        $"A factor of {o.NationName} has called with {Money.Credits(o.Sum)} for you, {ForeignGoldSystem.AskSays(o)}. Nothing is written down. It is yours to take, to refuse, or to tell the Senate of, until the vote.";
+    private static string Label(string answer, GoldOffer o) => answer switch
+    {
+        ForeignGoldSystem.Take => "Take it · " + Money.Show(o.Sum),
+        ForeignGoldSystem.Refuse => "Refuse it",
+        _ => "Tell the Senate"
+    };
+    private static string Does(string answer, GoldOffer o) => answer switch
+    {
+        ForeignGoldSystem.Take => $"{Money.Credits(o.Sum)} into your own purse. {(o.Ask == ForeignGoldSystem.Withdraw ? "Your motion is withdrawn at once." : o.Ask == ForeignGoldSystem.Against ? "Your house is declared against the war." : "Your house is declared to stay away.")} It goes on the record: any house may charge you with it before a praetor, at once and for {Counted.Years(LadderSystem.RecordYears)}. Vote for the war after all and they send your house nothing for {Counted.Years(ForeignGoldSystem.BrokenYears)}.",
+        ForeignGoldSystem.Refuse => "The factor goes away with what they brought. Nothing is lost, and nobody hears of it.",
+        _ => $"The Reach's trust rises by {ForeignGoldSystem.ExposeTrust} and your house's legitimacy by {ForeignGoldSystem.ExposeLegitimacy}. The chamber is angry: every house leans a point more for the war. {Cap(o.NationName)} think {ForeignGoldSystem.ExposeRegard} the worse of the Reach."
+    };
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Answered(GoldOffer o) => o.Answer switch
+    {
+        ForeignGoldSystem.Taken => $"You took {Money.Credits(o.Sum)} from {o.NationName} {ForeignGoldSystem.AskSays(o)}. It is on the record.",
+        ForeignGoldSystem.Exposed => $"You told the Senate of the {Money.Credits(o.Sum)} {o.NationName} sent you.",
+        ForeignGoldSystem.Refused => $"You sent the factor of {o.NationName} away.",
+        _ => $"You did not answer the factor of {o.NationName}, and what they brought went home."
+    };
+}
