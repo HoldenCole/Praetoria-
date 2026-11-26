@@ -147,6 +147,21 @@ public sealed class FleetSystem
         return r;
     }
 
+    /// <summary>What the Senate's law of service adds to a house's whole fleet bill for the year, or takes from it: the Reach's
+    /// <c>fleet_upkeep_pct</c> of the bill, to the nearest hundred credits. It is reckoned on the whole bill and not fleet by fleet,
+    /// because a quarter of a fleet that costs two hundred credits is nothing in books kept in hundreds (docs/LAWS_REVIEW.md).</summary>
+    public int ServiceBill(World w, int fleetCredits)
+    {
+        int pct = Policies.IsEmpty ? 0 : PolicySystem.ReachModifier(w, Policies, "fleet_upkeep_pct"); if (pct == 0 || fleetCredits <= 0) return 0;
+        return Math.Sign(pct) * Math.Min(fleetCredits, (fleetCredits * Math.Abs(pct) + 50) / 100);
+    }
+    /// <summary>The name of the ledger's line for it: the law and the option in force.</summary>
+    public string ServiceBillName(World w)
+    {
+        var law = Policies.Laws.FirstOrDefault(l => l.Reach && (PolicySystem.ReachOption(w, Policies, l)?.Effects.GetValueOrDefault("fleet_upkeep_pct") ?? 0) != 0);
+        return law == null ? "the law of the Reach on the fleets" : $"{law.Name}: {PolicySystem.ReachOption(w, Policies, law)!.Name.ToLowerInvariant()}";
+    }
+
     // ---------------- the turn ----------------
 
     public void Tick(World w)
@@ -170,7 +185,7 @@ public sealed class FleetSystem
                 if (f.Eta <= 0) { f.SystemId = f.DestinationId; f.DestinationId = ""; f.Eta = 0; f.Voyage = 0; Arrive(w, f); }
             }
             else if (f.LaidUp) f.Readiness = 0;   // no crews: it gains nothing while it lies there
-            else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + CaptainDrills(w, f) + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness"), 0, 100);
+            else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + CaptainDrills(w, f) + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness") + PolicySystem.ReachModifier(w, Policies, "readiness"), 0, 100);
         }
 
         Drill(w);

@@ -24,10 +24,10 @@ public static class OfficeSystem
 
     /// <summary>The best-qualified living member of a house for an office: the office's track, at least its rank; highest rank, then id. Null if none.</summary>
     /// <summary>What an office asks of the one who would hold it, in the words the ladder uses: one rule, said one way wherever it is refused.</summary>
-    public static string Wants(OfficeCatalog offices, OfficeDef def)
+    public static string Wants(OfficeCatalog offices, OfficeDef def, World? w = null)
     {
         var parts = new List<string>();
-        if (def.MinAge > 0) parts.Add($"{def.MinAge} or older");
+        if (def.MinAge > 0) parts.Add($"{(w != null && def.Elected ? SenateActs.AgeFor(w, def.MinAge) : def.MinAge)} or older");
         if (def.MinRank > 0) parts.Add(def.Track.Length > 0 ? $"of rank {def.MinRank} or higher in {def.Track}" : $"of rank {def.MinRank} or higher in a service");
         if (def.Requires.Length > 0) parts.Add($"to have been {(offices.Def(def.Requires)?.Name ?? def.Requires).ToLowerInvariant()}");
         return parts.Count == 0 ? "anyone of the house" : string.Join(", ", parts);
@@ -36,7 +36,7 @@ public static class OfficeSystem
     /// qualified it is the head who stands, whatever a relative's rank; otherwise the highest in rank who is.</summary>
     public static Character? Candidate(World w, OfficeDef def, string houseId) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && (def.Track.Length == 0 || c.CareerTrack == def.Track) && c.CareerRank >= def.MinRank
-                && c.Age >= def.MinAge && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires))   // the ladder: an age, and a rung already held (docs/LADDER.md)
+                && c.Age >= (def.Elected ? SenateActs.AgeFor(w, def.MinAge) : def.MinAge) && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires))   // the ladder: an age, and a rung already held (docs/LADDER.md)
                 && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn)   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
             .OrderByDescending(c => c.Id == w.ProtagonistId).ThenByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 

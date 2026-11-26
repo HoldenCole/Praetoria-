@@ -89,6 +89,7 @@ public static class CornerSystem
     /// that is a corner, what it adds to the price, and the word that goes round when a corner is made or broken.</summary>
     public static void Reckon(World w, MarketCatalog cat, GoodDef d, GoodState g)
     {
+        SenateActs.BreakCorner(w, cat, d, g);   // the law against forestalling, where the Senate has forbidden engrossing: the holder is made to sell first
         var s = Standing(w, cat, d.Id); var top = s.Top; var mine = w.Protagonist?.HouseId; string label = Resource.Label(d.Id);
         bool felt = top != null && Felt(top.Units, s.All), cornered = top != null && Cornered(top.Units, s.All);
         string wasHouse = g.CornerHouse; bool wasCornered = g.Cornered;
@@ -119,7 +120,7 @@ public static class CornerSystem
             if (felt && now == mine && now != wasHouse)
                 w.Tell("info", $"Your house holds {top!.Units} of the {s.All} {label} in the Reach, a third or more: the price begins to feel it. Half is {HalfOf(s.All)}.", "exchange:goods", d.Id);
         }
-        g.CornerHouse = now; g.Cornered = cornered; g.CornerShare = felt ? Math.Min(1.0, top!.Units / (double)Math.Max(1, s.All)) : 0; g.CornerPremium = felt ? Premium(top!.Units, s.All) : 0;
+        g.CornerHouse = now; g.Cornered = cornered; g.CornerShare = felt ? Math.Min(1.0, top!.Units / (double)Math.Max(1, s.All)) : 0; g.CornerPremium = felt ? Math.Min(Premium(top!.Units, s.All), SenateActs.CornerCap(w)) : 0;
     }
 
     /// <summary>The corners in the market a house holds now, by the last reckoning.</summary>
@@ -132,8 +133,9 @@ public static class CornerSystem
     public static string Held(World w, TradeRules t, string houseId, string good)
     {
         var s = Standing(w, t.Market, good); var top = s.Top; if (top == null || !Felt(top.Units, s.All)) return "";
-        bool mine = top.HouseId == houseId; int pct = (int)Math.Round(100 * Premium(top.Units, s.All));
-        string lift = pct > 0 ? $" The price it settles at is {pct}% higher for it." : "";
+        bool mine = top.HouseId == houseId; double full = Premium(top.Units, s.All), cap = SenateActs.CornerCap(w); int pct = (int)Math.Round(100 * Math.Min(full, cap));
+        string lift = pct > 0 ? $" The price it settles at is {pct}% higher for it." + (full > cap ? $" It would be {(int)Math.Round(100 * full)}%, and {SenateActs.LawName(w, SenateActs.CornerPremiumCap)} allows no more." : "") : "";
+        if (SenateActs.CornersBroken(w) && Cornered(top.Units, s.All)) lift += $" Under {SenateActs.LawName(w, SenateActs.CornerForcedSale)} {(mine ? "your house" : "it")} will be made to sell down to {SenateActs.MayKeep(s.All)} at the year's reckoning.";
         if (Cornered(top.Units, s.All))
             return (mine ? $"Your house has cornered it: you hold {top.Units} of the {s.All} in the Reach." : $"{top.Name} has cornered it: it holds {top.Units} of the {s.All} in the Reach.") + lift
                 + $" The merchants bring a quarter of what they would." + (mine ? $" Hold fewer than {HalfOf(s.All)} and the corner is broken." : "");

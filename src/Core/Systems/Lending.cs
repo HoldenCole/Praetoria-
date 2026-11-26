@@ -73,7 +73,7 @@ public static class Lending
                 + (because.Count > 0 ? "; " + string.Join("; ", because) : "") + ".";
             list.Add(new LoanTerms(owner.Id, $"the bank of {owner.Name}", limit, rate, why, no));
         }
-        return list;
+        return SenateActs.CapLoans(w, list);   // the Usury Law, where the Senate has carried one
     }
 
     public static string LenderName(World w, string lenderId) => lenderId.Length > 0 && w.House(lenderId) is { } h ? $"the bank of {h.Name}" : "the counting-houses";

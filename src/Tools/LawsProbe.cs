@@ -64,14 +64,15 @@ internal static class LawsProbe
     {
         var cat = content.Policies; int seeds = Math.Max(1, Math.Min(o.Seeds, 4)), years = 30;
         Console.WriteLine($"=== Which laws anybody changes: {sid}, {seeds} games of {years} years, a passive player ===\n");
-        var changes = new Dictionary<string, int>(); var ends = new Dictionary<string, Dictionary<string, int>>(); var starts = new Dictionary<string, Dictionary<string, int>>(); int houses = 0, acts = 0, edictYears = 0;
+        var changes = new Dictionary<string, int>(); var ends = new Dictionary<string, Dictionary<string, int>>(); var starts = new Dictionary<string, Dictionary<string, int>>(); int houses = 0, edictYears = 0;
+        int moved = 0, carried = 0, lost = 0, petitions = 0, repeals = 0, yearsWithAct = 0, yearsPlayed = 0; var movedBy = new Dictionary<string, int>(); var movedLaw = new Dictionary<string, int[]>();
         for (ulong seed = 1; seed <= (ulong)seeds; seed++)
         {
             var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, sid), seed); var tc = new TurnController(w, content);
             string Now(string holder, LawDef law) => PolicySystem.OptionId(w, cat, holder, law.Id);
             List<string> Holders(LawDef law) => law.Scope == "senate" ? new List<string> { PolicySystem.SenateHolder } : w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != w.Protagonist!.HouseId && PolicySystem.HoldsScope(w, h.Id, law.Scope)).Select(h => h.Id).OrderBy(x => x, StringComparer.Ordinal).ToList();
             void Tally(Dictionary<string, Dictionary<string, int>> into) { foreach (var law in cat.Laws) foreach (var h in Holders(law)) { if (!into.TryGetValue(law.Id, out var d)) into[law.Id] = d = new(); string oid = Now(h, law); d[oid] = d.GetValueOrDefault(oid) + 1; } }
-            var last = new Dictionary<(string, string), string>(); Tally(starts);
+            var last = new Dictionary<(string, string), string>(); Tally(starts); var seen = new HashSet<string>(); var counted = new HashSet<string>();
             for (int y = 0; y < years && !w.IsDynastyDead; y++)
             {
                 PassiveTurn(tc);
@@ -80,8 +81,22 @@ internal static class LawsProbe
                     string oid = Now(h, law); if (last.TryGetValue((h, law.Id), out var was) && was != oid) changes[law.Id] = changes.GetValueOrDefault(law.Id) + 1; last[(h, law.Id)] = oid;
                 }
                 if (ThroneSystem.Emperor(w) != null) edictYears++;
+                // the chamber's law: every Act and petition moved this year, by whom, and how the count went
+                bool any = false; yearsPlayed++;
+                foreach (var m in w.Motions.Where(m => m.LawId.Length > 0).OrderBy(m => m.Id, StringComparer.Ordinal))
+                {
+                    if (!movedLaw.TryGetValue(m.LawId, out var ml)) movedLaw[m.LawId] = ml = new int[3];
+                    if (seen.Add(m.Id))
+                    {
+                        moved++; any = true; ml[0]++; if (SenateSystem.IsPetition(m)) petitions++;
+                        string by = SenateSystem.IsPetition(m) ? "an estate" : FactionSystem.Of(w, m.ProposerHouseId)?.PartyId is { Length: > 0 } pid ? pid : "no party"; movedBy[by] = movedBy.GetValueOrDefault(by) + 1;
+                        if (cat.Law(m.LawId)?.Option(m.LawOption)?.Default == true) repeals++;
+                    }
+                    if (m.Resolved && counted.Add(m.Id)) { if (m.Passed) { carried++; ml[1]++; } else { lost++; ml[2]++; } }
+                }
+                if (any) yearsWithAct++;
             }
-            Tally(ends); houses += w.Houses.Values.Count(h => !World.Outsider(h.Id)); acts += w.Counter("acts_carried");
+            Tally(ends); houses += w.Houses.Values.Count(h => !World.Outsider(h.Id));
         }
         Console.WriteLine($"{"law",-20} {"set by",-30} {"changed",8}   in force among those who hold the position, at the start -> after {years} years");
         foreach (var law in cat.Laws)
@@ -91,6 +106,9 @@ internal static class LawsProbe
             Console.WriteLine($"{law.Id,-20} {by,-30} {changes.GetValueOrDefault(law.Id),8}   {S(starts)}  ->  {S(ends)}");
         }
         Console.WriteLine($"\n{houses} houses in all; years with an emperor on the throne: {edictYears}.");
+        Console.WriteLine($"Acts of the Senate: moved {moved} (petitions of an estate {petitions}; back to the custom {repeals}), carried {carried}, lost {lost}; an Act was moved in {yearsWithAct} of {yearsPlayed} years.");
+        Console.WriteLine("  moved by: " + (movedBy.Count == 0 ? "nobody" : string.Join(", ", movedBy.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => $"{kv.Key} {kv.Value}"))));
+        Console.WriteLine("  by law (moved/carried/lost): " + string.Join(", ", movedLaw.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => $"{kv.Key} {kv.Value[0]}/{kv.Value[1]}/{kv.Value[2]}")));
         return 0;
     }
 

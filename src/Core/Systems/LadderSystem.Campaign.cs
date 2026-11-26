@@ -49,6 +49,7 @@ public static partial class LadderSystem
         if (!Active(w, offices)) return "there are no elections under a throne";
         if (!w.Candidacies.Any(c => c.CharacterId == who.Id)) return who.Id == head.Id ? "you are not standing" : "they are not standing";
         if (SizeRank(size) < 0) return "no such canvass";
+        if (SenateActs.CanvassForbidden(w, size)) return $"{SenateActs.LawName(w, SenateActs.CanvassLaw)} forbids {CampaignName(size)}: {CampaignName(Handsome)} is the most coin may do, and that is written down";
         var fund = CampaignOf(w, who.Id);
         if (fund != null && SizeRank(fund.Size) >= SizeRank(size)) return fund.Size == Lavish ? "a lavish canvass is paid for: there is nothing more that coin can buy" : $"{CampaignName(fund.Size)} is paid for already: only a larger one adds to it";
         int cost = CampaignCost(size) - (fund?.Spent ?? 0);
@@ -64,8 +65,8 @@ public static partial class LadderSystem
         if (fund == null) { fund = new CampaignFund { HouseId = house.Id, CharacterId = who.Id, Turn = w.Turn }; w.Campaigns.Add(fund); w.WorldCounters[CampaignsKey] = w.Counter(CampaignsKey) + 1; }
         fund.RungId = cd.RungId; fund.Size = size; fund.Spent = CampaignCost(size); fund.Votes = CampaignVotes(size);
         if (who.Id != head.Id) { var r = w.Relationship(who.Id, head.Id); r.Disposition = Math.Clamp(r.Disposition + CampaignRegard * (SizeRank(size) - was), -100, 100); }
-        if (size == Lavish) BoughtVotes(w, who, house.Id, cd.RungId);
-        w.Log($"{head.Name} puts {Money.Credits(cost)} of the house's behind {(who.Id == head.Id ? "their own canvass" : who.Name + "'s canvass")} for {office}: {CampaignName(size)}{(size == Lavish ? ", and one that will be talked of" : "")}.");
+        bool recorded = SenateActs.CanvassRecorded(w, size); if (recorded) BoughtVotes(w, who, house.Id, cd.RungId);
+        w.Log($"{head.Name} puts {Money.Credits(cost)} of the house's behind {(who.Id == head.Id ? "their own canvass" : who.Name + "'s canvass")} for {office}: {CampaignName(size)}{(recorded ? ", and one that will be talked of" : "")}.");
         return fund;
     }
     private static void BoughtVotes(World w, Character who, string houseId, string rungId)
@@ -108,10 +109,10 @@ public static partial class LadderSystem
                 var best = w.LivingCharacters().Where(c => c.HouseId == h.Id && Bar(w, offices, c, rung) == null && Next(w, offices, c)?.Id == rung.Id).OrderByDescending(Merit).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (best == null) continue;
                 bool upright = head.NatureTraits.Contains("Honorable") || head.NatureTraits.Contains("Just");
-                string size = Enumerable.Reverse(CampaignSizes).First(s => s == Modest || (h.Treasury.Credits >= CampaignCost(s) * OthersCampaignAfford && !(s == Lavish && upright)));
+                string size = Enumerable.Reverse(CampaignSizes).First(s => s == Modest || (h.Treasury.Credits >= CampaignCost(s) * OthersCampaignAfford && !(s == Lavish && upright) && !SenateActs.CanvassForbidden(w, s)));
                 h.Treasury.Credits -= CampaignCost(size); w.WorldCounters[CampaignsKey] = w.Counter(CampaignsKey) + 1;
                 w.Campaigns.Add(new CampaignFund { HouseId = h.Id, CharacterId = best.Id, RungId = rung.Id, Turn = w.Turn, Size = size, Spent = CampaignCost(size), Votes = CampaignVotes(size) });
-                if (size == Lavish) BoughtVotes(w, best, h.Id, rung.Id);
+                if (SenateActs.CanvassRecorded(w, size)) BoughtVotes(w, best, h.Id, rung.Id);
                 said.Add($"{h.Name} puts {Money.Show(CampaignCost(size))} behind {best.Name} for {rung.Name.ToLowerInvariant()}");
                 if (w.Candidacies.Any(cd => cd.RungId == rung.Id)) w.Tell("info", $"{h.Name} has put {Money.Credits(CampaignCost(size))} behind {best.Name}, who will stand for {rung.Name.ToLowerInvariant()} against your house", "senate:ladder");
                 break;   // one canvass to a house

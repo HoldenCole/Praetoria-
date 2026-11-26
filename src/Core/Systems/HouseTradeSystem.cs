@@ -64,6 +64,8 @@ public sealed class HouseTradeSystem
     private static string WarmedKey(string a, string b) => string.CompareOrdinal(a, b) < 0 ? $"traded:{a}|{b}" : $"traded:{b}|{a}";
     /// <summary>The year a house last sent the player word of a bargain.</summary>
     public const string OfferedKey = "trade_offered";
+    /// <summary>What the chair has taken, in all, of sales between houses under the Navigation Act's levy.</summary>
+    public const string LevyKey = "house_trade_levy_paid";
 
     // ---------------------------------------------------------------- the goods, and what a house makes and burns
 
@@ -131,6 +133,7 @@ public sealed class HouseTradeSystem
     /// a head who thinks very ill of the asker.</summary>
     public static string? WontTrade(World w, House mine, House theirs)
     {
+        if (SenateActs.StapleInForce(w)) return $"{SenateActs.LawName(w, SenateActs.TradeBan)} forbids it: while the staple stands, goods are bought and sold on the exchanges and no house deals with another out of its store";
         if (w.AtWar(mine.Id, theirs.Id)) return "you are at war with them";
         if (FeudSystem.Between(w, mine.Id, theirs.Id)) return "there is blood between your houses, and nothing is bought or sold across it";
         if (SenateSystem.Embargoed(w, mine.Id)) return "the Senate's embargo is on your house: no house of the Reach buys of it or sells to it until it lifts";
@@ -140,7 +143,7 @@ public sealed class HouseTradeSystem
     }
     /// <summary>The same between any two houses, as a yes or no: and neither has broken a deal with the other of late.</summary>
     public static bool Trades(World w, House a, House b) =>
-        !w.AtWar(a.Id, b.Id) && !FeudSystem.Between(w, a.Id, b.Id) && !SenateSystem.Embargoed(w, a.Id) && !SenateSystem.Embargoed(w, b.Id)
+        !SenateActs.StapleInForce(w) && !w.AtWar(a.Id, b.Id) && !FeudSystem.Between(w, a.Id, b.Id) && !SenateSystem.Embargoed(w, a.Id) && !SenateSystem.Embargoed(w, b.Id)
         && DealingsSystem.RegardOf(w, a, b) > RefuseAt && DealingsSystem.RegardOf(w, b, a) > RefuseAt && Fault(w, a.Id, b.Id) == null && Fault(w, b.Id, a.Id) == null;
 
     /// <summary>What regard does to a price, in parts in the hundred: a point dearer for every point of dislike, forty at
@@ -191,7 +194,8 @@ public sealed class HouseTradeSystem
         string moved = pct == 0 ? "" : selling ? $", and {Math.Abs(pct)} in the hundred {(pct > 0 ? "dearer" : "cheaper")} to you" : $", and {Math.Abs(pct)} in the hundred {(pct > 0 ? "less" : "more")} to you";
         return $"The market's price is {Unit(Mid(w, good))}, and no caravaneer stands between you."
             + (Closed(w, good) ? $" The law keeps {Resource.Label(good)} off the exchanges, and a private sale is {ClosedPct} in the hundred dearer for it." : "")
-            + (selling ? $" Its head thinks {Signed(regard)} of you{moved}." : $" It pays {PaysUnderPct} in the hundred under the market; its head thinks {Signed(regard)} of you{moved}.");
+            + (selling ? $" Its head thinks {Signed(regard)} of you{moved}." : $" It pays {PaysUnderPct} in the hundred under the market; its head thinks {Signed(regard)} of you{moved}.")
+            + (SenateActs.TradeLevy(w) is > 0 and var levy ? $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} the chair takes {levy} in the hundred of the sale, out of what the seller is paid." : "");
     }
     /// <summary>The goods and the credits change hands. Returns what was paid.</summary>
     public int Buy(World w, House buyer, House seller, string good, int units)
@@ -233,6 +237,11 @@ public sealed class HouseTradeSystem
     private static void Move(World w, House seller, House buyer, string good, int units, int credits)
     {
         seller.Treasury.Add(good, -units); buyer.Treasury.Add(good, units); buyer.Treasury.Credits -= credits; seller.Treasury.Credits += credits;
+        if (SenateActs.LevyOn(w, seller, credits) is > 0 and var levy && RegionSystem.CapitalHolder(w) is { } chair)   // the Navigation Act's levy, out of what the seller is paid
+        {
+            seller.Treasury.Credits -= levy; chair.Treasury.Credits += levy; Count(w, LevyKey, levy);
+            if (seller.Id == w.Protagonist?.HouseId || buyer.Id == w.Protagonist?.HouseId) w.Log($"{chair.Name}, which holds the capital, takes {Money.Credits(levy)} of the sale: the levy {SenateActs.LawName(w, SenateActs.TradeLevyPct)} lays on what one house sells another.");
+        }
         Count(w, SoldKey(w.Turn, seller.Id, good), units); Count(w, TradesKey); Remember(w, BoughtKind, buyer.Id, seller.Id, credits, good, units); Warm(w, seller, buyer);
         string? mine = w.Protagonist?.HouseId;
         if (seller.Id == mine || buyer.Id == mine) w.Log($"{buyer.Name} buys {Of(units, good)} out of the store of {seller.Name} for {Money.Credits(credits)}.");

@@ -345,6 +345,7 @@ public sealed class DealingsSystem
     {
         if (Parties(w, me, theirs, out var mine, out var head) is { } no) return no;
         if (!LoanSizes.Contains(amount) || !LoanRates.Contains(ratePct)) return "not a sum or a rate that is offered";
+        if (SenateActs.LendRefusal(w, ratePct) is { } usury) return usury;
         if (WealthSystem.WontTake(w, me!, head) is { } wont) return wont;
         if (LoanOwedBy(w, theirs!.Id) is { } has) return has.LenderId == mine.Id ? $"they owe you {Money.Credits(has.Owed)} already" : $"they owe {Money.Credits(has.Owed)} to {w.House(has.LenderId)?.Name ?? "another house"}: a second lender wants the first paid";
         if (theirs.Treasury.Credits >= ShortAt) return $"{theirs.Name} is not short of coin: it holds {Money.Show(theirs.Treasury.Credits)}, and borrows only under {Money.Show(ShortAt)}";

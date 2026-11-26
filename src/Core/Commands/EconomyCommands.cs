@@ -209,10 +209,11 @@ public sealed class TakeLoanCommand : ICommand
             w.Log($"{house.Name} borrows {Money.Credits(_amount)} from {t.Lender} at {t.RatePct} in the hundred, and owes {Money.Show(house.Debt)}: {Money.Show(house.LoanInstalment)} a year.");
             return;
         }
-        house.Treasury.Credits += f.LoanPrincipal; house.Debt = f.LoanRepay; house.LoanInstalment = 0; house.LenderId = LenderFor(w, house.Id, _ventures) ?? "";
+        var (lent, owes) = SenateActs.StandingLoan(w, f);   // the Usury Law, where the Senate has carried one: less is lent, and less is owed for it
+        house.Treasury.Credits += lent; house.Debt = owes; house.LoanInstalment = 0; house.LenderId = LenderFor(w, house.Id, _ventures) ?? "";
         w.WorldCounters["loans"] = w.Counter("loans") + 1;
         var lender = house.LenderId.Length > 0 ? w.House(house.LenderId) : null;
-        w.Log($"{house.Name} borrows {Money.Credits(f.LoanPrincipal)} from {(lender != null ? $"the bank of {lender.Name}" : "the caravaneers' counting-houses")}, owing {Money.Show(f.LoanRepay)}.");
+        w.Log($"{house.Name} borrows {Money.Credits(lent)} from {(lender != null ? $"the bank of {lender.Name}" : "the caravaneers' counting-houses")}, owing {Money.Show(owes)}.");
     }
 }
 

@@ -283,7 +283,7 @@ public sealed class StandForConsulCommand : ICommand
         if (w.Era == "imperium") return "the Emperor holds every office";
         if (w.HasFlag(ElectionSystem.StandFlag(house.Id))) return "you already stand";
         if (ElectionSystem.IsConsul(w, _offices, house.Id)) return "you hold the consulship";
-        if (!ElectionSystem.Eligible(w, _offices, house.Id)) return OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), house.Id) == null ? $"no one of the house may stand: a consul must be {OfficeSystem.Wants(_offices, ElectionSystem.ConsulOffices(_offices).First())}, and not barred from office" : "a consul may not stand again at the next election";
+        if (!ElectionSystem.Eligible(w, _offices, house.Id)) return OfficeSystem.Candidate(w, ElectionSystem.ConsulOffices(_offices).First(), house.Id) == null ? $"no one of the house may stand: a consul must be {OfficeSystem.Wants(_offices, ElectionSystem.ConsulOffices(_offices).First(), w)}, and not barred from office" : "a consul may not stand again at the next election";
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = ElectionSystem.StandInfluence }) ? null : $"needs {ElectionSystem.StandInfluence} influence";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

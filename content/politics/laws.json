@@ -209,6 +209,76 @@
         { "id": "customary", "name": "The customary wage", "default": true },
         { "id": "open_handed", "name": "An open hand", "effects": { "court_wage": 1, "court_loyalty": 3 }, "opinions": { "commons": 5, "merchants": -3 } }
       ]
-    }
+    },
+    { "id": "usury", "name": "The Usury Law", "category": "Money", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "What a lender may charge. Freedom of contract leaves the rate to the two who agree it. A cap makes money cheaper for whoever can still get it: a lender who may charge less lends less, and no house may lend another above the cap.",
+      "options": [
+        { "id": "free", "name": "Freedom of contract", "default": true },
+        { "id": "capped", "name": "No more than twenty in the hundred", "effects": { "loan_rate_cap": 20 }, "opinions": { "commons": 5, "frontier": 5, "merchants": -10 } },
+        { "id": "twelfth", "name": "No more than ten in the hundred", "effects": { "loan_rate_cap": 10 }, "opinions": { "commons": 10, "frontier": 5, "merchants": -15 } }
+      ] },
+    { "id": "canvassing", "name": "The Law on Canvassing", "category": "Order", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "What coin may do at an election. By custom a lavish canvass is written on the record as votes bought, and may be charged. The strict law forbids the lavish canvass and writes the handsome one down as well. Where money is free, nothing is written at all.",
+      "options": [
+        { "id": "strict", "name": "Coin forbidden at elections", "effects": { "canvass_law": 1 }, "opinions": { "old_blood": 10, "magistrates": 10, "merchants": -10, "commons": -5 } },
+        { "id": "customary", "name": "The customary canvass", "default": true },
+        { "id": "free", "name": "Money is free", "effects": { "canvass_law": -1 }, "opinions": { "merchants": 10, "commons": 5, "old_blood": -10, "magistrates": -10 } }
+      ] },
+    { "id": "forestalling", "name": "The Law against Forestalling", "category": "Trade", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "Whether a house may buy up a good to raise its price. A free market lets a corner earn what it can. A capped premium leaves the corner standing and takes most of its profit. Where engrossing is forbidden, a house that holds half of a good is made to sell down to under a third of it.",
+      "options": [
+        { "id": "free_market", "name": "A free market", "default": true },
+        { "id": "capped", "name": "The corner's premium capped", "effects": { "corner_premium_cap": 20 }, "opinions": { "commons": 5, "merchants": 5, "old_blood": -5 } },
+        { "id": "forbidden", "name": "Engrossing forbidden", "effects": { "corner_forced_sale": 1 }, "opinions": { "commons": 10, "magistrates": 10, "merchants": -10, "old_blood": -10 } }
+      ] },
+    { "id": "hired_companies", "name": "The Law of Hired Companies", "category": "Military", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "Whether a house may hire its fleets out to another house's war. Free, any house may. Licensed, it pays the chair for each company and is thought less ill of for it. Forbidden, no fleet is hired out, the companies come home, and the lanes are the quieter.",
+      "options": [
+        { "id": "free", "name": "Free companies", "default": true },
+        { "id": "licensed", "name": "Licensed companies", "effects": { "company_licence": 3 }, "opinions": { "magistrates": 10, "merchants": 5, "officers": -5 } },
+        { "id": "forbidden", "name": "Hired companies forbidden", "effects": { "company_ban": 1, "lawlessness_drift": -1 }, "opinions": { "magistrates": 10, "merchants": 5, "commons": 5, "officers": -15, "frontier": -10 } }
+      ] },
+    { "id": "corn_law", "name": "The Corn Law", "category": "Land and bread", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "Whether the commons of every world are fed at the houses' cost. Corn at a fixed price calms every world and costs every house a hundred credits a world each year. The free dole calms them twice as much at twice the cost.",
+      "options": [
+        { "id": "none", "name": "No dole", "default": true },
+        { "id": "cheap_corn", "name": "Corn at a fixed price", "effects": { "unrest_drift": -1, "credits_per_world": -1 }, "opinions": { "commons": 10, "merchants": -5, "old_blood": -5 } },
+        { "id": "free_corn", "name": "The free dole", "effects": { "unrest_drift": -2, "credits_per_world": -2 }, "opinions": { "commons": 15, "merchants": -10, "old_blood": -10, "magistrates": -5 } }
+      ] },
+    { "id": "land_law", "name": "The Land Law", "category": "Land and bread", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "Who holds the public land of every world. The great estates are worked hard and well, and empty the villages. Allotments fill a world with smallholders and veterans, who are many and poor.",
+      "options": [
+        { "id": "great_estates", "name": "The great estates confirmed", "effects": { "prosperity_drift": 2, "pop_growth": -1 }, "opinions": { "old_blood": 15, "merchants": 5, "commons": -15, "officers": -5 } },
+        { "id": "customary", "name": "The customary holdings", "default": true },
+        { "id": "allotments", "name": "Land for settlers and veterans", "effects": { "pop_growth": 1, "prosperity_drift": -2 }, "opinions": { "commons": 15, "officers": 10, "frontier": 5, "old_blood": -15 } }
+      ] },
+    { "id": "law_of_service", "name": "The Law of Service", "category": "Military", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "How long a crew serves in any fleet of the Reach. Short service is cheap and green: the hands go home as they learn their work. Long service keeps trained crews at their stations and has to be paid for.",
+      "options": [
+        { "id": "short", "name": "Short service", "effects": { "fleet_upkeep_pct": -25, "readiness": -2 }, "opinions": { "commons": 10, "merchants": 5, "officers": -15 } },
+        { "id": "customary", "name": "The customary term", "default": true },
+        { "id": "long", "name": "Long service", "effects": { "fleet_upkeep_pct": 25, "readiness": 3 }, "opinions": { "officers": 15, "commons": -10, "merchants": -5 } }
+      ] },
+    { "id": "navigation_act", "name": "The Navigation Act", "category": "Trade", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "Whether houses may deal with one another out of their own stores. Free, they do, and no caravaneer stands between them. A levy sends a tenth of every such sale to the chair. The staple forbids them: goods are bought and sold on the exchanges, and every chokepoint takes more for the traffic.",
+      "options": [
+        { "id": "free", "name": "Free dealing between houses", "default": true },
+        { "id": "levy", "name": "A levy on private sales", "effects": { "house_trade_levy_pct": 10 }, "opinions": { "magistrates": 5, "merchants": 5, "old_blood": -10, "frontier": -5 } },
+        { "id": "staple", "name": "The staple", "effects": { "house_trade_ban": 1, "tolls_bonus": 1 }, "opinions": { "merchants": 15, "magistrates": 5, "old_blood": -15, "frontier": -10 } }
+      ] },
+    { "id": "law_of_years", "name": "The Law of the Years", "category": "Order", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "The age at which a man or woman may stand for each office of the ladder, and for consul. Relaxed, the young and the brilliant rise five years sooner. Enforced, every office waits five years longer, and those who have waited keep it to themselves.",
+      "options": [
+        { "id": "relaxed", "name": "The years relaxed", "effects": { "office_age": -5 }, "opinions": { "officers": 10, "commons": 5, "old_blood": -10, "magistrates": -10 } },
+        { "id": "customary", "name": "The customary years", "default": true },
+        { "id": "strict", "name": "The years enforced", "effects": { "office_age": 5 }, "opinions": { "old_blood": 10, "magistrates": 10, "officers": -10 } }
+      ] },
+    { "id": "citizenship", "name": "The Citizenship of the Reach", "category": "Order", "scope": "senate", "reach": true, "cost": 3, "cooldown": 6,
+      "description": "Who is a citizen. Kept to the old worlds, the name stays worth having, and every region outside them remembers it. Given to the whole Reach, every region holds closer to the capital, and the old blood and the squares of the old worlds share what was theirs.",
+      "options": [
+        { "id": "old_worlds", "name": "Citizens of the old worlds only", "effects": { "region_allegiance": -8 }, "opinions": { "old_blood": 10, "commons": 10, "frontier": -15 } },
+        { "id": "customary", "name": "The customary citizenship", "default": true },
+        { "id": "whole_reach", "name": "Citizenship for the whole Reach", "effects": { "region_allegiance": 8 }, "opinions": { "frontier": 15, "old_blood": -15, "commons": -5 } }
+      ] }
   ]
 }

@@ -54,7 +54,7 @@ public sealed class RegionSystem
         var populated = worlds.Where(h => h.Population > 0).ToList();
         int loyalty = populated.Count == 0 ? 50 : (int)populated.Average(h => 100 - h.Unrest);
         var dominant = worlds.GroupBy(h => h.OwnerId).OrderByDescending(x => x.Count()).ThenBy(x => x.Key, StringComparer.Ordinal).FirstOrDefault()?.Key;
-        int t = 50 + rules.Allegiance + (capital != null ? (capital.Legitimacy - 40) / 4 : -15) + (loyalty - 50) / 4 - state.Lawlessness / 4;
+        int t = 50 + rules.Allegiance + (capital != null ? (capital.Legitimacy - 40) / 4 : -15) + (loyalty - 50) / 4 - state.Lawlessness / 4 + PolicySystem.ReachModifier(w, Policies, SenateActs.RegionAllegiance);
         if (dominant != null && capital != null && w.AtWar(dominant, capital.Id)) t -= 20;
         if (dominant != null && w.House(dominant)?.Bloc == FreeholdsBloc) t -= 15;
         return Math.Clamp(t, 0, 100);

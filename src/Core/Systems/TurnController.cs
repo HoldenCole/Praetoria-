@@ -121,6 +121,7 @@ public sealed class TurnController
         _nations = new NationSystem(content.Nations, _fleets); if (world.Turn == 0) NationSystem.Seed(world, content.Nations); SystemWorks.SeedDevelopment(world, content.Holdings); ProvinceSystem.Seed(world, content.Holdings);   // the nations beyond the Reach (docs/FOREIGN_NATIONS.md)
         if (world.Turn == 0 && world.Laws.Count == 0) PolicySystem.ApplyCultures(world, content.Policies);   // every house begins with its culture's laws (GDD §19)
         FactionSystem.Use(world, content.Policies);   // this world's laws, not every world's (see FactionSystem.Policies)
+        SenateActs.Use(world, content.Policies);   // and for the rules that are handed no catalogue: the Acts of the Senate (docs/SENATE.md, "The Senate's law, enlarged")
         if (world.Turn == 0 && world.Factions.Count == 0) FactionSystem.Seed(world, content.Parties, id => _senate.Weight(world, id));   // the four parties of the Republic (docs/REPUBLIC.md)
         _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
         _academy = new AcademySystem(content.Academy, content.Names);
