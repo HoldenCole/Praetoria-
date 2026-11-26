@@ -93,7 +93,7 @@ public static class SenateActs
     {
         int cap = LoanCap(w), rate = Lending.BaseRate(f); if (cap <= 0 || rate <= cap) return (f.LoanPrincipal, f.LoanRepay);
         int lent = Math.Max(Lending.Step, f.LoanPrincipal * cap / Math.Max(1, rate) / Lending.Step * Lending.Step);
-        return (lent, Lending.Owed(lent, cap));
+        return (lent, Lending.Owed(w, lent, cap));   // the interest rounded down, so that it never passes the cap
     }
     /// <summary>Said after a lender's refusal to lend more, where the cap is why it lends less: ": the Usury Law allows it no more
     /// than 20 in the hundred, and it lends the less for that". Empty where the law did not cut these terms.</summary>
@@ -152,13 +152,14 @@ public static class SenateActs
 
     public static bool StapleInForce(World w) => Reach(w, TradeBan) > 0;
     public static int TradeLevy(World w) => StapleInForce(w) ? 0 : Math.Clamp(Reach(w, TradeLevyPct), 0, 90);
-    /// <summary>What the chair takes of a sale between two houses, out of what the seller is paid: never less than a hundred credits
-    /// of a sale that is worth two hundred, and nothing where the chair's own house is the seller or no house holds the capital.</summary>
+    /// <summary>What the chair takes of a sale between two houses, out of what the seller is paid, in single credits (docs/MONEY.md):
+    /// its share of the sale exactly, so that a levy of 10 in the hundred takes 20 credits of a sale of 200. Nothing where the chair's
+    /// own house is the seller or no house holds the capital. <paramref name="credits"/> is the sale in the books' hundreds.</summary>
     public static int LevyOn(World w, House seller, int credits)
     {
-        int pct = TradeLevy(w); if (pct <= 0 || credits < 2) return 0;
+        int pct = TradeLevy(w); if (pct <= 0 || credits < 1) return 0;
         var chair = RegionSystem.CapitalHolder(w); if (chair == null || chair.Id == seller.Id) return 0;
-        return Math.Clamp((credits * pct + 99) / 100, 1, credits - 1);
+        return credits * Money.PerUnit * pct / 100;
     }
 
     // ---------------------------------------------------------------- the years
@@ -181,6 +182,7 @@ public static class SenateActs
         TradeBan => "no house sells another a lot out of its store, and no new standing deal is struck: goods are bought and sold on the exchanges",
         OfficeAge => $"every office of the ladder, and the consulship, may be stood for {Counted.Years(Math.Abs(v))} {(v < 0 ? "younger" : "older")}",
         RegionAllegiance => $"every region's allegiance settles {Math.Abs(v)} {(v > 0 ? "higher" : "lower")}",
+        "prosperity_drift" => $"prosperity settles {2 * Math.Abs(v)} {(v > 0 ? "higher" : "lower")}",   // the reckoning doubles a law's prosperity (Economy.ProsperityWhy)
         "fleet_upkeep_pct" => null,
         _ => null
     };
@@ -212,12 +214,19 @@ public static class SenateActs
     private static RungDef? Toward(OfficeCatalog offices, Character c) =>
         c.CareerTrack.Length == 0 ? null : offices.Rungs.FirstOrDefault(r => !c.Cursus.Contains(r.Id) && c.CareerRank >= r.MinRank && (r.Requires.Length == 0 || c.Cursus.Contains(r.Requires)));
     private static int AgeUnder(LawOptionDef o, int minAge) => minAge <= 0 ? minAge : Math.Max(YoungestOffice, minAge + o.Effects.GetValueOrDefault(OfficeAge));
-    /// <summary>Those of the house whom the change in the years would let stand sooner (+1 each), or make wait (-1 each).</summary>
-    private static List<(Character who, RungDef rung, int now, int then)> Years(World w, House h, LawOptionDef cur, LawOptionDef next, OfficeCatalog offices)
+    /// <summary>Those of the house whom the change in the years would let stand sooner (+1 each), or make wait (-1 each): for the rung of
+    /// the ladder they are working toward, and for the consulship, which the same law moves (<see cref="OfficeSystem.Candidate"/>).</summary>
+    private static List<(Character who, string office, int now, int then)> Years(World w, House h, LawOptionDef cur, LawOptionDef next, OfficeCatalog offices)
     {
-        var list = new List<(Character, RungDef, int, int)>(); if (D(cur, next, OfficeAge) == 0 || offices.Rungs.Count == 0) return list;
+        var list = new List<(Character, string, int, int)>(); if (D(cur, next, OfficeAge) == 0 || offices.Rungs.Count == 0) return list;
+        var consul = ElectionSystem.ConsulOffices(offices).FirstOrDefault(d => d.MinAge > 0);
         foreach (var c in w.LivingCharacters().Where(c => c.HouseId == h.Id).OrderBy(c => c.Id, StringComparer.Ordinal))
-            if (Toward(offices, c) is { } r && AgeUnder(cur, r.MinAge) is var now && AgeUnder(next, r.MinAge) is var then && (c.Age >= now) != (c.Age >= then)) list.Add((c, r, now, then));
+        {
+            if (Toward(offices, c) is { } r && AgeUnder(cur, r.MinAge) is var now && AgeUnder(next, r.MinAge) is var then && (c.Age >= now) != (c.Age >= then)) list.Add((c, r.Name.ToLowerInvariant(), now, then));
+            if (consul != null && (consul.Track.Length == 0 || c.CareerTrack == consul.Track) && c.CareerRank >= consul.MinRank && (consul.Requires.Length == 0 || c.Cursus.Contains(consul.Requires))
+                && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn && AgeUnder(cur, consul.MinAge) is var cNow && AgeUnder(next, consul.MinAge) is var cThen && (c.Age >= cNow) != (c.Age >= cThen))
+                list.Add((c, "consul", cNow, cThen));
+        }
         return list;
     }
 
@@ -326,7 +335,7 @@ public static class SenateActs
             parts.Add(cpw < 0 ? $"your house would pay {Money.Credits(-cpw * worlds)} a year, {Money.Credits(-cpw)} for {(worlds == 1 ? "its one world" : $"each of its {worlds} worlds")}" : $"your house would take in {Money.Credits(cpw * worlds)} more a year");
         if (D(cur, next, "unrest_drift") is var ud && ud != 0 && worlds > 0) parts.Add($"unrest on {Each(worlds)} would move {Math.Abs(ud)} a year {(ud < 0 ? "lower" : "higher")}");
         if (D(cur, next, "pop_growth") is var pg && pg != 0 && worlds > 0) parts.Add($"the people of {Each(worlds)} would grow by {Math.Abs(pg)} {(pg > 0 ? "more" : "less")} a year");
-        if (D(cur, next, "prosperity_drift") is var pd && pd != 0 && worlds > 0) parts.Add($"the prosperity of {Each(worlds)} would drift {2 * Math.Abs(pd)} a year {(pd > 0 ? "higher" : "lower")}");
+        if (D(cur, next, "prosperity_drift") is var pd && pd != 0 && worlds > 0) parts.Add($"the prosperity of {Each(worlds)} would settle {2 * Math.Abs(pd)} {(pd > 0 ? "higher" : "lower")}");   // where it settles, once: not a gain every year
         if (D(cur, next, "lawlessness_drift") is var ld && ld != 0) parts.Add($"lawlessness would move {Math.Abs(ld)} a year {(ld < 0 ? "lower" : "higher")} in every region, your own among them");
         if (D(cur, next, "tolls_bonus") is var tb && tb != 0 && w.Galaxy is { } g0 && planets.Count(x => g0.IsChokepoint(x.SystemId)) is var lanes && lanes > 0)
             parts.Add($"your {Counted.Of(lanes, "world")} on the lanes would take {Money.Credits(Math.Abs(tb) * lanes)} a year {(tb > 0 ? "more" : "less")} in tolls");
@@ -342,7 +351,7 @@ public static class SenateActs
             var v = VenturesOf(w); int capNext = next.Effects.GetValueOrDefault(LoanRateCap), capNow = cur.Effects.GetValueOrDefault(LoanRateCap);
             if (!v.IsEmpty)
             {
-                var f = v.Finance; int rate = Lending.BaseRate(f), limit = f.LoanPrincipal + Lending.PerWorld * Math.Min(Lending.WorldsCounted, worlds);
+                var f = v.Finance; int rate = Lending.BaseRate(f) + (VentureSystem.BadName(w, h.Id) ? Lending.BadNamePct : 0), limit = f.LoanPrincipal + Lending.PerWorld * Math.Min(Lending.WorldsCounted, w.HoldingsOf(h.Id).Count(x => x.IsPlanet));   // as Lending.Lenders has them
                 (int lend, int at) Under(int cap) => cap > 0 && rate > cap ? (Math.Max(Lending.Step, limit * cap / Math.Max(1, rate) / Lending.Step * Lending.Step), cap) : (limit, rate);
                 var (a, ar) = Under(capNow); var (b, br) = Under(capNext);
                 parts.Add($"the counting-houses would lend your house {Money.Credits(b)} at {br} in the hundred, where they lend {Money.Credits(a)} at {ar}");
@@ -366,18 +375,20 @@ public static class SenateActs
             var out_ = MercenarySystem.HiredOutBy(w, h.Id).ToList();
             if (next.Effects.GetValueOrDefault(CompanyBan) > 0) parts.Add(out_.Count > 0 ? $"{string.Join(" and ", out_.Select(f => f.Name))}, out on hire, would come home, and your house could hire no fleet out" : "your house could hire no fleet out");
             else if (next.Effects.GetValueOrDefault(CompanyLicence) is var fee && fee > 0)
-                parts.Add($"each fleet your house hired out would cost {Money.Credits(fee)} for the licence, and {LicensedLegitimacy} legitimacy where it costs {MercenarySystem.Legitimacy}" + (RegionSystem.CapitalHolder(w)?.Id == h.Id ? "; as the chair, your house would be paid the licences" : ""));
+                parts.Add(RegionSystem.CapitalHolder(w) is not { } holder ? $"each fleet your house hired out would cost {LicensedLegitimacy} legitimacy where it costs {MercenarySystem.Legitimacy}, and no licence while no house holds the capital"
+                    : holder.Id == h.Id ? $"each fleet your house hired out would cost {LicensedLegitimacy} legitimacy where it costs {MercenarySystem.Legitimacy}; as the chair, your house would pay no licence, and would be paid the licences"
+                    : $"each fleet your house hired out would cost {Money.Credits(fee)} for the licence, and {LicensedLegitimacy} legitimacy where it costs {MercenarySystem.Legitimacy}");
             else parts.Add($"your house could hire a fleet out freely, for {MercenarySystem.Legitimacy} legitimacy each time");
         }
         if (TradeTight(next) != TradeTight(cur))
         {
             bool chair = RegionSystem.CapitalHolder(w)?.Id == h.Id;
             if (next.Effects.GetValueOrDefault(TradeBan) > 0) parts.Add($"your house could sell no lot to another house and strike no new standing deal{(w.TradeDeals.Count(d => d.SellerId == h.Id || d.BuyerId == h.Id) is var deals && deals > 0 ? $"; its {Counted.Of(deals, "standing deal")} would run out their term" : "")}");
-            else if (next.Effects.GetValueOrDefault(TradeLevyPct) is var lv && lv > 0) parts.Add(chair ? $"your house, as the chair, would take {lv} in the hundred of every lot one house sells another" : $"of a lot your house sold another for {Money.Credits(10)}, the chair would take {Money.Credits(Math.Max(1, (10 * lv + 99) / 100))}");
+            else if (next.Effects.GetValueOrDefault(TradeLevyPct) is var lv && lv > 0) parts.Add(chair ? $"your house, as the chair, would take {lv} in the hundred of every lot one house sells another" : $"of a lot your house sold another for {Money.Credits(10)}, the chair would take {Money.Coin(10L * Money.PerUnit * lv / 100)}");
             else parts.Add("your house could deal with any other out of its store, and pay nothing to the chair for it");
         }
-        foreach (var (who, rung, now, then) in Years(w, h, cur, next, offices))
-            parts.Add(who.Age >= then ? $"{who.Name} ({who.Age}) could stand for {rung.Name.ToLowerInvariant()} at once, where now it waits for {now}" : $"{who.Name} ({who.Age}) would wait until {then} to stand for {rung.Name.ToLowerInvariant()}");
+        foreach (var (who, office, now, then) in Years(w, h, cur, next, offices))
+            parts.Add(who.Age >= then ? $"{who.Name} ({who.Age}) could stand for {office} at once, where now they wait for {now}" : $"{who.Name} ({who.Age}) would wait until {then} to stand for {office}");
         if (D(cur, next, RegionAllegiance) is var al && al != 0 && w.Galaxy is { } g3)
         {
             var mine = planets.Select(x => g3.System(x.SystemId)?.RegionId).Where(r => r != null).Distinct().OrderBy(r => r, StringComparer.Ordinal).Select(r => $"{g3.Region(r!)?.Name ?? r} at {RegionSystem.StateOf(w, r!).Allegiance}").ToList();

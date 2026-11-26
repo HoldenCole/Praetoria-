@@ -33,6 +33,10 @@ public static class Lending
     public static int BaseRate(FinanceRules f) => (f.LoanRepay - f.LoanPrincipal) * 100 / Math.Max(1, f.LoanPrincipal);
     /// <summary>What is owed on an amount borrowed at a rate: the whole of it, interest and all, is owed from the day.</summary>
     public static int Owed(int amount, int ratePct) => amount + (amount * ratePct + 99) / 100;
+    /// <summary>The same as the law of the Reach has it: under the Usury Law no loan's interest passes the cap, so the interest is
+    /// rounded down to it where rounding up would pass it (500 lent at 10 in the hundred owe 500, not 600). Where contract is free
+    /// it is rounded up, as it always was.</summary>
+    public static int Owed(World w, int amount, int ratePct) => SenateActs.LoanCap(w) is > 0 and var cap ? amount + Math.Min((amount * ratePct + 99) / 100, amount * cap / 100) : Owed(amount, ratePct);
     /// <summary>The yearly instalment on what is owed, in the proportion the standing loan has always been paid.</summary>
     public static int Instalment(FinanceRules f, int owed) => owed <= 0 ? 0 : Math.Max(1, (owed * f.LoanInstalment + f.LoanRepay - 1) / Math.Max(1, f.LoanRepay));
     public static int Years(int owed, int instalment) => owed <= 0 || instalment <= 0 ? 0 : (owed + instalment - 1) / instalment;

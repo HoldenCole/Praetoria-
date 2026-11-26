@@ -283,8 +283,9 @@ public static class CourtProjection
             if (house.Wealth == 0 && w.Houses.Values.All(h => h.Wealth == 0)) eco.Reckon(w);
             var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.TierFor(w, x.house.Id), x.house.Id == house.Id)).ToList();
             var lender = house.LenderId.Length > 0 ? w.House(house.LenderId)?.Name : null;
-            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, f.LoanPrincipal, f.LoanRepay, house.Debt > 0 ? Lending.InstalmentOf(w, house, f) : f.LoanInstalment,
-                new Option("loan", $"Borrow {Money.Credits(f.LoanPrincipal)} (owe {Money.Show(f.LoanRepay)}, {Money.Show(f.LoanInstalment)} a year)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
+            var (standLent, standOwes) = SenateActs.StandingLoan(w, f); int standEach = Math.Min(standOwes, f.LoanInstalment);   // the standing loan as the Usury Law leaves it
+            ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, standLent, standOwes, house.Debt > 0 ? Lending.InstalmentOf(w, house, f) : standEach,
+                new Option("loan", $"Borrow {Money.Credits(standLent)} (owe {Money.Show(standOwes)}, {Money.Show(standEach)} a year)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
                 new Option("repay", $"Clear the debt ({Money.Credits(house.Debt)})", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
             var vs = tc.Ventures;
             foreach (var b in w.BusinessesOf(house.Id))

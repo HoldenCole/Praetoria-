@@ -74,7 +74,7 @@
             string rid = rung.Id; var holders = LadderSystem.Holders(w, rung.Id); var ours = w.Candidacies.Where(x => x.RungId == rung.Id).ToList();
             var stand = new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices).Refusal(G.Ctx);
             <div class="rung-row">
-                <div><b>@rung.Name</b> <span class="muted small">@Counted.Seats(rung.Seats) · from @rung.MinAge@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {Money.Show(rung.Stipend)} a year" : "")</span></div>
+                <div><b>@rung.Name</b> <span class="muted small">@Counted.Seats(rung.Seats) · from @SenateActs.AgeFor(w, rung.MinAge)@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {Money.Show(rung.Stipend)} a year" : "")</span></div>
                 <div class="muted small">@rung.Description</div>
                 <div class="small">Sitting: @(holders.Count == 0 ? "nobody" : string.Join("; ", holders.Select(h => { var x = w.Char(h.CharacterId); return x == null ? "" : x.HouseId == house.Id ? $"{x.Name} (yours)" : $"{x.Name} of {w.House(x.HouseId)?.Name}"; })))</div>
                 @foreach (var cd in ours)
@@ -129,8 +129,8 @@
         @if (consul != null)
         {
             <div class="rung-row">
-                <div><b>Consul</b> <span class="muted small">2 seats · from @consul.MinAge · must have been @(offices.Rung(consul.Requires)?.Name.ToLowerInvariant() ?? "praetor") · elected every tenth year</span></div>
-                <div class="small">@(consulMan != null ? $"{(consulMan.Id == pid ? "You are" : consulMan.Name + " is")} of an age and a record to stand for the house." : "Nobody of the house is yet forty and has been praetor. The house cannot stand for consul.")</div>
+                <div><b>Consul</b> <span class="muted small">2 seats · from @SenateActs.AgeFor(w, consul.MinAge) · must have been @(offices.Rung(consul.Requires)?.Name.ToLowerInvariant() ?? "praetor") · elected every tenth year</span></div>
+                <div class="small">@(consulMan != null ? $"{(consulMan.Id == pid ? "You are" : consulMan.Name + " is")} of an age and a record to stand for the house." : $"Nobody of the house is yet {SenateActs.AgeFor(w, consul.MinAge)} and has been praetor. The house cannot stand for consul.")</div>
             </div>
         }
     }

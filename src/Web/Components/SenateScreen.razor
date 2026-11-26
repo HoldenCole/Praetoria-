@@ -549,7 +549,7 @@
         var who = Stands(offices); string cost = $"{ElectionSystem.StandInfluence} influence: your party nominates {(who == null || who.Id == G.World!.ProtagonistId ? "you, or you run alone" : "your house, or it runs alone")}.";
         if (who == null || who.Id == G.World!.ProtagonistId) return cost;
         var d = ElectionSystem.ConsulOffices(offices).First();
-        return $"{cost} You may not stand yourself: a consul must be {OfficeSystem.Wants(offices, d)}. {who.Name} of your house may, and it is {who.Name} who would be consul.";
+        return $"{cost} You may not stand yourself: a consul must be {OfficeSystem.Wants(offices, d, G.World)}. {who.Name} of your house may, and it is {who.Name} who would be consul.";
     }
     private string ConsulIs(Praetoria.Core.Data.OfficeCatalog offices)
     {

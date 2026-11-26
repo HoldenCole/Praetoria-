@@ -204,7 +204,7 @@ public sealed class TakeLoanCommand : ICommand
         var w = ctx.World; var house = w.House(w.Char(ActorId)!.HouseId)!; var f = _ventures.Finance;
         if (_lenderId != null)
         {
-            var t = Lending.Lenders(w, house.Id, _ventures).First(x => x.LenderId == _lenderId); int owed = Lending.Owed(_amount, t.RatePct);
+            var t = Lending.Lenders(w, house.Id, _ventures).First(x => x.LenderId == _lenderId); int owed = Lending.Owed(w, _amount, t.RatePct);
             house.Treasury.Credits += _amount; house.Debt += owed; house.LenderId = _lenderId; house.LoanInstalment = Lending.Instalment(f, house.Debt);
             w.WorldCounters["loans"] = w.Counter("loans") + 1;
             w.Log($"{house.Name} borrows {Money.Credits(_amount)} from {t.Lender} at {t.RatePct} in the hundred, and owes {Money.Show(house.Debt)}: {Money.Show(house.LoanInstalment)} a year.");
