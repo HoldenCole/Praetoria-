@@ -53,7 +53,7 @@
             <Tile Label="Influence to spend" Value="@pool.ToString()" Tone="@(pool == 0 ? "warn" : "")"
                   Note="@(held.Count == 0 ? "no law is in your gift" : changeable == 0 ? (pool == 0 ? "none: no law can be changed this year" : "no law is free to be changed this year") : $"enough to change {changeable} of your {held.Count} laws this year")" Title="Changing a law costs influence, and a law changed is settled for some years." />
             <Tile Label="Laws in your gift" Value="@held.Count.ToString()" Note="@($"{offCustom} off the custom{(settled > 0 ? $" · {settled} settled" : "")}{(notHeld.Count > 0 ? $" · {notHeld.Count} beyond your gift" : "")}")" Title="What your positions let you set. A law off the custom is one you, or the holder before you, have changed." />
-            <Tile Label="The law of the Reach" Value="@($"{reachLaws} laws")" Note="@(byAct == 0 ? "none set by an Act of the Senate" : $"{byAct} set by an Act of the Senate")" Title="These bind every house. One changes only by an Act carried in the chamber." />
+            <Tile Label="The law of the Reach" Value="@($"{reachLaws} laws")" Note="@(byAct == 0 ? "none set by an Act of the Senate" : $"{byAct} set by an Act of the Senate")" Title="@(ch.Bound ? "These bind every house of the Reach. One changes only by an Act carried in the chamber." : "These bind the houses of the Reach. Your house has broken away, and is bound only by its own laws.")" />
         </div>
         }
     </header>
@@ -94,7 +94,7 @@
             {
         @if (_tab == "reach") {
                 <section class="panel">
-                    <h3><Icon Name="galaxy" Size="13" /> The law of the Reach <span class="muted">binds every house</span></h3>
+                    <h3><Icon Name="galaxy" Size="13" /> The law of the Reach <span class="muted">@(ch.Bound ? "binds every house of the Reach" : "binds the houses of the Reach, and not yours: your house has broken away")</span></h3>
                     <table class="near reach-table">
                         <thead><tr><th>Law</th><th>Stands at</th><th>What it does</th><th>Set by</th></tr></thead>
                         <tbody>

@@ -29,7 +29,9 @@ settles it for its cooldown. The tithe's options are the tax policies of `exchan
 
 An option's effects are **modifier keys** that the systems read through `PolicySystem.Modifier` (the house's own laws
 where it holds the scope, plus the estates' regard for the player's house) and `PolicySystem.ReachModifier` (reach-wide
-laws held by whoever holds the chair, the throne or the office):
+laws held by whoever holds the chair, the throne or the office). The law of the Reach binds only the houses of the Reach:
+where a house is named it is read through `PolicySystem.ReachModifierFor`, which is nothing for a house that has broken away,
+bound only by its own laws (docs/BREAKAWAY.md). The keys:
 
 `credits_per_world` · `materials_per_world` · `manpower_per_world` · `unrest_drift` · `prosperity_drift` · `pop_growth` ·
 `lawlessness_drift` · `allegiance_drift` · `venture_yield_pct` · `charter_pct` · `market_price_pct` · `fleet_upkeep_pct` ·

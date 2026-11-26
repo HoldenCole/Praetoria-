@@ -73,35 +73,44 @@ public static class SenateActs
 
     // ---------------------------------------------------------------- usury
 
-    /// <summary>The most a lender may charge, in the hundred; 0 where contract is free.</summary>
+    /// <summary>The most a lender of the Reach may charge, in the hundred; 0 where contract is free.</summary>
     public static int LoanCap(World w) => Math.Max(0, Reach(w, LoanRateCap));
+    /// <summary>The cap on one loan: it binds the lender where the lender is of the Reach, and the counting-houses (lender "") where the
+    /// borrower is, for they lend on the borrower's own worlds. A house that has broken away lends as it likes, and borrows of the
+    /// counting-houses as it always did; a house of the Reach may not lend to it above the cap (docs/BREAKAWAY.md).</summary>
+    public static int LoanCap(World w, string lenderId, string borrowerId) => w.OfTheReach(lenderId.Length == 0 ? borrowerId : lenderId) ? LoanCap(w) : 0;
     /// <summary>A lender's terms under the cap: the rate cut to it, and the limit cut in the same proportion (a lender who may charge
-    /// two thirds of what it would lends two thirds of what it would), in whole steps and never less than one.</summary>
-    public static List<LoanTerms> CapLoans(World w, List<LoanTerms> terms)
+    /// two thirds of what it would lends two thirds of what it would), in whole steps and never less than one. Only the lenders the
+    /// cap binds for this borrower (<see cref="LoanCap(World, string, string)"/>).</summary>
+    public static List<LoanTerms> CapLoans(World w, List<LoanTerms> terms, string borrowerId)
     {
-        int cap = LoanCap(w); if (cap <= 0) return terms;
+        if (LoanCap(w) <= 0) return terms;
         string law = LawName(w, LoanRateCap);
         return terms.Select(t =>
         {
-            if (t.RatePct <= cap) return t;
+            int cap = LoanCap(w, t.LenderId, borrowerId);
+            if (cap <= 0 || t.RatePct <= cap) return t;
             int limit = Math.Max(Lending.Step, t.Limit * cap / Math.Max(1, t.RatePct) / Lending.Step * Lending.Step);
             return t with { RatePct = cap, Limit = limit, Why = t.Why + $" It would ask {t.RatePct} in the hundred, and {law} allows no more than {cap}: it lends {Money.Show(limit)} at the most, where it would have lent {Money.Show(t.Limit)}." };
         }).ToList();
     }
-    /// <summary>The stewards' standing loan as the law leaves it: what is lent and what is owed for it.</summary>
-    public static (int lent, int owed) StandingLoan(World w, FinanceRules f)
+    /// <summary>The stewards' standing loan to this house as the law leaves it: what is lent and what is owed for it. It is the
+    /// counting-houses' loan, so the cap binds it only where the house is of the Reach.</summary>
+    public static (int lent, int owed) StandingLoan(World w, FinanceRules f, string borrowerId)
     {
-        int cap = LoanCap(w), rate = Lending.BaseRate(f); if (cap <= 0 || rate <= cap) return (f.LoanPrincipal, f.LoanRepay);
+        int cap = LoanCap(w, Lending.CountingHouses, borrowerId), rate = Lending.BaseRate(f); if (cap <= 0 || rate <= cap) return (f.LoanPrincipal, f.LoanRepay);
         int lent = Math.Max(Lending.Step, f.LoanPrincipal * cap / Math.Max(1, rate) / Lending.Step * Lending.Step);
-        return (lent, Lending.Owed(w, lent, cap));   // the interest rounded down, so that it never passes the cap
+        return (lent, Lending.Owed(w, lent, cap, Lending.CountingHouses, borrowerId));   // the interest rounded down, so that it never passes the cap
     }
     /// <summary>Said after a lender's refusal to lend more, where the cap is why it lends less: ": the Usury Law allows it no more
     /// than 20 in the hundred, and it lends the less for that". Empty where the law did not cut these terms.</summary>
     public static string CapNote(World w, LoanTerms t) =>
         LoanCap(w) is > 0 and var cap && t.RatePct == cap && t.Why.Contains(" allows no more than ", StringComparison.Ordinal) ? $": {LawName(w, LoanRateCap)} allows it no more than {cap} in the hundred, and it lends the less for that" : "";
-    /// <summary>Why a loan between houses at this rate is against the law, or null.</summary>
+    /// <summary>Why a loan between houses at this rate is against the law, or null: for a lender of the Reach.</summary>
     public static string? LendRefusal(World w, int ratePct) =>
         LoanCap(w) is > 0 and var cap && ratePct > cap ? $"{LawName(w, LoanRateCap)} allows no more than {cap} in the hundred, and this is {ratePct}" : null;
+    /// <summary>The same for this lender: a house that has broken away is not bound by the cap, whoever it lends to.</summary>
+    public static string? LendRefusal(World w, string lenderId, int ratePct) => w.OfTheReach(lenderId) ? LendRefusal(w, ratePct) : null;
 
     // ---------------------------------------------------------------- canvassing
 
@@ -121,6 +130,9 @@ public static class SenateActs
     /// <summary>The most a corner may add to a price, as a share of it; none where the market is free.</summary>
     public static double CornerCap(World w) => Reach(w, CornerPremiumCap) is > 0 and var pct ? pct / 100.0 : double.MaxValue;
     public static bool CornersBroken(World w) => Reach(w, CornerForcedSale) > 0;
+    /// <summary>The same for the house that holds the corner: the law binds a holder of the Reach, and not one that has broken away (docs/BREAKAWAY.md).</summary>
+    public static double CornerCap(World w, string holderId) => w.OfTheReach(holderId) ? CornerCap(w) : double.MaxValue;
+    public static bool CornersBroken(World w, string holderId) => w.OfTheReach(holderId) && CornersBroken(w);
     /// <summary>The most a house may keep of a good under the law against engrossing: one short of what the price would feel.</summary>
     public static int MayKeep(int all) => Math.Max(CornerSystem.LeastUnits - 1, (all - 1) / 3);
 
@@ -130,7 +142,7 @@ public static class SenateActs
     public static bool BreakCorner(World w, MarketCatalog cat, GoodDef d, GoodState g)
     {
         if (!CornersBroken(w)) return false;
-        var s = CornerSystem.Standing(w, cat, d.Id); var top = s.Top; if (top == null || !CornerSystem.Cornered(top.Units, s.All)) return false;
+        var s = CornerSystem.Standing(w, cat, d.Id); var top = s.Top; if (top == null || !CornerSystem.Cornered(top.Units, s.All) || !CornersBroken(w, top.HouseId)) return false;   // a holder that has broken away is not made to sell
         var house = w.House(top.HouseId); if (house == null) return false;
         int keep = Math.Min(top.Units, MayKeep(s.All)), sold = top.Units - keep; if (sold <= 0) return false;
         int paid = Math.Max(0, (int)Math.Floor(Math.Min(g.Price, d.Base) * sold + 1e-9)); string label = Resource.Label(d.Id), law = LawName(w, CornerForcedSale);
@@ -147,17 +159,24 @@ public static class SenateActs
     public static bool CompaniesForbidden(World w) => Reach(w, CompanyBan) > 0;
     /// <summary>What the chair is paid for each company hired out, in the books' hundreds; 0 where none is asked.</summary>
     public static int CompanyFee(World w) => CompaniesForbidden(w) ? 0 : Math.Max(0, Reach(w, CompanyLicence));
+    /// <summary>The same for the house that hires its fleet out: the law binds a house of the Reach, and not one that has broken away (docs/BREAKAWAY.md).</summary>
+    public static bool CompaniesForbidden(World w, string hirerId) => w.OfTheReach(hirerId) && CompaniesForbidden(w);
+    public static int CompanyFee(World w, string hirerId) => w.OfTheReach(hirerId) ? CompanyFee(w) : 0;
 
     // ---------------------------------------------------------------- trade between houses
 
     public static bool StapleInForce(World w) => Reach(w, TradeBan) > 0;
+    /// <summary>Does the staple forbid a private sale between these two? It does where either is of the Reach: a house of the Reach may
+    /// not deal off the exchanges, and so not with a house that has broken away either; two that have broken away deal as they please.</summary>
+    public static bool StapleBetween(World w, string a, string b) => StapleInForce(w) && (w.OfTheReach(a) || w.OfTheReach(b));
     public static int TradeLevy(World w) => StapleInForce(w) ? 0 : Math.Clamp(Reach(w, TradeLevyPct), 0, 90);
     /// <summary>What the chair takes of a sale between two houses, out of what the seller is paid, in single credits (docs/MONEY.md):
     /// its share of the sale exactly, so that a levy of 10 in the hundred takes 20 credits of a sale of 200. Nothing where the chair's
-    /// own house is the seller or no house holds the capital. <paramref name="credits"/> is the sale in the books' hundreds.</summary>
+    /// own house is the seller or no house holds the capital, and nothing where the seller has broken away: the levy binds a seller of
+    /// the Reach. <paramref name="credits"/> is the sale in the books' hundreds.</summary>
     public static int LevyOn(World w, House seller, int credits)
     {
-        int pct = TradeLevy(w); if (pct <= 0 || credits < 1) return 0;
+        int pct = TradeLevy(w); if (pct <= 0 || credits < 1 || !w.OfTheReach(seller.Id)) return 0;
         var chair = RegionSystem.CapitalHolder(w); if (chair == null || chair.Id == seller.Id) return 0;
         return credits * Money.PerUnit * pct / 100;
     }
@@ -326,27 +345,38 @@ public static class SenateActs
 
     /// <summary>What setting a law of the Reach from <paramref name="cur"/> to <paramref name="next"/> would do to one house, in figures
     /// where there are figures: "your 5 worlds would pay 500 credits a year". Empty when it would do nothing to the house that a
-    /// figure can say.</summary>
+    /// figure can say. A house that has broken away is told only what still falls on it: what falls on the regions where its worlds
+    /// lie, and the staple, which keeps the houses of the Reach from dealing with it off the exchanges (docs/BREAKAWAY.md).</summary>
     public static string ToHouse(World w, House h, LawOptionDef cur, LawOptionDef next, OfficeCatalog offices, FleetSystem? fleets = null)
+    {
+        if (w.OfTheReach(h.Id)) return Says(Parts(w, h, cur, next, offices, fleets, bound: true), "To your house: ");
+        var still = Parts(w, h, cur, next, offices, fleets, bound: false);
+        if (still.Count > 0) return Says(still, "To your house, which has broken away from the Reach and is bound only by its own laws: ");
+        return Parts(w, h, cur, next, offices, fleets, bound: true).Count > 0 ? "To your house: nothing, for it has broken away from the Reach and is bound only by its own laws." : "";
+    }
+    private static string Says(List<string> parts, string lead) => parts.Count == 0 ? "" : lead + string.Join("; ", parts) + ".";
+    /// <summary>The figures of <see cref="ToHouse"/>: all of them for a house of the Reach (<paramref name="bound"/>), and for one that has
+    /// broken away only those that still reach it.</summary>
+    private static List<string> Parts(World w, House h, LawOptionDef cur, LawOptionDef next, OfficeCatalog offices, FleetSystem? fleets, bool bound)
     {
         var parts = new List<string>(); var planets = w.HoldingsOf(h.Id).Where(x => x.IsPlanet && !x.InRebellion).ToList(); int worlds = planets.Count;
         string Each(int n) => n == 1 ? "your one world" : $"each of your {n} worlds";
-        if (D(cur, next, "credits_per_world") is var cpw && cpw != 0 && worlds > 0)
+        if (bound && D(cur, next, "credits_per_world") is var cpw && cpw != 0 && worlds > 0)
             parts.Add(cpw < 0 ? $"your house would pay {Money.Credits(-cpw * worlds)} a year, {Money.Credits(-cpw)} for {(worlds == 1 ? "its one world" : $"each of its {worlds} worlds")}" : $"your house would take in {Money.Credits(cpw * worlds)} more a year");
-        if (D(cur, next, "unrest_drift") is var ud && ud != 0 && worlds > 0) parts.Add($"unrest on {Each(worlds)} would move {Math.Abs(ud)} a year {(ud < 0 ? "lower" : "higher")}");
-        if (D(cur, next, "pop_growth") is var pg && pg != 0 && worlds > 0) parts.Add($"the people of {Each(worlds)} would grow by {Math.Abs(pg)} {(pg > 0 ? "more" : "less")} a year");
-        if (D(cur, next, "prosperity_drift") is var pd && pd != 0 && worlds > 0) parts.Add($"the prosperity of {Each(worlds)} would settle {2 * Math.Abs(pd)} {(pd > 0 ? "higher" : "lower")}");   // where it settles, once: not a gain every year
+        if (bound && D(cur, next, "unrest_drift") is var ud && ud != 0 && worlds > 0) parts.Add($"unrest on {Each(worlds)} would move {Math.Abs(ud)} a year {(ud < 0 ? "lower" : "higher")}");
+        if (bound && D(cur, next, "pop_growth") is var pg && pg != 0 && worlds > 0) parts.Add($"the people of {Each(worlds)} would grow by {Math.Abs(pg)} {(pg > 0 ? "more" : "less")} a year");
+        if (bound && D(cur, next, "prosperity_drift") is var pd && pd != 0 && worlds > 0) parts.Add($"the prosperity of {Each(worlds)} would settle {2 * Math.Abs(pd)} {(pd > 0 ? "higher" : "lower")}");   // where it settles, once: not a gain every year
         if (D(cur, next, "lawlessness_drift") is var ld && ld != 0) parts.Add($"lawlessness would move {Math.Abs(ld)} a year {(ld < 0 ? "lower" : "higher")} in every region, your own among them");
-        if (D(cur, next, "tolls_bonus") is var tb && tb != 0 && w.Galaxy is { } g0 && planets.Count(x => g0.IsChokepoint(x.SystemId)) is var lanes && lanes > 0)
+        if (bound && D(cur, next, "tolls_bonus") is var tb && tb != 0 && w.Galaxy is { } g0 && planets.Count(x => g0.IsChokepoint(x.SystemId)) is var lanes && lanes > 0)
             parts.Add($"your {Counted.Of(lanes, "world")} on the lanes would take {Money.Credits(Math.Abs(tb) * lanes)} a year {(tb > 0 ? "more" : "less")} in tolls");
-        if (D(cur, next, "fleet_upkeep_pct") is var fu && fu != 0 && fleets != null)
+        if (bound && D(cur, next, "fleet_upkeep_pct") is var fu && fu != 0 && fleets != null)
         {
             var chairId = RegionSystem.CapitalHolder(w)?.Id; long raw = 0;
             foreach (var f in w.Fleets.Values.Where(f => FleetSystem.BilledTo(f, chairId) == h.Id && !f.LaidUp)) foreach (var (cls, n) in fleets.Composition(f)) raw += 100L * cls.Upkeep.Credits * n;
             if (raw > 0) parts.Add($"your fleets, which cost {Money.Coin(raw)} a year to keep before the laws, would cost {Money.Coin(Math.Abs(raw * fu / 100))} {(fu > 0 ? "more" : "less")}");
         }
-        if (D(cur, next, "readiness") is var rd && rd != 0 && Hulls(w, h) > 0) parts.Add($"your crews would recover {Math.Abs(rd)} readiness a year {(rd > 0 ? "faster" : "slower")}");
-        if (UsuryTight(next) != UsuryTight(cur))
+        if (bound && D(cur, next, "readiness") is var rd && rd != 0 && Hulls(w, h) > 0) parts.Add($"your crews would recover {Math.Abs(rd)} readiness a year {(rd > 0 ? "faster" : "slower")}");
+        if (bound && UsuryTight(next) != UsuryTight(cur))   // a house that has broken away lends as it likes, and borrows of the counting-houses as it always did
         {
             var v = VenturesOf(w); int capNext = next.Effects.GetValueOrDefault(LoanRateCap), capNow = cur.Effects.GetValueOrDefault(LoanRateCap);
             if (!v.IsEmpty)
@@ -359,10 +389,10 @@ public static class SenateActs
             if (Lends(w, h)) parts.Add(capNext > 0 ? $"your house, which lends, could charge no more than {capNext} in the hundred, and loans already made stand as they were made" : "your house, which lends, could charge what it likes");
         }
         int c = Math.Sign(next.Effects.GetValueOrDefault(CanvassLaw));
-        if (c != Math.Sign(cur.Effects.GetValueOrDefault(CanvassLaw)))
+        if (bound && c != Math.Sign(cur.Effects.GetValueOrDefault(CanvassLaw)))
             parts.Add(c > 0 ? $"a lavish canvass ({Money.Credits(LadderSystem.CampaignCost(LadderSystem.Lavish))}) would be forbidden to your house, and a handsome one ({Money.Credits(LadderSystem.CampaignCost(LadderSystem.Handsome))}) written down as votes bought"
                 : c < 0 ? "no canvass your house paid for would be written down as votes bought, however lavish" : "a lavish canvass would be written down as votes bought, and a handsome one would not");
-        if (CornerTight(next) != CornerTight(cur) && w.Market != null)
+        if (bound && CornerTight(next) != CornerTight(cur) && w.Market != null)
             foreach (var g in w.Market.Goods.Values.Where(g => g.CornerHouse == h.Id && g.CornerPremium > 0).OrderBy(g => g.Id, StringComparer.Ordinal))
             {
                 int pct = (int)Math.Round(100 * g.CornerPremium), cap = next.Effects.GetValueOrDefault(CornerPremiumCap);
@@ -370,7 +400,7 @@ public static class SenateActs
                 else if (cap > 0 && pct > cap) parts.Add($"your hoard of {Resource.Label(g.Id)} adds {pct}% to its price, and no more than {cap}% would be allowed");
                 else if (CornerTight(next) == 0) parts.Add($"your hoard of {Resource.Label(g.Id)} could earn what it will");
             }
-        if (CompanyTight(next) != CompanyTight(cur))
+        if (bound && CompanyTight(next) != CompanyTight(cur))
         {
             var out_ = MercenarySystem.HiredOutBy(w, h.Id).ToList();
             if (next.Effects.GetValueOrDefault(CompanyBan) > 0) parts.Add(out_.Count > 0 ? $"{string.Join(" and ", out_.Select(f => f.Name))}, out on hire, would come home, and your house could hire no fleet out" : "your house could hire no fleet out");
@@ -380,7 +410,8 @@ public static class SenateActs
                     : $"each fleet your house hired out would cost {Money.Credits(fee)} for the licence, and {LicensedLegitimacy} legitimacy where it costs {MercenarySystem.Legitimacy}");
             else parts.Add($"your house could hire a fleet out freely, for {MercenarySystem.Legitimacy} legitimacy each time");
         }
-        if (TradeTight(next) != TradeTight(cur))
+        if (!bound && next.Effects.GetValueOrDefault(TradeBan) > 0 && cur.Effects.GetValueOrDefault(TradeBan) <= 0) parts.Add("no house of the Reach could sell your house a lot out of its store, or buy one of it");
+        if (bound && TradeTight(next) != TradeTight(cur))
         {
             var holder = RegionSystem.CapitalHolder(w);
             if (next.Effects.GetValueOrDefault(TradeBan) > 0) parts.Add($"your house could sell no lot to another house and strike no new standing deal{(w.TradeDeals.Count(d => d.SellerId == h.Id || d.BuyerId == h.Id) is var deals && deals > 0 ? $"; its {Counted.Of(deals, "standing deal")} would run out their term" : "")}");
@@ -389,14 +420,14 @@ public static class SenateActs
                 : $"of a lot your house sold another for {Money.Credits(10)}, the chair would take {Money.Coin(10L * Money.PerUnit * lv / 100)}");
             else parts.Add("your house could deal with any other out of its store, and pay nothing to the chair for it");
         }
-        foreach (var (who, office, now, then) in Years(w, h, cur, next, offices))
+        foreach (var (who, office, now, then) in bound ? Years(w, h, cur, next, offices) : new())
             parts.Add(who.Age >= then ? $"{who.Name} ({who.Age}) could stand for {office} at once, where now they wait for {now}" : $"{who.Name} ({who.Age}) would wait until {then} to stand for {office}");
         if (D(cur, next, RegionAllegiance) is var al && al != 0 && w.Galaxy is { } g3)
         {
             var mine = planets.Select(x => g3.System(x.SystemId)?.RegionId).Where(r => r != null).Distinct().OrderBy(r => r, StringComparer.Ordinal).Select(r => $"{g3.Region(r!)?.Name ?? r} at {RegionSystem.StateOf(w, r!).Allegiance}").ToList();
             parts.Add($"every region's allegiance would settle {Math.Abs(al)} {(al > 0 ? "higher" : "lower")}" + (mine.Count > 0 ? $"; your worlds lie in {string.Join(", ", mine)}, and a world rises when its region falls under {RegionSystem.RebellionAllegiance}" : ""));
         }
-        return parts.Count == 0 ? "" : "To your house: " + string.Join("; ", parts) + ".";
+        return parts;
     }
 
     // ---------------------------------------------------------------- the chamber legislates

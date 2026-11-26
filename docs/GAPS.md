@@ -11,7 +11,7 @@ do not pile up unseen. The rule for keeping it is in docs/PROCESS.md ("Map the g
 Last updated 2026-11-17 (known stories played against the game, R1 to R20 mapped, docs/ROLEPLAY.md; the owner's answers recorded; R14a, R4 and R8 closed).
 2026-11-18: the first stage of R5 built (docs/THRONE.md); R10 planned and its first stage built (docs/BEYOND.md); then, on the owner's word, the Vashti Khanates put on the map (R10b closed, N1 to N8 mapped), and after them the Free Cities of Thessar (R10c closed, N9 to N12 mapped) and the Ardent Concord (R10d closed, N13 to N15 mapped). 2026-11-19: the Outer Compact and the Hollow Crown put on the map, so all five are (R10e closed, N16 to N19 mapped); then the owner's answers on the map and on war built (R10f closed with N2, N3, N7 and N9; N20 to N25 mapped), and after them the answers on the kinds of peace, how often nations attack and what defying the Senate costs (R10g closed with N23; N26 mapped), and a peace negotiated or won by the war score (R10h closed). The owner's decisions on the nations are one list at the end of docs/BEYOND.md.
 
-2026-11-26: local law, edicts and ten more Acts of the Senate built, reviewed and measured (docs/LAWS_REVIEW.md, section 6); what they leave thin is Y1 to Y10 under "Laws".
+2026-11-26: local law, edicts and ten more Acts of the Senate built, reviewed and measured (docs/LAWS_REVIEW.md, section 6); what they leave thin is Y1 to Y10 under "Laws". The same day Y1 closed on the owner's rule (a house that has broken away is bound only by its own laws, docs/BREAKAWAY.md), and Y11 mapped.
 
 > **Found by playing (2026-11-20):** five playthroughs and what a player wanted to do and could not, sorted easy, medium and
 > hard, are in `docs/PLAYTHROUGH.md`. They are not repeated in this register.
@@ -360,7 +360,6 @@ moves them (docs/SENATE.md, "The Senate's law, enlarged") were built together. W
 
 | # | The gap | Size | Waits on |
 |---|---|---|---|
-| Y1 | The law of the Reach (the Senate's Acts, the chair's and the offices' laws) still falls on a house that has broken away from the Reach. A Reach-wide edict does not (docs/EDICTS.md). Should a breakaway state be free of the Senate's law? | S | the owner |
 | Y2 | **The estates and the Reach's law.** With fifteen Acts the Reach's law alone pushed an estate past loyal or hostile in every house at once (the magistrates loyal in 33 houses, paying 100 credits a world each). It now counts at half, and at most 15 either way, in what an estate thinks of a house, so a house is judged first by its own laws. Half and 15 are my numbers. | S | the owner: is half right |
 | Y3 | Other houses never set four of the eight local laws (the charter, the port, the labour levy, the gates) or a veterans' colony, and in two measured games never gave a corn dole: their worlds are seldom restless (unrest under 5 in nine world-years of ten). | M | |
 | Y4 | Nobody held emergency powers or a throne in the measured games, so other people never issued the three edicts of the powers (proscription, rule by decree, the levy in mass). They are tested, not seen. | M | |
@@ -370,6 +369,7 @@ moves them (docs/SENATE.md, "The Senate's law, enlarged") were built together. W
 | Y8 | Local law: a closed world turns away new ventures only (one already being built still opens); a staple port does not draw trade from the other worlds of its region; the player's steward does not decree local law; only planets carry one. | S | |
 | Y9 | The Navigation Act's levy falls on lots sold out of a store, not on the deliveries of a standing deal; under the staple a deal already struck runs out its term. | S | |
 | Y10 | The four questions of docs/LAWS_REVIEW.md section 5: the offices that carry laws are seldom held, other houses have no council, readiness laws are weak, an open hall and a bench's two platforms do little. | M | the owner |
+| Y11 | A breakaway state has no laws of its own: its head cannot set a law for the houses that followed it. Its houses are bound by their own laws only (docs/BREAKAWAY.md). | M | |
 
 ## Older, from docs/ROADMAP.md section 3
 
@@ -494,3 +494,4 @@ look-and-feel pass is planned and not begun, there is no sound.
 | V21 | From far off every star carried rings too small to read, lanes ran through the suns, and every line had stepped edges. | 2026-11-22 | docs/GALAXY.md, "The chart at three distances". |
 | V22 | About 170 lines wrote a count as "4 hull(s)". | 2026-11-22 | `Counted` says "1 hull", "4 hulls", and the verb agrees. A test keeps the brackets out. |
 | V23 | The council (admiral, chancellor, steward) was listed beside the map all the time, and there were three seats. | 2026-11-22 | docs/HOUSEHOLD.md, "The council": it has its own page under House; beside the map a seat speaks only when something wants doing now. Six posts, three laws, seven events, one command. |
+| Y1 | The law of the Reach (the Senate's Acts, the chair's and the offices' laws) still fell on a house that had broken away from the Reach. | 2026-11-26 | The owner: "If something breaks away then they're bound by only their laws." The law of the Reach falls only on the houses of the Reach, a rule between two houses binds the one that is of the Reach, and the Reach's own places and institutions still bind whoever uses them (docs/BREAKAWAY.md, "A house that has broken away is bound only by its own laws"). |

@@ -162,11 +162,15 @@ public static class PolicySystem
         }
         return sum + EdictSystem.Reach(w, key);   // and the edicts in force on the whole Reach (docs/EDICTS.md)
     }
+    /// <summary>The law of the Reach as it falls on one house: the whole of it on a house of the Reach, and nothing on one that has
+    /// broken away or on an outsider, which are bound only by their own laws (docs/BREAKAWAY.md, "A house that has broken away is bound
+    /// only by its own laws").</summary>
+    public static int ReachModifierFor(World w, PolicyCatalog cat, string key, string houseId) => w.OfTheReach(houseId) ? ReachModifier(w, cat, key) : 0;
 
     /// <summary>The standing a house draws from the Reach-wide laws it holds the position for itself.</summary>
     public static int ReachLegitimacy(World w, PolicyCatalog cat, string houseId)
     {
-        int sum = 0;
+        int sum = 0; if (!w.OfTheReach(houseId)) return 0;   // a house that has broken away draws nothing from the Reach's positions
         foreach (var law in cat.Laws.Where(l => l.Reach && l.Scope != "senate"))
         {
             string? holder = law.Scope == "chair" ? RegionSystem.CapitalHolder(w)?.Id : law.Scope == "emperor" ? ThroneSystem.Emperor(w)?.Id : law.Scope.StartsWith("office:") ? OfficeSystem.HolderHouse(w, law.Scope["office:".Length..]) : null;
@@ -178,7 +182,7 @@ public static class PolicySystem
     /// <summary>What the player's laws say about an estate: the sum of the options' opinions, where the house holds the scope.</summary>
     public static int LawOpinion(World w, PolicyCatalog cat, string houseId, string estateId) =>
         cat.Laws.Where(l => !l.Reach && HoldsScope(w, houseId, l.Scope)).Sum(l => Option(w, cat, houseId, l.Id)?.Opinions.GetValueOrDefault(estateId) ?? 0)
-        + ReachCounts(ReachOpinion(w, cat, estateId)) + LocalLawSystem.Opinion(w, cat, houseId, estateId);   // the Reach's law weighs on every house's estates, at half and within a cap; a local law by the share of the house's worlds that keep it
+        + (w.OfTheReach(houseId) ? ReachCounts(ReachOpinion(w, cat, estateId)) : 0) + LocalLawSystem.Opinion(w, cat, houseId, estateId);   // the Reach's law weighs on the estates of every house of the Reach, at half and within a cap, and not on a house that has broken away; a local law by the share of the house's worlds that keep it
 
     /// <summary>How much the Reach's law counts in what an estate thinks of a house: half of what it says, rounded away from zero,
     /// and never more than <see cref="ReachCap"/> either way. A house is judged first by what it does itself; the law of the whole Reach

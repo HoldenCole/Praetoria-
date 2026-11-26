@@ -206,13 +206,20 @@ rule that already existed, for every house, through the Reach's law (`PolicySyst
 | | The customary citizenship (default) | as things are | | | | |
 | | Citizenship for the whole Reach | every region settles 8 higher | frontier +15, old blood -15, commons -5 | the chair for, 2; a house whose worlds lie where allegiance is under 45 for, 1 | Populares | the lex Julia (90 BC) and the Constitutio Antoniniana (AD 212) |
 
-Where the effect is read, for every house: `Lending.Lenders`, the stewards' standing loan in `TakeLoanCommand` and
+Where the effect is read, for every house of the Reach: `Lending.Lenders`, the stewards' standing loan in `TakeLoanCommand` and
 `DealingsSystem.LendRefusal` (usury); `LadderSystem.CampaignRefusal` and what `LadderSystem.Campaign` and the other houses'
 canvasses write on the record (canvassing); `CornerSystem.Reckon` and `CornerSystem.Held` (forestalling);
 `MercenarySystem.Refusal`, `Hire` and `Tick` (hired companies); the per-world line of `Economy.Compute` and its unrest causes
 (the Corn Law); `Economy.ProsperityWhy` and the yearly growth in `Economy.Accrue` (the Land Law); `FleetSystem.Upkeep` and
 `FleetSystem.Tick` (service, for the fleets of the Reach and not the raiders' or the nations'); `HouseTradeSystem.WontTrade`, `Trades` and the sale itself (the Navigation Act), and the tolls in
 `Economy.Compute`; `LadderSystem.Bar` and `OfficeSystem.Candidate` (the years); `RegionSystem.AllegianceTarget` (citizenship).
+
+**A house that has broken away is bound by none of them** (2026-11-26, the owner: "If something breaks away then they're
+bound by only their laws"). What an Act does to a house falls on the houses of the Reach only, and a rule between two houses
+binds the one that is of the Reach: the lender under the Usury Law, the seller under the Navigation Act's levy, either party
+under its staple, the holder of a corner, the house that hires its fleet out. The offices, the Senate's procedure, the
+exchanges' licence, the Exchange's levy and the regions stay as they are (docs/BREAKAWAY.md, "A house that has broken away
+is bound only by its own laws").
 
 **The chamber legislates** (`SenateActs.Legislate`, called once a year at the end of `SenateSystem.Tick`). Before, an Act
 was moved only as one of the reasons the busiest house in the Senate might have in one year in three, after a war, an

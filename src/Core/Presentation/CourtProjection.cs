@@ -90,7 +90,8 @@ public sealed record LawCard(string Id, string Name, string Category, string Des
 /// <summary>An estate's regard for the house: approval, where the laws would take it, and what its mood does.</summary>
 public sealed record EstateCard(string Id, string Name, string Description, int Approval, int Target, string Mood, string Effects, string LawsSay, string? Petition = null, int HostileIn = 0, string? Wants = null);
 /// <summary>The chancery: laws by category and the six estates.</summary>
-public sealed record ChanceryCard(IReadOnlyList<LawCard> Laws, IReadOnlyList<EstateCard> Estates, int InfluencePool, IReadOnlyList<ReachLawLine>? Reach = null);
+/// <param name="Bound">The player's house is of the Reach, and its law binds it; false for a house that has broken away (docs/BREAKAWAY.md).</param>
+public sealed record ChanceryCard(IReadOnlyList<LawCard> Laws, IReadOnlyList<EstateCard> Estates, int InfluencePool, IReadOnlyList<ReachLawLine>? Reach = null, bool Bound = true);
 /// <summary>One house on the wealth table.</summary>
 public sealed record WealthLine(string HouseId, string Name, string Accent, int Wealth, string Tier, bool Mine);
 /// <summary>The house ledger (GDD §17): every per-turn line, the net, wealth and its rank, the loan.</summary>
@@ -283,7 +284,7 @@ public static class CourtProjection
             if (house.Wealth == 0 && w.Houses.Values.All(h => h.Wealth == 0)) eco.Reckon(w);
             var table = Wealth.Ranked(w).Select(x => new WealthLine(x.house.Id, x.house.Name, x.house.AccentColor, x.wealth, Wealth.TierFor(w, x.house.Id), x.house.Id == house.Id)).ToList();
             var lender = house.LenderId.Length > 0 ? w.House(house.LenderId)?.Name : null;
-            var (standLent, standOwes) = SenateActs.StandingLoan(w, f); int standEach = Math.Min(standOwes, f.LoanInstalment);   // the standing loan as the Usury Law leaves it
+            var (standLent, standOwes) = SenateActs.StandingLoan(w, f, house.Id); int standEach = Math.Min(standOwes, f.LoanInstalment);   // the standing loan as the Usury Law leaves it
             ledger = new LedgerCard(lg.Lines, lg.Net, house.Wealth, Wealth.RankOf(w, house.Id), w.Houses.Keys.Count(h => !World.Outsider(h)), Wealth.TierFor(w, house.Id), house.Debt, lender, standLent, standOwes, house.Debt > 0 ? Lending.InstalmentOf(w, house, f) : standEach,
                 new Option("loan", $"Borrow {Money.Credits(standLent)} (owe {Money.Show(standOwes)}, {Money.Show(standEach)} a year)", new TakeLoanCommand(p.Id, bc).Refusal(ctx)),
                 new Option("repay", $"Clear the debt ({Money.Credits(house.Debt)})", new RepayLoanCommand(p.Id).Refusal(ctx)), table);
@@ -700,7 +701,7 @@ public static class CourtProjection
             {
                 All = standing.All, Holders = CornerSystem.Listed(standing, house.Id).Select(h => new HolderLine(h.HouseId, h.Name, h.Accent, h.Units, h.SharePct, h.HouseId == house.Id)).ToList(),
                 CornerHouseId = felt ? top!.HouseId : "", CornerHouseName = felt ? top!.Name : "", Cornered = felt && CornerSystem.Cornered(top!.Units, standing.All), CornerMine = felt && top!.HouseId == house.Id,
-                CornerSharePct = felt ? top!.SharePct : 0, PremiumPct = felt ? (int)Math.Round(100 * Math.Min(CornerSystem.Premium(top!.Units, standing.All), SenateActs.CornerCap(w))) : 0,
+                CornerSharePct = felt ? top!.SharePct : 0, PremiumPct = felt ? (int)Math.Round(100 * Math.Min(CornerSystem.Premium(top!.Units, standing.All), SenateActs.CornerCap(w, top!.HouseId))) : 0,
                 CornerHeld = CornerSystem.Held(w, t, house.Id, d.Id), CornerTake = CornerSystem.Take(w, t, house.Id, d.Id),
             };
         }).ToList();
@@ -830,7 +831,7 @@ public static class CourtProjection
     private static ChanceryCard? BuildChancery(World w, Character p, House house, PolicyCatalog cat, CommandContext ctx)
     {
         using var perf_ = Perf.Time("proj:BuildChancery");
-        if (cat.IsEmpty) return null;
+        if (cat.IsEmpty) return null; bool bound = w.OfTheReach(house.Id);   // a house that has broken away is bound only by its own laws
         var laws = cat.Laws.Select(l =>
         {
             string inForce = l.Reach ? (PolicySystem.ReachOption(w, cat, l) ?? l.DefaultOption).Id : PolicySystem.OptionId(w, cat, house.Id, l.Id);
@@ -846,9 +847,14 @@ public static class CourtProjection
             string fx = a >= PolicySystem.Loyal ? Effects(e.Loyal) : a <= PolicySystem.Hostile ? Effects(e.Hostile) : $"loyal would give {Effects(e.Loyal)}; hostile would cost {Effects(e.Hostile)}";
             var says = cat.Laws.Where(l => !l.Reach && PolicySystem.HoldsScope(w, house.Id, l.Scope)).Select(l => (l, o: PolicySystem.Option(w, cat, house.Id, l.Id))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
                 .Select(x => $"{x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}").ToList();
-            says.AddRange(cat.Laws.Where(l => l.Reach).Select(l => (l, o: PolicySystem.ReachOption(w, cat, l))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
-                .Select(x => $"the Reach's {x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}"));
-            if (PolicySystem.ReachOpinion(w, cat, e.Id) is var said && said != 0) { int counts = PolicySystem.ReachCounts(said); says.Add($"the Reach's law in all {(said > 0 ? "+" : "")}{said}, counted at half and at most {PolicySystem.ReachCap}: {(counts > 0 ? "+" : "")}{counts}"); }
+            var reachSays = cat.Laws.Where(l => l.Reach).Select(l => (l, o: PolicySystem.ReachOption(w, cat, l))).Where(x => x.o != null && x.o.Opinions.GetValueOrDefault(e.Id) != 0)
+                .Select(x => $"the Reach's {x.o!.Name.ToLowerInvariant()} {(x.o.Opinions[e.Id] > 0 ? "+" : "")}{x.o.Opinions[e.Id]}").ToList();
+            if (!bound) { if (reachSays.Count > 0) says.Add("the law of the Reach counts for nothing: your house has broken away, and is bound only by its own laws"); }
+            else
+            {
+                says.AddRange(reachSays);
+                if (PolicySystem.ReachOpinion(w, cat, e.Id) is var said && said != 0) { int counts = PolicySystem.ReachCounts(said); says.Add($"the Reach's law in all {(said > 0 ? "+" : "")}{said}, counted at half and at most {PolicySystem.ReachCap}: {(counts > 0 ? "+" : "")}{counts}"); }
+            }
             says.AddRange(LocalLawSystem.Says(w, cat, house.Id, e.Id));   // the law of single worlds, by the share of the house's worlds that keep it
             var pet = w.Motions.FirstOrDefault(m => m.Open && SenateSystem.PetitionEstate(m) == e.Id);
             string? petition = pet != null ? $"petitioning the Senate: that {cat.Law(pet.LawId)?.Name.ToLowerInvariant()} be {cat.Law(pet.LawId)?.Option(pet.LawOption)?.Name.ToLowerInvariant()}" : null;
@@ -870,6 +876,6 @@ public static class CourtProjection
                 : holder == null ? $"no one holds {PolicySystem.ScopeName(l.Scope)}" : holder == house.Id ? "set by you, as " + PolicySystem.ScopeName(l.Scope) : $"set by {w.House(holder)?.Name ?? holder}, as {PolicySystem.ScopeName(l.Scope)}";
             return new ReachLawLine(l.Id, l.Name, l.Category, (o ?? l.DefaultOption).Name, Effects((o ?? l.DefaultOption).Effects), setBy, act, holder == house.Id, act ? Math.Max(0, w.Counter($"law_cd:{PolicySystem.SenateHolder}:{l.Id}") - w.Turn) : 0);
         }).ToList();
-        return new ChanceryCard(laws, estates, w.PoolsFor(p.Id).Influence, reach);
+        return new ChanceryCard(laws, estates, w.PoolsFor(p.Id).Influence, reach, bound);
     }
 }

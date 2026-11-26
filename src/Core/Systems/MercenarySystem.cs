@@ -41,7 +41,7 @@ public static class MercenarySystem
     {
         if (actor?.Alive != true) return "no one to give the order";
         if (!w.Fleets.TryGetValue(fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
-        if (SenateActs.CompaniesForbidden(w)) return $"{SenateActs.LawName(w, SenateActs.CompanyBan)} forbids it: no fleet is hired out while it stands";
+        if (SenateActs.CompaniesForbidden(w, actor.HouseId)) return $"{SenateActs.LawName(w, SenateActs.CompanyBan)} forbids it: no fleet is hired out while it stands";   // a house of the Reach; not one that has broken away
         if (f.Office) return "it is held by office and is the Reach's: it is not yours to hire out";
         if (f.LevyOf.Length > 0) return "a levy is its own house's, not yours to hire out";
         if (f.IsAway) return "it is beyond the Reach"; if (f.Moving) return "it is under way: a company is hired where it lies";
@@ -51,7 +51,7 @@ public static class MercenarySystem
         if (w.Wars.Any(x => x.Involves(actor.HouseId))) return "your house is at war itself: its ships are wanted at home";
         var head = Economy.HeadOf(w, employer); int regard = head != null ? w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0 : 0;
         if (regard < TakesAt) return $"{head?.Name ?? "its head"} thinks too ill of you to put your ships in {employer.Name}'s line (regard {regard}; {TakesAt} or better would do)";
-        if (SenateActs.CompanyFee(w) is > 0 and var fee && w.House(actor.HouseId) is { } sender && RegionSystem.CapitalHolder(w) is { } chair && chair.Id != sender.Id && sender.Treasury.Credits < fee)   // asked only where another house holds the capital, as Hire takes it
+        if (SenateActs.CompanyFee(w, actor.HouseId) is > 0 and var fee && w.House(actor.HouseId) is { } sender && RegionSystem.CapitalHolder(w) is { } chair && chair.Id != sender.Id && sender.Treasury.Credits < fee)   // asked only where another house holds the capital, as Hire takes it
             return $"{SenateActs.LawName(w, SenateActs.CompanyLicence)} asks {Money.Credits(fee)} for the licence, paid to the chair, and the house has {Money.Show(Math.Max(0, sender.Treasury.Credits))}";
         int pay = PayOf(f); return employer.Treasury.Credits >= pay ? null : $"{employer.Name} cannot find the first year's pay ({Money.Credits(pay)}; it has {Money.Show(Math.Max(0, employer.Treasury.Credits))})";
     }
@@ -61,9 +61,9 @@ public static class MercenarySystem
     {
         var foes = w.EnemiesOf(employer.Id).Distinct().Select(e => w.House(e)?.Name ?? e).ToList();
         return $"{f.Name} ({Counted.Hulls(f.Strength)}) sails under {employer.Name}'s colours and at its orders for up to {TermYears} years, against {string.Join(" and ", foes)}. {employer.Name} pays you {Money.Credits(CreditsPerHull)} a hull each year ({Money.Show(PayOf(f))} now) and keeps and fuels the ships. "
-            + $"Hulls lost in its battles are lost to you. Your house is thought the less of for selling its sword (legitimacy −{ShameOf(w)}), and the head of each house it is turned on thinks {FoeRegard} the worse of you; {employer.Name}'s head thinks {EmployerRegard} the better. "
+            + $"Hulls lost in its battles are lost to you. Your house is thought the less of for selling its sword (legitimacy −{ShameOf(w, f.OwnerId)}), and the head of each house it is turned on thinks {FoeRegard} the worse of you; {employer.Name}'s head thinks {EmployerRegard} the better. "
             + "It comes home when that house's wars are over, the term is up or the pay is not found. Calling it back sooner breaks the contract."
-            + (SenateActs.CompanyFee(w) is var fee && fee <= 0 ? ""
+            + (SenateActs.CompanyFee(w, f.OwnerId) is var fee && fee <= 0 ? ""
                 : RegionSystem.CapitalHolder(w) is not { } chair ? $" Under {SenateActs.LawName(w, SenateActs.CompanyLicence)} a licensed company costs less standing than an unlicensed one did, and no licence is paid while no house holds the capital."
                 : chair.Id == f.OwnerId ? $" Under {SenateActs.LawName(w, SenateActs.CompanyLicence)} a licensed company costs less standing than an unlicensed one did, and your house, as the chair, pays no licence."
                 : $" Under {SenateActs.LawName(w, SenateActs.CompanyLicence)} you pay the chair {Money.Credits(fee)} for the licence, and a licensed company costs less standing than an unlicensed one did.");
@@ -73,8 +73,8 @@ public static class MercenarySystem
     {
         var home = w.House(actor.HouseId)!; string where = w.Galaxy?.System(f.SystemId)?.Name ?? f.SystemId;
         f.HiredFrom = home.Id; f.LevyOf = home.Id; f.HireTurn = w.Turn; f.OwnerId = employer.Id; f.Errand = ""; f.Drilling = false; w.Intel.Remove(f.Id);
-        LegitimacyBook.Move(w, home, -ShameOf(w), LegitimacyBook.War, "A company of the house hired out");
-        if (SenateActs.CompanyFee(w) is > 0 and var fee && RegionSystem.CapitalHolder(w) is { } chair && chair.Id != home.Id)
+        LegitimacyBook.Move(w, home, -ShameOf(w, home.Id), LegitimacyBook.War, "A company of the house hired out");
+        if (SenateActs.CompanyFee(w, home.Id) is > 0 and var fee && RegionSystem.CapitalHolder(w) is { } chair && chair.Id != home.Id)
         {
             home.Treasury.Credits -= fee; chair.Treasury.Credits += fee; w.WorldCounters["company_licences"] = w.Counter("company_licences") + 1;
             w.Log($"{home.Name} pays {chair.Name}, which holds the capital, {Money.Credits(fee)} for the licence {SenateActs.LawName(w, SenateActs.CompanyLicence)} asks.");
@@ -89,8 +89,8 @@ public static class MercenarySystem
         FleetSystem.RefreshAdmiralFlags(w);
     }
 
-    /// <summary>What hiring a fleet out costs the house in standing as the law stands: less under licence.</summary>
-    public static int ShameOf(World w) => SenateActs.CompanyFee(w) > 0 ? Math.Min(Legitimacy, SenateActs.LicensedLegitimacy) : Legitimacy;
+    /// <summary>What hiring a fleet out costs the house in standing as the law stands: less under licence, where the licence binds it.</summary>
+    public static int ShameOf(World w, string houseId) => SenateActs.CompanyFee(w, houseId) > 0 ? Math.Min(Legitimacy, SenateActs.LicensedLegitimacy) : Legitimacy;
 
     private static bool Pay(World w, Fleet f, House employer, House home)
     {
@@ -121,7 +121,7 @@ public static class MercenarySystem
             if (home == null) { f.HiredFrom = ""; f.LevyOf = ""; continue; }   // the house that sent it is gone: it is the employer's now
             if (employer == null) { ComeHome(w, f, "the house that hired it is no more"); continue; }
             if (f.IsAway) continue;   // it went beyond the Reach with its employer: the reckoning waits for it
-            if (SenateActs.CompaniesForbidden(w)) { ComeHome(w, f, $"{SenateActs.LawName(w, SenateActs.CompanyBan)} forbids hired companies"); continue; }
+            if (SenateActs.CompaniesForbidden(w, home.Id)) { ComeHome(w, f, $"{SenateActs.LawName(w, SenateActs.CompanyBan)} forbids hired companies"); continue; }
             if (w.AtWar(home.Id, employer.Id)) { ComeHome(w, f, $"{home.Name} and {employer.Name} are at war"); continue; }
             if (!w.EnemiesOf(employer.Id).Any()) { ComeHome(w, f, $"{employer.Name}'s wars are over"); continue; }
             if (w.Turn >= f.HireTurn + TermYears) { ComeHome(w, f, "its term is up"); continue; }

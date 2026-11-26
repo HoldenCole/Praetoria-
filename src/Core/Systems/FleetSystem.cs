@@ -144,7 +144,7 @@ public sealed class FleetSystem
     {
         var r = new Resources();
         foreach (var (cls, n) in Composition(f)) foreach (var k in Resource.All) r.Add(k, cls.Upkeep.Get(k) * n);
-        int pct = _world != null ? PolicySystem.Modifier(_world, Policies, f.OwnerId, "fleet_upkeep_pct") + (World.Outsider(f.OwnerId) ? 0 : PolicySystem.ReachModifier(_world, Policies, "fleet_upkeep_pct")) : 0; if (pct != 0 && r.Credits > 0) { int raw = r.Credits * Math.Max(0, 100 + pct); r.Credits = raw / 100; r.Coin = raw % 100; }   // what is under a hundred is billed in single credits (docs/MONEY.md)
+        int pct = _world != null ? PolicySystem.Modifier(_world, Policies, f.OwnerId, "fleet_upkeep_pct") + PolicySystem.ReachModifierFor(_world, Policies, "fleet_upkeep_pct", f.OwnerId) : 0; if (pct != 0 && r.Credits > 0) { int raw = r.Credits * Math.Max(0, 100 + pct); r.Credits = raw / 100; r.Coin = raw % 100; }   // what is under a hundred is billed in single credits (docs/MONEY.md)
         // laid up: the caretakers' part of it, never rounded away to nothing
         if (f.LaidUp) { foreach (var k in Resource.All) { int v = r.Get(k); if (v > 0) r.Set(k, (v * _rules.LaidUpUpkeepPct + 99) / 100); } r.Coin = 0; }
         return r;
@@ -173,7 +173,7 @@ public sealed class FleetSystem
                 if (f.Eta <= 0) { f.SystemId = f.DestinationId; f.DestinationId = ""; f.Eta = 0; f.Voyage = 0; Arrive(w, f); }
             }
             else if (f.LaidUp) f.Readiness = 0;   // no crews: it gains nothing while it lies there
-            else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + CaptainDrills(w, f) + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness") + (World.Outsider(f.OwnerId) ? 0 : PolicySystem.ReachModifier(w, Policies, "readiness")), 0, 100);   // the Reach's law, for the fleets of the Reach: not the raiders' or the nations' (docs/SENATE.md)
+            else f.Readiness = Math.Clamp(f.Readiness + _rules.ReadinessRecovery + CaptainDrills(w, f) + PolicySystem.Modifier(w, Policies, f.OwnerId, "readiness") + PolicySystem.ReachModifierFor(w, Policies, "readiness", f.OwnerId), 0, 100);   // the Reach's law, for the fleets of the Reach: not the raiders', the nations' or a house's that has broken away (docs/SENATE.md, docs/BREAKAWAY.md)
         }
 
         Drill(w);

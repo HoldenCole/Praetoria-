@@ -93,7 +93,7 @@ public class NewActsTests
         Assert.InRange(lent, Lending.Step, v.Finance.LoanPrincipal - 1); Assert.True(other.Debt < v.Finance.LoanRepay);
         Assert.Equal(lent + lent * 10 / 100, other.Debt);   // no loan costs more than the cap: 500 lent at 10 owe 500, the interest rounded down and never up past it
         // the House screen offers the standing loan as the law leaves it, not as the custom made it
-        var (standLent, standOwes) = SenateActs.StandingLoan(w, v.Finance); Assert.Equal((lent, other.Debt), (standLent, standOwes));
+        var (standLent, standOwes) = SenateActs.StandingLoan(w, v.Finance, other.Id); Assert.Equal((lent, other.Debt), (standLent, standOwes));
         Assert.StartsWith($"Borrow {Money.Credits(standLent)} (owe {Money.Show(standOwes)},", CourtProjection.Build(tc, Content).Ledger!.Loan.Label);
         // a loan of one's choosing at the cap is owed the same way
         var ctx = new CommandContext(w, TestContent.Rng()); var chosen = new TakeLoanCommand(w.Protagonist!.Id, v, Lending.CountingHouses, Lending.Step);

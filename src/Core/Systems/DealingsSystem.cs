@@ -337,7 +337,8 @@ public sealed class DealingsSystem
     /// <summary>The rate a house will bear: more the nearer it is to having nothing.</summary>
     public static int Bears(House theirs) => theirs.Treasury.Credits < 0 ? BearsInTheRed : theirs.Treasury.Credits < PinchedAt ? BearsPinched : BearsShort;
     /// <summary>The most a house can be lent: what would leave it owing <see cref="LoanIncomeYears"/> years of what it takes in.</summary>
-    public int LendMost(World w, House theirs, int ratePct) => LoanSizes.Where(a => Lending.Owed(w, a, ratePct) <= LoanIncomeYears * Income(w, theirs)).DefaultIfEmpty(0).Max();
+    public int LendMost(World w, House theirs, int ratePct, House? lender = null) =>
+        LoanSizes.Where(a => Lending.Owed(w, a, ratePct, (lender?.Id ?? w.Protagonist?.HouseId) ?? "", theirs.Id) <= LoanIncomeYears * Income(w, theirs)).DefaultIfEmpty(0).Max();
     public static int InstalmentOf(int owed) => Math.Max(1, (owed + LoanYears - 1) / LoanYears);
     public static int RateRegard(int ratePct) => ratePct <= BearsShort ? KindRateRegard : ratePct <= BearsPinched ? FairRateRegard : HardRateRegard;
 
@@ -345,25 +346,25 @@ public sealed class DealingsSystem
     {
         if (Parties(w, me, theirs, out var mine, out var head) is { } no) return no;
         if (!LoanSizes.Contains(amount) || !LoanRates.Contains(ratePct)) return "not a sum or a rate that is offered";
-        if (SenateActs.LendRefusal(w, ratePct) is { } usury) return usury;
+        if (SenateActs.LendRefusal(w, mine.Id, ratePct) is { } usury) return usury;   // the cap binds a lender of the Reach, whoever it lends to
         if (WealthSystem.WontTake(w, me!, head) is { } wont) return wont;
         if (LoanOwedBy(w, theirs!.Id) is { } has) return has.LenderId == mine.Id ? $"they owe you {Money.Credits(has.Owed)} already" : $"they owe {Money.Credits(has.Owed)} to {w.House(has.LenderId)?.Name ?? "another house"}: a second lender wants the first paid";
         if (theirs.Treasury.Credits >= ShortAt) return $"{theirs.Name} is not short of coin: it holds {Money.Show(theirs.Treasury.Credits)}, and borrows only under {Money.Show(ShortAt)}";
         if (ratePct > Bears(theirs)) return $"{head.Name} will not pay {ratePct} in the hundred: with {Money.Show(theirs.Treasury.Credits)} in hand, {Bears(theirs)} is the most it bears";
-        int owed = Lending.Owed(w, amount, ratePct), income = Income(w, theirs);
-        if (owed > LoanIncomeYears * income) return $"{theirs.Name} takes in {Money.Credits(income)} a year and could not repay {Money.Show(owed)}: {(LendMost(w, theirs, ratePct) is > 0 and var most ? $"it would borrow {Money.Show(most)} at the most" : "it can borrow nothing")}";
+        int owed = Lending.Owed(w, amount, ratePct, mine.Id, theirs.Id), income = Income(w, theirs);
+        if (owed > LoanIncomeYears * income) return $"{theirs.Name} takes in {Money.Credits(income)} a year and could not repay {Money.Show(owed)}: {(LendMost(w, theirs, ratePct, mine) is > 0 and var most ? $"it would borrow {Money.Show(most)} at the most" : "it can borrow nothing")}";
         return mine.Treasury.Credits >= amount ? null : $"needs {Money.Credits(amount)} and the house has {Money.Show(mine.Treasury.Credits)}";
     }
     public string LendSays(World w, House theirs, int amount, int ratePct)
     {
-        int owed = Lending.Owed(w, amount, ratePct), each = InstalmentOf(owed);
+        int owed = Lending.Owed(w, amount, ratePct, w.Protagonist?.HouseId ?? "", theirs.Id), each = InstalmentOf(owed);   // the player's house lends
         return $"{theirs.Name} would owe you {Money.Credits(owed)}, and pay {Money.Show(each)} into your treasury each year for {Counted.Years(Lending.Years(owed, each))}, when it has it. Its head would think {Signed(RateRegard(ratePct))} of you for the terms. "
             + "While it owes you it leans your way in the chamber.";
     }
     /// <summary>The loan is made: by the player's head, or by another house's steward.</summary>
     public HouseLoan Lend(World w, House lender, House borrower, int amount, int ratePct)
     {
-        lender.Treasury.Credits -= amount; borrower.Treasury.Credits += amount; int owed = Lending.Owed(w, amount, ratePct);
+        lender.Treasury.Credits -= amount; borrower.Treasury.Credits += amount; int owed = Lending.Owed(w, amount, ratePct, lender.Id, borrower.Id);
         var loan = new HouseLoan { LenderId = lender.Id, BorrowerId = borrower.Id, Lent = amount, RatePct = ratePct, Owed = owed, Instalment = InstalmentOf(owed), Since = w.Turn };
         w.HouseLoans.Add(loan); Regard(w, borrower, lender, RateRegard(ratePct)); Count(w, LoansMadeKey); Remember(w, LoanKind, lender.Id, borrower.Id, amount);
         string? mine = w.Protagonist?.HouseId;
@@ -562,7 +563,7 @@ public sealed class DealingsSystem
                 .OrderByDescending(l => l.Treasury.Credits).ThenBy(l => l.Id, StringComparer.Ordinal).FirstOrDefault();
             if (lender == null) continue;
             int amount = Math.Min((Math.Max(0, -b.Treasury.Credits) / Lending.Step + 1) * Lending.Step, lender.Treasury.Credits / OthersLendPart / Lending.Step * Lending.Step);
-            if (amount >= Lending.Step && Lending.Owed(w, amount, OthersRate) <= LoanIncomeYears * Income(w, b)) Lend(w, lender, b, amount, OthersRate);
+            if (amount >= Lending.Step && Lending.Owed(w, amount, OthersRate, lender.Id, b.Id) <= LoanIncomeYears * Income(w, b)) Lend(w, lender, b, amount, OthersRate);
         }
     }
 
