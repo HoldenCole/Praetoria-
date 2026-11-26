@@ -63,10 +63,11 @@ public class CaesarTests
         Assert.Null(new ProposeMotionCommand(me.Id, "triumph", mine.Id, tc.Senate).Refusal(ctx) is { } no && !no.Contains("Senate hears") && !no.Contains("influence") ? no : null);
         int legit = mine.Legitimacy;
         tc.Caesar.TriumphVoted(w, mine, null, passed: true);
+        Assert.True(tc.Executor.TryExecute(new TriumphCommand(me.Id, TriumphSystem.Home, tc.Caesar), ctx));   // it is had at the gate (docs/CAESAR.md)
         Assert.Equal(1, CaesarSystem.Triumphs(w, me)); Assert.Equal(0, CaesarSystem.Laurels(w, me)); Assert.True(mine.Legitimacy >= Math.Min(100, legit + 1) || legit == 100);
         Assert.Contains(CaesarSystem.TriumphatorChar, me.Flags); Assert.True(w.HasFlag(CaesarSystem.TriumphFlag)); Assert.Contains(me.Life!.Deeds, d => d.Kind == "triumph");
         // refused: nothing is given, and it is a cause
-        w.WorldCounters[CaesarSystem.LaurelKey(me.Id)] = 3; Assert.Null(CaesarSystem.Grievance(w, mine));
+        Legion(w, mine, me); w.WorldCounters[CaesarSystem.LaurelKey(me.Id)] = 3; Assert.Null(CaesarSystem.Grievance(w, mine));
         tc.Caesar.TriumphVoted(w, mine, null, passed: false);
         Assert.Equal(1, CaesarSystem.Triumphs(w, me)); Assert.NotNull(CaesarSystem.Grievance(w, mine)); Assert.True(w.HasFlag(CaesarSystem.RefusedFlag));
     }
@@ -238,7 +239,9 @@ public class CaesarTests
     {
         // the general's own road: a triumph voted, one refused, the recall, the line
         var (tc, w, me, mine, ctx) = Start(); Legion(w, mine, me, hulls: 14); Name(w, me); mine.Treasury.Credits = 200; w.PoolsFor(me.Id).Influence = 9;
-        w.WorldCounters[CaesarSystem.LaurelKey(me.Id)] = 3; tc.Caesar.TriumphVoted(w, mine, null, passed: true); Fires(w, "the_senates_triumph");
+        w.WorldCounters[CaesarSystem.LaurelKey(me.Id)] = 3; tc.Caesar.TriumphVoted(w, mine, null, passed: true);
+        Assert.True(tc.Executor.TryExecute(new TriumphCommand(me.Id, TriumphSystem.Home, tc.Caesar), ctx)); Fires(w, "the_senates_triumph");   // had at the gate
+        Legion(w, mine, me, hulls: 14);   // and back in command for what follows
         w.WorldCounters[CaesarSystem.LaurelKey(me.Id)] = 3; tc.Caesar.TriumphVoted(w, mine, null, passed: false); Fires(w, "the_triumph_refused");
         tc.Caesar.RecallVoted(w, mine, Rival(w, mine), passed: true); tc.Caesar.Tick(w); Fires(w, "the_recall");
         Assert.True(tc.Executor.TryExecute(new CaesarCommand(me.Id, CaesarCommand.Cross, "", tc.Caesar), ctx)); Fires(w, "the_line_is_crossed");
@@ -248,7 +251,9 @@ public class CaesarTests
         var (tc2, w2, me2, mine2, _) = Start(); var kin = w2.LivingCharacters().First(c => c.HouseId == mine2.Id && c.Id != me2.Id && c.Age >= 18);
         kin.NatureTraits.Clear(); kin.NatureTraits.Add("Proud"); Legion(w2, mine2, kin, hulls: 10); Name(w2, kin); foreach (var f in w2.Fleets.Values.Where(f => f.AdmiralId == me2.Id)) f.AdmiralId = "";
         tc2.Caesar.Tick(w2); Assert.True(w2.HasFlag(CaesarSystem.KinLovedFlag)); Fires(w2, "the_crews_are_theirs");
-        w2.WorldCounters[CaesarSystem.LaurelKey(kin.Id)] = 3; tc2.Caesar.TriumphVoted(w2, mine2, null, passed: true); Assert.True(w2.HasFlag(CaesarSystem.KinTriumphFlag)); Fires(w2, "a_kinsmans_triumph");
+        w2.WorldCounters[CaesarSystem.LaurelKey(kin.Id)] = 3; tc2.Caesar.TriumphVoted(w2, mine2, null, passed: true);
+        TriumphSystem.ComeHome(w2, tc2.Caesar, TriumphSystem.Waiting(w2, kin.Id)!); Assert.True(w2.HasFlag(CaesarSystem.KinTriumphFlag)); Fires(w2, "a_kinsmans_triumph");   // the kinsman comes home for it
+        Legion(w2, mine2, kin, hulls: 10);
         tc2.Caesar.RecallVoted(w2, mine2, Rival(w2, mine2), passed: true); tc2.Caesar.Tick(w2); Assert.True(w2.HasFlag(CaesarSystem.KinRecalledFlag)); Fires(w2, "a_kinsman_recalled");
         tc2.Caesar.Cross(w2, mine2); var lost = w2.CivilWar!; tc2.Caesar.Lose(w2, lost, "a test"); Assert.False(kin.Alive); Assert.True(me2.Alive); Fires(w2, "the_march_fails");
 

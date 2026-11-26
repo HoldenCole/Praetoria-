@@ -811,6 +811,8 @@ public static class CourtProjection
         if (d.Peace) parts.Add("the war with the house named is ended by the Senate's word");
         if (d.Breakup) parts.Add("the companies of the house named are broken up and their holders paid out");
         if (d.Rescue) parts.Add("the chair's purse steadies the Exchange");
+        if (d.Interest == TriumphSystem.TriumphKind) parts.Add("the general named must come home and lay the command down for a year to have it, or may decline it and keep the fleet");
+        if (d.Interest == TriumphSystem.LeaveKind) parts.Add("those of the house named who command away from the capital may stand for office at the next election without coming home");
         if (d.Interest == EdictSystem.AnnulKind) parts.Add($"the edict named ends at once, and the house that issued it loses {EdictSystem.AnnulledStanding} legitimacy");
         return parts.Count == 0 ? "" : "If it carries: " + string.Join("; ", parts) + ".";
     }

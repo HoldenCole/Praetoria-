@@ -304,7 +304,7 @@ public sealed class TurnController
         }
 
         using (Perf.Time("end:service")) { ServiceSystem.Tick(World, _content.Offices); }   // commands by service: what has lapsed ends, and other houses name legates, borrow officers and seek commands (docs/MILITARY.md) — RNG-free
-        using (Perf.Time("end:caesar")) { _caesar.Tick(World); }
+        using (Perf.Time("end:caesar")) { _caesar.Tick(World); TriumphSystem.Tick(World, _senate, _caesar); }   // and the triumph at the gate, and leave to stand in absence (docs/CAESAR.md) — RNG-free
         using (Perf.Time("end:polities")) { _polities.Tick(World); }   // wars of independence won, lost or still fought; who may break away (docs/BREAKAWAY.md) — RNG-free   // crews and their commanders, recalls answered, the civil war if there is one (docs/CAESAR.md) — RNG-free
         using (Perf.Time("end:ladder")) { LadderSystem.Tick(World, _content.Offices, _content.Policies); }   // seats lapse, magistrates are paid, the house's people put their names down (docs/LADDER.md) — RNG-free
         using (Perf.Time("end:life")) { LifeSystem.Tick(World, _content); HeadSystem.Tick(World); }   // health, the record of each life, ties that have lasted (docs/LIFE.md) — RNG-free

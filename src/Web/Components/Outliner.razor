@@ -125,6 +125,8 @@
         alerts.Add(("info", $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is {(Praetoria.Core.Systems.LadderSystem.CountIn(w, G.Content.Offices) is var cin && cin == 0 ? "at the end of this year" : "in " + Counted.Years(cin) + "")}", "senate:ladder"));
     if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.WarFlag)) alerts.Add(("warn", "Your state is at war for its independence: hold the region", "senate:orders"));
     else if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.RefuseFlag)) alerts.Add(("warn", "You fought the one who now holds the throne, and you hold a region: you need not kneel", "senate:orders"));
+    if (w.Protagonist is { } laureate && Praetoria.Core.Systems.TriumphSystem.Waiting(w, laureate.Id) != null)
+        alerts.Add(("warn", "The Senate has voted you a triumph: come home for it, or decline it and keep the fleet", "military"));
     if (w.Recalls.FirstOrDefault(r => r.HouseId == w.Protagonist?.HouseId) is { } recall)
         alerts.Add(("warn", $"The Senate has ordered {(recall.CharacterId == w.ProtagonistId ? "you" : w.Char(recall.CharacterId)?.Name)} home by year {recall.Deadline}: answer it", "military"));
     if (w.CivilWar is { } civil && w.Protagonist is { } cme)
