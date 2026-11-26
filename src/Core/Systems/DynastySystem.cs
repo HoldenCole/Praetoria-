@@ -505,6 +505,7 @@ public sealed class DynastySystem
         world.Log(previous is { Alive: true }
             ? $"{previous.Name} yields the seat; {heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}."
             : $"{heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}.");
+        InheritedRegard.Pass(world, previous, heir);   // the old head's friends and enemies come with the house (docs/LIFE.md)
     }
 
     /// <summary>The successor to a head (GDD §14): the first of <see cref="Line"/>.</summary>

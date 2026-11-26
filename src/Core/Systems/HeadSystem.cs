@@ -16,8 +16,6 @@ public static class HeadSystem
     public const int RankLead = 2;
     /// <summary>A challenge that has a reason is made in one year of this many.</summary>
     public const int ChallengeOneIn = 4;
-    /// <summary>The part of the old head's regard for the player that the new head starts with, when they had no view of their own.</summary>
-    public const int RegardKeptPct = 50;
     public const string ChallengesKey = "heads_challenged";
 
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
@@ -69,6 +67,7 @@ public static class HeadSystem
     public static void Tick(World w)
     {
         string playerHouse = w.Protagonist?.HouseId ?? "";
+        InheritedRegard.Tick(w);   // what was handed down at a succession fades (docs/LIFE.md, "Friends and enemies handed down")
         foreach (var h in w.Houses.Values.OrderBy(x => x.Id, StringComparer.Ordinal).ToList())
         {
             if (h.Id == playerHouse || Nation.IsHouse(h.Id)) continue;
@@ -89,13 +88,15 @@ public static class HeadSystem
         }
     }
 
-    /// <summary>The new head keeps part of what the old one thought of the player where they had no view of their own, and the
-    /// player is told when it is a house they have had to do with.</summary>
+    /// <summary>The old head's friends and enemies go with the house, and the new head takes up the old one's view of others, the
+    /// player among them (docs/LIFE.md, "Friends and enemies handed down"). The player is told when it is a house they have had to do
+    /// with, and what the new head now thinks of them.</summary>
     private static void Passed(World w, House h, Character? old, Character now, string line)
     {
-        if (w.Protagonist is not { } p || old == null) return;
+        if (old == null) return;
+        var made = InheritedRegard.Pass(w, old, now);
+        if (w.Protagonist is not { } p) return;
         int was = w.GetRelationship(old.Id, p.Id)?.Disposition ?? 0;
-        if (was != 0 && w.GetRelationship(now.Id, p.Id) == null) w.Relationship(now.Id, p.Id).Disposition = was * RegardKeptPct / 100;
-        if (was != 0 || w.Dealings.Any(d => d.FromHouseId == h.Id || d.ToHouseId == h.Id)) w.Tell("info", line, "houses", h.Id);
+        if (was != 0 || w.Dealings.Any(d => d.FromHouseId == h.Id || d.ToHouseId == h.Id)) w.Tell("info", line + InheritedRegard.OfYou(w, made, old, now), "houses", h.Id);
     }
 }

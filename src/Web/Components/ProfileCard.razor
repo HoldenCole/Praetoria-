@@ -32,6 +32,7 @@
                                 <div class="rg-top"><span>What they think of you</span><b class="@Tone(t.Disposition)">@Cap(t.Word)@(t.Bond.Length > 0 ? $" · {t.Bond}" : "") <em>@Signed(t.Disposition)</em></b></div>
                                 <div class="rg-bar"><i class="@Tone(t.Disposition)" style="@Fill(t.Disposition)"></i></div>
                                 @if (t.Reasons.Count > 0) { <div class="rg-why">@string.Join(" · ", t.Reasons)</div> }
+                                @if (G.World?.Protagonist is { } heirNow) { foreach (var line in InheritedRegard.Why(G.World, p.Id, heirNow.Id)) { <div class="rg-why" data-inherited-regard="@line.Kind">@line.Text</div> } }
                             </div>
                             <div class="regard">
                                 <div class="rg-top"><span>What you think of them</span><b class="@Tone(y.Disposition)">@Cap(y.Word)@(y.Bond.Length > 0 ? $" · {y.Bond}" : "") <em>@Signed(y.Disposition)</em></b></div>

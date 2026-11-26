@@ -240,6 +240,8 @@ public sealed class World
 
     /// <summary>Every passing of the seat, oldest first (GDD §14).</summary>
     public List<SuccessionRecord> Successions { get; set; } = new();
+    /// <summary>Regard handed down at a succession, still fading or still worth showing (docs/LIFE.md, "Friends and enemies handed down").</summary>
+    public List<InheritedTie> InheritedTies { get; set; } = new();
 
     /// <summary>Currently-active crises, keyed by crisis id (GDD §16). A crisis persists and
     /// escalates here until a damper resolves it. The gate/cascade system reads and writes these.</summary>
