@@ -85,7 +85,7 @@ public static partial class LadderSystem
         if (c.Cursus.Contains(rung.Id)) return "they have held it";
         int at = IndexOf(offices, rung.Id); if (c.Cursus.Any(id => IndexOf(offices, id) > at)) return "they have already gone higher";
         if (c.Flags.Contains(LifeSystem.RetiredChar) || c.Flags.Contains(DynastySystem.HiddenFlag)) return "they have laid their work down";
-        return null;
+        return TriumphSystem.AwayRefusal(w, c);   // one who commands away from the capital stands only by the Senate's leave (docs/LADDER.md)
     }
 
     private static int IndexOf(OfficeCatalog offices, string rungId) { for (int i = 0; i < offices.Rungs.Count; i++) if (offices.Rungs[i].Id == rungId) return i; return -1; }

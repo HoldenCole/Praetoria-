@@ -141,6 +141,7 @@ public sealed class CaesarSystem
     {
         foreach (var f in w.Fleets.Values.OrderBy(f => f.Id, StringComparer.Ordinal))
         {
+            if (TriumphSystem.Held(w, f)) continue;   // its general is home for a triumph: the crews wait, and their regard does not fade
             var adm = f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId) : null; if (adm is not { Alive: true }) adm = null;
             bool hadOne = f.DevotedTo.Length > 0 && f.Devotion >= DevotedAt;
             if (adm == null)
@@ -189,10 +190,11 @@ public sealed class CaesarSystem
         return lean;
     }
 
-    /// <summary>The Senate has voted on a triumph.</summary>
-    public void TriumphVoted(World w, House target, House? proposer, bool passed)
+    /// <summary>The Senate has voted on a triumph; or (<paramref name="atTheGate"/>) the general it was voted to has come home to have it
+    /// (docs/CAESAR.md, "The triumph": it is had only at the gate, see <see cref="TriumphSystem"/>).</summary>
+    public void TriumphVoted(World w, House target, House? proposer, bool passed, Character? atTheGate = null)
     {
-        var mine = w.Protagonist?.HouseId; var g = GeneralOf(w, target); if (g == null) return;
+        var mine = w.Protagonist?.HouseId; var g = atTheGate ?? GeneralOf(w, target); if (g == null) return;
         if (!passed)
         {
             w.WorldCounters[RefusedKey(target.Id)] = w.Turn; g.Stress = Math.Min(100, g.Stress + 5);
@@ -201,14 +203,20 @@ public sealed class CaesarSystem
             foreach (var f in w.Fleets.Values.Where(f => f.AdmiralId == g.Id)) f.Devotion = Math.Min(100, f.Devotion + 4);
             return;
         }
-        w.WorldCounters[TriumphKey(g.Id)] = Triumphs(w, g) + 1; w.WorldCounters[LaurelKey(g.Id)] = 0; w.WorldCounters["triumphs_voted"] = w.Counter("triumphs_voted") + 1;
+        if (atTheGate == null)
+        {
+            // voted: the count starts again, and the general's answer is wanted before anything is given
+            w.WorldCounters[LaurelKey(g.Id)] = 0; w.WorldCounters["triumphs_voted"] = w.Counter("triumphs_voted") + 1;
+            if (proposer != null && proposer.Id != target.Id && Economy.HeadOf(w, target) is { } vh && Economy.HeadOf(w, proposer) is { } vp)
+            { var vr = w.Relationship(vh.Id, vp.Id); vr.Disposition = Math.Clamp(vr.Disposition + 10, -100, 100); }
+            TriumphSystem.Voted(w, target, g, proposer); return;
+        }
+        w.WorldCounters[TriumphKey(g.Id)] = Triumphs(w, g) + 1;
         g.Flags.Add(TriumphatorChar); g.Flags.Add(NewTriumphatorChar);
         LegitimacyBook.Move(w, target, 6, LegitimacyBook.War, "A triumph voted to the house's general"); target.Glory = Math.Min(12, target.Glory + 2);
         target.SphereInfluence["senate"] = target.SphereInfluence.GetValueOrDefault("senate") + 1;
         foreach (var f in w.Fleets.Values.Where(f => f.AdmiralId == g.Id)) { Attach(w, f, g); f.Devotion = Math.Min(100, f.Devotion + 10); f.Loyalty = Math.Min(100, f.Loyalty + 5); }
-        LifeSystem.Note(w, g, "triumph", "Was voted a triumph by the Senate.");
-        if (proposer != null && proposer.Id != target.Id && Economy.HeadOf(w, target) is { } th && Economy.HeadOf(w, proposer) is { } ph)
-        { var r = w.Relationship(th.Id, ph.Id); r.Disposition = Math.Clamp(r.Disposition + 10, -100, 100); }
+        LifeSystem.Note(w, g, "triumph", "Was voted a triumph by the Senate, came home and laid the command down to have it.");
         if (target.Id == mine) Mark(w, g.Id == w.ProtagonistId ? TriumphFlag : KinTriumphFlag);
         w.Log($"{g.Name} of {target.Name} rides in triumph through the capital. The crews march behind, and the crowd learns their commander's name.");
     }

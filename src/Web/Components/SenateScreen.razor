@@ -226,6 +226,7 @@
         <div class="deck-col">
         @if (sen == null) { <section class="panel resolutions"><div class="muted">The Senate does not sit in this age.</div></section> }
         else if (_view == "chamber") { <section class="panel resolutions">
+            <TriumphGate />
             @if (sen.Docket.Count > 0 || sen.History.Count > 0) { <h3><Icon Name="influence" Size="13" /> Before the chamber <span class="muted">voted at the year's end · by weight of seats · a tie fails</span></h3> }
                 @if (sen.Docket.Count == 0) { <div class="empty-line">Nothing is before the Senate this year.@(sen.MayPropose ? " What you could move is under Move a motion; one moved now is voted at the end of next year." : "")</div> }
                 @foreach (var mo in sen.Docket)
@@ -303,7 +304,7 @@
                         @if (iOwe.Count > 0) { <span><b>You owe a favour to:</b> @string.Join(", ", iOwe.Select(h => $"{h.Name} ({FavourLeft(w, house.Id, h.Id)})")). Vote for that house's next motion and the account is even; vote otherwise and its head remembers who kept the gift.</span> }
                     </div>
                 }
-                <div class="propose @(sen.MayPropose || _showForms ? "" : "cannot")">@if (!sen.MayPropose) { <div class="muted" data-cannot-move="1">Your house may not move a motion yet: @NoSeatLine(w).TrimStart('·', ' '). <button class="opt inline tiny" @onclick="() => _showForms = !_showForms">@(_showForms ? "Hide the motions" : "Show what could be moved, " + sen.Proposals.Count + " kinds")</button></div> }
+                <div class="propose @(sen.MayPropose || _showForms ? "" : "cannot")">@if (!sen.MayPropose) { <div class="muted" data-cannot-move="1">Your house may not move a motion yet: @NoSeatLine(w).TrimStart('·', ' ').@(TriumphSystem.HeldMagistracy(w, w.Protagonist!) ? MayMoveGenerals : string.Empty) <button class="opt inline tiny" @onclick="() => _showForms = !_showForms">@(_showForms ? "Hide the motions" : "Show what could be moved, " + sen.Proposals.Count + " kinds")</button></div> }
                     @foreach (var pr in sen.Proposals)
                     {
                         <div class="proposal">
@@ -576,6 +577,7 @@
     private static int _seenStamp;
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) _view = Tab; } }
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
+    private const string MayMoveGenerals = " You have held a magistracy, so a triumph and leave to stand in absence are yours to move all the same.";
     private static string NoSeatLine(World w) => w.IsImperium ? "· only a house of rank, or a Judge, may" : "· the house has its votes but no voice: a voice comes by land of rank, a Judge at its head, a name great in arms, or enrolment by the census";
     private void Canvass(string nomineeId) { var names = G.Court().Senate?.Election?.Nominees.Select(x => x.HouseId).ToList() ?? new List<string>(); G.Execute(new CanvassCommand(G.World!.ProtagonistId, nomineeId, G.Turn!.Orders, _ => names)); }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;

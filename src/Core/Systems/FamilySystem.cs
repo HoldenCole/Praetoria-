@@ -61,7 +61,7 @@ public sealed class FamilySystem
         }
         foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal))
         {
-            if (!Waited(f.Id, f.AdmiralId.Length == 0)) continue;
+            if (!Waited(f.Id, f.AdmiralId.Length == 0 && !TriumphSystem.Held(w, f))) continue;   // a fleet whose general is home for a triumph is not vacant
             var best = Willing().Where(c => (c.CareerTrack == "military" || c.Skill("tactics") > 0) && !CaesarSystem.Barred(w, c)).OrderByDescending(c => c.Skill("tactics") * 5 + c.Skill("gunnery") * 3 + c.Skill("leadership") * 2 + (c.CareerTrack == "military" ? 5 : 0))
                 .ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             if (best == null) continue;

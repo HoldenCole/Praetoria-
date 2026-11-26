@@ -35,6 +35,42 @@ Every fifth year, before the consular election in a year that has both.
   (docs/REPUBLIC.md) and the head's backing count too.
 - The highest rung is filled first, so nobody is given two.
 - The chronicle prints the result with each winner's count.
+- **Nobody stands who commands a fleet away from the capital**, for a rung or for the consulship, unless the Senate has
+  given their house leave to stand in absence (below).
+
+### Standing in absence
+
+Built 2026-11-26 (docs/IDEAS_FROM_IMPERATOR.md, entry 1; the triumph's half of it is in docs/CAESAR.md, "The triumph").
+
+- **Away** is any fleet the person commands that is not lying at the capital (`Galaxy.Capital`): at another world,
+  under way, or beyond the Reach. A fleet commanded at the capital is not away. One home for a triumph commands nothing,
+  and may stand in person.
+- **The bar** is the last of the ladder's reasons (`LadderSystem.Bar`), so it is said only when everything else is met,
+  and the same rule keeps the house's consul from standing (`OfficeSystem.Candidate`, for the elected offices). Every
+  refusal says it: "you command The Tenth away from the capital: lay the command down, or ask the Senate for leave to
+  stand in absence". A house whose head is away puts up the next of its people who qualifies, as it would for any other
+  bar; the ladder panel says who.
+- **A name already down** is taken down at the year's end if its holder sails away from the capital without leave, and
+  the player is told why. A house that has declared for the consulship is told the year before the count if nobody of it
+  may stand who is in the capital.
+- **Leave to stand in absence** is a motion (`absence`, 2 influence, the house named, its own allowed), moved and voted
+  like the others (docs/SENATE.md). Carried, those of the house who command away may stand at the next election, and the
+  leave is spent when that election has been held, the ladder's or the consuls'. Thrown out, nothing is given. It may be
+  moved by a house with a voice in the Senate or by anyone who has held a magistracy.
+- **How the houses lean on it:** the house itself +4; regard for it (20 or more +2, −20 or less −2); a fellow of its bench
+  +1; the Sword +1 and the Optimates −1; a client for its patron +2; and against a house whose commander away has sway of
+  45 or more, the capital's holder and the consuls −2 (any house −1 from 55). The ordinary leans of the chamber count too.
+- **Other houses ask it** in the two years before a count, one motion a year: for the one they would put up for consul
+  (if they would be their bench's nominee) or for their general, when the general has sway of 20 or more and is the
+  best they have for a rung. A house with no voice has a friend of standing (regard 30) move it.
+- **Or the commander comes home to stand.** The year before a count, one of another house who commands away and is the
+  only one it has who could stand for a rung (or for consul), with no leave and none asked, lays the command down and
+  comes home, unless the fleet is at war. The fleet waits for them as it waits for a general home for a triumph (held,
+  under its captain, its crews' regard not fading), they take no other command, and when the count is past they take
+  it up again. Most of the Reach's officers command somewhere, and without this the seats went short (the sixty-year
+  test of the ladder found two magistrates of eight at a count). One at war stays with the fleet, and the house puts up
+  whoever else it has.
+- The player's own relatives do not come home by themselves: the head may take them off a fleet.
 
 ## What the head may do, and what is not the head's
 

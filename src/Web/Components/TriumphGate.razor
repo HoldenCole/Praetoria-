@@ -1,0 +1,43 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@* A triumph is had at the gate (docs/CAESAR.md, "The triumph"): the general's answer when the Senate has voted one, and the year at home.
+   Shown on the Military window (the general and the Senate) and on the Senate window, where the vote is. *@
+@if (G.World is { } w && w.Protagonist is { } p && G.Turn is { } turn)
+{
+    var asked = TriumphSystem.Waiting(w, p.Id);
+    var home = w.TriumphVotes.Where(t => !t.Done && t.Choice == TriumphSystem.Home && t.HouseId == p.HouseId).ToList();
+    if (asked != null)
+    {
+        var goHome = new TriumphCommand(p.Id, TriumphSystem.Home, turn.Caesar); var keep = new TriumphCommand(p.Id, TriumphSystem.Keep, turn.Caesar);
+        string? noHome = goHome.Refusal(G.Ctx), noKeep = keep.Refusal(G.Ctx);
+        <div class="caesar-recall" data-triumph-asked="@asked.Turn">
+            <b>The Senate has voted you a triumph.</b>
+            <div class="muted small">It is had at the gate: to have it you come home and lay the command down. Answer it by the end of this year, or it is taken as declined.</div>
+            <div class="small">@TriumphSystem.HomeSays(w, p)</div>
+            <div class="suit-acts">
+                <button class="opt inline" data-triumph-choice="home" disabled="@(noHome != null)" title="@(noHome ?? HomeTip)" @onclick="() => G.Execute(goHome)">Come home for the triumph</button>
+                <button class="opt inline" data-triumph-choice="keep" disabled="@(noKeep != null)" title="@(noKeep ?? TriumphSystem.KeepSays)" @onclick="() => G.Execute(keep)">Decline it and keep the fleet</button>
+            </div>
+        </div>
+    }
+    foreach (var t in home)
+    {
+        <div class="ac-fact" data-triumph-home="@t.CharacterId"><span>At the gate</span><p>@HomeLine(w, t)</p></div>
+    }
+}
+
+@code {
+    private const string HomeTip = "The honours now; the command laid down until the end of next year, then taken up again if it is still yours.";
+    private static string HomeLine(World w, TriumphVote t)
+    {
+        bool me = t.CharacterId == w.ProtagonistId; string who = me ? "You are" : t.Name + " is";
+        var waiting = t.FleetIds.Select(id => w.Fleets.GetValueOrDefault(id)).Where(f => f != null).Select(f => f!.AdmiralId.Length > 0 ? f.Name + " has been given to " + (w.Char(f.AdmiralId)?.Name ?? "another")
+            : f.Name + " waits " + (FleetSystem.CaptainOf(w, f) is { } cap ? "under its captain, " + cap.Name : "with nobody in command")).ToList();
+        return who + " home for the triumph until the end of year " + t.HomeUntil + ", and holds no command until then. " + (waiting.Count == 0 ? "No fleet waits." : string.Join("; ", waiting) + ".")
+            + " The crews' regard does not fade meanwhile, and the command is taken up again when the year is out if it is still " + (me ? "yours" : "theirs") + ".";
+    }
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

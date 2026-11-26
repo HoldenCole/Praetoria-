@@ -15,6 +15,7 @@ using Praetoria.Tools;
 //   perf      [--scenario id|all] [--turns N]                    where a turn's milliseconds go
 //   caesar    [--scenario id|all] [--seeds N]                    how far generals get on the Caesar road in sixty years
 //   service   [--scenario id|all] [--seeds N] [--turns N]        commands by service with a passive player: who held them, and how they ended
+//   triumph   [--scenario id|all] [--seeds N] [--turns N]        the triumph at the gate and leave to stand in absence with a passive player
 //   throne    [--scenario id|all] [--seeds N]                    how a throne is held: the hold, pretenders, and how often it changes houses
 //   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
@@ -55,6 +56,7 @@ try
         "edicts"   => EdictsProbe.Run(opts),
         "caesar"   => Probes.Caesar(opts),
         "service"  => ServiceProbe.Run(opts),
+        "triumph"  => TriumphProbe.Run(opts),
         "locallaws" => LocalLawsProbe.Run(opts),
         "throne"   => Probes.Throne(opts),
         "heirs"    => HeirsProbe.Run(opts),

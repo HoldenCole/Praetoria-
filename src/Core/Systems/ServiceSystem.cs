@@ -126,6 +126,7 @@ public static class ServiceSystem
         if (c.Flags.Contains(LifeSystem.RetiredChar)) return $"{c.Name} has retired";
         if (c.Flags.Contains(DynastySystem.HiddenFlag)) return $"{c.Name} is fostered away";
         if (CaesarSystem.Barred(w, c)) return $"the Senate had {c.Name} lay a command down, and {c.Name} may hold none until year {w.Counter(CaesarSystem.BarredKey(c.Id))}";
+        if (TriumphSystem.StandingHome(w, c)) return $"{c.Name} has come home to stand for office";
         if (w.Fleets.Values.Where(f => f.AdmiralId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault() is { } has) return $"{c.Name} commands {has.Name} already";
         return null;
     }
@@ -143,6 +144,7 @@ public static class ServiceSystem
     public static bool Open(World w, Fleet f, Character seeker, Character taker)
     {
         if (f.OwnerId == seeker.HouseId || w.AtWar(seeker.HouseId, f.OwnerId)) return false;   // nobody commands the fleet of a house their own is at war with
+        if (TriumphSystem.Held(w, f)) return false;   // its general is home for a triumph, and takes it up again (docs/CAESAR.md)
         var cmd = FleetSystem.AdmiralOf(w, f); if (cmd == null) return true;
         if (cmd.Id == taker.Id || cmd.Id == seeker.Id || cmd.Id == w.ProtagonistId || w.CivilWar?.GeneralId == cmd.Id) return false;
         if (w.House(f.OwnerId) is { } owner && Economy.HeadOf(w, owner)?.Id == cmd.Id) return false;
@@ -350,8 +352,9 @@ public static class ServiceSystem
         // the commander's own state before the empty flag: the year's end lays a frail or retired commander's command down after this is read
         if (c.Flags.Contains(LifeSystem.FrailChar)) return $"{c.Name} is too frail for the sea";
         if (c.Flags.Contains(LifeSystem.RetiredChar)) return $"{c.Name} has laid down their work";
-        if (CaesarSystem.Barred(w, c)) return "the Senate had them lay it down";
-        if (f.AdmiralId != s.CommanderId) return "another was given the command";
+        bool atTheGate = TriumphSystem.HeldFor(w, f, c.Id);   // home for a triumph, or to stand: the command waits for them, and lapses only by its own rules (docs/CAESAR.md)
+        if (CaesarSystem.Barred(w, c) && !atTheGate) return "the Senate had them lay it down";
+        if (f.AdmiralId != s.CommanderId && !atTheGate) return "another was given the command";
         if (w.House(s.CommanderHouseId) == null) return $"{Nm(w, s.CommanderHouseId)} is no more";
         if (c.HouseId != s.CommanderHouseId) return c.HouseId == f.OwnerId ? $"{c.Name} is of {Nm(w, f.OwnerId)} now" : $"{c.Name} has left {Nm(w, s.CommanderHouseId)}";
         // another house's head is never lent or named legate, and one who comes to lead their own house goes home to it; the player's own head may serve
@@ -480,7 +483,7 @@ public static class ServiceSystem
         foreach (var house in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && w.Wars.Any(x => x.Involves(h.Id))).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             if (Economy.HeadOf(w, house) is not { Alive: true } head || EnemyOf(w, house.Id) is not { } enemy) continue;
-            var fleet = HouseFleets(w, house.Id).Where(f => f.Strength >= NpcFleetLeast && FleetSystem.AdmiralOf(w, f) == null).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+            var fleet = HouseFleets(w, house.Id).Where(f => f.Strength >= NpcFleetLeast && FleetSystem.AdmiralOf(w, f) == null && !TriumphSystem.Held(w, f)).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
             if (fleet == null) continue;
             foreach (var c in w.LivingCharacters().Where(c => c.HouseId != house.Id && !World.Outsider(c.HouseId) && c.Id != w.ProtagonistId && FreeRefusal(w, c) == null && FitRefusal(w, c) == null)
                          .OrderByDescending(c => c.Skill("tactics")).ThenByDescending(c => FleetSystem.CommandFactor(c)).ThenBy(c => c.Id, StringComparer.Ordinal))

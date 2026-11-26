@@ -33,11 +33,13 @@ public static class OfficeSystem
         return parts.Count == 0 ? "anyone of the house" : string.Join(", ", parts);
     }
     /// <summary>Who of a house would hold the office. The player is one person: when the head of the player's house is
-    /// qualified it is the head who stands, whatever a relative's rank; otherwise the highest in rank who is.</summary>
-    public static Character? Candidate(World w, OfficeDef def, string houseId) =>
+    /// qualified it is the head who stands, whatever a relative's rank; otherwise the highest in rank who is. For an elected office, nobody
+    /// who commands a fleet away from the capital without the Senate's leave to stand in absence (<see cref="TriumphSystem.MayStand"/>),
+    /// unless <paramref name="evenAway"/>.</summary>
+    public static Character? Candidate(World w, OfficeDef def, string houseId, bool evenAway = false) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && (def.Track.Length == 0 || c.CareerTrack == def.Track) && c.CareerRank >= def.MinRank
                 && c.Age >= (def.Elected ? SenateActs.AgeFor(w, def.MinAge) : def.MinAge) && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires))   // the ladder: an age, and a rung already held (docs/LADDER.md)
-                && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn)   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
+                && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn && (!def.Elected || evenAway || TriumphSystem.MayStand(w, c)))   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
             .OrderByDescending(c => c.Id == w.ProtagonistId).ThenByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 
     /// <summary>What a fleet held by office may be used for, by whom and for how long, as these rules have it

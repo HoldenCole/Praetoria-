@@ -131,7 +131,9 @@ public class RivalPolicyTests
         bool relaxed = false;
         // (thirty-six years: the house may first soothe its commons for a year or two with an edict of its own, an amnesty or a
         // sumptuary edict, and the steward sees no hostile estate while it holds; docs/EDICTS.md)
-        for (int t = 0; t < 36 && !relaxed; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); relaxed = PolicySystem.OptionId(w, Content.Policies, rival.Id, "tithe") != "harsh"; }
+        // (the commons are held hostile until the steward acts: left to themselves they drift back above hostile within a few years, and
+        // whether the steward, who looks one year in eight, finds them hostile then was a matter of how the world happened to run)
+        for (int t = 0; t < 36 && !relaxed; t++) { w.WorldCounters[PolicySystem.ApprovalKey(w, rival.Id, "commons")] = Math.Min(w.Counter(PolicySystem.ApprovalKey(w, rival.Id, "commons")), -60); foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); relaxed = PolicySystem.OptionId(w, Content.Policies, rival.Id, "tithe") != "harsh"; }
         Assert.True(relaxed, "the steward never relaxed a tithe its commons hated");
         Assert.Contains(w.History, h => h.Text.Contains(" sets "));
     }

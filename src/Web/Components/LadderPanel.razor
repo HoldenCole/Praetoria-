@@ -7,6 +7,7 @@
     var mySeat = LadderSystem.Seat(w, pid); var myStand = w.Candidacies.FirstOrDefault(x => x.CharacterId == pid);
     var consul = ElectionSystem.ConsulOffices(offices).FirstOrDefault();
     var consulMan = consul != null ? OfficeSystem.Candidate(w, consul, house.Id) : null;
+    var consulAway = consul != null ? TriumphSystem.ConsulAwayOne(w, offices, house.Id) : null;   /* one who would stand for consul but commands away from the capital */
     var work = LadderSystem.BusinessOf(w, pid); int trust = LadderSystem.Trust(w); bool hadWork = w.OfficeWork.Any(b => b.HolderId == pid && b.RungId == mySeat?.OfficeId);
     string trustWord = trust < LadderSystem.TrustLow ? "for sale, and everyone knows it" : trust < 50 ? "not much trusted" : trust < 70 ? "trusted, more or less" : "trusted";
     string trustDoes = LadderSystem.TrustSays(w); int taint = LadderSystem.TaintCost(w, house.Id); int scandal = w.Counter(LadderSystem.ScandalKey(house.Id));
@@ -40,6 +41,7 @@
     {
         <div class="muted small">Each rung is held by a person, for five years, and filled by election. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides. You have been: <b>@Held(p)</b>.</div>
         <div class="small" data-next-election="@next"><b>The next election is @(next <= 0 ? "at the end of this year" : next == 1 ? "at the end of next year (year " + (w.Turn + 1) + ")" : "in " + next + " years, at the end of year " + (w.Turn + next))</b>: every rung below the consulship is filled then, and names go down before it. @Counted.Names(w.Candidacies.Count) @Counted.Are(w.Candidacies.Count) down so far.</div>
+        @if (TriumphSystem.HasLeave(w, house.Id)) { <div class="small good" data-absence-leave="1">The Senate has given your house leave to stand in absence: at the next election those of the house who command away from the capital may stand without coming home.</div> }
         <div class="small">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span> <span class="muted small">@trustDoes</span></div>
         @if (LadderSystem.TrustApartSays(w) is { Length: > 0 } apart) { <div class="muted small" title="An office's own name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a little less closely to the Reach each year.">@apart</div> }
         @if (taintLine.Length > 0) { <div class="small bad">@taintLine</div> }
@@ -80,6 +82,7 @@
                 @foreach (var cd in ours)
                 {
                     var x = w.Char(cd.CharacterId); if (x == null) continue; string xid = x.Id; var back = new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices).Refusal(G.Ctx);
+                    @if (TriumphSystem.AwaySays(w, x) is { } awayNow) { <div class="small warn" data-stand-away="@xid">@Cap(awayNow). The name is taken down at the year's end unless the command is laid down first.</div> }
                     <div class="suit-acts">
                         <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="muted">(the count is @(next <= 0 ? "at this year's end" : "in " + Counted.Years(next) + "") · @Counted.Names(w.Candidacies.Count(o => o.RungId == cd.RungId)) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
                         <button class="opt inline tiny" disabled="@(back != null)" title="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))">@(x.Id == pid ? "Call in what is owed" : "Speak for them") · @LadderSystem.BackInfluence influence</button>
@@ -130,7 +133,8 @@
         {
             <div class="rung-row">
                 <div><b>Consul</b> <span class="muted small">2 seats · from @SenateActs.AgeFor(w, consul.MinAge) · must have been @(offices.Rung(consul.Requires)?.Name.ToLowerInvariant() ?? "praetor") · elected every tenth year</span></div>
-                <div class="small">@(consulMan != null ? $"{(consulMan.Id == pid ? "You are" : consulMan.Name + " is")} of an age and a record to stand for the house." : $"Nobody of the house is yet {SenateActs.AgeFor(w, consul.MinAge)} and has been praetor. The house cannot stand for consul.")</div>
+                <div class="small">@(consulMan != null ? $"{(consulMan.Id == pid ? "You are" : consulMan.Name + " is")} of an age and a record to stand for the house." : consulAway != null ? "Nobody of the house may stand for consul who is in the capital." : $"Nobody of the house is yet {SenateActs.AgeFor(w, consul.MinAge)} and has been praetor. The house cannot stand for consul.")</div>
+                @if (consulAway != null && TriumphSystem.AwaySays(w, consulAway) is { } consulNo) { <div class="small warn" data-consul-away="@consulAway.Id">@Cap(consulNo).@(consulMan != null ? " Until then the house would stand in the person of " + consulMan.Name + "." : string.Empty)</div> }
             </div>
         }
     }
@@ -150,7 +154,7 @@
     private static string FundLabel(string size, int due, bool paid) => due == 0 && paid ? Cap(LadderSystem.CampaignName(size)) + ": paid for" : "Pay for " + LadderSystem.CampaignName(size) + " · " + Money.Show(due);
     private static string FundTip(string size) => "Out of the treasury: " + LadderSystem.CampaignVotes(size) + " votes at the count in all, besides what speaking for them does." + (size == LadderSystem.Lavish ? " It goes on the record as votes bought: any house may charge them with it before a praetor, and one convicted loses the office and may not stand for " + Counted.Years(LadderSystem.BarYears) + "." : "");
     private const string AskDown = "It is their name. The loyal will take it down; the wilful will not, and either will think less of you.";
-    private static string You(string s) => s.Replace("they have", "you have").Replace("they must", "you must");
+    private static string You(string s) => s.Replace("they have", "you have").Replace("they must", "you must").Replace("they command", "you command");
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);

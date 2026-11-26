@@ -7,6 +7,7 @@
     int sway = general != null ? CaesarSystem.Sway(w, general) : 0; int laurels = general != null ? CaesarSystem.Laurels(w, general) : 0;
     int hulls = general != null ? CaesarSystem.DevotedHulls(w, general) : 0; int triumphs = general != null ? CaesarSystem.Triumphs(w, general) : 0;
     var recall = w.Recalls.FirstOrDefault(r => r.HouseId == house.Id); var cw = w.CivilWar;
+    bool atTheGate = w.TriumphVotes.Any(t => !t.Done && t.Choice == TriumphSystem.Home && t.HouseId == house.Id);   /* one of the house is home for a triumph (docs/CAESAR.md) */
     var fleets = w.Fleets.Values.Where(f => (f.OwnerId == house.Id && !f.Office || ServiceSystem.CommandedBy(w, f, house.Id)) && f.AdmiralId.Length > 0).OrderByDescending(f => f.Devotion).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();   /* and those one of the house commands by service (docs/MILITARY.md) */
     var watched = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && CaesarSystem.Sway(w, x.g) >= 30)
         .OrderByDescending(x => CaesarSystem.Sway(w, x.g!)).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(3).ToList();
@@ -68,7 +69,8 @@
                 }
             </div>
         }
-        @if (general == null) { <div class="muted small">Nobody of the house commands a fleet. A name is made in command: appoint someone, or take a fleet yourself.</div> }
+        <TriumphGate />
+        @if (general == null && !atTheGate) { <div class="muted small">Nobody of the house commands a fleet. A name is made in command: appoint someone, or take a fleet yourself.</div> }
         else
         {
             <div class="gauges">
@@ -137,7 +139,7 @@
     private bool _confirm;
     private const string GoodPill = "good", Met = "met", NotMet = "not yet";
     private const string MotionTriumph = "triumph", GoodClass = "high", Plus = "+", ComeHome = "Come home", OrderHome = "Order them home";
-    private const string TriumphTip = "The Senate votes next session. If it carries: legitimacy, the crews' regard, and the general's name. If it is refused, that is a cause.";
+    private const string TriumphTip = "The Senate votes next session. If it carries, the general must come home and lay the command down for a year to have it (legitimacy, the crews' regard, and the general's name), or may decline it and keep the fleet. If it is refused, that is a cause.";
     private const string JoinSenateTip = "Your fleets go to war with the general's house. It is remembered when it ends.";
     private const string JoinGeneralTip = "Your fleets go to war with the house that carries the Senate's war. If the general falls, so does your standing.";
     private const string CrossTip = "A civil war. The houses declare for you, for the Senate, or stand aside. Hold the capital's orbit for two years or break the Senate's fleets and the Republic ends with your house on the throne. Lose, and the general dies and the house is ruined for a generation.";

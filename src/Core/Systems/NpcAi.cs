@@ -353,10 +353,10 @@ public sealed class NpcAi
             }
 
             // an unled fleet gets the house's best military mind as admiral (free of pool cost: a commission, not a scheme)
-            foreach (var fleet in world.Fleets.Values.Where(f => f.OwnerId == house.Id && f.AdmiralId == "").OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal))
+            foreach (var fleet in world.Fleets.Values.Where(f => f.OwnerId == house.Id && f.AdmiralId == "" && !TriumphSystem.Held(world, f)).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal))
             {
                 var taken = world.Fleets.Values.Select(f => f.AdmiralId).ToHashSet();
-                var best = npcs.Where(c => c.HouseId == house.Id && !taken.Contains(c.Id) && !CaesarSystem.Barred(world, c))
+                var best = npcs.Where(c => c.HouseId == house.Id && !taken.Contains(c.Id) && !CaesarSystem.Barred(world, c) && !TriumphSystem.StandingHome(world, c))   // nor one come home to stand for office (docs/LADDER.md)
                                .OrderByDescending(c => c.Skill("tactics") * 5 + c.Skill("gunnery") * 3 + c.Skill("leadership") * 2 + (c.CareerTrack == "military" ? 5 : 0))
                                .ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (best == null) break;

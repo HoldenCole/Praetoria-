@@ -256,6 +256,9 @@ public sealed class SenateSystem
             case "recall":
                 if (Caesar != null && targetHouse != null) Add(Caesar.RecallLean(w, h, targetHouse, toTarget), "what it makes of " + tn + "'s command");
                 break;
+            case TriumphSystem.LeaveKind:
+                if (targetHouse != null) Add(TriumphSystem.LeaveLean(w, h, targetHouse, toTarget, _offices), "what it makes of " + tn + " standing in absence");
+                break;
             case "emergency":
                 if (targetHouse != null) Add(EmergencySystem.GrantLean(w, h, targetHouse, toTarget), "what it makes of the danger, and of " + tn);
                 break;
@@ -504,6 +507,7 @@ public sealed class SenateSystem
             {
                 if (def.Interest == "triumph") Caesar?.TriumphVoted(w, spared, w.House(m.ProposerHouseId), passed: false);
                 if (def.Interest == "recall") Caesar?.RecallVoted(w, spared, w.House(m.ProposerHouseId), passed: false);
+                if (def.Interest == TriumphSystem.LeaveKind) TriumphSystem.LeaveVoted(w, spared, passed: false);
                 if (def.Interest == "emergency") EmergencySystem.GrantVoted(w, spared, w.House(m.ProposerHouseId), _offices, passed: false);
                 if (def.Interest == "for_life") EmergencySystem.ForLifeVoted(w, spared, passed: false);
             }
@@ -595,6 +599,7 @@ public sealed class SenateSystem
         if (def.Rank && target != null) TitleLadder?.Carried(w, m);
         if (def.Interest == "triumph" && target != null) Caesar?.TriumphVoted(w, target, proposer, passed: true);
         if (def.Interest == "recall" && target != null) Caesar?.RecallVoted(w, target, proposer, passed: true);
+        if (def.Interest == TriumphSystem.LeaveKind && target != null) TriumphSystem.LeaveVoted(w, target, passed: true);
         if (def.Interest == "emergency" && target != null) EmergencySystem.GrantVoted(w, target, proposer, _offices, passed: true);
         if (def.Interest == "for_life" && target != null) EmergencySystem.ForLifeVoted(w, target, passed: true);
         if (def.Interest == "reconquest" && target != null && Polities != null && PolitySystem.Of(w, target.Id) is { Recognised: > 0 } state) Polities.Reconquer(w, state);
@@ -705,14 +710,15 @@ public sealed class SenateSystem
             && EmergencySystem.WouldMove(w, _offices, h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null) is { } powers && !Stale(w, powers.mover.Id, "emergency", powers.target.Id))
         { Add(w, powers.mover.Id, "emergency", powers.target.Id); w.WorldCounters[EmergencySystem.MovedKey] = w.Counter(EmergencySystem.MovedKey) + 1; return true; }
         if (Caesar == null || w.IsImperium || w.CivilWar != null) return false;
-        bool Can(House h) => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;
+        bool Can(House h, string kind = "recall") => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && (MayPropose(w, h.Id) || TriumphSystem.MayMove(w, Economy.HeadOf(w, h), _motions.Def(kind)))   // anyone who has held a magistracy may move a triumph (docs/GAPS.md Q15)
+            && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;
         if (_motions.Def("triumph") != null && !w.Motions.Any(m => m.Open && m.Kind == "triumph"))
         {
             var earned = w.Houses.Values.Where(h => !World.Outsider(h.Id) && Caesar.TriumphRefusal(w, h) == null).OrderByDescending(h => CaesarSystem.Laurels(w, CaesarSystem.GeneralOf(w, h)!)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList();
             foreach (var t in earned)
             {
                 // the house itself, or a friend of standing if it has no voice of its own
-                var mover = Can(t) && !Stale(w, t.Id, "triumph", t.Id) ? t : w.Houses.Values.Where(h => Can(h) && !Stale(w, h.Id, "triumph", t.Id) && Economy.HeadOf(w, t) is { } th && (w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) >= 30)
+                var mover = Can(t, "triumph") && !Stale(w, t.Id, "triumph", t.Id) ? t : w.Houses.Values.Where(h => Can(h, "triumph") && !Stale(w, h.Id, "triumph", t.Id) && Economy.HeadOf(w, t) is { } th && (w.GetRelationship(Economy.HeadOf(w, h)!.Id, th.Id)?.Disposition ?? 0) >= 30)
                     .OrderByDescending(h => h.SphereInfluence.GetValueOrDefault("senate")).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
                 if (mover != null && t.Id != mine) { Add(w, mover.Id, "triumph", t.Id); w.WorldCounters["triumphs_moved"] = w.Counter("triumphs_moved") + 1; return true; }
             }

@@ -35,6 +35,8 @@
       "description": "{proposer} moves that the Reach's purse stand behind the Exchange: the chair pays, every company in the red is made whole, and confidence is held up for two years." },
     { "id": "triumph", "name": "Triumph", "target": "house", "interest": "triumph", "proposeInfluence": 2, "targetSelfAllowed": true,
       "description": "{proposer} moves that the Senate vote a triumph to the general of {target}, for victories won in the Reach's name." },
+    { "id": "absence", "name": "Leave to stand in absence", "target": "house", "interest": "absence", "proposeInfluence": 2, "targetSelfAllowed": true,
+      "description": "{proposer} moves that those of {target} who command fleets away from the capital be given leave to stand for office in their absence, at the next election." },
     { "id": "recall", "name": "Recall", "target": "house", "interest": "recall", "proposeInfluence": 3,
       "description": "{proposer} moves that the general of {target} lay down the command and come home to answer to the Senate." },
     { "id": "reconquest", "name": "Reconquest", "target": "house", "interest": "reconquest", "proposeInfluence": 3,

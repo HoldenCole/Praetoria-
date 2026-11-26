@@ -191,6 +191,8 @@ public sealed class World
     public List<Polity> Polities { get; set; } = new();
     /// <summary>Generals the Senate has ordered home (docs/CAESAR.md).</summary>
     public List<Recall> Recalls { get; set; } = new();
+    /// <summary>Triumphs the Senate has voted, and what each general did with theirs (docs/CAESAR.md, "The triumph").</summary>
+    public List<TriumphVote> TriumphVotes { get; set; } = new();
     /// <summary>Commands by service standing now: fleets commanded by somebody of another house (docs/MILITARY.md, "A command by service").</summary>
     public List<ServiceCommand> Service { get; set; } = new();
     /// <summary>Commands by service that have ended, newest last, kept forty deep.</summary>
