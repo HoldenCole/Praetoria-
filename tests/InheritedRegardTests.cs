@@ -1,4 +1,5 @@
 using Praetoria.Core;
+using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
 using Praetoria.Core.Presentation;
 using Praetoria.Core.State;
@@ -90,6 +91,57 @@ public class InheritedRegardTests
         // a vengeful one who was only lukewarm in enmity is still an enemy, and no less than one
         var (w2, me2, heir2) = Start(); var v2 = Outsiders(w2, me2, 1, "Vengeful")[0]; Set(w2, v2, me2, InheritedRegard.IllAt); Set(w2, v2, heir2, 10);
         DynastySystem.Die(w2, me2.Id); Assert.Equal(LifeSystem.EnemyAt, Regard(w2, v2, heir2));
+    }
+
+    [Fact]
+    public void A_vengeful_enemy_brought_round_by_amends_is_no_longer_called_your_enemy()
+    {
+        var (w, me, heir) = Start(); var v = Outsiders(w, me, 1, "Vengeful")[0]; Set(w, v, me, -45); Set(w, v, heir, 0);
+        DynastySystem.Die(w, me.Id);
+        Assert.Contains(InheritedRegard.Why(w, v.Id, heir.Id), l => l.Kind == InheritedRegard.Vengeful && l.Text.Contains("your enemy since year"));
+        // the amends on a person's page: courting them three times brings the regard to -15
+        var ctx = new CommandContext(w, TestContent.Rng());
+        for (int i = 0; i < 3; i++) { w.PoolsFor(heir.Id).Influence = 6; var seek = new SeekAllyCommand(heir.Id, v.Id); Assert.True(seek.CanExecute(ctx)); seek.Execute(ctx); }
+        Assert.Equal(-15, Regard(w, v, heir));
+        w.Turn++; LifeSystem.Tick(w, Content); HeadSystem.Tick(w);
+        Assert.False(heir.Life!.Enemies.ContainsKey(v.Id)); Assert.DoesNotContain(LifeSystem.OldEnemyChar, v.Flags);
+        // the page no longer says they are your enemy, and the tie is let go
+        Assert.DoesNotContain(InheritedRegard.Why(w, v.Id, heir.Id), l => l.Text.Contains("your enemy"));
+        Assert.DoesNotContain(w.InheritedTies, t => t.FromId == v.Id && t.Kind == InheritedRegard.Vengeful);
+        // the same for another house's vengeful new head who is brought round
+        var (w2, me2, _) = Start(); var (_, elder, next) = OtherHouse(w2, "Vengeful"); Set(w2, elder, me2, -60); Bury(w2, elder);
+        Assert.Contains(InheritedRegard.Why(w2, next.Id, me2.Id), l => l.Kind == InheritedRegard.Vengeful && l.Text.Contains("your enemy since year"));
+        Set(w2, next, me2, -20); w2.Turn++; LifeSystem.Tick(w2, Content); HeadSystem.Tick(w2);
+        Assert.False(me2.Life!.Enemies.ContainsKey(next.Id));
+        Assert.DoesNotContain(InheritedRegard.Why(w2, next.Id, me2.Id), l => l.Text.Contains("your enemy"));
+        // while one is still counted an enemy, short of the amends, the page still says so
+        var (w3, me3, heir3) = Start(); var v3 = Outsiders(w3, me3, 1, "Vengeful")[0]; Set(w3, v3, me3, -45);
+        DynastySystem.Die(w3, me3.Id); Set(w3, v3, heir3, LifeSystem.EnemyAt + 15); w3.Turn++; LifeSystem.Tick(w3, Content); HeadSystem.Tick(w3);
+        Assert.True(heir3.Life!.Enemies.ContainsKey(v3.Id));
+        Assert.Contains(InheritedRegard.Why(w3, v3.Id, heir3.Id), l => l.Kind == InheritedRegard.Vengeful && l.Text.Contains("your enemy since year"));
+    }
+
+    [Fact]
+    public void The_succession_news_gives_the_true_figure_when_a_regard_was_near_the_top_or_the_bottom()
+    {
+        var (w, me, heir) = Start(); var o = Outsiders(w, me, 4); var (near, plain, cold, nearCold) = (o[0], o[1], o[2], o[3]);
+        Set(w, near, me, 60); Set(w, near, heir, 95); Set(w, plain, me, 60); Set(w, plain, heir, 0);
+        Set(w, cold, me, -50); Set(w, cold, heir, -97); Set(w, nearCold, me, -50); Set(w, nearCold, heir, 0);
+        DynastySystem.Die(w, me.Id);
+        var (_, f, _, e) = InheritedRegard.Summary(w, me, heir, w.InheritedTies.Where(t => o.Any(x => x.Id == t.FromId)));
+        Assert.Contains($"Each thinks up to {InheritedRegard.Warmth} the better of you", f);
+        Assert.Contains($"think up to {InheritedRegard.Coldness} the worse of you", e);
+        Assert.Contains(InheritedRegard.Why(w, near.Id, heir.Id), l => l.Text.Contains("+5 of it still"));
+        // one alone is given their own figure
+        var (w2, me2, heir2) = Start(); var a = Outsiders(w2, me2, 2); Set(w2, a[0], me2, 60); Set(w2, a[0], heir2, 95); Set(w2, a[1], me2, -50); Set(w2, a[1], heir2, -97);
+        DynastySystem.Die(w2, me2.Id);
+        var (_, f2, _, e2) = InheritedRegard.Summary(w2, me2, heir2, w2.InheritedTies.Where(t => a.Any(x => x.Id == t.FromId)));
+        Assert.Contains("thinks 5 the better of you", f2); Assert.Contains("thinks 3 the worse of you", e2);
+        // and several all moved the whole way are given the whole figure
+        var (w3, me3, heir3) = Start(); var b = Outsiders(w3, me3, 4); foreach (var x in b.Take(2)) { Set(w3, x, me3, 60); Set(w3, x, heir3, 0); } foreach (var x in b.Skip(2)) { Set(w3, x, me3, -50); Set(w3, x, heir3, 0); }
+        DynastySystem.Die(w3, me3.Id);
+        var (_, f3, _, e3) = InheritedRegard.Summary(w3, me3, heir3, w3.InheritedTies.Where(t => b.Any(x => x.Id == t.FromId)));
+        Assert.Contains($"Each thinks {InheritedRegard.Warmth} the better of you", f3); Assert.Contains($"think {InheritedRegard.Coldness} the worse of you", e3);
     }
 
     [Fact]
@@ -189,6 +241,25 @@ public class InheritedRegardTests
         // a child head of another house takes on no good opinion, but the old quarrel falls on them
         var (wc, mc, _) = Start(); var (_, eldc, child) = OtherHouse(wc, "", 12); Set(wc, eldc, mc, 60);
         Bury(wc, eldc); Assert.Equal(0, Regard(wc, child, mc)); Assert.Equal(InheritedRegard.Unseen, wc.InheritedTies.Single(t => t.FromId == child.Id).Kind);
+    }
+
+    [Fact]
+    public void Another_houses_old_head_who_was_your_old_enemy_by_the_years_hands_the_quarrel_down_whatever_the_figure()
+    {
+        // an old enemy of twelve years who has warmed to -25 is still an old enemy (it takes more than -25 to let one go)
+        var (w, me, _) = Start(); var (other, elder, next) = OtherHouse(w); me.Life ??= new Life();
+        me.Life.Enemies[elder.Id] = w.Turn - 12; Set(w, elder, me, LifeSystem.EnemyAt + 15);
+        LifeSystem.Tick(w, Content); Assert.True(me.Life.Enemies.ContainsKey(elder.Id)); Assert.Contains(LifeSystem.OldEnemyChar, elder.Flags);
+        Bury(w, elder);
+        Assert.Equal(next.Id, other.HeadId);
+        Assert.Equal(InheritedRegard.Enemy, w.InheritedTies.Single(t => t.FromId == next.Id && t.ToId == me.Id).Kind);
+        Assert.Equal(-InheritedRegard.Coldness, Regard(w, next, me));
+        // and an old friend by the years the same way; one who was neither, at the same figure, hands nothing down
+        var (w2, me2, _) = Start(); var (_, elder2, next2) = OtherHouse(w2); me2.Life ??= new Life();
+        me2.Life.Friends[elder2.Id] = w2.Turn - LifeSystem.OldTieYears; Set(w2, elder2, me2, InheritedRegard.WellAt - 1); Bury(w2, elder2);
+        Assert.Equal(InheritedRegard.Friend, w2.InheritedTies.Single(t => t.FromId == next2.Id && t.ToId == me2.Id).Kind);
+        var (w3, me3, _) = Start(); var (_, elder3, next3) = OtherHouse(w3); Set(w3, elder3, me3, LifeSystem.EnemyAt + 15); Bury(w3, elder3);
+        Assert.DoesNotContain(w3.InheritedTies, t => t.FromId == next3.Id && t.ToId == me3.Id);
     }
 
     [Fact]

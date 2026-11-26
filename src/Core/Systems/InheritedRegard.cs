@@ -64,7 +64,9 @@ public static class InheritedRegard
         foreach (var r in oldsView)
         {
             if (w.Char(r.ToId) is not { } y || !Outside(y)) continue;
-            int sign = r.Disposition >= WellAt ? 1 : r.Disposition <= IllAt ? -1 : 0;
+            // only the player keeps a record by the years: the old head an old friend or old enemy of theirs counts whatever the figure
+            var rec = y.Id == you ? y.Life : null;
+            int sign = r.Disposition >= WellAt || ByYears(rec?.Friends, old.Id) ? 1 : r.Disposition <= IllAt || ByYears(rec?.Enemies, old.Id) ? -1 : 0;
             if (sign != 0) made.Add(Hand(w, heir, y, old, heir, sign, r.Disposition, grown));
         }
         w.WorldCounters[SuccessionsKey] = w.Counter(SuccessionsKey) + 1;
@@ -119,7 +121,8 @@ public static class InheritedRegard
 
     /// <summary>The year's turn: a warmth or a coldness handed down fades by a tenth of what it was, and is gone in ten years. A tie
     /// that does not fade is kept to be shown while it touches the player, for ten years; one between others is not kept past the
-    /// year it was made. Ties with someone who has died are let go.</summary>
+    /// year it was made. A vengeful enemy of the player is let go once the player's record no longer counts them an enemy (amends
+    /// can bring them round, as anyone: LifeSystem, which runs first in the year's turn). Ties with someone who has died are let go.</summary>
     public static void Tick(World w)
     {
         if (w.InheritedTies.Count == 0) return;
@@ -128,6 +131,7 @@ public static class InheritedRegard
         {
             int years = w.Turn - t.Turn;
             if (w.Char(t.FromId) is not { Alive: true } || w.Char(t.ToId) is not { Alive: true }) { w.InheritedTies.Remove(t); continue; }
+            if (t.Kind == Vengeful && t.ToId == you && w.Char(you)?.Life?.Enemies.ContainsKey(t.FromId) != true) { w.InheritedTies.Remove(t); continue; }
             if (t.Kind is Friend or Enemy && t.Left != 0)
             {
                 int now = t.Amount * Math.Max(0, FadeYears - years) / FadeYears, gone = t.Left - now;
@@ -170,13 +174,15 @@ public static class InheritedRegard
         var friends = of.Where(t => t.Kind == Friend && t.Amount != 0).ToList(); var unseen = of.Where(t => t.Kind == Unseen).ToList();
         var vengeful = of.Where(t => t.Kind == Vengeful).ToList(); var letGo = of.Where(t => t.Kind == LetGo).ToList(); var cold = of.Where(t => t.Kind == Enemy && t.Amount != 0).ToList();
         string Who(InheritedTie t) => t.FromId;
+        // the figure each was moved by: a regard near the top or the bottom moves less than the whole of it
+        static string By(List<InheritedTie> ts, int sign) { int most = ts.Max(t => sign * t.Amount); return ts.Any(t => sign * t.Amount != most) ? $"up to {most}" : most.ToString(); }
         string f = friends.Count > 0
-            ? (friends.Count == 1 ? $"{Names(w, friends, Who)} thinks {Warmth} the better of you for {poss} sake" : $"{Names(w, friends, Who)}. Each thinks {Warmth} the better of you for {poss} sake") + $", and it fades over {Counted.Years(FadeYears)}."
+            ? (friends.Count == 1 ? $"{Names(w, friends, Who)} thinks {By(friends, 1)} the better of you for {poss} sake" : $"{Names(w, friends, Who)}. Each thinks {By(friends, 1)} the better of you for {poss} sake") + $", and it fades over {Counted.Years(FadeYears)}."
             : unseen.Count > 0 ? $"{Names(w, unseen, Who)} thought well of {Obj(old)}, but you were a child and never seen at {poss} side, and none of it passes to you." : "";
         var parts = new List<string>();
         if (vengeful.Count > 0) parts.Add(vengeful.Count == 1 ? $"{Names(w, vengeful, Who)} is vengeful by nature, and your enemy from this day" : $"{Names(w, vengeful, Who)} are vengeful by nature, and your enemies from this day");
         if (letGo.Count > 0) parts.Add(letGo.Count == 1 ? $"{Names(w, letGo, Who)} is {letGo[0].Nature.ToLowerInvariant()} by nature, and lets it go" : $"{Names(w, letGo, Who)} are just or loyal by nature, and let it go");
-        if (cold.Count > 0) parts.Add((cold.Count == 1 ? $"{Names(w, cold, Who)} thinks" : $"{Names(w, cold, Who)} think") + $" {Coldness} the worse of you for {poss} sake, and it fades over {Counted.Years(FadeYears)}");
+        if (cold.Count > 0) parts.Add((cold.Count == 1 ? $"{Names(w, cold, Who)} thinks" : $"{Names(w, cold, Who)} think") + $" {By(cold, -1)} the worse of you for {poss} sake, and it fades over {Counted.Years(FadeYears)}");
         string e = parts.Count > 0 ? Cap(string.Join("; ", parts)) + "." : "";
         string ft = was == old.Name ? $"{old.Name}'s friends" : $"{Cap(was)}'s friends";
         return (ft, f, $"{Cap(poss)} enemies", e);
@@ -224,7 +230,7 @@ public static class InheritedRegard
                 {
                     Friend => $"Thought well of {was}, and so of you: {Signed(t.Left)} of it still, {gone}.",
                     Enemy => $"Thought ill of {was}, and so of you: {Signed(t.Left)} of it still, {gone}.",
-                    Vengeful => $"Was the enemy of {was}, and is vengeful by nature: your enemy since year {t.Turn}, and it does not fade.",
+                    Vengeful => $"Was the enemy of {was}, and is vengeful by nature: your enemy since year {t.Turn}, and it does not fade with the years.",
                     LetGo => $"Was the enemy of {was}, and is {t.Nature.ToLowerInvariant()} by nature: lets it go with {Obj(old)}.",
                     Unseen => $"Thought well of {was}, but you were a child and never seen at {poss} side.",
                     _ => ""
@@ -238,7 +244,7 @@ public static class InheritedRegard
                 {
                     Friend => $"{was} thought well of you: {Signed(t.Left)} of it still, {gone}.",
                     Enemy => $"{was} thought ill of you: {Signed(t.Left)} of it still, {gone}.",
-                    Vengeful => $"{was} was your enemy, and {pr} {be} vengeful by nature: your enemy since year {t.Turn}, and it does not fade.",
+                    Vengeful => $"{was} was your enemy, and {pr} {be} vengeful by nature: your enemy since year {t.Turn}, and it does not fade with the years.",
                     LetGo => $"{was} was your enemy, but {pr} {be} {t.Nature.ToLowerInvariant()} by nature, and {(pr == "they" ? "let" : "lets")} it go.",
                     Unseen => $"{was} thought well of you, but {pr} took the house as a child and took on none of it.",
                     _ => ""
