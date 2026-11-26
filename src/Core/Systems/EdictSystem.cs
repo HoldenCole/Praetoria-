@@ -184,7 +184,7 @@ public static class EdictSystem
                 "unrest_drift" => $"unrest {Signed(v)} a year on {where}",
                 "prosperity_drift" => $"prosperity settles {Math.Abs(2 * v)} {(v < 0 ? "lower" : "higher")} on {where}",
                 "pop_growth" => $"{Signed(v)} people a year on each of {where}",
-                "credits_per_world" => $"{Money.Signed(v)} credits a year from each of {where}",
+                "credits_per_world" => $"{(v < 0 ? "−" + Money.Show(-v) : Money.Signed(v))} credits a year from each of {where}",   // the same minus sign as every other figure here
                 "manpower_per_world" => $"{Signed(v)} manpower a year from each of {where}",
                 "lawlessness_drift" => $"lawlessness {Signed(v)} a year in {(reach ? "every region" : "the regions it holds")}",
                 "tolls_bonus" => $"{Money.Signed(v)} credits on every toll",

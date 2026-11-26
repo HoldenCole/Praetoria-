@@ -17,7 +17,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
-  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.screen.window .rung')].find(e => e.innerText.includes(n)); if (t) t.click(); }, name); await page.waitForTimeout(400); };
+  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.screen.window .rung')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (t) t.click(); }, name); await page.waitForTimeout(400); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const confirm = async () => { await page.waitForTimeout(300); const said = await page.evaluate(() => { const b = document.querySelector('[data-confirm="yes"]'); if (!b) return 'no question was asked'; const q = (b.closest('.confirm-box') || {}).innerText || ''; b.click(); return q.replace(/\s+/g, ' ').slice(0, 300); }); console.log('  asked: ' + said); await page.waitForTimeout(600); const out = await page.evaluate(() => { const o = document.querySelector('[data-outcome-ok]'); const t = o ? (o.closest('.confirm-box') || {}).innerText || '' : ''; if (o) o.click(); return t.replace(/\s+/g, ' ').slice(0, 300); }); if (out) console.log('  outcome: ' + out); await page.waitForTimeout(300); };
   const text = sel => page.evaluate(s => { const e = document.querySelector(s); return e ? e.innerText.replace(/\s+/g, ' ') : 'NOT FOUND: ' + s; }, sel);
@@ -40,6 +40,7 @@ require('fs').mkdirSync(shots, { recursive: true });
 
   // a world's card on the Worlds window: the local-law block, and a law set
   await rail('Worlds'); await page.waitForTimeout(900);
+  console.log('world picked: ' + await page.evaluate(() => { const r = document.querySelector('.screen.window tr.mine'); if (r) r.click(); return r ? r.innerText.replace(/\s+/g, ' ').slice(0, 60) : 'no world of yours in the list'; })); await page.waitForTimeout(700);
   const block = await text('[data-local-laws]'); console.log('local-law block: ' + suspicious(block) + ' · ' + block.slice(0, 500));
   await shot('[data-local-laws]', 'local-laws-block.png');
   const set = await page.evaluate(() => { const want = ['dole:corn_dole', 'local_tithe:remitted', 'charter:chartered']; for (const k of want) { const b = document.querySelector('[data-local-option="' + k + '"]'); if (b && !b.disabled) { b.click(); return k; } } const b = [...document.querySelectorAll('[data-local-option]')].find(e => !e.disabled); if (b) { b.click(); return b.getAttribute('data-local-option'); } return ''; });
@@ -51,7 +52,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await closeWindows();
 
   // the Senate: the Act picker grouped by category
-  await rail('Senate'); await page.waitForTimeout(900);
+  await rail('Senate'); await page.waitForTimeout(900); await tab('Move a motion');
   await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.startsWith('Show what could be moved')); if (b) b.click(); });
   await page.waitForTimeout(400);
   const groups = await page.evaluate(() => [...document.querySelectorAll('optgroup[data-act-category]')].map(g => g.getAttribute('label') + ' (' + g.children.length + ')'));
@@ -62,6 +63,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('the Act proposal: ' + suspicious(prop) + ' · ' + prop);
   const el = await page.evaluateHandle(() => { const s = [...document.querySelectorAll('select.sel')].find(x => x.querySelector('optgroup[data-act-category]')); return s ? s.closest('.proposal') : null; });
   if (el && el.asElement()) { await el.asElement().screenshot({ path: shots + '/senate-act-picker.png' }); console.log('saved senate-act-picker.png'); }
+  // the ladder of offices shows the age the law of the Reach sets for each rung
+  await tab('Ladder and courts'); console.log('ladder ages: ' + await page.evaluate(() => { const t = (document.querySelector('.screen.window') || document.body).innerText; return (t.match(/from \d+/g) || []).slice(0, 6).join(', ') || 'none shown'; }));
   console.log('errors: ' + (errors.length ? errors.join(' | ') : 'none'));
   await browser.close();
 })();
