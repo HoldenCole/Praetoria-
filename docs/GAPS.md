@@ -13,6 +13,10 @@ Last updated 2026-11-17 (known stories played against the game, R1 to R20 mapped
 
 2026-11-26: local law, edicts and ten more Acts of the Senate built, reviewed and measured (docs/LAWS_REVIEW.md, section 6); what they leave thin is Y1 to Y10 under "Laws".
 
+> **Found in mods (2026-11-26):** about two hundred Crusader Kings III mods read for mechanics worth building in the
+> Reach, each checked against what the game has, ranked in `docs/IDEAS_FROM_MODS.md`. The first ten close rows of the
+> worklist (Q15, R1, R5, R16, R18, E3, R3, B17, V10); the list is not repeated in this register.
+
 > **Found by playing (2026-11-20):** five playthroughs and what a player wanted to do and could not, sorted easy, medium and
 > hard, are in `docs/PLAYTHROUGH.md`. They are not repeated in this register.
 
