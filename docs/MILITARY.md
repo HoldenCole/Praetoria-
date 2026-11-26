@@ -214,10 +214,234 @@ fought as the year turned.
 - Manpower for drill, materials for refits and isotopes for torpedoes are not in a war year's cost.
 - Hulls paid off are always the lightest: only a detachment takes a chosen class.
 
+## A command by service
+
+Built 2026-11-26 from docs/IDEAS_FROM_MODS.md, entry 1, which closes the first and fifth rows of the worklist (docs/GAPS.md
+Q15 and R1):
+
+> The player, or anyone of their house, can be given command of a fleet that is not their house's own: as a legate under a
+> consul, the Admiral of the Reach or the holder of emergency powers, or as an officer lent to an ally for that ally's war.
+> The victories, the valour and the crews' devotion are theirs. The hulls stay the owner's, and the owner or the Senate can
+> relieve them.
+
+> (Q15) A new man cannot rise to a command by service. (R1) Nobody rises by service. A person cannot ... command another
+> house's ships, the state gives a command only to an office-holder, and under a throne no command is given at all.
+
+Before this a fleet's commander had to be of the house that owned it (`AssignAdmiralCommand`, `FleetSystem.CaptainRefusal`),
+and a house without land never got a fleet: in the scripted general's games (docs/QA.md, Q2) nobody of the house commanded
+one in 11 of 24 when it was first measured, and in 9 of 24 when this was begun.
+
+### The ways in
+
+- **A legate.** Whoever holds the consulship, the Admiral of the Reach's office or emergency powers may name a legate from
+  any house to a fleet under them (`NameLegateCommand`, one agent, on the Senate window under the offices). What is under
+  each: the Admiral, the office fleets under the house's colours and the house's own fleets; a consul, the house's own
+  fleets, and the state's fleet when no Admiral holds it; emergency powers, the house's own and every office fleet. Under a
+  throne the Emperor holds every office, so the throne names legates too. Never another house's head (a head of house stays
+  at home), nobody of the raiders or of a nation, and nobody of a house at war with the house whose fleet it is. The
+  commission lasts while the one who named them holds the office; if the office passes to another of the same house, that
+  one keeps the legate on.
+- **An officer lent.** The head of a house at war may take an officer of another house to command one of its own fleets
+  (`BorrowOfficerCommand`, one agent), with the leave of that house's head. The head gives leave to a house it thinks 10 of,
+  or 0 if it is in the same war, and not while its own house is at war with somebody else. A head is never lent. The
+  officer must not think worse than −20 of the one they would serve. It lasts while the owner is at war.
+- **Seeking a command.** The head offers their own service, or a grown relative's, to an office-holder or a house at war
+  (`SeekCommandCommand`, one agent, spent only if they are taken on). Taken or refused by plain reasons, each said with
+  what is missing: tactics of 3 or a Lieutenant's rank in the Navy; renown of 10; the two houses at peace; the taker's head
+  not thinking ill (below 0) of the seeker's head; the seeker not thinking worse than −20 of the one who would take them on;
+  and a command free under the taker: a fleet of a house at peace with the seeker's, with no admiral, or one whose admiral
+  has 2 less tactics than the seeker and is neither the taker, the owner's head, the player nor a general on the march. A
+  relative who is defiant of the head will not go at the head's word.
+
+### What it gives, and what stays the owner's
+
+- **The commander's:** the victories (`CaesarSystem.Victories`, the triumph's count, the sway), the valour and the name of
+  Achilles, what a victory teaches, the record of their life ("Won a battle in command of The Harker Guard, for House
+  Harker, as legate."), the crews' devotion, and the house's general: `CaesarSystem.GeneralOf` now counts one of the house
+  who commands a fleet of another's by service. A commander from the flag lends their tactics to the fleets of the house they
+  serve, not to their own. The commander's house may pay the crews a donative and give the fleet a captain of its own house;
+  that captain leaves with them. The war's account names who commanded each side's fleets by service.
+- **The owner's:** the hulls (counted in the owner's strength), their keep and fuel, the admiral's wage, the prizes, the
+  plunder of an expedition, and a standard taken or retaken: it goes to a commander of the owner's own, or to its head.
+
+### How it ends
+
+- The owner's head, or the one who named or took them, relieves them (`RelieveServiceCommand`, free): the one relieved thinks
+  10 the worse of them. The Senate relieves by its recall, which a general of 40 sway or more can be given as before.
+- The commander resigns, or the head of their house calls them home (`ResignServiceCommand`, free): whoever named them
+  thinks 5 the worse of it.
+- It ends of itself when what it rested on is gone: the office (unless it passed within the house), the war, the fleet, the
+  peace between the two houses, the commander's life or health, the commander's house, or a fleet laid up. A commander who
+  grows frail or lays their work down ends it at the year's end, and the owner is told why. One who comes into the owning
+  house (by marriage), or whose fleet passes to their own house, keeps the command, by right now and not by service. The
+  owner giving the fleet to one of its own relieves the commander by service; the owner may also shift them to another of
+  its fleets, or fold their fleet into another: the service goes with them into a fleet that had no admiral, and ends if the
+  other has its own. A detachment is not sent off under a captain of the commander's house. One of the house who commands
+  another's fleet by service and is given a fleet of the house (by the head, or granted what they asked for) lays the
+  other down first, and its owner is told.
+- An office fleet no longer keeps the admiral of a house that has lost the office (found while building this: the old
+  Admiral's officer stayed aboard the Reach Squadron when the office passed). A legate named to it is kept.
+
+### Other houses
+
+Every year (`ServiceSystem.Tick`, after the Senate's business):
+
+- **Office-holders** of other houses name a legate where a fleet of two hulls or more under them has no admiral, or somebody
+  is a clearly better commander (2 tactics) than the one it has: only somebody with tactics of 4, a name, not the head of a
+  house, from a house the holder thinks 20 of (or 0, of the holder's bench). One a year each, and two at a time at most. If
+  the best is the player's head, the player is asked. A relative of the player's house in office does not give the house's
+  own fleets to anybody (the head does), and on an office fleet of the house fills only a command that is empty; nor does
+  any office-holder put out unasked a commander the player's head put on a fleet of the house.
+- **Houses at war** with a fleet of two hulls or more that nobody of their own commands borrow an officer from a house whose
+  head gives leave. One of the player's house is asked for, and the player gives leave or refuses.
+- **Younger people** (not the head, 45 or younger, with no command, in the Navy or with tactics of 3) look for a command of
+  their own when their house has none to give them, by the same rules the player is held to, with their head's leave if
+  they would be lent. One in three of them looks in a given year, and nobody more often than once in five years. One who
+  would serve the player is put to the player.
+
+What is put to the player (`AnswerServiceCommand`) is answered on the Military window within the year, and shown in the
+outliner. A refusal costs 5 of the asker's regard; leave given gains 10. The asker does not ask again for the same person
+for five years, and turns to the next instead; an ask left unanswered for the year is taken as a no, without the cost. An
+offer to the player as consul, Admiral or holder of emergency powers is taken on by the office (a legate), and one to the
+player's house at war, for the war (an officer lent). Leave to lend a relative who has since become the head, or left the
+house, no longer stands.
+
+### The Caesar road
+
+A legate whose crews come to love them is a general like any other: the triumph, the recall and the three gates
+(docs/CAESAR.md) read the commander, not the owner. The hulls whose crews would follow count toward the four a march asks.
+When another house's general would cross, the strength weighed is the house's own and the hulls that are the general's by
+service; and when a general crosses, a fleet they command by service whose crews are theirs goes over with them and is the
+general's house's from that day (as the legions of the state went with Caesar). The gates themselves are unchanged.
+
+### On the screens
+
+- **Military window, a tab "A command by service"** (`data-service`): the commands the house's people hold by service, each
+  with a button to resign or call them home (`data-resign`); the house's own fleets under another's commander, and legates
+  the player named, with a button to relieve (`data-relieve="<fleetId>"`); what is asked of the head (`data-answer-ask`); offers
+  to seek a command for the head or a relative, to every office-holder and every house at war, each greyed with its refusal
+  (`data-seek-command="<holderOrHouseId>"`); and, when the house is at war, officers it could ask for (`data-borrow`).
+- **Senate window, Offices and parties:** a consul, the Admiral or the holder of emergency powers sees each fleet under the
+  office with a choice of who could be its legate (`data-name-legate="<fleetId>"`).
+- The general and the Senate: a fleet commanded by service by one of the house is listed for a donative.
+
+### The numbers
+
+| what | number |
+|---|---|
+| to name a legate, borrow an officer, or be taken on when seeking | 1 agent; to relieve, resign or answer, nothing |
+| skill in command a taker asks | tactics 3, or a Lieutenant's rank in the Navy |
+| a name a taker asks | renown 10 (a Lieutenant's rank alone gives it) |
+| regard the taker's head must have for the seeker's head | 0 or better |
+| a command is free | no admiral, or an admiral with 2 less tactics than the seeker |
+| leave to lend an officer | the lending head thinks 10 of the borrower, or 0 in the same war; not while at war with another |
+| the most ill an officer may think of the one they serve | −20 |
+| regard moved | named: +10 to the one who named them; the two heads +5 each way; one displaced −10; relieved −10; resigned −5; asked and refused −5; leave given +10 |
+| a no, or an ask left unanswered, is remembered | 5 years: the asker does not ask for the same person again, and asks the next |
+| other houses' legates | tactics 4 or more, a fleet of 2 hulls or more, from a house thought 20 of (or 0 of the same bench), one a year, two at a time |
+| other houses' seekers | 45 or younger, not the head, one in three a year, once in five years |
+| ended commands kept | 40 |
+
+**Measured** (`praetoria roads --scenario all --seeds 3 --turns 60`, the scripted general on eight starts and three seeds,
+before and after; and `praetoria service`, a passive player):
+
+The scripted general (docs/QA.md, Q2) now seeks a command by service for the head or a grown relative when nobody of the
+house commands anything, and takes one that is offered, while it goes on building a fleet of its own:
+
+| The general, 24 games of 60 years | before | after |
+|---|---|---|
+| one of the house commands a fleet (its own, or by service) | 15 | 22 |
+| nobody of the house ever commands one | 9 | 2 |
+| a battle won | 17 | 17 |
+| the Senate votes a triumph or a recall for the house | 7 | 6 |
+| the line is crossed | 5 | 3 |
+| the march ends: a throne, or broken | 2 | 3 |
+| the march is swallowed by a larger war | 4 | 0 |
+
+It sought a command and was taken on 48 times, and took one offered 4 times. What refused it most: tactics under 3 with no
+rank in the Navy (222 years, the head or a relative who is not a sailor), a house at war with the taker (125), and a taker
+who thinks ill of the house (71). (Measured again after the review's mends: the table above is unchanged, and before them it was
+taken on 68 times.)
+
+With nobody steering the player's house (`praetoria service`, a passive player):
+
+| | two games of thirty years, the Old Lion | sixteen games of thirty years, every start |
+|---|---|---|
+| commands by service begun | 10 | 58 |
+| held by other houses' people | 9 (4.5 a game) | 56 (3.5 a game), of 11 houses |
+| held by the player's own house | 1 | 2 |
+| legates named by a consul | 10 | 38 |
+| legates named by the Admiral of the Reach | 0 | 6 |
+| officers lent to a house at war | 0 | 14 |
+| of them sought by the one who held it | 1 | 23 |
+| battles won under them, and lost | 0 and 0 | 3 and 0 |
+| years held in all | 40 | 331 |
+| put to the player to answer | 0 | 11 (28 before an ask left unanswered was taken as a no, when the same was asked year after year) |
+| how they ended | the one who named them died 6, the office passed 2, another given it 1, standing 1 | the one who named them died 15, the office passed 12, the commander died 5, the fleet gone 5, another given it 4, the fleet passed 2, the war ended 2; 13 standing |
+
+Most are a consul's legate on a fleet of the consul's own house, held a few years and ended by the consul's death or term.
+The other houses' younger officers find a command a little more than once a game.
+
+The Caesar road, measured as docs/CAESAR.md measures it (`praetoria caesar --scenario all --seeds 10`: six Republic starts,
+ten seeds, sixty years, a passive player). The doc's rule is that another house's general marches about one game in ten or
+less; it was rarer than that before, and it is the same now:
+
+| another house's general, in 60 runs | before | after |
+|---|---|---|
+| was of the first rank | 5 | 4 |
+| was loved | 51 | 53 |
+| was both | 2 | 0 |
+| passed all three gates | 1 | 0 |
+| would have marched | 1 | 0 |
+| civil wars, and the Republic fell | 0 and 0 | 0 and 0 |
+
+So the road is open to a legate (the tests show one counting devoted crews of another's fleet, and the crews going over), and
+it is no more often walked: a legate's commission is short, and the gates are unchanged.
+
+### What I chose
+
+- Three authorities name legates, and each over its own fleets as listed above; the consul has the state's fleet only when
+  no Admiral holds it, so that the Admiral is not overruled by a consul.
+- A commission ends with the office, but is carried over when the office passes within the same house.
+- An officer lent goes home when the owner is at war with nobody; a head is never lent; a house at war with another does not
+  lend.
+- The gates for being taken on are tactics 3 or a Lieutenant, renown 10, a head who thinks 0 or better, and a command free:
+  no admiral, or one with 2 less tactics. The same gates for every house.
+- One agent for each act that gives a command; relieving, resigning and answering are free.
+- The regard figures in the table.
+- Other houses: tactics 4 for a legate, fleets of 2 hulls, 20 of regard, one a year and two at a time; seekers 45 or younger,
+  one in three a year, once in five years. These were set so that a command by service is a thing that happens a few times
+  in a game, not every year.
+- The Senate relieves only by its recall; there is no new motion.
+- The player's head is asked before being named legate or lent; a relative of the player's house named legate by another
+  accepts by their own will (the head may call them home), but is not lent without the head's leave.
+- A no, or an ask left unanswered, is remembered for five years, and the asker asks the next instead.
+- A relative of the player's house in office gives none of the house's own fleets, and fills only an empty command on an
+  office fleet of the house; no office-holder displaces unasked a commander of a fleet of the player's house.
+- One who comes into the owning house keeps the command; folding a fleet carries the service into one with no admiral and
+  ends it in one with its own; a captain of the commander's house is not given a detachment.
+- A legate does not order the fleet's movements: the owner sails it, the legate commands it in battle and chooses their own
+  style.
+- A general's devoted fleets held by service go over to the general's house when the line is crossed.
+- An office fleet's admiral of a house that no longer holds the office lays the command down.
+
+### What is not built
+
+- No report (event) about a command by service: what happens is told as news, on the Military window and in the outliner.
+- A legate cannot order their fleet to sail or set its stance; only the owner's head can.
+- A legate is paid only the admiral's wage the owner already pays; there is no share of the spoils for the commander's house.
+- The player's own relatives do not seek a command of themselves; the head offers their service. Other houses' do.
+- The Senate has no motion to relieve a commander by service short of a recall.
+- Another house's head is never named legate or lent (only the player's head may serve).
+- Nobody serves in another house's household (the other half of GAPS R1).
+
 ## Flags and counters for content
 `battle_won`, `battle_lost`, `fought_at_the_front`, `hulls_captured`, `became_achilles`, `fleet_deserts`, `out_of_supply`,
 `supply_low`, `fleet_restive`, `fleet_mutinous`, `campaign_declared`, `campaign_open`, `campaign_over`; counters
-`valour:<character>`, `campaigns`, `campaign_until:<house>`.
+`valour:<character>`, `campaigns`, `campaign_until:<house>`. A command by service, for a year after: `service_given`,
+`service_ended`, `service_asked`; counters `service_commands`, `service_commands_others`, `legates_named`, `officers_lent`,
+`commands_sought`, `service_commands_ended`, `service_went_over`, `sought:<character>`,
+`service_refused:<asker>:<character>` (the year the player's head said no, or let the ask lapse).
 
 ## Beyond the Reach
 Expeditions against the foreign nations (docs/FOREIGN_NATIONS.md) fight with this same math: `FleetSystem.PowerOf` for

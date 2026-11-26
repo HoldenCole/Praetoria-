@@ -61,6 +61,11 @@ public static partial class WealthSystem
         }
     }
 
+    /// <summary>Who keeps a standard won: the first commander, unless that one commanded by service, when the spoils stay with the house that owns
+    /// the fleets (docs/MILITARY.md, "A command by service"): a commander of its own, else its head.</summary>
+    private static Character Keeper(World w, House house, IReadOnlyList<Character> admirals) =>
+        ServiceSystem.Held(w, admirals[0]) is null ? admirals[0] : admirals.FirstOrDefault(a => a.HouseId == house.Id) ?? (Economy.HeadOf(w, house) is { Alive: true } head ? head : admirals[0]);
+
     /// <summary>A battle is won, and sometimes whoever commanded brings the other side's standard home. It is theirs: they
     /// took it. A house keeps no more than <see cref="StandardsAHouse"/>; raiders fly nothing worth taking.</summary>
     public static Heirloom? StandardWon(World w, string winnerId, string loserId, string systemId, IReadOnlyList<Character> admirals)
@@ -73,7 +78,9 @@ public static partial class WealthSystem
         if (lost != null)
         {
             // a standard is whoever retook it's; anything else that was the house's goes back to its head
-            var home = lost.Kind == Standard ? admirals[0] : Economy.HeadOf(w, house) is { Alive: true } hd ? hd : admirals[0];
+            // the spoils are the house's that owns the fleets: a standard goes to a commander of its own, or its head when one of another house led by service
+            var keeper = Keeper(w, house, admirals);
+            var home = lost.Kind == Standard ? keeper : Economy.HeadOf(w, house) is { Alive: true } hd ? hd : admirals[0];
             lost.HolderId = home.Id; lost.OfHouseId = winnerId; lost.FromHouseId = ""; lost.Entailed = false; if (lost.Kind == Standard) lost.Name = $"the {Bare(house)} standard, lost and retaken at {where}"; Count(w, RetakenKey);
             LifeSystem.Note(w, admirals[0], "victory", lost.Kind == Standard ? $"Retook the house's standard at {where}." : $"Retook {lost.Name} at {where}.");
             if (winnerId == w.Protagonist?.HouseId) w.Log($"{admirals[0].Name} retakes {lost.Name}.");
@@ -81,11 +88,11 @@ public static partial class WealthSystem
         }
         if (Hash($"{systemId}:{w.Turn}:{winnerId}:{loserId}:standard") / 7 % StandardOneIn != 0) return null;
         if (w.Heirlooms.Count(h => h.Kind == Standard && h.OfHouseId == winnerId) >= StandardsAHouse) return null;
-        var who = admirals[0]; string id = $"standard_{winnerId}_{w.Turn}_{systemId}"; if (w.Heirlooms.Any(h => h.Id == id)) return null;
+        var who = Keeper(w, house, admirals); string id = $"standard_{winnerId}_{w.Turn}_{systemId}"; if (w.Heirlooms.Any(h => h.Id == id)) return null;
         string place = w.Galaxy?.System(systemId)?.Name ?? systemId;
         var item = new Heirloom { Id = id, Name = $"the {Bare(beaten)} standard taken at {place}", Kind = Standard, HolderId = who.Id, OfHouseId = winnerId, FromHouseId = loserId, Value = StandardValue };
         w.Heirlooms.Add(item); Count(w, StandardsKey);
-        LifeSystem.Note(w, who, "victory", $"Took the {Bare(beaten)} standard at {place}.");
+        LifeSystem.Note(w, admirals[0], "victory", $"Took the {Bare(beaten)} standard at {place}.");   // the deed is the commander's, whoever keeps the standard
         if (winnerId == w.Protagonist?.HouseId)
         {
             w.Log($"{who.Name} brings home {item.Name}.");

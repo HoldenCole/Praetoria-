@@ -78,11 +78,12 @@ public sealed class CaesarSystem
         if (c.CareerTrack == "military" && c.CareerRank > 0) yield return ("rank in the service", c.CareerRank * 2);
     }
 
-    /// <summary>The house's foremost commander: one of its own who commands a fleet of its own, by sway.</summary>
+    /// <summary>The house's foremost commander: one of its own who commands a fleet, of its own or another's by service (docs/MILITARY.md,
+    /// "A command by service"), by sway.</summary>
     public static Character? GeneralOf(World w, House? house)
     {
         if (house == null) return null;
-        return w.Fleets.Values.Where(f => f.OwnerId == house.Id && f.AdmiralId.Length > 0).Select(f => w.Char(f.AdmiralId))
+        return w.Fleets.Values.Where(f => f.AdmiralId.Length > 0 && (f.OwnerId == house.Id || ServiceSystem.CommandedBy(w, f, house.Id))).Select(f => w.Char(f.AdmiralId))
             .Where(c => c is { Alive: true } && c.HouseId == house.Id).Select(c => c!).Distinct()
             .OrderByDescending(c => Sway(w, c)).ThenByDescending(c => Laurels(w, c)).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
     }
@@ -262,6 +263,7 @@ public sealed class CaesarSystem
         var recall = w.Recalls.First(r => r.HouseId == house.Id); w.Recalls.Remove(recall);
         var g = w.Char(recall.CharacterId); var mine = w.Protagonist?.HouseId; if (g == null) return;
         g.Flags.Remove(RecalledChar);
+        foreach (var s in w.Service.Where(s => s.CommanderId == g.Id).ToList()) ServiceSystem.End(w, s, "recalled by the Senate");   // the Senate relieves a commander by service too
         foreach (var f in w.Fleets.Values.Where(f => f.AdmiralId == g.Id)) { if (f.Devotion >= DevotedAt) f.Loyalty = Math.Max(0, f.Loyalty - 5); f.AdmiralId = ""; f.DevotedTo = ""; f.Devotion = 0; }
         FleetSystem.RefreshAdmiralFlags(w);
         w.WorldCounters[BarredKey(g.Id)] = w.Turn + BarredYears; g.Stress = Math.Min(100, g.Stress + 10);
@@ -367,6 +369,7 @@ public sealed class CaesarSystem
     public void Cross(World w, House house)
     {
         var g = GeneralOf(w, house)!; var mine = w.Protagonist?.HouseId; var chair = RegionSystem.CapitalHolder(w); string cause = Grievance0(w, house);
+        ServiceSystem.GoOver(w, g, house);   // crews that are a legate's before they are the owner's go with them (docs/MILITARY.md, "A command by service")
         var cw = new CivilWar { GeneralId = g.Id, HouseId = house.Id, Since = w.Turn, StartHulls = FleetSystem.StrengthOf(w, house.Id) };
         w.CivilWar = cw; w.Recalls.RemoveAll(r => r.HouseId == house.Id); g.Flags.Remove(RecalledChar); g.Flags.Add(CaesarChar);
         w.WorldCounters["civil_wars"] = w.Counter("civil_wars") + 1;
@@ -507,7 +510,7 @@ public sealed class CaesarSystem
     public static int DonativeCost(Fleet f) => Math.Max(4, f.Strength * DonativePerHull);
     public string? DonativeRefusal(World w, House? house, Fleet? f)
     {
-        if (house == null || f == null || f.OwnerId != house.Id || f.Office) return "not a fleet of the house";
+        if (house == null || f == null || (f.OwnerId != house.Id || f.Office) && !ServiceSystem.CommandedBy(w, f, house.Id)) return "not a fleet of the house, nor one that one of the house commands by service";
         if (f.AdmiralId.Length == 0) return "it has no commander for the crews to thank";
         if (w.Counter("donative:" + f.Id) == w.Turn + 1) return "they have had one this year";
         return house.Treasury.Credits >= DonativeCost(f) ? null : $"it takes {Money.Credits(DonativeCost(f))}";
@@ -589,7 +592,7 @@ public sealed class CaesarSystem
         // one with the record, the love and the times mostly would: only the loyal by nature, and those who want a quiet life, do not
         bool wants = g.Ambition is "seize_the_throne" or "outshine_all_rivals" || CourtshipSystem.Wilful(g) || (!g.NatureTraits.Contains("Loyal") && g.Ambition != "win_a_great_love");
         int strongest = w.Houses.Values.Where(h => Real(h) && h.Id != house.Id).Select(h => FleetSystem.StrengthOf(w, h.Id)).DefaultIfEmpty(0).Max();
-        return wants && FleetSystem.StrengthOf(w, house.Id) * 5 >= strongest * 2;
+        return wants && ServiceSystem.MarchStrength(w, house, g) * 5 >= strongest * 2;   // the hulls that would go with him, his house's and any whose crews are his by service
     }
 
     /// <summary>If this house crossed today, which houses would declare for its general and which for the Senate.</summary>

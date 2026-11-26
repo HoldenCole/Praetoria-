@@ -303,6 +303,7 @@ public sealed class TurnController
             _crises.Recover(World);       // and with no crisis active, the realm's wounds close (data rules)
         }
 
+        using (Perf.Time("end:service")) { ServiceSystem.Tick(World, _content.Offices); }   // commands by service: what has lapsed ends, and other houses name legates, borrow officers and seek commands (docs/MILITARY.md) — RNG-free
         using (Perf.Time("end:caesar")) { _caesar.Tick(World); }
         using (Perf.Time("end:polities")) { _polities.Tick(World); }   // wars of independence won, lost or still fought; who may break away (docs/BREAKAWAY.md) — RNG-free   // crews and their commanders, recalls answered, the civil war if there is one (docs/CAESAR.md) — RNG-free
         using (Perf.Time("end:ladder")) { LadderSystem.Tick(World, _content.Offices, _content.Policies); }   // seats lapse, magistrates are paid, the house's people put their names down (docs/LADDER.md) — RNG-free

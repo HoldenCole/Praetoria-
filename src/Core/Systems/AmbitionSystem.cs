@@ -137,6 +137,9 @@ public sealed class AmbitionSystem
         {
             case Command:
                 var fleet = w.Fleets[u.RequestArg]; var old = w.Char(fleet.AdmiralId);
+                // a command by service is laid down first, on either side, so its owner is told and the record kept (docs/MILITARY.md, "A command by service")
+                if (ServiceSystem.Of(w, fleet) is { } displaced && displaced.CommanderId != who.Id) ServiceSystem.End(w, displaced, $"relieved by {head.Name}, who gave the command to {who.Name}");
+                ServiceSystem.Leave(w, who, $"{who.Name} was given the command of {fleet.Name}, of {house.Name}");
                 foreach (var other in w.Fleets.Values.Where(x => x.AdmiralId == who.Id)) other.AdmiralId = "";
                 fleet.AdmiralId = who.Id; if (old != null && old.Id != head.Id) Regard(w, old, head, -10);
                 w.Log($"{head.Name} gives {who.Name} the command of {fleet.Name}{(old != null ? $", over {old.Name}" : "")}."); break;
@@ -379,8 +382,9 @@ public sealed class AmbitionSystem
             {
                 case "command_a_fleet": case "earn_a_command":
                 {
-                    var mine = w.Fleets.Values.FirstOrDefault(f => f.OwnerId == house.Id && f.AdmiralId == c.Id);
-                    if (mine != null) { u.Progress = Math.Min(100, u.Progress + 34); u.Note = $"Commands {mine.Name}."; break; }
+                    // a command by service of another house's fleet is a command too (docs/MILITARY.md, "A command by service")
+                    var mine = w.Fleets.Values.Where(f => f.AdmiralId == c.Id && (f.OwnerId == house.Id || ServiceSystem.CommandedBy(w, f, house.Id))).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault();
+                    if (mine != null) { u.Progress = Math.Min(100, u.Progress + 34); u.Note = mine.OwnerId == house.Id ? $"Commands {mine.Name}." : $"Commands {mine.Name}, of {w.House(mine.OwnerId)?.Name ?? mine.OwnerId}, by service."; break; }
                     var fleets = w.Fleets.Values.Where(f => f.OwnerId == house.Id).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
                     u.Progress = Math.Min(60, c.CareerRank * 12 + c.Skill("tactics") * 4);
                     if (fleets.Count == 0) { u.Note = "The house keeps no ships. They look to their own service."; if (mayAsk && canRise) Ask(w, c, Word, ""); break; }

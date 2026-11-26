@@ -217,19 +217,20 @@ public sealed class AssignAdmiralCommand : ICommand
     {
         var w = ctx.World;
         var actor = w.Char(ActorId); var c = w.Char(_characterId);
-        if (actor?.Alive != true || c?.Alive != true) return false;
-        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId || c.HouseId != actor.HouseId) return false;
-        if (f.AdmiralId == _characterId || f.LevyOf.Length > 0) return false;   // (a levy keeps the officer its own house gave it)
-        if (Praetoria.Core.Systems.CaesarSystem.Barred(w, c)) return false;   // the Senate had them lay a command down (docs/CAESAR.md)
-        return ctx.PoolsOf(ActorId).CanAfford(CostMap);
+        return Refusal(ctx) == null;
     }
+    /// <summary>One of another house who already commands a fleet of the house by service (docs/MILITARY.md, "A command by service"): the owner may
+    /// shift their flag to another of its fleets, and the service goes with them.</summary>
+    private static ServiceCommand? Serving(World w, Character c, string houseId) => ServiceSystem.Held(w, c) is { } s && s.OwnerId == houseId ? s : null;
     /// <summary>Why the appointment would be refused, said singly.</summary>
     public string? Refusal(CommandContext ctx)
     {
         var w = ctx.World; var actor = w.Char(ActorId); var c = w.Char(_characterId);
         if (actor?.Alive != true || c?.Alive != true) return "no one to appoint";
-        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId || c.HouseId != actor.HouseId) return "not of your house";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not of your house";
+        if (c.HouseId != actor.HouseId && Serving(w, c, actor.HouseId) == null) return $"{c.Name} is not of your house: one of another house commands a fleet of yours only by service, as a legate or an officer lent";
         if (f.AdmiralId == _characterId) return "already commands it"; if (f.LevyOf.Length > 0) return "a levy keeps the officer its own house gave it";
+        if (c.HouseId != actor.HouseId && (f.Office || !ServiceSystem.Serviceable(f))) return $"{c.Name} serves by service, and may be given only a fleet of the house's own that is in commission";
         if (Praetoria.Core.Systems.CaesarSystem.Barred(w, c)) return "the Senate had them lay a command down";
         return ctx.PoolsOf(ActorId).Short(CostMap);
     }
@@ -239,9 +240,13 @@ public sealed class AssignAdmiralCommand : ICommand
         var w = ctx.World;
         ctx.PoolsOf(ActorId).Spend(CostMap);
         var f = w.Fleets[_fleetId]; var c = w.Char(_characterId)!;
+        if (ServiceSystem.Of(w, f) is { } displaced && displaced.CommanderId != c.Id) ServiceSystem.End(w, displaced, $"relieved by {w.Char(ActorId)?.Name}, who gave the command to {c.Name}");
+        var serving = c.HouseId != w.Char(ActorId)!.HouseId ? Serving(w, c, w.Char(ActorId)!.HouseId) : null;
+        if (serving == null) ServiceSystem.Leave(w, c, $"{c.Name} was given the command of {f.Name}, of {w.House(f.OwnerId)?.Name ?? f.OwnerId}");   // one of the house who commanded another's fleet by service lays it down first
         // one command to a person: whoever had another shifts their flag, and the fleet they leave has no admiral until one is named
         var left = w.Fleets.Values.FirstOrDefault(x => x.Id != _fleetId && x.AdmiralId == _characterId);
         if (left != null) left.AdmiralId = "";
+        if (serving != null) { serving.FleetId = f.Id; serving.FleetName = f.Name; }   // a commander by service shifts their flag between the owner's fleets, and the service goes with them
         // nobody is admiral and captain at once: a captain given a flag leaves the captaincy, of this fleet or another
         var ship = w.Fleets.Values.Where(x => x.CaptainId == c.Id).OrderBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
         foreach (var x in w.Fleets.Values.Where(x => x.CaptainId == c.Id)) x.CaptainId = "";
@@ -268,7 +273,11 @@ public sealed class AppointCaptainCommand : ICommand
     {
         var w = ctx.World; var actor = w.Char(ActorId);
         if (actor?.Alive != true) return "no one to give the order";
-        if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
+        if (!w.Fleets.TryGetValue(_fleetId, out var f)) return "not your fleet";
+        // a legate's own house may give the fleet they command a captain of its own (docs/MILITARY.md, "A command by service")
+        bool served = f.OwnerId != actor.HouseId && ServiceSystem.CommandedBy(w, f, actor.HouseId);
+        if (f.OwnerId != actor.HouseId && !served) return "not your fleet";
+        if (served && w.Char(_characterId) is { } who && who.HouseId != actor.HouseId) return $"{who.Name} is not of your house: the captain you give a fleet commanded by one of yours is one of yours";
         return FleetSystem.CaptainRefusal(w, f, w.Char(_characterId)) ?? ctx.PoolsOf(ActorId).Short(CostMap);
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
@@ -454,6 +463,9 @@ public sealed class DetachHullsCommand : ICommand
             if (_hulls > have) return $"{f.Name} has {Counted.Of(have, name)}, not {_hulls}";
         }
         if (_withCaptain && FleetSystem.CaptainOf(w, f) == null) return "it has no captain to send with them";
+        // a captain of another house came aboard with a commander by service, and serves with them: they are not given a squadron of yours
+        if (_withCaptain && FleetSystem.CaptainOf(w, f) is { } other && other.HouseId != f.OwnerId)
+            return $"{other.Name}, the captain, is of {w.House(other.HouseId)?.Name ?? other.HouseId} and serves with the commander of that house: a detachment goes under a captain of your own house, or under none";
         return null;
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
@@ -635,7 +647,13 @@ public sealed class MergeFleetsCommand : ICommand
         b.Recount();
         b.Readiness = (a.Readiness * a.Strength + b.Readiness * (b.Strength - a.Strength)) / Math.Max(1, b.Strength);
         b.Veterancy = Math.Max(a.Veterancy, b.Veterancy);
+        var served = ServiceSystem.Of(w, a);   // a commander by service of the folded fleet (docs/MILITARY.md, "A command by service")
         if (b.AdmiralId == "" && a.AdmiralId != "") b.AdmiralId = a.AdmiralId;
+        if (served != null)
+        {
+            if (b.AdmiralId == served.CommanderId) { served.FleetId = b.Id; served.FleetName = b.Name; }   // they take the folded hulls into the fleet they now command, and the service goes with them
+            else ServiceSystem.End(w, served, $"{a.Name} was folded into {b.Name}, which has a commander of its own");   // and a captain of their house leaves with them
+        }
         // the receiving fleet keeps its captain too; one that has none takes the other's, unless that officer now has the flag
         if (b.CaptainId == "" && a.CaptainId != "" && a.CaptainId != b.AdmiralId) b.CaptainId = a.CaptainId;
         w.Fleets.Remove(a.Id); w.Intel.Remove(a.Id);

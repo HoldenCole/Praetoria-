@@ -1,0 +1,44 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@* Name a legate (docs/MILITARY.md, "A command by service"): on the Senate window where the offices are, a consul, the Admiral of the Reach or the
+   holder of emergency powers gives a fleet under them to somebody of another house. *@
+@{
+    var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id;
+    var auths = ServiceSystem.Authorities(w, c.Offices, p);
+    var fleets = auths.Count == 0 ? new List<Fleet>() : w.Fleets.Values.Where(f => ServiceSystem.AuthorityOver(w, c.Offices, p, f) != null).OrderByDescending(f => f.Office).ThenByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();
+    var named = w.Service.Where(s => s.NamedById == pid).OrderBy(s => s.FleetId, StringComparer.Ordinal).ToList();
+}
+@if (auths.Count > 0)
+{
+    <section class="panel" data-legate>
+        <h3><Icon Name="fleet" Size="13" /> Name a legate <span class="muted">as @string.Join(" and ", auths.Select(ServiceSystem.AuthorityName))</span></h3>
+        <div class="muted small">A fleet under your office may be given to somebody of any house, who commands it for you: an office fleet, the state's fleet, or one of your house's own. The victories and the crews' regard are the legate's; the fleet stays where it was. The commission ends when you no longer hold the office, and you may relieve them on the Military window. @ServiceSystem.AgentCost agent.</div>
+        @if (fleets.Count == 0) { <div class="muted small" data-legate-none="1">No fleet in commission is under your office now.</div> }
+        @foreach (var f in fleets)
+        {
+            var cands = ServiceSystem.Candidates(w, f, 8); string fid = f.Id; string pick = _pick.GetValueOrDefault(fid, cands.FirstOrDefault()?.Id ?? string.Empty);
+            var name = new NameLegateCommand(pid, fid, pick, c.Offices); string? no = pick.Length == 0 ? "nobody of another house is free to command it" : name.Refusal(G.Ctx);
+            <div class="line small" data-legate-fleet="@fid"><b>@f.Name</b> <span class="muted">@Counted.Hulls(f.Strength) · @(f.Office ? "the Reach's own" : "your house's") · @(FleetSystem.AdmiralOf(w, f)?.Name ?? "no admiral")</span>
+                <select class="sel" data-legate-pick="@fid" @onchange="e => _pick[fid] = e.Value?.ToString() ?? string.Empty">
+                    @foreach (var k in cands) { <option value="@k.Id" selected="@(k.Id == pick)">@k.Name of @(w.House(k.HouseId)?.Name) · tactics @k.Skill("tactics")</option> }
+                </select>
+                <button class="opt inline tiny" data-name-legate="@fid" disabled="@(no != null)" title="@(no ?? NameHelp(f.Name))" @onclick="() => G.Execute(new NameLegateCommand(pid, fid, pick, c.Offices))">Name legate</button>
+                @if (no != null && pick.Length > 0) { <span class="muted"> · @no</span> }</div>
+        }
+        @if (named.Count > 0)
+        {
+            <h4>Your legates</h4>
+            @foreach (var s in named) { <div class="line small" data-legate-named="@s.FleetId">@ServiceSystem.Says(w, s)</div> }
+        }
+    </section>
+}
+
+@code {
+    // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself.
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+    private readonly Dictionary<string, string> _pick = new();
+    private static string NameHelp(string fleet) => $"Name them legate of {fleet}. They command it for you until you no longer hold the office, you relieve them, or they resign.";
+}

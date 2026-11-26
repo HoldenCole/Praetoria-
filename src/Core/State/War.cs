@@ -62,6 +62,9 @@ public sealed class WarYear
     /// <summary>The house bore the keep of its fleets for more than one war this year, and this is its share of it.</summary>
     public bool SharedA { get; set; }
     public bool SharedB { get; set; }
+    /// <summary>People of other houses who commanded each side's fleets by service in a battle of the year (docs/MILITARY.md, "A command by service"): character ids.</summary>
+    public List<string> ServedA { get; set; } = new();
+    public List<string> ServedB { get; set; } = new();
     public bool Empty() => Battles == 0 && Changed.Count == 0 && TakenA + TakenB + CreditsA + CreditsB + FuelA + FuelB == 0;
 }
 
