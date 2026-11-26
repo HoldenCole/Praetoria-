@@ -22,6 +22,67 @@ A house that belongs to one:
 **The forms.** A republic (its head is First Citizen), a republic under one hand (Dictator), a kingdom (King or
 Queen). Today the form is a name and a style. How each is governed is the next stage.
 
+## A house that has broken away is bound only by its own laws
+
+The owner's rule (2026-11-26): "If something breaks away then they're bound by only their laws." A house that has broken
+away is one that belongs to a state: it is no longer of the Reach (`World.OfTheReach` is false), and it is not an outsider
+(the raiders, the nations).
+
+**What binds it: its own laws.** These are the laws whose scope it holds itself: those of a house, a world, a region and
+a post of its council, and the local law of its worlds (docs/POLITICS.md). A state has no laws of its own yet: its head
+cannot set a law for the houses that followed it (docs/GAPS.md, Y11).
+
+**What does not: the law of the Reach.** That is every law of the Reach (the Senate's Acts, and the laws of the chair,
+the throne and the offices) and every edict for the whole Reach (docs/EDICTS.md). None of it falls on the house itself:
+
+- its worlds' ledger lines, unrest, prosperity and growth (the Corn Law, the Land Law, the Levy of the Reach, the tolls);
+- what it pays on the exchanges (the Trade Charter, the rates of exchange);
+- what its fleets cost to keep and how fast their crews make ready (the Law of Service);
+- what its estates think of it: the law of the Reach counts for nothing there, and the estates' card says so;
+- the standing a position of the Reach would give it every fifth year (the throne's proscriptions);
+- the Senate's answer to an estate's petition: an estate petitions for what it thinks in the houses of the Reach, and only
+  their estates and worlds feel the answer. The estates' card counts the houses of the Reach where an estate is hostile.
+
+What the player is told an Act would do to such a house says only what still reaches it, or that nothing does. What still
+reaches it is what falls on the regions where its worlds lie, and what comes to it through a party of the Reach: the staple
+laid or lifted, a cap on usury for the banks of the Reach that would lend to it, and a ban that calls home a company hired
+into its line from a house of the Reach. The Laws window says that the law of the Reach binds the houses of the Reach, and
+not the player's.
+
+**A rule between two parties binds the party that is of the Reach, and only that one.**
+
+| Law | It binds | So |
+|---|---|---|
+| The Usury Law | the lender, where it is of the Reach | A house that has broken away lends at any rate it likes. A house of the Reach may not lend to it above the cap. The counting-houses lend on the borrower's own worlds, so they keep to the cap for a house of the Reach and not for one that has broken away, whose standing loan is not cut |
+| The Navigation Act, its levy | the seller, where it is of the Reach | A house that has broken away pays no levy on what it sells. A house of the Reach that sells to it pays the chair as before |
+| The Navigation Act, its staple | either party that is of the Reach | No house of the Reach deals with a house that has broken away out of its store. Two that have broken away deal as they please |
+| The Law against Forestalling | the holder of a corner, where it is of the Reach | A corner held by a house that has broken away is neither capped nor broken up |
+| The Law of Hired Companies | the house that hires its fleet out, where it is of the Reach | A house that has broken away hires a fleet out under a ban and pays no licence. No licence covers it, so it loses the full 3 legitimacy for it. A company it hired from a house of the Reach comes home under a ban |
+
+Edicts already followed this rule, and still do (docs/EDICTS.md). A house of the Reach leans on an Act in the Senate only
+for what the Act would do: a corner held by a house that has broken away, or a company hired from one, gives it no cause
+for the Law against Forestalling or the Law of Hired Companies.
+
+**What stays the Reach's own.** What belongs to the Reach's own places and institutions still binds a house that has
+broken away when it uses them:
+
+- the exchanges' licence on a good: weapons-grade isotopes are sold on no open market, to anyone, until the Senate
+  licenses them, and so no house buys a corner in them there;
+- the Exchange's levy on shares, paid by whoever trades there;
+- the Senate's own procedure: such a house has no seat there, and moves nothing;
+- the Reach's offices and elections (the Law of the Years, the Law on Canvassing): a person of such a house stands for none
+  of them;
+- where a region's allegiance and lawlessness settle: a region is a place, not a house.
+
+**How it is built.** `PolicySystem.ReachModifierFor` is the law of the Reach as it falls on one house, and is nothing for
+a house that is not of the Reach. `Economy`, `MarketSystem.Tariff` and `FleetSystem` read it. `PolicySystem.LawOpinion` and
+`ReachLegitimacy` leave such a house out. The rules between two parties are in `SenateActs`: `LoanCap(w, lender, borrower)`,
+`LendRefusal(w, lender, rate)`, `StandingLoan(w, f, borrower)`, `StapleBetween`, `LevyOn`, `CornerCap(w, holder)`,
+`CornersBroken(w, holder)`, `CompaniesForbidden(w, hirer)` and `CompanyFee(w, hirer)`; `SenateActs.Interest` weighs them
+the same way. `SenateActs.ToHouse` and the estates' card say what reaches the house. `SenateSystem.Petition` and the
+chamber's answer count the houses of the Reach. The raiders and the nations, which the fleets' rule already left out, are
+now left out wherever a house is named. Tested in `tests/BreakawayLawTests.cs` (17).
+
 ## Taking a region out
 
 On the Senate screen, under **Your standing**, the panel **Breaking away** lists each region the house holds a world
@@ -367,6 +428,8 @@ This is the first stage of a large piece. What it leaves is in docs/GAPS.md (B1 
 - **A state's border.** It has no meaning for trade, lanes or the
   Exchange.
 - **A state's own dealings.** It makes no trade treaty or alliance, sends no envoys, and does not make war as a state.
+- **A state's own laws.** It has none: its houses are bound by their own laws only, and its head cannot set one for them
+  (docs/GAPS.md, Y11).
 - **A state does not make war as a state** to take a region: it grows only by houses coming over.
 - **A free state cannot join a larger one**, and nobody courts it (docs/GAPS.md B16).
 - Standing alone does not weigh food, manpower or the goods of the market. A marriage binds a house only if it already exists: one cannot be offered as the price. That one waits on the forms of government, and is the owner's to decide (B13).

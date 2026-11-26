@@ -33,8 +33,9 @@ There is no ladder under a throne, so there are no praetor's or aedile's edicts 
 - **While it lasts**, its effects are the modifier keys laws use, read by the same rules. A house's own edicts reach every rule
   that reads its laws through one line in `PolicySystem.For`; a Reach-wide edict reaches every rule that reads the Reach's laws
   through one line in `PolicySystem.ReachModifier`. What it does while it lasts falls only on the houses of the Reach:
-  `Economy` takes it back out of the law of the Reach on a house that has broken away, and so does `MarketSystem` for what such
-  a house pays the exchanges, as the part done at once leaves that house out. What is read with no house named (the four effects
+  `Economy`, and `MarketSystem` for what a house pays the exchanges, read the law of the Reach through
+  `PolicySystem.ReachModifierFor`, which is nothing for a house that has broken away, as the part done at once leaves that
+  house out. What is read with no house named (the four effects
   below) still reaches a house that has broken away. Four effects are the edicts' own and are read only from edicts in force:
   `debts_stayed` (the moratorium: `DealingsSystem.Due` and `Paid`, `Lending.InstalmentOf`, the bank's interest in the ledger,
   pressing a loan, and foreclosure), `court_proof` (added to the forty in a hundred in `LadderSystem.Verdict`, which the
@@ -214,8 +215,8 @@ Every number here is mine.
 
 - **The head of a breakaway state** (a king, president or dictator, docs/BREAKAWAY.md) has no edicts for the houses of that state:
   "for the Reach" means the Reach. A state's head decrees on their own house's worlds like any head. The Senate's Acts and the
-  chair's laws are not held to the same rule: they still fall on a house that has broken away, and whether they should is a
-  question for the owner.
+  chair's laws now follow the same rule, on the owner's word (docs/BREAKAWAY.md, "A house that has broken away is bound only
+  by its own laws").
 - **Credit drying up.** Under a moratorium the banks and the counting-houses still lend; only what falls due waits.
 - **Edicts that name a region or a world.** Every edict falls on all of the house's worlds or all of the Reach.
 - **The magistrates of the ladder below the praetor and aedile** (the quaestors) have no edicts.

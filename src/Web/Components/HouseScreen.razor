@@ -330,7 +330,7 @@
                         string lid = lt.LenderId; int room = Lending.Room(w, house, lt);
                         int amt = Math.Clamp(_borrow.GetValueOrDefault(lid, Math.Min(room, fin.LoanPrincipal)) / Lending.Step * Lending.Step, Math.Min(Lending.Step, room), Math.Max(Lending.Step, room));
                         var take = new TakeLoanCommand(pid, c.Businesses, lid, amt); var takeNo = take.Refusal(G.Ctx);
-                        int owedNew = Lending.Owed(w, amt, lt.RatePct), owedAll = (house.LenderId == lid ? house.Debt : 0) + owedNew, instNew = Lending.Instalment(fin, owedAll);
+                        int owedNew = Lending.Owed(w, amt, lt.RatePct, lid, house.Id), owedAll = (house.LenderId == lid ? house.Debt : 0) + owedNew, instNew = Lending.Instalment(fin, owedAll);
                         <div class="lender @(lt.Refusal != null ? "off" : "")" data-lender="@(lid.Length == 0 ? "counting-houses" : lid)" title="@lt.Why">
                             <div class="lender-top"><b>@Cap(lt.Lender)</b> <span class="muted small">up to @Money.Show(lt.Limit) credits · @lt.RatePct in the hundred@(house.LenderId == lid && house.Debt > 0 ? $" · you owe it {Money.Show(house.Debt)}, so {Money.Show(room)} more" : "")</span></div>
                             @if (lt.Refusal != null) { <div class="small warn">@Cap(lt.Refusal).</div> }

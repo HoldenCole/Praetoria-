@@ -359,6 +359,7 @@ two thirds, from magistrates loyal everywhere. Left as it is, for the owner (bel
 1. **The estates and the Reach's law** (Y2): half, and at most 15. Is a house rightly judged so little by the law of the
    whole Reach?
 2. **A house that broke away** (Y1): a Reach-wide edict no longer falls on it, but the Senate's Acts and the chair's laws
-   still do. Should a breakaway state be free of the Senate's law?
+   still do. Should a breakaway state be free of the Senate's law? **Answered 2026-11-26:** "If something breaks away then
+   they're bound by only their laws." Built: docs/BREAKAWAY.md, "A house that has broken away is bound only by its own laws".
 3. **Money** rises about a fifth at every setting with the three in force (the table above). Pull it back, or leave it?
 4. What the three leave thin is in the register as Y1 to Y10 (docs/GAPS.md, "Laws").

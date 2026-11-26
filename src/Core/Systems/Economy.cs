@@ -55,9 +55,9 @@ public sealed class Economy
     private PolicySystem.HouseLaw? _law; private string _lawHouse = "";
     private int Law(World w, string houseId, string key, string? regionId = null) =>
         _law != null && _lawHouse == houseId ? _law.Get(key, regionId) : PolicySystem.Modifier(w, Policies, houseId, key, regionId);
-    /// <summary>The law of the Reach on a house: a Reach-wide edict falls only on the houses of the Reach, not on one that has broken away
-    /// (docs/EDICTS.md).</summary>
-    private int ReachLaw(World w, string key, string houseId) => PolicySystem.ReachModifier(w, Policies, key) - (w.OfTheReach(houseId) ? 0 : EdictSystem.Reach(w, key));
+    /// <summary>The law of the Reach on a house: it falls only on the houses of the Reach, laws and Reach-wide edicts alike, and not on one
+    /// that has broken away (docs/BREAKAWAY.md, docs/EDICTS.md).</summary>
+    private int ReachLaw(World w, string key, string houseId) => PolicySystem.ReachModifierFor(w, Policies, key, houseId);
     public BusinessCatalog Ventures => _ventures;
 
     /// <summary>What a house's domain will net next turn — the same arithmetic accrual applies, as the resource strip's deltas.

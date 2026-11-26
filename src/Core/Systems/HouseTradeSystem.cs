@@ -133,7 +133,7 @@ public sealed class HouseTradeSystem
     /// a head who thinks very ill of the asker.</summary>
     public static string? WontTrade(World w, House mine, House theirs)
     {
-        if (SenateActs.StapleInForce(w)) return $"{SenateActs.LawName(w, SenateActs.TradeBan)} forbids it: while the staple stands, goods are bought and sold on the exchanges and no house deals with another out of its store";
+        if (SenateActs.StapleBetween(w, mine.Id, theirs.Id)) return $"{SenateActs.LawName(w, SenateActs.TradeBan)} forbids it: while the staple stands, goods are bought and sold on the exchanges and no house of the Reach deals with another house out of its store";
         if (w.AtWar(mine.Id, theirs.Id)) return "you are at war with them";
         if (FeudSystem.Between(w, mine.Id, theirs.Id)) return "there is blood between your houses, and nothing is bought or sold across it";
         if (SenateSystem.Embargoed(w, mine.Id)) return "the Senate's embargo is on your house: no house of the Reach buys of it or sells to it until it lifts";
@@ -143,7 +143,7 @@ public sealed class HouseTradeSystem
     }
     /// <summary>The same between any two houses, as a yes or no: and neither has broken a deal with the other of late.</summary>
     public static bool Trades(World w, House a, House b) =>
-        !SenateActs.StapleInForce(w) && !w.AtWar(a.Id, b.Id) && !FeudSystem.Between(w, a.Id, b.Id) && !SenateSystem.Embargoed(w, a.Id) && !SenateSystem.Embargoed(w, b.Id)
+        !SenateActs.StapleBetween(w, a.Id, b.Id) && !w.AtWar(a.Id, b.Id) && !FeudSystem.Between(w, a.Id, b.Id) && !SenateSystem.Embargoed(w, a.Id) && !SenateSystem.Embargoed(w, b.Id)
         && DealingsSystem.RegardOf(w, a, b) > RefuseAt && DealingsSystem.RegardOf(w, b, a) > RefuseAt && Fault(w, a.Id, b.Id) == null && Fault(w, b.Id, a.Id) == null;
 
     /// <summary>What regard does to a price, in parts in the hundred: a point dearer for every point of dislike, forty at
@@ -203,8 +203,9 @@ public sealed class HouseTradeSystem
             + (Closed(w, good) ? $" The law keeps {Resource.Label(good)} off the exchanges, and a private sale is {ClosedPct} in the hundred dearer for it." : "")
             + (selling ? $" Its head thinks {Signed(regard)} of you{(held ? "" : moved)}." : $" It pays {PaysUnderPct} in the hundred under the market; its head thinks {Signed(regard)} of you{moved}.")
             + (cap is { } c ? $" Under {EdictSystem.Lower(c.edict.Name)} no house may sell {Resource.Label(good)} above {Unit(c.ceiling)} a unit{(held ? ", and that is what it may ask of you" : "")}." : "")
-            + (SenateActs.TradeLevy(w) is > 0 and var levy   // as LevyOn takes it: nothing of the chair's own sale, and nothing while no house holds the capital
+            + (SenateActs.TradeLevy(w) is > 0 and var levy   // as LevyOn takes it: nothing of the chair's own sale, nothing while no house holds the capital, and nothing of a seller that has broken away
                 ? (RegionSystem.CapitalHolder(w) is not { } chair ? $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} no levy is taken while no house holds the capital."
+                    : (selling ? theirs : mine) is var seller && !w.OfTheReach(seller.Id) ? $" {(seller.Id == mine.Id ? "Your house" : seller.Name)} has broken away from the Reach, and pays no levy on what it sells."
                     : chair.Id == (selling ? theirs : mine).Id ? $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} {(chair.Id == mine.Id ? "your house" : chair.Name)}, as the chair, pays no levy on what it sells."
                     : $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} the chair takes {levy} in the hundred of the sale, out of what the seller is paid.")
                 : "");
