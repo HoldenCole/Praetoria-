@@ -23,7 +23,8 @@ public static class HeadSystem
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
     private static bool Of(Character c, House h) => c.Alive && c.HouseId == h.Id;
 
-    /// <summary>The eldest grown person of the house; a child only when it has no grown person left. Ties go to the lower id.</summary>
+    /// <summary>The eldest grown person of the house; a child only when it has no grown person left. Ties go to the lower id. One its
+    /// head struck from the line (docs/HOUSEHOLD.md) leads only when nobody else is left.</summary>
     public static Character? Eldest(World w, House h)
     {
         Character? best = null;
@@ -31,6 +32,8 @@ public static class HeadSystem
         {
             if (!Of(c, h)) continue;
             if (best == null) { best = c; continue; }
+            bool struck = DisownSystem.IsStruck(c), bestStruck = DisownSystem.IsStruck(best);
+            if (struck != bestStruck) { if (!struck) best = c; continue; }
             bool grown = c.Age >= DynastySystem.AgeOfMajority, bestGrown = best.Age >= DynastySystem.AgeOfMajority;
             if (grown != bestGrown) { if (grown) best = c; continue; }
             if (c.Age > best.Age || (c.Age == best.Age && string.CompareOrdinal(c.Id, best.Id) < 0)) best = c;
@@ -58,7 +61,7 @@ public static class HeadSystem
         Character? best = null; string? why = null;
         foreach (var c in w.Characters.Values)
         {
-            if (!Of(c, h)) continue;
+            if (!Of(c, h) || DisownSystem.IsStruck(c)) continue;
             var cause = Cause(head, c); if (cause == null) continue;
             if (best == null || c.CareerRank > best.CareerRank || (c.CareerRank == best.CareerRank && (c.Age > best.Age || (c.Age == best.Age && string.CompareOrdinal(c.Id, best.Id) < 0)))) { best = c; why = cause; }
         }

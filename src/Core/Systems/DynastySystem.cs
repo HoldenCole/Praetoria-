@@ -505,6 +505,7 @@ public sealed class DynastySystem
         world.Log(previous is { Alive: true }
             ? $"{previous.Name} yields the seat; {heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}."
             : $"{heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}.");
+        DisownSystem.SeatPassed(world, previous, heir);   // a child struck out with no cause may sue that the will was undutiful (docs/HOUSEHOLD.md)
     }
 
     /// <summary>The successor to a head (GDD §14): the first of <see cref="Line"/>.</summary>
@@ -528,8 +529,9 @@ public sealed class DynastySystem
             "merit" => members.OrderByDescending(c => c.Age >= AgeOfMajority).ThenByDescending(c => c.Skills.Values.Sum() + c.CareerRank * 2).ThenByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal),
             _ => members.OrderByDescending(c => IsChildOf(c, deceased)).ThenByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal)
         };
-        var line = Order(all.Where(c => !Outside(c))).Concat(Order(all.Where(Outside))).ToList();
-        if (house is { NamedHeirId.Length: > 0 } && world.Char(house.NamedHeirId) is { Alive: true } chosen && chosen.HouseId == deceased.HouseId && chosen.Id != deceased.Id) { line.Remove(chosen); line.Insert(0, chosen); }
+        // one struck from the line (docs/HOUSEHOLD.md, "Struck from the line") stands after everyone else, and has the house only when nobody else is left
+        var line = Order(all.Where(c => !Outside(c) && !DisownSystem.IsStruck(c))).Concat(Order(all.Where(c => Outside(c) && !DisownSystem.IsStruck(c)))).Concat(Order(all.Where(DisownSystem.IsStruck))).ToList();
+        if (house is { NamedHeirId.Length: > 0 } && world.Char(house.NamedHeirId) is { Alive: true } chosen && chosen.HouseId == deceased.HouseId && chosen.Id != deceased.Id && !DisownSystem.IsStruck(chosen)) { line.Remove(chosen); line.Insert(0, chosen); }
         return line;
     }
     /// <summary>Why the first of the line stands first, in a few words, for the screens.</summary>

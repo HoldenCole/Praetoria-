@@ -17,6 +17,7 @@ using Praetoria.Tools;
 //   throne    [--scenario id|all] [--seeds N]                    how a throne is held: the hold, pretenders, and how often it changes houses
 //   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
+//   disown    [--scenario id] [--seeds N]                        who other houses strike from their lines or cast out, and why (DISOWN_PLAYER=1: the head strikes a child out)
 // The whole simulation runs here without Godot — the Milestone-1 rule.
 
 var (command, opts) = ParseArgs(args);
@@ -53,6 +54,7 @@ try
         "caesar"   => Probes.Caesar(opts),
         "locallaws" => LocalLawsProbe.Run(opts),
         "throne"   => Probes.Throne(opts),
+        "disown"   => DisownProbe.Run(opts),
         _ => Unknown(command)
     };
 }

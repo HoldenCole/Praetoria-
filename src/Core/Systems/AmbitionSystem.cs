@@ -159,6 +159,7 @@ public sealed class AmbitionSystem
         if (head?.Alive != true || w.House(head.HouseId) is not { } house) return "no house";
         if (who == null) return house.NamedHeirId.Length > 0 ? null : "nobody is named";
         if (!who.Alive || who.HouseId != house.Id || who.Id == head.Id) return "not someone of your house";
+        if (DisownSystem.IsStruck(who)) return $"{who.Name} is struck from the line: restore them to it first";
         return house.NamedHeirId == who.Id ? "already named" : null;
     }
 

@@ -211,6 +211,9 @@ public sealed class World
     public List<TradeDeal> TradeDeals { get; set; } = new();
     /// <summary>Blood owed between houses, standing and ended (docs/FEUD.md).</summary>
     public List<BloodFeud> Feuds { get; set; } = new();
+    /// <summary>Those struck from a house's line or cast out of it, and the suits of the undutiful will (docs/HOUSEHOLD.md).</summary>
+    public List<Disowning> Disownings { get; set; } = new();
+    public List<WillSuit> WillSuits { get; set; } = new();
     /// <summary>Courtships under way and suits not yet answered (docs/MARRIAGE.md).</summary>
     public List<Courtship> Courtships { get; set; } = new();
     /// <summary>Every marriage, with its terms and its warmth (docs/MARRIAGE.md).</summary>

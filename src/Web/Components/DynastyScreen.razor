@@ -3,6 +3,7 @@
     var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
     var kin = w.Characters.Values.Where(x => x.HouseId == house.Id && !Praetoria.Core.Systems.HouseholdSystem.IsFound(x)).ToList();   // the blood; those taken in are on the House screen
     var heirs = DynastySystem.Line(w, p);   // the one line of succession, as the succession itself reckons it (docs/PLAYTHROUGH.md 5)
+    var struckOut = DisownSystem.Of(w, house.Id, DisownSystem.Struck); var castOuts = DisownSystem.Of(w, house.Id, DisownSystem.CastOut);   // docs/HOUSEHOLD.md, "Struck from the line"
     int generation = w.Counter("generation") + 1;
     int living = kin.Count(k => k.Alive), dead = kin.Count - living, children = kin.Count(k => k.Alive && k.Age < 16);
     var tree = Tree(w, p, house, kin);
@@ -101,6 +102,19 @@
                             @if (fc.Skills.Any(k => k.Value > 0)) { <div class="muted small">@string.Join(" · ", fc.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).Take(4).Select(k => $"{k.Key} {k.Value}"))</div> }
                             @if (fc.Flags.Any(f => !f.StartsWith("background:"))) { <div class="sc-flags">@foreach (var f in fc.Flags.Where(f => !f.StartsWith("background:")).OrderBy(f => f, StringComparer.Ordinal)) { <span class="pill small" title="@Marks.Tip(f)">@Marks.Label(f)</span> }</div> }
                             @if (hl != null && hl.Actions.Count > 0) { <div class="sc-actions">@foreach (var o in hl.Actions) { if (o.Id == "defiant") { <span class="pill warn">defiant</span> } else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? HouseholdWords.Tip(o.Id))" @onclick="() => G.Execute(Household(o.Id, hl.Id))">@o.Label</button> } }</div> }
+                            @if (fc.Id != pid && fc.Alive && (fh.Id == house.Id ? fc.Age >= DynastySystem.AgeOfMajority : DisownSystem.Standing(w, fc, DisownSystem.CastOut)?.HouseId == house.Id))
+                            {
+                                var fid = fc.Id; bool struck = DisownSystem.IsStruck(fc); bool castOut = fh.Id != house.Id;
+                                var noStrike = new DisownCommand(pid, struck ? DisownCommand.Restore : DisownCommand.Strike, fid).Refusal(G.Ctx);
+                                var noCast = new DisownCommand(pid, castOut ? DisownCommand.TakeBack : DisownCommand.CastOut, fid).Refusal(G.Ctx);
+                                string strikeTip = noStrike ?? (struck ? DisownSystem.RestoreSays(w, fc) : DisownSystem.StrikeSays(w, fc));
+                                string castTip = noCast ?? (castOut ? DisownSystem.TakeBackSays(w, fc) : DisownSystem.CastOutSays(w, fc));
+                                string strikeLabel = struck ? "Restore to the line" : "Strike from the line"; string castLabel = castOut ? "Take back" : "Cast out";
+                                <div class="sc-actions" data-disown="@fid">
+                                    @if (!castOut) { <button class="opt inline tiny" data-strike="@fid" disabled="@(noStrike != null)" title="@strikeTip" @onclick="() => AskStrike(fid, struck)">@strikeLabel</button> }
+                                    <button class="opt inline tiny" data-cast-out="@fid" disabled="@(noCast != null)" title="@castTip" @onclick="() => AskCast(fid, castOut)">@castLabel</button>
+                                </div>
+                            }
                         </div>
                         <button class="win-close" @onclick="() => _focus = null">✕</button>
                     </div>
@@ -120,7 +134,16 @@
                         <span class="rank">@rank</span>
                         <Portrait Id="@h.Id" Name="@h.Name" Sex="@h.Sex" Age="@h.Age" Accent="@house.AccentColor" Size="28" />
                         <span><b>@h.Name</b> <span class="muted">@h.Age · @(Kinship.Of(w, p, h) is { Length: > 0 } hk ? hk : "kin")@(h.CareerTrack.Length > 0 ? $" · {c.Careers.RankName(h.CareerTrack, h.CareerRank, G.World!.Era)}" : "")</span></span>
+                        @if (DisownSystem.IsStruck(h)) { <span class="pill small warn" title="@Marks.Tip(DisownSystem.StruckChar)">struck out</span> }
                     </div>
+                }
+                @if (struckOut.Count > 0)
+                {
+                    <div class="muted small" data-struck-list="1">Struck from the line: @foreach (var d in struckOut) { string did = d.PersonId; string by = d.Cause.Length > 0 ? "they " + d.Cause : "no cause given"; <span class="line" title="@by" @onclick="() => _focus = did">@d.PersonName, year @d.Turn. </span> }</div>
+                }
+                @if (castOuts.Count > 0)
+                {
+                    <div class="muted small" data-cast-list="1">Cast out: @foreach (var d in castOuts) { string did = d.PersonId; string now = w.House(w.Char(did)?.HouseId ?? string.Empty)?.Name ?? string.Empty; <span class="line" @onclick="() => _focus = did">@d.PersonName, year @d.Turn, now of @now. </span> }</div>
                 }
                 <div class="muted small">By @house.SuccessionLaw.Replace('_', ' '). The law is set in the Senate.</div>
             </section>
@@ -234,6 +257,18 @@
             links.Add(new Link(px, py + 24, me.x, me.y - 24));
         }
         return (nodes, links, spouses, rowCount);
+    }
+    private void AskStrike(string id, bool restore)
+    {
+        var w = G.World!; var who = w.Char(id); if (who == null) return; string me = w.ProtagonistId;
+        if (restore) G.Ask("Restore " + who.Name + " to the line?", DisownSystem.RestoreSays(w, who), "Restore them", () => G.Execute(new DisownCommand(me, DisownCommand.Restore, id)), "Leave it");
+        else G.Ask("Strike " + who.Name + " from the line?", DisownSystem.StrikeSays(w, who), "Strike them out", () => G.Execute(new DisownCommand(me, DisownCommand.Strike, id)), "Leave it");
+    }
+    private void AskCast(string id, bool back)
+    {
+        var w = G.World!; var who = w.Char(id); if (who == null) return; string me = w.ProtagonistId;
+        if (back) G.Ask("Take " + who.Name + " back into the house?", DisownSystem.TakeBackSays(w, who), "Take them back", () => G.Execute(new DisownCommand(me, DisownCommand.TakeBack, id)), "Leave it");
+        else G.Ask("Cast " + who.Name + " out of the house?", DisownSystem.CastOutSays(w, who), "Cast them out", () => G.Execute(new DisownCommand(me, DisownCommand.CastOut, id)), "Leave it");
     }
     private ICommand Household(string optionId, string childId) => optionId == "recall" ? new RecallCommand(G.World!.ProtagonistId, childId) : new FosterCommand(G.World!.ProtagonistId, childId);
 }

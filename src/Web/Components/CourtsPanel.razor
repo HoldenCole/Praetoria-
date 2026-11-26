@@ -13,6 +13,7 @@
     var pleaders = w.LivingCharacters().Where(x => x.HouseId == house.Id && x.Age >= DynastySystem.AgeOfMajority).OrderByDescending(LadderSystem.Craft).ThenBy(x => x.Id, StringComparer.Ordinal).Take(4).ToList();
     string Nature(Character j) => LadderSystem.NatureOf(j);
     var docket = Docket.Of(w, offices, house.Id);
+    var willsDecided = active ? DisownSystem.DecidedOn(w, house.Id) : new List<WillSuit>();   // the suits of the undutiful will lately decided (docs/HOUSEHOLD.md)
     var quarrels = active ? w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && Economy.HeadOf(w, h) != null && LadderSystem.Heat(w, house, h) >= LadderSystem.QuarrelHeat)
         .OrderByDescending(h => LadderSystem.Heat(w, house, h)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList() : new List<House>();
     int moreQuarrels = Math.Max(0, quarrels.Count - 3);
@@ -47,6 +48,27 @@
                 </div>
             </div>
         }
+        else if (e.Kind == Docket.Will)
+        {
+            var ws = w.WillSuits.First(x => x.Id == eid); string child = w.Char(ws.PlaintiffId)?.Name ?? string.Empty;
+            var noTerms = new WillSuitCommand(pid, WillSuitCommand.Settle, eid).Refusal(G.Ctx);
+            string termsTip = noTerms ?? "Pay " + child + " what the suit asks now, and it is withdrawn. " + DisownSystem.AsksSays(w, ws) + " The striking stands.";
+            string termsLabel = "Come to terms · " + Money.Show(ws.Share);
+            string answers = e.Pleader.Length > 0 ? e.Pleader + " is to answer it." : string.Empty;
+            string winSays = "If the praetor finds the will undutiful, " + child + " takes what the suit asks and stands in the line again.";
+            <div class="suit court-suit warn" data-undutiful-will="@eid" data-kind="@e.Kind">
+                <b>@e.Title</b> <span class="muted">@e.Over · heard @e.Heard by @e.Judge@(e.JudgeIs.Length > 0 ? ", who is " + e.JudgeIs : string.Empty)</span>
+                <div class="small">@e.Law @winSays @answers</div>
+                <div class="suit-acts">
+                    <button class="opt inline tiny" data-will-terms="@eid" disabled="@(noTerms != null)" title="@termsTip" @onclick="() => G.Execute(new WillSuitCommand(pid, WillSuitCommand.Settle, eid))">@termsLabel</button>
+                    @foreach (var a in pleaders)
+                    {
+                        string aid = a.Id; var noAnswer = new WillSuitCommand(pid, WillSuitCommand.Plead, eid, aid).Refusal(G.Ctx); string answerTip = noAnswer ?? DisownSystem.PleadSays(w, ws, a);
+                        <button class="opt inline tiny" data-will-plead="@aid" disabled="@(noAnswer != null)" title="@answerTip" @onclick="() => G.Execute(new WillSuitCommand(pid, WillSuitCommand.Plead, eid, aid))">Send @a.Name to answer · @LadderSystem.PleadInfluence influence</button>
+                    }
+                </div>
+            </div>
+        }
         else
         {
             var s = w.OfficeWork.First(x => x.Id == eid); var other = w.House(e.OtherId); string otherName = other?.Name ?? string.Empty; bool forUs = e.Good; int stake = e.Sum;
@@ -72,6 +94,12 @@
                 </div>
             </div>
         }
+    }
+
+    @foreach (var ws in willsDecided)
+    {
+        string wtone = ws.Outcome == DisownSystem.Undutiful ? "warn" : "good";
+        <div class="suit court-ruling @wtone" data-undutiful-will="@ws.Id" data-decided="@ws.Outcome">Year @ws.DecidedTurn: <b>the suit over the will of @ws.DeceasedName</b> <span class="muted">@ws.How</span></div>
     }
 
     <div class="hh-head" data-bring="1"><b>Bring a suit</b> <span class="muted small">Against a house you have a quarrel with, on a ground the record gives you. It costs a fee and @LadderSystem.BringClout clout, its head thinks the worse of you, and the loser pays what turns on it. Once a year. You have @house.Treasury.Influence clout.</span></div>
