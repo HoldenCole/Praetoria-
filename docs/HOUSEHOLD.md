@@ -230,14 +230,20 @@ What is built (`HeadSystem`, `House.HeadId`):
 
 - **A challenge with a reason is made in about one year in four.** When there is more than one who could, the highest in rank does, then the elder.
 - **The one who stood aside lives on in the house** and does not take it back.
-- **You are told** when it happens in a house you have had dealings with, or whose head had a view of you. The new head starts with half of what the old one thought of you, when they had no view of their own.
+- **You are told** when it happens in a house you have had dealings with, or whose head had a view of you, and told what the
+  new head thinks of you now. The new head takes up the old one's friends and enemies, you among them (docs/LIFE.md,
+  "Friends and enemies handed down"): 20 the better of you if the old head thought well of you, 20 the worse if ill, both
+  fading over ten years; a vengeful one is your enemy at once, a just or loyal one lets it go, and a child takes on no
+  friendship. This replaced, on 2026-11-26, the rule that the new head started with half of what the old one thought of
+  you when they had no view of their own.
 - Your own house is not touched: you are its head.
 
 Measured over thirty years of one game: 3 heads stood aside across all the houses. The rest changed only by death.
 
 ### What I chose
 
-- The ages 65 and 78, the health of 35, the lead of 2 ranks, one year in four, and the half of the old head's regard that passes on.
+- The ages 65 and 78, the health of 35, the lead of 2 ranks, and one year in four. (The half of the old head's regard that
+  passed on is gone: what passes now is chosen in docs/LIFE.md, "Friends and enemies handed down".)
 - That the highest in rank is the one who challenges, since "more qualified" has to mean something a player can see.
 
 ### What is not built (tabled by the owner)

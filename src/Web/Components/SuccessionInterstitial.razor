@@ -7,6 +7,10 @@
     string oldRank = old != null ? c.Careers.RankName(old.CareerTrack, old.CareerRank, G.World!.Era) ?? "" : "";
     var lines = w.History.Where(h => h.Turn >= r.Turn - 1 && h.Turn <= r.Turn && (r.DeceasedName.Length > 0 && h.Text.Contains(r.DeceasedName) || h.Text.Contains("regent") || h.Text.Contains("succeeds"))).Select(h => h.Text).Distinct().Take(4).ToList();
     var regent = heir != null && heir.Age < DynastySystem.AgeOfMajority ? w.LivingCharacters().Where(x => x.HouseId == heir.HouseId && x.Id != heir.Id && x.Age >= DynastySystem.AgeOfMajority).OrderByDescending(x => x.Age).FirstOrDefault() : null;
+    /* the old head's friends and enemies, as they came down to the heir (docs/LIFE.md, "Friends and enemies handed down") */
+    var ties = heir != null ? w.InheritedTies.Where(t => t.HeirId == heir.Id && t.ToId == heir.Id && t.Turn == r.Turn).ToList() : new List<InheritedTie>();
+    var handed = heir != null && old != null && ties.Count > 0 ? InheritedRegard.Summary(w, old, heir, ties) : (FriendsTitle: string.Empty, Friends: string.Empty, EnemiesTitle: string.Empty, Enemies: string.Empty);
+    int friendsN = ties.Count(t => t.Kind is InheritedRegard.Friend or InheritedRegard.Unseen), enemiesN = ties.Count(t => t.Kind is InheritedRegard.Enemy or InheritedRegard.Vengeful or InheritedRegard.LetGo);
 }
 <div class="overlay">
     <div class="epilogue succession wide" style="--accent:@accent">
@@ -35,6 +39,8 @@
             @if (heir != null && (heir.NatureTraits.Count > 0 || heir.Ambition.Length > 0)) { <div><span class="muted">Who they are</span><b>@string.Join(" · ", heir.NatureTraits.Concat(heir.AptitudeTraits))@(heir.Ambition.Length > 0 ? $" · wants to {heir.Ambition.Replace('_', ' ')}" : "")</b></div> }
             <div><span class="muted">What changes on your screen</span><b>@RoleTheme.Describe(heir?.CareerTrack ?? "")</b></div>
             @if (regent != null) { <div class="warn"><span class="muted">A minority</span><b>@regent.Name rules as regent until @heir!.Name comes of age at @DynastySystem.AgeOfMajority.</b></div> }
+            @if (handed.Friends.Length > 0) { <div data-inherited-friends="@friendsN"><span class="muted">@handed.FriendsTitle</span><b>@handed.Friends</b></div> }
+            @if (handed.Enemies.Length > 0) { <div class="warn" data-inherited-enemies="@enemiesN"><span class="muted">@handed.EnemiesTitle</span><b>@handed.Enemies</b></div> }
         </div>
         @if (lines.Count > 0) { <div class="succ-lines">@foreach (var l in lines) { <div class="muted small">@l</div> }</div> }
         <div class="row"><button class="btn primary" @onclick="OnClose">Take up the name</button></div>

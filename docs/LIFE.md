@@ -136,6 +136,120 @@ The head can ask the elder for one of the three things this year. What was asked
 be done (nobody is at odds, nobody still thinks well of the old head) the elder does whatever most wants doing and
 says so. An elder who thinks ill of the head keeps their own counsel and is not to be asked; nor is one who is ill.
 
+## Friends and enemies handed down
+
+Built 2026-11-26, from docs/IDEAS_FROM_MODS.md, entry 2. What the owner's list asked: "When you play on as the heir, the
+dead head's old friends think better of you (+20, fading over ten years) and the dead head's enemies think worse. A
+Vengeful enemy is your enemy at once; a Just or Loyal one lets it go. Only a grown heir takes on friendships, since a child
+was never seen at the parent's side." And: "Use the same rule for other houses' new heads in place of the half-regard
+rule, not on top of it."
+
+Before this a new reign was a clean slate: your heir inherited nobody's regard, and another house's new head started with
+half of what the old one thought of you.
+
+**At every succession** (yours, by death, by laying the house down in life, or when a sworn house takes up the banner; and
+every other house's, by death or when a head stands aside) the old head's ties go with the house:
+
+- **Those who thought well of the old head think better of the heir**, if the heir is grown: 20 more, which fades by 2 a
+  year and is gone in ten years. A child was never seen at the parent's side, and takes on no friendship.
+- **Those who thought ill of the old head think worse of the heir**, child or grown: 20 less, fading the same way.
+- **By their nature**, one who is vengeful is the heir's enemy at once: they think of the heir as ill as they thought of
+  the old head, and never better than an enemy (-40), and it does not fade with the years. If it is you they hate, they are
+  an old enemy of yours from that day, as if of eight years, so it counts in the Senate, at the count, in a court and in a
+  match ("Old friends and old enemies", above). Amends can still bring them round as they would anyone: once they think
+  better of you than -25 and you no longer count them an enemy, the tie is let go and their page no longer calls them your
+  enemy. One who is just or loyal lets it go. Vengeful decides first, then just, then loyal.
+  The natures are the game's own (content/traits/traits.json); none was added.
+- **Another house's new head takes up the old head's view of others** by the same rule, their own nature deciding an
+  enmity. Where that view is of you, your own record counts as it does at your succession: an old head who was your old
+  friend or old enemy of eight years hands it down whatever the figure. This is what the new head of another house thinks of you, and it replaces the half of the old head's regard that
+  used to pass (docs/HOUSEHOLD.md, "Who leads another house"). It also carries the old head's friends and quarrels among
+  the other houses, which move votes, matches and knives.
+- **Not handed down:** what the player thinks of anyone, which is the player's own; anything between people of the house
+  itself, which has its own rules (brothers and sisters passed over, the elder); the dead; and the powers beyond the Reach.
+
+**You see it.** At your succession the turn report and the interstitial say who the old head's friends and enemies were:
+"Your father's friends: Dace Marrow of House Marrow thinks 20 the better of you for his sake, and it fades over 10 years."
+"His enemies: Cassia Wren of House Wren is vengeful by nature, and your enemy from this day." When another house's head
+changes, the news says what the new one took up ("... takes up Maren Oriel's quarrel with you: 20 the worse, fading over 10
+years"). A person's page says, line by line, why they think as they do of you, as far as it came down
+(`data-inherited-regard` on each line): "Thought well of your father, and so of you: +14 of it still, gone by year 12."
+Where a regard was near the top or the bottom and moved by less than 20, the report gives the true figure: one friend's own
+figure ("thinks 5 the better of you"), or for several "up to 20". The report and the interstitial name at most four people
+in each list, heads of houses first, and then say how many more.
+
+| What | The number |
+|---|---|
+| Thought well of the old head | a regard of 30 or more, or an old friend of eight years whatever the figure |
+| Thought ill of the old head | a regard of -30 or less, or an old enemy of eight years |
+| A friend, to a grown heir | +20, less a tenth of it each year, gone in 10 years |
+| An enemy, to any heir | -20, fading the same way |
+| A vengeful enemy | at once as ill as of the old head, and no better than -40; does not fade with the years; an old enemy of yours at once, until amends bring them above -25 |
+| A just or loyal enemy | nothing |
+| Grown | 16, the age of majority |
+| A tie between other people that does not fade | not kept past its year; one that touches you is shown for 10 years |
+
+### Measured
+
+`dotnet run --project src/Tools -- heirs --seeds 2`: two games of thirty years of *The Old Lion* with a passive player,
+each played twice from the same seed, with the rule and without it (the control is the game as it was: nothing to your
+heir, half of the old head's regard of you to another house's new head).
+
+| Two games of thirty years | With the rule | Without |
+|---|---|---|
+| Your house's successions | 4 | 3 |
+| Other houses' new heads | 62 | 66 |
+| Ties handed down | 191: 96 enemy, 52 friend, 36 let go, 7 vengeful, none to a child | none |
+| Ties handed down at each succession that handed any down (35) | median 2, most 37 | |
+| At your successions | 1 to 4 each: a friend or two, an enemy or two, once a vengeful enemy | nothing |
+| Other houses' new heads who took up a view of you | 6: 3 enemy, 2 friend, 1 let go | half of every view, to all who had none |
+| Feuds begun | 2 (1 between houses with an enmity handed down) | 0 |
+| Knives between houses | 6 | 4 |
+| Marriages | 90 (1 between houses with a friendship handed down) | 84 |
+| Motions decided, passed | 64, 41 | 68, 50 |
+| Votes cast by a head holding a tie of the mover's head | 21, 11 of them the way the tie leans | |
+| Old ties at the count, summed over the years | -24 | -2 |
+| Years in which you had an old enemy | 12 | 4 |
+| Heads of houses with any view of you at the end | 8 of 56 | 15 of 56 |
+
+Six games (`--seeds 6`) say the same: 533 ties (282 enemy, 154 friend, 88 let go, 9 vengeful), feuds 7 to 4, marriages 287
+to 268, old ties at the count -17 to +8, years with an old enemy 26 to 4. What it changes that can be counted is the
+enmities: a vengeful enemy of the old head is an old enemy of yours at once, and costs votes at the count. Feuds, votes and
+marriages move by no more than two games that part early would anyway: of the feuds begun, one in seven was between houses
+with an enmity handed down, and a vote cast by a head holding a tie went its way about half the time, since what a head
+thinks of the mover is one step of a motion's lean among many. More heads end with no view of you at all, since a view now
+passes only when it was strong, and then fades.
+
+### What I chose
+
+- The thresholds of 30 and -30 (the profile's words "a friend" and "hostile"), and that an old friend or old enemy of the
+  old head by the years counts whatever the figure.
+- +20 and -20, fading by a tenth a year over ten years; that the enemy's coldness is the same as the friend's warmth.
+- That a vengeful enemy is as bitter as they were of the old head and no better than -40, that it does not fade, and that
+  if it is you they are an old enemy at once.
+- That vengeful decides before just, and just before loyal, when a person has two of them.
+- That enmity falls on a child heir as on a grown one, and a child takes on no friendship either way.
+- That it applies at every passing of a house: by death, by laying it down in life, by standing aside, and to a sworn
+  house in continue mode.
+- That another house's new head also takes up the old head's view of others, the player among them, by their own nature;
+  and that the player's own view is never handed down.
+- That people of the heir's own house, or of the old head's, are left out.
+- That a tie between two other people that does not fade is not kept past its year (only its effect on the regard is), to
+  keep saves small.
+- That a vengeful enemy of yours is let go when your record no longer counts them an enemy (above -25, the record's own
+  rule), so amends end it; nothing else does.
+- That the news and the interstitial name at most 4 people, heads of houses first, and then say how many more; and that
+  where several were moved by different figures they say "up to" the largest.
+
+### What is not built
+
+- Nothing to do about it: you cannot write to your father's friends to keep their warmth, or seek out a vengeful enemy to
+  end it, except by the visit and the amends that are already on a person's page.
+- A friend's nature does nothing: a loyal friend of the old head is no warmer to the heir than another.
+- No events: the succession is told in the report, the interstitial and the news, and nothing comes of it as a scene.
+- The other houses' heads have no record of old friends and enemies by the years (docs/GAPS.md X1), so for them only the
+  figure counts; only where the tie is with you does your own record count, both ways.
+
 ## Not in this piece
 
 - **Only your house has a record.** Nobody else's deeds are kept, so nobody else has renown or a name, and only your own

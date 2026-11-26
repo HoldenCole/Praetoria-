@@ -18,6 +18,7 @@ using Praetoria.Tools;
 //   throne    [--scenario id|all] [--seeds N]                    how a throne is held: the hold, pretenders, and how often it changes houses
 //   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
+//   heirs     [--scenario id] [--seeds N]                        friends and enemies handed down at a succession, with the rule and without
 // The whole simulation runs here without Godot — the Milestone-1 rule.
 
 var (command, opts) = ParseArgs(args);
@@ -55,6 +56,7 @@ try
         "service"  => ServiceProbe.Run(opts),
         "locallaws" => LocalLawsProbe.Run(opts),
         "throne"   => Probes.Throne(opts),
+        "heirs"    => HeirsProbe.Run(opts),
         _ => Unknown(command)
     };
 }

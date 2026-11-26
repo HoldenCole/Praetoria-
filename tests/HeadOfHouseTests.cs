@@ -89,13 +89,14 @@ public class HeadOfHouseTests
     }
 
     [Fact]
-    public void The_new_head_keeps_half_the_regard_the_old_one_had_for_the_player_and_the_player_is_told()
+    public void The_new_head_takes_up_the_old_ones_regard_for_the_player_and_the_player_is_told()
     {
+        // the half of the old head's regard that used to pass is replaced by the rule of docs/LIFE.md, "Friends and enemies handed down"
         var (w, _, other) = Start(); var me = w.Protagonist!; var elder = Add(w, other, "elder", 61); var able = Add(w, other, "able", 40, rank: HeadSystem.RankLead);
         HeadSystem.Tick(w); w.Relationship(elder.Id, me.Id).Disposition = 40; int news = w.News.Count;
         UntilChallenged(w, other, elder);
-        Assert.Equal(able.Id, other.HeadId); Assert.Equal(40 * HeadSystem.RegardKeptPct / 100, w.GetRelationship(able.Id, me.Id)!.Disposition);
-        Assert.Contains(w.News.Skip(news), n => n.Target == "houses" && n.SubjectId == other.Id && n.Text.Contains("stands aside"));
+        Assert.Equal(able.Id, other.HeadId); Assert.Equal(InheritedRegard.Warmth, w.GetRelationship(able.Id, me.Id)!.Disposition);
+        Assert.Contains(w.News.Skip(news), n => n.Target == "houses" && n.SubjectId == other.Id && n.Text.Contains("stands aside") && n.Text.Contains("good opinion of you"));
     }
 
     [Fact]
