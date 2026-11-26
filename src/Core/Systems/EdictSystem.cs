@@ -66,6 +66,8 @@ public static class EdictSystem
     private static bool IsConsul(World w, Character c) => w.Offices.Any(o => o.CharacterId == c.Id && o.HouseId == c.HouseId && o.OfficeId.StartsWith("consul", StringComparison.Ordinal));
     private static bool AnyConsul(World w) => w.Offices.Any(o => o.OfficeId.StartsWith("consul", StringComparison.Ordinal) && w.Char(o.CharacterId) is { Alive: true });
 
+    /// <summary>The position of the holder of the capital who speaks for the Reach while no consul sits.</summary>
+    public const string CapitalSeat = "holder of the capital, while no consul sits";
     /// <summary>The position a person holds from which they may issue an edict of this kind, in words, or null if they hold none.</summary>
     public static string? PositionOf(World w, Character? c, string issuer)
     {
@@ -77,7 +79,7 @@ public static class EdictSystem
                 if (EmperorHead(w)?.Id == c.Id) return "the Emperor";
                 if (w.IsImperium || !PolitySystem.InReach(w, house.Id)) return null;
                 if (IsConsul(w, c)) return "consul";
-                return !AnyConsul(w) && RegionSystem.CapitalHolder(w)?.Id == house.Id && Economy.HeadOf(w, house)?.Id == c.Id ? "holder of the capital, while no consul sits" : null;
+                return !AnyConsul(w) && RegionSystem.CapitalHolder(w)?.Id == house.Id && Economy.HeadOf(w, house)?.Id == c.Id ? CapitalSeat : null;
             case Praetor: case Aedile:
                 return !w.IsImperium && LadderSystem.Seat(w, c.Id)?.OfficeId == issuer ? issuer : null;
             case Powers:
@@ -180,7 +182,7 @@ public static class EdictSystem
                 "manpower_per_world" => $"{Signed(v)} manpower a year from each of {where}",
                 "lawlessness_drift" => $"lawlessness {Signed(v)} a year in {(reach ? "every region" : "the regions it holds")}",
                 "tolls_bonus" => $"{Money.Signed(v)} credits on every toll",
-                "market_price_pct" => $"{Signed(v)}% on what every house pays the exchanges",
+                "market_price_pct" => $"{Signed(v)}% on what every house {(reach ? "of the Reach " : "")}pays the exchanges",
                 "court_wage" => $"{(v < 0 ? "−" : "+")}{Money.Coin(Math.Abs(v))} a year on the wage of each place in the house's court",
                 "court_loyalty" => $"the court's loyalty {Signed(v)} a year",
                 DebtsStayed => "nothing falls due on any loan, no lender is paid interest, and no creditor may press or foreclose",
@@ -410,9 +412,12 @@ public static class EdictSystem
             foreach (var kind in kinds.OrderBy(k => k == Head ? 1 : 0))
             {
                 if (Hash($"edict:{who.Id}:{kind}:{w.Turn}") / 7 % (uint)(kind == Head ? HeadOneIn : OfficeOneIn) != 0) continue;
-                // a magistrate whose seat falls vacant at this year's election, or a consul at the end of the term, decrees nothing: it would lapse with them
+                // a magistrate whose seat falls vacant at this year's election, a consul at the end of the term, the holder of the capital in
+                // a year consuls are elected, and a holder of the powers in the year they are laid down decree nothing: it would lapse with them
+                // at this same year's turn
                 if (kind is Praetor or Aedile && LadderSystem.Due(w, content.Offices)) continue;
-                if (kind == State && ElectionSystem.Due(w) && PositionOf(w, who, State) == "consul") continue;
+                if (kind == State && ElectionSystem.Due(w) && PositionOf(w, who, State) is "consul" or CapitalSeat) continue;
+                if (kind == Powers && w.Emergency is { } em && em.HolderId == who.Id && (em.Due || w.Turn >= em.Until || EmergencySystem.Danger(w) == null)) continue;
                 bool done = false;
                 foreach (var d in content.Edicts.Defs.Where(d => d.Issuer == kind).OrderBy(d => Hash($"{d.Id}:{who.Id}:{w.Turn}")).ThenBy(d => d.Id, StringComparer.Ordinal))   // what presses first, in no fixed order
                 {

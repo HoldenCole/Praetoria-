@@ -584,5 +584,33 @@ public class EdictTests
         Assert.True(Do(w, Issue(me, "requisition")));
         Assert.Equal(goneHas, gone.Treasury.Manpower); Assert.Equal(staysU + 1, Unrest(staysWorld));
         Assert.Equal(goneU, Unrest(goneWorld)); Assert.Equal(goneMen, Manpower(gone));
+        // the aedile's edict on the markets: a house of the Reach pays the exchanges less, and the house that has broken away pays what it paid
+        double gonePays = MarketSystem.BuyPrice(w, Content.Trade, gone.Id, "materials"), staysPays = MarketSystem.BuyPrice(w, Content.Trade, stays.Id, "materials");
+        Seat(w, me, LadderSystem.Aedile); Assert.True(Do(w, Issue(me, "market_edict")));
+        Assert.Equal(gonePays, MarketSystem.BuyPrice(w, Content.Trade, gone.Id, "materials"), 9); Assert.True(MarketSystem.BuyPrice(w, Content.Trade, stays.Id, "materials") < staysPays);
+        Assert.Contains("on what every house of the Reach pays the exchanges", EdictSystem.Does(Cat.Def("market_edict")!));
+    }
+
+    [Fact]
+    public void Nobody_decrees_in_the_year_their_position_ends_at_the_turn()
+    {
+        // what they proclaimed would lapse with the position at that same year's turn, paid for and done at once, and nothing after
+        bool Decrees(World w0, Character who, string kind, int turn, Action<World> set)
+        {
+            var x = Copy(w0); x.Turn = turn; set(x); var had = x.Edicts.Select(e => e.Id).ToHashSet();
+            EdictSystem.Tick(x, Content, new CommandExecutor(), new CommandContext(x, TestContent.Rng()));
+            return x.Edicts.Any(e => !had.Contains(e.Id) && e.IssuerId == who.Id && e.Issuer == kind);
+        }
+        // the holder of the capital, while no consul sits, decrees for the Reach; not in a year the consuls are to be elected
+        var (tc, w, me, mine) = Start(); Short(w);
+        var chair = RegionSystem.CapitalHolder(w)!; var chairHead = Economy.HeadOf(w, chair)!; Rich(w, chairHead); Assert.NotEqual(mine.Id, chair.Id);
+        Assert.Equal(EdictSystem.CapitalSeat, EdictSystem.PositionOf(w, chairHead, EdictSystem.State));
+        int year = Enumerable.Range(w.Turn + 1, 40).First(t => t % ElectionSystem.Every != 0 && Decrees(w, chairHead, EdictSystem.State, t, _ => { }));
+        Assert.False(Decrees(w, chairHead, EdictSystem.State, year, x => x.WorldCounters[ElectionSystem.OwedKey] = 1));
+        // the holder of the emergency powers decrees under them; not in the year the Senate's term for them is up
+        (tc, w, me, mine) = Start(); var other = Other(w, mine); var holder = Economy.HeadOf(w, other)!; Rich(w, holder); Consul(w, other, holder); Powers(w, other, holder);
+        w.Nations[0].AtWar = true; w.Rising = new ThroneRising();
+        year = Enumerable.Range(w.Turn + 1, 40).First(t => Decrees(w, holder, EdictSystem.Powers, t, x => x.Emergency!.Until = x.Turn + 3));
+        Assert.False(Decrees(w, holder, EdictSystem.Powers, year, x => x.Emergency!.Until = x.Turn));
     }
 }
