@@ -232,6 +232,7 @@ public sealed class AssignAdmiralCommand : ICommand
         if (f.AdmiralId == _characterId) return "already commands it"; if (f.LevyOf.Length > 0) return "a levy keeps the officer its own house gave it";
         if (c.HouseId != actor.HouseId && (f.Office || !ServiceSystem.Serviceable(f))) return $"{c.Name} serves by service, and may be given only a fleet of the house's own that is in commission";
         if (TriumphSystem.HomeRefusal(w, c) is { } home) return home;   // home for a triumph (docs/CAESAR.md), not the Senate's order
+        if (Praetoria.Core.Systems.ChargeSystem.NoCommandSays(w, c, c.Id == ActorId) is { } away) return away;
         if (Praetoria.Core.Systems.CaesarSystem.Barred(w, c)) return "the Senate had them lay a command down";
         return ctx.PoolsOf(ActorId).Short(CostMap);
     }

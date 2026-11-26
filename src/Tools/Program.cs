@@ -21,6 +21,7 @@ using Praetoria.Tools;
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
 //   heirs     [--scenario id] [--seeds N]                        friends and enemies handed down at a succession, with the rule and without
 //   disown    [--scenario id] [--seeds N]                        who other houses strike from their lines or cast out, and why (DISOWN_PLAYER=1: the head strikes a child out)
+//   charges   [--scenario id|all] [--seeds N] [--turns N]        a charge against the powerful: how the accused answer, exiles called home, threats (docs/LADDER.md)
 // The whole simulation runs here without Godot — the Milestone-1 rule.
 
 var (command, opts) = ParseArgs(args);
@@ -55,6 +56,7 @@ try
         "laws"     => LawsProbe.Run(opts),
         "edicts"   => EdictsProbe.Run(opts),
         "caesar"   => Probes.Caesar(opts),
+        "charges"  => ChargeProbe.Run(opts),
         "service"  => ServiceProbe.Run(opts),
         "triumph"  => TriumphProbe.Run(opts),
         "locallaws" => LocalLawsProbe.Run(opts),

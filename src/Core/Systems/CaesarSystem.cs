@@ -48,7 +48,7 @@ public sealed class CaesarSystem
     private static bool Real(House h) => !World.Outsider(h.Id);
 
     /// <summary>One the Senate has had lay down a command may not take another for some years.</summary>
-    public static bool Barred(World w, Character c) => w.Counter(BarredKey(c.Id)) > w.Turn;
+    public static bool Barred(World w, Character c) => w.Counter(BarredKey(c.Id)) > w.Turn || ChargeSystem.Abroad(w, c);   // nor may one in exile (docs/LADDER.md)
     /// <summary>A house whose general marched and lost may not stand for consul for ten years.</summary>
     public static bool Enemy(World w, string houseId) => w.Counter(EnemyKey(houseId)) > w.Turn;
 
@@ -286,12 +286,13 @@ public sealed class CaesarSystem
 
     // ---------------- the line ----------------
 
-    /// <summary>Has the Senate given this house a cause: a recall, a triumph refused, or a censure, in the last five years?</summary>
+    /// <summary>Has the Senate given this house a cause: a recall, a triumph refused, or a censure, in the last five years? Or a charge
+    /// against one of its powerful, or the threat of one (docs/LADDER.md, "A charge against the powerful")?</summary>
     public static string? Grievance(World w, House house) =>
         w.Recalls.Any(r => r.HouseId == house.Id) ? "the Senate has recalled its general"
         : Within(w, RefusedKey(house.Id), GrievanceYears) ? "the Senate refused its general a triumph"
         : Within(w, CensuredKey(house.Id), GrievanceYears) ? "the Senate censured the house"
-        : Within(w, ReachWonKey(house.Id), GrievanceYears) ? "the War of the Reach left the Reach in the house's hands" : null;
+        : Within(w, ReachWonKey(house.Id), GrievanceYears) ? "the War of the Reach left the Reach in the house's hands" : ChargeSystem.Cause(w, house);
 
     public string? CrossRefusal(World w, House? house)
     {
@@ -306,7 +307,7 @@ public sealed class CaesarSystem
         if (hulls < MarchHulls) return $"{hulls} hulls would follow {g.Name} against the Senate, and it takes {MarchHulls}";
         int s = Sway(w, g);
         if (s < MarchSway) return $"{g.Name} has not the name for it (sway {s} of {MarchSway})";
-        return Grievance(w, house) == null ? "the Senate has given no cause: no recall, no triumph refused, no censure" : null;
+        return Grievance(w, house) == null ? "the Senate has given no cause: no recall, no triumph refused, no censure, no charge against the house's great" : null;
     }
 
     /// <summary>How a house would declare: 2 or more for the general, −1 or less for the Senate, between them aside.</summary>

@@ -39,7 +39,7 @@ public static class OfficeSystem
     public static Character? Candidate(World w, OfficeDef def, string houseId, bool evenAway = false) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && (def.Track.Length == 0 || c.CareerTrack == def.Track) && c.CareerRank >= def.MinRank
                 && c.Age >= (def.Elected ? SenateActs.AgeFor(w, def.MinAge) : def.MinAge) && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires))   // the ladder: an age, and a rung already held (docs/LADDER.md)
-                && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn && (!def.Elected || evenAway || TriumphSystem.MayStand(w, c)))   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
+                && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn && (!def.Elected || evenAway || TriumphSystem.MayStand(w, c)) && !ChargeSystem.Abroad(w, c))   // nor one in exile (docs/LADDER.md, "A charge against the powerful")   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
             .OrderByDescending(c => c.Id == w.ProtagonistId).ThenByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 
     /// <summary>What a fleet held by office may be used for, by whom and for how long, as these rules have it
@@ -84,7 +84,7 @@ public static class OfficeSystem
         if (h.HouseId == mine) { w.WorldFlags.Add("office_lost"); if (treason) w.WorldFlags.Add("treason"); }
         w.Log(treason
             ? $"{house?.Name ?? h.HouseId} turns the Reach's guns on the chair: {who?.Name ?? "its admiral"} is stripped of the {def.Name} for treason, and the office fleets return to the chair."
-            : $"{who?.Name ?? "The holder"} is relieved of the {def.Name} — {reason}.");
+            : $"{who?.Name ?? "The holder"} is relieved of the {def.Name}: {reason}.");
     }
 
     /// <summary>The Emperor holds every office by the throne (GDD §8).</summary>

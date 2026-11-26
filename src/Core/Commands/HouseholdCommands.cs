@@ -367,7 +367,8 @@ public sealed class ProsecutionCommand : ICommand
     {
         var w = ctx.World; var head = w.Char(ActorId)!;
         if (_what == Buy) { LadderSystem.Buy(w, head, w.Char(_targetId)!); return; }
-        ctx.PoolsOf(ActorId).Spend(Cost); LadderSystem.Prosecute(w, _offices, head, w.OfficeRecord.First(d => d.Id == _targetId));
+        ctx.PoolsOf(ActorId).Spend(Cost); var deed = w.OfficeRecord.First(d => d.Id == _targetId);
+        if (ChargeSystem.Powerful(w, deed)) LadderSystem.Indict(w, _offices, head, deed); else LadderSystem.Prosecute(w, _offices, head, deed);   // a charge against the powerful waits a year (docs/LADDER.md)
     }
 }
 

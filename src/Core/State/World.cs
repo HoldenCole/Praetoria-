@@ -154,6 +154,9 @@ public sealed class World
     /// <summary>The charges another house has brought against one of the player's house that wait a year to be heard
     /// (docs/LADDER.md, "The docket").</summary>
     public List<Indictment> Indictments { get; set; } = new();
+    /// <summary>Those living in exile beyond the Reach, and the threats of a charge that stand (docs/LADDER.md, "A charge against the powerful").</summary>
+    public List<Exile> Exiles { get; set; } = new();
+    public List<ChargeThreat> ChargeThreats { get; set; } = new();
     /// <summary>The deaths in the player's house, each with what it left empty and what passed to whom.</summary>
     public List<DeathRecord> Deaths { get; set; } = new();
     /// <summary>The count at the last election of the ladder: every name, its office and its votes.</summary>

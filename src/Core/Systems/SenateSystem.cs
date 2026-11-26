@@ -74,6 +74,7 @@ public sealed class SenateSystem
     public bool MayPropose(World w, string houseId)
     {
         var h = w.House(houseId); if (h == null || !PolitySystem.InReach(w, houseId)) return false;
+        if (ChargeSystem.HeadAbroad(w, h)) return false;   // a head in exile moves nothing but the return (docs/LADDER.md, "A charge against the powerful")
         return Door(w, h) != null;
     }
 
@@ -258,6 +259,9 @@ public sealed class SenateSystem
                 break;
             case TriumphSystem.LeaveKind:
                 if (targetHouse != null) Add(TriumphSystem.LeaveLean(w, h, targetHouse, toTarget, _offices), "what it makes of " + tn + " standing in absence");
+                break;
+            case ChargeSystem.HomeKind:
+                if (targetHouse != null) Add(ChargeSystem.HomeLean(w, h, targetHouse, toTarget), "what it makes of the exile, and of " + tn);
                 break;
             case "emergency":
                 if (targetHouse != null) Add(EmergencySystem.GrantLean(w, h, targetHouse, toTarget), "what it makes of the danger, and of " + tn);
@@ -600,6 +604,7 @@ public sealed class SenateSystem
         if (def.Interest == "triumph" && target != null) Caesar?.TriumphVoted(w, target, proposer, passed: true);
         if (def.Interest == "recall" && target != null) Caesar?.RecallVoted(w, target, proposer, passed: true);
         if (def.Interest == TriumphSystem.LeaveKind && target != null) TriumphSystem.LeaveVoted(w, target, passed: true);
+        if (def.Interest == ChargeSystem.HomeKind && target != null) ChargeSystem.Home(w, target, proposer);   // an exile called home (docs/LADDER.md)
         if (def.Interest == "emergency" && target != null) EmergencySystem.GrantVoted(w, target, proposer, _offices, passed: true);
         if (def.Interest == "for_life" && target != null) EmergencySystem.ForLifeVoted(w, target, passed: true);
         if (def.Interest == "reconquest" && target != null && Polities != null && PolitySystem.Of(w, target.Id) is { Recognised: > 0 } state) Polities.Reconquer(w, state);
@@ -709,6 +714,7 @@ public sealed class SenateSystem
         if (!w.IsImperium && _motions.Def("emergency") != null && !w.Motions.Any(m => m.Open && m.Kind == "emergency")
             && EmergencySystem.WouldMove(w, _offices, h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && MayPropose(w, h.Id) && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null) is { } powers && !Stale(w, powers.mover.Id, "emergency", powers.target.Id))
         { Add(w, powers.mover.Id, "emergency", powers.target.Id); w.WorldCounters[EmergencySystem.MovedKey] = w.Counter(EmergencySystem.MovedKey) + 1; return true; }
+        if (ChargeSystem.MoveHome(w, this, mine)) return true;   // an exile's house, or a friend, moves to have them home (docs/LADDER.md)
         if (Caesar == null || w.IsImperium || w.CivilWar != null) return false;
         bool Can(House h, string kind = "recall") => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && (MayPropose(w, h.Id) || TriumphSystem.MayMove(w, Economy.HeadOf(w, h), _motions.Def(kind)))   // anyone who has held a magistracy may move a triumph (docs/GAPS.md Q15)
             && !w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id) && Economy.HeadOf(w, h) != null;

@@ -21,7 +21,8 @@ public sealed class ProposeMotionCommand : ICommand
         var def = _senate.Motions.Def(_kind); if (def == null) return "no such motion";
         if (_kind == "petition") return "only an estate brings a petition";
         if (def.Rank) return "a rank is asked for by petition, from the ladder of titles";
-        if (!_senate.MayPropose(w, house.Id) && !TriumphSystem.MayMove(w, actor, def)) return TriumphSystem.NoVoice(w, actor, def) ?? (w.IsImperium ? $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge" : "the house has its votes but no voice in the Senate: it may not move a motion");
+        if ((def.Interest != ChargeSystem.HomeKind || _targetId != house.Id) && ChargeSystem.HeadAbroadSays(w, house, ActorId) is { } abroad) return abroad;   // only its own exile's return
+        if (!_senate.MayPropose(w, house.Id) && !TriumphSystem.MayMove(w, actor, def) && !(def.Interest == ChargeSystem.HomeKind && ChargeSystem.MayMoveHome(w, _senate, house, _targetId))) return TriumphSystem.NoVoice(w, actor, def) ?? (w.IsImperium ? $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge" : "the house has its votes but no voice in the Senate: it may not move a motion");
         if (EdictSystem.Cowed(w, house.Id) is { } cowed) return cowed;   // rule by decree (docs/EDICTS.md)
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";
@@ -53,6 +54,7 @@ public sealed class ProposeMotionCommand : ICommand
             if (def.Interest == "reconquest" && (_senate.Polities == null ? "no such motion" : _senate.Polities.ReconquestRefusal(w, t)) is { } noReconquest) return noReconquest;
             if (def.Interest == "recall" && (_senate.Caesar == null ? "no such motion" : _senate.Caesar.RecallRefusal(w, t)) is { } noRecall) return noRecall;
             if (def.Interest == TriumphSystem.LeaveKind && TriumphSystem.LeaveRefusal(w, t, house.Id) is { } noLeave) return noLeave;
+            if (def.Interest == ChargeSystem.HomeKind && ChargeSystem.HomeRefusal(w, t) is { } noHome) return noHome;
             if (def.Interest == "emergency" && EmergencySystem.GrantRefusal(w, t, _senate.Offices) is { } noPowers) return noPowers;
             if (def.Interest == "for_life" && EmergencySystem.ForLifeRefusal(w, t) is { } noLife) return noLife;
         }
