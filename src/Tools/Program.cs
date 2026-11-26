@@ -19,6 +19,7 @@ using Praetoria.Tools;
 //   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
 //   heirs     [--scenario id] [--seeds N]                        friends and enemies handed down at a succession, with the rule and without
+//   disown    [--scenario id] [--seeds N]                        who other houses strike from their lines or cast out, and why (DISOWN_PLAYER=1: the head strikes a child out)
 // The whole simulation runs here without Godot — the Milestone-1 rule.
 
 var (command, opts) = ParseArgs(args);
@@ -57,6 +58,7 @@ try
         "locallaws" => LocalLawsProbe.Run(opts),
         "throne"   => Probes.Throne(opts),
         "heirs"    => HeirsProbe.Run(opts),
+        "disown"   => DisownProbe.Run(opts),
         _ => Unknown(command)
     };
 }

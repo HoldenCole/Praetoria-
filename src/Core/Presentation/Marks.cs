@@ -15,6 +15,8 @@ public static class Marks
         ["owes_you"] = "They owe you a turn, and know it.",
         ["reconciled"] = "An old quarrel with you has been made up.",
         ["marked_for_death"] = "Somebody has paid, or sworn, to see them dead.",
+        [Systems.DisownSystem.StruckChar] = "Struck out of the line of succession by the head of the house. They stand after everyone else, and have the house only if nobody else is left.",
+        [Systems.DisownSystem.CastOutChar] = "Cast out of the house they were born to. They live in another now, and remember it.",
     };
 
     public static string Label(string flag) => flag.Replace('_', ' ').Replace(':', ' ');

@@ -27,7 +27,7 @@ public sealed class HouseholdCommand : ICommand
         {
             TakeIn => HouseholdSystem.TakeInRefusal(w, head, person, _kind),
             Adopt => HouseholdSystem.AdoptRefusal(w, head, person),
-            Release => person is { Alive: true } && person.HouseId == house.Id && HouseholdSystem.IsFound(person) ? (w.House(person.BornHouseId) != null ? null : "the house they were born to is gone: they have nowhere else") : "not one of those you took in",
+            Release => person is { Alive: true } && person.HouseId == house.Id && HouseholdSystem.IsFound(person) ? (HouseholdSystem.HomeOf(w, person) != null ? null : w.House(person.BornHouseId) != null ? "the house they were born to cast them out: they have nowhere else" : "the house they were born to is gone: they have nowhere else") : "not one of those you took in",
             Decline => house.Petitions.Any(p => p.PersonId == _personId) ? null : "nobody is asking",
             _ => "no such thing"
         };

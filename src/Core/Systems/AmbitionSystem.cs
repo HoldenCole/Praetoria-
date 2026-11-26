@@ -120,6 +120,7 @@ public sealed class AmbitionSystem
             Command => w.Fleets.TryGetValue(u.RequestArg, out var f) && f.OwnerId == house.Id ? null : "the fleet is gone",
             Stake => house.Treasury.Credits >= int.Parse(u.RequestArg) ? null : "the treasury does not hold it",
             Word => (pools?.Influence ?? 0) >= WordInfluence ? (who.CareerRank < (_careers.ById(who.CareerTrack)?.MaxRank ?? 0) ? null : "they are at the top of their service") : "no influence",
+            Heir => NameHeirRefusal(w, head, who),   // one struck from the line asks, and cannot be granted it (docs/HOUSEHOLD.md)
             _ => null
         };
     }
@@ -162,6 +163,7 @@ public sealed class AmbitionSystem
         if (head?.Alive != true || w.House(head.HouseId) is not { } house) return "no house";
         if (who == null) return house.NamedHeirId.Length > 0 ? null : "nobody is named";
         if (!who.Alive || who.HouseId != house.Id || who.Id == head.Id) return "not someone of your house";
+        if (DisownSystem.IsStruck(who)) return $"{who.Name} is struck from the line: restore them to it first";
         return house.NamedHeirId == who.Id ? "already named" : null;
     }
 
