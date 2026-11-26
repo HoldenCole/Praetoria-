@@ -201,6 +201,22 @@ public sealed class CounterCondition : ICondition
     public bool Evaluate(EvalContext ctx) => Comparison.Apply(Op, ctx.World.Counter(Key), Value);
 }
 
+/// <summary>Does <c>role</c> stand in the line of succession to <c>vsRole</c> (DynastySystem.Line): of the same house, and not struck from
+/// the line unless nobody else is left to follow? So that a report about an heir never names a relative struck out, cast out, or of another
+/// house. JSON: { "type": "inLine", "role": "heir", "vsRole": "self", "value": true }.</summary>
+public sealed class InLineCondition : ICondition
+{
+    public string Role { get; }
+    public string Of { get; }
+    public bool Value { get; }
+    public InLineCondition(string role, string of, bool value) { Role = role; Of = of; Value = value; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); var of = ctx.Actor(Of); if (c == null || of == null) return false;
+        return Systems.DynastySystem.StandsInLine(ctx.World, of, c) == Value;
+    }
+}
+
 /// <summary>Has an event already fired this run? JSON: { "type": "eventFired", "event": "id", "value": true }.</summary>
 public sealed class EventFiredCondition : ICondition
 {

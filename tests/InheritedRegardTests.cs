@@ -119,6 +119,15 @@ public class InheritedRegardTests
         DynastySystem.Die(w3, me3.Id); Set(w3, v3, heir3, LifeSystem.EnemyAt + 15); w3.Turn++; LifeSystem.Tick(w3, Content); HeadSystem.Tick(w3);
         Assert.True(heir3.Life!.Enemies.ContainsKey(v3.Id));
         Assert.Contains(InheritedRegard.Why(w3, v3.Id, heir3.Id), l => l.Kind == InheritedRegard.Vengeful && l.Text.Contains("your enemy since year"));
+        // a child who takes another house, vengeful by nature, is brought round the same way: the record lets them go though they are not grown
+        var (w4, me4, _) = Start(); var (_, elder4, next4) = OtherHouse(w4, "Vengeful", nextAge: 12); Set(w4, elder4, me4, -60); Bury(w4, elder4);
+        Assert.True(me4.Life!.Enemies.ContainsKey(next4.Id)); Assert.Contains(LifeSystem.OldEnemyChar, next4.Flags);
+        Set(w4, next4, me4, -20); w4.Turn++; LifeSystem.Tick(w4, Content); HeadSystem.Tick(w4);
+        Assert.False(me4.Life!.Enemies.ContainsKey(next4.Id)); Assert.DoesNotContain(LifeSystem.OldEnemyChar, next4.Flags);
+        Assert.DoesNotContain(w4.InheritedTies, t => t.FromId == next4.Id && t.Kind == InheritedRegard.Vengeful);
+        // and while still under age no one is entered on the record by their regard alone
+        var (w5, me5, _) = Start(); var (_, _, child5) = OtherHouse(w5, "", nextAge: 12); Set(w5, child5, me5, -90); w5.Turn++; LifeSystem.Tick(w5, Content);
+        Assert.False(me5.Life!.Enemies.ContainsKey(child5.Id));
     }
 
     [Fact]
@@ -190,7 +199,7 @@ public class InheritedRegardTests
         foreach (var n in told) { Assert.DoesNotContain("(s)", n.Text); Assert.DoesNotContain("—", n.Text); Assert.DoesNotContain("!", n.Text); }
         // and a person's page says why they think as they do of the heir
         Assert.Contains(InheritedRegard.Why(w, friend.Id, heir.Id), l => l.Kind == InheritedRegard.Friend && l.Text.Contains($"+{InheritedRegard.Warmth} of it still"));
-        Assert.Contains(InheritedRegard.Why(w, enemy.Id, heir.Id), l => l.Kind == InheritedRegard.Enemy && l.Text.Contains($"-{InheritedRegard.Coldness} of it still"));
+        Assert.Contains(InheritedRegard.Why(w, enemy.Id, heir.Id), l => l.Kind == InheritedRegard.Enemy && l.Text.Contains($"−{InheritedRegard.Coldness} of it still"));
         Assert.Contains(InheritedRegard.Why(w, just.Id, heir.Id), l => l.Kind == InheritedRegard.LetGo && l.Text.Contains("just by nature"));
     }
 

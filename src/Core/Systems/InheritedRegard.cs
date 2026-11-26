@@ -148,7 +148,7 @@ public static class InheritedRegard
     private static string Poss(Character c) => c.Sex == "female" ? "her" : c.Sex == "male" ? "his" : "their";
     private static string Pronoun(Character c) => c.Sex == "female" ? "she" : c.Sex == "male" ? "he" : "they";
     private static string Obj(Character c) => c.Sex == "female" ? "her" : c.Sex == "male" ? "him" : "them";
-    private static string Signed(int v) => v > 0 ? "+" + v : v.ToString();
+    private static string Signed(int v) => v > 0 ? "+" + v : Counted.Figure(v);
     private static string Named(World w, Character c) => w.House(c.HouseId) is { } h ? $"{c.Name} of {h.Name}" : c.Name;
     /// <summary>A few names, heads of houses first, and how many more.</summary>
     private static string Names(World w, IEnumerable<InheritedTie> ties, Func<InheritedTie, string> whose)

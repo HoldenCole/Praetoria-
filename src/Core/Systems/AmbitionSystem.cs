@@ -158,6 +158,17 @@ public sealed class AmbitionSystem
         u.Request = ""; u.RequestArg = ""; u.Helped++; Regard(w, who, head, 12);
     }
 
+    /// <summary>Whom the head could name heir, for the screen: the grown of the house, eldest first, other than the one named or (with
+    /// nobody named) the one the law gives, each with why naming them would be refused, or null. One struck from the line is listed
+    /// with the reason, so that the screen says why and does not offer what cannot be done.</summary>
+    public static List<(Character Who, string? No)> HeirChoices(World w, Character head, int take = 6)
+    {
+        var house = w.House(head.HouseId); if (house == null) return new();
+        var named = house.NamedHeirId.Length > 0 ? w.Char(house.NamedHeirId) : null; var heir = named == null ? DynastySystem.FindHeir(w, head) : null;
+        return w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != head.Id && c.Age >= DynastySystem.AgeOfMajority && c.Id != named?.Id && c.Id != heir?.Id)
+            .OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).Take(take).Select(c => (c, NameHeirRefusal(w, head, c))).ToList();
+    }
+
     public static string? NameHeirRefusal(World w, Character? head, Character? who)
     {
         if (head?.Alive != true || w.House(head.HouseId) is not { } house) return "no house";

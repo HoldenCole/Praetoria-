@@ -185,6 +185,7 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `title` | `role`(default `self`), `title`, `present:bool` | is the house's title **exactly** this rung? (GDD §13) |
 | `claim` | `role`(default `self`), `title`, `present:bool` | does the house hold a claim to this title? (GDD §13) |
 | `eventFired` | `event`, `value:bool` | has an event already fired this run? |
+| `inLine` | `role`, `vsRole`(default `self`), `value:bool` | does `role` stand in the line of succession to `vsRole`: of the same house, and not struck from the line unless nobody else is left? (docs/HOUSEHOLD.md, "Struck from the line") |
 
 `resource` ∈ `credits, materials, manpower, influence, exotics`.
 `sphere` ∈ `navy, treasury, senate`.
@@ -225,7 +226,7 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `adjustResource` | `role`(default `self`), `resource`, `delta` | move a house-treasury resource (Credits may go negative; others clamp ≥0) |
 | `grantClaim` | `role`(default `self`), `title` | add a claim to a title to the role's **house** (GDD §13) |
 | `revokeClaim` | `role`(default `self`), `title` | remove a claim — a pressed or sold claim is spent (pair with `setTitle`) |
-| `succeed` | `role` | hand the seat to a living character: they become the protagonist, the House keeps its title (abdication) |
+| `succeed` | `role` | hand the seat to a living character of the house: they become the protagonist, the House keeps its title (abdication). Never to one of another house, nor to one struck from the line while someone not struck stands in it; bind the role with `inLine` |
 | `declareWar` | `role` | self's house declares war on the role's house (GDD §6) |
 | `makePeace` | `role` | self's house and the role's house make peace |
 | `joinBloc` | `bloc: hegemon\|alliance` | move self's house into a Great-Crisis bloc |
@@ -784,7 +785,7 @@ TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self o
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
 FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age sex counter resource sphere title claim fleetStrength atWar bloc eventFired
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age sex counter resource sphere title claim fleetStrength atWar bloc eventFired inLine
 EVENT KEYS id tier weight repeatable roles when choices ambitions
 FLEETS     incursions · ships_raised · fleets_raised counters · incursion:<house> flags   (system-written, §19)
 WAR        battles · battles_won · battles_lost · conquests · wars_declared counters · battle_fought · conquest_made · holding_lost · at_war:<house> flags · suing_for_peace char flag

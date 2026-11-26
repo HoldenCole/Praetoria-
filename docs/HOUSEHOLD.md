@@ -286,7 +286,9 @@ whatever else is their own. Where they go, in this order:
 | A parent's people | A parent is of another house, or was born to one |
 | Alone, the first of a new name | None of these: a house without land, named for them ("House Corvin"), whose treasury is their purse and whose legitimacy is 5 |
 
-In another's house they live as one taken in, under their own name. One cast out by another house is not sent to the
+A command by service they hold (docs/MILITARY.md, "A command by service") ends that day, unless they go into the house
+whose fleet it is, when they keep it by right; the screen says which before it is done. In another's house they live as
+one taken in, under their own name. One cast out by another house is not sent to the
 player's house unless it is to a husband or wife there, and once there they cannot be sent back to the house that cast
 them out, by the head ("Send them home" is refused: "the house they were born to cast them out: they have nowhere else")
 or of themselves when their keep goes unpaid. The household window says "cast out of" that house where it would say
@@ -310,9 +312,13 @@ before it is done which it is.
 
 **Undoing either costs what doing it cost**: restoring someone to the line, or taking them back, costs the same
 legitimacy and the same regard of the kin again (nothing, if there was cause), and the one restored thinks the better of
-the head. One cast out comes back only if they think -60 or better of the head, and not if they now lead a house that
-has other people in it. **A named heir cannot be struck out or cast out**, and nobody struck out can be named heir until
-they are restored.
+the head. One cast out comes back only if they think −60 or better of the head, and not if they now lead a house that
+has other people in it. One taken back lays down what they held of the house they leave (its posts, the command or
+captaincy of its fleets, the governing of its worlds), and a command by service they hold ends. **A named heir cannot
+be struck out or cast out**, and nobody struck out can be named heir until they are restored (the "Name" button on the Dynasty window's ambitions tab is greyed for them, with the reason). When one
+struck out would otherwise stand before the heir, the Dynasty window says the heir is the first "not struck from the line";
+when the heir is struck out themselves, that nobody else is left. A report that hands the seat on in life (the
+abdication) names only one who stands in the line, and never one struck out while another stands in it, nor one cast out.
 
 ### They strike back
 
@@ -321,11 +327,12 @@ Through the rules that already exist, not a new system. Unless they are loyal (o
 - **One struck out wants their place back**: their ambition becomes the seat of the house (docs/AMBITIONS.md). That
   makes them wilful, so the family's own rules take over: thinking ill enough of the head they grow defiant, warm each
   year to whoever of another house thinks worst of the head, **may marry against the head's wish** (they elope when a
-  match is forbidden, docs/MARRIAGE.md), and below -60 **leave for a rival house**. They ask to be named heir, and the
+  match is forbidden, docs/MARRIAGE.md), and below −60 **leave for a rival house**. They ask to be named heir, and the
   head cannot grant it while they are struck out.
 - **One cast out means to outshine the house that cast them out** (their ambition becomes it), and has already joined
   another house with their purse.
-- What they wanted before is given back when the thing is undone.
+- What they wanted before is given back when the thing is undone, and when one struck out comes to lead the house, or
+  leaves it.
 
 ### The suit of the undutiful will
 
@@ -338,7 +345,9 @@ Dynasty window says whether they could sue: only a child of the head can ("They 
 over your will"), and one struck out under the custom of portions takes a portion all the same. Whoever struck
 them out, the will of a parent who died with them still out is the one sued over. It goes on the house's docket with
 its other suits (docs/LADDER.md, "The docket"), before a praetor of neither house, and is heard at the end of the year
-after it is brought.
+after it is brought. The news names that year (a head who dies at the year's end is read of in the next year, and the
+suit is heard at the end of it), and the news and the docket say on what ground the praetor will find: upright, bought
+by the house, a friend of it, for sale, or by the pleading.
 
 - **It asks** a quarter of the dead head's purse as it stood at the death, and one heirloom in four of those not
   entailed, the most valuable first, and at least one if there are any.
@@ -371,19 +380,19 @@ have had to do with.
 
 | | |
 |---|---|
-| Strike from the line, no cause | -3 legitimacy, each of the kin -5, the one struck -25 |
-| Cast out, no cause | -5 legitimacy, each of the kin -10, the one cast out -40 |
-| Either, with cause | No legitimacy, the kin do not mind; the one struck -15, the one cast out -25 |
+| Strike from the line, no cause | −3 legitimacy, each of the kin −5, the one struck −25 |
+| Cast out, no cause | −5 legitimacy, each of the kin −10, the one cast out −40 |
+| Either, with cause | No legitimacy, the kin do not mind; the one struck −15, the one cast out −25 |
 | Restore, or take back | What it cost, again; the one restored +15, the one taken back +20 |
-| One cast out comes back | At -60 or better toward the head, and not to leave a house they lead that has others in it |
+| One cast out comes back | At −60 or better toward the head, and not to leave a house they lead that has others in it |
 | How long a cause counts | Ten years for defiance, a marriage without leave, and a removal from office; for ever for desertion and the field refused |
 | A new name | Legitimacy 5, its treasury the founder's purse, no land |
 | The undutiful will asks | A quarter of the purse; one heirloom in four not entailed, at least one |
-| Won | -2 legitimacy, the child +10, set aside |
-| Lost | The child -10 |
+| Won | −2 legitimacy, the child +10, set aside |
+| Lost | The child −10 |
 | Terms | What it asks, paid now; the child +10 |
 | Answering it | 1 influence |
-| Before a praetor who goes by the pleading | 55 in a hundred for the child, +6 a point of theirs, -4 a point of the one answering (5 to 95) |
+| Before a praetor who goes by the pleading | 55 in a hundred for the child, +6 a point of theirs, −4 a point of the one answering (5 to 95) |
 | A friend of the house | The praetor's head thinks 30 or better of the house's |
 | Other houses | Within 2 years of the cause, one head in two, once a year in a house |
 
@@ -395,28 +404,31 @@ the first year, and otherwise doing nothing):
 
 | | Seed 1 | Seed 2 |
 |---|---|---|
-| Struck from a line by other heads | 2 | 2 |
+| Struck from a line by other heads | 1 | 2 |
 | Cast out by other heads | 0 | 1 (went to a patron's house) |
 | The cause | put out of office, every time | put out of office, every time |
 | People put out of office in the game | 10 | 9 |
-| A head changed and passed over someone struck out | once (House Ashkar, year 26) | once (House Ishida, year 20) |
+| A head changed and passed over someone struck out | once (House Ashkar, year 21) | never |
 | New names founded | 0 | 0 |
 
-Five acts in sixty years of play, all for a removal from office, against 67 changes of head across all the houses. In the
-steered runs the child struck out (Ambitious and Proud) grew defiant (in year 11 and in year 2), neither married against
-the head nor left the house, and sued at the head's death: in seed 1 a praetor let Aurel's will stand in year 10 and
-another found Helene's undutiful in year 15 (3,000 credits); in seed 2 the first suit was won in year 6 (800 credits).
+Four acts in sixty years of play, all for a removal from office, against 70 changes of head across all the houses. In the
+steered runs the child struck out (Ambitious and Proud) grew defiant in seed 2 (in year 2) and not in seed 1, neither
+married against the head nor left the house, and sued at the head's death: in seed 1 the seat passed twice in year 6 and
+a praetor found both wills undutiful in year 7 (Aurel's, 1,100 credits, and Helene's, 1,500 credits); in seed 2 the
+one suit was won in year 6 (800 credits), and the child came to lead the house in year 10. (Measured again on the
+merged build, after the review that followed the merge; before it, seed 1 struck out 2 and passed one over in year 26,
+and its steered child lost one suit in year 10 and won another in year 15.)
 
 ### What I chose
 
 Every number here is mine, and a first guess:
 
 - The prices: 3 and 5 legitimacy; 5 and 10 from each of the kin; 25 and 40 from the one struck, 15 and 25 with cause;
-  15 and 20 back when it is undone; -60 for coming back.
+  15 and 20 back when it is undone; −60 for coming back.
 - That undoing costs what doing cost, read as the legitimacy and the kin's regard paid again, since the kin think a
   head who changes their mind about the line unsteady.
 - The causes, from what the record holds: defiance, a marriage without leave, a defection, the field refused, a
-  removal from office; that a failure is not one; that the first three and the last count for ten years and the
+  removal from office; that a failure is not one; that the first two and the last count for ten years, and the
   field refused and a defection for ever.
 - That one struck out stands last in the line rather than out of it, so that a house is not ended by a striking, and
   that striking the last who could follow is refused.
@@ -430,9 +442,13 @@ Every number here is mine, and a first guess:
   brought only where the child was put out with no cause and the will and custom leave them nothing, so that anything
   left to them, however small, answers it; that winning sets a striking aside but not a casting out; that a loyal child fond of the new head (30) does not sue;
   that the will sued over is that of any parent who died with them still out; the praetor's rules, mirrored on the
-  charges' (55, 6 and 4; the friend at 30); -2 legitimacy and the 10s of regard.
+  charges' (55, 6 and 4; the friend at 30); −2 legitimacy and the 10s of regard.
 - That the defence is whoever was sent, else the council's advocate, else the head.
 - Other houses: the three plain causes, two years, one in two, once a year, and who casts out rather than strikes.
+- That a command by service ends the day its commander is cast out or taken back, and is kept, by right, only by one cast
+  out into the house whose fleet it is; and that one taken back lays down what they held of the house they leave.
+- That the grievance is answered when one struck out comes to lead the house or leaves it, as when they are restored.
+- That a report handing the seat on in life names only one who stands in the line.
 - That a deed flag is raised for content the year it happens: `kin_struck_from_the_line`, `kin_cast_out`,
   `undutiful_will_brought`, `will_found_undutiful`, `will_upheld`.
 
@@ -460,7 +476,8 @@ Every number here is mine, and a first guess:
   `DynastySystem.HandOver`; `Verdict`, `Settle`, `SendPleader`), and the year (`Tick`, after the family's own).
 - State: `Disowning` and `WillSuit` (`src/Core/State/Disowning.cs`), `World.Disownings`, `World.WillSuits`; character flags
   `struck_from_the_line` and `cast_out`; counters `defied_the_head:<id>`, `wed_without_leave:<id>`,
-  `refused_field_seen:<id>` and `defected_seen:<id>` for causes that would otherwise pass with the year.
+  `refused_field_seen:<id>` and `defected_seen:<id>` for causes that would otherwise pass with the year, let go when the
+  person dies.
 - Reads it: `DynastySystem.Line` (struck out last), `HeadSystem.Eldest` and `Challenger`, `AmbitionSystem.NameHeirRefusal`
   (also for a request to be named heir, through `AnswerRefusal`), `HouseholdSystem.HomeOf` (one cast out has no home in the
   house that cast them out), the docket (`Docket.Will`, `DisownSystem.WinSays` and `TermsSays`), and `DisownSystem.Remembered`
@@ -472,4 +489,4 @@ Every number here is mine, and a first guess:
   the title, and a question before it is done; the line of succession marks those struck out and lists them and those
   cast out, who can be picked to take them back. The suit is on the Senate window's docket (`data-undutiful-will`), with
   terms and a pleader to send, and stays there a little while once decided.
-- `tests/DisinheritTests.cs` (16), and the probe `src/Tools/DisownProbe.cs`.
+- `tests/DisinheritTests.cs` (29), and the probe `src/Tools/DisownProbe.cs`.

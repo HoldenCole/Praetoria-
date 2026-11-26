@@ -425,6 +425,7 @@ public sealed class DynastySystem
         LifeSystem.Died(world, c);   // buried and spoken over, while the house still knows whose it is (docs/LIFE.md)
 
         if (id == world.ProtagonistId) Succeed(world, c);
+        ServiceSystem.Died(world, c);   // a command by service ends that day, and is told to the house that has the seat now (docs/MILITARY.md)
     }
 
     private static void Succeed(World world, Character deceased)
@@ -507,7 +508,13 @@ public sealed class DynastySystem
             : $"{heir.Name} succeeds as head of {(house?.Name ?? heir.HouseId)}.");
         InheritedRegard.Pass(world, previous, heir);   // the old head's friends and enemies come with the house (docs/LIFE.md)
         DisownSystem.SeatPassed(world, previous, heir);   // a child struck out with no cause may sue that the will was undutiful (docs/HOUSEHOLD.md)
+        ServiceSystem.SeatPassed(world, previous);   // what was asked of the old head by name is not put to the heir (docs/MILITARY.md)
     }
+
+    /// <summary>Does this person stand in the line to the head: of the house, and not struck from it unless nobody else is left to follow?
+    /// (A report about an heir names only such a one, and the seat is handed in life only to such a one.)</summary>
+    public static bool StandsInLine(World world, Character head, Character who) =>
+        who.Alive && who.Id != head.Id && who.HouseId == head.HouseId && (!DisownSystem.IsStruck(who) || FindHeir(world, head)?.Id == who.Id);
 
     /// <summary>The successor to a head (GDD §14): the first of <see cref="Line"/>.</summary>
     public static Character? FindHeir(World world, Character deceased) => Line(world, deceased).FirstOrDefault();
@@ -522,20 +529,25 @@ public sealed class DynastySystem
     {
         var house = world.House(deceased.HouseId); string law = lawAs ?? house?.SuccessionLaw ?? "primogeniture";
         var all = world.Characters.Values.Where(c => c.Alive && c.Id != deceased.Id && c.HouseId == deceased.HouseId).ToList();
-        bool Outside(Character c) => HouseholdSystem.IsFound(c) || (c.BornHouseId.Length > 0 && c.BornHouseId != deceased.HouseId && c.AdoptedById.Length == 0) || c.Flags.Contains(LifeSystem.RetiredChar);   // (one who was adopted is of the blood)
-        IEnumerable<Character> Order(IEnumerable<Character> members) => law switch
-        {
-            "ultimogeniture" => members.OrderByDescending(c => IsChildOf(c, deceased)).ThenBy(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal),
-            "seniority" => members.OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal),
-            "merit" => members.OrderByDescending(c => c.Age >= AgeOfMajority).ThenByDescending(c => c.Skills.Values.Sum() + c.CareerRank * 2).ThenByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal),
-            _ => members.OrderByDescending(c => IsChildOf(c, deceased)).ThenByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal)
-        };
+        IEnumerable<Character> Order(IEnumerable<Character> members) => ByLaw(members, law, deceased);
+        bool Outside(Character c) => OutsideTheBlood(c, deceased);
         // one struck from the line (docs/HOUSEHOLD.md, "Struck from the line") stands after everyone else, and has the house only when nobody else is left
         var line = Order(all.Where(c => !Outside(c) && !DisownSystem.IsStruck(c))).Concat(Order(all.Where(c => Outside(c) && !DisownSystem.IsStruck(c)))).Concat(Order(all.Where(DisownSystem.IsStruck))).ToList();
         if (house is { NamedHeirId.Length: > 0 } && world.Char(house.NamedHeirId) is { Alive: true } chosen && chosen.HouseId == deceased.HouseId && chosen.Id != deceased.Id && !DisownSystem.IsStruck(chosen)) { line.Remove(chosen); line.Insert(0, chosen); }
         return line;
     }
-    /// <summary>Why the first of the line stands first, in a few words, for the screens.</summary>
+    /// <summary>Of the house but not of its blood, for the line: someone who married in, someone taken in, and a head who has laid the house
+    /// down. One who was adopted is of the blood.</summary>
+    private static bool OutsideTheBlood(Character c, Character deceased) =>
+        HouseholdSystem.IsFound(c) || (c.BornHouseId.Length > 0 && c.BornHouseId != deceased.HouseId && c.AdoptedById.Length == 0) || c.Flags.Contains(LifeSystem.RetiredChar);
+    /// <summary>People in the order a law of succession gives them.</summary>
+    private static IEnumerable<Character> ByLaw(IEnumerable<Character> members, string law, Character deceased) => law switch
+    {
+        "ultimogeniture" => members.OrderByDescending(c => IsChildOf(c, deceased)).ThenBy(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal),
+        "seniority" => members.OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal),
+        "merit" => members.OrderByDescending(c => c.Age >= AgeOfMajority).ThenByDescending(c => c.Skills.Values.Sum() + c.CareerRank * 2).ThenByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal),
+        _ => members.OrderByDescending(c => IsChildOf(c, deceased)).ThenByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal)
+    };
     /// <summary>What a law of succession prefers, in a line.</summary>
     public static string LawSays(string law) => law switch
     {
@@ -544,12 +556,24 @@ public sealed class DynastySystem
         "merit" => "the ablest grown member of the house comes first, by skill and rank in a service",
         _ => "your eldest child comes first, then the rest of the house by age",
     };
+    /// <summary>Why the first of the line stands first, in a few words, for the screens. When someone struck from the line would have stood
+    /// before them, it says the heir is the first not struck out; when the heir is struck out themselves, that nobody else is left.</summary>
     public static string HeirBy(World world, Character head)
     {
         var house = world.House(head.HouseId); var heir = FindHeir(world, head); if (heir == null || house == null) return "";
         if (house.NamedHeirId == heir.Id) return "named by you";
         string law = house.SuccessionLaw.Replace('_', ' ');
-        return law == "merit" ? "by merit: the ablest grown member of the house" : law == "seniority" ? "by seniority: the eldest of the house" : law == "ultimogeniture" ? "by ultimogeniture: your youngest child" : IsChildOf(heir, head) ? "by primogeniture: your eldest child" : "by primogeniture: you have no child, so the eldest of the blood";
+        bool struck = DisownSystem.IsStruck(heir), outside = OutsideTheBlood(heir, head);
+        // someone struck out who, but for it, would stand before the heir under the law
+        bool passed = !struck && world.Characters.Values.Any(c => c.Alive && c.Id != head.Id && c.HouseId == head.HouseId && DisownSystem.IsStruck(c)
+            && (outside && !OutsideTheBlood(c, head) || outside == OutsideTheBlood(c, head) && ByLaw(new[] { heir, c }, house.SuccessionLaw, head).First().Id == c.Id));
+        string tail = struck ? ", though struck from the line, since nobody else is left" : passed ? " not struck from the line" : "";
+        if (law == "merit") return "by merit: the ablest grown member of the house" + tail;
+        if (law == "seniority") return "by seniority: the eldest of the house" + tail;
+        if (law == "ultimogeniture") return "by ultimogeniture: your youngest child" + tail;
+        if (IsChildOf(heir, head)) return "by primogeniture: your eldest child" + tail;
+        bool children = world.Characters.Values.Any(c => c.Alive && c.HouseId == head.HouseId && IsChildOf(c, head));
+        return children && passed ? "by primogeniture: your children are struck from the line, so the eldest of the blood" : "by primogeniture: you have no child, so the eldest of the blood" + tail;
     }
 
     private static bool IsChildOf(Character c, Character parent) =>

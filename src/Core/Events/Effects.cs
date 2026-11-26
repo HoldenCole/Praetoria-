@@ -222,8 +222,10 @@ public sealed class SucceedEffect : IEffect
     public SucceedEffect(string role) => Role = role;
     public void Apply(EvalContext ctx)
     {
-        var heir = ctx.Actor(Role);
+        var heir = ctx.Actor(Role); var head = ctx.World.Protagonist;
         if (heir is not { Alive: true } || heir.Id == ctx.World.ProtagonistId) return;
+        // the seat is the house's: never to one of another house (one cast out among them), nor to one struck from the line over another who is not
+        if (head != null && !Systems.DynastySystem.StandsInLine(ctx.World, head, heir)) return;
         Systems.DynastySystem.HandOver(ctx.World, heir);
     }
 }
