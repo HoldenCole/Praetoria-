@@ -4,9 +4,10 @@ using Praetoria.Core.Systems;
 
 namespace Praetoria.Core.Commands;
 
-/// <summary>Set a local law on one world to one of its options (docs/POLITICS.md, "Local law"). Only the head of the house that
-/// holds the world may; the option must differ from the one in force; the law must be off its cooldown on that world; the world must
-/// have room for another law off the custom; and it costs the law's influence. Setting a law back to its default lifts it.</summary>
+/// <summary>Set a local law on one world to one of its options (docs/POLITICS.md, "Local law: a law for one world"). Only the head of
+/// the house that holds the world may; the option must differ from the one in force; the house's last decree of that law on that world
+/// must be past the years it was settled for; the world must have room for another law off the custom; and it costs the law's
+/// influence. Setting a law back to its default lifts it.</summary>
 public sealed class SetLocalLawCommand : ICommand
 {
     private readonly string _holdingId, _lawId, _optionId; private readonly PolicyCatalog _cat;

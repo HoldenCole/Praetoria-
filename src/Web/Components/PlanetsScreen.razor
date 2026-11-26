@@ -116,6 +116,7 @@
                             @if (fn.Deposits is { Count: > 0 }) { <div class="muted small">Deposits: @string.Join(", ", fn.Deposits.Select(d => $"{Resource.Label(d.Key)} ({d.Value})"))</div> }
                             @if (fleets.Count > 0) { <div class="muted small">In the sky: @string.Join(", ", fleets.Select(f => $"{f.Name} ({f.OwnerHouseName}, {f.Strength})"))</div> }
                             @if (sys != null && sys.Description.Length > 0) { <div class="muted small">@sys.Description</div> }
+                            @if (planet != null && planet.IsPlanet) { <LocalLawBlock HoldingId="@planet.Id" /> }
                             <div class="sc-actions"><button class="opt inline tiny" @onclick="() => OnFocus.InvokeAsync(fn.SystemId)">Open on the galaxy map</button></div>
                         </div>
                         <button class="win-close" @onclick="() => _focus = null">✕</button>

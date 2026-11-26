@@ -1,0 +1,30 @@
+@inject GameClient G
+@implements IDisposable
+@* The Laws window's line on local law (docs/POLITICS.md, "Local law: a law for one world"): one short line for each world of the
+   house that has a local law off its default. The laws themselves are set on the world: its card on the Worlds window, or its system. *@
+@{
+    var w = G.World; var c = G.Content; var me = w?.Protagonist;
+    if (w == null || c == null || me == null || c.Policies.Local.IsEmpty) return;
+    var cat = c.Policies; var planets = w.HoldingsOf(me.HouseId).Where(h => h.IsPlanet).OrderBy(h => h.Name, StringComparer.Ordinal).ToList();
+    var under = planets.Where(h => LocalLawSystem.Count(cat, h) > 0).ToList();
+}
+<section class="panel local-summary" data-local-summaries="@under.Count">
+    <h3><Icon Name="worlds" Size="13" /> Local law <span class="muted">a law for one world · set on the world itself, from its card on the Worlds window or its system</span></h3>
+    @if (planets.Count == 0) { <div class="muted small">The house holds no world, and so makes no local law.</div> }
+    else if (under.Count == 0) { <div class="muted small">Every world of yours keeps the custom: no local law is off its default on any of them.</div> }
+    @foreach (var h in under)
+    {
+        <div class="small ls-row" data-local-summary="@h.Id" title="@Detail(h)"><b>@h.Name</b>: @LocalLawSystem.Summary(cat, h) <span class="muted">· @LocalLawSystem.Count(cat, h) of @LocalLawSystem.Limit(w, h)</span></div>
+    }
+</section>
+
+@code {
+    private string Detail(Holding h)
+    {
+        var cat = G.Content!.Policies;
+        return string.Join(" ", LocalLawSystem.InForce(cat, h).Select(x => x.law.Name + ": " + x.option.Name.ToLowerInvariant() + " (" + LocalLawSystem.Does(x.option) + ")."));
+    }
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    protected override void OnInitialized() => G.Changed += Redraw;
+    public void Dispose() => G.Changed -= Redraw;
+}

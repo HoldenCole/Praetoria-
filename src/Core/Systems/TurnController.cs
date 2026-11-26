@@ -286,7 +286,7 @@ public sealed class TurnController
         using (Perf.Time("end:household")) { _household.Tick(World, Executor, Context()); CourtSystem.Tick(World, _content.Policies); PayrollSystem.Tick(World, _content.ShipClasses); }   // those the head has handed work to do it; the household's own lives go on (docs/HOUSEHOLD.md)
         using (Perf.Time("end:ambitions")) { _ambitions.Tick(World, Executor, Context()); _ventures?.PayHolders(World); }   // the people of the house go after what they want (docs/AMBITIONS.md) — RNG-free
         using (Perf.Time("end:npc")) { _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings, _fleets.Rules, _content.Businesses); }   // NPCs act, invest, sail, and may author a crisis
-        using (Perf.Time("end:locallaw")) { LocalLawSystem.Tick(World, _content.Policies, _content.Holdings, Executor, Context()); }   // the other houses make law for single worlds (docs/POLITICS.md, "Local law") — RNG-free
+        using (Perf.Time("end:locallaw")) { LocalLawSystem.Tick(World, _content.Policies, Executor, Context(), _content.Holdings); }   // the other houses make law for single worlds (docs/POLITICS.md, "Local law") — RNG-free
         using (Perf.Time("end:senate")) { _senate.Tick(World); }          // the Senate votes last session's motions and hears new ones (GDD §6.1) — RNG-free
         using (Perf.Time("end:policy")) { PolicySystem.Tick(World, _content.Policies); }   // the estates weigh the laws (GDD §6.1) — RNG-free
 

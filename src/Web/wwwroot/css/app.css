@@ -1076,6 +1076,8 @@ body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; backgr
 .sysp-dev .dv-bar { position: relative; height: 6px; background: rgba(255,255,255,.07); border: 1px solid var(--line2); } .sysp-dev .dv-bar i { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--brass3), var(--brass2)); }
 .sysp-dev .dv-bar u { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #ffe1a0; box-shadow: 0 0 4px rgba(255,225,160,.8); }
 .sysp-devnote { margin: 0 0 .45rem; padding: 0 .2rem; }
+/* local law: a law for one world (LocalLawBlock, LocalLawSummary; docs/POLITICS.md) */
+.local-laws { margin: .4rem 0; padding: .35rem .5rem; border: 1px solid var(--line); border-radius: 4px; background: rgba(0,0,0,.25); font-size: .85rem; } .local-laws .ll-head { margin-bottom: .2rem; } .local-laws .ll-row { padding: .12rem 0; border-top: 1px dotted var(--line); } .local-laws .ll-row.custom .ll-now { color: var(--brass2); } .local-laws .ll-name { opacity: .8; } .local-laws .ll-opts { display: inline-flex; flex-wrap: wrap; gap: .2rem; margin-left: .3rem; } .local-summary .ls-row { padding: .1rem 0; }
 .sysp-slots i.lock { border-style: dotted; opacity: .38; }
 .sysp-body.home > .sysp-row .sysp-name b { color: #ffe1a0; }
 .sysp-parts { display: flex; flex-wrap: wrap; gap: .15rem .7rem; font-size: .7rem; color: var(--ink2); margin: .25rem 0 .3rem; } .sysp-parts b { color: var(--brass2); font-weight: 600; }

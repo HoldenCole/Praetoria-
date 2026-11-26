@@ -47,6 +47,7 @@
             <span class="dv-text"><b>Development</b> <span class="muted">@dev of 100 · @devTrend</span><span class="dv-bar"><i style="@($"width:{dev}%")"></i><u style="@($"left:{devTop}%")"></u></span></span>
         </div>
         <div class="muted small sysp-devnote">@devNext</div>
+        <LocalLawBlock HoldingId="@planet.Id" />
         @if (mine && ClaimSystem.Of(w, sys.Id, house.Id).ToList() is { Count: > 0 } claims)
         {
             /* the claims other houses hold in your belt: what each brings its house, what it owes you, and a price to buy it out

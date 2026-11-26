@@ -7,7 +7,7 @@
       "options": [
         { "id": "customary", "name": "The customary tithe", "short": "the customary tithe", "default": true },
         { "id": "remitted", "name": "The tithe remitted", "short": "the tithe remitted", "effects": { "credits_per_world": -2, "unrest_drift": -3, "prosperity_drift": 2 }, "opinions": { "commons": 10, "magistrates": -5 } },
-        { "id": "surcharge", "name": "A surcharge laid on", "short": "a surcharge on the tithe", "effects": { "credits_per_world": 2, "unrest_drift": 4, "prosperity_drift": -1 }, "opinions": { "commons": -15, "merchants": -5, "magistrates": 5 } }
+        { "id": "surcharge", "name": "A surcharge laid on", "short": "a surcharge on the tithe", "effects": { "credits_per_world": 2, "unrest_drift": 5, "prosperity_drift": -2 }, "opinions": { "commons": -15, "merchants": -5, "magistrates": 5 } }
       ] },
     { "id": "garrison", "name": "The garrison", "cost": 1, "cooldown": 4,
       "description": "Whether soldiers of the house are kept on this world, and who rules it. Troops billeted on the households keep the peace and are hated for it; under martial rule the commander's word is the law, the squares are quiet and the markets are empty.",
