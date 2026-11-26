@@ -233,7 +233,7 @@ internal static class Probes
     /// against every scheme of salaries on trial, thirty years, every house.</summary>
     public static int Econ(Options o)
     {
-        string sid = o.Scenario == "academy_crucible" ? "the_old_lion" : o.Scenario; int seeds = Math.Max(1, Math.Min(o.Seeds, 4)); int years = Math.Max(30, o.Turns);
+        string sid = o.Scenario == "academy_crucible" ? "the_old_lion" : o.Scenario; int seeds = Math.Max(1, Math.Min(o.Seeds, 8)); int years = Math.Max(30, o.Turns);
         Console.WriteLine($"=== The economy on trial: {sid}, {Praetoria.Core.Counted.Seeds(seeds)}, {years} years, every house; amounts in credits ===\n");
         Console.WriteLine("-- what each thing returns a year at usual prices, and what its kind is meant to --");
         foreach (var x in ReturnTargets.All(ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir())).Where(x => x.returns > 0))
