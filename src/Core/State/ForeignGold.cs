@@ -15,7 +15,8 @@ public sealed class GoldOffer
     public string WarOnName { get; set; } = "";
     /// <summary>The motion of war it was sent about.</summary>
     public string MotionId { get; set; } = "";
-    /// <summary>The house it was sent to, and the head who was asked.</summary>
+    /// <summary>The house it was sent to, and the head who was asked; once it is answered, the head who answered it (the seat may have passed
+    /// between the asking and the answer: the gold, the record and the note in a life are theirs).</summary>
     public string HouseId { get; set; } = "";
     public string CharacterId { get; set; } = "";
     /// <summary>What it is for: "against" (vote against the war), "away" (stay away from the vote), "withdraw" (the mover takes the motion back).</summary>

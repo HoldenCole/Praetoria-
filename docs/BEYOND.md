@@ -890,8 +890,10 @@ large and the Cities' purse finite."
 - **The mover first, and sparingly.** When a motion of war on the Cities or the Crown is on the docket and would carry
   as the benches lean, the Cities offer the house that moved it a sum to withdraw it: 4,000 credits and 300 for each
   of its seats. They do this at most once in fifteen years. Taken, the motion is withdrawn before it is voted and the
-  mover loses a step of standing in the Senate, as a motion thrown out does. Told to the chamber, the Cities write to
-  nobody else on that motion.
+  mover loses a step of standing in the Senate, as a motion thrown out does. When another house moved it and tells the
+  chamber, the Cities write to nobody else on that motion. When you moved it, they cannot wait for your answer before
+  the vote, so in the same year they write to the senators as well (below), if the purse holds enough for both; telling
+  the chamber then does not undo what those senators took.
 - **Then the senators.** They write to the heaviest houses that lean for the war or would stay away, until the count
   as they reckon it turns, four at most; and to you, whenever your house is not already against it. A house that
   wants the war badly (it leans more than two for it) is asked only to stay away: 1,200 credits and 100 a seat. The
@@ -904,7 +906,9 @@ large and the Cities' purse finite."
   greedy). So does one whose house is in want, holding under 500 credits (where a lender charges it twenty in the
   hundred). Anyone else refuses it and says nothing.
 - **Your answer**, on the Senate window under the motion: take it, refuse it, or tell the Senate.
-  - **Take it.** The sum goes into your own purse and your vote is declared as asked (against, or away). It goes on
+  - **Take it.** The sum goes into your own purse and your vote is declared as asked (against, or away). If the seat
+    has passed since the factor called, by a death or by yielding it, the sum waits on the new head, and it is theirs:
+    their purse, their record, their life. It goes on
     the record, where any house may charge you with it before a praetor at once, for eight years, with its facts:
     "took 3,800 credits from the Free Cities of Thessar to vote against the war on the Hollow Crown in year 34". If you
     then vote for the war after all, the Cities think five the worse of the Reach and send your house nothing for ten
@@ -918,8 +922,14 @@ large and the Cities' purse finite."
   paid, as it does not follow one another house paid. A vote is marked turned when the war fails and would have
   carried had those who took the gold voted as they leaned before it; a war bought off is turned too.
 - **What you can know.** On the motion, a line says how many senators the Cities are known to have reached: your own
-  house, any who told the chamber, and those whose head thinks thirty or better of you, who tell you. The rest is not
-  known.
+  house (a sum to withdraw the war you moved, too), any who told the chamber (a mover among them), any who took it, and
+  those whose head thinks thirty or better of you, who tell you. One who took it cannot hide it: the roll call gives it
+  as the reason for the vote ("it has taken gold to vote against the war"), and the courts list it on the record at
+  once. Only one who refused it and said nothing is not known.
+- **Not under a throne.** The Senate still sits under a throne, and can still vote a war, but the record of the
+  offices is not kept there, so gold taken could never be charged. Under a throne the Cities treat with the throne and
+  send the benches nothing. If a throne rises while an offer waits on you, it cannot be taken ("a throne stands now,
+  and the Cities treat with it, not with the benches"), and it goes home at the year's end.
 - **The courts.** Gold taken is a new kind of act on the record (docs/LADDER.md, "The courts"), charged at once like a
   praetor bought or an election bought, and heard by the praetors as any other charge. Other houses bring it as they
   bring any charge: one that hates the taker's house enough, one charge a year in the Reach.
@@ -952,12 +962,13 @@ Games of thirty years in which nobody steers the player's house; a passive playe
 it lapses (`praetoria gold`).
 
 **Left to themselves**, the houses moved no war on the Cities or the Crown: none in two games of the_old_lion, and
-none in the twelve games of every start with a Senate (eight starts, two seeds each; the four games that open under a
-throne were left out). A house that wants a war names the Khanates first, whose regard is always the lower. So no gold was sent, nothing on the record came of it, and every
-game ran as it did before: the Caesar road is not touched (one in ten games is unchanged, by construction).
+none in the sixteen games of every start (eight starts, two seeds each: twelve games of the Republic and four that
+open under a throne). A house that wants a war names the Khanates first, whose regard is always the lower. So no gold
+was sent, nothing on the record came of it, and every game ran as it did before: the Caesar road is not touched (one
+in ten games is unchanged, by construction).
 
 **With a war moved** in year 8 and again ten years after each (`GOLD_WAR`), by the heaviest house that may move one,
-in the same twelve games with a Senate:
+in the twelve games of the Republic (a war bought off is withdrawn before it is counted, and is in the first row):
 
 | | War on the Cities | War on the Crown | On the Cities, the player takes it | On the Cities, the player tells the Senate |
 |---|---|---|---|---|
@@ -984,16 +995,26 @@ in the same twelve games with a Senate:
   charged both times.
 - **The purse is rarely spent down.** It stood at its limit at the end of most games: the Cities' money is a reserve
   they use once or twice in a generation, which is what was asked.
+- **Under a throne, nothing.** The first measure left the four games under a throne out, as if they had no Senate. They
+  have one: with a war moved, three wars on the Cities were moved in them (and three on the Crown), and the chamber
+  voted them; so were three on the Cities in two games of the hidden custom_imperium start. The review found the rule
+  ran there, and that gold taken was wiped the same year with the rest of the record, which is not kept under a
+  throne. Measured again after the mend, the Cities sent nothing in any of those six games, and the figures of the
+  twelve games of the Republic in the table are unchanged, to the credit.
 
 ### What I chose
 
 - The Hollow Crown as the nation the Cities favour, since the game records no favour between nations.
 - Every number in the table above.
-- That the Cities first try the mover, and stop when the mover tells the chamber.
+- That the Cities first try the mover, and stop when another house's mover tells the chamber; when you moved it, they
+  write to the senators in the same year, because there is only one year's end between the motion and its vote.
 - That they spend nothing on a war they cannot turn, so the player is written to only in a close vote.
 - That a house that has given its word on the vote is not written to.
 - That the chamber's anger at gold shown to it is a point of lean for the war, in every house, on that motion.
 - That one who took the gold and voted for the war is shut out for ten years.
+- That under a throne nothing is sent, rather than gold that could never be charged.
+- That the head who answers is the head when it is answered, so an heir answers for what was sent to the one before.
+- That one who took it is known to you, as the roll call and the courts already show it.
 
 ### What is not built
 
@@ -1005,7 +1026,9 @@ in the same twelve games with a Senate:
 - **No report window.** The offer is told in the news and answered on the Senate window. It is not shown on the
   Cities' card, and the purse is not shown anywhere.
 - **Gold told to the chamber names nobody else.** It does not bring out who else took it.
-- **Another house that took it always votes as paid**, unless it had already given its word.
+- **Another house that took it always votes as paid**, unless it had already given its word. Your telling the chamber
+  of the sum sent to you does not change that.
+- **Nothing under a throne.** The Senate sits under a throne and votes wars, but the Cities send it nothing there.
 
 ## What is yours to decide
 

@@ -8,7 +8,8 @@ namespace Praetoria.Tools;
 
 /// <summary>
 /// <c>praetoria gold</c>: foreign gold in the Senate (docs/BEYOND.md, "Foreign gold in the Senate") in games nobody steers. Thirty years
-/// a game (`--turns`), seeds 1 up to `--seeds` (six at most), `--scenario` one start or `all` for every start that has a Senate. It
+/// a game (`--turns`), seeds 1 up to `--seeds` (six at most), `--scenario` one start or `all` for every start (those under a throne too,
+/// where the Senate sits but nothing should be sent, for the record is not kept there). It
 /// counts the war motions the Cities wrote about, the offers made, taken, refused, exposed and left to lapse, the war votes the gold
 /// turned, the wars bought off before the vote, and the charges that followed before a praetor. With `GOLD_WAR=thessar:8` the heaviest
 /// house that may move a motion moves a war on that nation in that year, or the first after it when the docket has room and the Reach fights nobody abroad, and again ten years after each, so a war the
@@ -25,13 +26,13 @@ internal static class GoldProbe
         int seeds = Math.Max(1, Math.Min(o.Seeds, 6)), years = o.Turns > 6 ? o.Turns : 30;
         string? force = Environment.GetEnvironmentVariable("GOLD_WAR"), answer = Environment.GetEnvironmentVariable("GOLD_PLAYER");
         Console.WriteLine($"=== Foreign gold in the Senate · {Counted.Starts(scenarios.Count)} × {Counted.Seeds(seeds)} × {years} years · a passive player{(force != null ? " · a war moved: " + force : "")}{(answer != null ? " · the player answers: " + answer : "")} ===");
-        var totals = new SortedDictionary<string, int>(StringComparer.Ordinal); int games = 0, skipped = 0, chargesOnGold = 0, convictedOnGold = 0, warMotions = 0, warsVoted = 0, chargedPlayer = 0;
+        var totals = new SortedDictionary<string, int>(StringComparer.Ordinal); int games = 0, throne = 0, chargesOnGold = 0, convictedOnGold = 0, warMotions = 0, warsVoted = 0, chargedPlayer = 0;
         var askedOf = new SortedDictionary<string, int>(StringComparer.Ordinal); var whoTook = new SortedDictionary<string, int>(StringComparer.Ordinal);
         foreach (var sid in scenarios)
             for (ulong seed = 1; seed <= (ulong)seeds; seed++)
             {
                 var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, sid), seed); var tc = new TurnController(w, content);
-                if (w.IsImperium) { skipped++; continue; }
+                if (w.IsImperium) throne++;
                 games++; var charged = new HashSet<string>(StringComparer.Ordinal); var seenMotions = new HashSet<string>(StringComparer.Ordinal); var ctx = new CommandContext(w, WorldBuilder.RngFor(w));
                 var offers = new Dictionary<string, GoldOffer>(StringComparer.Ordinal); var motionLines = new List<string>(); int nextForce = 0;
                 for (int t = 0; t < years && !w.IsDynastyDead; t++)
@@ -61,13 +62,13 @@ internal static class GoldProbe
                     if (off.Answer == ForeignGoldSystem.Taken && w.Char(off.CharacterId) is { } taker) { string why = off.HouseId == mine ? "the player, as told" : ForeignGoldSystem.ForSale(taker) ? "for sale by nature" : "in want"; whoTook[why] = whoTook.GetValueOrDefault(why) + 1; }
                 }
                 var cities = w.Nation("thessar");
-                Console.WriteLine($"   {sid} seed {seed}: war motions on the Cities or the Crown {seenMotions.Count(x => !x.StartsWith("done:", StringComparison.Ordinal))}; written about {w.Counter(ForeignGoldSystem.MotionsKey)}; offers {w.Counter(ForeignGoldSystem.OffersKey)} (taken {w.Counter(ForeignGoldSystem.TakenKey)}, refused {w.Counter(ForeignGoldSystem.RefusedKey)}, exposed {w.Counter(ForeignGoldSystem.ExposedKey)}, lapsed {w.Counter(ForeignGoldSystem.LapsedKey)}); turned {w.Counter(ForeignGoldSystem.TurnedKey)}; bought off {w.Counter(ForeignGoldSystem.BoughtOffKey)}; the purse at the end {Money.Credits(cities?.Purse ?? 0)}; their regard {Counted.Figure(cities?.Disposition ?? 0)}");
+                Console.WriteLine($"   {sid} seed {seed}{(w.IsImperium ? " (under a throne)" : "")}: war motions on the Cities or the Crown {seenMotions.Count(x => !x.StartsWith("done:", StringComparison.Ordinal))}; written about {w.Counter(ForeignGoldSystem.MotionsKey)}; offers {w.Counter(ForeignGoldSystem.OffersKey)} (taken {w.Counter(ForeignGoldSystem.TakenKey)}, refused {w.Counter(ForeignGoldSystem.RefusedKey)}, exposed {w.Counter(ForeignGoldSystem.ExposedKey)}, lapsed {w.Counter(ForeignGoldSystem.LapsedKey)}); turned {w.Counter(ForeignGoldSystem.TurnedKey)}; bought off {w.Counter(ForeignGoldSystem.BoughtOffKey)}; the purse at the end {Money.Credits(cities?.Purse ?? 0)}; their regard {Counted.Figure(cities?.Disposition ?? 0)}");
                 foreach (var line in motionLines) Console.WriteLine("      " + line);
                 foreach (var off in offers.Values.OrderBy(x => x.Turn).ThenBy(x => x.Id, StringComparer.Ordinal).Take(12))
                     Console.WriteLine($"      y{off.Turn} {w.House(off.HouseId)?.Name ?? off.HouseId}{(off.HouseId == mine ? " (the player)" : "")}: {Money.Credits(off.Sum)} {ForeignGoldSystem.AskSays(off)}; {off.Answer}{(off.Turned ? ", and it turned the vote" : "")}{(off.Broken ? ", and voted for the war all the same" : "")}{(Environment.GetEnvironmentVariable("GOLD_WHY") != null && w.Char(off.CharacterId) is { } hd ? $" [{string.Join(",", hd.NatureTraits)} / {string.Join(",", hd.AptitudeTraits)} / {hd.Ambition}; before {off.Before}, seats {off.Seats}]" : "")}");
             }
         Console.WriteLine();
-        Console.WriteLine($"   in {Counted.Of(games, "game")}{(skipped > 0 ? $" ({skipped} under a throne left out)" : "")}: war motions on the Cities or a nation they favour {warMotions}; the Cities wrote about {totals.GetValueOrDefault(ForeignGoldSystem.MotionsKey)}");
+        Console.WriteLine($"   in {Counted.Of(games, "game")}{(throne > 0 ? $" ({throne} of them under a throne)" : "")}: war motions on the Cities or a nation they favour {warMotions}; the Cities wrote about {totals.GetValueOrDefault(ForeignGoldSystem.MotionsKey)}");
         Console.WriteLine($"   offers {totals.GetValueOrDefault(ForeignGoldSystem.OffersKey)}: taken {totals.GetValueOrDefault(ForeignGoldSystem.TakenKey)}, refused {totals.GetValueOrDefault(ForeignGoldSystem.RefusedKey)}, exposed {totals.GetValueOrDefault(ForeignGoldSystem.ExposedKey)}, lapsed {totals.GetValueOrDefault(ForeignGoldSystem.LapsedKey)} · gold taken {Money.Credits(totals.GetValueOrDefault(ForeignGoldSystem.SpentKey))}");
         Console.WriteLine($"   to whom: {string.Join(" · ", askedOf.Select(k => $"{k.Key} {k.Value}"))} · why they took it: {string.Join(" · ", whoTook.Select(k => $"{k.Key} {k.Value}"))}");
         Console.WriteLine($"   war votes turned {totals.GetValueOrDefault(ForeignGoldSystem.TurnedKey)} · offered to withdraw {totals.GetValueOrDefault(ForeignGoldSystem.WithdrawOffersKey)}, bought off {totals.GetValueOrDefault(ForeignGoldSystem.BoughtOffKey)} · took it and voted for the war {totals.GetValueOrDefault(ForeignGoldSystem.BrokenKey)}");

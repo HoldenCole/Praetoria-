@@ -12,7 +12,8 @@ namespace Praetoria.Core.Systems;
 /// it goes on the record (<see cref="OfficeDeed"/>), where a rival may charge it before a praetor at once; refusing costs nothing;
 /// exposing it to the chamber mends the Reach's trust and the house's standing, sets the chamber the more for the war, and the nation
 /// thinks the less of the Reach. Other houses answer by nature: the upright expose it, those for sale by nature and those short of
-/// money take it, the rest refuse. The player is asked on the Senate window. RNG-free.
+/// money take it, the rest refuse. The player is asked on the Senate window. Under a throne nothing is sent: the record that would hold it
+/// is not kept there (<see cref="LadderSystem.Active"/>), and the Cities treat with the throne. RNG-free.
 /// </summary>
 public static class ForeignGoldSystem
 {
@@ -44,7 +45,7 @@ public static class ForeignGoldSystem
     /// <summary>A head who thinks this well of the player tells them of gold sent to their own house.</summary>
     public const int FriendTells = 30;
     public const int KeptYears = 20;
-    public const string OfferedFlag = "foreign_gold_offered", ExposedFlag = "foreign_gold_exposed";
+    public const string OfferedFlag = "foreign_gold_offered";
     public const string OffersKey = "gold_offers", TakenKey = "gold_taken", RefusedKey = "gold_refused", ExposedKey = "gold_exposed", LapsedKey = "gold_lapsed",
         TurnedKey = "gold_turned", BoughtOffKey = "gold_bought_off", WithdrawOffersKey = "gold_withdraw_offers", MotionsKey = "gold_motions", BrokenKey = "gold_broken", SpentKey = "gold_spent";
     public static string BrokenKeyFor(string houseId) => "gold_shut:" + houseId;
@@ -86,15 +87,17 @@ public static class ForeignGoldSystem
     // ---------------- the year ----------------
 
     /// <summary>After the Senate has sat: what was sent about motions now counted is settled, the purses fill, and the nations write to the
-    /// senators about any war on the docket that is theirs to stop.</summary>
-    public static void Tick(World w, NationCatalog catalog, SenateSystem senate)
+    /// senators about any war on the docket that is theirs to stop. Not under a throne, where the record is not kept (<see cref="LadderSystem.Active"/>):
+    /// there nothing is written, and whatever still waits on an answer goes home.</summary>
+    public static void Tick(World w, NationCatalog catalog, SenateSystem senate, OfficeCatalog offices)
     {
         if (catalog.IsEmpty || !catalog.Defs.Any(d => d.SenateGold > 0)) return;
         string? mine = w.Protagonist?.HouseId;
         SettleCounted(w, senate, mine);
         w.GoldOffers.RemoveAll(o => o.Settled && w.Turn - o.Turn > KeptYears);
         Fill(w, catalog);
-        foreach (var m in SenateSystem.Docket(w).Where(m => IsWarMotion(senate, m) && !w.GoldOffers.Any(o => o.MotionId == m.Id)).ToList())
+        if (!LadderSystem.Active(w, offices)) { foreach (var o in w.GoldOffers.Where(o => o.Answer.Length == 0 && !o.Settled).ToList()) Settle(w, o, turned: false); }
+        else foreach (var m in SenateSystem.Docket(w).Where(m => IsWarMotion(senate, m) && !w.GoldOffers.Any(o => o.MotionId == m.Id)).ToList())
             if (Payer(w, catalog, m.TargetId) is { } payer) Write(w, catalog, senate, m, payer, mine);
         w.WorldFlags.Remove(OfferedFlag);
         if (mine != null && Waiting(w, mine).Any()) w.WorldFlags.Add(OfferedFlag);
@@ -181,16 +184,19 @@ public static class ForeignGoldSystem
         if (o == null) return "nothing was sent";
         if (o.HouseId != house.Id) return "it was not sent to you";
         if (o.Answer.Length > 0 || o.Settled) return "it has been answered";
+        if (w.IsImperium) return "a throne stands now, and the Cities treat with it, not with the benches";
         if (!Answers.Contains(answer)) return "take it, refuse it, or tell the Senate";
         if (w.Motions.FirstOrDefault(x => x.Id == o.MotionId) is not { Open: true }) return "the vote it was sent for is over";
         return null;
     }
 
-    /// <summary>The answer is given, by the player or by another house's head.</summary>
+    /// <summary>The answer is given, by the player or by another house's head. It is the house's head now who answers, and whose it is: the one
+    /// first asked may have died or yielded the seat since (an offer to the player waits a year, and a seat can pass in the same year's end).</summary>
     public static void Answer(World w, GoldOffer o, string answer)
     {
-        var house = w.House(o.HouseId); var head = w.Char(o.CharacterId); var payer = w.Nation(o.NationId); var m = w.Motions.FirstOrDefault(x => x.Id == o.MotionId);
+        var house = w.House(o.HouseId); var head = house != null && Economy.HeadOf(w, house) is { Alive: true } now ? now : null; var payer = w.Nation(o.NationId); var m = w.Motions.FirstOrDefault(x => x.Id == o.MotionId);
         if (house == null || head == null || payer == null) { o.Answer = Lapsed; o.Settled = true; if (payer != null) payer.Purse += o.Sum; return; }
+        o.CharacterId = head.Id;
         bool ours = house.Id == w.Protagonist?.HouseId; string nation = o.NationName, warOn = o.WarOnName;
         if (answer == Take)
         {
@@ -211,7 +217,7 @@ public static class ForeignGoldSystem
         {
             o.Answer = Exposed; Count(w, ExposedKey);
             LadderSystem.GoldShown(w, ExposeTrust); LegitimacyBook.Move(w, house, ExposeLegitimacy, LegitimacyBook.Senate, $"Told the Senate of the gold {nation} sent");
-            payer.Disposition = Math.Clamp(payer.Disposition - ExposeRegard, -100, 100); w.WorldFlags.Add(ExposedFlag);
+            payer.Disposition = Math.Clamp(payer.Disposition - ExposeRegard, -100, 100);
             LifeSystem.Note(w, head, "office", $"Told the Senate what {nation} had sent to buy a vote on the war on {warOn}.");
             w.Log($"{head.Name} of {house.Name} stands in the Senate and says what {nation} sent, and for what. The chamber is angry, and thinks the less of {nation} for it.");
             if (!ours && w.Protagonist != null) w.Tell("info", $"{head.Name} of {house.Name} has told the Senate of the gold {nation} sent about the war on {warOn}. The chamber leans the more for the war.", "senate:chamber", house.Id);
@@ -293,14 +299,26 @@ public static class ForeignGoldSystem
 
     // ---------------- what is known, and what is said ----------------
 
-    /// <summary>The senators the player knows the nation reached on this motion: their own house, any who told the chamber, and those whose
-    /// head thinks well enough of the player to tell them. The rest is not known.</summary>
+    /// <summary>The senators the player knows the nation reached on this motion: their own house (a sum to withdraw the motion they moved,
+    /// too), any who told the chamber, any who took it (the roll call gives it as the reason for their vote, and the courts list it on the
+    /// record), and those whose head thinks well enough of the player to tell them. One who refused it and said nothing is not known.</summary>
     public static List<GoldOffer> Known(World w, string motionId, string? houseId)
     {
         var me = w.Protagonist;
-        return w.GoldOffers.Where(o => o.MotionId == motionId && o.Ask != Withdraw && (o.HouseId == houseId || o.Answer == Exposed
+        return w.GoldOffers.Where(o => o.MotionId == motionId && (o.HouseId == houseId || o.Answer is Exposed or Taken
                 || (me != null && w.Char(o.CharacterId) is { Alive: true } c && (w.GetRelationship(c.Id, me.Id)?.Disposition ?? 0) >= FriendTells)))
             .OrderBy(o => o.HouseId == houseId ? 0 : 1).ThenBy(o => o.HouseId, StringComparer.Ordinal).ToList();
+    }
+
+    /// <summary>The line on the motion of what is known (<see cref="Known"/>): "As far as you know, the Free Cities of Thessar have reached
+    /// 2 senators on this motion: your own house; House Aurelian, which took it."</summary>
+    public static string KnownSays(World w, List<GoldOffer> known, string payer, string? mine)
+    {
+        if (known.Count == 0) return $"No senator is known to have had gold from {payer} on this motion. They write to senators the year a war on them, or on a nation they favour, is moved, if it would carry or nearly.";
+        static string Did(GoldOffer o) => o.Answer switch { Exposed => "told the chamber", Taken => "took it", Refused => "refused it", _ => "" };
+        var names = known.Select(o => o.HouseId == mine ? "your own house" + (o.Ask == Withdraw ? ", to withdraw it" : string.Empty)
+            : (w.House(o.HouseId)?.Name ?? o.HouseId) + (o.Ask == Withdraw ? ", which moved it" + (Did(o).Length > 0 ? " and " + Did(o) : string.Empty) : Did(o).Length > 0 ? ", which " + Did(o) : string.Empty));
+        return $"As far as you know, {payer} have reached {Counted.Of(known.Count, "senator")} on this motion: {string.Join("; ", names)}. There may be others: one who refused it and said nothing is not known.";
     }
 
     /// <summary>What the sum was for, in words: "to vote against the war on the Hollow Crown".</summary>
