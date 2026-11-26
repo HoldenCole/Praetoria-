@@ -299,6 +299,19 @@ internal static class Qa
             cands.Add(new RaiseFleetCommand(p.Id, h.Id, content.Fleets, content.ShipClasses, null, content.Titles));
             cands.Add(new InvestCommand(p.Id, h.Id, bc));
             if (members.Count > 0) cands.Add(new AppointGovernorCommand(p.Id, h.Id, members[decisions.NextInt(0, members.Count)]));
+            if (!content.Policies.Local.IsEmpty)   // a law for this one world (docs/POLITICS.md, "Local law")
+            {
+                var ll = content.Policies.Local.Laws[decisions.NextInt(0, content.Policies.Local.Laws.Count)];
+                cands.Add(new SetLocalLawCommand(p.Id, h.Id, ll.Id, ll.Options[decisions.NextInt(0, ll.Options.Count)].Id, content.Policies));
+            }
+        }
+        // edicts (docs/EDICTS.md): one the person may or may not be placed to issue, and one of their own withdrawn
+        if (content.Edicts.Defs.Count > 0 && decisions.NextInt(0, 2) == 0)
+        {
+            var ed = content.Edicts.Defs[decisions.NextInt(0, content.Edicts.Defs.Count)];
+            cands.Add(new IssueEdictCommand(p.Id, ed.Id, content, others.Count > 0 ? others[decisions.NextInt(0, others.Count)].Id : ""));
+            var mine = w.Edicts.Where(e => e.IssuerId == p.Id).OrderBy(e => e.Id, StringComparer.Ordinal).ToList();
+            if (mine.Count > 0) cands.Add(new WithdrawEdictCommand(p.Id, mine[decisions.NextInt(0, mine.Count)].Id));
         }
         if (w.InAcademy)   // the Academy's own business; the bus refuses the rest, which the soak still offers to prove it
         {
@@ -571,6 +584,7 @@ internal static class Qa
             string target = def.Target == "house" && others.Count > 0 ? others[decisions.NextInt(0, others.Count)].Id : def.Target == "region" && g != null && g.ReachRegions.Any() ? g.ReachRegions.ToList()[decisions.NextInt(0, g.ReachRegions.Count())].Id : "";
             if (def.Target == "house" && def.TargetSelfAllowed && decisions.NextInt(0, 2) == 0) target = house.Id;
             if (def.Target == "nation") { var ns = content.Nations.Defs.ToList(); if (ns.Count == 0) continue; target = ns[decisions.NextInt(0, ns.Count)].Id; }
+            if (def.Target == "edict") { var es = EdictSystem.Annullable(w).ToList(); if (es.Count == 0) continue; target = es[decisions.NextInt(0, es.Count)].Id; }   // an annulment (docs/EDICTS.md)
             if (def.Law)
             {
                 var senateLaws = content.Policies.Laws.Where(l => l.Scope == "senate").OrderBy(l => l.Id, StringComparer.Ordinal).ToList();
