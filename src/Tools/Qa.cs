@@ -264,7 +264,7 @@ internal static class Qa
     /// resumed save draw the same list.</summary>
     private static void Act(TurnController tc, World w, ContentDatabase content, IRng decisions, Dictionary<string, int>? taken)
     {
-        var cands = Candidates(tc, w, content, decisions); if (cands.Count == 0) return;
+        var cands = Candidates(tc, w, content, decisions); cands.AddRange(ServiceAndLine(w, content, decisions)); if (cands.Count == 0) return;
         var ctx = new CommandContext(w, WorldBuilder.RngFor(w));
         int done = 0;
         for (int tries = 0; tries < 4 && cands.Count > 0 && done < 2; tries++)
@@ -274,6 +274,57 @@ internal static class Qa
             done++;
             if (taken != null) { string key = "cmd/" + c.GetType().Name.Replace("Command", ""); taken[key] = taken.GetValueOrDefault(key) + 1; }
         }
+    }
+
+    /// <summary>The random player's commands by service and over the line of the house (docs/MILITARY.md, "A command by service";
+    /// docs/HOUSEHOLD.md, "Struck from the line, cast out, and the undutiful will"), offered to the soak only: the scripted players
+    /// (Scripted.cs) seek and answer service on their own terms, and none of them would strike a child out by chance. Built in id
+    /// order; the draws choose which of the rarer ones are offered and whom each names.</summary>
+    internal static List<ICommand> ServiceAndLine(World w, ContentDatabase content, IRng decisions)
+    {
+        var cands = new List<ICommand>();
+        var p = w.Protagonist; if (p is not { Alive: true } || w.House(p.HouseId) is not { } house) return cands;
+        var offices = content.Offices;
+        // seek a command for the head or a grown relative, from someone who could take them on
+        var seekers = ServiceSystem.Seekers(w, p).Where(k => ServiceSystem.FreeRefusal(w, k) == null).Take(3).ToList();
+        if (seekers.Count > 0 && decisions.NextInt(0, 3) == 0)
+        {
+            var who = seekers[decisions.NextInt(0, seekers.Count)]; var takers = ServiceSystem.TakersFor(w, offices, who);
+            if (takers.Count > 0) cands.Add(new SeekCommandCommand(p.Id, who.Id, takers[decisions.NextInt(0, takers.Count)], offices));
+        }
+        // answer what is put to the player: yes or no
+        foreach (var a in w.ServiceAsks.OrderBy(a => a.Id, StringComparer.Ordinal).ToList()) cands.Add(new AnswerServiceCommand(p.Id, a.Id, decisions.NextInt(0, 2) == 0, offices));
+        // as a magistrate, name a legate to a fleet under the office; as a house at war, borrow an officer of another house
+        foreach (var f in w.Fleets.Values.Where(f => !f.IsAway).OrderBy(f => f.Id, StringComparer.Ordinal))
+        {
+            if (ServiceSystem.AuthorityOver(w, offices, p, f) != null && decisions.NextInt(0, 4) == 0)
+            {
+                var them = ServiceSystem.Candidates(w, f, 4); if (them.Count > 0) cands.Add(new NameLegateCommand(p.Id, f.Id, them[decisions.NextInt(0, them.Count)].Id, offices));
+            }
+        }
+        if (w.EnemiesOf(house.Id).Any() && decisions.NextInt(0, 3) == 0)
+            foreach (var f in ServiceSystem.HouseFleets(w, house.Id).OrderBy(f => f.Id, StringComparer.Ordinal).Take(2))
+            {
+                var them = ServiceSystem.Candidates(w, f, 4); if (them.Count > 0) cands.Add(new BorrowOfficerCommand(p.Id, f.Id, them[decisions.NextInt(0, them.Count)].Id));
+            }
+        // relieve one commanding a fleet of the house by service, or have one of the house resign theirs, now and then
+        foreach (var s in w.Service.OrderBy(s => s.FleetId, StringComparer.Ordinal).ToList())
+        {
+            if ((s.OwnerId == house.Id || s.NamedById == p.Id) && decisions.NextInt(0, 10) == 0) cands.Add(new RelieveServiceCommand(p.Id, s.FleetId));
+            if (w.Char(s.CommanderId)?.HouseId == house.Id && decisions.NextInt(0, 10) == 0) cands.Add(new ResignServiceCommand(p.Id, s.CommanderId));
+        }
+        // the line: strike out or cast out a grown relative, rarely; restore or take back one, more often; settle or plead a suit
+        var grown = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != p.Id && c.Age >= DynastySystem.AgeOfMajority).OrderBy(c => c.Id, StringComparer.Ordinal).ToList();
+        if (grown.Count > 0 && decisions.NextInt(0, 30) == 0) cands.Add(new DisownCommand(p.Id, DisownCommand.Strike, grown[decisions.NextInt(0, grown.Count)].Id));
+        if (grown.Count > 0 && decisions.NextInt(0, 60) == 0) cands.Add(new DisownCommand(p.Id, DisownCommand.CastOut, grown[decisions.NextInt(0, grown.Count)].Id));
+        foreach (var d in DisownSystem.Of(w, house.Id, DisownSystem.Struck)) if (decisions.NextInt(0, 6) == 0) cands.Add(new DisownCommand(p.Id, DisownCommand.Restore, d.PersonId));
+        foreach (var d in DisownSystem.Of(w, house.Id, DisownSystem.CastOut)) if (decisions.NextInt(0, 6) == 0) cands.Add(new DisownCommand(p.Id, DisownCommand.TakeBack, d.PersonId));
+        foreach (var s in DisownSystem.SuitsOn(w, house.Id))
+        {
+            if (decisions.NextInt(0, 4) == 0) cands.Add(new WillSuitCommand(p.Id, WillSuitCommand.Settle, s.Id));
+            if (grown.Count > 0 && decisions.NextInt(0, 3) == 0) cands.Add(new WillSuitCommand(p.Id, WillSuitCommand.Plead, s.Id, grown[decisions.NextInt(0, grown.Count)].Id));
+        }
+        return cands;
     }
 
     /// <summary>Every command the protagonist might give this turn, built in id order. The draws on <paramref name="decisions"/>

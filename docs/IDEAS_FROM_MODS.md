@@ -17,6 +17,8 @@ docs/GAPS.md: **small** is one change, **medium** is a cycle, **large** is sever
 
 ### 1. A command by service
 
+**Built 2026-11-26** (docs/MILITARY.md, "A command by service"; GAPS Q15a and R1a closed). The scripted general now commands a fleet in 22 of 24 games, against 15 before.
+
 **What it is.** The player, or anyone of their house, can be given command of a fleet that is not their house's own: as a
 legate under a consul, the Admiral of the Reach or the holder of emergency powers, or as an officer lent to an ally
 for that ally's war. The victories, the valour and the crews' devotion are theirs. The hulls stay the owner's, and the
@@ -45,6 +47,8 @@ come to love them is how a Caesar starts, so keep the gates in docs/CAESAR.md an
 
 ### 2. The heir inherits the old head's friends and enemies
 
+**Built 2026-11-26** (docs/LIFE.md, "Friends and enemies handed down"). It replaces the old rule that another house's new head kept half of what the old head thought.
+
 **What it is.** When you play on as the heir, the dead head's old friends think better of you (+20, fading over ten
 years) and the dead head's enemies think worse. A Vengeful enemy is your enemy at once; a Just or Loyal one lets it go. Only a
 grown heir takes on friendships, since a child was never seen at the parent's side.
@@ -64,6 +68,8 @@ father's enemies come for the son and the mother's friends stand by the daughter
 new heads in place of the half-regard rule, not on top of it.
 
 ### 3. Strike from the line, cast out, and a will that can be challenged
+
+**Built 2026-11-26** (docs/HOUSEHOLD.md, "Struck from the line, cast out, and the undutiful will"; GAPS R18a closed).
 
 **What it is.** The head can strike a grown relative out of the succession, or cast them out of the house, each at a
 cost in legitimacy and the kin's regard unless the one struck had defied, deserted or shamed the house. Either can be

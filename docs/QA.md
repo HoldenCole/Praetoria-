@@ -255,7 +255,7 @@ in CI.
 - **A house without land cannot get a fleet.** In 11 of 24 games nobody of the house ever commanded one, for 557
   years of refusal in all. The reasons, in the game's words: "cannot afford it" (ships, 531 years); "needs a world of
   your own" (a venture, 529); "no house has a world to spare" and "the Senate will not entrust a world to a house of
-  so little standing" (a world, 700). A new man cannot rise to a command by service. Marius could.
+  so little standing" (a world, 700). A new man cannot rise to a command by service. Marius could. (2026-11-26: a command by service is built, docs/MILITARY.md; the general now commands a fleet in 22 of 24 games, and the 2 that never did are measured there.)
 - **A triumph is moved only by rank.** "The Senate hears a Prefect, or a Judge": 582 years.
 - **Where there is a fleet, the crews are the gate.** "N hulls would follow, and it takes N": 225 years. Donatives
   cost more than the house had in 168.
