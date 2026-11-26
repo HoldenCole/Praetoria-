@@ -39,6 +39,13 @@ public static class WarLedger
         if (winner == war.HouseA) { y.WonA++; y.LostA += winnerLost; y.LostB += loserLost; } else { y.WonB++; y.LostB += winnerLost; y.LostA += loserLost; }
     }
 
+    /// <summary>Somebody of another house commanded <paramref name="side"/>'s fleet by service in a battle of the war (docs/MILITARY.md, "A command by service").</summary>
+    public static void Served(World w, War war, string side, string commanderId)
+    {
+        var y = Year(w, war); var list = side == war.HouseA ? y.ServedA : y.ServedB;
+        if (!list.Contains(commanderId)) list.Add(commanderId);
+    }
+
     /// <summary>Hulls taken as prizes by the boarders of <paramref name="taker"/> from <paramref name="from"/>.</summary>
     public static void Prizes(World w, string taker, string from, int hulls)
     {
@@ -145,6 +152,8 @@ public static class WarLedger
         {
             t.Battles += y.Battles; t.WonA += y.WonA; t.WonB += y.WonB; t.LostA += y.LostA; t.LostB += y.LostB; t.TakenA += y.TakenA; t.TakenB += y.TakenB;
             t.CreditsA += y.CreditsA; t.CreditsB += y.CreditsB; t.FuelA += y.FuelA; t.FuelB += y.FuelB; t.Changed.AddRange(y.Changed);
+            foreach (var id in y.ServedA) if (!t.ServedA.Contains(id)) t.ServedA.Add(id);
+            foreach (var id in y.ServedB) if (!t.ServedB.Contains(id)) t.ServedB.Add(id);
         }
         return t;
     }
@@ -183,6 +192,16 @@ public static class WarLedger
         return string.Join(" ", parts);
     }
 
+    /// <summary>Who of other houses commanded either side's fleets by service, by name and house.</summary>
+    private static string ServedSay(World w, War war, WarYear y, string a, bool mine)
+    {
+        bool first = a == war.HouseA; var ours = first ? y.ServedA : y.ServedB; var theirs = first ? y.ServedB : y.ServedA; var parts = new List<string>();
+        string Names(List<string> ids) => string.Join(" and ", ids.Select(id => w.Char(id) is { } c ? $"{c.Name} of {w.House(c.HouseId)?.Name ?? c.HouseId}" : id));
+        if (ours.Count > 0) parts.Add($"{Names(ours)} commanded {(mine ? "your" : Nm(w, war, a) + "'s")} fleets by service.");
+        if (theirs.Count > 0) parts.Add($"{Names(theirs)} commanded {Nm(w, war, war.Other(a))}'s by service.");
+        return string.Join(" ", parts);
+    }
+
     private static string CostSay(World w, War war, WarYear y, string a, bool mine)
     {
         bool first = a == war.HouseA; int ca = first ? y.CreditsA : y.CreditsB, fa = first ? y.FuelA : y.FuelB, cb = first ? y.CreditsB : y.CreditsA, fb = first ? y.FuelB : y.FuelA;
@@ -203,7 +222,7 @@ public static class WarLedger
             : atEnd ? "At its end" : $"Year {y.Turn}, its {Nth(Math.Max(1, n))} year";
         var parts = new List<string>();
         if (!atEnd || y.Battles > 0) parts.Add(BattlesSay(w, war, y, a, mine) + ".");
-        foreach (var s in new[] { HullsSay(w, war, y, a, mine), ChangesSay(w, war, y, a, mine) }) if (s.Length > 0) parts.Add(s);
+        foreach (var s in new[] { HullsSay(w, war, y, a, mine), ChangesSay(w, war, y, a, mine), ServedSay(w, war, y, a, mine) }) if (s.Length > 0) parts.Add(s);
         int oa = first ? y.OpenA : y.OpenB, ob = first ? y.OpenB : y.OpenA, ca = first ? y.CloseA : y.CloseB, cb = first ? y.CloseB : y.CloseA;
         string whose = mine ? "" : $" ({Nm(w, war, a)} first)";
         parts.Add(oa == ca && ob == cb ? $"The score {(latest ? "stands" : "stood")} {ca} to {cb}{whose}, as it {(latest ? "did" : "had")}." : $"The score {(latest ? "stands" : "stood")} {ca} to {cb}{whose}; it {(latest ? "was" : "had been")} {oa} to {ob}.");
@@ -218,7 +237,7 @@ public static class WarLedger
         int years = Math.Max(1, war.Ended - war.Since);
         string head = (mine ? $"The war with {Nm(w, war, b)} is over" : $"The war between {Nm(w, war, a)} and {Nm(w, war, b)} is over") + $": {(war.Ending.Length > 0 ? war.Ending : "it ended")} in year {war.Ended}, {(war.Ended <= war.Since ? "the year it began" : "after " + Counted.Years(years))}.";
         var parts = new List<string> { "In all: " + BattlesSay(w, war, t, a, mine) + "." };
-        foreach (var s in new[] { HullsSay(w, war, t, a, mine), ChangesSay(w, war, t, a, mine) }) if (s.Length > 0) parts.Add(s);
+        foreach (var s in new[] { HullsSay(w, war, t, a, mine), ChangesSay(w, war, t, a, mine), ServedSay(w, war, t, a, mine) }) if (s.Length > 0) parts.Add(s);
         parts.Add($"The score stood {(first ? war.ScoreA : war.ScoreB)} to {(first ? war.ScoreB : war.ScoreA)}{(mine ? "" : $" ({Nm(w, war, a)} first)")}.");
         string cost = CostSay(w, war, t, a, mine); if (cost.Length > 0) parts.Add(cost.Replace(", the keep of your fleets being shared between your wars", ""));
         return head + " " + string.Join(" ", parts);

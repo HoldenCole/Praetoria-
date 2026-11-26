@@ -64,6 +64,8 @@ internal static class Scripted
 
     private static bool MyHouse(World w, out House house) { house = w.Protagonist != null ? w.House(w.Protagonist.HouseId)! : null!; return house != null; }
     private static bool HasFleetCommand(World w) => MyHouse(w, out var h) && w.Fleets.Values.Any(f => f.OwnerId == h.Id && f.AdmiralId.Length > 0 && w.Char(f.AdmiralId) is { Alive: true } a && a.HouseId == h.Id);
+    /// <summary>One of the house commands a fleet: one of its own, or another's by service (docs/MILITARY.md, "A command by service").</summary>
+    private static bool CommandsAny(World w) => HasFleetCommand(w) || MyHouse(w, out var h) && w.Service.Any(s => s.CommanderHouseId == h.Id);
 
     private static readonly Road General = new()
     {
@@ -75,6 +77,9 @@ internal static class Scripted
             new Step("seize the throne", (c, _, _) => c is SeizeThroneCommand),
             new Step("give the crews a donative", (c, d, _) => c is CaesarCommand && Starts(d, CaesarCommand.Donative)),
             new Step("put one of the house in command of a fleet", (c, _, w) => c is AssignAdmiralCommand && !HasFleetCommand(w)),
+            // a house without a fleet of its own may still command one by service: as a legate, or an officer lent to a house at war
+            new Step("seek a command by service", (c, _, w) => c is SeekCommandCommand && !CommandsAny(w)),
+            new Step("take a command by service that is offered", (c, d, w) => c is AnswerServiceCommand && Starts(d, "agree to") && !CommandsAny(w)),
             new Step("raise ships", (c, _, _) => c is RaiseFleetCommand, Most: 2),
             // a house with no fleet and no money for one has to find the money first
             new Step("petition for a world", (c, _, w) => c is PetitionFiefCommand && !HasFleetCommand(w)),
@@ -93,7 +98,7 @@ internal static class Scripted
         Prefers = new[] { "march", "refuse", "defy", "keep", "fight", "triumph", "press", "stand" },
         Milestones = new[]
         {
-            new Milestone("one of the house commands a fleet", (w, _) => HasFleetCommand(w)),
+            new Milestone("one of the house commands a fleet", (w, _) => CommandsAny(w)),
             new Milestone("a battle won", (w, _) => w.Counter(FleetSystem.BattlesWonCounter) > 0),
             new Milestone("the Senate votes a triumph or a recall for the house", (w, _) => w.HasFlag("triumph_voted") || w.HasFlag("kin_triumph") || w.HasFlag("recalled") || w.HasFlag("kin_recalled") || w.HasFlag("triumph_refused")),
             new Milestone("the line is crossed", (w, _) => w.HasFlag("crossed_the_line") || w.CivilWar != null && MyHouse(w, out var h) && w.CivilWar.HouseId == h.Id),
@@ -257,7 +262,18 @@ internal static class Scripted
         var seen = new HashSet<string>(StringComparer.Ordinal); var all = new List<(ICommand, string)>();
         foreach (var rng in new IRng[] { new Least(), new Turning(w.Turn), new Turning(w.Turn * 7 + 3) })
             foreach (var c in Qa.Candidates(tc, w, content, rng)) { string d = c.Describe(); if (seen.Add(c.GetType().Name + "|" + d)) all.Add((c, d)); }
+        foreach (var c in ServiceOffers(w, content)) { string d = c.Describe(); if (seen.Add(c.GetType().Name + "|" + d)) all.Add((c, d)); }
         return all;
+    }
+
+    /// <summary>A command by service sought for the head and each grown member of the house who commands nothing, from every office-holder and every
+    /// house at war (docs/MILITARY.md, "A command by service"). The soak's own candidates do not offer these yet.</summary>
+    private static IEnumerable<ICommand> ServiceOffers(World w, ContentDatabase content)
+    {
+        if (w.Protagonist is not { Alive: true } p) yield break;
+        foreach (var who in ServiceSystem.Seekers(w, p).Where(k => ServiceSystem.FreeRefusal(w, k) == null).Take(3))
+            foreach (var t in ServiceSystem.TakersFor(w, content.Offices, who)) yield return new SeekCommandCommand(p.Id, who.Id, t, content.Offices);
+        foreach (var a in w.ServiceAsks.ToList()) { yield return new AnswerServiceCommand(p.Id, a.Id, true, content.Offices); yield return new AnswerServiceCommand(p.Id, a.Id, false, content.Offices); }
     }
 
     /// <summary>A command a player with an end in view does not give by accident.</summary>

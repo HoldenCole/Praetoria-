@@ -1,0 +1,115 @@
+@using Praetoria.Core.Systems
+@inject GameClient G
+@implements IDisposable
+@* A command by service (docs/MILITARY.md, "A command by service"): the commands the house's people hold of fleets their house does not own,
+   the player's own fleets under another's commander, what is asked of the head, and offers to seek a command or borrow an officer. *@
+@{
+    var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
+    var held = ServiceSystem.OfHouse(w, house.Id);
+    var underOthers = w.Service.Where(s => s.CommanderHouseId != house.Id && (s.OwnerId == house.Id || s.NamedById == pid)).OrderBy(s => s.FleetId, StringComparer.Ordinal).ToList();
+    var asks = w.ServiceAsks.Where(a => a.Turn >= w.Turn - 1).OrderBy(a => a.Id, StringComparer.Ordinal).ToList();
+    var seekers = ServiceSystem.Seekers(w, p); var seeker = seekers.FirstOrDefault(x => x.Id == _seeker) ?? seekers.FirstOrDefault();
+    var takers = seeker == null ? new List<string>() : ServiceSystem.TakersFor(w, c.Offices, seeker);
+    var enemy = ServiceSystem.EnemyOf(w, house.Id);
+    var borrowFleets = enemy == null ? new List<Fleet>() : ServiceSystem.HouseFleets(w, house.Id).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();
+    var borrowFleet = borrowFleets.FirstOrDefault(f => f.Id == _borrowFleet) ?? borrowFleets.FirstOrDefault();
+    var past = w.PastService.Where(s => s.CommanderHouseId == house.Id || s.OwnerId == house.Id).Reverse().Take(6).ToList();
+}
+<section class="panel" data-service>
+    <h3><Icon Name="fleet" Size="13" /> A command by service <span class="muted">a fleet your house does not own, or one of yours under another's commander</span></h3>
+    <div class="muted small">A consul, the Admiral of the Reach or the holder of emergency powers names a legate from any house to a fleet under them; a house at war takes an officer of a friendly house, with its head's leave. The victories, the valour, the renown and the crews' regard are the commander's; the hulls, their keep and the spoils stay with the house that owns the fleet. The owner or the one who named them may relieve them, the Senate by a recall, and they may resign.</div>
+
+    <h4>Held by your people</h4>
+    @if (held.Count == 0) { <div class="muted small" data-service-none="held">Nobody of your house commands a fleet by service.</div> }
+    @foreach (var s in held)
+    {
+        var resign = new ResignServiceCommand(pid, s.CommanderId); string? resignNo = resign.Refusal(G.Ctx); string who = s.CommanderId;
+        <div class="line small" data-service-held="@s.FleetId">@ServiceSystem.Says(w, s)
+            <button class="opt inline tiny" data-resign="@who" disabled="@(resignNo != null)" title="@(resignNo ?? ResignHelp(who))" @onclick="() => G.Execute(new ResignServiceCommand(pid, who))">@(who == pid ? "Resign it" : "Call them home")</button></div>
+    }
+
+    @if (underOthers.Count > 0)
+    {
+        <h4>Under another's commander</h4>
+        @foreach (var s in underOthers)
+        {
+            var relieve = new RelieveServiceCommand(pid, s.FleetId); string? relieveNo = relieve.Refusal(G.Ctx); string fid = s.FleetId, fname = s.FleetName;
+            <div class="line small" data-service-under="@s.FleetId">@ServiceSystem.Says(w, s)
+                <button class="opt inline tiny" data-relieve="@fid" disabled="@(relieveNo != null)" title="@(relieveNo ?? RelieveHelp)" @onclick='() => G.AskDo("Relieve the commander of " + fname + "?", RelieveHelp, "Relieve them", new RelieveServiceCommand(pid, fid))'>Relieve</button></div>
+        }
+    }
+
+    @if (asks.Count > 0)
+    {
+        <h4>Asked of you</h4>
+        @foreach (var a in asks)
+        {
+            string aid = a.Id; var yes = new AnswerServiceCommand(pid, aid, true, c.Offices); string? yesNo = yes.Refusal(G.Ctx);
+            <div class="line small" data-service-ask="@a.Id">@ServiceSystem.AskSays(w, a)
+                <button class="opt inline tiny" data-answer-ask="@aid" data-answer="yes" disabled="@(yesNo != null)" title="@(yesNo ?? YesHelp(a.Kind))" @onclick="() => G.Execute(new AnswerServiceCommand(pid, aid, true, c.Offices))">@YesWord(a.Kind)</button>
+                <button class="opt inline tiny" data-answer-ask="@aid" data-answer="no" title="@NoHelp" @onclick="() => G.Execute(new AnswerServiceCommand(pid, aid, false, c.Offices))">@NoWord(a.Kind)</button></div>
+        }
+    }
+
+    <h4>Seek a command</h4>
+    @if (seeker == null) { <div class="muted small">Nobody of your house is grown and free to serve.</div> }
+    else
+    {
+        <div class="row small"><span class="muted">Whose service</span>
+            <select class="sel" data-seeker @onchange="e => _seeker = e.Value?.ToString() ?? string.Empty">
+                @foreach (var k in seekers) { <option value="@k.Id" selected="@(k.Id == seeker.Id)">@(k.Id == pid ? "your own" : k.Name) · tactics @k.Skill("tactics") · renown @LifeSystem.Renown(k)</option> }
+            </select>
+            <span class="muted">· @ServiceSystem.AgentCost agent, spent only if they are taken on</span></div>
+        @if (takers.Count == 0) { <div class="muted small" data-service-none="takers">Nobody gives commands to others now: no consul, Admiral or holder of emergency powers sits, and no house is at war.</div> }
+        @foreach (var t in takers)
+        {
+            string tid = t, sid = seeker.Id; var seek = new SeekCommandCommand(pid, sid, tid, c.Offices); string? seekNo = seek.Refusal(G.Ctx);
+            ServiceSystem.SeekRefusal(w, c.Offices, seeker, tid, out var plan);
+            <div class="line small" data-taker="@tid">@ServiceSystem.TakerName(w, c.Offices, tid)
+                <button class="opt inline tiny" data-seek-command="@tid" disabled="@(seekNo != null)" title="@(seekNo ?? SeekHelp(plan))" @onclick="() => G.Execute(new SeekCommandCommand(pid, sid, tid, c.Offices))">Offer @(sid == pid ? "your" : FirstName(seeker.Name) + "'s") service</button>
+                @if (seekNo != null) { <span class="muted"> · @seekNo</span> }</div>
+        }
+    }
+
+    @if (enemy != null && borrowFleet != null)
+    {
+        <h4>Borrow an officer <span class="muted small">for your war with @(w.House(enemy)?.Name ?? enemy)</span></h4>
+        <div class="row small"><span class="muted">For</span>
+            <select class="sel" data-borrow-fleet @onchange="e => _borrowFleet = e.Value?.ToString() ?? string.Empty">
+                @foreach (var f in borrowFleets) { <option value="@f.Id" selected="@(f.Id == borrowFleet.Id)">@f.Name · @Counted.Hulls(f.Strength) · @(FleetSystem.AdmiralOf(w, f)?.Name ?? "no admiral")</option> }
+            </select>
+            <span class="muted">· @ServiceSystem.AgentCost agent · the head of their house gives leave or refuses it</span></div>
+        @foreach (var k in ServiceSystem.Candidates(w, borrowFleet, 6))
+        {
+            string kid = k.Id, bfid = borrowFleet.Id; var borrow = new BorrowOfficerCommand(pid, bfid, kid); string? borrowNo = borrow.Refusal(G.Ctx);
+            <div class="line small" data-borrow-who="@kid">@k.Name of @(w.House(k.HouseId)?.Name) · tactics @k.Skill("tactics")
+                <button class="opt inline tiny" data-borrow="@kid" disabled="@(borrowNo != null)" title="@(borrowNo ?? BorrowHelp)" @onclick="() => G.Execute(new BorrowOfficerCommand(pid, bfid, kid))">Ask for them</button>
+                @if (borrowNo != null) { <span class="muted"> · @borrowNo</span> }</div>
+        }
+    }
+
+    @if (past.Count > 0)
+    {
+        <h4>Commands by service that have ended</h4>
+        @foreach (var s in past) { <div class="line small muted" data-service-past="@s.FleetId">@ServiceSystem.Says(w, s)</div> }
+    }
+</section>
+
+@code {
+    // A panel with no parameters is not redrawn when its parent is, so it listens for the world changing itself.
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+    private string _seeker = "", _borrowFleet = "";
+    private static string FirstName(string name) => name.Split(' ')[0];
+    private const string RelieveHelp = "The command is taken back: the fleet is without an admiral until one is named, and the one relieved thinks the worse of you.";
+    private const string NoHelp = "Whoever asked thinks a little the worse of you for it.";
+    private const string BorrowHelp = "They command this fleet in your war until the war is over, you relieve them, they resign, or your houses fall out. Their victories and their crews' regard are theirs; the fleet and its spoils stay yours.";
+    private string ResignHelp(string who) => who == G.World!.ProtagonistId ? "Give the command up. Whoever named you thinks a little the worse of it." : "Call them home: the command is given up, and whoever named them thinks a little the worse of it.";
+    private static string YesWord(string kind) => kind == ServiceSystem.AskLend ? "Give leave" : kind == ServiceSystem.AskOffer ? "Take them on" : "Accept";
+    private static string NoWord(string kind) => kind == ServiceSystem.AskLend ? "Refuse" : "Decline";
+    private static string YesHelp(string kind) => kind == ServiceSystem.AskLend ? "They are lent for the war: its victories and their crews' regard are theirs, and the house that asked thinks the better of you."
+        : kind == ServiceSystem.AskOffer ? "They take the command. The fleet, its keep and its spoils stay yours." : "You take the command as legate: the victories are yours, the fleet stays theirs.";
+    private static string SeekHelp(ServiceSystem.Plan? plan) => plan == null ? string.Empty
+        : $"They would be given {plan.Fleet.Name}, {Counted.Hulls(plan.Fleet.Strength)}, by {plan.Taker.Name}, as {(plan.Kind == ServiceSystem.Legate ? "legate" : "an officer lent")}.";
+}

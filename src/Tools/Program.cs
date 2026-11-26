@@ -14,6 +14,7 @@ using Praetoria.Tools;
 //   upstart   [--seeds N] [--turns N]                            a new house from nothing, in each service: how far it climbs, and what stops it
 //   perf      [--scenario id|all] [--turns N]                    where a turn's milliseconds go
 //   caesar    [--scenario id|all] [--seeds N]                    how far generals get on the Caesar road in sixty years
+//   service   [--scenario id|all] [--seeds N] [--turns N]        commands by service with a passive player: who held them, and how they ended
 //   throne    [--scenario id|all] [--seeds N]                    how a throne is held: the hold, pretenders, and how often it changes houses
 //   survive   [--scenario id|all] [--seeds N]                    how often a passive player's line ends, and when it weds
 //   balance   [--scenario id|all] [--seeds N]                    prices, production, the Exchange and the orders after sixty years
@@ -51,6 +52,7 @@ try
         "laws"     => LawsProbe.Run(opts),
         "edicts"   => EdictsProbe.Run(opts),
         "caesar"   => Probes.Caesar(opts),
+        "service"  => ServiceProbe.Run(opts),
         "locallaws" => LocalLawsProbe.Run(opts),
         "throne"   => Probes.Throne(opts),
         _ => Unknown(command)

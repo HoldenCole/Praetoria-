@@ -497,7 +497,7 @@ public sealed class FleetSystem
         foreach (var f in w.Fleets.Values.Where(f => f.CaptainId.Length > 0).OrderBy(f => f.Id, StringComparer.Ordinal))
         {
             var c = w.Char(f.CaptainId);
-            if (c is not { Alive: true } || flags.Contains(c.Id) || (c.HouseId != f.OwnerId && c.HouseId != f.HiredFrom) || !captains.Add(c.Id)) f.CaptainId = "";
+            if (c is not { Alive: true } || flags.Contains(c.Id) || (c.HouseId != f.OwnerId && c.HouseId != f.HiredFrom && !ServiceSystem.CommandedBy(w, f, c.HouseId)) || !captains.Add(c.Id)) f.CaptainId = "";
         }
     }
 
@@ -537,7 +537,7 @@ public sealed class FleetSystem
     {
         if (c is not { Alive: true }) return "no one to appoint";
         if (f.LevyOf.Length > 0) return "a levy keeps the officers its own house gave it";
-        if (c.HouseId != f.OwnerId) return $"{c.Name} is not of the house";
+        if (c.HouseId != f.OwnerId && !ServiceSystem.CommandedBy(w, f, c.HouseId)) return $"{c.Name} is not of the house";   // a legate may bring a captain of their own house
         if (f.CaptainId == c.Id) return $"{c.Name} is its captain already";
         if (c.Age < DynastySystem.AgeOfMajority) return $"{c.Name} is {c.Age}: a captain is a grown officer, {DynastySystem.AgeOfMajority} or older";
         if (c.CareerTrack != "military") return $"{c.Name} is not in the naval service: a captain is an officer of the Navy, a Lieutenant or above";
@@ -855,6 +855,7 @@ public sealed class FleetSystem
             if (winnerAdmirals.Concat(loserAdmirals).Any(c => c.Id == w.ProtagonistId && c.Flags.Contains(FrontFlag))) w.WorldFlags.Add("fought_at_the_front");
         }
         CaesarSystem.Victory(w, winner, loser, systemId);   // the crews take to the one who led them; a victory to his name (docs/CAESAR.md)
+        ServiceSystem.Fought(w, winner, loser, systemId);   // and to a commander of another house, by service, the same (docs/MILITARY.md, "A command by service")
         NationSystem.BattleOnMap(w, winner, loser);        // and if it was fought against a nation, it counts in that war (docs/BEYOND.md)
         var ledBefore = w.Fleets.Values.Where(f => !f.Moving && f.SystemId == systemId && (f.OwnerId == winner || f.OwnerId == loser)).ToDictionary(f => f.Id, f => Commander(w, f)?.Id ?? "");
         AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals, winner);
@@ -898,7 +899,8 @@ public sealed class FleetSystem
             string skill = c.Skill("tactics") <= c.Skill("gunnery") ? "tactics" : "gunnery", other = skill == "tactics" ? "gunnery" : "tactics";
             if (c.Skill(skill) >= EducationSystem.Ceiling(c, skill)) skill = other;
             if (c.Skill(skill) < EducationSystem.Ceiling(c, skill)) { c.Skills[skill] = c.Skill(skill) + 1; w.Log($"{c.Name} learns from the victory ({skill} {c.Skill(skill)})."); }
-            LifeSystem.Note(w, c, "victory", w.Fleets.Values.Where(f => f.CaptainId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault() is { } ship ? $"Won a battle as captain, in command of {ship.Name}." : "Won a battle in command of a fleet.");
+            LifeSystem.Note(w, c, "victory", w.Fleets.Values.Where(f => f.CaptainId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault() is { } ship ? $"Won a battle as captain, in command of {ship.Name}."
+                : ServiceSystem.Held(w, c) is { } served ? $"Won a battle in command of {served.FleetName}, for {w.House(served.OwnerId)?.Name ?? served.OwnerId}, as {ServiceSystem.KindName(served)}." : "Won a battle in command of a fleet.");
             if (c.Flags.Contains(FrontFlag))
             {
                 int v = w.Counter(ValourKey(c.Id)) + 1; w.WorldCounters[ValourKey(c.Id)] = v;
@@ -1005,7 +1007,8 @@ public sealed class FleetSystem
     /// <summary>A commander who leads from the flag lends every fleet of the house a share of their tactics: the house's best such commander counts.</summary>
     public double FlagFactor(World w, string houseId)
     {
-        var best = w.Characters.Values.Where(c => c.Alive && c.HouseId == houseId && c.Flags.Contains(FlagFlag)).Select(c => c.Skill("tactics")).DefaultIfEmpty(-1).Max();
+        // a commander by service lends it to the house they fight for, not to their own (docs/MILITARY.md, "A command by service")
+        var best = w.Characters.Values.Where(c => c.Alive && c.Flags.Contains(FlagFlag) && (c.HouseId == houseId || w.Service.Count > 0) && ServiceSystem.Serves(w, c) == houseId).Select(c => c.Skill("tactics")).DefaultIfEmpty(-1).Max();
         return best < 0 ? 0 : Math.Min(_rules.FlagMax, best * _rules.FlagPerTactics);
     }
 

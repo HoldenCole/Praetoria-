@@ -191,6 +191,12 @@ public sealed class World
     public List<Polity> Polities { get; set; } = new();
     /// <summary>Generals the Senate has ordered home (docs/CAESAR.md).</summary>
     public List<Recall> Recalls { get; set; } = new();
+    /// <summary>Commands by service standing now: fleets commanded by somebody of another house (docs/MILITARY.md, "A command by service").</summary>
+    public List<ServiceCommand> Service { get; set; } = new();
+    /// <summary>Commands by service that have ended, newest last, kept forty deep.</summary>
+    public List<ServiceCommand> PastService { get; set; } = new();
+    /// <summary>What is put to the player's head about a command by service this year, to be answered on the Military window.</summary>
+    public List<ServiceAsk> ServiceAsks { get; set; } = new();
     /// <summary>The civil war, while a general marches on the capital (docs/CAESAR.md).</summary>
     public CivilWar? CivilWar { get; set; }
     /// <summary>The Senate's emergency powers, while a consul holds them (docs/EMERGENCY.md).</summary>

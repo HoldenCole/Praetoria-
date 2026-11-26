@@ -106,6 +106,7 @@
         <button class="rung @(_view == "battles" ? "here" : "")" data-view="battles" @onclick='() => _view = "battles"'>Battles@(w.Battles.Any(b => b.Involves(house.Id) && b.Turn >= w.Turn - 1) ? " ●" : "")</button>
         <button class="rung @(_view == "wars" ? "here" : "")" data-view="wars" @onclick='() => _view = "wars"'>Wars</button>
         <button class="rung @(_view == "general" ? "here" : "")" @onclick='() => _view = "general"'>The general and the Senate</button>
+        <button class="rung @(_view == "service" ? "here" : "")" data-view="service" @onclick='() => _view = "service"'>A command by service@(w.ServiceAsks.Count > 0 ? " ●" : "")</button>
         @if (nations.Count > 0) { <button class="rung @(_view == "abroad" ? "here" : "") @(warAbroad != null ? "warn" : "")" @onclick='() => _view = "abroad"'>Beyond the Reach · @(warAbroad != null ? "war with " + warAbroad.Name : nations.Count + " nations")</button> }
     </div>
 
@@ -176,6 +177,7 @@
         </div></div>
     }
     else if (_view == "general") { <div class="dash-grid deck-one"><div class="deck-col"><CaesarPanel /></div></div> }
+    else if (_view == "service") { <div class="dash-grid deck-one"><div class="deck-col"><ServicePanel /></div></div> }
     else if (_view == "abroad")
     {
         <div class="dash-grid deck-one"><div class="deck-col">
