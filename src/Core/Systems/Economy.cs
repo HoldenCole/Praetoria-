@@ -11,7 +11,10 @@ public sealed class Ledger
 {
     public List<LedgerLine> Lines { get; } = new();
     public Resources Net { get; } = new();
-    public void Add(string source, string kind, Resources d) { if (d.IsEmpty()) return; Lines.Add(new LedgerLine(source, kind, d)); Net.Add(d); }
+    /// <summary>Single credits over and above <see cref="Net"/> (docs/MONEY.md): what a percentage of a small sum comes to when the
+    /// books are in hundreds. A tenth more of a venture that pays 400 is 40, which is no whole hundred and used to be lost.</summary>
+    public int Coin { get; private set; }
+    public void Add(string source, string kind, Resources d) { Coin += d.Coin; if (d.IsEmpty()) return; Lines.Add(new LedgerLine(source, kind, d)); Net.Add(d); }
 }
 
 /// <summary>
@@ -222,9 +225,9 @@ public sealed class Economy
         if (def.PeaceCredits != 0 && wars == 0) d.Credits += def.PeaceCredits * b.Level;
         if (def.SpikeCredits != 0) d.Credits += def.SpikeCredits * b.Level * world.WorldFlags.Count(f => f.StartsWith("price_spike:"));
         if (SenateSystem.Embargoed(world, houseId) && d.Credits > 0) d.Credits /= 2;                      // the Senate's embargo: the factors cannot sell
-        int vyp = Law(world, houseId, "venture_yield_pct") + ReachLaw(world, "venture_yield_pct"); if (vyp != 0 && d.Credits > 0) d.Credits = d.Credits * (100 + vyp) / 100;   // tariffs and the merchants' regard
+        int vyp = Law(world, houseId, "venture_yield_pct") + ReachLaw(world, "venture_yield_pct"); if (vyp != 0 && d.Credits > 0) { int raw = d.Credits * Math.Max(0, 100 + vyp); d.Credits = raw / 100; d.Coin = raw % 100; }   // tariffs and the merchants' regard; what is under a hundred is kept as single credits
         int vl = world.Galaxy?.System(b.SystemId) is { } vs && world.Regions.TryGetValue(vs.RegionId, out var vr) ? vr.Lawlessness : 0;
-        if (vl > 0) foreach (var r in new[] { Resource.Credits, Resource.Materials }) if (d.Get(r) > 0) d.Set(r, d.Get(r) * (200 - vl) / 200);
+        if (vl > 0) { foreach (var r in new[] { Resource.Credits, Resource.Materials }) if (d.Get(r) > 0) d.Set(r, d.Get(r) * (200 - vl) / 200); d.Coin = d.Coin * (200 - vl) / 200; }
         if (planet != null && planet.OwnerId != houseId && def.Charter > 0) d.Add(Resource.Credits, -(def.Charter + (world.Galaxy?.RulesFor(world.Galaxy.RingOf(b.SystemId)).CharterBonus ?? 0)) * b.Level);
         return d;
     }
@@ -371,7 +374,7 @@ public sealed class Economy
 
             var ledger = Compute(world, house.Id);
             int manpowerBefore = house.Treasury.Manpower;
-            house.Treasury.Add(ledger.Net);
+            house.Treasury.Add(ledger.Net); if (ledger.Coin != 0) house.Treasury.AddCoin(ledger.Coin);
             // a house keeps under arms no more than its worlds can muster (the owner, 2026-11-21: "there should 100% be a cap")
             int cap = MusterCap(world, house.Id, _catalog), settled = MusterSettle(manpowerBefore, ledger.Net.Manpower, cap);
             if (settled != house.Treasury.Manpower)
