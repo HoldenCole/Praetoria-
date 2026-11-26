@@ -49,6 +49,7 @@ try
         "balance"  => Probes.Balance(opts),
         "econ"     => Probes.Econ(opts),
         "laws"     => LawsProbe.Run(opts),
+        "edicts"   => EdictsProbe.Run(opts),
         "caesar"   => Probes.Caesar(opts),
         "throne"   => Probes.Throne(opts),
         _ => Unknown(command)
