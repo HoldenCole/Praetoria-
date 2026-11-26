@@ -216,7 +216,8 @@ public sealed class MarketSystem
 
     private static double Spread(World w, string houseId, TradeRules t) => (HasMarket(w, houseId, t.Holdings) ? t.Market.Rules.SpreadPct : t.Market.Rules.CaravanSpreadPct) / 100.0;
     private static double Tariff(World w, string houseId, TradeRules t) =>
-        t.Policies.IsEmpty ? 1 : Math.Max(0.1, 1 + (PolicySystem.ReachModifier(w, t.Policies, "market_price_pct") + PolicySystem.Modifier(w, t.Policies, houseId, "market_price_pct")) / 100.0);
+        t.Policies.IsEmpty ? 1 : Math.Max(0.1, 1 + (PolicySystem.ReachModifier(w, t.Policies, "market_price_pct") - (w.OfTheReach(houseId) ? 0 : EdictSystem.Reach(w, "market_price_pct"))   // a Reach-wide edict falls only on the houses of the Reach (docs/EDICTS.md)
+            + PolicySystem.Modifier(w, t.Policies, houseId, "market_price_pct")) / 100.0);
 
     /// <summary>The price a house would pay for the next unit, with its spread and the tariff, before its order's own weight.</summary>
     public static double BuyPrice(World w, TradeRules t, string houseId, string good) =>
