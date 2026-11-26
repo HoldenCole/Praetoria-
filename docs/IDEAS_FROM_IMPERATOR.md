@@ -33,6 +33,8 @@ is a third of a world (docs/PROVINCES.md). This page says **a governorship** for
 
 ### 1. A triumph is had at the gate
 
+**Built 2026-11-26** (docs/CAESAR.md, the triumph; docs/LADDER.md, "Standing in absence"; GAPS Q15 closed). In 50 Republic games of 60 years no general crossed the line, before or after.
+
 **What it is.** A general voted a triumph must come home and lay the command down for the year to have it. While they
 are home the fleet sits under its captain, and its crews' devotion does not fade. They may decline the triumph to keep
 the fleet. And while someone commands a fleet away from the capital, or governs abroad (entry 6), they cannot stand
@@ -73,6 +75,8 @@ same year. A triumph is one of the Caesar gates, so measure the rate with `praet
 is one triumph a war, and none for anyone outside the Reach.
 
 ### 2. A charge against the powerful is a gamble
+
+**Built 2026-11-26** (docs/LADDER.md, "A charge against the powerful"; GAPS C7a and L11a closed). In 60 Republic games of 60 years, 23 of the accused went into exile and none crossed the line.
 
 **What it is.** A charge brought against a person of great sway (first guess: 40 or more), or against the head of a
 house of Legate rank or above, counts as a cause to cross the line in the year it is heard, as a recall or a censure
@@ -367,6 +371,8 @@ wars become dangerous from outside, as Rome's were. Two wars beyond the Reach at
 so measure the Republic's survival and the Caesar rate after.
 
 ### 9. Foreign gold in the Senate
+
+**Built 2026-11-26** (docs/BEYOND.md, "Foreign gold in the Senate"; GAPS N11a closed). Left alone, no house moves a war on the Free Cities, so the gold is offered when the player moves one (GAPS N31).
 
 **What it is.** Before a war motion against the Free Cities, or a nation they favour, the Cities send senators the
 same gift that asks a favour that houses already send one another. The player is offered a sum to vote against the war
