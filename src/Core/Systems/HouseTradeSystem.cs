@@ -195,7 +195,11 @@ public sealed class HouseTradeSystem
         return $"The market's price is {Unit(Mid(w, good))}, and no caravaneer stands between you."
             + (Closed(w, good) ? $" The law keeps {Resource.Label(good)} off the exchanges, and a private sale is {ClosedPct} in the hundred dearer for it." : "")
             + (selling ? $" Its head thinks {Signed(regard)} of you{moved}." : $" It pays {PaysUnderPct} in the hundred under the market; its head thinks {Signed(regard)} of you{moved}.")
-            + (SenateActs.TradeLevy(w) is > 0 and var levy ? $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} the chair takes {levy} in the hundred of the sale, out of what the seller is paid." : "");
+            + (SenateActs.TradeLevy(w) is > 0 and var levy   // as LevyOn takes it: nothing of the chair's own sale, and nothing while no house holds the capital
+                ? (RegionSystem.CapitalHolder(w) is not { } chair ? $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} no levy is taken while no house holds the capital."
+                    : chair.Id == (selling ? theirs : mine).Id ? $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} {(chair.Id == mine.Id ? "your house" : chair.Name)}, as the chair, pays no levy on what it sells."
+                    : $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} the chair takes {levy} in the hundred of the sale, out of what the seller is paid.")
+                : "");
     }
     /// <summary>The goods and the credits change hands. Returns what was paid.</summary>
     public int Buy(World w, House buyer, House seller, string good, int units)

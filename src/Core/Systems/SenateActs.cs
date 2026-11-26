@@ -382,9 +382,11 @@ public static class SenateActs
         }
         if (TradeTight(next) != TradeTight(cur))
         {
-            bool chair = RegionSystem.CapitalHolder(w)?.Id == h.Id;
+            var holder = RegionSystem.CapitalHolder(w);
             if (next.Effects.GetValueOrDefault(TradeBan) > 0) parts.Add($"your house could sell no lot to another house and strike no new standing deal{(w.TradeDeals.Count(d => d.SellerId == h.Id || d.BuyerId == h.Id) is var deals && deals > 0 ? $"; its {Counted.Of(deals, "standing deal")} would run out their term" : "")}");
-            else if (next.Effects.GetValueOrDefault(TradeLevyPct) is var lv && lv > 0) parts.Add(chair ? $"your house, as the chair, would take {lv} in the hundred of every lot one house sells another" : $"of a lot your house sold another for {Money.Credits(10)}, the chair would take {Money.Coin(10L * Money.PerUnit * lv / 100)}");
+            else if (next.Effects.GetValueOrDefault(TradeLevyPct) is var lv && lv > 0) parts.Add(holder == null ? "no levy would be taken while no house holds the capital"
+                : holder.Id == h.Id ? $"your house, as the chair, would take {lv} in the hundred of every lot one house sells another, and pay none on its own"
+                : $"of a lot your house sold another for {Money.Credits(10)}, the chair would take {Money.Coin(10L * Money.PerUnit * lv / 100)}");
             else parts.Add("your house could deal with any other out of its store, and pay nothing to the chair for it");
         }
         foreach (var (who, office, now, then) in Years(w, h, cur, next, offices))

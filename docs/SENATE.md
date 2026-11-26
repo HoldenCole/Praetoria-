@@ -240,7 +240,7 @@ call names the cause: "it lends, and a cap on usury cuts what it earns".
 says, after what it does, what it would do to the player's own house in figures (`SenateActs.ToHouse`): "To your house:
 your house would pay 500 credits a year, 100 credits for each of its 5 worlds; unrest on each of your 5 worlds would move 1
 a year lower." An Act on the docket says the same on its card: the counting-houses' terms as the House screen gives them, and
-each of the house the Law of the Years would let stand sooner, or make wait, for the ladder and for consul. The House screen's
+everyone of the house the Law of the Years would let stand sooner, or make wait, for the ladder and for consul. The House screen's
 standing loan, the Ladder panel and the consular election show the loan and the ages as the law in force leaves them. The Laws window's table of the law of the Reach is grouped
 by category. Every new effect has plain words wherever an effect is shown (`SenateActs.Words`).
 
@@ -291,7 +291,7 @@ the law of the Reach makes loyal now follows which bench carries the chamber. Th
 - The Corn Law: 100 credits a world and unrest -1, or 200 and -2. The Land Law: prosperity 2 (it settles 4 higher or
   lower in the reckoning, which doubles a law's prosperity) against 1 a year of people's growth. Service: 25% of the keep
   against 2 or 3 of readiness a year, for the fleets of the Reach only. The Navigation Act: a levy of 10 in the hundred of a
-  lot, taken to the single credit (20 credits of a sale of 200), none on the chair's own sales; the staple adds 100 credits a toll. The years: 5, never under 18. Citizenship: 8 on where every
+  lot, taken to the single credit (20 credits of a sale of 200), none on the chair's own sales and none while no house holds the capital; the staple adds 100 credits a toll. The years: 5, never under 18. Citizenship: 8 on where every
   region's allegiance settles. Citizenship moves where allegiance settles rather than the existing `allegiance_drift`:
   a drift of a point a year is pulled back by the drift toward where a region settles, so it moves the settled allegiance
   by that point only.

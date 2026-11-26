@@ -350,6 +350,22 @@ public class NewActsTests
             Assert.Equal(buyerBefore - sale + (chair.Id == buyer.Id ? levy : 0), buyer.Treasury.Total);
             Act(w, "navigation_act", "free");
         }
+        // what the player is told of the levy is what LevyOn takes: the chair is not told it pays itself, and nothing is taken while no house holds the capital
+        {
+            var law = Cat.Law("navigation_act")!; var capital = w.PlanetOf(w.Galaxy!.Capital)!; string held = capital.OwnerId; var buyer = Third(w, mine, chair);
+            Act(w, "navigation_act", "levy"); const string Takes = "the chair takes 10 in the hundred of the sale";
+            string Sells() => tc.HouseTrade.PriceSays(w, buyer, mine, Resource.Materials, selling: false); string Buys() => tc.HouseTrade.PriceSays(w, buyer, mine, Resource.Materials, selling: true);
+            string ToMine() => SenateActs.ToHouse(w, mine, law.DefaultOption, law.Option("levy")!, Content.Offices);
+            capital.OwnerId = chair.Id == mine.Id ? other.Id : chair.Id; Assert.NotEqual(mine.Id, RegionSystem.CapitalHolder(w)?.Id);
+            Assert.Contains(Takes, Sells()); Assert.Contains("of a lot your house sold another for 1,000 credits, the chair would take 100 credits", ToMine());
+            capital.OwnerId = mine.Id; Assert.Equal(0, SenateActs.LevyOn(w, mine, 10));
+            Assert.DoesNotContain(Takes, Sells()); Assert.Contains("your house, as the chair, pays no levy on what it sells", Sells()); Assert.Contains(Takes, Buys());
+            Assert.Contains("your house, as the chair, would take 10 in the hundred of every lot one house sells another, and pay none on its own", ToMine());
+            capital.OwnerId = ""; Assert.Null(RegionSystem.CapitalHolder(w)); Assert.Equal(0, SenateActs.LevyOn(w, mine, 10));
+            Assert.DoesNotContain(Takes, Sells()); Assert.DoesNotContain(Takes, Buys()); Assert.Contains("no levy is taken while no house holds the capital", Sells());
+            Assert.Contains("no levy would be taken while no house holds the capital", ToMine()); Assert.DoesNotContain("the chair would take", ToMine());
+            capital.OwnerId = held; Act(w, "navigation_act", "free");
+        }
         // the staple sends more through the chokepoints: every lane world's tolls rise
         var lane = w.Houses.Values.FirstOrDefault(h => w.HoldingsOf(h.Id).Any(x => x.IsPlanet && !x.InRebellion && w.Galaxy!.IsChokepoint(x.SystemId)));
         if (lane != null)
