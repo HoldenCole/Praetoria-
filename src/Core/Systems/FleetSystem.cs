@@ -137,13 +137,16 @@ public sealed class FleetSystem
     /// <summary>Laws and estates (PolicySystem): the household guard, the Admiral's doctrine, the officers' regard.</summary>
     public PolicyCatalog Policies { get; set; } = PolicyCatalog.Empty;
     private World? _world;
+    /// <summary>The game this is the navy of. Set when the game is taken up, so that what the laws do to a fleet's keep shows in the
+    /// first year's forecast and not only after a year has turned (docs/LAWS_REVIEW.md).</summary>
+    public void Bind(World w) => _world = w;
     public Resources Upkeep(Fleet f)
     {
         var r = new Resources();
         foreach (var (cls, n) in Composition(f)) foreach (var k in Resource.All) r.Add(k, cls.Upkeep.Get(k) * n);
-        int pct = _world != null ? PolicySystem.Modifier(_world, Policies, f.OwnerId, "fleet_upkeep_pct") : 0; if (pct != 0 && r.Credits > 0) r.Credits = Math.Max(0, r.Credits * (100 + pct) / 100);
+        int pct = _world != null ? PolicySystem.Modifier(_world, Policies, f.OwnerId, "fleet_upkeep_pct") : 0; if (pct != 0 && r.Credits > 0) { int raw = r.Credits * Math.Max(0, 100 + pct); r.Credits = raw / 100; r.Coin = raw % 100; }   // what is under a hundred is billed in single credits (docs/MONEY.md)
         // laid up: the caretakers' part of it, never rounded away to nothing
-        if (f.LaidUp) foreach (var k in Resource.All) { int v = r.Get(k); if (v > 0) r.Set(k, (v * _rules.LaidUpUpkeepPct + 99) / 100); }
+        if (f.LaidUp) { foreach (var k in Resource.All) { int v = r.Get(k); if (v > 0) r.Set(k, (v * _rules.LaidUpUpkeepPct + 99) / 100); } r.Coin = 0; }
         return r;
     }
 
@@ -193,8 +196,9 @@ public sealed class FleetSystem
         foreach (var house in w.Houses.Values.OrderBy(h => h.Id, StringComparer.Ordinal))
         {
             var bill = new Resources();
-            int keptAtWar = 0;   // what the fleets in commission cost: a war's account says what the year cost (docs/MILITARY.md, "Commanding a navy")
-            foreach (var f in w.Fleets.Values.Where(f => BilledTo(f, chairId) == house.Id)) { var keep = Upkeep(f); bill.Add(keep); if (!f.LaidUp) keptAtWar += keep.Credits; }
+            int keptAtWar = 0, odd = 0;   // what the fleets in commission cost: a war's account says what the year cost (docs/MILITARY.md, "Commanding a navy")
+            foreach (var f in w.Fleets.Values.Where(f => BilledTo(f, chairId) == house.Id)) { var keep = Upkeep(f); bill.Add(keep); odd += keep.Coin; if (!f.LaidUp) keptAtWar += keep.Credits; }
+            if (odd != 0) house.Treasury.AddCoin(-odd);
             if (bill.IsEmpty()) continue;
             int tanks = house.Treasury.Helium3;
             foreach (var r in Resource.All) house.Treasury.Add(r, -bill.Get(r));

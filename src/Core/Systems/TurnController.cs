@@ -115,7 +115,7 @@ public sealed class TurnController
         _crises = content.Crises.Count == 0 ? null : new CrisisEngine(content.Crises, content.Recovery);
         _spheres = content.Spheres.IsEmpty ? null : new SphereSystem(content.Spheres, world.Difficulty, content.Offices);
         _progression = content.Titles.IsEmpty ? null : new ProgressionSystem(content.Titles);
-        _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction);
+        _fleets = new FleetSystem(content.Fleets, content.Holdings, content.ShipClasses, content.Friction); _fleets.Bind(world);
         _senate = new SenateSystem(content.Motions, content.Titles, _fleets, content.Offices) { Policies = content.Policies, Nations = content.Nations };
         if (world.Galaxy != null) { Praetoria.Core.Galaxy.SystemBodies.Furnish(world.Galaxy, content.Holdings); SystemWorks.Migrate(world, content.Holdings); }   // every system its sun, moons and features, once (docs/SYSTEMS.md): a save from before them gets them here
         _nations = new NationSystem(content.Nations, _fleets); if (world.Turn == 0) NationSystem.Seed(world, content.Nations); SystemWorks.SeedDevelopment(world, content.Holdings); ProvinceSystem.Seed(world, content.Holdings);   // the nations beyond the Reach (docs/FOREIGN_NATIONS.md)

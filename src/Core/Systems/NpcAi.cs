@@ -625,7 +625,28 @@ public sealed class NpcAi
         if (lawless == null && PolicySystem.OptionId(world, cat, house.Id, "march_law") == "martial_law" && PolicySystem.RegionsDominated(world, house.Id).All(r => RegionSystem.StateOf(world, r).Lawlessness < 30) && Try("march_law", "patrols")) return;
         if (PolicySystem.HoldsScope(world, house.Id, "chair") && house.Treasury.Credits < 40 && Try("reach_tolls", "heavy")) return;
         if (PolicySystem.HoldsScope(world, house.Id, "office:admiral") && atWar && Try("fleet_doctrine", "aggressive")) return;
+        // 4. nothing presses: the house brings one of its own laws to what its bench stands for (docs/LAWS_REVIEW.md: over two games of
+        //    thirty years fifty-eight houses changed a law eighteen times, because a house only ever legislated when something was wrong).
+        //    Not where the change would turn one of its own estates against it, and not a law the whole Reach holds in common.
+        if (FactionSystem.Of(world, house.Id) is not { } bench) return;
+        foreach (var (lawId, want) in bench.Laws.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+        {
+            var law = cat.Law(lawId); if (law == null || law.Scope == "senate" || !PolicySystem.HoldsScope(world, house.Id, law.Scope)) continue;
+            var now = PolicySystem.Option(world, cat, house.Id, lawId); var next = law.Option(want); if (now == null || next == null || now.Id == next.Id) continue;
+            if (!law.Reach && cat.Estates.Any(e => PolicySystem.LawOpinion(world, cat, house.Id, e.Id) - now.Opinions.GetValueOrDefault(e.Id) + next.Opinions.GetValueOrDefault(e.Id) <= PolicySystem.Hostile + PlatformMargin)) continue;
+            if (next.Effects.GetValueOrDefault("credits_per_world") < 0 && house.Treasury.Credits < PlatformCoffers) continue;   // a law that costs coin waits for a full treasury
+            if (Try(lawId, want)) return;
+        }
+        // the leader of a bench gives it a platform: reform where the bench courts the commons, tradition where it courts the old blood
+        if (FactionSystem.Leads(world, house.Id) && PolicySystem.OptionId(world, cat, house.Id, "bench_platform") == "loose")
+        {
+            if (bench.Estates.Contains("commons") && Try("bench_platform", "reform")) return;
+            if (bench.Estates.Contains("old_blood") && Try("bench_platform", "tradition")) return;
+        }
     }
+    /// <summary>A house does not follow its bench into a law that would leave one of its own estates within this of hostile; nor into
+    /// one that costs coin a world with fewer than this in the treasury.</summary>
+    public const int PlatformMargin = 5, PlatformCoffers = 10;
 
     /// <summary>Fuel before finery (GDD §17): every rival house with a navy and dry or low tanks buys helium-3 on the open market before it
     /// spends a pool point on anything else — three turns' worth when the coin is comfortable, one turn's worth when it is not.</summary>
