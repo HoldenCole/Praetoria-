@@ -104,7 +104,7 @@
                     <Portrait Id="@focus.Id" Name="@focus.Name" Sex="@focus.Sex" Age="@focus.Age" Alive="@focus.Alive" Accent="@m.HouseAccent" Size="56" />
                     <div class="sc-body">
                         <div class="sc-name">@focus.Name <span class="muted">@focus.Age@(focus.Sex.Length > 0 ? $" · {focus.Sex}" : "")@(c.Careers.RankName(focus.CareerTrack, focus.CareerRank, G.World!.Era) is { } rn ? $" · {rn}" : "")</span></div>
-                        <div class="muted small">@(hl?.Married == true ? "wed · " : "")@(hl?.Hidden == true ? "fostered away · " : "")<span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d toward you</span>@(focus.NatureTraits.Count > 0 ? " · " + string.Join(", ", focus.NatureTraits.Concat(focus.AptitudeTraits)) : "")@(focus.Ambition.Length > 0 ? $" · wants: {focus.Ambition.Replace('_', ' ')}" : "")</div>
+                        <div class="muted small">@(hl?.Married == true ? "wed · " : "")@(hl?.Hidden == true ? "fostered away · " : "")<span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@Counted.Figure(d) toward you</span>@(focus.NatureTraits.Count > 0 ? " · " + string.Join(", ", focus.NatureTraits.Concat(focus.AptitudeTraits)) : "")@(focus.Ambition.Length > 0 ? $" · wants: {focus.Ambition.Replace('_', ' ')}" : "")</div>
                         @if (hl != null && hl.Actions.Count > 0) { <div class="sc-actions">@foreach (var o in hl.Actions) { if (o.Id == "defiant") { <span class="pill warn">defiant</span> } else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? HouseholdWords.Tip(o.Id))" @onclick="() => G.Execute(Household(o.Id, hl.Id))">@o.Label</button> } } </div> }
                     </div>
                     <button class="win-close" @onclick="() => _focus = null">✕</button>
@@ -117,7 +117,7 @@
                 <div class="person" @onclick="() => _focus = h.Id">
                     <Portrait Id="@h.Id" Name="@h.Name" Sex="@h.Sex" Age="@h.Age" Accent="@m.HouseAccent" Size="28" />
                     <span class="p-who"><b>@h.Name</b> <span class="muted">@h.Age@(h.Sex.Length > 0 ? $" · {h.Sex}" : "")@(h.Married ? " · wed" : "")@(h.Hidden ? " · fostered away" : "")</span>
-                        <span class="p-what">@if (h.Id != pid) { <i class="@(pd < -20 ? "bad" : pd > 20 ? "good" : "")">@(pd >= 0 ? "+" : "")@pd toward you</i> }@(what.Length > 0 ? (h.Id != pid ? " · " : "") + what : "")</span></span>
+                        <span class="p-what">@if (h.Id != pid) { <i class="@(pd < -20 ? "bad" : pd > 20 ? "good" : "")">@(pd >= 0 ? "+" : "")@Counted.Figure(pd) toward you</i> }@(what.Length > 0 ? (h.Id != pid ? " · " : "") + what : "")</span></span>
                     @foreach (var o in h.Actions)
                     {
                         @if (o.Id == "defiant") { <span class="pill warn">defiant</span> }
@@ -410,7 +410,7 @@
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) _view = Tab; } }
     private static string GovClass(HoldingCard h) => h.GovernorDisposition <= -30 ? "hostile" : h.GovernorDisposition < 10 ? "cool" : "loyal";
     private static string GovText(HoldingCard h) => h.GovernorDisposition <= -30 ? (h.GovernorAmbitious ? "hostile · ambitious" : "hostile") : h.GovernorDisposition < 10 ? "cool" : "loyal";
-    private static string GovTitle(HoldingCard h) => "disposition toward you " + h.GovernorDisposition + (h.GovernorAmbitious ? " · ambitious" : "");
+    private static string GovTitle(HoldingCard h) => "disposition toward you " + Counted.Figure(h.GovernorDisposition) + (h.GovernorAmbitious ? " · ambitious" : "");
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
     private static string Goods(Resources r) => string.Join(" · ", Resource.All.Where(k => k != "credits" && r.Get(k) != 0).Select(k => $"{(r.Get(k) > 0 ? "+" : "−")}{Math.Abs(r.Get(k))} {Resource.Label(k)}"));
     private static string Delta(Resources r) { var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{Money.SignedOf(k, r.Get(k))} {k}").ToList(); return parts.Count == 0 ? "—" : string.Join(" · ", parts); }

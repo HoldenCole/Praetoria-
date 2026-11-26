@@ -135,6 +135,7 @@ A rival Caesar is rare on purpose (docs/PROCESS.md). Measured after E4 (a victor
 | M3 | A spouse does nothing: no counsel, no running the house in your absence. | M | |
 | M4 | A spouse stays in their own house. | S | **The owner's:** does a spouse come to live in the house, and which of the two moves? |
 | M5 | No affection outside courtship. | M | |
+| M11 | The starts do not say where a wife or husband who married in was born, so the game takes them for the house's own blood. They stand in the line of succession by age, can be struck from it, and a widow or a son's wife can take the seat before the grandchildren: in the Old Lion, with the eldest son struck out, the seat went from Aurel to his wife Helene and then to Corvin's wife Ysolde (found by the browser check of 2026-11-26). The start files need a house of birth for each spouse, and the line then reads it. | S | M4 |
 
 ## Found by the full QA (docs/QA.md, 2026-11-16)
 

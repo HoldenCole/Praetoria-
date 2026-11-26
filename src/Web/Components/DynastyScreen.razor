@@ -24,7 +24,7 @@
     else if (heir.Age < 16) { story = $"{heir.Name}, {heir.Age}, is your heir, {heirBy}: the seat would pass to a child{(heirs.Count > 1 ? $", with {heirs.Count - 1} more behind in the line" : ", and nobody stands behind")}."; storyTone = "warn"; }
     else if (heirs.Count == 1) { story = $"{heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, is your heir, {heirBy}, and the only one: the line is one life deep."; storyTone = "warn"; }
     else { story = $"{heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, is your heir, {heirBy}, with {heirs.Count - 1} more behind in the line. {living} of the blood are living, {children} of them children{(ailing.Count > 0 ? $"; {ailing[0].Name} is {LifeSystem.HealthName(ailing[0].Health)}" : "")}."; storyTone = heirRegard < -20 ? "warn" : ""; }
-    if (heir != null && heirRegard < -20) story += $" Your heir thinks ill of you ({heirRegard}).";
+    if (heir != null && heirRegard < -20) story += $" Your heir thinks ill of you ({Counted.Figure(heirRegard)}).";
 }
 <div class="dash lineage" style="--accent:@house.AccentColor">
     <header class="dash-head picture">
@@ -32,7 +32,7 @@
         <p class="headline @storyTone">@story</p>
         <div class="tiles">
             <Tile Label="Your heir" Value="@(heir != null ? First(heir.Name) : "none")" Tone="@(heir == null ? "bad" : heir.Age < 16 || heirRegard < -20 ? "warn" : "good")"
-                  Note="@(heir == null ? "wed, or the name dies with you" : $"{heir.Age}{(heirRank != null ? $" · {heirRank}" : "")} · {(heirRegard >= 0 ? "+" : "")}{heirRegard} toward you")" Title="Who has the house when you die or lay it down." />
+                  Note="@(heir == null ? "wed, or the name dies with you" : $"{heir.Age}{(heirRank != null ? $" · {heirRank}" : "")} · {(heirRegard >= 0 ? "+" : "")}{Counted.Figure(heirRegard)} toward you")" Title="Who has the house when you die or lay it down." />
             <Tile Label="The line" Value="@(heirs.Count == 0 ? "empty" : heirs.Count == 1 ? "1 deep" : $"{heirs.Count} deep")" Tone="@(heirs.Count == 0 ? "bad" : heirs.Count == 1 ? "warn" : "")"
                   Note="@($"by {law}" + (heirs.Count > 1 ? $" · then {First(heirs[1].Name)}" : ""))" Title="How many stand in the line of succession, in order." />
             <Tile Label="Of the blood" Value="@($"{living} living")" Note="@($"{grown.Count} grown · {children} children{(dead > 0 ? $" · {dead} remembered" : "")}")" Title="Those born to the house. Those taken in are on the House screen." />
@@ -95,7 +95,7 @@
                             <div class="muted small">
                                 @if (mother != null || father != null) { <span>child of @string.Join(" and ", new[] { father?.Name, mother?.Name }.Where(x => x != null)) · </span> }
                                 @if (sp != null) { <span>⚭ @sp.Name@(sp.HouseId != fc.HouseId ? $" of {w.House(sp.HouseId)?.Name}" : "") · </span> }
-                                @if (fc.Id != pid && fc.Alive) { <span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d toward you@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span> }
+                                @if (fc.Id != pid && fc.Alive) { <span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@Counted.Figure(d) toward you@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span> }
                                 @if (heirs.Count > 0 && heirs[0].Id == fc.Id) { <span class="good"> · heir</span> }
                             </div>
                             @if (fc.NatureTraits.Count + fc.AptitudeTraits.Count > 0) { <div class="muted small">@string.Join(" · ", fc.NatureTraits.Concat(fc.AptitudeTraits))@(fc.Ambition.Length > 0 ? $" · wants: {fc.Ambition.Replace('_', ' ')}" : "")</div> }

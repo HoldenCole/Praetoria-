@@ -25,9 +25,11 @@ require('fs').mkdirSync(shots, { recursive: true });
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.profile-x') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const confirm = async () => { await page.waitForTimeout(300); const said = await page.evaluate(() => { const b = document.querySelector('[data-confirm="yes"]'); if (!b) return 'no question was asked'; const q = (b.closest('.confirm-box') || {}).innerText || ''; b.click(); return q.replace(/\s+/g, ' ').slice(0, 400); }); console.log('  asked: ' + said); await page.waitForTimeout(600); const out = await page.evaluate(() => { const o = document.querySelector('[data-outcome-ok]'); const t = o ? (o.closest('.confirm-box') || {}).innerText || '' : ''; if (o) o.click(); return t.replace(/\s+/g, ' ').slice(0, 300); }); if (out) console.log('  outcome: ' + out); await page.waitForTimeout(300); };
   const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  let named = [];
   const succession = async label => {   // the succession screen, if one is up: what it hands down, a picture, and on
     const s = await page.evaluate(() => { const e = document.querySelector('.epilogue.succession'); if (!e) return null; const f = e.querySelector('[data-inherited-friends]'), n = e.querySelector('[data-inherited-enemies]'); return { friends: f ? f.innerText.replace(/\s+/g, ' ') : '', enemies: n ? n.innerText.replace(/\s+/g, ' ') : '', all: e.innerText.replace(/\s+/g, ' ').slice(0, 300) }; });
     if (!s) return false;
+    named = [...(s.friends + ' ' + s.enemies).matchAll(/([A-Z][a-z]+ [A-Z][a-z]+) of (House [A-Z][a-z]+)/g)].map(m => ({ who: m[1], house: m[2] }));
     console.log('succession (' + label + '): ' + suspicious(s.all) + ' · ' + s.all.slice(0, 160)); console.log('  friends handed down: ' + (s.friends || 'none')); console.log('  enemies handed down: ' + (s.enemies || 'none'));
     const el = await page.$('.epilogue.succession'); if (el) { await el.screenshot({ path: shots + '/ck3-succession.png', timeout: 180000 }); console.log('saved ck3-succession.png'); }
     await page.evaluate(() => { const b = [...document.querySelectorAll('.epilogue.succession button')].find(x => x.innerText.startsWith('Take up the name')); if (b) b.click(); }); await page.waitForTimeout(500);
@@ -79,16 +81,16 @@ require('fs').mkdirSync(shots, { recursive: true });
   const profileCheck = async () => {   // a profile that itemises what was handed down, while it is fresh
     if (profiled) return; profiled = true;
     await rail('Houses'); await page.waitForTimeout(900); let found = false;
-    const rows = await page.$$('.standings tbody tr');
-    for (let r = 0; r < Math.min(rows.length, 16) && !found; r++) {
-      await page.evaluate(i => { const x = document.querySelectorAll('.standings tbody tr')[i]; if (x) x.click(); }, r); await page.waitForTimeout(500);
-      const n = await page.evaluate(() => document.querySelectorAll('.portrait.opens').length);
-      for (let i = 0; i < Math.min(n, 8) && !found; i++) {
-        await page.evaluate(k => { const el = document.querySelectorAll('.portrait.opens')[k]; if (el) el.click(); }, i); await page.waitForTimeout(450);
-        const why = await page.evaluate(() => [...document.querySelectorAll('.profile [data-inherited-regard]')].map(e => e.getAttribute('data-inherited-regard') + ': ' + e.innerText.replace(/\s+/g, ' ')));
-        if (why.length) { found = true; console.log('profile of ' + await text('.profile h2') + ': ' + suspicious(why.join(' ')) + ' · ' + why.join(' | ')); await shotOf('.profile', 'ck3-profile-inherited.png'); }
-        await page.evaluate(() => { const x = document.querySelector('.profile-x'); if (x) x.click(); }); await page.waitForTimeout(200);
-      }
+    for (const n of named) {
+      if (found) break;
+      await page.evaluate(h => { const x = [...document.querySelectorAll('.standings tbody tr')].find(r => r.innerText.includes(h)); if (x) x.click(); }, n.house); await page.waitForTimeout(600);
+      const opened = await page.evaluate(who => { const el = [...document.querySelectorAll('.portrait.opens')].find(e => (e.getAttribute('title') || '').startsWith(who)); if (el) el.click(); return !!el; }, n.who);
+      if (!opened) { console.log('  no face of ' + n.who + ' to open on ' + n.house + "'s page"); continue; }
+      await page.waitForTimeout(600);
+      const why = await page.evaluate(() => [...document.querySelectorAll('.profile [data-inherited-regard]')].map(e => e.getAttribute('data-inherited-regard') + ': ' + e.innerText.replace(/\s+/g, ' ')));
+      if (why.length) { found = true; console.log('profile of ' + n.who + ': ' + suspicious(why.join(' ')) + ' · ' + why.join(' | ')); await shotOf('.profile', 'ck3-profile-inherited.png'); }
+      else console.log('  the profile of ' + n.who + ' shows no line handed down');
+      await page.evaluate(() => { const x = document.querySelector('.profile-x'); if (x) x.click(); }); await page.waitForTimeout(200);
     }
     if (!found) console.log('no profile of the first houses\' people shows a regard handed down');
     await closeWindows();

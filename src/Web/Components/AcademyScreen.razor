@@ -127,7 +127,7 @@
                         <div class="sc-body">
                             <div class="sc-name">@focus.Name <span class="muted">of @focus.HouseName · @focus.Age</span></div>
                             <div class="muted small">a @focus.HouseStyle's house@(focus.StandardName != null ? $" · {focus.StandardName}" : "")@(focus.Alive ? "" : " · did not come back")</div>
-                            @if (!focus.You) { <div class="muted small"><span class="@(focus.Disposition < -20 ? "warn" : focus.Disposition > 20 ? "good" : "")">@(focus.Disposition >= 0 ? "+" : "")@focus.Disposition toward you</span>@(focus.Bond.Length > 0 ? $" · {focus.Bond}" : "")</div> }
+                            @if (!focus.You) { <div class="muted small"><span class="@(focus.Disposition < -20 ? "warn" : focus.Disposition > 20 ? "good" : "")">@(focus.Disposition >= 0 ? "+" : "")@Counted.Figure(focus.Disposition) toward you</span>@(focus.Bond.Length > 0 ? $" · {focus.Bond}" : "")</div> }
                             <div class="muted small">@(focus.BestAt.Length > 0 ? "best at " + focus.BestAt : "untried")</div>
                             <div class="muted small">@(focus.You ? "You." : "You will sit beside this house in the Senate for the rest of your life.")</div>
                         </div>
