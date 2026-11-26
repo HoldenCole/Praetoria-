@@ -281,6 +281,24 @@ public class LocalLawTests
     }
 
     [Fact]
+    public void A_world_taken_at_its_limit_of_laws_has_what_stirs_it_lifted_first_and_then_martial_rule()
+    {
+        // the player's world, with a surcharge and a labour levy (its two laws off the custom), taken by House Corwin and restless
+        var w = Reach(); var ex = new CommandExecutor(); var barony = w.Holding("barony")!;
+        LocalLawSystem.Set(w, Cat, barony, "local_tithe", "surcharge"); LocalLawSystem.Set(w, Cat, barony, "labour_levy", "corvee");
+        w.Holdings.Remove("corwin_world");
+        barony.OwnerId = "corwin"; barony.FormerOwnerId = "vega"; barony.GovernorId = "corwin_head"; barony.Unrest = 35; barony.Population = 50;
+        var corwin = w.House("corwin")!; corwin.Treasury.Credits = 2;
+        Assert.Equal(LocalLawSystem.Limit(w, barony), LocalLawSystem.Count(Cat, barony));
+        Assert.Equal(("garrison", "martial_rule"), LocalLawSystem.Wanted(w, Cat, corwin, barony, Content.Holdings));   // what it wants first; the world has no room for it
+        Assert.NotNull(new SetLocalLawCommand("corwin_head", "barony", "garrison", "martial_rule", Cat).Refusal(Ctx(w)));
+        for (int t = 1; t <= 6 && !(barony.LocalLaws.GetValueOrDefault("garrison") == "martial_rule"); t++) { w.Turn = t; w.Pools["corwin_head"].Influence = 2; barony.Unrest = 35; LocalLawSystem.Tick(w, Cat, ex, Ctx(w), Content.Holdings); }
+        Assert.Equal("martial_rule", barony.LocalLaws.GetValueOrDefault("garrison"));
+        Assert.Equal("customary", LocalLawSystem.OptionId(Cat, barony, "local_tithe"));   // the surcharge went first, to make room
+        Assert.Contains(w.History, e => e.Text.Contains("House Corwin decrees for Barony"));
+    }
+
+    [Fact]
     public void Another_house_s_head_makes_the_decree_at_the_year_s_turn_and_the_player_s_house_is_left_alone()
     {
         var w = Reach(); var ex = new CommandExecutor();

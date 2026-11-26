@@ -126,7 +126,10 @@ set on **one** world by the head of the house that holds it, and falls on that w
   treasury holds 800 credits, and a garrison quartered where it does not, each lifted at unrest 5; a world at unrest 10 or under
   and prosperity 55 or over is given a surcharge when the treasury holds under 400 credits; a peopled world under three fifths of
   its room gets settlers' grants when the treasury holds 1,000 credits, stopped at four fifths or under 300 credits. A house does
-  not decree what would bring one of its estates within 5 of hostile, unless a world of its is in revolt. It is all
+  not decree what would bring one of its estates within 5 of hostile, unless a world of its is in revolt. A reason the world
+  cannot take (it carries its limit of laws, or an estate would turn) gives way to the next reason on the same world, and a world
+  in that trouble has any law of its that raises unrest lifted (a surcharge, a labour levy, a veterans' colony), so that a world
+  taken with its limit of laws has the surcharge lifted one year and is put under martial rule the next. It is all
   deterministic. Every decree goes into the chronicle: "House Corwin decrees for Ember Hold: a surcharge on the tithe."
 - **Screens.** Wherever one world is looked at (its card on the Worlds window, and the system panel), a "Local law" block
   (`LocalLawBlock.razor`, `data-local-laws="<holdingId>"`): each law (`data-local-law="<lawId>"`) with the option in force and

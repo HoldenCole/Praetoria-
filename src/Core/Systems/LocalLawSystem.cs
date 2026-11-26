@@ -195,12 +195,16 @@ public static class LocalLawSystem
             uint hash = 2166136261; foreach (var ch in house.Id + ":local:" + w.Turn) hash = (hash ^ ch) * 16777619;
             bool revolt = worlds.Any(h => h.InRebellion);
             if (hash % 2 != 0 && !revolt) continue;
+            bool decreed = false;
             foreach (var h in worlds)
             {
-                var want = Wanted(w, cat, house, h, holdings); if (want == null) continue;
-                if (!revolt && cat.Estates.Any(e => PolicySystem.LawOpinion(w, cat, house.Id, e.Id) - Opinion(w, cat, house.Id, e.Id) + OpinionIf(w, cat, house.Id, e.Id, h, want.Value.law, want.Value.option) <= PolicySystem.Hostile + EstateMargin
-                    && OpinionIf(w, cat, house.Id, e.Id, h, want.Value.law, want.Value.option) < Opinion(w, cat, house.Id, e.Id))) continue;   // it would turn an estate against the house
-                if (executor.TryExecute(new SetLocalLawCommand(head.Id, h.Id, want.Value.law, want.Value.option, cat), ctx)) break;
+                foreach (var want in Wants(w, cat, house, h, holdings))   // its reasons in order: one refused or vetoed gives way to the next
+                {
+                    if (!revolt && cat.Estates.Any(e => PolicySystem.LawOpinion(w, cat, house.Id, e.Id) - Opinion(w, cat, house.Id, e.Id) + OpinionIf(w, cat, house.Id, e.Id, h, want.law, want.option) <= PolicySystem.Hostile + EstateMargin
+                        && OpinionIf(w, cat, house.Id, e.Id, h, want.law, want.option) < Opinion(w, cat, house.Id, e.Id))) continue;   // it would turn an estate against the house
+                    if (executor.TryExecute(new SetLocalLawCommand(head.Id, h.Id, want.law, want.option, cat), ctx)) { decreed = true; break; }
+                }
+                if (decreed) break;
             }
         }
     }
@@ -213,25 +217,38 @@ public static class LocalLawSystem
     /// when the chest is full, which stop when it fills or the chest empties.</summary>
     public static (string law, string option)? Wanted(World w, PolicyCatalog cat, House house, Holding h, HoldingCatalog? holdings = null)
     {
+        foreach (var want in Wants(w, cat, house, h, holdings)) return want;
+        return null;
+    }
+
+    /// <summary>Every change a house's head would make to this world's local law this year, in the order of <see cref="Wanted"/>.
+    /// The year's turn tries them in that order, so that a reason the world cannot take (it carries its limit of laws, or an estate
+    /// would turn) gives way to the next. A world in trouble that cannot take martial rule has a law that stirs it lifted first.</summary>
+    public static IEnumerable<(string law, string option)> Wants(World w, PolicyCatalog cat, House house, Holding h, HoldingCatalog? holdings = null)
+    {
         string Now(string law) => OptionId(cat, h, law);
         (string, string)? To(string law, string option) => cat.Local.Law(law)?.Option(option) != null && Now(law) != option && CooldownLeft(w, h, law) == 0 ? (law, option) : null;
         int coin = house.Treasury.Credits; string garrison = Now(GarrisonLaw), dole = Now(DoleLaw), tithe = Now(TitheLaw), settlers = Now(SettlersLaw);
         string noGarrison = cat.Local.Law(GarrisonLaw)?.DefaultOption.Id ?? "", noDole = cat.Local.Law(DoleLaw)?.DefaultOption.Id ?? "", noGrants = cat.Local.Law(SettlersLaw)?.DefaultOption.Id ?? "", customary = cat.Local.Law(TitheLaw)?.DefaultOption.Id ?? "";
         bool taken = h.FormerOwnerId.Length > 0 && h.FormerOwnerId != house.Id && w.House(h.FormerOwnerId) != null && !World.Outsider(h.FormerOwnerId);
-        if (h.InRebellion || h.Unrest >= MartialUnrest || (taken && h.Unrest >= TakenUnrest)) { if (To(GarrisonLaw, "martial_rule") is { } m) return m; }
-        else if (garrison == "martial_rule" && h.Unrest <= QuietUnrest && To(GarrisonLaw, noGarrison) is { } lift) return lift;
-        if (tithe == "surcharge" && (h.Unrest >= SurchargeLifted || coin >= EasyTreasury) && To(TitheLaw, customary) is { } off) return off;
+        if (h.InRebellion || h.Unrest >= MartialUnrest || (taken && h.Unrest >= TakenUnrest))
+        {
+            if (To(GarrisonLaw, "martial_rule") is { } m) yield return m;
+            foreach (var law in cat.Local.Laws.OrderBy(l => l.Id, StringComparer.Ordinal))   // a law of this world that stirs it is lifted, to make room or to calm it
+                if (Option(cat, h, law.Id) is { Default: false } o && o.Effects.GetValueOrDefault("unrest_drift") > 0 && To(law.Id, law.DefaultOption.Id) is { } up) yield return up;
+        }
+        else if (garrison == "martial_rule" && h.Unrest <= QuietUnrest && To(GarrisonLaw, noGarrison) is { } lift) yield return lift;
+        if (tithe == "surcharge" && (h.Unrest >= SurchargeLifted || coin >= EasyTreasury) && To(TitheLaw, customary) is { } off) yield return off;
         if (h.Unrest >= StirringUnrest && h.Population > 0 && garrison == noGarrison && dole == noDole)
         {
-            if (coin >= DoleTreasury && To(DoleLaw, "corn_dole") is { } d) return d;
-            if (To(GarrisonLaw, "quartered") is { } q) return q;
+            if (coin >= DoleTreasury && To(DoleLaw, "corn_dole") is { } d) yield return d;
+            if (To(GarrisonLaw, "quartered") is { } q) yield return q;
         }
-        if (dole != noDole && (h.Unrest <= QuietUnrest || coin < 0) && To(DoleLaw, noDole) is { } nd) return nd;
-        if (garrison == "quartered" && h.Unrest <= QuietUnrest && To(GarrisonLaw, noGarrison) is { } ng) return ng;
-        if (coin >= 0 && coin < PoorTreasury && h.Unrest <= SurchargeUnrest && h.Prosperity >= SurchargeProsperity && h.Population > 0 && tithe == customary && To(TitheLaw, "surcharge") is { } s) return s;
+        if (dole != noDole && (h.Unrest <= QuietUnrest || coin < 0) && To(DoleLaw, noDole) is { } nd) yield return nd;
+        if (garrison == "quartered" && h.Unrest <= QuietUnrest && To(GarrisonLaw, noGarrison) is { } ng) yield return ng;
+        if (coin >= 0 && coin < PoorTreasury && h.Unrest <= SurchargeUnrest && h.Prosperity >= SurchargeProsperity && h.Population > 0 && tithe == customary && To(TitheLaw, "surcharge") is { } s) yield return s;
         int room = holdings?.Spec(h.Specialization)?.MaxPopulation ?? 0;
-        if (settlers == noGrants && room > 0 && h.Population > 0 && h.Population * 5 < room * ThinFifths && coin >= GrantsTreasury && h.Unrest < StirringUnrest && To(SettlersLaw, "land_grants") is { } g) return g;
-        if (settlers == "land_grants" && (coin < GrantsStop || (room > 0 && h.Population * 5 >= room * FullFifths)) && To(SettlersLaw, noGrants) is { } ns) return ns;
-        return null;
+        if (settlers == noGrants && room > 0 && h.Population > 0 && h.Population * 5 < room * ThinFifths && coin >= GrantsTreasury && h.Unrest < StirringUnrest && To(SettlersLaw, "land_grants") is { } g) yield return g;
+        if (settlers == "land_grants" && (coin < GrantsStop || (room > 0 && h.Population * 5 >= room * FullFifths)) && To(SettlersLaw, noGrants) is { } ns) yield return ns;
     }
 }
