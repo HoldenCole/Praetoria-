@@ -112,6 +112,7 @@ public class ChargeAgainstThePowerfulTests
         int legit = mine.Legitimacy;
         Assert.True(Do(tc, ctx, new ProsecutionCommand(me.Id, ProsecutionCommand.Prosecute, d.Id, Offices)));
         var c = Assert.Single(w.Indictments); Assert.True(c.Powerful); Assert.Equal(mine.Id, c.AccuserId); Assert.False(d.Answered);  // not heard this year
+        Assert.Contains(w.History, e => e.Text.Contains(" charges " + head.Name) && e.Text.Contains("hears it at the end of next year"));   // the chronicle and the news agree
         Assert.Contains(ChargeSystem.Touching(w, mine.Id), x => x.Id == c.Id);
         Assert.Equal("there is nothing on the record to charge them with, or they still sit", No(ctx, new ProsecutionCommand(me.Id, ProsecutionCommand.Prosecute, d.Id, Offices)));   // it is under charge
         Year(tc, w);
@@ -157,12 +158,13 @@ public class ChargeAgainstThePowerfulTests
         if (w.Nations.Any(n => !n.Fallen && !n.AtWar)) Assert.Contains(x.NationName, ChargeSystem.WhereSays(x));
         Assert.DoesNotContain(w.Magistrates, m => m.CharacterId == me.Id); Assert.DoesNotContain(w.Offices, h => h.CharacterId == me.Id);
         Assert.Equal("", f.AdmiralId); Assert.Equal(purse, me.Purse);                                                                  // the purse goes with them
-        Assert.Equal(legit - 2 * ChargeSystem.ExileLegitimacy - OfficeSystem.GrantLegitimacy, mine.Legitimacy);   // the head went abroad, and an office of the Reach was lost Assert.Equal(theirs + ChargeSystem.ExileAccuserLegitimacy, accuser.Legitimacy);
+        Assert.Equal(legit - 2 * ChargeSystem.ExileLegitimacy - OfficeSystem.GrantLegitimacy, mine.Legitimacy);   // the head went abroad, and an office of the Reach was lost
+        Assert.Equal(theirs + ChargeSystem.ExileAccuserLegitimacy, accuser.Legitimacy);                                                 // the house that charged them gains as for a conviction
         Assert.True(w.HasFlag(ChargeSystem.WentAbroadFlag)); Assert.Equal(me.Id, Economy.HeadOf(w, mine)!.Id);                          // still the head of the house
         Year(tc, w); Assert.Equal(ChargeSystem.Exiled, c.Outcome);                                                                    // and it is never heard
         // what an exile may not do
         string abroad = "in exile";
-        Assert.Contains(abroad, LadderSystem.StandRefusal(w, Offices, me, me, LadderSystem.Quaestor));
+        Assert.StartsWith("you are in exile", LadderSystem.StandRefusal(w, Offices, me, me, LadderSystem.Quaestor));                  // your own button says "you"
         Assert.Contains(abroad, No(ctx, new AssignAdmiralCommand(me.Id, f.Id, me.Id)));
         Assert.True(CaesarSystem.Barred(w, me)); Assert.Null(OfficeSystem.Candidate(w, Offices.Def("treasurer")!, mine.Id) is { } cand && cand.Id == me.Id ? cand : null);
         var other = Person(w, o[2], "formerly"); var d2 = Deed(w, other);
@@ -175,6 +177,12 @@ public class ChargeAgainstThePowerfulTests
         var back = SaveSystem.Deserialize(SaveSystem.Serialize(w));
         Assert.Equal(x.NationName, Assert.Single(back.Exiles).NationName); Assert.True(back.Exiles[0].WasHead); Assert.Contains(ChargeSystem.ExiledChar, back.Char(me.Id)!.Flags);
         Assert.Equal(ChargeSystem.Exiled, back.Indictments.First(i => i.Id == c.Id).Outcome); Assert.True(back.Indictments.First(i => i.Id == c.Id).Powerful);
+        // the return the house may move is its own exile's, not another house's
+        var stranger = Person(w, o[2], "stranger"); tc.Charges.Exile(w, stranger, null);
+        Assert.Null(ChargeSystem.HomeRefusal(w, o[2]));
+        Assert.StartsWith("you are in exile", No(ctx, new ProposeMotionCommand(me.Id, ChargeSystem.HomeKind, o[2].Id, tc.Senate)));
+        Assert.Contains("nothing in the Senate but a return from exile of its own", No(ctx, new ProposeMotionCommand(me.Id, ChargeSystem.HomeKind, o[2].Id, tc.Senate)));
+        Assert.False(ChargeSystem.MayMoveHome(w, tc.Senate, mine, o[2].Id)); Assert.True(ChargeSystem.MayMoveHome(w, tc.Senate, mine, mine.Id));
     }
 
     [Fact]
@@ -196,7 +204,16 @@ public class ChargeAgainstThePowerfulTests
         var (tc2, w2, _, mine2, _) = Start(); var o2 = Others(w2, mine2); var away = Person(w2, o2[0], "away"); tc2.Charges.Exile(w2, away, null);
         Assert.False(ChargeSystem.MoveHome(w2, tc2.Senate, mine2.Id));                                                                  // too soon
         w2.Turn += ChargeSystem.HomeAfterYears;
-        if (tc2.Senate.Door(w2, o2[0]) != null) { Assert.True(ChargeSystem.MoveHome(w2, tc2.Senate, mine2.Id)); Assert.Contains(w2.Motions, x => x.Kind == ChargeSystem.HomeKind && x.TargetId == o2[0].Id && x.Open); }
+        Assert.Null(tc2.Senate.Door(w2, o2[0]));                                                                                         // its own house has no voice in the Senate
+        Assert.False(ChargeSystem.MoveHome(w2, tc2.Senate, mine2.Id));                                                                  // and nobody is a friend of theirs
+        var friend = o2[1]; friend.Title = Praetoria.Core.Progression.Title.Count; Assert.NotNull(tc2.Senate.Door(w2, friend));
+        w2.Relationship(Economy.HeadOf(w2, friend)!.Id, away.Id).Disposition = ChargeSystem.HomeFriendAt;                                 // a friend at 30 moves it
+        Assert.True(ChargeSystem.MoveHome(w2, tc2.Senate, mine2.Id));
+        var moved = Assert.Single(w2.Motions, x => x.Kind == ChargeSystem.HomeKind && x.Open); Assert.Equal(o2[0].Id, moved.TargetId); Assert.Equal(friend.Id, moved.ProposerHouseId);
+        Assert.Equal(1, w2.Counter(ChargeSystem.HomeMovedKey));
+        w2.Motions.Clear(); o2[0].Title = Praetoria.Core.Progression.Title.Count; Assert.NotNull(tc2.Senate.Door(w2, o2[0]));            // with a voice of its own, its own house moves it
+        Assert.True(ChargeSystem.MoveHome(w2, tc2.Senate, mine2.Id));
+        moved = Assert.Single(w2.Motions, x => x.Kind == ChargeSystem.HomeKind && x.Open); Assert.Equal(o2[0].Id, moved.TargetId); Assert.Equal(o2[0].Id, moved.ProposerHouseId);
     }
 
     [Fact]
@@ -257,9 +274,10 @@ public class ChargeAgainstThePowerfulTests
         Assert.Contains(w.OfficeRecord, x => x.Id == d.Id);                                                                           // a threatened act is not forgotten
         // the general lays the command down: you have until the end of the year after to bring it
         f.AdmiralId = ""; int legit = mine.Legitimacy; tc.Charges.Tick(w);
-        Assert.Equal(w.Turn, t.LaidDownTurn); Assert.Null(ChargeSystem.Cause(w, them)); Assert.Contains(w.News, n => n.Text.Contains("bring the charge by the end of year"));
-        w.Turn++; tc.Charges.Tick(w); Assert.Equal("", t.Outcome);
-        w.Turn++; tc.Charges.Tick(w); Assert.Equal(ChargeSystem.Empty, t.Outcome); Assert.Equal(legit - ChargeSystem.ThreatEmptyLegitimacy, mine.Legitimacy);
+        Assert.Equal(w.Turn, t.LaidDownTurn); Assert.Null(ChargeSystem.Cause(w, them)); Assert.Contains(w.News, n => n.Text.Contains($"bring the charge by the end of year {w.Turn + ChargeSystem.ThreatGraceYears}"));
+        Assert.Equal("", t.Outcome);                                                                                                   // not empty in the year it was laid down
+        w.Turn++; tc.Charges.Tick(w);                                                                                                  // the end of the year you were told
+        Assert.Equal(ChargeSystem.Empty, t.Outcome); Assert.Equal(legit - ChargeSystem.ThreatEmptyLegitimacy, mine.Legitimacy);
         // kept: the charge is brought the day it is laid down
         var (tc2, w2, me2, mine2, ctx2) = Start(); var o2 = Others(w2, mine2); Judge(w2, o2[1]); var g2 = Person(w2, o2[0], "gen2", "Loyal"); var f2 = Legion(w2, o2[0], g2); var d2 = Deed(w2, g2);
         Assert.True(Do(tc2, ctx2, new ThreatenChargeCommand(me2.Id, g2.Id, Offices))); f2.AdmiralId = ""; tc2.Charges.Tick(w2);
@@ -285,11 +303,95 @@ public class ChargeAgainstThePowerfulTests
     public void Everything_the_answers_say_is_plain_and_counts_and_money_go_through_their_helpers()
     {
         var (tc, w, me, mine, ctx) = Start(); var o = Others(w, mine); var judge = Judge(w, o[1]); var c = Charged(tc, w, o[0], me, judge);
+        w.Offices.RemoveAll(x => x.OfficeId == "treasurer"); w.Offices.Add(new OfficeHolding { OfficeId = "treasurer", HouseId = mine.Id, CharacterId = me.Id, SinceTurn = w.Turn }); me.Flags.Add("office:treasurer");
         foreach (var ans in new[] { ChargeSystem.Trial, ChargeSystem.ExileAnswer, ChargeSystem.Cross, ChargeSystem.LayDown })
             if (No(ctx, new AnswerChargeCommand(me.Id, c.Id, ans, tc.Charges)) is { } why) { Assert.DoesNotContain("(s)", why); Assert.DoesNotContain("!", why); Assert.DoesNotContain("—", why); }
         tc.Charges.Exile(w, me, c);
+        Assert.Contains(w.History, e => e.Text.Contains("is relieved of the") && e.Text.Contains("gone into exile"));                    // an office of the Reach lapses
         foreach (var n in w.News.Concat(w.History.Select(e => new NewsItem { Text = e.Text }))) { Assert.DoesNotContain("(s)", n.Text); Assert.DoesNotContain("—", n.Text); }
         Assert.Contains("you are in exile", ChargeSystem.AbroadSays(w, me, you: true));
+    }
+
+    [Fact]
+    public void A_house_that_crossed_by_the_Caesar_road_answers_nothing_before_the_Republics_courts()
+    {
+        var (tc, w, me, mine, ctx) = Start(); var o = Others(w, mine); var judge = Judge(w, o[1]); var f = Legion(w, mine, me, hulls: 12); Name(w, me);
+        var c = Charged(tc, w, o[0], me, judge);
+        Assert.True(Do(tc, ctx, new CaesarCommand(me.Id, CaesarCommand.Cross, "", tc.Caesar)));                                       // crossed from the Caesar panel, not the courts
+        Assert.Equal(mine.Id, w.CivilWar?.HouseId); Assert.Equal("", c.Outcome);
+        foreach (var ans in new[] { ChargeSystem.Trial, ChargeSystem.ExileAnswer, ChargeSystem.Cross, ChargeSystem.LayDown })
+            Assert.Equal("the house has crossed the line: the Republic's courts will not hear it", No(ctx, new AnswerChargeCommand(me.Id, c.Id, ans, tc.Charges)));
+        Assert.False(ChargeSystem.Abroad(w, me)); Assert.Equal(me.Id, f.AdmiralId); Assert.Equal(me.Id, w.CivilWar!.GeneralId);          // the general marches with the fleet
+        w.Turn++; tc.Charges.Tick(w); Assert.Equal(ChargeSystem.Crossed, c.Outcome);                                                   // and the charge is settled at the turn of the year
+    }
+
+    [Fact]
+    public void Only_the_general_crosses_and_the_refusal_names_the_general()
+    {
+        var (tc, w, me, mine, ctx) = Start(); var o = Others(w, mine); var judge = Judge(w, o[1]);
+        var small = Legion(w, mine, me, hulls: 2, devotion: 0); var kin = Person(w, mine, "marshal"); Name(w, kin); Legion(w, mine, kin, hulls: 14);
+        foreach (var x in w.Fleets.Values.Where(x => x.OwnerId == mine.Id && x.Id != small.Id && x.AdmiralId == me.Id)) x.AdmiralId = "";
+        Assert.Equal(kin.Id, CaesarSystem.GeneralOf(w, mine)?.Id); Assert.True(ChargeSystem.Commands(w, me));
+        var c = Charged(tc, w, o[0], me, judge);
+        Assert.Equal($"{kin.Name} is the house's general, not you: only its general can cross the line", No(ctx, new AnswerChargeCommand(me.Id, c.Id, ChargeSystem.Cross, tc.Charges)));
+        small.AdmiralId = "";
+        Assert.Equal("you command none of the house's fleets: only its general can cross the line", No(ctx, new AnswerChargeCommand(me.Id, c.Id, ChargeSystem.Cross, tc.Charges)));
+    }
+
+    [Fact]
+    public void An_exile_is_given_no_fleet_asks_for_none_and_leads_no_levy()
+    {
+        var (tc, w, me, mine, ctx) = Start();
+        var kin = Person(w, mine, "officer"); kin.Ambition = "command_a_fleet"; kin.CareerTrack = "military"; kin.Skills["tactics"] = 9; w.Relationship(kin.Id, me.Id).Disposition = 30;
+        var f = w.Fleets.Values.Where(x => x.OwnerId == mine.Id).OrderBy(x => x.Id, StringComparer.Ordinal).First(); f.AdmiralId = "";
+        kin.Pursuit = new Pursuit { Goal = kin.Ambition, Since = w.Turn - 2, Request = AmbitionSystem.Command, RequestArg = f.Id, RequestSince = w.Turn, LastAsked = w.Turn };
+        var grant = new AmbitionCommand(me.Id, AmbitionCommand.Grant, kin.Id, tc.Ambitions);
+        Assert.Null(No(ctx, grant));
+        tc.Charges.Exile(w, kin, null);
+        Assert.StartsWith(kin.Name + " is in exile", No(ctx, grant)); Assert.False(Do(tc, ctx, grant)); Assert.NotEqual(kin.Id, f.AdmiralId);
+        // nor do they ask for one while abroad
+        kin.Pursuit.Request = ""; kin.Pursuit.RequestArg = ""; kin.Pursuit.LastAsked = -10; kin.Flags.Remove(AmbitionSystem.AskingChar);
+        w.Turn++; tc.Ambitions.Tick(w, tc.Executor, ctx);
+        Assert.Equal("", kin.Pursuit!.Request); Assert.Contains("exile", kin.Pursuit.Note);
+        // one the Senate had lay a command down is not given one either
+        var barred = Person(w, mine, "barred"); barred.Ambition = "command_a_fleet"; w.WorldCounters[CaesarSystem.BarredKey(barred.Id)] = w.Turn + CaesarSystem.BarredYears;
+        barred.Pursuit = new Pursuit { Goal = barred.Ambition, Since = w.Turn - 2, Request = AmbitionSystem.Command, RequestArg = f.Id, RequestSince = w.Turn, LastAsked = w.Turn };
+        Assert.Equal($"the Senate had {barred.Name} lay a command down", No(ctx, new AmbitionCommand(me.Id, AmbitionCommand.Grant, barred.Id, tc.Ambitions)));
+        // the levy a house sends to the holder of its world sails under somebody at home
+        var w2 = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7UL); var tc2 = new TurnController(w2, Content);
+        var house = w2.House(w2.Protagonist!.HouseId)!; w2.Wars.Clear(); foreach (var n in w2.Nations) n.AtWar = false;
+        var seat = w2.HoldingsOf(house.Id).First(h => h.IsPlanet); var sender = w2.House(ProvinceSystem.HolderOf(seat, 1))!; string id = ProvinceSystem.LevyPrefix + ProvinceSystem.Target(seat.Id, 1);
+        var foe = w2.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && h.Id != sender.Id && h.Id != ProvinceSystem.HolderOf(seat, 2) && ProvinceSystem.LeanUnder(w2, sender.Id, h.Id) == 0);
+        var best = Person(w2, sender, "levyman"); best.Skills["tactics"] = 20; best.Skills["leadership"] = 20;                          // the one it would send
+        tc2.Charges.Exile(w2, best, null);
+        w2.Wars.Add(new War { HouseA = house.Id, HouseB = foe.Id, Since = w2.Turn }); ProvinceSystem.Tick(w2, Content.Holdings);
+        Assert.True(w2.Fleets.ContainsKey(id)); var sent = w2.Fleets.Values.Where(x => x.LevyOf == sender.Id).ToList(); Assert.NotEmpty(sent);   // every levy the house sends
+        Assert.All(sent, x => Assert.False(ChargeSystem.Abroad(w2, w2.Char(x.AdmiralId)), x.Name + " sails under an exile"));
+    }
+
+    [Fact]
+    public void A_head_in_exile_petitions_for_no_rank_and_an_exile_pleads_in_no_court()
+    {
+        var (tc, w, _, mine, _) = Start(); var progression = tc.Progression!;
+        var rising = Others(w, mine).First(h =>
+        {
+            h.Title = Praetoria.Core.Progression.Title.Baron; h.Legitimacy = 100;                                                     // a Prefect's house, whose next rung the Senate votes
+            return progression.NextTitle(w, h.Id) is { } next && progression.Voted(next) && progression.PetitionRefusal(w, Economy.HeadOf(w, h)!.Id) == null;
+        });
+        var head = Economy.HeadOf(w, rising)!; Assert.Contains("petition", progression.OpenRoads(w, head.Id));
+        tc.Charges.Exile(w, head, null);
+        Assert.StartsWith(head.Name + " is in exile", progression.PetitionRefusal(w, head.Id)); Assert.Contains("nothing in the Senate but a return from exile", progression.PetitionRefusal(w, head.Id));
+        Assert.DoesNotContain("petition", progression.OpenRoads(w, head.Id));
+        // an exile pleads for nobody, and is not the house's advocate
+        var (tc2, w2, me2, mine2, ctx2) = Start(); var o2 = Others(w2, mine2); var judge = Judge(w2, o2[1]);
+        var sage = Person(w2, mine2, "sage"); sage.Skills["law"] = 20; sage.Skills["oratory"] = 20; var kin = Person(w2, mine2, "kin");
+        var c = Charged(tc2, w2, o2[0], kin, judge);
+        Assert.Equal(sage.Id, LadderSystem.Advocate(w2, mine2.Id)?.Id); Assert.Null(LadderSystem.ChargePleadRefusal(w2, me2, c, sage));
+        Assert.True(Do(tc2, ctx2, new ChargeCommand(me2.Id, ChargeCommand.Plead, c.Id, Offices, sage.Id))); Assert.Equal(sage.Id, LadderSystem.PleaderOf(w2, c)?.Id);
+        tc2.Charges.Exile(w2, sage, null);
+        Assert.StartsWith(sage.Name + " is in exile", LadderSystem.ChargePleadRefusal(w2, me2, c, sage));
+        Assert.StartsWith(sage.Name + " is in exile", No(ctx2, new ChargeCommand(me2.Id, ChargeCommand.Plead, c.Id, Offices, sage.Id)));
+        Assert.NotEqual(sage.Id, LadderSystem.Advocate(w2, mine2.Id)?.Id); Assert.Null(LadderSystem.PleaderOf(w2, c));                 // whoever was sent is not heard from abroad
     }
 
     [Theory]

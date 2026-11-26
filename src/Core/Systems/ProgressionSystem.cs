@@ -137,6 +137,7 @@ public sealed class ProgressionSystem
         var next = NextTitle(w, c!.HouseId)!; var h = w.House(c.HouseId)!;
         if (h.Legitimacy < next.LegitimacyRequirement) return $"needs legitimacy {next.LegitimacyRequirement}: the house has {h.Legitimacy}";
         if (!Voted(next)) return null;
+        if (ChargeSystem.HeadAbroadSays(w, h, actorId) is { } abroad) return abroad;   // a head in exile (docs/LADDER.md, "A charge against the powerful")
         if (!PolitySystem.InReach(w, h.Id)) return "a house that has left the Reach does not petition its Senate";
         if (PetitionOf(w, h.Id) is { } asked) return $"the house's petition is before the Senate already: it is voted at the end of {(asked.ProposedTurn < w.Turn ? "this" : "next")} year";
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == h.Id)) return "the house has a motion before the Senate already: one at a time";

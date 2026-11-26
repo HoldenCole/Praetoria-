@@ -117,7 +117,8 @@ public sealed class AmbitionSystem
         var house = w.House(head.HouseId)!;
         return u.Request switch
         {
-            Command => w.Fleets.TryGetValue(u.RequestArg, out var f) && f.OwnerId == house.Id ? null : "the fleet is gone",
+            Command => ChargeSystem.NoCommandSays(w, who) ?? (CaesarSystem.Barred(w, who) ? $"the Senate had {who.Name} lay a command down" : null)   // an exile, or one a court or the Senate barred (docs/LADDER.md)
+                ?? (w.Fleets.TryGetValue(u.RequestArg, out var f) && f.OwnerId == house.Id ? null : "the fleet is gone"),
             Stake => house.Treasury.Credits >= int.Parse(u.RequestArg) ? null : "the treasury does not hold it",
             Word => (pools?.Influence ?? 0) >= WordInfluence ? (who.CareerRank < (_careers.ById(who.CareerTrack)?.MaxRank ?? 0) ? null : "they are at the top of their service") : "no influence",
             Heir => NameHeirRefusal(w, head, who),   // one struck from the line asks, and cannot be granted it (docs/HOUSEHOLD.md)
@@ -405,6 +406,7 @@ public sealed class AmbitionSystem
                     var want = fleets.Select(f => (f, adm: w.Char(f.AdmiralId))).Where(x => x.adm == null || (x.adm.Id != p.Id && x.adm.Skill("tactics") < c.Skill("tactics")))
                         .OrderBy(x => x.adm?.Skill("tactics") ?? -1).ThenBy(x => x.f.Id, StringComparer.Ordinal).Select(x => x.f).FirstOrDefault();
                     u.Note = want != null ? $"Has an eye on {want.Name}." : "Waits for a command to fall vacant.";
+                    if (CaesarSystem.Barred(w, c)) { u.Note = ChargeSystem.Abroad(w, c) ? "Is in exile, and may hold no command until called home." : "May hold no command for now."; break; }   // nor asks for one
                     if (mayAsk && want != null) Ask(w, c, Command, want.Id);
                     break;
                 }

@@ -687,7 +687,12 @@ from the day it is made. A cause alone marches nobody: the general still needs f
 |---|---|
 | **Stand trial** | It is heard at the end of the year by the praetor named, as any charge is. Pleading and admitting work as in "The docket". |
 | **Go into exile** | At once. The charge is not heard and the act is answered for. Offices of the Reach and magistracies lapse, and so do commands: the fleets are left without an admiral, a command by service ends, a captaincy is given up. The purse goes with them. They live at the court of the friendliest nation not at war with the Reach (among the far worlds if there is none), until the Senate votes them home. Their house loses 2 legitimacy (4 if it is its head), the house that charged them gains 2, and their house's head thinks 20 the worse of it. |
-| **Cross the line** | Only the house's general, and only with the fleet and the name for it (docs/CAESAR.md). The house marches; the Republic's courts do not hear the charge. |
+| **Cross the line** | Only the house's general, and only with the fleet and the name for it (docs/CAESAR.md). The house marches; the Republic's courts do not hear the charge. If one of the house commands a fleet but another of it has more sway, the refusal names that one as the general. |
+
+A house that has crossed the line by any road, the courts panel or the Caesar panel, answers nothing more before the
+Republic's courts: every answer is refused ("the house has crossed the line: the Republic's courts will not hear
+it"), and each charge waiting against its people is settled as crossed at the turn of the year. So nobody of a house
+that marches goes into exile, and its general does not leave the fleet in the middle of the march.
 
 Who answers:
 
@@ -704,19 +709,21 @@ Who answers:
 ### Exile
 
 An exile lives abroad, out of the Reach's politics, until the Senate votes them home. While abroad they may not stand
-for office or hold one, hold a command, be named a legate or a captain, bring a charge or a suit, offer a praetor a
-sum, or let it be known that anyone will be charged. They keep their purse, their name, their family and their place
-in their house.
+for office or hold one, hold a command, be named a legate or a captain, be given a fleet they ask the head for or ask
+for one, lead a levy their house sends, bring a charge or a suit, plead before a court or be the house's pleader in
+one, offer a praetor a sum, or let it be known that anyone will be charged. One sent to plead who then goes abroad is
+not heard. They keep their purse, their name, their family and their place in their house.
 
 **A head of house in exile stays its head.** The house's worlds, money, people, fleets and votes in the Senate go on,
 and the head runs them by letter. What the house cannot do while its head is abroad is move anything in the Senate
-except the head's own return; its votes are still cast. Other houses' heads abroad are under the same rule, so a house
-whose head has fled moves no motions until the head is home.
+except the return of its own exile (not another house's), or put a petition for a rank before it; its votes are
+still cast. Other houses' heads abroad are under the same rule, so a house whose head has fled moves no motions and
+petitions for no rank until the head is home.
 
 **For you, in exile**, the courts panel says so in so many words. You may still run your house (build, trade, lend,
 marry your children, write your will, make war and peace), vote in the Senate and lobby, and move that the Senate
-call you home. You may not hold or stand for any office, command, bring anything before the courts, or move any other
-motion. If you die abroad your heir succeeds as at any death, at home.
+call you home. You may not hold or stand for any office, command, bring anything before the courts or plead in them,
+move any other motion (another house's exile's return among them), or petition for a rank. If you die abroad your heir succeeds as at any death, at home.
 
 **Coming home.** A new motion, *Return from exile* (3 influence; targets a house and brings home its exile longest
 abroad). Its own house leans hard for it; the house that brought the charge leans against; friends and enemies lean
@@ -745,8 +752,9 @@ such word out at a time. The general and their head think 10 the worse of the ho
 and for five years, it is a cause for the general's house. The act it names is not forgotten while it stands, and the
 house that said it does not charge them while they command.
 
-The day the general holds no command, the charge is due: by the end of the year after. Other houses bring it when
-they can. If it is never brought, the house that said it loses 3 legitimacy. If the general dies, or another house
+The day the general holds no command, the charge is due: by the end of the year after. A command laid down in year 10
+must be answered by a charge brought in year 10 or 11; at the end of year 11 a threat still not made good is empty.
+Other houses bring it when they can. If it is never brought, the house that said it loses 3 legitimacy. If the general dies, or another house
 charges the same act first, the threat lapses and costs nothing.
 
 **Other houses** let it be known, one a year in the whole Reach: a house whose head thinks -30 or worse of another
@@ -799,7 +807,7 @@ passive player), and `praetoria caesar --scenario all --seeds 10` before and aft
 | Answered by crossing the line | 0 |
 | Stood trial | 146: convicted 75, acquitted 71 (the accuser paid 4 legitimacy each time) |
 | Convicted in command, laid it down | 11 |
-| Motions to call an exile home | 26 moved, 20 carried; 2 still abroad at the end, both heads of a house |
+| Motions to call an exile home | 26 moved, 18 carried; 2 still abroad at the end, both heads of a house |
 | Threats of a charge | 99 made: kept 6, empty 1, lapsed 70 (mostly because a third house charged the same act first), 22 standing at the end |
 | Marches whose cause was a charge or a threat | 0 |
 
@@ -817,6 +825,11 @@ house's general still marches only through all three gates, and in these runs no
 charge in ten fewer is brought, because a charge against the powerful now waits a year and a house brings one charge
 a year, and because a house that has let it be known it will charge a commander waits for the command to be laid
 down. The triumphs and recalls move with the different years the runs then have; neither changes direction.
+
+Measured again after the review's mending (an exile no longer pleads, leads a levy or is given a fleet; a house that
+marches answers no charge; a house whose head is abroad moves no other house's return and petitions for no rank; a
+threat is empty at the end of the year it was due by), on the same starts and seeds: every figure above is as it was
+but the returns carried, 18 where the first build had 20. The Caesar column is the same to the run.
 
 ### What I chose
 
@@ -872,16 +885,18 @@ Every number here is mine, and a first guess:
   `ProposeMotionCommand(actorId, "home", houseId, senate)`.
 - Small hooks elsewhere: `LadderSystem.Indict` (public now) holds any charge against the powerful, from the courts'
   own year and from `ProsecutionCommand`; `CaesarSystem.Grievance` reads `ChargeSystem.Cause`, and `Barred` counts an
-  exile; `SenateSystem` leans on, carries and moves the return, and an exiled head's house may not move another motion;
-  the ladder's `Bar`, `OfficeSystem.Candidate`, the admiral's, the captain's and a command by service's refusals, and
-  the courts' own refusals, turn an exile away.
+  exile; `SenateSystem` leans on, carries and moves the return, and an exiled head's house may not move another motion
+  (`ChargeSystem.HeadAbroadSays`, read too by `ProgressionSystem.PetitionRefusal`); the ladder's `Bar`,
+  `OfficeSystem.Candidate`, the admiral's, the captain's and a command by service's refusals, a relative's request for a
+  command (`AmbitionSystem`), the officer of a levy (`ProvinceSystem`), the courts' own refusals and their pleaders
+  (`ChargePleadRefusal`, `Advocate`, `PleaderOf`) turn an exile away.
 - `src/Web/Components/PowerfulCharges.razor`, in `CourtsPanel.razor`.
 - `src/Tools/ChargeProbe.cs`: `praetoria charges [--scenario id|all] [--seeds N] [--turns N]`.
 - Counters for content: `powerful_charged`, `powerful_tried`, `powerful_convicted`, `powerful_acquitted`,
   `powerful_exiled`, `powerful_crossed`, `powerful_laid_down`, `exiles_home_moved`, `exiles_home`, `charge_threats`,
   `charge_threats_kept`, `charge_threats_empty`, `charge_threats_lapsed`. World flags for a year after the deed:
   `went_into_exile`, `called_home_from_exile`, `charge_thrown_back`.
-- `tests/ChargeAgainstThePowerfulTests.cs` (16).
+- `tests/ChargeAgainstThePowerfulTests.cs` (20).
 
 ## Where it is
 

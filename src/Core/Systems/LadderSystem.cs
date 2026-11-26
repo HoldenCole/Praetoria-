@@ -78,7 +78,7 @@ public static partial class LadderSystem
         if (c?.Alive != true || rung == null) return "no such office";
         if (!Active(w, offices)) return "there are no elections under a throne";
         if (!PolitySystem.InReach(w, c.HouseId)) return "the house has left the Reach";
-        if (ChargeSystem.AbroadSays(w, c) is { } away) return away;
+        if (ChargeSystem.AbroadSays(w, c, c.Id == w.ProtagonistId) is { } away) return away;
         if (w.Counter(BarredKey(c.Id)) > w.Turn) return $"they were {(w.OfficeRecord.Any(d => d.CharacterId == c.Id && d.What == BoughtElection && d.Answered) ? "convicted of buying an election" : "removed from office for taking money")}, and may not stand until year {w.Counter(BarredKey(c.Id))}";
         if (SenateActs.AgeFor(w, rung.MinAge) is var asked && c.Age < asked) return asked == rung.MinAge ? $"not before {asked}" : $"not before {asked}: {SenateActs.LawName(w, SenateActs.OfficeAge)} asks {asked} where the custom asked {rung.MinAge}";
         if (c.CareerRank < rung.MinRank || c.CareerTrack.Length == 0) return "they must first have a place in a service";

@@ -200,7 +200,7 @@ public static partial class LadderSystem
     public static int DefenceOf(World w, Character? pleader) =>
         pleader is not { Alive: true } ? 0 : Craft(pleader) + (HouseholdSystem.IsAdvocateOf(w, pleader.HouseId, pleader.Id) ? w.Counter(HouseholdSystem.CounselEdgeKey(pleader.HouseId)) : 0);
     /// <summary>Who is to plead a charge, if they still live and are still of the house.</summary>
-    public static Character? PleaderOf(World w, Indictment c) => w.Char(c.PleaderId) is { Alive: true } p && p.HouseId == c.HouseId ? p : null;
+    public static Character? PleaderOf(World w, Indictment c) => w.Char(c.PleaderId) is { Alive: true } p && p.HouseId == c.HouseId && !ChargeSystem.Abroad(w, p) ? p : null;
     /// <summary>The praetor who is to hear a charge: the one named when it was brought while they sit, or whoever would hear it now.</summary>
     public static Character? JudgeOf(World w, Indictment c)
     {
@@ -226,7 +226,7 @@ public static partial class LadderSystem
         w.Indictments.Add(c);
         if (d.HouseId != w.Protagonist?.HouseId && Advocate(w, d.HouseId) is { } best) c.PleaderId = best.Id;   // another house sends its best, as it does to a charge heard at once
         w.WorldCounters[TriedKey(accuser.Id)] = w.Turn + 1;
-        w.Log($"{accuser.Name} charges {who.Name} of {accused?.Name}, who {DeedSays(w, offices, d)}. {judge.Name}, praetor, hears it at the year's end.");
+        w.Log($"{accuser.Name} charges {who.Name} of {accused?.Name}, who {DeedSays(w, offices, d)}. {judge.Name}, praetor, hears it {(accuser.Id == w.Protagonist?.HouseId ? "at the end of next year" : "at the year's end")}.");   // the player brings it in the year, the others at its courts
         if (d.HouseId == w.Protagonist?.HouseId)
             w.Tell("warn", $"{accuser.Name} charges {who.Name} of your house, who {DeedSays(w, offices, d)}. {judge.Name}, praetor, who is {Verdict(w, d, accuser.Id, judge, 0).why}, hears it at the end of the year. {ConvictionSays(w, who)} Until then you may send someone to plead, or admit it and pay the fine.", "senate:ladder", who.Id);
         ChargeSystem.Brought(w, accuser.Id, d, c);
@@ -257,6 +257,7 @@ public static partial class LadderSystem
         var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of a house sends its pleader";
         if (c == null || c.Outcome.Length > 0 || c.HouseId != house.Id) return "no such charge is waiting";
         if (pleader is not { Alive: true } || pleader.HouseId != house.Id || pleader.Age < DynastySystem.AgeOfMajority) return "there is no one of age in the house to send";
+        if (ChargeSystem.AbroadSays(w, pleader, pleader.Id == w.ProtagonistId) is { } away) return away;   // an exile pleads in no court of the Reach
         return c.PleaderId == pleader.Id ? "they are already to plead it" : null;
     }
     public static void SendDefender(World w, Character head, Indictment c, Character pleader)

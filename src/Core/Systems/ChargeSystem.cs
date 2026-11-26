@@ -89,6 +89,10 @@ public sealed class ChargeSystem
         ?? (c != null && w.Counter(CourtBarKey(c.Id)) > w.Turn ? $"a court had {(you ? "you" : c.Name)} lay a command down, and {(you ? "you" : c.Name)} may hold none until year {w.Counter(CourtBarKey(c.Id))}" : null);
     /// <summary>Is the head of this house abroad? Then the house moves nothing in the Senate but its exile's return.</summary>
     public static bool HeadAbroad(World w, House? h) => h != null && Abroad(w, Economy.HeadOf(w, h));
+    /// <summary>Why this house may move nothing in the Senate but the return of its own exile, or null: its head is abroad. Said to
+    /// <paramref name="actorId"/>, who is "you" if they are the head and the player.</summary>
+    public static string? HeadAbroadSays(World w, House? h, string actorId) => !HeadAbroad(w, h) ? null
+        : AbroadSays(w, Economy.HeadOf(w, h!), Economy.HeadOf(w, h!)?.Id == actorId && actorId == w.ProtagonistId) + ", and the house may move nothing in the Senate but a return from exile of its own";
     /// <summary>The exiles of a house, longest abroad first.</summary>
     public static List<Exile> ExilesOf(World w, string houseId) => w.Exiles.Where(x => x.HouseId == houseId && w.Char(x.CharacterId) is { Alive: true }).OrderBy(x => x.Since).ThenBy(x => x.CharacterId, StringComparer.Ordinal).ToList();
 
@@ -208,8 +212,9 @@ public sealed class ChargeSystem
     }
     /// <summary>A house whose head is abroad may still move its exile's return: its people at home ask it in the head's name.</summary>
     private static bool Door(SenateSystem senate, World w, House h) => !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && senate.Door(w, h) != null;
-    /// <summary>May this house move its own exile's return although its head is abroad? Its people at home ask it in the head's name.</summary>
-    public static bool MayMoveHome(World w, SenateSystem senate, House h) => HeadAbroad(w, h) && Door(senate, w, h);
+    /// <summary>May this house move the return of <paramref name="targetId"/>'s exile although its head is abroad? Only its own: its
+    /// people at home ask it in the head's name.</summary>
+    public static bool MayMoveHome(World w, SenateSystem senate, House h, string targetId) => HeadAbroad(w, h) && targetId == h.Id && Door(senate, w, h);
 
     // ---------------- the cause ----------------
 
@@ -286,6 +291,7 @@ public sealed class ChargeSystem
         var house = head != null ? w.House(head.HouseId) : null; if (head?.Alive != true || house == null || Economy.HeadOf(w, house)?.Id != head.Id) return "only the head of a house answers a charge for it";
         if (c == null || !c.Powerful || c.HouseId != house.Id) return "no such charge is waiting";
         var who = w.Char(c.AccusedId); if (who is not { Alive: true } || who.HouseId != house.Id) return "there is nobody of the house to answer it";
+        if (w.CivilWar?.HouseId == house.Id) return "the house has crossed the line: the Republic's courts will not hear it";   // it is settled at the turn of the year
         bool self = who.Id == head.Id; bool wilful = !self && CourtshipSystem.Wilful(who) && w.FamilyAutonomy > 0;
         if (answer == LayDown)
         {
@@ -295,7 +301,9 @@ public sealed class ChargeSystem
         if (answer == Cross)
         {
             if (c.Outcome.Length > 0 && c.Sentence != LayDown) return "it has been answered";
-            if (CaesarSystem.GeneralOf(w, house)?.Id != who.Id) return $"{(self ? "you command" : who.Name + " commands")} none of the house's fleets: only its general can cross the line";
+            if (CaesarSystem.GeneralOf(w, house) is var general && general?.Id != who.Id)
+                return general != null && Commands(w, who) ? $"{general.Name} is the house's general, not {(self ? "you" : who.Name)}: only its general can cross the line"
+                    : $"{(self ? "you command" : who.Name + " commands")} none of the house's fleets: only its general can cross the line";
             return _caesar.CrossRefusal(w, house);
         }
         if (c.Outcome.Length > 0) return "it has been answered";
@@ -446,7 +454,7 @@ public sealed class ChargeSystem
                 if (Powerful(w, d)) LadderSystem.Indict(w, _offices, head, d); else LadderSystem.Prosecute(w, _offices, head, d);
                 continue;
             }
-            if (d != null && w.Turn <= t.LaidDownTurn + ThreatGraceYears) continue;
+            if (d != null && w.Turn < t.LaidDownTurn + ThreatGraceYears) continue;   // laid down in year T, it is due by the end of year T+1
             t.Outcome = Empty; Bump(w, ThreatsEmptyKey);
             LegitimacyBook.Move(w, accuser, -ThreatEmptyLegitimacy, LegitimacyBook.Courts, "It let it be known a general would be charged, and never charged them");
             w.Log($"{accuser.Name} said {g.Name} would be charged the day the command was laid down. Nothing was ever brought, and it is remembered.");

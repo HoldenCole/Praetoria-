@@ -82,7 +82,7 @@ public static class OfficeSystem
         if (h.HouseId == mine) { w.WorldFlags.Add("office_lost"); if (treason) w.WorldFlags.Add("treason"); }
         w.Log(treason
             ? $"{house?.Name ?? h.HouseId} turns the Reach's guns on the chair: {who?.Name ?? "its admiral"} is stripped of the {def.Name} for treason, and the office fleets return to the chair."
-            : $"{who?.Name ?? "The holder"} is relieved of the {def.Name} — {reason}.");
+            : $"{who?.Name ?? "The holder"} is relieved of the {def.Name}: {reason}.");
     }
 
     /// <summary>The Emperor holds every office by the throne (GDD §8).</summary>

@@ -55,7 +55,7 @@ public static partial class LadderSystem
 
     /// <summary>Who pleads for a house: whoever of it knows most law and speaks best.</summary>
     public static Character? Advocate(World w, string houseId) =>
-        w.LivingCharacters().Where(c => c.HouseId == houseId && c.Age >= DynastySystem.AgeOfMajority).OrderByDescending(c => c.Skill("law") + c.Skill("oratory")).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+        w.LivingCharacters().Where(c => c.HouseId == houseId && c.Age >= DynastySystem.AgeOfMajority && !c.Flags.Contains(ChargeSystem.ExiledChar)).OrderByDescending(c => c.Skill("law") + c.Skill("oratory")).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 
     public static string? ProsecuteRefusal(World w, Character? head, OfficeDeed? d)
     {
