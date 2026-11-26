@@ -545,6 +545,7 @@ public sealed class FleetSystem
         if (c.Flags.Contains(LifeSystem.FrailChar)) return $"{c.Name} is too frail for the sea";
         if (w.Fleets.Values.Where(x => x.AdmiralId == c.Id).OrderBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault() is { } flag)
             return flag.Id == f.Id ? $"{c.Name} is its admiral: nobody is admiral and captain at once" : $"{c.Name} is admiral of {flag.Name}: nobody is admiral and captain at once";
+        if (ChargeSystem.NoCommandSays(w, c) is { } away) return away;
         if (CaesarSystem.Barred(w, c)) return "the Senate had them lay a command down";
         return null;
     }

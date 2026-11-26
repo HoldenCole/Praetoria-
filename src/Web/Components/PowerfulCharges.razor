@@ -1,0 +1,113 @@
+@using Praetoria.Core.Systems
+@using Praetoria.Core.Commands
+@inject GameClient G
+@implements IDisposable
+@{
+    var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var charges = G.Turn!.Charges; var senate = G.Turn!.Senate; var offices = G.Content!.Offices;
+    var touching = ChargeSystem.Touching(w, house.Id);
+    var threats = w.ChargeThreats.Where(t => t.Outcome.Length == 0 && (t.AccuserId == house.Id || t.HouseId == house.Id)).OrderBy(t => t.Turn).ThenBy(t => t.Id, StringComparer.Ordinal).ToList();
+    var generals = w.Fleets.Values.Where(f => f.AdmiralId.Length > 0).Select(f => w.Char(f.AdmiralId)).Where(c => c is { Alive: true } && c.HouseId != house.Id && !World.Outsider(c.HouseId) && ChargeSystem.ThreatDeed(w, house.Id, c) != null)
+        .Select(c => c!).Distinct().OrderByDescending(c => CaesarSystem.Sway(w, c)).ThenBy(c => c.Id, StringComparer.Ordinal).Take(4).ToList();
+    var exiles = w.Exiles.OrderBy(x => x.HouseId == house.Id ? 0 : 1).ThenBy(x => x.Since).ThenBy(x => x.CharacterId, StringComparer.Ordinal).ToList();
+    var myExile = ChargeSystem.ExileOf(w, pid);
+    var homeDef = senate.Motions.Def(ChargeSystem.HomeKind);
+}
+<div class="hh-head" data-powerful="1"><b>A charge against the powerful</b> <span class="muted small">@Intro</span></div>
+@if (myExile != null)
+{
+    <div class="suit court-suit warn" data-in-exile="@pid">
+        <b>You are in exile @ChargeSystem.WhereSays(myExile), since year @myExile.Since.</b>
+        <div class="small">@AbroadWhat</div>
+    </div>
+}
+@if (touching.Count == 0 && threats.Count == 0 && exiles.Count == 0) { <div class="muted small" data-powerful-empty="1">No charge against one of the powerful touches your house, nobody is in exile, and no house has let it be known that a general will be charged.</div> }
+@foreach (var c in touching)
+{
+    string cid = c.Id; var who = w.Char(c.AccusedId); var accuser = w.House(c.AccuserId); bool ours = c.HouseId == house.Id; bool me = who?.Id == pid;
+    string whoName = who?.Name ?? "the accused"; bool sentenced = c.Sentence == ChargeSystem.LayDown;
+    string title = sentenced ? (me ? "You are" : whoName + " is") + " convicted while in command" : ours ? (accuser?.Name ?? "A house") + " charges " + (me ? "you" : whoName) : "Your charge against " + whoName + " of " + (w.House(c.HouseId)?.Name ?? string.Empty);
+    string says = sentenced ? "The command must be laid down by the end of year " + c.AnswerBy + ", or the house crosses the line. Left alone, the court's officers take it and the house loses " + ChargeSystem.TakenLegitimacy + " legitimacy."
+        : ours ? (who != null ? ChargeSystem.PowerfulWhy(w, who) : string.Empty) + ". Heard at the end of this year. It is a cause to cross the line, as a recall is." + (c.Answer == ChargeSystem.Trial ? " " + (me ? "You" : whoName) + " will stand trial." : string.Empty)
+        : whoName + " is " + (who != null ? ChargeSystem.PowerfulWhy(w, who) : "one of the powerful") + ". They may stand trial, go into exile, or cross the line. If they are let go, your house loses " + (1 + ChargeSystem.AcquittalLegitimacy) + " legitimacy.";
+    <div class="suit court-suit @(ours ? Warn : string.Empty)" data-powerful-charge="@cid">
+        <b>@title</b> <span class="muted small">@says</span>
+        @if (ours)
+        {
+            <div class="suit-acts">
+                @foreach (var a in (sentenced ? AfterVerdict : BeforeVerdict))
+                {
+                    string answer = a; var no = new AnswerChargeCommand(pid, cid, answer, charges).Refusal(G.Ctx);
+                    <button class="opt inline tiny" data-charge-answer="@answer" disabled="@(no != null)" title="@(no ?? TipOf(answer, me))" @onclick="() => AskAnswer(cid, answer, whoName, me)">@LabelOf(answer, me)</button>
+                }
+            </div>
+        }
+    </div>
+}
+
+@foreach (var t in threats)
+{
+    var g = w.Char(t.AccusedId); bool byUs = t.AccuserId == house.Id; string gName = g?.Name ?? "the general";
+    string line = byUs ? (t.LaidDownTurn > 0 ? gName + " has laid the command down. Bring the charge by the end of year " + (t.LaidDownTurn + ChargeSystem.ThreatGraceYears) + ", from the record below, or your house loses " + ChargeSystem.ThreatEmptyLegitimacy + " legitimacy." : "You have let it be known that " + gName + " will be charged the day the command is laid down. If the charge is never brought, your house loses " + ChargeSystem.ThreatEmptyLegitimacy + " legitimacy.")
+        : (w.House(t.AccuserId)?.Name ?? "A house") + " has let it be known that " + (t.AccusedId == pid ? "you" : gName) + " will be charged the day the command is laid down. While it stands it is a cause to cross the line.";
+    <div class="suit court-quarrel @(byUs ? string.Empty : Warn)" data-charge-threat="@t.Id" data-threat-standing="1"><span class="small">@line</span></div>
+}
+@if (generals.Count > 0)
+{
+    <div class="small muted" data-threat-list="1">Generals of other houses with something on the record a court would hear. You may let it be known that they will be charged the day they lay their command down: their house is given a cause, and if you never bring it you pay.</div>
+    @foreach (var g in generals)
+    {
+        string gid = g.Id; var no = new ThreatenChargeCommand(pid, gid, offices).Refusal(G.Ctx); var deed = ChargeSystem.ThreatDeed(w, house.Id, g);
+        string what = deed != null ? LadderSystem.DeedSays(w, offices, deed) : string.Empty;
+        <div class="small" data-threat-general="@gid">
+            <b>@g.Name</b> <span class="muted">of @(w.House(g.HouseId)?.Name) · sway @CaesarSystem.Sway(w, g) · @what</span>
+            <button class="opt inline tiny" data-charge-threat="@gid" disabled="@(no != null)" title="@(no ?? ThreatTip)" @onclick="() => AskThreat(gid, g.Name)">Let it be known · @ChargeSystem.ThreatInfluence clout</button>
+        </div>
+    }
+}
+
+@foreach (var x in exiles)
+{
+    var who = w.Char(x.CharacterId); var xh = w.House(x.HouseId); string hid = x.HouseId; bool first = ChargeSystem.ExileNamed(w, hid)?.Id == x.CharacterId;
+    var no = homeDef == null ? NoMotion : new ProposeMotionCommand(pid, ChargeSystem.HomeKind, hid, senate).Refusal(G.Ctx);
+    int cost = homeDef == null ? 0 : new ProposeMotionCommand(pid, ChargeSystem.HomeKind, hid, senate).Cost(w, house.Id, homeDef);
+    string label = "Move that " + (x.CharacterId == pid ? "you be" : (who?.Name ?? "they") + " be") + " called home · " + cost + " influence";
+    <div class="suit court-ruling @(x.HouseId == house.Id ? Warn : string.Empty)" data-exile="@x.CharacterId">
+        <b>@(who?.Name ?? "Someone") of @(xh?.Name ?? string.Empty)</b> <span class="muted small">in exile @ChargeSystem.WhereSays(x) since year @x.Since@(x.WasHead ? ", and heads the house from there" : string.Empty)@(x.AccuserId.Length > 0 ? ", on the charge " + (w.House(x.AccuserId)?.Name ?? "a house") + " brought" : string.Empty)</span>
+        @if (first) { <button class="opt inline tiny" data-recall-exile="@hid" disabled="@(no != null)" title="@(no ?? HomeTip)" @onclick="() => G.Execute(new ProposeMotionCommand(pid, ChargeSystem.HomeKind, hid, senate))">@label</button> }
+    </div>
+}
+
+@code {
+    private static readonly string[] BeforeVerdict = { ChargeSystem.Trial, ChargeSystem.ExileAnswer, ChargeSystem.Cross };
+    private static readonly string[] AfterVerdict = { ChargeSystem.LayDown, ChargeSystem.Cross };
+    private const string Intro = "A charge against a person of great sway, or against the head of a house of Legate rank or above, waits a year whoever brings it. The accused may stand trial, go into exile beyond the Reach, or cross the line. A charge that fails costs the house that brought it.";
+    private const string AbroadWhat = "Your house is still yours: its worlds, its money, its people and its votes in the Senate go on, and you run them by letter, with what is in your own purse. You may hold no office and no command, stand for nothing, bring nothing before the courts, and move nothing in the Senate but your own return. Another house, or your own, must move that the Senate call you home.";
+    private const string ThreatTip = "Their house is given a cause to cross the line while it stands. The day they lay their command down you must bring the charge, by the end of the year after, or your house loses standing for threatening what it would not do.";
+    private const string HomeTip = "Voted at the end of next year. Carried, they come home and may stand and command again, and their house gains standing.";
+    private const string NoMotion = "the Senate hears no such motion", Warn = "warn";
+    private static string LabelOf(string answer, bool me) => answer switch
+    {
+        ChargeSystem.Trial => "Stand trial",
+        ChargeSystem.ExileAnswer => me ? "Go into exile" : "Send them abroad",
+        ChargeSystem.Cross => "Cross the line",
+        _ => "Lay the command down"
+    };
+    private static string TipOf(string answer, bool me) => answer switch
+    {
+        ChargeSystem.Trial => "It is heard at the end of the year by the praetor named, as any charge is.",
+        ChargeSystem.ExileAnswer => "The charge is not heard. " + (me ? "Your" : "Their") + " offices and commands lapse at once, and " + (me ? "you live" : "they live") + " at a nation's court beyond the Reach, with " + (me ? "your" : "their") + " own purse, until the Senate votes " + (me ? "you" : "them") + " home. The house loses " + ChargeSystem.ExileLegitimacy + " legitimacy, twice that if it is its head.",
+        ChargeSystem.Cross => "The house marches on the capital with its general, and the Republic's courts do not hear the charge.",
+        _ => "The fleets are left without an admiral, and no command may be held for " + CaesarSystem.BarredYears + " years."
+    };
+    private void AskAnswer(string chargeId, string answer, string who, bool me)
+    {
+        if (answer == ChargeSystem.Trial) { G.Execute(new AnswerChargeCommand(G.World!.ProtagonistId, chargeId, answer, G.Turn!.Charges)); return; }
+        string title = answer == ChargeSystem.ExileAnswer ? (me ? "Go into exile?" : "Send " + who + " abroad?") : answer == ChargeSystem.Cross ? "Cross the line?" : "Lay the command down?";
+        G.Ask(title, TipOf(answer, me), LabelOf(answer, me), () => G.Execute(new AnswerChargeCommand(G.World!.ProtagonistId, chargeId, answer, G.Turn!.Charges)), "Not yet");
+    }
+    private void AskThreat(string generalId, string name) => G.Ask("Let it be known that " + name + " will be charged?", ThreatTip, "Let it be known",
+        () => G.Execute(new ThreatenChargeCommand(G.World!.ProtagonistId, generalId, G.Content!.Offices)), "Say nothing");
+    protected override void OnInitialized() => G.Changed += Redraw;
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    public void Dispose() => G.Changed -= Redraw;
+}

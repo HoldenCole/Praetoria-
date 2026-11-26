@@ -21,7 +21,8 @@ public sealed class ProposeMotionCommand : ICommand
         var def = _senate.Motions.Def(_kind); if (def == null) return "no such motion";
         if (_kind == "petition") return "only an estate brings a petition";
         if (def.Rank) return "a rank is asked for by petition, from the ladder of titles";
-        if (!_senate.MayPropose(w, house.Id)) return w.IsImperium ? $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge" : "the house has its votes but no voice in the Senate: it may not move a motion";
+        if (ChargeSystem.HeadAbroad(w, house) && def.Interest != ChargeSystem.HomeKind) return (ChargeSystem.AbroadSays(w, Economy.HeadOf(w, house), Economy.HeadOf(w, house)?.Id == ActorId) ?? "the head of the house is abroad") + ", and the house may move nothing in the Senate but a return from exile";
+        if (!_senate.MayPropose(w, house.Id) && !(def.Interest == ChargeSystem.HomeKind && ChargeSystem.MayMoveHome(w, _senate, house))) return w.IsImperium ? $"the Senate hears a {Progression.Title.StyleOf(Progression.Title.Baron, w.Era)}, or a Judge" : "the house has its votes but no voice in the Senate: it may not move a motion";
         if (EdictSystem.Cowed(w, house.Id) is { } cowed) return cowed;   // rule by decree (docs/EDICTS.md)
         if (w.Motions.Any(m => m.Open && m.ProposerHouseId == house.Id)) return "you already have a motion before the Senate";
         if (SenateSystem.Docket(w).Count() >= SenateSystem.DocketSize) return "the docket is full this session";
@@ -52,6 +53,7 @@ public sealed class ProposeMotionCommand : ICommand
             if (def.Interest == "triumph" && (_senate.Caesar == null ? "no such motion" : _senate.Caesar.TriumphRefusal(w, t)) is { } noTriumph) return noTriumph;
             if (def.Interest == "reconquest" && (_senate.Polities == null ? "no such motion" : _senate.Polities.ReconquestRefusal(w, t)) is { } noReconquest) return noReconquest;
             if (def.Interest == "recall" && (_senate.Caesar == null ? "no such motion" : _senate.Caesar.RecallRefusal(w, t)) is { } noRecall) return noRecall;
+            if (def.Interest == ChargeSystem.HomeKind && ChargeSystem.HomeRefusal(w, t) is { } noHome) return noHome;
             if (def.Interest == "emergency" && EmergencySystem.GrantRefusal(w, t, _senate.Offices) is { } noPowers) return noPowers;
             if (def.Interest == "for_life" && EmergencySystem.ForLifeRefusal(w, t) is { } noLife) return noLife;
         }

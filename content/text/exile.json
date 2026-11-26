@@ -1,0 +1,35 @@
+{
+  "//": "Text for content/events/exile.json.",
+  "texts": [
+    {
+      "id": "the_road_abroad",
+      "title": "The Road Abroad",
+      "body": "The charge will not be heard now. {self.name} has left the Reach before the verdict, with what was in their own purse and a few of the household, for a court that has agreed to take them in. The house is still theirs. Everything else is not, until the Senate says otherwise.",
+      "choices": {
+        "keep_the_house_by_letter": "Run the house by letter, every week.",
+        "live_quietly": "Live quietly, and wait.",
+        "make_friends_at_court": "Make friends at the court that took you in."
+      }
+    },
+    {
+      "id": "called_home",
+      "title": "Called Home",
+      "body": "The Senate has voted, and the exile of the house may come home. The motion was read out to a chamber that had spent two years forgetting the name, and remembered it in an afternoon.",
+      "choices": {
+        "come_home_quietly": "Come home at night, and quietly.",
+        "come_home_in_state": "Come home in state.",
+        "remember_who_voted": "Make a note of who voted, and how."
+      }
+    },
+    {
+      "id": "the_charge_thrown_back",
+      "title": "The Charge Thrown Back",
+      "body": "The praetor has let the house's own go, and the house that brought the charge has been made to look foolish in front of the whole Reach. A charge against one of the powerful is a gamble. This one was lost by somebody else.",
+      "choices": {
+        "say_nothing": "Say nothing. The verdict is enough.",
+        "have_it_cried_in_the_squares": "Have the verdict cried in the squares.",
+        "offer_the_accuser_a_hand": "Offer the accuser a hand, in public."
+      }
+    }
+  ]
+}

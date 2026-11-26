@@ -451,9 +451,9 @@ Each such ruling in a case comes out one time in three, and then the praetor is 
 (5 standing and a scandal). And the buying itself goes on the record against the head who did it, where any house
 that hates yours may find it.
 
-Left, and mapped: a trial is one praetor's decision with no evidence led and no appeal from it, and the accused does
-nothing in their own defence but be well or badly represented (L11). A charge against one of the player's house can now
-be pleaded or admitted: see "The docket".
+Left, and mapped: a trial is one praetor's decision with no evidence led and no appeal from it (L11). A charge against
+one of the player's house can now be pleaded or admitted: see "The docket". One against the powerful may be answered by
+exile or by crossing the line: see "A charge against the powerful".
 
 ## The docket
 
@@ -531,7 +531,8 @@ upright praetor the record is enough and pleading moves nothing, which the docke
 
 If the praetor named no longer sits, whoever would hear it now hears it; if nobody could, the charge lapses, the
 house is told, and what was done stays on the record. Charges between two other houses, and charges the player
-brings, are heard the year they are brought, as before.
+brings, are heard the year they are brought, as before, unless the accused is one of the powerful: then it is held a
+year whoever brings it (see "A charge against the powerful").
 
 ### The numbers
 
@@ -649,6 +650,238 @@ Every number here is mine, and a first guess:
   "Your suit against House Oriel, and their counter-suit" with 3,000 credits on it. In year 7 House Cask's suit
   against the house stood beside the house's own against House Ashgrove, and was counter-sued for 200 credits and
   1 clout. No charge was brought against the house in those nine years, so the charge's line was not seen there.
+
+## A charge against the powerful
+
+Built 2026-11-26, from docs/IDEAS_FROM_IMPERATOR.md, entry 2: "A charge brought against a person of great sway (first
+guess: 40 or more), or against the head of a house of Legate rank or above, counts as a cause to cross the line in the
+year it is heard, as a recall or a censure does. The accused has three answers: stand trial as now; go into exile
+before the verdict, so their offices and commands lapse and their purse goes with them to a nation's court beyond the
+Reach, until the Senate votes them home; or, if they could cross, cross. An acquittal costs the accuser's house
+standing and gives the accused renown. A conviction of someone who is commanding forces the choice: lay down the
+command, or cross. A house may also let it be known that a general will be charged the day they lay their command
+down, and that counts as a cause too. Other houses' generals answer by sway and nature, as they answer a recall."
+
+What stood before: a charge was heard the year it was brought unless it named one of the player's house, the accused
+did nothing but be well or badly represented (docs/GAPS.md L11), a general's only causes were a recall, a triumph
+refused and a censure (C7), and nobody was ever exiled (R6).
+
+### Who is powerful
+
+A person of **great sway** (40 or more, the same sway the Military screen shows and the Senate recalls at), or the
+**head of a house of Legate rank or above**. Whoever they are, a charge against one of them is held a year: brought
+this year, heard at the end of the next, by the rule of "The courts" and "The docket". That is the year in which they
+answer it. Other houses' people are answered for by their house's best pleader, as before.
+
+### A cause
+
+From the year such a charge is brought to the year after it is heard, it is a **cause** to cross the line for the
+accused's house, beside a recall, a triumph refused and a censure (docs/CAESAR.md, "Crossing the line"). So is a
+conviction of the house's general, until the command is laid down, and a threat of a charge (below), for five years
+from the day it is made. A cause alone marches nobody: the general still needs four hulls that would follow them and
+40 of sway, and another house's general crosses only through all three gates, as at a recall.
+
+### The accused answers
+
+| Answer | What happens |
+|---|---|
+| **Stand trial** | It is heard at the end of the year by the praetor named, as any charge is. Pleading and admitting work as in "The docket". |
+| **Go into exile** | At once. The charge is not heard and the act is answered for. Offices of the Reach and magistracies lapse, and so do commands: the fleets are left without an admiral, a command by service ends, a captaincy is given up. The purse goes with them. They live at the court of the friendliest nation not at war with the Reach (among the far worlds if there is none), until the Senate votes them home. Their house loses 2 legitimacy (4 if it is its head), the house that charged them gains 2, and their house's head thinks 20 the worse of it. |
+| **Cross the line** | Only the house's general, and only with the fleet and the name for it (docs/CAESAR.md). The house marches; the Republic's courts do not hear the charge. |
+
+Who answers:
+
+- **You**, for yourself: any of the three, on the courts panel.
+- **One of your house who leaves it to you**: you say whether they stand trial or go abroad, and whether the house
+  crosses with them if they are its general.
+- **A relative with a will of their own** (not loyal, and ambitious, arrogant or proud) answers for themselves at the
+  turn of the year, by the rule for other houses. They cannot cross without you.
+- **Another house's accused**: one of them who is honourable, just or loyal stands trial. One who is proud, arrogant,
+  vengeful or fearful goes abroad if they expect the court to convict: the praetor is upright, bought by the accuser,
+  for sale to a richer accuser, or, going by the pleading, would find it proved one time in two or more. Their general
+  crosses only as they would at a recall: through all three gates, and wanting it.
+
+### Exile
+
+An exile lives abroad, out of the Reach's politics, until the Senate votes them home. While abroad they may not stand
+for office or hold one, hold a command, be named a legate or a captain, bring a charge or a suit, offer a praetor a
+sum, or let it be known that anyone will be charged. They keep their purse, their name, their family and their place
+in their house.
+
+**A head of house in exile stays its head.** The house's worlds, money, people, fleets and votes in the Senate go on,
+and the head runs them by letter. What the house cannot do while its head is abroad is move anything in the Senate
+except the head's own return; its votes are still cast. Other houses' heads abroad are under the same rule, so a house
+whose head has fled moves no motions until the head is home.
+
+**For you, in exile**, the courts panel says so in so many words. You may still run your house (build, trade, lend,
+marry your children, write your will, make war and peace), vote in the Senate and lobby, and move that the Senate
+call you home. You may not hold or stand for any office, command, bring anything before the courts, or move any other
+motion. If you die abroad your heir succeeds as at any death, at home.
+
+**Coming home.** A new motion, *Return from exile* (3 influence; targets a house and brings home its exile longest
+abroad). Its own house leans hard for it; the house that brought the charge leans against; friends and enemies lean
+as they are; a return within two years is thought too soon and one after five years long enough; a great name is
+thought safer abroad. Other houses move it: the exile's own house after three years abroad, or a house whose head is
+a friend (30 or better) of the exile or of their house's head; never the house that charged them. Carried, the exile
+comes home and may stand and command again, their house gains 2 legitimacy, and they think 15 the better of the head
+who moved it. A head in exile's own house may move it in their name.
+
+### The price of failure
+
+- **An acquittal** costs the house that brought the charge 3 legitimacy on top of the point any charge let go costs (4
+  in all, against the 2 a conviction gains it), and the accused gains a deed in the record of their life, which is
+  renown (docs/LIFE.md): "charged by House X and acquitted".
+- **A conviction of one who commands** orders the command laid down by the end of the year after the verdict. Laid
+  down, the fleets are left without an admiral and no command may be held for five years, as after a recall.
+  Otherwise the house crosses. Another house's general crosses with the year's generals if they would, and lays it
+  down if not. One of your house who leaves it to you lays it down by themselves; a wilful one waits for you. Left
+  unanswered to the end of that year, the court's officers take the command and the house loses 3 legitimacy.
+
+### The threat
+
+The head of a house may **let it be known that a general of another house will be charged the day the command is laid
+down** (1 clout). It needs something on the record against them that a court would hear, and a house may have one
+such word out at a time. The general and their head think 10 the worse of the house that says it. While it stands,
+and for five years, it is a cause for the general's house. The act it names is not forgotten while it stands, and the
+house that said it does not charge them while they command.
+
+The day the general holds no command, the charge is due: by the end of the year after. Other houses bring it when
+they can. If it is never brought, the house that said it loses 3 legitimacy. If the general dies, or another house
+charges the same act first, the threat lapses and costs nothing.
+
+**Other houses** let it be known, one a year in the whole Reach: a house whose head thinks -30 or worse of another
+(the same hate that brings a charge), about one of the powerful of that house who commands and has something on the
+record, the one of greatest sway first. A house would rather not charge a powerful commander while the fleet is theirs.
+
+### The numbers
+
+| | |
+|---|---|
+| Powerful | Sway 40 or more, or the head of a house of Legate rank (3) or above |
+| Held | Every charge against the powerful: brought this year, heard at the end of the next |
+| A cause | From the year brought to the year after it is heard; a conviction until the command is laid down; a threat for 5 years |
+| Exile | The house -2 legitimacy (-4 for its head), the accuser +2, the house's head -20 toward the accuser |
+| An acquittal | The accuser -4 legitimacy in all (-1 as before, and -3); a deed of renown for the accused |
+| A conviction in command | Laid down by the end of the next year; no command for 5 years; taken, -3 legitimacy |
+| Return from exile | 3 influence; carried, +2 legitimacy and the exile +15 toward the mover; moved by others after 3 years |
+| Its lean | Own house +4; the accuser -3; friend 30 or better +2, 10 or better +1, enemy -20 or worse -2; within 2 years -1, after 5 years +1; sway 45 or more -1 (not for the Sword) |
+| A threat | 1 clout; the general and their head -10; empty, -3 legitimacy; due by the end of the year after the command is laid down |
+
+### The screen
+
+The Senate window, **Ladder and courts**, under the docket: **A charge against the powerful**. Each such charge that
+touches the house, against your people or brought by you, with what it is and the buttons to answer it (Stand trial,
+Go into exile or Send them abroad, Cross the line; after a conviction in command, Lay the command down or Cross the
+line: `data-charge-answer="trial"`, `"exile"`, `"cross"`, `"lay_down"`). Each threat by your house or against it
+(`data-charge-threat` with the threat's id), and the generals of other houses you could threaten, each with **Let it
+be known** (`data-charge-threat` with the general's id). Every exile in the Reach, where and since when, with **Move
+that they be called home** (`data-recall-exile` with the house's id). If you are in exile, a line at the top says
+where, and what you may and may not do. A greyed button's title is the refusal. The Senate's own list of motions
+offers *Return from exile* like any other.
+
+### Events
+
+Three, in `content/events/exile.json` (text in `content/text/exile.json`), each clearing the flag it reads:
+*The Road Abroad* (you have gone into exile: run the house by letter, live quietly, or make friends at the court that
+took you in), *Called Home* (one of the house is voted home: quietly, in state for 500 credits, or remember who
+voted), *The Charge Thrown Back* (one of the house's powerful is acquitted: say nothing, have it cried in the squares,
+or offer the accuser a hand).
+
+### Measured
+
+`praetoria charges --scenario all --seeds 10` (the six starts that open in the Republic, ten seeds, sixty years, a
+passive player), and `praetoria caesar --scenario all --seeds 10` before and after, on the same starts and seeds:
+
+| In 60 runs of 60 years | |
+|---|---|
+| Charges against the powerful | 183 (of 857 charges in all); 180 against the head of a Legate house or higher, 1 against a person of great sway; none against the player's house (a passive player does nothing a court would hear) |
+| Answered by exile | 23 |
+| Answered by crossing the line | 0 |
+| Stood trial | 146: convicted 75, acquitted 71 (the accuser paid 4 legitimacy each time) |
+| Convicted in command, laid it down | 11 |
+| Motions to call an exile home | 26 moved, 20 carried; 2 still abroad at the end, both heads of a house |
+| Threats of a charge | 99 made: kept 6, empty 1, lapsed 70 (mostly because a third house charged the same act first), 22 standing at the end |
+| Marches whose cause was a charge or a threat | 0 |
+
+| The Caesar road, 60 Republic runs | Before | After |
+|---|---|---|
+| Civil wars | 0 | 0 |
+| The Republic fell | 0 | 0 |
+| Another house's general passed all three gates | 0 | 0 |
+| Triumphs voted, of those moved | 26 of 47 | 31 of 38 |
+| Recalls carried, of those moved | 9 of 17 | 8 of 19 |
+| Former magistrates charged, convicted | 932, 546 | 857, 496 |
+
+The Caesar rate stays at none in sixty, inside the owner's one game in ten: a charge is one more cause, but another
+house's general still marches only through all three gates, and in these runs none passed them. What moved: about one
+charge in ten fewer is brought, because a charge against the powerful now waits a year and a house brings one charge
+a year, and because a house that has let it be known it will charge a commander waits for the command to be laid
+down. The triumphs and recalls move with the different years the runs then have; neither changes direction.
+
+### What I chose
+
+Every number here is mine, and a first guess:
+
+- Sway 40 (the entry's guess, and the sway the Senate recalls at) and Legate rank (3) for the powerful.
+- That every such charge is held a year, whoever brings it, so that the accused has a year to answer; before, only a
+  charge against the player's house was.
+- That the cause runs from the year brought to the year after it is heard; a conviction's until the command is laid
+  down; a threat's five years (the Senate's own causes count five).
+- Exile: -2 legitimacy to the house (-4 for its head), +2 to the accuser (what a conviction gains it), -20 regard.
+- That the act is answered for by the exile, and not heard again when they come home.
+- That a head in exile stays the head; that their house moves nothing in the Senate but the return, and still votes.
+- That the exile goes to the court of the friendliest nation not at war with the Reach.
+- An acquittal: -3 more legitimacy to the accuser; renown as one deed of office.
+- That a convicted commander has to the end of the year after the verdict, that a command laid down bars another for
+  five years (the recall's figure), and that a command taken costs 3.
+- The return: 3 influence, +2 legitimacy, +15 regard; moved by others after 3 years and by friends at 30; its lean's
+  figures in the table.
+- The threat: 1 clout, -10 regard, -3 when empty, one at a time, due by the end of the year after; that it keeps the
+  act on the record; that other houses make it about the powerful only, one a year.
+- Who flees: the proud, arrogant, vengeful or fearful (Paranoid), when they expect conviction; never the honourable,
+  the just or the loyal.
+- The events' figures (500 credits; 300 credits; 1 or 2 legitimacy; a point of influence; stress).
+
+### What is not built
+
+- Renown is kept only in the lives of your own house, as before (docs/LIFE.md): another house's acquitted have no
+  record to add it to.
+- A charge against the powerful is still a charge for an act in office (docs/LADDER.md, "The courts"). Nothing yet
+  charges a general for what was done in command, so a general who never held a magistracy cannot be charged or
+  threatened.
+- An exile's estate abroad is not modelled: they do not earn, spend or marry at the foreign court, and the nation that
+  took them in thinks no differently of the Reach.
+- A relative in exile keeps any post in the household (steward, advocate and the rest): those are the house's, not
+  the Reach's.
+- Under a throne the courts of the Republic do not sit, so nothing is charged or threatened and nobody goes abroad;
+  one already in exile when a throne is taken may still be voted home by whatever Senate sits.
+- No appeal, no evidence led, and no amnesty for all exiles at once (L11 and R6 keep those).
+- Random-play QA (`src/Tools/Qa.cs`) is not wired to the new commands; that file is the owner's to change.
+
+### How it is built
+
+- `src/Core/Systems/ChargeSystem.cs` (an instance, made by the turn with the nations, the offices and the generals):
+  `Powerful`, `Cause`, `Brought`/`Heard` (called from the courts), `AnswerRefusal`/`Answer`, `Exile`, `Home`,
+  `HomeRefusal`, `HomeLean`, `MoveHome`, `ThreatRefusal`/`Threaten`, `Waits`, `Threatened`, `Tick` (after the generals,
+  before the courts: the accused answer, a convicted commander's time runs out, threats are made good or found empty,
+  and one house lets one be known).
+- State: `Indictment.Powerful`, `Answer`, `HeardTurn`, `Sentence`, `AnswerBy`; `Exile` and `World.Exiles`;
+  `ChargeThreat` and `World.ChargeThreats`; the character flag `in_exile`.
+- Commands (`src/Core/Commands/ChargeCommands.cs`): `AnswerChargeCommand(actorId, chargeId, answer, charges)` with
+  answer `trial`, `exile`, `cross` or `lay_down`; `ThreatenChargeCommand(actorId, generalId, offices)`. The return is
+  `ProposeMotionCommand(actorId, "home", houseId, senate)`.
+- Small hooks elsewhere: `LadderSystem.Indict` (public now) holds any charge against the powerful, from the courts'
+  own year and from `ProsecutionCommand`; `CaesarSystem.Grievance` reads `ChargeSystem.Cause`, and `Barred` counts an
+  exile; `SenateSystem` leans on, carries and moves the return, and an exiled head's house may not move another motion;
+  the ladder's `Bar`, `OfficeSystem.Candidate`, the admiral's, the captain's and a command by service's refusals, and
+  the courts' own refusals, turn an exile away.
+- `src/Web/Components/PowerfulCharges.razor`, in `CourtsPanel.razor`.
+- `src/Tools/ChargeProbe.cs`: `praetoria charges [--scenario id|all] [--seeds N] [--turns N]`.
+- Counters for content: `powerful_charged`, `powerful_tried`, `powerful_convicted`, `powerful_acquitted`,
+  `powerful_exiled`, `powerful_crossed`, `powerful_laid_down`, `exiles_home_moved`, `exiles_home`, `charge_threats`,
+  `charge_threats_kept`, `charge_threats_empty`, `charge_threats_lapsed`. World flags for a year after the deed:
+  `went_into_exile`, `called_home_from_exile`, `charge_thrown_back`.
+- `tests/ChargeAgainstThePowerfulTests.cs` (16).
 
 ## Where it is
 

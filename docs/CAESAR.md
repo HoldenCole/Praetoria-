@@ -122,6 +122,11 @@ The head of a house may march its general on the capital when all of these hold:
 - the general's sway is **40** or more;
 - the Senate has given a **cause** in the last five years: a recall, a triumph refused, or a censure. Having crushed
   all resistance in the War of the Reach (docs/BREAKAWAY.md) also counts: the Reach is in the house's hands.
+  So does **a charge against the powerful** (docs/LADDER.md, "A charge against the powerful"): a charge before a
+  praetor against one of the house who is of great sway (40 or more) or who heads it at Legate rank or above, from the
+  year it is brought to the year after it is heard; a conviction of its general, until the command is laid down; and
+  another house's word that its general will be charged the day the command is laid down, for five years from the
+  day it is said.
 
 Then:
 
@@ -240,6 +245,11 @@ The older routes to a throne (Seize and Proclaim) are the player's alone; no oth
   general was of the first rank in 2 runs, loved in 42, passed all three gates in 1, and none marched. Before, skill
   rose without limit and the first rank was reached in 15 runs of 60. A rival is rarer than it was. That is inside the
   owner's rule (once in ten games or less) and may be too rare: docs/GAPS.md C9.
+- **A charge against the powerful is a cause** (docs/LADDER.md, "A charge against the powerful"), and so is a
+  conviction of a general in command and a house's word that a general will be charged on laying the command down.
+  Measured before and after (`praetoria caesar --scenario all --seeds 10`, 60 Republic runs): no civil war and no
+  fallen Republic in either, and no other house's general through all three gates in either. 183 such charges were
+  brought in those runs; 23 of the accused went into exile, none crossed.
 
 ## Not in this piece
 

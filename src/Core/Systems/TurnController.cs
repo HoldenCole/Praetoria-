@@ -54,6 +54,8 @@ public sealed class TurnController
     public PolitySystem Polities => _polities;
     private readonly CaesarSystem _caesar;             // generals, triumphs, recalls and the march on the capital (docs/CAESAR.md)
     public CaesarSystem Caesar => _caesar;
+    private readonly ChargeSystem _charges;            // a charge against the powerful, exile, and the threat of a charge (docs/LADDER.md)
+    public ChargeSystem Charges => _charges;
     private readonly HouseholdSystem _household;       // found family, and the duties the head hands out (docs/HOUSEHOLD.md)
     private readonly DynastySystem _dynasty;           // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
@@ -134,6 +136,7 @@ public sealed class TurnController
         _orders = new OrderSystem(_economy, _fleets, content.Titles, content.Offices, content.Market); if (!world.InAcademy && world.Houses.Values.All(h => h.Orders.Count == 0)) _orders.Tick(world);
         _polities = new PolitySystem(_fleets, content.Offices, _economy, content.Holdings, content.Businesses);
         _caesar = new CaesarSystem(_fleets, content.Offices); _senate.Caesar = _caesar; _senate.Polities = _polities; _regions.Polities = _polities;
+        _charges = new ChargeSystem(content.Nations, content.Offices, _caesar);
         _senate.TitleLadder = _progression; if (_progression != null) _progression.Senate = _senate;   // a petition for a rung above Prefect is the Senate's to vote (docs/TITLES.md)
         if (world.Turn == 0) LegitimacyBook.Open(world);   // where each house's legitimacy began (docs/TITLES.md, "What legitimacy is made of")
         _senate.Exchange = _companies; if (_companies != null) _companies.Offices = content.Offices;
@@ -305,6 +308,7 @@ public sealed class TurnController
 
         using (Perf.Time("end:service")) { ServiceSystem.Tick(World, _content.Offices); }   // commands by service: what has lapsed ends, and other houses name legates, borrow officers and seek commands (docs/MILITARY.md) — RNG-free
         using (Perf.Time("end:caesar")) { _caesar.Tick(World); }
+        using (Perf.Time("end:charges")) { _charges.Tick(World); }   // the accused answer, after the generals and before the courts sit (docs/LADDER.md, "A charge against the powerful") — RNG-free
         using (Perf.Time("end:polities")) { _polities.Tick(World); }   // wars of independence won, lost or still fought; who may break away (docs/BREAKAWAY.md) — RNG-free   // crews and their commanders, recalls answered, the civil war if there is one (docs/CAESAR.md) — RNG-free
         using (Perf.Time("end:ladder")) { LadderSystem.Tick(World, _content.Offices, _content.Policies); }   // seats lapse, magistrates are paid, the house's people put their names down (docs/LADDER.md) — RNG-free
         using (Perf.Time("end:life")) { LifeSystem.Tick(World, _content); HeadSystem.Tick(World); }   // health, the record of each life, ties that have lasted (docs/LIFE.md) — RNG-free

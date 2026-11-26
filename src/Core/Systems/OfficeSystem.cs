@@ -37,7 +37,7 @@ public static class OfficeSystem
     public static Character? Candidate(World w, OfficeDef def, string houseId) =>
         w.LivingCharacters().Where(c => c.HouseId == houseId && (def.Track.Length == 0 || c.CareerTrack == def.Track) && c.CareerRank >= def.MinRank
                 && c.Age >= (def.Elected ? SenateActs.AgeFor(w, def.MinAge) : def.MinAge) && (def.Requires.Length == 0 || c.Cursus.Contains(def.Requires))   // the ladder: an age, and a rung already held (docs/LADDER.md)
-                && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn)   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
+                && w.Counter(LadderSystem.BarredKey(c.Id)) <= w.Turn && !ChargeSystem.Abroad(w, c))   // nor one in exile (docs/LADDER.md, "A charge against the powerful")   // one removed from office for taking money holds no office of the Reach until the bar is out (docs/PLAYTHROUGH.md: a convicted man was elected consul, a banned man commissioned)
             .OrderByDescending(c => c.Id == w.ProtagonistId).ThenByDescending(c => c.CareerRank).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
 
     /// <summary>What a fleet held by office may be used for, by whom and for how long, as these rules have it
