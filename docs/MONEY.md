@@ -89,6 +89,18 @@ Lean, Standard and Lavish moved by no more than one game differs from another. *
 14,800 in the treasury): with coin to spare and a way to buy materials from another house, houses found more ventures
 (207 levels against 177). At Generous money now piles up as it does at Lavish. It is in the register as M10.
 
+And again on 2026-11-26, over eight games (`econ --seeds 8`), after local law, edicts and ten more Acts of the Senate came in
+(docs/LAWS_REVIEW.md, section 6). Two games had swung by a fifth from one run to the next, so the figures above are rough:
+
+| Setting | Takes in a year at year 30 | Treasury at year 30, before the new laws | Treasury at year 30, after | Buildings at year 10 / 30 | Venture levels at year 10 / 30 |
+|---|---|---|---|---|---|
+| Lean | 1,700 | 1,900 | 2,275 | 42 / 101 | 10 / 89 |
+| Standard | 2,700 | 2,310 | 2,810 | 64 / 111 | 16 / 123 |
+| Generous | 4,700 | 10,829 | 13,038 | 67 / 126 | 25 / 188 |
+| Lavish | 5,900 | 21,621 | 28,929 | 81 / 144 | 41 / 234 |
+
+The new laws bring a house about a fifth more coin by year 30, at every setting. It is put to the owner there.
+
 **Boosts** are ticked on the same screen, are your house's alone, and are given once when the game begins. None is on
 unless it is ticked.
 

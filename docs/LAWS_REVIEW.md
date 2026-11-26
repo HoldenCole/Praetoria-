@@ -334,7 +334,25 @@ Two games of thirty years of the Old Lion, a player who does nothing (`LAWS_USE=
 | Edicts issued by other people | none could be | 56: heads of house 27, consuls and the holder of the capital 13, praetors 8, aediles 8; 46 lapsed, 6 ended with their issuer's position, 3 were struck down. The player was told 32 times |
 | Houses with the magistrates loyal, year 30 | (no new Acts) | 10 of about 58; no estate hostile in more than 2 houses at any year measured |
 
-MONEY_PLACEHOLDER
+**Money.** Eight games of thirty years each (`dotnet run --project src/Tools -- econ --seeds 8`; the probe now takes up to
+eight, since two and four games swung by a fifth between runs), the middle house's treasury, before the three were built and
+after:
+
+| Money, salaries | Year 30 before | Year 30 after |
+|---|---|---|
+| Standard, none | 2,310 | 2,810 |
+| Lean, none | 1,900 | 2,275 |
+| Generous, none | 10,829 | 13,038 |
+| Lavish, none | 21,621 | 28,929 |
+| Standard, light | 2,020 | 2,476 |
+| Standard, standard | 1,749 | 2,537 |
+| Standard, heavy | 1,565 | 2,170 |
+| Standard, crews | 1,563 | 2,203 |
+
+A house takes in about a sixth more by year 30 (2,300 a year to 2,700 at Standard) and ends about a fifth richer, and fewer
+houses are in the red (the crews row: 7 of 232 to 1). The surcharge on the tithe, the sumptuary edict and the Acts the
+chamber now carries all bring coin in; before the Reach's law was halved in the estates' regard, the rise at Standard was
+two thirds, from magistrates loyal everywhere. Left as it is, for the owner (below).
 
 ### For the owner
 
@@ -342,4 +360,5 @@ MONEY_PLACEHOLDER
    whole Reach?
 2. **A house that broke away** (Y1): a Reach-wide edict no longer falls on it, but the Senate's Acts and the chair's laws
    still do. Should a breakaway state be free of the Senate's law?
-3. What the three leave thin is in the register as Y1 to Y10 (docs/GAPS.md, "Laws").
+3. **Money** rises about a fifth at every setting with the three in force (the table above). Pull it back, or leave it?
+4. What the three leave thin is in the register as Y1 to Y10 (docs/GAPS.md, "Laws").
