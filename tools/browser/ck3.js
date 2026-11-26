@@ -3,11 +3,14 @@
 // relative from the line on the Dynasty window, then laying the house down so the heir takes it up: the succession screen's friends
 // and enemies handed down, a profile that itemises them, and the suit of the undutiful will on the Senate's courts if one is brought.
 //
-//   node ck3.js ["Start title"] [years to play after the succession]
+//   node ck3.js ["Start title"] [years to play] [lay]
+//
+// With "lay" the head lays the house down at once; otherwise the game is played on until the head dies, since only a head who dies
+// in the seat leaves a will a child struck out can sue over.
 //
 // Needs the build served locally (see README.md here). Screenshots go to PRAETORIA_SHOTS (default ./shots).
 const { chromium } = require('playwright');
-const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.argv[3] || '10', 10);
+const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.argv[3] || '10', 10); const layDown = process.argv[4] === 'lay';
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
@@ -55,14 +58,16 @@ require('fs').mkdirSync(shots, { recursive: true });
 
   // 3. strike a grown relative from the line, on the Dynasty window
   await rail('Dynasty'); await page.waitForTimeout(900);
-  const nodes = await page.$$('.tree g.tn:not(.me):not(.dead)'); let struck = '';
-  for (const n of nodes) {
-    await n.click(); await page.waitForTimeout(350);
+  const nodes = await page.$$('.tree g.tn:not(.me):not(.dead)'); let struck = ''; const can = [];
+  for (let k = 0; k < nodes.length; k++) {
+    await nodes[k].click(); await page.waitForTimeout(350);
     const b = await page.evaluate(() => { const s = document.querySelector('[data-strike]'); return s ? { id: s.getAttribute('data-strike'), ok: !s.disabled, tip: s.title || '', label: s.innerText.trim() } : null; });
     if (!b) continue;
     console.log('  ' + b.id + ': ' + b.label + (b.ok ? '' : ' (refused)') + ' · ' + b.tip.replace(/\s+/g, ' ').slice(0, 260));
-    if (b.ok && !struck) { struck = b.id; await page.evaluate(() => document.querySelector('[data-strike]').click()); await confirm(); break; }
+    if (b.ok) can.push({ k, child: !/not your child/.test(b.tip), id: b.id });
   }
+  const pick = can.find(x => x.child) || can[0];   // a child of the head, if one can be struck: only a child may sue over the will
+  if (pick) { await nodes[pick.k].click(); await page.waitForTimeout(350); struck = pick.id; console.log('striking ' + struck + (pick.child ? ', a child of the head' : '')); await page.evaluate(() => document.querySelector('[data-strike]').click()); await confirm(); }
   if (struck) {
     await page.waitForTimeout(400); await shotOf('[data-disown="' + struck + '"]', 'ck3-struck-buttons.png');
     console.log('struck list: ' + await text('[data-struck-list]')); console.log('heir now: ' + await page.evaluate(() => { const h = document.querySelector('.person.heir'); return h ? h.innerText.replace(/\s+/g, ' ').slice(0, 120) : 'no heir shown'; }));
@@ -70,40 +75,43 @@ require('fs').mkdirSync(shots, { recursive: true });
   } else console.log('nobody could be struck from the line');
   await closeWindows();
 
-  // 4. lay the house down, so the heir takes it up: what the old head's friends and enemies now think of them
-  await rail('You'); await page.waitForTimeout(500); await tab('A life');
-  const laid = await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.life button')].find(e => !e.disabled && e.innerText.trim().startsWith('Lay the house down')); if (b) b.click(); return !!b; });
-  let handed = false;
-  if (laid) { await page.waitForTimeout(400); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => !e.disabled && e.innerText.trim().startsWith('Yes, lay it down')); if (b) b.click(); }); await page.waitForTimeout(1200); handed = await succession('the house laid down'); }
-  else console.log('the head may not lay the house down yet: playing on until the seat passes');
-  let suitSeen = false;
-  for (let y = 0; y < years; y++) {
-    if (await endTurn()) handed = true;
-    if (y % 2 === 1 || y === years - 1) {
-      await rail('Senate'); await page.waitForTimeout(600); await tab('Ladder and courts');
-      const suits = await page.evaluate(() => [...document.querySelectorAll('[data-undutiful-will]')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 300)));
-      if (suits.length && !suitSeen) { suitSeen = true; console.log('year ' + await turnNo() + ', the suit of the undutiful will: ' + suspicious(suits.join(' ')) + ' · ' + suits.join(' | ')); await shotOf('[data-undutiful-will]', 'ck3-will-suit.png'); }
-      await closeWindows();
-    }
-  }
-  if (!suitSeen) console.log('no suit of the undutiful will was brought in ' + years + ' years (one is brought only when the head who struck a child out dies)');
-
-  // 5. a profile that itemises what was handed down
-  if (handed) {
+  let profiled = false;
+  const profileCheck = async () => {   // a profile that itemises what was handed down, while it is fresh
+    if (profiled) return; profiled = true;
     await rail('Houses'); await page.waitForTimeout(900); let found = false;
     const rows = await page.$$('.standings tbody tr');
-    for (let r = 0; r < Math.min(rows.length, 14) && !found; r++) {
+    for (let r = 0; r < Math.min(rows.length, 16) && !found; r++) {
       await page.evaluate(i => { const x = document.querySelectorAll('.standings tbody tr')[i]; if (x) x.click(); }, r); await page.waitForTimeout(500);
       const n = await page.evaluate(() => document.querySelectorAll('.portrait.opens').length);
-      for (let i = 0; i < Math.min(n, 4) && !found; i++) {
-        await page.evaluate(k => { const el = document.querySelectorAll('.portrait.opens')[k]; if (el) el.click(); }, i); await page.waitForTimeout(500);
+      for (let i = 0; i < Math.min(n, 8) && !found; i++) {
+        await page.evaluate(k => { const el = document.querySelectorAll('.portrait.opens')[k]; if (el) el.click(); }, i); await page.waitForTimeout(450);
         const why = await page.evaluate(() => [...document.querySelectorAll('.profile [data-inherited-regard]')].map(e => e.getAttribute('data-inherited-regard') + ': ' + e.innerText.replace(/\s+/g, ' ')));
         if (why.length) { found = true; console.log('profile of ' + await text('.profile h2') + ': ' + suspicious(why.join(' ')) + ' · ' + why.join(' | ')); await shotOf('.profile', 'ck3-profile-inherited.png'); }
         await page.evaluate(() => { const x = document.querySelector('.profile-x'); if (x) x.click(); }); await page.waitForTimeout(200);
       }
     }
     if (!found) console.log('no profile of the first houses\' people shows a regard handed down');
-  } else console.log('the seat did not pass in these years');
+    await closeWindows();
+  };
+  // 4. lay the house down, so the heir takes it up: what the old head's friends and enemies now think of them
+  await rail('You'); await page.waitForTimeout(500); await tab('A life');
+  const laid = layDown && await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.life button')].find(e => !e.disabled && e.innerText.trim().startsWith('Lay the house down')); if (b) b.click(); return !!b; });
+  let handed = false;
+  if (laid) { await page.waitForTimeout(400); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => !e.disabled && e.innerText.trim().startsWith('Yes, lay it down')); if (b) b.click(); }); await page.waitForTimeout(1200); handed = await succession('the house laid down'); if (handed) await profileCheck(); }
+  else console.log(layDown ? 'the head may not lay the house down yet: playing on until the seat passes' : 'playing on until the seat passes');
+  let suitSeen = false;
+  for (let y = 0; y < years; y++) {
+    if (await endTurn()) { handed = true; await profileCheck(); }
+    if (y % 2 === 1 || y === years - 1) {
+      await rail('Senate'); await page.waitForTimeout(600); await tab('Ladder and courts');
+      const suits = await page.evaluate(() => [...document.querySelectorAll('[data-undutiful-will]')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 300)));
+      if (suits.length && !suitSeen && handed) { suitSeen = true; console.log('year ' + await turnNo() + ', the suit of the undutiful will: ' + suspicious(suits.join(' ')) + ' · ' + suits.join(' | ')); await shotOf('[data-undutiful-will]', 'ck3-will-suit.png'); }
+      await closeWindows();
+    }
+  }
+  if (!suitSeen) console.log('no suit of the undutiful will was brought in ' + years + ' years (one is brought only when the head who struck a child out dies)');
+
+  if (!handed) console.log('the seat did not pass in these years');
   console.log('errors: ' + (errors.length ? errors.slice(0, 6).join(' | ') : 'none'));
   await browser.close();
 })().catch(e => { console.error('FAILED ' + e.message.split('\n')[0]); process.exit(1); });
