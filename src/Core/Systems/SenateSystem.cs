@@ -268,6 +268,9 @@ public sealed class SenateSystem
             case "act":
                 Add(ActLean(w, h, m), (why != null ? SenateActs.Because(w, h, Policies, m, _offices) : null) ?? "the law itself: its own laws, its estates and its bench");
                 break;
+            case "annul":
+                if (EdictSystem.InForce(w, m.TargetId) is { } edict) Add(EdictSystem.AnnulLean(w, h, edict), "what the edict does to it, and what it thinks of whoever issued it");
+                break;
             case "foreign_war":
                 Add(ForeignWarLean(w, h, m.TargetId), "the war itself: its trade, its bench, how near the nation lies");
                 break;
@@ -396,7 +399,7 @@ public sealed class SenateSystem
     public string Describe(World w, Motion m)
     {
         var def = _motions.Def(m.Kind); if (def == null) return m.Kind;
-        string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : def.Target == "nation" ? Nations.Def(m.TargetId)?.Name ?? m.TargetId : "";
+        string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : def.Target == "nation" ? Nations.Def(m.TargetId)?.Name ?? m.TargetId : def.Target == "edict" ? EdictSystem.Title(w, m.TargetId) : "";
         return def.Description.Replace("{proposer}", ProposerName(w, m)).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId).Replace("{rank}", _titles.ById(m.TitleId)?.NameIn(w.Era) ?? m.TitleId)
             .Replace("{law}", Policies.Law(m.LawId)?.Name.ToLowerInvariant() ?? m.LawId).Replace("{option}", Policies.Law(m.LawId)?.Option(m.LawOption)?.Name.ToLowerInvariant() ?? m.LawOption);
     }
@@ -618,6 +621,7 @@ public sealed class SenateSystem
             Exchange.Liquidate(w, broken, "the Senate has broken it up");
         }
         if (def.Rescue && Exchange != null) Exchange.Rescue(w, "the Senate votes the Reach's purse behind the Exchange");
+        if (def.Interest == EdictSystem.AnnulKind) EdictSystem.AnnulCarried(w, m.TargetId);   // the edict ends at once (docs/EDICTS.md)
     }
 
     /// <summary>Is the house shut out of the exchanges by a Senate embargo this turn?</summary>
@@ -628,8 +632,9 @@ public sealed class SenateSystem
     /// coffers to fill, a lawless home region, a hated rival to censure or embargo.</summary>
     private void Propose(World w, string? mine)
     {
-        if (Docket(w).Count() >= DocketSize) return;
+        if (Docket(w).Count() >= DocketSize || EdictSystem.Cowed(w, "") != null) return;   // nobody brings business while the holder rules by decree (docs/EDICTS.md)
         if (Generals(w, mine)) return;
+        if (EdictSystem.MoveAnnulment(w, this, mine)) return;   // a house an edict galls moves to have it struck down
         uint hash = 2166136261; foreach (var ch in "senate:" + w.Turn) hash = (hash ^ ch) * 16777619;
         if (hash % 3 != 0) return;
         var g = w.Galaxy;

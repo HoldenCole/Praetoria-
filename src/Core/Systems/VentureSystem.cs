@@ -432,6 +432,7 @@ public sealed class VentureSystem
             Bump(w, OverdrawnKey(h.Id)); Bump(w, OverdrawnYearsCounter);
             if (h.Id == mine && w.Counter(OverdrawnKey(h.Id)) == OverdrawnYears - 1 && w.BusinessesOf(h.Id).Any(x => x.CompanyId.Length == 0 && HolderOf(w, x) == null)) w.Log("The house is overdrawn. If it still is next year, those it owes will take one of its ventures."); if (h.Treasury.Credits <= ForecloseAt) Bump(w, DeepOverdrawnYearsCounter); if (w.BusinessesOf(h.Id).Any(x => x.CompanyId.Length == 0)) Bump(w, OverdrawnWithVentureCounter);
         }
+        if (EdictSystem.DebtsAreStayed(w)) return;   // a moratorium on debts: no creditor forecloses while it lasts (docs/EDICTS.md)
         foreach (var house in w.Houses.Values.Where(h => (h.Debt > 0 && h.Treasury.Credits < 0 || h.Treasury.Credits <= ForecloseAt || w.Counter(OverdrawnKey(h.Id)) >= OverdrawnYears) && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             bool Free(Business x) => x.CompanyId.Length == 0 && HolderOf(w, x) == null && _ventures.Def(x.Kind) != null;

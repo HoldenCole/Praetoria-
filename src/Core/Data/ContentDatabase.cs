@@ -29,6 +29,8 @@ public sealed class ContentDatabase
     public OfficeCatalog Offices { get; }
     /// <summary>Laws and estates (content/politics).</summary>
     public PolicyCatalog Policies { get; }
+    /// <summary>Edicts: what an executive decrees on their own authority (content/politics/edicts.json; docs/EDICTS.md).</summary>
+    public EdictCatalog Edicts { get; set; } = EdictCatalog.Empty;
     /// <summary>The parties of the Republic (content/senate/parties.json; docs/REPUBLIC.md).</summary>
     public PartyCatalog Parties { get; }
     /// <summary>The foreign nations beyond the Reach (content/nations/nations.json; docs/FOREIGN_NATIONS.md).</summary>

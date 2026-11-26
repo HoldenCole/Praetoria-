@@ -340,7 +340,7 @@
                             else
                             {
                                 <select class="sel" @onchange="e => SetTarget(pr.KindId, e)">
-                                    <option value="">— choose @(pr.TargetType == "house" ? "a house" : pr.TargetType == "nation" ? "a nation beyond the Reach" : "a region") —</option>
+                                    <option value="">— choose @(pr.TargetType == "house" ? "a house" : pr.TargetType == "nation" ? "a nation beyond the Reach" : pr.TargetType == "edict" ? "an edict in force" : "a region") —</option>
                                     @foreach (var t in pr.Targets) { <option value="@t.Id">@t.Name</option> }
                                 </select>
                                 @if (pr.NeedsOffice && pr.Offices != null)
@@ -593,7 +593,7 @@
     private string? TargetRefusal(MotionProposal pr)
     {
         string t = _target.GetValueOrDefault(pr.KindId) ?? "", o = _office.GetValueOrDefault(pr.KindId) ?? "";
-        if (t.Length == 0) return pr.TargetType == "house" ? "choose a house" : pr.TargetType == "nation" ? "choose a nation" : "choose a region";
+        if (t.Length == 0) return pr.TargetType == "house" ? "choose a house" : pr.TargetType == "nation" ? "choose a nation" : pr.TargetType == "edict" ? (pr.Targets.Count == 0 ? "no edict in force may be struck down" : "choose an edict") : "choose a region";
         if (pr.NeedsOffice && o.Length == 0) return "choose the office";
         return new ProposeMotionCommand(G.World!.ProtagonistId, pr.KindId, t, G.Turn!.Senate, o).Refusal(G.Ctx);
     }
@@ -613,7 +613,7 @@
     /* the motion as chosen in the form, to be moved by a house above yours in its own name */
     private AskToMoveCommand AskMoveCmd(MotionProposal pr, string byHouseId)
     {
-        string kind = pr.KindId; string t = pr.TargetType is "house" or "nation" or "region" ? _target.GetValueOrDefault(kind) ?? "" : "";
+        string kind = pr.KindId; string t = pr.TargetType is "house" or "nation" or "region" or "edict" ? _target.GetValueOrDefault(kind) ?? "" : "";
         return new AskToMoveCommand(G.World!.ProtagonistId, byHouseId, kind, t, G.Turn!.Senate, _office.GetValueOrDefault(kind) ?? "", _law.GetValueOrDefault(kind) ?? "", _lawOpt.GetValueOrDefault(kind) ?? "");
     }
     private void MoveSelf(string kind) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, kind, G.World.Protagonist!.HouseId, G.Turn!.Senate));

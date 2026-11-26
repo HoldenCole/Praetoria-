@@ -146,6 +146,7 @@ public static class PolicySystem
                 if (a >= Loyal) foreach (var (k, v) in e.Loyal) t.Base[k] = t.Base.GetValueOrDefault(k) + v;
                 else if (a <= Hostile) foreach (var (k, v) in e.Hostile) t.Base[k] = t.Base.GetValueOrDefault(k) + v;
             }
+        EdictSystem.Into(w, houseId, t.Base);   // the edicts in force on the house's own worlds (docs/EDICTS.md)
         t.Dominated ??= new HashSet<string>();
         return t;
     }
@@ -159,7 +160,7 @@ public static class PolicySystem
             string? holder = law.Scope == "chair" ? RegionSystem.CapitalHolder(w)?.Id : law.Scope == "emperor" ? ThroneSystem.Emperor(w)?.Id : law.Scope.StartsWith("office:") ? OfficeSystem.HolderHouse(w, law.Scope["office:".Length..]) : law.Scope == "senate" ? SenateHolder : null;
             if (holder != null) sum += Option(w, cat, holder, law.Id)?.Effects.GetValueOrDefault(key) ?? 0;
         }
-        return sum;
+        return sum + EdictSystem.Reach(w, key);   // and the edicts in force on the whole Reach (docs/EDICTS.md)
     }
 
     /// <summary>The standing a house draws from the Reach-wide laws it holds the position for itself.</summary>

@@ -375,7 +375,7 @@ public sealed class DealingsSystem
     /// or whatever it has once the lender has pressed. Nothing passes between houses at war.</summary>
     public static int Due(World w, HouseLoan l)
     {
-        var b = w.House(l.BorrowerId); if (b == null || w.House(l.LenderId) == null || l.Owed <= 0 || w.AtWar(l.LenderId, l.BorrowerId)) return 0;
+        var b = w.House(l.BorrowerId); if (b == null || w.House(l.LenderId) == null || l.Owed <= 0 || w.AtWar(l.LenderId, l.BorrowerId) || EdictSystem.DebtsAreStayed(w)) return 0;   // nothing falls due under a moratorium (docs/EDICTS.md)
         int pay = Math.Min(l.Instalment, l.Owed), have = b.Treasury.Credits;
         return have >= pay ? pay : l.Pressed ? Math.Max(0, have) : 0;
     }
@@ -394,6 +394,7 @@ public sealed class DealingsSystem
                 continue;
             }
             if (!dues.TryGetValue(l, out int paid)) continue;   // made since the year's books were opened: nothing falls due yet
+            if (EdictSystem.DebtsAreStayed(w)) continue;   // a moratorium: the year is not missed, the debt waits
             int due = Math.Min(l.Instalment, l.Owed); l.Owed -= paid;
             if (l.Owed <= 0)
             {
@@ -440,6 +441,7 @@ public sealed class DealingsSystem
         if (Parties(w, me, theirs, out var mine, out _) is { } no) return no;
         var l = LoanBetween(w, mine.Id, theirs!.Id); if (l == null) return "they owe you nothing";
         if (l.Pressed) return "you have pressed them already";
+        if (EdictSystem.PressRefusal(w) is { } stayed) return stayed;
         return l.Missed > 0 ? null : "they have missed no payment";
     }
     /// <summary>The lender says it wants its money: the borrower pays what it has each year, and thinks the worse of the lender.</summary>
@@ -536,6 +538,7 @@ public sealed class DealingsSystem
     /// <summary>A house other than the player's that is owed and has not been paid: a friend or a patron forgives, anyone else presses.</summary>
     private static void OthersAnswerLoans(World w, string? mine)
     {
+        if (EdictSystem.DebtsAreStayed(w)) return;   // no creditor presses under a moratorium
         foreach (var l in w.HouseLoans.Where(l => l.LenderId != mine && l.Missed > 0 && !l.Pressed).OrderBy(l => l.LenderId, StringComparer.Ordinal).ThenBy(l => l.BorrowerId, StringComparer.Ordinal).ToList())
         {
             var lender = w.House(l.LenderId); var borrower = w.House(l.BorrowerId); if (lender == null || borrower == null) continue;

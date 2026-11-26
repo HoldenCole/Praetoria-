@@ -38,6 +38,8 @@ public static class Lending
     public static int Years(int owed, int instalment) => owed <= 0 || instalment <= 0 ? 0 : (owed + instalment - 1) / instalment;
     /// <summary>What a house pays this year on what it owes.</summary>
     public static int InstalmentOf(House h, FinanceRules f) => h.Debt <= 0 ? 0 : Math.Min(h.Debt, h.LoanInstalment > 0 ? h.LoanInstalment : f.LoanInstalment);
+    /// <summary>What a house pays this year on what it owes, in the world as it stands: nothing while a moratorium on debts is in force (docs/EDICTS.md).</summary>
+    public static int InstalmentOf(World w, House h, FinanceRules f) => EdictSystem.DebtsAreStayed(w) ? 0 : InstalmentOf(h, f);
 
     private static int Worlds(World w, string houseId) => Math.Min(WorldsCounted, w.HoldingsOf(houseId).Count(h => h.IsPlanet));
 

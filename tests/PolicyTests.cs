@@ -129,7 +129,9 @@ public class RivalPolicyTests
         var rival = w.Houses.Values.First(h => h.Id != w.Protagonist!.HouseId && h.Id != "pirates" && w.HoldingsOf(h.Id).Any(x => x.IsPlanet) && Economy.HeadOf(w, h) != null);
         PolicySystem.Enact(w, Content.Policies, rival.Id, "tithe", "harsh"); w.WorldCounters[PolicySystem.ApprovalKey(w, rival.Id, "commons")] = -60; w.WorldCounters[$"law_cd:{rival.Id}:tithe"] = 0;
         bool relaxed = false;
-        for (int t = 0; t < 24 && !relaxed; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); relaxed = PolicySystem.OptionId(w, Content.Policies, rival.Id, "tithe") != "harsh"; }
+        // (thirty-six years: the house may first soothe its commons for a year or two with an edict of its own, an amnesty or a
+        // sumptuary edict, and the steward sees no hostile estate while it holds; docs/EDICTS.md)
+        for (int t = 0; t < 36 && !relaxed; t++) { foreach (var i in tc.BeginTurn()) { var c = tc.Offer(i).FirstOrDefault(x => x.Available); if (c != null) tc.Resolve(i, c.Choice.Id); } tc.EndTurn(); relaxed = PolicySystem.OptionId(w, Content.Policies, rival.Id, "tithe") != "harsh"; }
         Assert.True(relaxed, "the steward never relaxed a tithe its commons hated");
         Assert.Contains(w.History, h => h.Text.Contains(" sets "));
     }
