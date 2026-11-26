@@ -16,6 +16,11 @@ Last updated 2026-11-17 (known stories played against the game, R1 to R20 mapped
 > **Found in mods (2026-11-26):** about two hundred Crusader Kings III mods read for mechanics worth building in the
 > Reach, each checked against what the game has, ranked in `docs/IDEAS_FROM_MODS.md`. The first ten close rows of the
 > worklist (Q15, R1, R5, R16, R18, E3, R3, B17, V10); the list is not repeated in this register.
+>
+> **Found in Imperator: Rome (2026-11-26):** the base game from launch to its last patch, its best-liked mods and about
+> 135 pages on it, read the same way, ranked in `docs/IDEAS_FROM_IMPERATOR.md`. Its first ten touch Q15, C7, L11, C2, R20,
+> X2, L3, C4, Q16 and N15 (some ids are in two tables, and the file names which); it also says what Imperator adds to the
+> Crusader Kings list. It is not repeated in this register.
 
 > **Found by playing (2026-11-20):** five playthroughs and what a player wanted to do and could not, sorted easy, medium and
 > hard, are in `docs/PLAYTHROUGH.md`. They are not repeated in this register.
