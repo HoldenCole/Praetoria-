@@ -17,7 +17,7 @@ deterministic and saves and loads.
 |---|---|
 | Automated tests | 838 |
 | Events with text | 454 in 38 files |
-| Open gaps (docs/GAPS.md) | 96: 21 small, 62 a cycle, 13 several cycles (R10b to R10h and Q13 closed; N1 to N26 mapped while putting the five nations on the map and building the owner's answers on war). Sixteen came from the full QA of 2026-11-16 (docs/QA.md) and twenty from playing known stories against the game on 2026-11-17 (docs/ROLEPLAY.md). 83 closed so far (`./tools/gaps.sh`) |
+| Open gaps (docs/GAPS.md) | 200: 59 small, 120 a cycle, 21 several cycles, as `./tools/gaps.sh` counts them on 2026-11-26 (Y1 to Y10 mapped with local law, edicts and the new Acts of the Senate; docs/LAWS_REVIEW.md, section 6). 114 closed so far |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |
 | Galaxy | 50 systems, 69 lanes, 10 regions of the Reach and five beyond the rim (the Vashti Steppe, the Thessaran Shore, the Ardent Concord, the Outer Compact, the Hollow Crown), 31 standing houses and five nations on the map |
 | Laws / estates / parties | 22 / 6 / 4 |

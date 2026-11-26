@@ -351,6 +351,24 @@ Measured by `upstart` (three services, four seeds, sixty years). U8 to U11 are c
 | X9 | Trade between houses: no haggling or counter-offer; a deal cannot be changed or passed on; other houses end a deal only when they cannot keep it, never because the price moved, and they offer the player single lots, not standing deals; nobody runs an embargo; no trade with nations or raiders; a standing deal is not counted in a house's wealth; the player's deals are listed on each house's page and in the ledger, with no one list of them all. | M | |
 | X10 | A small lot is rounded hard: one unit of materials at 103 a unit costs 200 credits, because a purchase rounds up to whole hundreds. The exchanges round the same way. It goes with M1 (whole hundreds against single credits). | S | the owner (M1) |
 
+## Laws (docs/LAWS_REVIEW.md, sections 5 and 6, 2026-11-26)
+
+Ids Y1 to Y10. Local law (docs/POLITICS.md, "Local law"), edicts (docs/EDICTS.md) and ten more Acts of the Senate with a chamber that
+moves them (docs/SENATE.md, "The Senate's law, enlarged") were built together. What they leave thin:
+
+| # | The gap | Size | Waits on |
+|---|---|---|---|
+| Y1 | The law of the Reach (the Senate's Acts, the chair's and the offices' laws) still falls on a house that has broken away from the Reach. A Reach-wide edict does not (docs/EDICTS.md). Should a breakaway state be free of the Senate's law? | S | the owner |
+| Y2 | **The estates and the Reach's law.** With fifteen Acts the Reach's law alone pushed an estate past loyal or hostile in every house at once (the magistrates loyal in 33 houses, paying 100 credits a world each). It now counts at half, and at most 15 either way, in what an estate thinks of a house, so a house is judged first by its own laws. Half and 15 are my numbers. | S | the owner: is half right |
+| Y3 | Other houses never set four of the eight local laws (the charter, the port, the labour levy, the gates) or a veterans' colony, and in two measured games never gave a corn dole: their worlds are seldom restless (unrest under 5 in nine world-years of ten). | M | |
+| Y4 | Nobody held emergency powers or a throne in the measured games, so other people never issued the three edicts of the powers (proscription, rule by decree, the levy in mass). They are tested, not seen. | M | |
+| Y5 | Other houses do not hire fleets out, so the Law of Hired Companies falls only on the player's companies and on those who hire them. | M | |
+| Y6 | No events or scenes are written for a local law, an edict or the new Acts: a chronicle line, a line of news and the docket only. | M | |
+| Y7 | Edicts: none for the head of a breakaway state over its houses, none that name one region or world, none for a quaestor, and no list of past edicts on screen (the chronicle holds them). A moratorium defers payments; it does not stop lending. | M | |
+| Y8 | Local law: a closed world turns away new ventures only (one already being built still opens); a staple port does not draw trade from the other worlds of its region; the player's steward does not decree local law; only planets carry one. | S | |
+| Y9 | The Navigation Act's levy falls on lots sold out of a store, not on the deliveries of a standing deal; under the staple a deal already struck runs out its term. | S | |
+| Y10 | The four questions of docs/LAWS_REVIEW.md section 5: the offices that carry laws are seldom held, other houses have no council, readiness laws are weak, an open hall and a bench's two platforms do little. | M | the owner |
+
 ## Older, from docs/ROADMAP.md section 3
 
 Kept there in full. In short: the state gives commerce nothing (no tax-farming or contracts), callings lean to commerce,
