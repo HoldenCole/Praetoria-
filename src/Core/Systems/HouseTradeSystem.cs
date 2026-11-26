@@ -74,8 +74,8 @@ public sealed class HouseTradeSystem
     private GoodDef? Good(string good) => _trade.Market.Good(good) is { Sell: true } d ? d : null;
     private string? NoGood(string good) => Good(good) != null ? null
         : good == Resource.Manpower ? "men are not sold between houses: the exchanges hire crews out, and a house's levies are its own" : "not a thing one house sells another";
-    /// <summary>The market's price of a unit, in the books' hundreds.</summary>
-    public double Mid(World w, string good) => MarketSystem.Of(w, _trade.Market).Goods[good].Price;
+    /// <summary>The market's price of a unit, in the books' hundreds, held under the ceiling an edict of maximum prices has set on it.</summary>
+    public double Mid(World w, string good) { double p = MarketSystem.Of(w, _trade.Market).Goods[good].Price; return _trade.Market.Good(good) is { } d ? EdictSystem.Capped(w, d, p) : p; }
     /// <summary>Is the good kept off the exchanges as the law stands (isotopes, under the Arms Market)? Then it is sold between houses at a premium.</summary>
     public bool Closed(World w, string good) => Good(good) is { } d && !CornerSystem.Open(w, _trade, d);
 
@@ -150,8 +150,12 @@ public sealed class HouseTradeSystem
     /// the most; a point cheaper for every ten of liking, five at the most.</summary>
     public static int RegardPct(int regard) => regard < 0 ? Math.Min(DislikeMostPct, -regard) : -Math.Min(FriendMostPct, regard / FriendPointsAPct);
     private double Base(World w, string good) => Mid(w, good) * (Closed(w, good) ? (100 + ClosedPct) / 100.0 : 1);
-    /// <summary>What the seller asks of this buyer for a unit, before the lot's own weight.</summary>
-    public double Asks(World w, House seller, House buyer, string good) => Base(w, good) * (100 + RegardPct(DealingsSystem.RegardOf(w, seller, buyer))) / 100.0;
+    /// <summary>What the seller asks of this buyer for a unit, before the lot's own weight: no more than an edict of maximum prices allows, however ill its head thinks of the buyer.</summary>
+    public double Asks(World w, House seller, House buyer, string good)
+    {
+        double p = Base(w, good) * (100 + RegardPct(DealingsSystem.RegardOf(w, seller, buyer))) / 100.0;
+        return _trade.Market.Good(good) is { } d ? EdictSystem.Capped(w, d, p) : p;
+    }
     /// <summary>What the buyer will pay this seller for a unit: under the market by <see cref="PaysUnderPct"/> parts in the hundred, less to one it dislikes.</summary>
     public double Pays(World w, House buyer, House seller, string good) => Base(w, good) * (100 - PaysUnderPct - RegardPct(DealingsSystem.RegardOf(w, buyer, seller))) / 100.0;
 

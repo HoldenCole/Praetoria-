@@ -307,17 +307,17 @@
                 @foreach (var su in LadderSystem.SuitsNaming(w, house.Id)) { bool forUs = su.RightId == house.Id; <div class="kv @(forUs ? "" : "warn")" data-atrisk="@su.Id"><span>@(forUs ? "May come in from the courts" : "At risk in the courts")</span><b>@Money.Show(LadderSystem.StakeOf(su)) credits <i class="muted">· @(w.House(LadderSystem.OtherIn(su, house.Id))?.Name)'s suit over @LadderSystem.MatterOf(su), heard at the year's end: Senate, Ladder and courts</i></b></div> }
                 @{ var lastRulings = w.Judgments.Where(j => j.Turn == w.Turn - 1).ToList(); }
                 @foreach (var jr in lastRulings) { bool won = jr.WinnerId == house.Id; <div class="kv @(won ? "good" : "warn")"><span>Last year, by order of the court</span><b>@(won ? "+" : "−")@Money.Show(jr.Sum) credits <i class="muted">· @(won ? "from" : "to") @(w.House(won ? jr.LoserId : jr.WinnerId)?.Name)</i></b></div> }
-                @{ var fin = c.Businesses.Finance; int instal = Lending.InstalmentOf(house, fin); var lenders = Lending.Lenders(w, house.Id, c.Businesses); }
+                @{ var fin = c.Businesses.Finance; int instal = Lending.InstalmentOf(w, house, fin); var lenders = Lending.Lenders(w, house.Id, c.Businesses); string? stayed = EdictSystem.Stay(w) is { } stay ? $"nothing falls due while {EdictSystem.Lower(stay.Name)} stands, until year {stay.Until}" : null; }
                 @if (lg.Debt > 0)
                 {
                     int left = Lending.Years(lg.Debt, instal);
-                    <div class="kv warn" data-debt="@lg.Debt"><span>Debt</span><b>@Money.Show(lg.Debt) credits to @Lending.LenderName(w, house.LenderId) <i class="muted">· @Money.Show(instal) a year, and @(left == 1 ? "this year clears it" : left + " years clear it")</i></b></div>
+                    <div class="kv warn" data-debt="@lg.Debt"><span>Debt</span><b>@Money.Show(lg.Debt) credits to @Lending.LenderName(w, house.LenderId) <i class="muted">· @(stayed ?? $"{Money.Show(instal)} a year, and {(left == 1 ? "this year clears it" : left + " years clear it")}")</i></b></div>
                     <div class="row" data-repay>
                         <span class="muted small" title="What is owed is the whole of it, interest and all, from the day it is borrowed: paying sooner saves no interest. It shortens the years, ends the instalments, and a house that owes nothing is not sold up by its creditors.">Pay down</span>
                         @foreach (int part in new[] { 5, 10, 20, 50 }.Where(x => x < lg.Debt))
                         {
                             int pt = part; var payPart = new RepayLoanCommand(pid, pt); var partNo = payPart.Refusal(G.Ctx);
-                            <button class="opt inline tiny" data-repay-part="@pt" disabled="@(partNo != null)" title="@(partNo ?? $"{Money.Show(lg.Debt - pt)} would be owed: {Counted.Years(Lending.Years(lg.Debt - pt, instal))} at {Money.Show(instal)} a year.")" @onclick="() => G.Execute(payPart)">@Money.Show(pt)</button>
+                            <button class="opt inline tiny" data-repay-part="@pt" disabled="@(partNo != null)" title="@(partNo ?? (stayed != null ? $"{Money.Show(lg.Debt - pt)} would be owed, and {stayed}." : $"{Money.Show(lg.Debt - pt)} would be owed: {Counted.Years(Lending.Years(lg.Debt - pt, instal))} at {Money.Show(instal)} a year."))" @onclick="() => G.Execute(payPart)">@Money.Show(pt)</button>
                         }
                         <button class="opt inline" disabled="@(lg.Repay.Refusal != null)" title="@lg.Repay.Refusal" @onclick="() => G.Execute(new RepayLoanCommand(pid))">@lg.Repay.Label</button>
                     </div>

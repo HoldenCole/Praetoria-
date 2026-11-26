@@ -224,6 +224,13 @@ public class EdictTests
         Assert.True(Do(w, Issue(me, "price_edict"))); Assert.Equal("helium3", InForce(w, "price_edict").TargetId);
         Assert.Equal(he * 1.25 / 2.5, MarketSystem.BuyPrice(w, Content.Trade, other.Id, "helium3"), 6); Assert.Equal(heSell * 1.25 / 2.5, MarketSystem.SellPrice(w, Content.Trade, other.Id, "helium3"), 6);
         Assert.Equal(mat, MarketSystem.BuyPrice(w, Content.Trade, other.Id, "materials"), 9);
+        // and between houses: the market's price a house names is held under the ceiling, and so is what a seller asks of a buyer its head dislikes
+        var heDef = Content.Market.Good("helium3")!; double ceiling = heDef.Base * 125 / 100.0; var seller = Other(w, mine, 1);
+        w.Relationship(Economy.HeadOf(w, seller)!.Id, me.Id).Disposition = -30;
+        Assert.Equal(ceiling, tc.HouseTrade.Mid(w, "helium3"), 6); Assert.Equal(ceiling, tc.HouseTrade.Asks(w, seller, mine, "helium3"), 6);
+        Assert.True(tc.HouseTrade.Pays(w, mine, seller, "helium3") <= ceiling);
+        Assert.Equal(w.Market!.Goods["materials"].Price, tc.HouseTrade.Mid(w, "materials"), 9);
+        EdictSystem.End(w, InForce(w, "price_edict"), EdictSystem.Withdrawn); Assert.Equal(heDef.Base * 2.5, tc.HouseTrade.Mid(w, "helium3"), 6);
         // rule by decree: no house but the holder's may move a motion, and the others bring none of their own
         (tc, w, me, mine) = Start(); other = Other(w, mine); var holder = Economy.HeadOf(w, other)!; Rich(w, holder); Consul(w, other, holder); Powers(w, other, holder); w.Motions.Clear();
         Assert.True(Do(w, Issue(holder, "rule_by_decree")));
@@ -269,6 +276,9 @@ public class EdictTests
         borrower.Treasury.Credits = 50; Assert.Equal(0, DealingsSystem.Due(w, loan)); borrower.Treasury.Credits = 0;
         Assert.Equal(0, Lending.InstalmentOf(w, mine, Content.Businesses.Finance));
         Assert.DoesNotContain(eco.Compute(w, mine.Id, tc.Fleets).Lines, l => l.Kind == "loan"); Assert.DoesNotContain(eco.Compute(w, bank.Id, tc.Fleets).Lines, l => l.Source == "interest on loans");
+        // and the steward says so: nothing falls due while it stands
+        var stewardSays = Praetoria.Core.Presentation.AdvisorReports.Build(w, Content).Single(r => r.Seat == "Steward").Line;
+        Assert.Contains($"nothing falls due while a moratorium on debts stands, until year {InForce(w, "moratorium").Until}", stewardSays); Assert.DoesNotContain("instalments fall due", stewardSays);
         // a year: without it the borrower would have missed a payment and the bank been paid its interest; under it, nothing moves
         int owed = loan.Owed, debt = mine.Debt; var plainBank = plain.House(bank.Id)!; int bankWas = plainBank.Treasury.Credits;
         eco.Accrue(plain); eco.Accrue(w);
@@ -316,6 +326,13 @@ public class EdictTests
         // a consul's edict ends with the consulship
         (tc, w, me, mine) = Start(); Rich(w, me); Consul(w, mine, me); ctx = new CommandContext(w, TestContent.Rng());
         Assert.True(Do(w, Issue(me, "close_lanes"))); w.Offices.Clear(); EdictSystem.Tick(w, Content, ex, ctx); Assert.DoesNotContain(w.Edicts, e => e.IssuerId == me.Id);
+        // and it ends in the same year's turn as the position: powers laid down at the turn of the year take their edicts with them,
+        // though the year's edicts were looked at before the powers ended
+        (tc, w, me, mine) = Start(); other = Other(w, mine); head = Economy.HeadOf(w, other)!; Rich(w, head); Consul(w, other, head); Powers(w, other, head); w.Emergency!.Until = w.Turn;
+        Assert.True(Do(w, Issue(head, "levy_in_mass"))); var levy = InForce(w, "levy_in_mass"); int gone = w.Counter(EdictSystem.GoneKey);
+        tc.EndTurn();
+        Assert.NotEqual(head.Id, EmergencySystem.Holder(w)?.Id); Assert.DoesNotContain(w.Edicts, e => e.Id == levy.Id || e.Issuer == EdictSystem.Powers && e.IssuerId == head.Id);
+        Assert.True(w.Counter(EdictSystem.GoneKey) > gone); Assert.Contains(w.History, h => h.Text.Contains("A levy in mass of " + head.Name + " lapses with the position it was issued from"));
     }
 
     [Fact]
@@ -337,11 +354,15 @@ public class EdictTests
         w.PoolsFor(me.Id).Influence = 0; Assert.Equal("needs 1 influence this year (0 left)", No(w, Issue(me, "games")));
         w.PoolsFor(me.Id).Influence = 9; mine.Treasury.Credits = 2; Assert.Equal("needs 600 credits and the house has 200", No(w, Issue(me, "games")));
         var kin = Kin(w, mine, me); Rich(w, kin); Seat(w, kin, LadderSystem.Aedile); kin.Purse = 1; Assert.Equal("needs 300 credits of your own, and you have 100", No(w, Issue(kin, "market_edict")));
-        // a house with no world has nothing for its own edicts to fall on; a proscription names a house of the Reach, not one's own
+        // a proscription names a house of the Reach, not one's own
         Assert.Equal($"only {EdictSystem.PositionName(EdictSystem.Powers)} may issue it", No(w, Issue(me, "proscription")));
         Rich(w, me); Consul(w, mine, me); Powers(w, mine, me); Assert.Equal("name a house of the Reach", No(w, Issue(me, "proscription"))); Assert.Equal("not your own house", No(w, Issue(me, "proscription", mine.Id)));
         foreach (var g in w.Market!.Goods.Values) g.Price = Content.Market.Good(g.Id)!.Base;
         Assert.StartsWith("nothing is short", No(w, Issue(me, "price_edict")));
+        // a house with no world has nothing for its own edicts to fall on
+        Rich(w, me); Assert.Null(No(w, Issue(me, "games")));
+        foreach (var h in w.HoldingsOf(mine.Id).Where(x => x.IsPlanet).ToList()) h.OwnerId = other.Id;
+        w.HoldingsChanged(); Assert.Equal("the house holds no world for it to fall on", No(w, Issue(me, "games")));
     }
 
     [Fact]
@@ -403,7 +424,7 @@ public class EdictTests
         var (tc, w, me, mine) = Start(); var other = Other(w, mine); var consul = Economy.HeadOf(w, other)!; Rich(w, consul); Rich(w, me); Consul(w, other, consul);
         Assert.True(Do(w, Issue(consul, "close_lanes"))); var e = InForce(w, "close_lanes");
         Assert.Null(EdictSystem.AnnulRefusal(w, e.Id, mine.Id));
-        Assert.Equal("it is your own house's edict: take it back instead", EdictSystem.AnnulRefusal(w, e.Id, other.Id));
+        Assert.Equal($"it is your own house's edict, and only {consul.Name} may take it back", EdictSystem.AnnulRefusal(w, e.Id, other.Id));
         Powers(w, other, consul); Assert.Equal("while the emergency powers run the Senate does not sit in judgement on an edict", EdictSystem.AnnulRefusal(w, e.Id, mine.Id));
         Assert.Equal("while the emergency powers run the Senate does not sit in judgement on an edict", new ProposeMotionCommand(me.Id, EdictSystem.AnnulKind, e.Id, tc.Senate).Refusal(new CommandContext(w, TestContent.Rng())));
         w.Emergency = null; other.Title = Praetoria.Core.Progression.Title.Emperor; w.Era = World.EraImperium;
@@ -415,8 +436,19 @@ public class EdictTests
         Consul(w, mine, me); Powers(w, mine, me); Assert.True(Do(w, Issue(me, "levy_in_mass"))); w.Emergency = null;
         Assert.Equal("a levy in mass is not a thing the Senate may strike down", EdictSystem.AnnulRefusal(w, InForce(w, "levy_in_mass").Id, Other(w, mine).Id));
         w.Edicts.RemoveAll(x => x.DefId == "levy_in_mass"); Assert.True(Do(w, Issue(me, "corn_dole")));
-        var dole = InForce(w, "corn_dole"); w.Turn = dole.Until - 1;
+        var dole = InForce(w, "corn_dole");
+        Assert.Equal("it is your own edict: take it back instead", EdictSystem.AnnulRefusal(w, dole.Id, mine.Id)); Assert.Null(No(w, new WithdrawEdictCommand(me.Id, dole.Id)));
+        w.Turn = dole.Until - 1;
         Assert.Equal($"it lapses at the turn of year {dole.Until}, before the Senate could vote on it", EdictSystem.AnnulRefusal(w, dole.Id, Other(w, mine).Id));
+        // an annulment moved before the powers began and carried while they run strikes nothing down, and the chronicle says why
+        (tc, w, me, mine) = Start(); other = Other(w, mine); consul = Economy.HeadOf(w, other)!; Rich(w, consul); Rich(w, me); Consul(w, other, consul); w.Motions.Clear();
+        Assert.True(Do(w, Issue(consul, "close_lanes"))); e = InForce(w, "close_lanes"); other.Legitimacy = 50;
+        Assert.True(Do(w, new ProposeMotionCommand(me.Id, EdictSystem.AnnulKind, e.Id, tc.Senate)));
+        var m = SenateSystem.Docket(w).Single(); foreach (var h in w.Houses.Values) m.Votes[h.Id] = 1;
+        Powers(w, other, consul); w.Turn++; tc.Senate.Tick(w);
+        Assert.True(m.Resolved && m.Passed); Assert.Contains(w.Edicts, x => x.Id == e.Id); Assert.Equal(50, other.Legitimacy); Assert.Equal(0, w.Counter(EdictSystem.AnnulledKey));
+        var why = w.History.Last(h => h.Text.Contains("stands for nothing")).Text;
+        Assert.Contains("while the emergency powers run the Senate does not sit in judgement on an edict", why); Assert.True(Plain(why));
     }
 
     [Fact]
@@ -503,5 +535,54 @@ public class EdictTests
             var cmd = new IssueEdictCommand(who.Id, d.Id, Content, target);
             Assert.True(Do(w, cmd), $"{d.Id}: {No(w, new IssueEdictCommand(who.Id, d.Id, Content, target))}");
         }
+    }
+
+    [Fact]
+    public void A_relative_of_the_player_issues_edicts_of_their_own_and_pays_for_each_out_of_their_own_purse()
+    {
+        // a relative who holds the consulship is a person with a will of their own: among those who issue edicts, as the others are
+        var (tc, w, me, mine) = Start(); var kin = Kin(w, mine, me); Rich(w, kin); Rich(w, me); Consul(w, mine, kin);
+        Assert.Contains(EdictSystem.Holders(w), x => x.who.Id == kin.Id && x.kinds.Contains(EdictSystem.State));
+        // and pays for a corn dole out of their own purse: the house's treasury is the head's
+        int coin = mine.Treasury.Credits, purse = kin.Purse, before = w.NewsSeq;
+        Assert.True(Do(w, Issue(kin, "corn_dole"))); var dole = InForce(w, "corn_dole");
+        Assert.Equal(coin, mine.Treasury.Credits); Assert.Equal(purse - 10, kin.Purse);
+        // the player is told, and told whose purse it came out of
+        var told = w.News.Last(n => n.Seq > before);
+        Assert.Equal("laws", told.Target); Assert.Contains($"{kin.Name} of your house, consul, proclaims a corn dole for the whole Reach", told.Text);
+        Assert.Contains("and pays the 1,000 credits out of their own purse", told.Text); Assert.True(Plain(told.Text));
+        // a relative short of coin is refused for want of their own, however full the house's treasury
+        mine.Treasury.Credits = 300; kin.Purse = 1; Assert.Equal("needs 800 credits of your own, and you have 100", No(w, Issue(kin, "close_lanes")));
+        // and only that relative may take the edict back: the Senate's refusal does not send the player to a button there is not
+        Assert.Equal($"it is your own house's edict, and only {kin.Name} may take it back", EdictSystem.AnnulRefusal(w, dole.Id, mine.Id));
+        Assert.Equal("only the one who issued it may take it back", No(w, new WithdrawEdictCommand(me.Id, dole.Id)));
+    }
+
+    [Fact]
+    public void An_edict_is_read_on_as_many_paydays_of_the_court_as_it_has_years()
+    {
+        var (tc, w, me, mine) = Start(); Rich(w, me); mine.Court.Clear();
+        mine.Court.Add(new Retainer { Id = "r_test", Role = CourtSystem.Positions[0], Name = "Test", Wage = 30, Loyalty = 10, Since = w.Turn });
+        Assert.True(Do(w, Issue(me, "sumptuary"))); var e = InForce(w, "sumptuary"); Assert.Equal(w.Turn + 3, e.Until);
+        var moved = new List<int>();
+        while (w.Turn <= e.Until) { int was = mine.Court.Single(r => r.Id == "r_test").Loyalty; tc.EndTurn(); moved.Add(mine.Court.Single(r => r.Id == "r_test").Loyalty - was); tc.BeginTurn(); }
+        // three years, three paydays at two less loyalty; in the year's turn when its years are run, it has lapsed before the court is paid
+        Assert.Equal(new[] { CourtSystem.PaidLoyalty - 2, CourtSystem.PaidLoyalty - 2, CourtSystem.PaidLoyalty - 2, CourtSystem.PaidLoyalty }, moved);
+        Assert.DoesNotContain(w.Edicts, x => x.Id == e.Id);
+    }
+
+    [Fact]
+    public void A_Reach_wide_edict_falls_only_on_the_houses_of_the_Reach()
+    {
+        var (tc, w, me, mine) = Start(); var eco = tc.Economy!; Rich(w, me); Consul(w, mine, me);
+        var gone = Other(w, mine); var stays = Other(w, mine, 1); gone.PolityId = "gone";   // it has broken away
+        int Unrest(Holding h) => eco.UnrestWhy(w, h).Sum(x => x.by);
+        int Manpower(House h) => eco.Compute(w, h.Id, tc.Fleets).Net.Manpower;
+        var goneWorld = Worlds(w, gone)[0]; var staysWorld = Worlds(w, stays)[0];
+        int goneU = Unrest(goneWorld), staysU = Unrest(staysWorld), goneMen = Manpower(gone), goneHas = gone.Treasury.Manpower;
+        // a requisition: the house that has broken away sends no man at once, and none of its worlds feels it while it lasts
+        Assert.True(Do(w, Issue(me, "requisition")));
+        Assert.Equal(goneHas, gone.Treasury.Manpower); Assert.Equal(staysU + 1, Unrest(staysWorld));
+        Assert.Equal(goneU, Unrest(goneWorld)); Assert.Equal(goneMen, Manpower(gone));
     }
 }

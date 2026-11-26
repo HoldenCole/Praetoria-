@@ -32,44 +32,57 @@ There is no ladder under a throne, so there are no praetor's or aedile's edicts 
 - **What each estate makes of it** moves the issuer's house at once, through `PolicySystem.Sway`.
 - **While it lasts**, its effects are the modifier keys laws use, read by the same rules. A house's own edicts reach every rule
   that reads its laws through one line in `PolicySystem.For`; a Reach-wide edict reaches every rule that reads the Reach's laws
-  through one line in `PolicySystem.ReachModifier`. Four effects are the edicts' own and are read only from edicts in force:
-  `debts_stayed` (the moratorium: `DealingsSystem.Due` and `Paid`, `Lending.InstalmentOf`, the bank's interest in the ledger,
-  pressing a loan, and foreclosure), `court_proof` (added to the forty in a hundred in `LadderSystem.Verdict`, which the docket's
-  charges go through too), `price_ceiling` (`MarketSystem.BuyPrice` and `SellPrice` on the good named) and `senate_cowed`
-  (`ProposeMotionCommand` and the other houses' motions in `SenateSystem`). They are not in `ReachRead.Also`: no rule reads them
-  through `PolicySystem.ReachModifier`, so a law of the Senate that named one would do nothing, and the audit of the laws should go
-  on saying so.
-- **It lapses** at the year's turn when its years are run, with a line in the chronicle. It lapses early when its issuer leaves the
-  position it was issued from (dies, loses the seat or the consulship, is no longer head or Emperor, or the powers end). Three
-  outlive their issuer, and none of those three can be taken back: an amnesty (a pardon given stands), a year's remission of the
-  tithe (it was promised), and a forced loan (the house borrowed, not the person, and the merchants are still owed).
+  through one line in `PolicySystem.ReachModifier`. What it does to the worlds while it lasts falls only on the houses of the
+  Reach: `Economy` takes it back out of the law of the Reach on a house that has broken away, as the part done at once leaves
+  that house out. What is read with no house named (the prices on the exchanges, and the four effects below) still reaches a
+  house that has broken away. Four effects are the edicts' own and are read only from edicts in force: `debts_stayed` (the
+  moratorium: `DealingsSystem.Due` and `Paid`, `Lending.InstalmentOf`, the bank's interest in the ledger, pressing a loan, and
+  foreclosure), `court_proof` (added to the forty in a hundred in `LadderSystem.Verdict`, which the docket's charges go through
+  too), `price_ceiling` (`MarketSystem.BuyPrice` and `SellPrice` on the good named, and between houses `HouseTradeSystem.Mid`,
+  which every price of a sale between houses is reckoned from, and `Asks`, so that a seller who dislikes the buyer asks no more)
+  and `senate_cowed` (`ProposeMotionCommand` and the other houses' motions in `SenateSystem`). They are not in `ReachRead.Also`:
+  no rule reads them through `PolicySystem.ReachModifier`, so a law of the Senate that named one would do nothing, and the audit
+  of the laws should go on saying so.
+- **It lapses** at the year's turn when its years are run, with a line in the chronicle: first in the year's turn, before the
+  house's court is paid, so that an edict is read on as many paydays as it has years. It lapses early when its issuer leaves the
+  position it was issued from (dies, loses the seat or the consulship, is no longer head or Emperor, or the powers end), in the
+  same year's turn: it is looked at again at the end of the year's turn, after the elections, the seats, the powers and the
+  deaths, so that it does not stand in the way of whoever comes to the position next. Three outlive their issuer, and none of
+  those three can be taken back: an amnesty (a pardon given stands), a year's remission of the tithe (it was promised), and a
+  forced loan (the house borrowed, not the person, and the merchants are still owed).
 - **Limits.** One edict of a kind at a time over the same worlds (another house may have its own amnesty while yours runs); the
   praetor's two edicts on the courts are one group, and only one of them stands at a time; one person may have two edicts in force;
   and the same edict may not be proclaimed again over the same worlds for some years after it ends, however it ended.
-- **The Senate's check.** A new motion, "Annulment of an edict" (`annul`, its target an edict, 2 influence to move),
-  may be moved by any house of standing against a Reach-wide edict that may be annulled and that would still stand when the vote
-  comes. Carried, the edict ends at once and the issuer's house loses 3 legitimacy. The houses lean on it by what the edict does
-  to them (a lender under a moratorium, a house holding the good under a price edict, a house with something on the record under
+- **The Senate's check.** A new motion, "Annulment of an edict" (`annul`, its target an edict, 2 influence to move), may be
+  moved by any house of standing against a Reach-wide edict that may be annulled and that would still stand when the vote comes.
+  Carried, the edict ends at once and the issuer's house loses 3 legitimacy. The houses lean on it by what the edict does to
+  them (a lender under a moratorium, a house holding the good under a price edict, a house with something on the record under
   the strict letter, a house with restless worlds under a requisition, all for; a debtor, a house in a lawless region under the
   closed lanes, against), by what the estates loyal to them make of it, and by what their head thinks of the issuer (a friend at
   +30 against, an enemy at -30 for); the issuer's own bench leans against, and the issuer's house votes against. Under a throne,
-  or while emergency powers run, there is no annulment. A house's own edicts on its own worlds are its own business.
+  or while emergency powers run, there is no annulment: none may be moved, and one moved before the powers began and carried
+  while they run strikes nothing down, with a line in the chronicle that says why. A house's own edicts on its own worlds are
+  its own business. The Senate is not asked to strike down an edict of the asker's own house: the one who issued it may take it
+  back, and nobody else may.
 - **Commands.** `IssueEdictCommand(actorId, edictId, content, targetId = "")` and `WithdrawEdictCommand(actorId, edictId)`. Every
   refusal says what is missing: "only a sitting praetor may issue it", "an amnesty is in force already on the house's worlds, until
   year 9", "you have 2 edicts in force, and 2 is the most one person may have", "an amnesty was proclaimed lately: it may be again
   in year 14", "needs 600 credits and the house has 200", "needs 300 credits of your own, and you have 100", "nothing is short: the
   dearest good, materials, is at 112 in the hundred of its usual price, and an edict of maximum prices wants 150", "an amnesty has
   been given and cannot be taken back".
-- **Who pays.** Influence of the year from the issuer, and credits from the house's treasury. A praetor or aedile of the player's
-  house pays from their own purse, as for games (the house's treasury is the head's).
+- **Who pays.** Influence of the year from the issuer, and credits from the house's treasury. A relative of the player pays from
+  their own purse, whatever the edict, as for games (the house's treasury is the head's).
 - **Other houses and magistrates** issue edicts for plain reasons, through the same command, in `EdictSystem.Tick` (one line in
-  `TurnController.EndTurn`, after the other houses act and before the Senate sits). Each person who holds a position considers it
-  one year in two (a head of a house one year in four), takes the edicts of the position in an order of that year's, and issues the
-  first whose reason holds and which the command allows: one a person a year. The player's relatives who sit as praetor or aedile
-  decide their own office's edicts, as they decide its business. Another house moves an annulment one year in two when an edict
-  galls it by 2 or more and it may move a motion. The player is told of every Reach-wide edict another issues (a warning when it
-  galls the player's house), of one that names the house, and of the end of one that was the house's, fell on its worlds or named
-  it, and of every annulment carried.
+  `TurnController.EndTurn`, after the other houses act and before the Senate sits; `EdictSystem.Lapse` comes first in the year's
+  turn and `EdictSystem.EndWithIssuers` last). Each person who holds a position considers it one year in two (a head of a house
+  one year in four), takes the edicts of the position in an order of that year's, and issues the first whose reason holds and
+  which the command allows: one a person a year. The player's relatives in any of these positions (a seat as praetor or aedile,
+  a consulship, the capital while no consul sits, the emergency powers) are people with wills of their own: they decide the
+  position's edicts, as they decide its business, and pay for them out of their own purse. Another house moves an annulment one
+  year in two when an edict galls it by 2 or more and it may move a motion. The player is told of every Reach-wide edict another
+  issues (a warning when it galls the player's house; when the one who issues it is a relative, whose purse paid for it), of one
+  that names the house, and of the end of one that was the house's, fell on its worlds or named it, and of every annulment
+  carried, and why one carried strikes nothing down.
 - **Screen.** The Laws window (`LawsScreen.razor`, one line) carries `EdictsPanel.razor` (block `data-edicts`): the edicts in force
   that touch the player's house (`data-edict-in-force="<id>"`), with who issued them, until when and what they do, a button to take
   back one's own (`data-edict-withdraw`) and whether the Senate may be asked to strike it down (`data-edict-annul`); then the
@@ -94,7 +107,7 @@ proclaimed again over the same worlds.
 | A corn dole | for the Reach | 2 influence and 1,000 credits | unrest -5 on every world | unrest -1 a year everywhere | 2 / 6 | commons +8, merchants -4, old blood -4 | yes | the Lex Frumentaria of Gaius Gracchus, 123 BC; Clodius's free dole, 58 BC |
 | A requisition of men for the state | for the Reach | 2 influence | every other house sends 1 manpower; its head thinks 2 the worse of the issuer | +1 manpower a world a year everywhere; unrest +1 a year | 2 / 6 | commons -6, officers +5, frontier -4 | yes | the consular levy in a tumultus |
 | A moratorium on debts | for the Reach | 3 influence | | nothing falls due on any loan, no interest is paid, no creditor presses or forecloses, no year is missed | 2 / 10 | merchants -12, commons +6, magistrates -4, old blood +3 | yes | Caesar's relief of debtors, 49 BC; the moratoria of August 1914 |
-| An edict of maximum prices | for the Reach | 2 influence | names the dearest good (it must be at 150 in the hundred of its usual price or more) | that good bought and sold at no more than 125 in the hundred of its usual price | 2 / 8 | merchants -10, commons +6, officers +2 | yes | Diocletian's Edict on Maximum Prices, 301 |
+| An edict of maximum prices | for the Reach | 2 influence | names the dearest good (it must be at 150 in the hundred of its usual price or more) | that good bought and sold at no more than 125 in the hundred of its usual price, on the exchanges and between houses | 2 / 8 | merchants -10, commons +6, officers +2 | yes | Diocletian's Edict on Maximum Prices, 301 |
 | The lanes closed to raiders | for the Reach | 2 influence and 800 credits | lawlessness -8 in every region | lawlessness -2 a year everywhere; -100 credits on every toll | 3 / 8 | frontier -8, merchants +6, officers +3 | yes | the Lex Gabinia, 67 BC |
 | A day of thanksgiving | for the Reach | 1 influence and 500 credits | allegiance +4 in every region; trust +2; legitimacy +1 | unrest -1 a year everywhere | 1 / 5 | old blood +4, commons +4, merchants -2 | no (it lapses before a vote) | the Roman supplicatio |
 | The praetor's edict: the strict letter | praetor | 1 influence | trust +2 | a charge proved 15 in a hundred more often before a praetor who goes by the pleading | 2 / 3 | old blood -6, commons +5, magistrates +4 | yes | the praetor's edict posted on taking office; the Lex Cornelia of 67 BC |
@@ -152,6 +165,8 @@ games stopped. The annulment that was lost was of a requisition, 68 to 71.
 
 A first measure found magistrates proclaiming edicts in the year their seats fell vacant, to lapse the next year with them (seven
 in two games); a magistrate whose seat is up at this year's election, and a consul at the end of the term, now decree nothing.
+An edict already in force went on for a year after its issuer's term ended, and stood in the way of the one who came next; it now
+ends in the same year's turn.
 
 Nobody held the emergency powers or a throne in either game, so the three edicts of the powers were not issued by others there;
 `tests/EdictTests.cs` seats a holder and shows each one issued, and the reason each is issued for. The unrest edicts (games, the
@@ -188,14 +203,16 @@ Every number here is mine.
   each six of their dislike, two at most either way; a head at +30 to the issuer -2, at -30 +2; the issuer's bench -1.
 - The reasons for which others issue each edict, and their thresholds: the table above.
 - The three that outlive their issuer and cannot be taken back: the amnesty, the remission and the forced loan.
-- A praetor's or aedile's edict paid from the magistrate's own purse when they are of the player's house.
+- An edict that a relative of the player issues paid from that relative's own purse, whatever its kind.
 - One edict a person a year, the Reach's business before the house's; none from a magistrate whose seat is up at this year's
   election, nor from a consul in the year of the consular election.
 
 ## What is not built
 
 - **The head of a breakaway state** (a king, president or dictator, docs/BREAKAWAY.md) has no edicts for the houses of that state:
-  "for the Reach" means the Reach. A state's head decrees on their own house's worlds like any head.
+  "for the Reach" means the Reach. A state's head decrees on their own house's worlds like any head. The Senate's Acts and the
+  chair's laws are not held to the same rule: they still fall on a house that has broken away, and whether they should is a
+  question for the owner.
 - **Credit drying up.** Under a moratorium the banks and the counting-houses still lend; only what falls due waits.
 - **Edicts that name a region or a world.** Every edict falls on all of the house's worlds or all of the Reach.
 - **The magistrates of the ladder below the praetor and aedile** (the quaestors) have no edicts.

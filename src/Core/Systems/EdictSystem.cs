@@ -240,9 +240,9 @@ public static class EdictSystem
         }
         return null;
     }
-    /// <summary>A magistrate of the player's house pays for the edicts of the office out of their own purse, as for games: the house's
-    /// treasury is the head's. Everyone else pays from the house.</summary>
-    private static bool OwnPurse(World w, Character actor, EdictDef d) => d.Issuer is Praetor or Aedile && actor.HouseId == w.Protagonist?.HouseId;
+    /// <summary>A relative of the player pays for an edict out of their own purse, whatever its kind, as for games: the house's treasury
+    /// is the head's. Everyone else pays from the house.</summary>
+    private static bool OwnPurse(World w, Character actor, EdictDef d) => actor.HouseId == w.Protagonist?.HouseId && actor.Id != w.ProtagonistId;
 
     /// <summary>The worlds an edict falls on: the house's own, or every peopled world of the houses of the Reach.</summary>
     private static List<Holding> Worlds(World w, Edict e) =>
@@ -282,7 +282,7 @@ public static class EdictSystem
         if (mine != null && actor.Id != w.ProtagonistId)
         {
             if (target?.Id == mine) w.Tell("warn", $"{actor.Name}, {position}, has named your house in proscriptions: half its treasury is taken, and the lists stay open until year {e.Until}.", "laws", e.Id);
-            else if (d.Reach) w.Tell(AnnulLean(w, w.House(mine)!, e) >= 2 ? "warn" : "info", $"{actor.Name} of {house.Name}, {position}, proclaims {Lower(d.Name)}{named} for the whole Reach, until year {e.Until}: {EffectsSay(e.Effects, true, "every world", good.Length > 0 ? good : null)}.{(e.Annullable && AnnulRefusal(w, e.Id, mine) == null ? " The Senate may be asked to strike it down." : "")}", "laws", e.Id);
+            else if (d.Reach) w.Tell(AnnulLean(w, w.House(mine)!, e) >= 2 ? "warn" : "info", $"{actor.Name} of {(house.Id == mine ? "your house" : house.Name)}, {position}, proclaims {Lower(d.Name)}{named} for the whole Reach, until year {e.Until}{(house.Id == mine && d.Credits > 0 ? $", and pays the {Money.Credits(d.Credits)} out of their own purse" : "")}: {EffectsSay(e.Effects, true, "every world", good.Length > 0 ? good : null)}.{(e.Annullable && AnnulRefusal(w, e.Id, mine) == null ? " The Senate may be asked to strike it down." : "")}", "laws", e.Id);
         }
         return e;
     }
@@ -357,22 +357,38 @@ public static class EdictSystem
 
     // ---------------------------------------------------------------- the year
 
-    /// <summary>At the year's turn: edicts whose years are run lapse, and those whose issuer has left the position, unless they outlive
-    /// them; then the other houses and magistrates issue what they have reason to.</summary>
-    public static void Tick(World w, ContentDatabase content, CommandExecutor executor, CommandContext ctx)
+    /// <summary>Edicts whose years are run lapse, and those whose issuer has left the position, unless they outlive them. Called first
+    /// in the year's turn, before the house's court is paid, so that an edict is read on as many paydays as it has years.</summary>
+    public static void Lapse(World w)
     {
         foreach (var e in w.Edicts.OrderBy(e => e.Since).ThenBy(e => e.Id, StringComparer.Ordinal).ToList())
         {
             if (e.Until <= w.Turn) End(w, e, Lapsed);
             else if (!e.Outlives && !StillHolds(w, e)) End(w, e, IssuerGone);
         }
+    }
+
+    /// <summary>Edicts whose issuer has left the position end, unless they outlive them. Called last in the year's turn, after the
+    /// elections, the seats, the powers and the deaths, so that an edict ends the same year as the position it was issued from.</summary>
+    public static void EndWithIssuers(World w)
+    {
+        foreach (var e in w.Edicts.OrderBy(e => e.Since).ThenBy(e => e.Id, StringComparer.Ordinal).ToList())
+            if (!e.Outlives && !StillHolds(w, e)) End(w, e, IssuerGone);
+    }
+
+    /// <summary>At the year's turn: edicts whose years are run lapse, and those whose issuer has left the position, unless they outlive
+    /// them; then the other houses and magistrates issue what they have reason to.</summary>
+    public static void Tick(World w, ContentDatabase content, CommandExecutor executor, CommandContext ctx)
+    {
+        Lapse(w);
         if (!content.Edicts.IsEmpty && !w.InAcademy) Others(w, content, executor, ctx);
         if (EmergencySystem.Danger(w) != null) w.WorldCounters[DangerSeenKey] = w.Turn;
     }
 
     /// <summary>Everyone but the player who holds a position edicts hang on, with the kinds they may issue: the heads of the other
     /// houses, the consuls, the Emperor, the holder of the capital while no consul sits, the holder of the emergency powers, and every
-    /// sitting praetor and aedile (the player's relatives among them: they decide their own office's business).</summary>
+    /// sitting praetor and aedile. The player's relatives are among them in any of these positions: each is a person with a will of
+    /// their own, decides the business of the position, and pays for an edict out of their own purse.</summary>
     public static List<(Character who, List<string> kinds)> Holders(World w)
     {
         var by = new SortedDictionary<string, List<string>>(StringComparer.Ordinal); string me = w.ProtagonistId, mine = w.Protagonist?.HouseId ?? "";
@@ -473,7 +489,7 @@ public static class EdictSystem
         if (e.Domain.Length > 0) return "it falls on one house's own worlds: that is the house's business, not the Senate's";
         if (!e.Annullable) return $"{Lower(e.Name)} is not a thing the Senate may strike down";
         if (e.Until - w.Turn < 2) return $"it lapses at the turn of year {e.Until}, before the Senate could vote on it";
-        if (e.IssuerHouseId == byHouseId) return "it is your own house's edict: take it back instead";
+        if (e.IssuerHouseId == byHouseId) return e.IssuerId == w.ProtagonistId && w.Protagonist?.HouseId == byHouseId ? "it is your own edict: take it back instead" : $"it is your own house's edict, and only {w.Char(e.IssuerId)?.Name ?? "its issuer"} may take it back";
         return w.Motions.Any(m => m.Open && m.Kind == AnnulKind && m.TargetId == e.Id) ? "its annulment is already before the Senate" : null;
     }
 
@@ -535,10 +551,17 @@ public static class EdictSystem
         return true;
     }
 
-    /// <summary>The Senate has carried the annulment: the edict ends at once and its issuer's house loses standing.</summary>
+    /// <summary>The Senate has carried the annulment: the edict ends at once and its issuer's house loses standing. Carried under a
+    /// throne, or while emergency powers run (the powers began after it was moved), it does nothing.</summary>
     public static void AnnulCarried(World w, string edictId)
     {
         var e = InForce(w, edictId); if (e == null) { w.Log("The edict the Senate voted to strike down had already lapsed."); return; }
+        if (w.IsImperium || w.Emergency != null)
+        {
+            string line = $"The Senate's vote to strike down {Title(w, e)}, stands for nothing: {(w.IsImperium ? "under a throne there is no Senate to strike down an edict" : "while the emergency powers run the Senate does not sit in judgement on an edict")}.";
+            w.Log(line); if (w.Protagonist?.HouseId is { } mine && Touches(e, mine)) w.Tell("info", line, "laws", e.Id);
+            return;
+        }
         if (w.House(e.IssuerHouseId) is { } house) LegitimacyBook.Move(w, house, -AnnulledStanding, LegitimacyBook.Senate, $"{e.Name} struck down by the Senate");
         End(w, e, Annulled);
     }
