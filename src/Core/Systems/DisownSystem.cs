@@ -161,7 +161,7 @@ public static class DisownSystem
         var theirs = w.House(who.HouseId);
         if (theirs != null && Economy.HeadOf(w, theirs)?.Id == who.Id && w.LivingCharacters().Any(c => c.HouseId == theirs.Id && c.Id != who.Id)) return $"{who.Name} leads {theirs.Name} now, and will not leave its people";
         int regard = w.GetRelationship(who.Id, head!.Id)?.Disposition ?? 0;
-        if (regard < ComeBackAt) return $"{who.Name} will not come back: they think {regard} of you, and it would take {ComeBackAt} or better";
+        if (regard < ComeBackAt) return $"{who.Name} will not come back: they think {Counted.Figure(regard)} of you, and it would take {Counted.Figure(ComeBackAt)} or better";
         return Afford(house, d.Legitimacy, "taking them back, at the price casting them out cost,");
     }
 
@@ -190,7 +190,10 @@ public static class DisownSystem
     {
         var p = PriceOf(w, who, CastOut); var house = w.House(who.HouseId); var (to, how) = house != null ? WhereTo(w, house, who) : (null, Alone);
         string goes = how switch { BySpouse => $"They go to {to!.Name}, their {(who.Sex == "female" ? "husband" : who.Sex == "male" ? "wife" : "spouse")}'s house", ByPatron => $"They go to {to!.Name}, their patron's house", ByParent => $"They go to {to!.Name}, the house of a parent born to it", _ => "They have nowhere to go, and found a name of their own" };
-        return $"Cast {who.Name} out of the house. {goes}, and take their purse ({Money.Credits(Math.Max(0, who.Purse))}). {PriceSays(p, CastOut)} {who.Name} thinks {p.Self} the less of you."
+        // a command by service they hold ends with it, unless they go into the house whose fleet it is
+        string service = ServiceSystem.Held(w, who) is { } s
+            ? (to != null && s.OwnerId == to.Id ? $" They keep the command of {s.FleetName}, of {to.Name}, by right and not by service." : $" Their command of {s.FleetName} of {w.House(s.OwnerId)?.Name ?? s.OwnerId} by service ends.") : "";
+        return $"Cast {who.Name} out of the house. {goes}, and take their purse ({Money.Credits(Math.Max(0, who.Purse))}).{service} {PriceSays(p, CastOut)} {who.Name} thinks {p.Self} the less of you."
             + SueSays(w, who, p, CastOut) + " They can be taken back at the same price, if they will come.";
     }
     public static string RestoreSays(World w, Character who)
@@ -274,14 +277,21 @@ public static class DisownSystem
     private static void Leave(World w, House house, Character head, Character who)
     {
         house.Members.Remove(who.Id);
-        house.Duties.RemoveAll(x => x.HolderId == who.Id); house.Court.RemoveAll(r => r.KinId == who.Id);
-        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) { if (f.AdmiralId == who.Id) f.AdmiralId = ""; if (f.CaptainId == who.Id) f.CaptainId = ""; }
-        foreach (var h in w.Holdings.Values.Where(h => h.OwnerId == house.Id && h.GovernorId == who.Id)) h.GovernorId = "";
+        LayDown(w, house, who);
         foreach (var item in w.Heirlooms.Where(i => i.HolderId == who.Id && i.Entailed)) item.HolderId = head.Id;   // what goes with the house stays with it
         foreach (var b in w.Businesses.Values.Where(b => b.HeldById == who.Id && b.OwnerId == house.Id)) b.HeldById = "";   // a venture of their own was the house's to give
         if (who.LentHead > 0) { int pay = Math.Clamp(head.Purse, 0, who.LentHead); head.Purse -= pay; who.Purse += pay; }
         who.LentHead = 0; who.LentSince = -1; who.Flags.Remove(WealthSystem.HeadOwesChar); who.OwesHead = 0; who.OwesSince = -1; who.OwesKin = 0; who.OwesKinId = "";
         if (house.Id == w.Protagonist?.HouseId) w.Courtships.RemoveAll(c => c.SuitorId == who.Id || c.TargetId == who.Id);   // their matches are no longer the head's to bless
+    }
+
+    /// <summary>They lay down what they held of a house they leave: its posts and its court, its fleets' commands and captaincies, and the
+    /// governing of its worlds.</summary>
+    private static void LayDown(World w, House house, Character who)
+    {
+        house.Duties.RemoveAll(x => x.HolderId == who.Id); house.Court.RemoveAll(r => r.KinId == who.Id);
+        foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == house.Id)) { if (f.AdmiralId == who.Id) f.AdmiralId = ""; if (f.CaptainId == who.Id) f.CaptainId = ""; }
+        foreach (var h in w.Holdings.Values.Where(h => h.OwnerId == house.Id && h.GovernorId == who.Id)) h.GovernorId = "";
     }
 
     /// <summary>Cast them out of the house. They go where <see cref="WhereTo"/> says, with their purse.</summary>
@@ -299,6 +309,7 @@ public static class DisownSystem
         if (to == null) to = Found(w, house, who);
         else who.BornHouseId = house.Id;   // in another's house they live as one taken in, under their own name
         who.HouseId = to.Id; if (!to.Members.Contains(who.Id)) to.Members.Add(who.Id); d.WentTo = to.Id;
+        ServiceSystem.HouseChanged(w, who, $"{who.Name} was cast out of {house.Name}");   // that day: they command no fleet for a house their new one may be at war with
         if (!w.Pools.ContainsKey(who.Id)) w.Pools[who.Id] = ActionPools.ForNpc();
         who.Flags.Add(CastOutChar); who.Flags.Remove(FamilySystem.DefiantFlag); Aggrieve(w, who, d, "outshine_all_rivals");
         Count(w, CastKey); if (!Mine(w, house.Id)) Count(w, CastByOthersKey); else Mark(w, CastFlag);
@@ -330,11 +341,12 @@ public static class DisownSystem
         var house = w.House(head.HouseId)!; var d = Standing(w, who, CastOut)!; var from = w.House(who.HouseId);
         if (from != null)
         {
-            from.Members.Remove(who.Id);
+            from.Members.Remove(who.Id); LayDown(w, from, who);   // what they held of the house they leave stays with it
             bool empty = !w.LivingCharacters().Any(c => c.HouseId == from.Id && c.Id != who.Id);
             if (empty && d.WentHow == Alone && from.Treasury.Credits > 0) { who.Purse += from.Treasury.Credits; from.Treasury.Credits = 0; }   // the name they founded was only them
         }
         who.HouseId = house.Id; if (!house.Members.Contains(who.Id)) house.Members.Add(who.Id); who.BornHouseId = d.WasBornHouseId;
+        ServiceSystem.HouseChanged(w, who, $"{who.Name} was taken back into {house.Name}");
         who.Flags.Remove(CastOutChar); End(w, d, "taken_back");
         Pay(w, house, head, d, d.Legitimacy, d.KinRegard, $"{who.Name} taken back into the house");
         Regard(w, who, head, TakeBackSelf); Appease(who, d); Count(w, TakenBackKey);
@@ -387,7 +399,8 @@ public static class DisownSystem
             };
             w.WillSuits.Add(s); Count(w, SuitsKey); if (Mine(w, house.Id)) Mark(w, SuitFlag);
             w.Log($"{child.Name} brings a suit before {judge.Name}, praetor, that the will of {previous.Name} was undutiful: they were {(d.Kind == Struck ? "struck from the line" : "cast out")} with no cause on the record. {AsksSays(w, s)}");
-            if (Mine(w, house.Id)) w.Tell("warn", $"{child.Name} sues that {previous.Name}'s will was undutiful: they were {(d.Kind == Struck ? "struck from the line" : "cast out")} with no cause on the record. {AsksSays(w, s)} {judge.Name}, praetor, who is {LadderSystem.NatureOf(judge)}, hears it at the end of next year. Until then you may come to terms or send someone to answer it.", "senate:ladder", child.Id);
+            // the year named outright: a head who dies at the year's end is read of in the next, and the suit is heard at the end of that one
+            if (Mine(w, house.Id)) w.Tell("warn", $"{child.Name} sues that {previous.Name}'s will was undutiful: they were {(d.Kind == Struck ? "struck from the line" : "cast out")} with no cause on the record. {AsksSays(w, s)} {judge.Name}, praetor, who is {Verdict(w, s, judge).why}, hears it at the end of year {s.Turn + 1}. Until then you may come to terms or send someone to answer it.", "senate:ladder", child.Id);
         }
     }
 
@@ -570,8 +583,16 @@ public static class DisownSystem
     public static void Tick(World w)
     {
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
-        Remember(w); Follow(w); Hear(w); Others(w);
+        Remember(w); Follow(w); Hear(w); Others(w); Forget(w);
     }
+
+    /// <summary>The causes written down for someone who has died are let go: nothing reads them once they are gone.</summary>
+    private static void Forget(World w)
+    {
+        foreach (var k in w.WorldCounters.Keys.Where(k => CausePrefixes.Any(p => k.StartsWith(p, StringComparison.Ordinal)) && w.Char(k[(k.IndexOf(':') + 1)..]) is not { Alive: true }).ToList())
+            w.WorldCounters.Remove(k);
+    }
+    private static readonly string[] CausePrefixes = { DefiedKey(""), WedKey(""), ShamedKey(""), DefectedKey("") };
 
     /// <summary>Marks that pass with the year are written down where they last: defiance (the latest year), a marriage without leave, the field
     /// refused and a defection (the year they were first seen).</summary>
@@ -594,8 +615,9 @@ public static class DisownSystem
         {
             var c = w.Char(d.PersonId); var house = w.House(d.HouseId);
             if (c is not { Alive: true }) { End(w, d, "died"); continue; }
-            if (d.Kind == Struck && (c.HouseId != d.HouseId || (house != null && Economy.HeadOf(w, house)?.Id == c.Id))) { End(w, d, c.HouseId != d.HouseId ? "left" : "succeeded"); c.Flags.Remove(StruckChar); continue; }
-            if (d.Kind == CastOut && (house == null || c.HouseId == d.HouseId)) { End(w, d, "left"); c.Flags.Remove(CastOutChar); }
+            // the grievance is answered when the thing is undone, as at a restoring: they want what they wanted before
+            if (d.Kind == Struck && (c.HouseId != d.HouseId || (house != null && Economy.HeadOf(w, house)?.Id == c.Id))) { End(w, d, c.HouseId != d.HouseId ? "left" : "succeeded"); c.Flags.Remove(StruckChar); Appease(c, d); continue; }
+            if (d.Kind == CastOut && (house == null || c.HouseId == d.HouseId)) { End(w, d, "left"); c.Flags.Remove(CastOutChar); Appease(c, d); }
         }
     }
 

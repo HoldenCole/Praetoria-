@@ -6,7 +6,7 @@
     var members = AmbitionSystem.Members(w, house).Where(c => c.Pursuit != null)
         .OrderByDescending(c => c.Pursuit!.Request.Length > 0).ThenByDescending(c => c.Pursuit!.Progress).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
     var heir = DynastySystem.FindHeir(w, p); var named = house.NamedHeirId.Length > 0 ? w.Char(house.NamedHeirId) : null;
-    var grown = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= 16).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    var nameable = AmbitionSystem.HeirChoices(w, p);   // each with why naming them would be refused: one struck from the line cannot be (docs/HOUSEHOLD.md)
     int asking = members.Count(c => c.Pursuit!.Request.Length > 0);
 }
 <section class="panel ambitions">
@@ -18,10 +18,10 @@
         else if (heir != null) { <text><b>@heir.Name</b>, by @house.SuccessionLaw.Replace('_', ' '). </text> }
         else { <text>Nobody. </text> }
         @if (named != null) { <button class="opt inline tiny" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, string.Empty, sys))">Leave it to the law</button> }
-        @foreach (var c in grown.Where(c => c.Id != named?.Id && c.Id != (named == null ? heir?.Id : null)).Take(6))
+        @foreach (var (c, no) in nameable)
         {
             string cid = c.Id;
-            <button class="opt inline tiny" title="Passing over whoever the law would give costs the house a little standing, and that person's regard." @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, cid, sys))">Name @First(c.Name)</button>
+            <button class="opt inline tiny" data-name-heir="@cid" disabled="@(no != null)" title="@(no != null ? Cap(no) + "." : "Passing over whoever the law would give costs the house a little standing, and that person's regard.")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, cid, sys))">Name @First(c.Name)</button>
         }
     </p></div>
 

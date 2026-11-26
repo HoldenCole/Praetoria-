@@ -240,11 +240,13 @@ public static class LifeSystem
 
         if (p is not { Alive: true } || house == null) return;
         p.Life ??= new Life();
-        // ties that last: who has thought well, or ill, of the head for years
-        foreach (var o in w.LivingCharacters().Where(o => o.Id != p.Id && o.Age >= Adult).OrderBy(o => o.Id, StringComparer.Ordinal))
+        // ties that last: who has thought well, or ill, of the head for years. Only the grown are entered on the record by what they think;
+        // one under age already on it (an enmity handed down to a child who leads another house, docs/LIFE.md) is let go by the same rule
+        foreach (var o in w.LivingCharacters().Where(o => o.Id != p.Id && (o.Age >= Adult || p.Life.Friends.ContainsKey(o.Id) || p.Life.Enemies.ContainsKey(o.Id))).OrderBy(o => o.Id, StringComparer.Ordinal))
         {
             int d = w.GetRelationship(o.Id, p.Id)?.Disposition ?? 0; bool kin = o.HouseId == p.HouseId;
-            if (d >= FriendAt && !kin) { p.Life.Friends.TryAdd(o.Id, w.Turn); p.Life.Enemies.Remove(o.Id); }
+            if (o.Age < Adult) { if (d < FriendAt - 15) p.Life.Friends.Remove(o.Id); if (d > EnemyAt + 15) p.Life.Enemies.Remove(o.Id); }
+            else if (d >= FriendAt && !kin) { p.Life.Friends.TryAdd(o.Id, w.Turn); p.Life.Enemies.Remove(o.Id); }
             else if (d <= EnemyAt) { p.Life.Enemies.TryAdd(o.Id, w.Turn); p.Life.Friends.Remove(o.Id); }
             else { if (d < FriendAt - 15) p.Life.Friends.Remove(o.Id); if (d > EnemyAt + 15) p.Life.Enemies.Remove(o.Id); }
             o.Flags.Remove(OldFriendChar); o.Flags.Remove(OldEnemyChar);

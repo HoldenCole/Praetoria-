@@ -97,6 +97,8 @@ public static class ConditionParser
                 return new ClaimCondition(OptStr(el, "role", "self"), Str(el, "title"), Bool(el, "present", true));
             case "eventFired":
                 return new EventFiredCondition(Str(el, "event"), Bool(el, "value", true));
+            case "inLine":
+                return new InLineCondition(Str(el, "role"), OptStr(el, "vsRole", "self"), Bool(el, "value", true));
 
             default:
                 throw new ContentException($"Unknown condition type '{type}'.");

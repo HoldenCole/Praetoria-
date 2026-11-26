@@ -710,6 +710,11 @@
               "role": "heir",
               "op": "lt",
               "vsRole": "self"
+            },
+            {
+              "type": "inLine",
+              "role": "heir",
+              "vsRole": "self"
             }
           ]
         }

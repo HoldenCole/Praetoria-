@@ -272,7 +272,11 @@ one in 11 of 24 when it was first measured, and in 9 of 24 when this was begun.
   thinks 5 the worse of it.
 - It ends of itself when what it rested on is gone: the office (unless it passed within the house), the war, the fleet, the
   peace between the two houses, the commander's life or health, the commander's house, or a fleet laid up. A commander who
-  grows frail or lays their work down ends it at the year's end, and the owner is told why. One who comes into the owning
+  grows frail or lays their work down ends it at the year's end, and the owner is told why. A commander who dies gives it
+  up that day, and one cast out of their house or taken back into one gives it up that day too (docs/HOUSEHOLD.md), so that
+  nobody commands for a day the fleet of a house their own is at war with. A commander of another house who comes to lead
+  their own house, by the old head's death or by a challenge, lays it down at the year's end: a head of house stays at home
+  (the player's own head may serve). One who comes into the owning
   house (by marriage), or whose fleet passes to their own house, keeps the command, by right now and not by service. The
   owner giving the fleet to one of its own relieves the commander by service; the owner may also shift them to another of
   its fleets, or fold their fleet into another: the service goes with them into a fleet that had no admiral, and ends if the
@@ -304,7 +308,8 @@ outliner. A refusal costs 5 of the asker's regard; leave given gains 10. The ask
 for five years, and turns to the next instead; an ask left unanswered for the year is taken as a no, without the cost. An
 offer to the player as consul, Admiral or holder of emergency powers is taken on by the office (a legate), and one to the
 player's house at war, for the war (an officer lent). Leave to lend a relative who has since become the head, or left the
-house, no longer stands.
+house, no longer stands. To be named legate is asked of the head by name: when the seat passes (by a death at the year's
+end, or a head standing aside), what was asked of the old head is not put to the heir, who can neither take it nor refuse it.
 
 ### The Caesar road
 
@@ -363,24 +368,30 @@ rank in the Navy (222 years, the head or a relative who is not a sailor), a hous
 who thinks ill of the house (71). (Measured again after the review's mends: the table above is unchanged, and before them it was
 taken on 68 times.)
 
-With nobody steering the player's house (`praetoria service`, a passive player):
+With nobody steering the player's house (`praetoria service`, a passive player), measured again on the merged build after
+the review that followed the merge (the three ideas of docs/IDEAS_FROM_MODS.md together):
 
 | | two games of thirty years, the Old Lion | sixteen games of thirty years, every start |
 |---|---|---|
-| commands by service begun | 10 | 58 |
-| held by other houses' people | 9 (4.5 a game) | 56 (3.5 a game), of 11 houses |
-| held by the player's own house | 1 | 2 |
-| legates named by a consul | 10 | 38 |
-| legates named by the Admiral of the Reach | 0 | 6 |
-| officers lent to a house at war | 0 | 14 |
-| of them sought by the one who held it | 1 | 23 |
+| commands by service begun | 19 | 65 |
+| held by other houses' people | 16 (8 a game), of 7 houses | 61 (3.8 a game), of 11 houses |
+| held by the player's own house | 3 | 4 |
+| legates named by a consul | 18 | 41 |
+| legates named by the Admiral of the Reach | 1 | 9 |
+| officers lent to a house at war | 0 | 15 |
+| of them sought by the one who held it | 3 | 22 |
 | battles won under them, and lost | 0 and 0 | 3 and 0 |
-| years held in all | 40 | 331 |
+| years held in all | 62 | 309 |
 | put to the player to answer | 0 | 11 (28 before an ask left unanswered was taken as a no, when the same was asked year after year) |
-| how they ended | the one who named them died 6, the office passed 2, another given it 1, standing 1 | the one who named them died 15, the office passed 12, the commander died 5, the fleet gone 5, another given it 4, the fleet passed 2, the war ended 2; 13 standing |
+| how they ended | the office passed 5, the one who named them died 4, another given it 3, the fleet passed 2, the commander died 2, the commander came to lead their own house 2; 1 standing | the commander came to lead their own house 16, the one who named them died 11, the office passed 10, the commander died 5, the fleet passed 4, another given it 3, the fleet gone 2, the commander cast out 1; 13 standing |
 
-Most are a consul's legate on a fleet of the consul's own house, held a few years and ended by the consul's death or term.
-The other houses' younger officers find a command a little more than once a game.
+Most are a consul's legate on a fleet of the consul's own house, held a few years and ended by the consul's death or term,
+or by the legate coming to lead their own house. The other houses' younger officers find a command a little more than once
+a game. On the Old Lion the count is nearly twice what this idea gave measured alone (10 in two games), and it is the
+friends handed down at a succession (docs/LIFE.md, "Friends and enemies handed down") that make it so: a holder who
+thought well of a house's old head thinks 20 the better of the new one, and 20 is what a holder asks of another house to
+name a legate from it. Played the same way with nothing handed down, the two games give 11. That is the rule as meant (a
+friendship handed down is a friendship), and it is left so.
 
 The Caesar road, measured as docs/CAESAR.md measures it (`praetoria caesar --scenario all --seeds 10`: six Republic starts,
 ten seeds, sixty years, a passive player). The doc's rule is that another house's general marches about one game in ten or
@@ -424,6 +435,11 @@ it is no more often walked: a legate's commission is short, and the gates are un
   style.
 - A general's devoted fleets held by service go over to the general's house when the line is crossed.
 - An office fleet's admiral of a house that no longer holds the office lays the command down.
+- A command by service ends the day the commander dies, is cast out of their house or is taken back into one; one cast out
+  into the house whose fleet it is keeps it by right. One of another house who comes to lead their own house lays it down at
+  the year's end, as a head is never lent or named.
+- To be named legate goes with the head it was asked of: it is not put to the heir.
+- A friendship handed down at a succession counts toward the 20 a holder asks of another house, as any regard does.
 
 ### What is not built
 

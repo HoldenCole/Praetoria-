@@ -41,7 +41,7 @@ public static class Docket
         {
             var child = w.Char(s.PlaintiffId); var judge = DisownSystem.JudgeOf(w, s); var pleader = DisownSystem.AnswersFor(w, s); if (child == null) continue;
             list.Add(new DocketEntry(Will, s.Id, $"{child.Name}'s suit that the will of {s.DeceasedName} was undutiful", DisownSystem.AsksSays(w, s), s.Share,
-                judge?.Name ?? "no praetor who sits", judge != null ? LadderSystem.NatureOf(judge) : "", DisownSystem.LawSays(s), LadderSystem.HeardSays(w, s.Turn), pleader?.Name ?? "", child.Id, false));
+                judge?.Name ?? "no praetor who sits", judge != null ? DisownSystem.Verdict(w, s, judge).why : "", DisownSystem.LawSays(s), LadderSystem.HeardSays(w, s.Turn), pleader?.Name ?? "", child.Id, false));   // how the praetor will find, and on what ground, as for a charge
         }
         return list;
     }

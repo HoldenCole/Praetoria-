@@ -5,6 +5,8 @@ namespace Praetoria.Core;
 /// that a line built inside a quoted attribute of a page needs no quotation marks of its own.</summary>
 public static class Counted
 {
+    /// <summary>A figure as it is written for the reader, with a true minus sign when it is below nothing: "−40", "0", "15".</summary>
+    public static string Figure(long n) => n < 0 ? "−" + (-n) : n.ToString();
     public static string Of(long n, string one) => n == 1 ? $"1 {one}" : $"{n} {one}s";
     /// <summary>With a word before the thing: "3 more years", "1 office hull".</summary>
     public static string Of(long n, string before, string one) => n == 1 ? $"1 {before} {one}" : $"{n} {before} {one}s";

@@ -49,10 +49,13 @@ public sealed class WillSuitCommand : ICommand
     private readonly string _what, _suitId, _pleaderId;
     public WillSuitCommand(string actorId, string what, string suitId, string pleaderId = "") { ActorId = actorId; _what = what; _suitId = suitId; _pleaderId = pleaderId; }
     public string ActorId { get; }
-    public string Describe() => $"{_what} the suit {_suitId}";
+    // whose suit it is, kept when it is asked about or done, so that what was done is told by names and not by the suit's id
+    private string _plaintiffId = "";
+    public string Describe() => _what == Settle ? $"come to terms with {Whose()} over the will" : $"send {_pleaderId} to answer {Whose()}'s suit over the will";
+    private string Whose() => _plaintiffId.Length > 0 ? _plaintiffId : "the child";
     public string? Refusal(CommandContext ctx)
     {
-        var w = ctx.World; var head = w.Char(ActorId); var s = w.WillSuits.FirstOrDefault(x => x.Id == _suitId);
+        var w = ctx.World; var head = w.Char(ActorId); var s = w.WillSuits.FirstOrDefault(x => x.Id == _suitId); if (s != null) _plaintiffId = s.PlaintiffId;
         if (_what == Settle) return DisownSystem.SettleRefusal(w, head, s);
         if (_what != Plead) return "no such thing";
         return DisownSystem.PleadRefusal(w, head, s, w.Char(_pleaderId)) ?? ctx.PoolsOf(ActorId).Short(Cost);
@@ -60,7 +63,7 @@ public sealed class WillSuitCommand : ICommand
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
     public void Execute(CommandContext ctx)
     {
-        var w = ctx.World; var head = w.Char(ActorId)!; var s = w.WillSuits.First(x => x.Id == _suitId);
+        var w = ctx.World; var head = w.Char(ActorId)!; var s = w.WillSuits.First(x => x.Id == _suitId); _plaintiffId = s.PlaintiffId;
         if (_what == Settle) { DisownSystem.Settle(w, head, s); return; }
         ctx.PoolsOf(ActorId).Spend(Cost); DisownSystem.SendPleader(w, head, s, w.Char(_pleaderId)!);
     }

@@ -34,7 +34,7 @@ public sealed class NameLegateCommand : ICommand
         if (w.AtWar(c.HouseId, f.OwnerId)) return $"{ch.Name} is at war with {w.House(f.OwnerId)?.Name ?? f.OwnerId}, whose fleet it is";
         if (FleetSystem.AdmiralOf(w, f) is { } cmd && cmd.Id == me.Id) return $"you command {f.Name} yourself";
         int will = w.GetRelationship(c.Id, me.Id)?.Disposition ?? 0;
-        if (c.HouseId != me.HouseId && will < ServiceSystem.ServeRegard) return $"{c.Name} thinks too ill of you ({will}) to serve under you: it takes {ServiceSystem.ServeRegard} or better";
+        if (c.HouseId != me.HouseId && will < ServiceSystem.ServeRegard) return $"{c.Name} thinks too ill of you ({Counted.Figure(will)}) to serve under you: it takes {Counted.Figure(ServiceSystem.ServeRegard)} or better";
         return ctx.PoolsOf(ActorId).Short(CostMap);
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
@@ -169,14 +169,20 @@ public sealed class AnswerServiceCommand : ICommand
     private readonly string _askId; private readonly bool _yes; private readonly OfficeCatalog _offices;
     public AnswerServiceCommand(string actorId, string askId, bool yes, OfficeCatalog offices) { ActorId = actorId; _askId = askId; _yes = yes; _offices = offices; }
     public string ActorId { get; }
-    public string Describe() => $"{(_yes ? "agree to" : "refuse")} {_askId}";
+    // what was answered, in words naming things by id, kept when it is asked about or done: the ask itself is gone once answered
+    private string? _said;
+    public string Describe() => _said ?? $"{(_yes ? "agree to" : "refuse")} what was asked";
     private ServiceAsk? Ask(World w) => w.ServiceAsks.FirstOrDefault(a => a.Id == _askId);
     public string? Refusal(CommandContext ctx)
     {
-        var w = ctx.World; var me = w.Char(ActorId);
+        var w = ctx.World; var me = w.Char(ActorId); if (Ask(w) is { } asked) _said = ServiceSystem.AnswerSays(asked, _yes);
         if (me is not { Alive: true } || me.Id != w.ProtagonistId) return "it was put to the head of the house";
         return ServiceSystem.AnswerRefusal(w, _offices, me, Ask(w), _yes);
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
-    public void Execute(CommandContext ctx) => ServiceSystem.Answer(ctx.World, _offices, ctx.World.Char(ActorId)!, Ask(ctx.World)!, _yes);
+    public void Execute(CommandContext ctx)
+    {
+        var a = Ask(ctx.World)!; _said = ServiceSystem.AnswerSays(a, _yes);
+        ServiceSystem.Answer(ctx.World, _offices, ctx.World.Char(ActorId)!, a, _yes);
+    }
 }

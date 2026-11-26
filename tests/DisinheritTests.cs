@@ -1,6 +1,7 @@
 using Praetoria.Core;
 using Praetoria.Core.Commands;
 using Praetoria.Core.Data;
+using Praetoria.Core.Events;
 using Praetoria.Core.Presentation;
 using Praetoria.Core.State;
 using Praetoria.Core.Systems;
@@ -221,7 +222,7 @@ public class DisinheritTests
         var (w, h, head, eldest, second, _, ctx) = Small(); eldest.Purse = 9;
         Do(ctx, head.Id, DisownCommand.CastOut, eldest.Id); var founded = w.House(eldest.HouseId)!;
         w.Relationship(eldest.Id, head.Id).Disposition = -61;
-        Assert.Equal($"{eldest.Name} will not come back: they think -61 of you, and it would take -60 or better", Try(ctx, head.Id, DisownCommand.TakeBack, eldest.Id));
+        Assert.Equal($"{eldest.Name} will not come back: they think −61 of you, and it would take −60 or better", Try(ctx, head.Id, DisownCommand.TakeBack, eldest.Id));
         w.Relationship(eldest.Id, head.Id).Disposition = -30;
         var son = Add(w, founded, "newson", "Gaius Corvin", 2, "male", eldest);
         Assert.Equal($"{eldest.Name} leads {founded.Name} now, and will not leave its people", Try(ctx, head.Id, DisownCommand.TakeBack, eldest.Id));
@@ -304,6 +305,7 @@ public class DisinheritTests
         Assert.Equal("no such suit is waiting", new WillSuitCommand(heir.Id, WillSuitCommand.Plead, "none", third.Id).Refusal(ctx));
         Assert.Contains("in a hundred that the will is found undutiful", DisownSystem.PleadSays(w, s, third));
         var plead = new WillSuitCommand(heir.Id, WillSuitCommand.Plead, s.Id, third.Id); Assert.Null(plead.Refusal(ctx)); plead.Execute(ctx);
+        Assert.Equal("send third to answer eldest's suit over the will", plead.Describe());   // what the undo button says, by names it can read (GameClient.Plain)
         Assert.Equal(third.Id, s.PleaderId); Assert.Equal(4, w.PoolsFor(heir.Id).Influence); Assert.Equal(third.Id, DisownSystem.AnswersFor(w, s)!.Id); Assert.Equal(7, DisownSystem.DefenceOf(w, s));
         Assert.Equal("they are already to answer it", new WillSuitCommand(heir.Id, WillSuitCommand.Plead, s.Id, third.Id).Refusal(ctx));
         Assert.Equal(third.Name, Assert.Single(Docket.Of(w, Content.Offices, h.Id)).Pleader);
@@ -313,6 +315,7 @@ public class DisinheritTests
         Assert.Equal("terms are the 1,000 credits the suit asks, and your purse and the treasury hold 700 credits", new WillSuitCommand(heir.Id, WillSuitCommand.Settle, s.Id).Refusal(ctx));
         h.Treasury.Credits = 20; int regard = Regard(w, child, heir);
         var settle = new WillSuitCommand(heir.Id, WillSuitCommand.Settle, s.Id); Assert.Null(settle.Refusal(ctx)); settle.Execute(ctx);
+        Assert.Equal("come to terms with eldest over the will", settle.Describe());
         Assert.Equal(DisownSystem.Settled, s.Outcome); Assert.Equal(0, heir.Purse); Assert.Equal(13, h.Treasury.Credits); Assert.Equal(10, child.Purse);
         Assert.Equal(child.Id, w.Heirlooms.First(i => i.Id == "library").HolderId); Assert.True(DisownSystem.IsStruck(child));   // the striking stands
         Assert.Equal(regard + DisownSystem.SettledRegard, Regard(w, child, heir));
@@ -520,6 +523,160 @@ public class DisinheritTests
         Assert.Contains("They are not your child, so they cannot sue over your will.", DisownSystem.CastOutSays(w2, nephew));
         Assert.DoesNotContain("may sue", DisownSystem.StrikeSays(w2, nephew));
         Assert.Contains("may sue that your will was undutiful", DisownSystem.StrikeSays(w2, second2));
+    }
+
+    // ---------------- where the three ideas meet (the review after the merge) ----------------
+
+    /// <summary>A fleet of House Oriel, at war with House Third, commanded by an officer of another house lent to it.</summary>
+    private static Fleet LentToOriel(World w, Character who, string fleetId)
+    {
+        if (w.House("t") is not { } t) { t = new House { Id = "t", Name = "House Third", Legitimacy = 40 }; w.Houses[t.Id] = t; Add(w, t, "third_head", "Gnaeus Third", 55); }
+        if (!w.AtWar("o", "t")) w.Wars.Add(new War { HouseA = "o", HouseB = "t", Since = w.Turn, ClosedThrough = w.Turn });
+        var f = new Fleet { Id = fleetId, Name = "The " + fleetId, OwnerId = "o", SystemId = "x", Strength = 3 }; w.Fleets[f.Id] = f;
+        ServiceSystem.Begin(w, f, who, w.Char("oriel")!, ServiceSystem.Lent, ServiceSystem.ByWar, "t", "head");
+        return f;
+    }
+
+    [Fact]
+    public void One_cast_out_lays_a_command_by_service_down_at_once_and_one_taken_back_leaves_the_commands_of_the_house_they_leave()
+    {
+        var (w, h, head, eldest, _, third, ctx) = Small();
+        // cast out to a wife of the house the fleet is at war with: the command ends that day, before any battle
+        var of1 = LentToOriel(w, eldest, "of1"); var wife = Add(w, w.Houses["t"], "wife", "Aemilia Third", 32, "female"); Wed(w, eldest, wife);
+        Assert.Contains("Their command of The of1 of House Oriel by service ends.", DisownSystem.CastOutSays(w, eldest));
+        Do(ctx, head.Id, DisownCommand.CastOut, eldest.Id);
+        Assert.Equal("t", eldest.HouseId); Assert.True(w.AtWar(eldest.HouseId, of1.OwnerId));
+        Assert.Null(ServiceSystem.Held(w, eldest)); Assert.Equal("", of1.AdmiralId); Assert.Equal("t", ServiceSystem.Serves(w, eldest));
+        Assert.Equal("Corvin Varro was cast out of House Varro", w.PastService.Single(p => p.CommanderId == eldest.Id).How);
+        Assert.Contains(w.News, n => n.Text == "Corvin Varro no longer commands The of1 of House Oriel by service: Corvin Varro was cast out of House Varro.");
+        // cast out to a wife of the house whose fleet it is: they keep it, by right and not by service; taken back, they leave it
+        var of2 = LentToOriel(w, third, "of2"); Wed(w, third, w.Char("oriel")!);
+        Assert.Contains("They keep the command of The of2, of House Oriel, by right and not by service.", DisownSystem.CastOutSays(w, third));
+        Do(ctx, head.Id, DisownCommand.CastOut, third.Id);
+        Assert.Equal("o", third.HouseId); Assert.Null(ServiceSystem.Held(w, third)); Assert.Equal(third.Id, of2.AdmiralId);
+        Assert.Equal("Tiber Varro was cast out of House Varro", w.PastService.Single(p => p.CommanderId == third.Id).How);
+        w.Turn++; ServiceSystem.Tick(w, Content.Offices); Assert.Equal(third.Id, of2.AdmiralId);
+        Assert.Null(Try(ctx, head.Id, DisownCommand.TakeBack, third.Id)); Do(ctx, head.Id, DisownCommand.TakeBack, third.Id);
+        Assert.Equal(h.Id, third.HouseId); Assert.Equal("", of2.AdmiralId); Assert.Null(ServiceSystem.Held(w, third)); Assert.Equal(h.Id, ServiceSystem.Serves(w, third));
+        // and one taken back who still holds a command by service of a third house lays it down
+        var (w2, h2, head2, eldest2, _, _, ctx2) = Small(); Do(ctx2, head2.Id, DisownCommand.CastOut, eldest2.Id); var founded = eldest2.HouseId;
+        var of3 = LentToOriel(w2, eldest2, "of3"); Assert.Equal(founded, ServiceSystem.Held(w2, eldest2)!.CommanderHouseId);
+        Do(ctx2, head2.Id, DisownCommand.TakeBack, eldest2.Id);
+        Assert.Null(ServiceSystem.Held(w2, eldest2)); Assert.Equal("", of3.AdmiralId);
+        Assert.Equal("Corvin Varro was taken back into House Varro", w2.PastService.Single().How);
+    }
+
+    [Fact]
+    public void The_abdication_hands_the_seat_to_nobody_struck_from_the_line_or_cast_out()
+    {
+        var def = Content.Event("the_abdication")!; var abdicate = def.Choice("abdicate_to_heir")!;
+        (World w, Character head, Character eldest, Character third, CommandContext ctx) Ready()
+        {
+            var (w, _, head, eldest, second, third, ctx) = Small(); w.WorldCounters["title_rank"] = 3; head.CareerRank = 3; head.NatureTraits.Add("Just");
+            foreach (var c in new[] { eldest, second, third }) w.Relationship(head.Id, c.Id).Bond = BondType.Blood;
+            eldest.CareerRank = 0; second.CareerRank = 4; third.CareerRank = 0;   // the second stands above the head, and cannot be the one
+            return (w, head, eldest, third, ctx);
+        }
+        string? Bound(World w, ulong seed) => Binder.TryBind(def, w, TestContent.Rng(seed)) is { } b && b.TryGet("heir", out var id) ? id : null;
+        void Abdicate(World w, string heirId) { var ctx = new EvalContext(w, new Binding(w.ProtagonistId).With("heir", heirId), TestContent.Rng(), Content); foreach (var e in abdicate.Effects) e.Apply(ctx); }
+        // a son struck from the line, or cast out, is never the one the report names: only one who stands in the line
+        for (ulong seed = 1; seed <= 8; seed++)
+        {
+            var (w, head, eldest, third, ctx) = Ready(); Do(ctx, head.Id, DisownCommand.Strike, third.Id); Assert.Equal(eldest.Id, Bound(w, seed));
+            var (w2, head2, eldest2, third2, ctx2) = Ready(); Do(ctx2, head2.Id, DisownCommand.CastOut, third2.Id); Assert.Equal(eldest2.Id, Bound(w2, seed));
+            var (w3, head3, eldest3, third3, ctx3) = Ready(); Do(ctx3, head3.Id, DisownCommand.Strike, eldest3.Id); Assert.Equal(third3.Id, Bound(w3, seed));
+        }
+        // with both struck out, and the rest above the head or children, nobody is: the report does not come
+        var (w4, head4, eldest4, third4, ctx4) = Ready(); Do(ctx4, head4.Id, DisownCommand.Strike, eldest4.Id); Do(ctx4, head4.Id, DisownCommand.Strike, third4.Id);
+        Assert.Null(Binder.TryBind(def, w4, TestContent.Rng()));
+        // the effect itself hands the seat to nobody struck out while another stands in the line, and to nobody of another house
+        var (w5, head5, _, third5, ctx5) = Ready(); Do(ctx5, head5.Id, DisownCommand.Strike, third5.Id); Abdicate(w5, third5.Id); Assert.Equal(head5.Id, w5.ProtagonistId);
+        var (w6, head6, _, third6, ctx6) = Ready(); Do(ctx6, head6.Id, DisownCommand.CastOut, third6.Id); Abdicate(w6, third6.Id);
+        Assert.Equal(head6.Id, w6.ProtagonistId); Assert.Equal("h", w6.Protagonist!.HouseId); Assert.Empty(w6.Successions);
+        var (w7, _, eldest7, _, _) = Ready(); Abdicate(w7, eldest7.Id); Assert.Equal(eldest7.Id, w7.ProtagonistId); Assert.Equal("abdication", w7.Successions.Single().Cause);
+    }
+
+    [Fact]
+    public void One_struck_out_who_comes_to_lead_the_house_or_leaves_it_wants_what_they_wanted_again()
+    {
+        var (w, _, head, eldest, second, third, ctx) = Small();
+        Do(ctx, head.Id, DisownCommand.Strike, eldest.Id); Assert.Equal("seize_the_throne", eldest.Ambition);
+        foreach (var c in new[] { second, third, w.Char("grandchild")! }) c.Alive = false;
+        DynastySystem.Die(w, head.Id); Assert.Equal(eldest.Id, w.ProtagonistId);
+        w.Turn++; DisownSystem.Tick(w);
+        Assert.False(DisownSystem.IsStruck(eldest)); Assert.Equal("succeeded", w.Disownings[0].Ended); Assert.Equal("amass_a_fortune", eldest.Ambition);
+        var (w2, _, head2, eldest2, _, _, ctx2) = Small(); Do(ctx2, head2.Id, DisownCommand.Strike, eldest2.Id);
+        eldest2.HouseId = "o"; w2.Turn++; DisownSystem.Tick(w2);
+        Assert.Equal("left", w2.Disownings[0].Ended); Assert.Equal("amass_a_fortune", eldest2.Ambition);
+    }
+
+    [Fact]
+    public void The_causes_kept_for_someone_who_has_died_are_let_go()
+    {
+        var (w, _, _, eldest, second, _, _) = Small();
+        foreach (var c in new[] { eldest, second })
+            foreach (var key in new[] { DisownSystem.DefiedKey(c.Id), DisownSystem.WedKey(c.Id), DisownSystem.ShamedKey(c.Id), DisownSystem.DefectedKey(c.Id) }) w.WorldCounters[key] = 5;
+        eldest.Alive = false; w.Turn++; DisownSystem.Tick(w);
+        Assert.DoesNotContain(w.WorldCounters.Keys, k => k.EndsWith(":" + eldest.Id));
+        Assert.Equal(4, w.WorldCounters.Keys.Count(k => k.EndsWith(":" + second.Id)));
+    }
+
+    [Fact]
+    public void The_heir_is_said_to_stand_first_as_the_one_not_struck_out_when_one_before_them_is()
+    {
+        var (w, h, head, eldest, second, third, ctx) = Small();
+        Assert.Equal("by primogeniture: your eldest child", DynastySystem.HeirBy(w, head));
+        Do(ctx, head.Id, DisownCommand.Strike, eldest.Id); Assert.Equal(second.Id, DynastySystem.FindHeir(w, head)!.Id);
+        Assert.Equal("by primogeniture: your eldest child not struck from the line", DynastySystem.HeirBy(w, head));
+        h.SuccessionLaw = "seniority"; Assert.Equal("by seniority: the eldest of the house not struck from the line", DynastySystem.HeirBy(w, head));
+        h.SuccessionLaw = "primogeniture";
+        // one struck out who stands behind the heir changes nothing that is said
+        Do(ctx, head.Id, DisownCommand.Restore, eldest.Id); Do(ctx, head.Id, DisownCommand.Strike, third.Id);
+        Assert.Equal("by primogeniture: your eldest child", DynastySystem.HeirBy(w, head));
+        // every child struck out: the eldest of the blood, and not "you have no child"
+        Do(ctx, head.Id, DisownCommand.Strike, eldest.Id); Do(ctx, head.Id, DisownCommand.Strike, second.Id);
+        Assert.Equal("grandchild", DynastySystem.FindHeir(w, head)!.Id);
+        Assert.Equal("by primogeniture: your children are struck from the line, so the eldest of the blood", DynastySystem.HeirBy(w, head));
+        // and one struck out who has the house only because nobody else is left is said to
+        w.Char("grandchild")!.Alive = false; Assert.Equal(eldest.Id, DynastySystem.FindHeir(w, head)!.Id);
+        Assert.Equal("by primogeniture: your eldest child, though struck from the line, since nobody else is left", DynastySystem.HeirBy(w, head));
+    }
+
+    [Fact]
+    public void A_suit_brought_at_the_years_end_is_told_as_heard_in_the_year_the_news_is_read()
+    {
+        var (w, h, _, _, s) = Will();   // the head died in year 10, at the year's end
+        Assert.Contains(w.News, n => n.Text.Contains("undutiful") && n.Text.Contains($"hears it at the end of year {s.Turn + 1}."));
+        Assert.DoesNotContain(w.News, n => n.Text.Contains("hears it at the end of next year"));
+        w.Turn++;   // the next year begins, and the player reads the news
+        Assert.Equal("at the end of this year", Assert.Single(Docket.Of(w, Content.Offices, h.Id)).Heard);
+        DisownSystem.Tick(w); Assert.Equal(s.Turn + 1, s.DecidedTurn);
+    }
+
+    [Fact]
+    public void The_docket_and_the_news_say_how_the_praetor_will_find()
+    {
+        var (w, h, heir, _, s) = Will(""); var judge = w.Char("judge")!;
+        Assert.Equal("neither upright nor a friend of the house, and will go by who pleads better", Assert.Single(Docket.Of(w, Content.Offices, h.Id)).JudgeIs);
+        w.Relationship(judge.Id, heir.Id).Disposition = 40;
+        Assert.Equal("a friend of the house, and will find for it", Assert.Single(Docket.Of(w, Content.Offices, h.Id)).JudgeIs);
+        w.WorldFlags.Add($"bought:{judge.Id}:{h.Id}");
+        Assert.Equal("bought by the house, and will find for it", Assert.Single(Docket.Of(w, Content.Offices, h.Id)).JudgeIs);
+        var (w2, h2, _, _, _) = Will();
+        Assert.Contains(w2.News, n => n.Text.Contains("Quintus Bench, praetor, who is upright, and will go by the record, which shows no cause, hears it"));
+        Assert.Equal("upright, and will go by the record, which shows no cause", Assert.Single(Docket.Of(w2, Content.Offices, h2.Id)).JudgeIs);
+    }
+
+    [Fact]
+    public void One_struck_out_is_shown_as_one_who_cannot_be_named_heir_and_why()
+    {
+        var (w, _, head, eldest, second, third, ctx) = Small();
+        Do(ctx, head.Id, DisownCommand.Strike, eldest.Id);
+        var choices = AmbitionSystem.HeirChoices(w, head);
+        Assert.DoesNotContain(choices, x => x.Who.Id == second.Id);   // the law's heir needs no naming
+        Assert.Equal("Corvin Varro is struck from the line: restore them to it first", choices.Single(x => x.Who.Id == eldest.Id).No);
+        Assert.Null(choices.Single(x => x.Who.Id == third.Id).No);
+        Assert.Equal(choices.Single(x => x.Who.Id == eldest.Id).No, new AmbitionCommand(head.Id, AmbitionCommand.NameHeir, eldest.Id, new AmbitionSystem(Content.Businesses, Content.Holdings, Content.Titles, Content.Careers)).Refusal(ctx));
     }
 
     [Fact]
