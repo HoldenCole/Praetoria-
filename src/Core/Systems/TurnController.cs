@@ -122,6 +122,7 @@ public sealed class TurnController
         if (world.Turn == 0 && world.Laws.Count == 0) PolicySystem.ApplyCultures(world, content.Policies);   // every house begins with its culture's laws (GDD §19)
         FactionSystem.Use(world, content.Policies);   // this world's laws, not every world's (see FactionSystem.Policies)
         SenateActs.Use(world, content.Policies, content.Businesses);   // and for the rules that are handed no catalogue: the Acts of the Senate (docs/SENATE.md, "The Senate's law, enlarged")
+        LocalLawSystem.Use(world, content.Policies);   // and the laws of single worlds (docs/POLITICS.md, "Local law")
         if (world.Turn == 0 && world.Factions.Count == 0) FactionSystem.Seed(world, content.Parties, id => _senate.Weight(world, id));   // the four parties of the Republic (docs/REPUBLIC.md)
         _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
         _academy = new AcademySystem(content.Academy, content.Names);
@@ -287,6 +288,7 @@ public sealed class TurnController
         using (Perf.Time("end:ambitions")) { _ambitions.Tick(World, Executor, Context()); _ventures?.PayHolders(World); }   // the people of the house go after what they want (docs/AMBITIONS.md) — RNG-free
         using (Perf.Time("end:npc")) { _npcAi.Act(Executor, Context(), _crises, _economy == null ? null : _content.Holdings, _fleets.Rules, _content.Businesses); }   // NPCs act, invest, sail, and may author a crisis
         using (Perf.Time("end:edicts")) { EdictSystem.Tick(World, _content, Executor, Context()); }   // edicts lapse at the year's turn, and other houses and magistrates issue theirs (docs/EDICTS.md) — RNG-free
+        using (Perf.Time("end:locallaw")) { LocalLawSystem.Tick(World, _content.Policies, Executor, Context(), _content.Holdings); }   // the other houses make law for single worlds (docs/POLITICS.md, "Local law") — RNG-free
         using (Perf.Time("end:senate")) { _senate.Tick(World); }          // the Senate votes last session's motions and hears new ones (GDD §6.1) — RNG-free
         using (Perf.Time("end:policy")) { PolicySystem.Tick(World, _content.Policies); }   // the estates weigh the laws (GDD §6.1) — RNG-free
 

@@ -1,0 +1,51 @@
+@inject GameClient G
+@implements IDisposable
+@* Local law: a law for one world (docs/POLITICS.md, "Local law: a law for one world"). Shown wherever a player looks at one world: the
+   world's card on the Worlds window and the system panel. Each local law with the option in force on this world; for a world of the
+   player's, the other options as buttons, what each does in the title and the refusal when it cannot be had; and how many are off the
+   custom against what the world can carry. A world of another house shows its laws, without the buttons. *@
+@{
+    var w = G.World; var c = G.Content; var h = w?.Holding(HoldingId);
+    if (w == null || c == null || h == null || !h.IsPlanet || c.Policies.Local.IsEmpty) return;
+    var cat = c.Policies; var me = w.Protagonist; bool mine = me != null && h.OwnerId == me.HouseId;
+    int n = LocalLawSystem.Count(cat, h), most = LocalLawSystem.Limit(w, h); var ctx = G.Ctx;
+}
+<div class='local-laws @(mine ? "mine" : string.Empty)' data-local-laws="@h.Id">
+    <div class="ll-head"><b>Local law</b> <span class="muted small" data-local-count="@n" title="@Cap(LocalLawSystem.LimitWhy(w, h))">@n of @most off the custom@(mine ? " · a decree costs influence, and settles the law on this world for some years" : string.Empty)</span></div>
+    @foreach (var law in cat.Local.Laws)
+    {
+        var now = LocalLawSystem.Option(cat, h, law.Id)!; int left = mine ? LocalLawSystem.CooldownLeft(w, h, law.Id) : 0;
+        <div class='ll-row @(now.Default ? string.Empty : "custom")' data-local-law="@law.Id" title="@law.Description">
+            <span class="ll-name">@law.Name</span> <b class="ll-now" title="@LocalLawSystem.Does(now)">@now.Name</b>@if (left > 0) { <span class="muted small"> · settled for @Counted.MoreYears(left)</span> }
+            @if (mine)
+            {
+                <span class="ll-opts">
+                @foreach (var o in law.Options.Where(o => o.Id != now.Id))
+                {
+                    var cmd = new SetLocalLawCommand(me!.Id, h.Id, law.Id, o.Id, cat); string? no = cmd.Refusal(ctx); var ld = law; var od = o;
+                    <button class="opt inline tiny" data-local-option="@Key(law.Id, o.Id)" disabled="@(no != null)" title="@(no != null ? Cap(no) : Title(ld, od))" @onclick="() => Ask(ld, od, cmd)">@o.Name</button>
+                }
+                </span>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string HoldingId { get; set; } = "";
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Key(string law, string option) => law + ":" + option;
+    private string Title(LocalLawDef law, LocalLawOptionDef o)
+    {
+        string minds = LocalLawSystem.Minds(G.Content!.Policies, o);
+        return Cap(LocalLawSystem.Does(o)) + "." + (minds.Length > 0 ? " The estates: " + minds + "." : string.Empty) + " " + law.Cost + " influence; settled for " + Counted.Years(law.Cooldown) + ".";
+    }
+    private void Ask(LocalLawDef law, LocalLawOptionDef o, SetLocalLawCommand cmd)
+    {
+        var h = G.World!.Holding(HoldingId); string world = h?.Name ?? "this world";
+        G.AskDo((o.Default ? "Lift the decree on " : "Decree for ") + world + ": " + o.Name.ToLowerInvariant() + "?", law.Name + " on " + world + ": " + Title(law, o) + " It falls on " + world + " alone, and what the estates think of it weighs on the house by the share of its worlds.", (o.Default ? "Lift it" : "Decree it") + " · " + law.Cost + " influence", cmd);
+    }
+    private void Redraw() => InvokeAsync(StateHasChanged);
+    protected override void OnInitialized() => G.Changed += Redraw;
+    public void Dispose() => G.Changed -= Redraw;
+}

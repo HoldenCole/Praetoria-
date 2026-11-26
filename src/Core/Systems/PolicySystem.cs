@@ -178,7 +178,7 @@ public static class PolicySystem
     /// <summary>What the player's laws say about an estate: the sum of the options' opinions, where the house holds the scope.</summary>
     public static int LawOpinion(World w, PolicyCatalog cat, string houseId, string estateId) =>
         cat.Laws.Where(l => !l.Reach && HoldsScope(w, houseId, l.Scope)).Sum(l => Option(w, cat, houseId, l.Id)?.Opinions.GetValueOrDefault(estateId) ?? 0)
-        + ReachOpinion(w, cat, estateId);   // the Reach's law weighs on every house's estates
+        + ReachOpinion(w, cat, estateId) + LocalLawSystem.Opinion(w, cat, houseId, estateId);   // the Reach's law weighs on every house's estates; a local law by the share of the house's worlds that keep it
 
     /// <summary>What the laws of the whole Reach — the chair's, the throne's, the offices', the Senate's Acts — say about an estate, for every house alike.</summary>
     public static int ReachOpinion(World w, PolicyCatalog cat, string estateId)

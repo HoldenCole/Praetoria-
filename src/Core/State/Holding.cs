@@ -63,6 +63,9 @@ public sealed class Holding
 
     /// <summary>The house that held this world before it was taken or broke away — who has the grievance, and the right to buy or fight it back.</summary>
     public string FormerOwnerId { get; set; } = "";
+    /// <summary>The local laws of this world (docs/POLITICS.md, "Local law"): law id → the option in force. A law not named is at its
+    /// default. They belong to the world, not to its holder: a world that changes hands keeps them until the new holder changes them.</summary>
+    public Dictionary<string, string> LocalLaws { get; set; } = new();
     public bool InRebellion => Rebellion > 0;
 
     public bool IsPlanet => Kind == Planet;
