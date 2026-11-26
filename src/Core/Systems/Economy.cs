@@ -106,7 +106,7 @@ public sealed class Economy
             if (holding.IsPlanet && !Policies.IsEmpty)   // the law of the house, and the estates' regard (PolicySystem)
             {
                 string? rid = depSys?.RegionId;
-                d.Add(Resource.Credits, Law(world, houseId, "credits_per_world", rid)); d.Add(Resource.Materials, Law(world, houseId, "materials_per_world", rid)); d.Add(Resource.Manpower, Law(world, houseId, "manpower_per_world", rid) + ReachLaw(world, "manpower_per_world"));   // the house's own levies, and the Levy of the Reach where the Senate has carried one
+                d.Add(Resource.Credits, Law(world, houseId, "credits_per_world", rid) + LocalLawSystem.Effect(Policies, holding, "credits_per_world")); d.Add(Resource.Materials, Law(world, houseId, "materials_per_world", rid) + LocalLawSystem.Effect(Policies, holding, "materials_per_world")); d.Add(Resource.Manpower, Law(world, houseId, "manpower_per_world", rid) + ReachLaw(world, "manpower_per_world") + LocalLawSystem.Effect(Policies, holding, "manpower_per_world"));   // the house's own levies, and the Levy of the Reach where the Senate has carried one
             }
             // a governor who hates the head skims; an able one finds a credit the ledger did not know it had
             if (holding.GovernorId.Length > 0 && (world.Char(holding.GovernorId)?.Skill("administration") ?? 0) >= AbleGovernorAdministration && holding.IsPlanet) d.Add(Resource.Credits, 1);
@@ -296,6 +296,7 @@ public sealed class Economy
         Add($"unrest of {holding.Unrest}", -(holding.Unrest / 2));
         Add($"the tithe ({tax?.Name ?? "customary"})", -(tax?.CreditsBonus ?? 0) * 4);
         if (house != null) Add("the laws in force", Law(world, house.Id, "prosperity_drift", world.Galaxy?.System(holding.SystemId)?.RegionId) * 2);   // justice, settlement, the magistrates' regard
+        foreach (var (what, by) in LocalLawSystem.Causes(Policies, holding, "prosperity_drift", 2)) Add(what, by);   // the law of this one world (docs/POLITICS.md, "Local law")
         var headOf = house != null ? HeadOf(world, house) : null;
         if (governor != null && headOf != null && governor.Id != headOf.Id && (world.GetRelationship(governor.Id, headOf.Id)?.Disposition ?? 0) <= GovernorSabotageThreshold) Add("a governor who is hostile to you lets it slide", -10);
         if (world.Sieges.ContainsKey(holding.Id)) Add("under siege", -ProsperitySiege);
@@ -321,6 +322,7 @@ public sealed class Economy
         if (holding.Buildings.Contains(GranaryId)) Add("the public granary", -GranaryCalm);
         Add("the laws of the house", Law(world, house.Id, "unrest_drift", lawRegion));
         Add("the law of the Reach", ReachLaw(world, "unrest_drift"));
+        foreach (var (what, by) in LocalLawSystem.Causes(Policies, holding, "unrest_drift")) Add(what, by);   // the law of this one world (docs/POLITICS.md, "Local law")
         if (holding.IsPlanet && world.PlanetOf(holding.SystemId) == holding) Add("the works of the system", SystemWorks.Unrest(world, _catalog, holding.SystemId));
         if (holding.IsPlanet) foreach (var (city, _, un) in CitySystem.OnWorld(_catalog, holding)) Add(city, un);   // a holy city, a company town (docs/CITIES.md)
         return why;
@@ -359,7 +361,7 @@ public sealed class Economy
                     string? lawRegion = world.Galaxy?.System(holding.SystemId)?.RegionId;
                     holding.Unrest = Math.Clamp(holding.Unrest + UnrestCauses(world, holding, house, insolvent).Sum(x => x.by), 0, 100);   // one reckoning: the screen shows the same causes
                     int growth = holding.Unrest > 50 ? spec.PopGrowth / 2 : spec.PopGrowth;      // the restless do not settle
-                    growth += Law(world, house.Id, "pop_growth", lawRegion);                        // homesteads, bonded labour, the commons' regard
+                    growth += Law(world, house.Id, "pop_growth", lawRegion) + LocalLawSystem.Effect(Policies, holding, "pop_growth");                        // homesteads, bonded labour, the commons' regard
                     if (holding.Prosperity >= 75 && spec.PopGrowth > 0) growth += 1;             // a thriving world draws people
                     int pop = Math.Max(0, holding.Population + growth);
                     if (world.Sieges.ContainsKey(holding.Id)) pop -= Math.Max(1, pop / 20);          // a blockade starves (GDD §6)

@@ -112,6 +112,7 @@ public sealed class FoundBusinessCommand : ICommand
         if (def.Specializations.Count > 0 && (planet == null || !def.Specializations.Contains(planet.Specialization))) return $"needs {string.Join(" or ", def.Specializations.Select(s => _catalog.Spec(s)?.Name ?? s))}";
         if (def.MinTitleRank > 0 && (_titles?.RankOf(house.Title) ?? 0) < def.MinTitleRank) return "needs a greater title";
         if (planet != null && w.AtWar(house.Id, planet.OwnerId)) return "the world's holder is at war with you";
+        if (planet != null && planet.OwnerId != house.Id && LocalLawSystem.Closed(w, _systemId)) return $"{planet.Name} is a closed world: its holder admits no venture but its own";   // local law (docs/POLITICS.md)
         var first = ProjectSystem.Split(def.Cost, def.BuildTurns).First;
         if (_companyId.Length > 0)
         {

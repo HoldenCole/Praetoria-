@@ -50,6 +50,7 @@ try
         "econ"     => Probes.Econ(opts),
         "laws"     => LawsProbe.Run(opts),
         "caesar"   => Probes.Caesar(opts),
+        "locallaws" => LocalLawsProbe.Run(opts),
         "throne"   => Probes.Throne(opts),
         _ => Unknown(command)
     };

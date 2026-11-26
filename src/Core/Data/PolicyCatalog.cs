@@ -54,6 +54,8 @@ public sealed class PolicyCatalog
     public LawDef? Law(string id) => _laws.TryGetValue(id, out var l) ? l : null;
     public EstateDef? Estate(string id) => _estates.TryGetValue(id, out var e) ? e : null;
     public bool IsEmpty => Laws.Count == 0;
+    /// <summary>The laws that are set on one world and fall on that world alone (content/politics/local_laws.json; docs/POLITICS.md, "Local law").</summary>
+    public LocalLawCatalog Local { get; init; } = LocalLawCatalog.Empty;
 
     private static Dictionary<string, int> Ints(JsonElement el, string name)
     {
@@ -90,6 +92,6 @@ public sealed class PolicyCatalog
                     });
                 }
         }
-        return new PolicyCatalog(laws, estates, cultures);
+        return new PolicyCatalog(laws, estates, cultures) { Local = LocalLawCatalog.LoadFromDirectory(contentRoot) };
     }
 }
