@@ -161,10 +161,14 @@ public sealed partial class HouseholdSystem
         w.Log($"{head.Name} adopts {old}, who is {person.Name} from this day and stands in the line of {house.Name}.");
     }
 
+    /// <summary>The house someone taken in would go home to: the house of their birth, if it stands and did not cast them out
+    /// (docs/HOUSEHOLD.md, "Cast out"). One cast out to a husband or wife here has nowhere else.</summary>
+    public static House? HomeOf(World w, Character person) =>
+        person.BornHouseId.Length == 0 || DisownSystem.Standing(w, person, DisownSystem.CastOut)?.HouseId == person.BornHouseId ? null : w.House(person.BornHouseId);
     /// <summary>Send someone of the household away. They go back to the house of their birth if it stands.</summary>
     public static void Release(World w, Character head, Character person, bool theirChoice = false)
     {
-        var ours = w.House(head.HouseId)!; var home = w.House(person.BornHouseId);
+        var ours = w.House(head.HouseId)!; var home = HomeOf(w, person);
         ours.Members.Remove(person.Id); foreach (var d in ours.Duties.Where(d => d.HolderId == person.Id).ToList()) ours.Duties.Remove(d);
         foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == ours.Id && f.AdmiralId == person.Id)) f.AdmiralId = "";
         foreach (var h in w.Holdings.Values.Where(h => h.OwnerId == ours.Id && h.GovernorId == person.Id)) h.GovernorId = "";
@@ -395,7 +399,7 @@ public sealed partial class HouseholdSystem
             {
                 // a ward of age chooses for themselves: to stay, if the house has been good to them
                 c.Flags.Remove(Ward); c.Flags.Add(WardOfAgeChar);
-                if ((w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) >= 30 || w.House(c.BornHouseId) == null)
+                if ((w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) >= 30 || HomeOf(w, c) == null)
                 { c.Flags.Add(Companion); Mark(w, WardStayedFlag); w.Log($"{c.Name}, of age now, chooses to stay with {house.Name}."); }
                 else { Mark(w, WardLeftFlag); Release(w, p, c, theirChoice: true); if (w.House(c.HouseId) is { } home && Economy.HeadOf(w, home) is { } hh) Regard(w, hh, p, 15); continue; }
             }
@@ -496,7 +500,7 @@ public sealed partial class HouseholdSystem
             if (house.Treasury.Credits >= keep) { house.Treasury.Credits -= keep; w.WorldCounters.Remove(UnpaidKey(c.Id)); continue; }
             unpaid++; if ((w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) > -20) Regard(w, c, p, -2);
             int years = w.Counter(UnpaidKey(c.Id)) + 1; w.WorldCounters[UnpaidKey(c.Id)] = years;
-            if (years >= LeavesAfter && c.Age >= Adult && (w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) < StaysAtRegard && w.House(c.BornHouseId) != null)
+            if (years >= LeavesAfter && c.Age >= Adult && (w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) < StaysAtRegard && HomeOf(w, c) != null)
             {
                 w.WorldCounters.Remove(UnpaidKey(c.Id)); Mark(w, LeftUnpaidFlag); w.Log($"{c.Name} has gone unpaid in {house.Name} for {years} years, and goes."); Release(w, p, c, theirChoice: true);
             }

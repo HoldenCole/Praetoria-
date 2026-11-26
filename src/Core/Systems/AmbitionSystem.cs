@@ -120,6 +120,7 @@ public sealed class AmbitionSystem
             Command => w.Fleets.TryGetValue(u.RequestArg, out var f) && f.OwnerId == house.Id ? null : "the fleet is gone",
             Stake => house.Treasury.Credits >= int.Parse(u.RequestArg) ? null : "the treasury does not hold it",
             Word => (pools?.Influence ?? 0) >= WordInfluence ? (who.CareerRank < (_careers.ById(who.CareerTrack)?.MaxRank ?? 0) ? null : "they are at the top of their service") : "no influence",
+            Heir => NameHeirRefusal(w, head, who),   // one struck from the line asks, and cannot be granted it (docs/HOUSEHOLD.md)
             _ => null
         };
     }

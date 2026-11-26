@@ -13,9 +13,10 @@ namespace Praetoria.Core.Systems;
 /// line (the seat of the house), which makes them wilful, so that they grow defiant, warm to the house's rivals, may marry against the
 /// head's wish and may leave for a rival house; one cast out goes to their husband's or wife's house, their patron's, the house of a
 /// parent born elsewhere, or alone as the first of a new name, takes their purse, and means to outshine the house that cast them out.</para>
-/// <para>At the head's death a child they struck or cast out with no cause on the record may bring the SUIT OF THE UNDUTIFUL WILL
-/// before a praetor of another house, on the house's docket: heard at the end of the year after, it gives a child who wins a quarter
-/// of the dead head's purse and a part of their heirlooms, and sets the striking aside.</para>
+/// <para>At the head's death a child they struck or cast out with no cause on the record, and whom neither the will nor the house's
+/// custom leaves anything, may bring the SUIT OF THE UNDUTIFUL WILL before a praetor of another house, on the house's docket: heard at
+/// the end of the year after, it gives a child who wins a quarter of the dead head's purse and a part of their heirlooms, and puts one
+/// struck out back in the line. One cast out stays out, and may still be taken back.</para>
 /// <para>Other houses' heads strike out or cast out a relative for the plain causes the record holds for any house. RNG-free.</para>
 /// </summary>
 public static class DisownSystem
@@ -166,6 +167,16 @@ public static class DisownSystem
 
     // ---------------- what the screen says before it is done ----------------
 
+    /// <summary>Whether they could sue over the head's will, said before it is done: only a child of the head can, and only if the will
+    /// leaves them nothing; one struck out under the custom of portions takes a portion all the same.</summary>
+    private static string SueSays(World w, Character who, Price p, string kind)
+    {
+        if (p.Cause != null) return "";
+        var house = w.House(who.HouseId); var head = house != null ? Economy.HeadOf(w, house) : null;
+        if (head == null || !IsChildOf(who, head)) return " They are not your child, so they cannot sue over your will.";
+        if (kind == Struck && house!.Inheritance == WealthSystem.Portions) return " By the custom of the house they still take a portion of the treasury at your death, and one who does cannot sue over your will.";
+        return " Should they outlive you, they may sue that your will was undutiful, unless it leaves them something.";
+    }
     private static string PriceSays(Price p, string kind) => p.Cause != null
         ? $"The record holds cause: they {p.Cause}. It costs no legitimacy and the kin do not hold it against you."
         : $"There is no cause on the record against them: it costs {p.Legitimacy} legitimacy, and each of the kin thinks {p.Kin} the less of you.";
@@ -173,14 +184,14 @@ public static class DisownSystem
     {
         var p = PriceOf(w, who, Struck);
         return $"Strike {who.Name} out of the line of succession. They stay of the house. {PriceSays(p, Struck)} {who.Name} thinks {p.Self} the less of you" + (Grieves(w, who) ? ", wants their place back, and may strike back." : ", and takes it quietly.")
-            + (p.Cause == null ? " Should they outlive you, they may sue that your will was undutiful." : "") + " It can be undone at the same price.";
+            + SueSays(w, who, p, Struck) + " It can be undone at the same price.";
     }
     public static string CastOutSays(World w, Character who)
     {
         var p = PriceOf(w, who, CastOut); var house = w.House(who.HouseId); var (to, how) = house != null ? WhereTo(w, house, who) : (null, Alone);
         string goes = how switch { BySpouse => $"They go to {to!.Name}, their {(who.Sex == "female" ? "husband" : who.Sex == "male" ? "wife" : "spouse")}'s house", ByPatron => $"They go to {to!.Name}, their patron's house", ByParent => $"They go to {to!.Name}, the house of a parent born to it", _ => "They have nowhere to go, and found a name of their own" };
         return $"Cast {who.Name} out of the house. {goes}, and take their purse ({Money.Credits(Math.Max(0, who.Purse))}). {PriceSays(p, CastOut)} {who.Name} thinks {p.Self} the less of you."
-            + (p.Cause == null ? " Should they outlive you, they may sue that your will was undutiful." : "") + " They can be taken back at the same price, if they will come.";
+            + SueSays(w, who, p, CastOut) + " They can be taken back at the same price, if they will come.";
     }
     public static string RestoreSays(World w, Character who)
     {
@@ -338,10 +349,26 @@ public static class DisownSystem
     public static bool WouldSue(World w, Character child, Character heir) =>
         !(child.NatureTraits.Contains("Loyal") && (w.GetRelationship(child.Id, heir.Id)?.Disposition ?? 0) >= SueUnlessRegard) && (!Mine(w, heir.HouseId) || w.FamilyAutonomy > 0);
 
+    /// <summary>Whether the dead head's will, or the custom of the house, leaves this child something: the larger share or a smaller
+    /// legacy out of a purse that holds anything, an heirloom the dead head held that is not entailed, or (while they are of the house)
+    /// a portion of the treasury by the custom of portions. A child left anything was not forgotten, and has no suit.</summary>
+    public static bool Remembered(World w, House house, Character dead, Character child)
+    {
+        if (dead.Will is { } will)
+        {
+            int purse = Math.Max(0, dead.Purse);
+            if (will.LegateeId == child.Id && purse * will.SharePct / 100 > 0) return true;
+            if (will.Also.TryGetValue(child.Id, out var pct) && purse * pct / 100 > 0) return true;
+            if (will.Items.Any(kv => kv.Value == child.Id && w.Heirlooms.Any(i => i.Id == kv.Key && i.HolderId == dead.Id && !i.Entailed))) return true;
+        }
+        return house.Inheritance == WealthSystem.Portions && child.HouseId == house.Id && house.Treasury.Credits * WealthSystem.PortionPct / 100 > 0;
+    }
+
     /// <summary>The seat has passed (called once, from <see cref="DynastySystem.HandOver"/>). When the head who held it died, each grown
-    /// child of theirs they struck or cast out with no cause on the record may bring the suit of the undutiful will, while a praetor of
-    /// another house sits to hear it. What it asks is reckoned now, before the will is read: a quarter of the purse, and one heirloom in
-    /// four of those not entailed, the most valuable first, and at least one.</summary>
+    /// child of theirs they struck or cast out with no cause on the record, and whom the will and the house's custom leave nothing
+    /// (<see cref="Remembered"/>), may bring the suit of the undutiful will, while a praetor of another house sits to hear it. What it
+    /// asks is reckoned now, before the will is read: a quarter of the purse, and one heirloom in four of those not entailed, the most
+    /// valuable first, and at least one.</summary>
     public static void SeatPassed(World w, Character? previous, Character heir)
     {
         if (previous == null || previous.Alive || previous.HouseId != heir.HouseId || w.House(heir.HouseId) is not { } house) return;
@@ -349,6 +376,7 @@ public static class DisownSystem
         {
             var child = w.Char(d.PersonId);
             if (child is not { Alive: true } || child.Id == heir.Id || child.Age < Adult || !IsChildOf(child, previous) || !WouldSue(w, child, heir)) continue;
+            if (Remembered(w, house, previous, child)) continue;   // the will, or the custom of the house, did not forget them
             if (w.WillSuits.Any(s => s.PlaintiffId == child.Id && s.DeceasedId == previous.Id)) continue;
             var judge = LadderSystem.Bench(w, house.Id, child.HouseId); if (judge == null) { w.Log($"{child.Name} would sue that {previous.Name}'s will was undutiful, but no praetor of another house sits to hear it."); continue; }
             var things = w.Heirlooms.Where(i => i.HolderId == previous.Id && !i.Entailed).OrderByDescending(i => i.Value).ThenBy(i => i.Id, StringComparer.Ordinal).ToList();
@@ -374,7 +402,19 @@ public static class DisownSystem
     }
     public static string AsksSays(World w, WillSuit s) =>
         $"They ask a quarter of the purse, {Money.Credits(s.Share)}" + (ItemsSays(w, s) is { Length: > 0 } items ? $", and {items}" : "") + ".";
+    /// <summary>What a win would do, for the docket: one struck out stands in the line again; one cast out stays out, and may be taken back.</summary>
+    public static string WinSays(World w, WillSuit s)
+    {
+        string child = w.Char(s.PlaintiffId)?.Name ?? "the child";
+        return Over(w, s)?.Kind == CastOut ? $"If the praetor finds the will undutiful, {child} takes what the suit asks. The casting out stands: they may still be taken back, at the price it cost."
+            : $"If the praetor finds the will undutiful, {child} takes what the suit asks and stands in the line again.";
+    }
+    /// <summary>What coming to terms would do, for the docket.</summary>
+    public static string TermsSays(World w, WillSuit s) =>
+        $"Pay {w.Char(s.PlaintiffId)?.Name ?? "the child"} what the suit asks now, and it is withdrawn. {AsksSays(w, s)} " + (Over(w, s)?.Kind == CastOut ? "The casting out stands." : "The striking stands.");
     public static string LawSays(WillSuit s) => "The record shows no cause for putting them out: the law, read plainly, is with them.";
+    /// <summary>The standing record of how the plaintiff was put out of the house the suit is against, or null.</summary>
+    public static Disowning? Over(World w, WillSuit s) => w.Disownings.LastOrDefault(d => d.Stands && d.PersonId == s.PlaintiffId && d.HouseId == s.HouseId);
 
     /// <summary>The praetor who is to hear it: the one named while they sit and are of neither house, or another of neither house.</summary>
     public static Character? JudgeOf(World w, WillSuit s)
@@ -395,19 +435,43 @@ public static class DisownSystem
     /// <summary>In a hundred, how likely the child wins before a praetor who goes by the pleading.</summary>
     public static int Chance(World w, WillSuit s, int defence) => Math.Clamp(PleadBase + LadderSystem.Craft(w.Char(s.PlaintiffId)) * PleadFor - defence * PleadAgainst, 5, 95);
 
-    /// <summary>How the praetor would find, and why. The upright go by the record, which shows no cause; one bought by the house finds for
-    /// it; a friend of the house finds for it; one for sale finds for whichever has more, the child's purse or the house's treasury; the
-    /// rest go by who pleads better.</summary>
-    public static (bool undutiful, string why) Verdict(World w, WillSuit s, Character judge, int? defence = null)
+    /// <summary>The grounds a praetor finds on.</summary>
+    public const string ByRecord = "record", ByPurchase = "bought", ByFriendship = "friend", ForSale = "for_sale", ByPleading = "pleading";
+    /// <summary>How the praetor would find, and on what ground. The upright go by the record, which shows no cause; one bought by the house
+    /// finds for it; a friend of the house finds for it; one for sale finds for whichever has more, the child's purse or the house's
+    /// treasury; the rest go by who pleads better.</summary>
+    public static (bool undutiful, string ground) Grounds(World w, WillSuit s, Character judge, int? defence = null)
     {
         var house = w.House(s.HouseId); var child = w.Char(s.PlaintiffId);
-        if (judge.NatureTraits.Contains("Honorable") || judge.NatureTraits.Contains("Just")) return (true, "upright, and will go by the record, which shows no cause");
-        if (LadderSystem.BoughtBy(w, judge) == s.HouseId) return (false, "bought by the house, and will find for it");
+        if (judge.NatureTraits.Contains("Honorable") || judge.NatureTraits.Contains("Just")) return (true, ByRecord);
+        if (LadderSystem.BoughtBy(w, judge) == s.HouseId) return (false, ByPurchase);
         var bench = w.House(judge.HouseId); var benchHead = bench != null ? Economy.HeadOf(w, bench) : null; var ourHead = house != null ? Economy.HeadOf(w, house) : null;
-        if (benchHead != null && ourHead != null && (w.GetRelationship(benchHead.Id, ourHead.Id)?.Disposition ?? 0) >= FriendAt) return (false, "a friend of the house, and will find for it");
-        if (judge.NatureTraits.Contains("Ruthless") || judge.NatureTraits.Contains("Cruel") || judge.Ambition == "amass_a_fortune") return ((child?.Purse ?? 0) > (house?.Treasury.Credits ?? 0), "known to be for sale, and will find for whichever has more to give");
-        return ((int)(Hash(s.Id + ":verdict") % 100) < Chance(w, s, defence ?? DefenceOf(w, s)), "neither upright nor a friend: it will go by who pleads better");
+        if (benchHead != null && ourHead != null && (w.GetRelationship(benchHead.Id, ourHead.Id)?.Disposition ?? 0) >= FriendAt) return (false, ByFriendship);
+        if (judge.NatureTraits.Contains("Ruthless") || judge.NatureTraits.Contains("Cruel") || judge.Ambition == "amass_a_fortune") return ((child?.Purse ?? 0) > (house?.Treasury.Credits ?? 0), ForSale);
+        return ((int)(Hash(s.Id + ":verdict") % 100) < Chance(w, s, defence ?? DefenceOf(w, s)), ByPleading);
     }
+    /// <summary>How the praetor would find, and why, in words that follow "who is".</summary>
+    public static (bool undutiful, string why) Verdict(World w, WillSuit s, Character judge, int? defence = null)
+    {
+        var (undutiful, ground) = Grounds(w, s, judge, defence);
+        return (undutiful, ground switch
+        {
+            ByRecord => "upright, and will go by the record, which shows no cause",
+            ByPurchase => "bought by the house, and will find for it",
+            ByFriendship => "a friend of the house, and will find for it",
+            ForSale => "known to be for sale, and will find for whichever has more to give",
+            _ => "neither upright nor a friend of the house, and will go by who pleads better"
+        });
+    }
+    /// <summary>How the praetor found, once it is heard: the words between "{name}, praetor, " and "found the will undutiful" or "let the will stand".</summary>
+    private static string HowFound(string ground) => ground switch
+    {
+        ByRecord => "went by the record, which showed no cause, and ",
+        ByPurchase => "who had been bought by the house, ",
+        ByFriendship => "a friend of the house, ",
+        ForSale => "known to be for sale, went with the side that had more to give and ",
+        _ => "went by who pleaded better and "
+    };
 
     /// <summary>The share is paid: from the head's purse, then the treasury; and the heirlooms asked for, where the house still has them.</summary>
     private static (int paid, List<string> things) PayShare(World w, WillSuit s, House house, Character head, Character child)
@@ -454,9 +518,9 @@ public static class DisownSystem
     public static string PleadSays(World w, WillSuit s, Character pleader)
     {
         var judge = JudgeOf(w, s); int ours = LadderSystem.Craft(pleader); if (judge == null) return $"law and oratory {ours}";
-        string why = Verdict(w, s, judge, ours).why;
-        return $"law and oratory {ours}: " + (why.StartsWith("upright", StringComparison.Ordinal) ? "the praetor is upright and will go by the record, and pleading will not move it"
-            : why.StartsWith("neither", StringComparison.Ordinal) ? $"against their {LadderSystem.Craft(w.Char(s.PlaintiffId))}, about {Chance(w, s, ours)} in a hundred that the will is found undutiful"
+        string ground = Grounds(w, s, judge, ours).ground;
+        return $"law and oratory {ours}: " + (ground == ByRecord ? "the praetor is upright and will go by the record, and no pleading will change the verdict"
+            : ground == ByPleading ? $"against their {LadderSystem.Craft(w.Char(s.PlaintiffId))}, about {Chance(w, s, ours)} in a hundred that the will is found undutiful"
             : "the praetor will not go by the pleading");
     }
 
@@ -472,26 +536,24 @@ public static class DisownSystem
                 if (house != null && Mine(w, house.Id)) w.Tell("info", $"{(child != null ? child.Name + "'s" : "The")} suit over the will of {s.DeceasedName} has lapsed: {s.How["lapsed: ".Length..]}.", "senate:ladder");
                 continue;
             }
-            var (undutiful, why) = Verdict(w, s, judge); var answers = AnswersFor(w, s);
+            var (undutiful, ground) = Grounds(w, s, judge); var answers = AnswersFor(w, s);
             s.DecidedTurn = w.Turn;
             if (undutiful)
             {
                 var (paid, things) = PayShare(w, s, house, head, child);
-                s.Outcome = Undutiful; s.How = $"{judge.Name}, praetor, who was {why}, found the will undutiful: {Got(paid, things)} to {child.Name}";
-                if (w.Disownings.LastOrDefault(d => d.Stands && d.PersonId == child.Id && d.HouseId == house.Id) is { } d)
-                {
-                    End(w, d, "found_undutiful"); Appease(child, d);
-                    if (d.Kind == Struck) child.Flags.Remove(StruckChar); else child.Flags.Remove(CastOutChar);
-                }
+                s.Outcome = Undutiful; s.How = $"{judge.Name}, praetor, {HowFound(ground)}found the will undutiful: {Got(paid, things)} to {child.Name}";
+                // one struck out stands in the line again; one cast out is not brought back by it, and may still be taken back
+                var d = Over(w, s); bool castOut = d?.Kind == CastOut;
+                if (d is { Kind: Struck }) { End(w, d, "found_undutiful"); Appease(child, d); child.Flags.Remove(StruckChar); }
                 LegitimacyBook.Move(w, house, -UndutifulLegitimacy, LegitimacyBook.Courts, "A late head's will found undutiful in the courts");
                 Regard(w, child, head, WonRegard); Count(w, SuitsWonKey);
                 LifeSystem.Note(w, child, "office", $"Sued that the will of {s.DeceasedName} was undutiful, and won.");
-                if (Mine(w, house.Id)) { Mark(w, UndutifulFlag); w.Tell("warn", $"{judge.Name}, praetor, finds the will of {s.DeceasedName} undutiful: {child.Name} takes {Got(paid, things)}" + (child.HouseId == house.Id ? ", and stands in the line again." : "."), "senate:ladder", child.Id); }
+                if (Mine(w, house.Id)) { Mark(w, UndutifulFlag); w.Tell("warn", $"{judge.Name}, praetor, finds the will of {s.DeceasedName} undutiful: {child.Name} takes {Got(paid, things)}" + (castOut ? ". The casting out stands: they may still be taken back, at the price it cost." : child.HouseId == house.Id ? ", and stands in the line again." : "."), "senate:ladder", child.Id); }
                 w.Log($"{judge.Name}, praetor, finds that the will of {s.DeceasedName} did not do its duty by {child.Name}, who takes {Got(paid, things)}.");
             }
             else
             {
-                s.Outcome = Upheld; s.How = $"{judge.Name}, praetor, who was {why}, let the will stand" + (answers != null ? $", {answers.Name} answering for the house" : "");
+                s.Outcome = Upheld; s.How = $"{judge.Name}, praetor, {HowFound(ground)}let the will stand" + (answers != null ? $", {answers.Name} answering for the house" : "");
                 Regard(w, child, head, -LostRegard);
                 LifeSystem.Note(w, child, "failure", $"Sued that the will of {s.DeceasedName} was undutiful, and lost.");
                 if (Mine(w, house.Id)) { Mark(w, UpheldFlag); w.Tell("good", $"{judge.Name}, praetor, lets the will of {s.DeceasedName} stand: {child.Name}'s suit fails.", "senate:ladder", child.Id); }

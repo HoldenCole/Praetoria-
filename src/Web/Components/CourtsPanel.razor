@@ -50,12 +50,12 @@
         }
         else if (e.Kind == Docket.Will)
         {
-            var ws = w.WillSuits.First(x => x.Id == eid); string child = w.Char(ws.PlaintiffId)?.Name ?? string.Empty;
+            var ws = w.WillSuits.First(x => x.Id == eid);
             var noTerms = new WillSuitCommand(pid, WillSuitCommand.Settle, eid).Refusal(G.Ctx);
-            string termsTip = noTerms ?? "Pay " + child + " what the suit asks now, and it is withdrawn. " + DisownSystem.AsksSays(w, ws) + " The striking stands.";
+            string termsTip = noTerms ?? DisownSystem.TermsSays(w, ws);
             string termsLabel = "Come to terms · " + Money.Show(ws.Share);
             string answers = e.Pleader.Length > 0 ? e.Pleader + " is to answer it." : string.Empty;
-            string winSays = "If the praetor finds the will undutiful, " + child + " takes what the suit asks and stands in the line again.";
+            string winSays = DisownSystem.WinSays(w, ws);
             <div class="suit court-suit warn" data-undutiful-will="@eid" data-kind="@e.Kind">
                 <b>@e.Title</b> <span class="muted">@e.Over · heard @e.Heard by @e.Judge@(e.JudgeIs.Length > 0 ? ", who is " + e.JudgeIs : string.Empty)</span>
                 <div class="small">@e.Law @winSays @answers</div>

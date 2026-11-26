@@ -30,8 +30,8 @@ public sealed class Disowning
     public string WasBornHouseId { get; set; } = "";
     /// <summary>The year it was undone (restored to the line, taken back, or set aside by a court), or -1 while it stands.</summary>
     public int UndoneTurn { get; set; } = -1;
-    /// <summary>How it ended: "restored", "taken_back", "found_undutiful" (a court set it aside), "left" (they left the house, or the
-    /// house they were cast out of), "died".</summary>
+    /// <summary>How it ended: "restored", "taken_back", "found_undutiful" (a court set a striking aside; a casting out is not set aside
+    /// by the suit), "left" (they left the house, or the house they were cast out of), "succeeded", "cast_out", "died".</summary>
     public string Ended { get; set; } = "";
     public bool Stands => UndoneTurn < 0;
 }

@@ -50,12 +50,13 @@
     @foreach (var f in found)
     {
         string fid = f.Id; int regard = w.GetRelationship(f.Id, pid)?.Disposition ?? 0; var born = w.House(f.BornHouseId);
+        string bornSays = born == null ? " · the house of their birth is gone" : HouseholdSystem.HomeOf(w, f) == null ? " · cast out of " + born.Name : " · born to " + born.Name;
         var adopt = new HouseholdCommand(pid, HouseholdCommand.Adopt, fid).Refusal(G.Ctx); var release = new HouseholdCommand(pid, HouseholdCommand.Release, fid).Refusal(G.Ctx);
         <div class="suit">
             <div class="suit-who">
                 <Portrait Id="@f.Id" Name="@f.Name" Sex="@f.Sex" Age="@f.Age" Accent="@(born?.AccentColor ?? house.AccentColor)" Size="36" />
                 <div><b>@f.Name</b> <span class="pill small">@HouseholdSystem.KindName(HouseholdSystem.KindOf(f))</span> <span class="pill small @(regard >= 30 ? "good" : regard < 0 ? "warn" : "")">@(regard >= 0 ? "+" : "")@regard</span>
-                    <div class="muted small">@f.Age, @Rank(f) · @Best(f)@(born != null ? $" · born to {born.Name}" : " · the house of their birth is gone") · @Years(w.Turn - f.JoinedTurn) with you@(f.MentorId == pid ? " · you are bringing them on" : "")</div></div>
+                    <div class="muted small">@f.Age, @Rank(f) · @Best(f)@bornSays · @Years(w.Turn - f.JoinedTurn) with you@(f.MentorId == pid ? " · you are bringing them on" : "")</div></div>
             </div>
             <div class="suit-acts">
                 @if (f.Age >= 16) { <button class="opt inline" disabled="@(adopt != null)" title="@(adopt ?? "They take your name and stand in the line as your child. Your grown children by blood will not thank you.")" @onclick="() => G.Execute(new HouseholdCommand(pid, HouseholdCommand.Adopt, fid))">Adopt as an heir · @HouseholdSystem.AdoptInfluence influence</button> }

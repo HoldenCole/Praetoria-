@@ -281,7 +281,10 @@ whatever else is their own. Where they go, in this order:
 | Alone, the first of a new name | None of these: a house without land, named for them ("House Corvin"), whose treasury is their purse and whose legitimacy is 5 |
 
 In another's house they live as one taken in, under their own name. One cast out by another house is not sent to the
-player's house unless it is to a husband or wife there.
+player's house unless it is to a husband or wife there, and once there they cannot be sent back to the house that cast
+them out, by the head ("Send them home" is refused: "the house they were born to cast them out: they have nowhere else")
+or of themselves when their keep goes unpaid. The household window says "cast out of" that house where it would say
+"born to".
 
 ### What it costs, and the cause on the record
 
@@ -321,7 +324,12 @@ Through the rules that already exist, not a new system. Unless they are loyal (o
 ### The suit of the undutiful will
 
 When a head dies, each grown child of theirs who stands struck out or cast out of the house **with no cause on the
-record** may sue that the will was undutiful (a loyal child who thinks well of the new head does not). Whoever struck
+record**, and **whom the will and the house's custom leave nothing**, may sue that the will was undutiful (a loyal child
+who thinks well of the new head does not). A child the will remembered has no suit: one left the larger share or a
+smaller legacy out of a purse that holds anything, or an heirloom the head held, or (while they are still of the house)
+a portion of the treasury by the custom of portions (docs/WEALTH.md). Before a head strikes or casts someone out, the
+Dynasty window says whether they could sue: only a child of the head can ("They are not your child, so they cannot sue
+over your will"), and one struck out under the custom of portions takes a portion all the same. Whoever struck
 them out, the will of a parent who died with them still out is the one sued over. It goes on the house's docket with
 its other suits (docs/LADDER.md, "The docket"), before a praetor of neither house, and is heard at the end of the year
 after it is brought.
@@ -329,15 +337,18 @@ after it is brought.
 - **It asks** a quarter of the dead head's purse as it stood at the death, and one heirloom in four of those not
   entailed, the most valuable first, and at least one if there are any.
 - **Until it is heard** the head may come to terms (pay what it asks now: the suit is withdrawn, the child thinks 10 the
-  better of the head, and the striking stands) or send someone of age to answer it (1 influence, as for any suit).
+  better of the head, and the striking or the casting out stands) or send someone of age to answer it (1 influence, as for any suit).
   Otherwise the house's advocate on the council answers it, and failing one the head.
 - **The praetor**: the upright go by the record, which shows no cause, and find for the child; one bought by the house,
   or a friend of it (regard 30 or better), finds for the house; one known to be for sale finds for whichever has more,
   the child's purse or the house's treasury; the rest go by who pleads better, 55 in a hundred for the child, 6 more for
   each point of law and oratory the child has and 4 fewer for each the one answering has.
 - **The child wins**: they take what the suit asked (from the head's purse, then the treasury), the heirlooms go to
-  them, the striking is set aside (they stand in the line again, if they are still of the house), and the house loses 2
-  legitimacy. **The will stands**: the child thinks 10 the worse of the head.
+  them, and the house loses 2 legitimacy. One struck out has the striking set aside and stands in the line again. One
+  cast out is not brought back by it: the casting out stands, and the head may still take them back at the price it
+  cost, as the docket says. **The will stands**: the child thinks 10 the worse of the head.
+- The decided suit is kept on the docket a while, in words of what was done ("Quintus Bench, praetor, went by the record,
+  which showed no cause, and found the will undutiful").
 - No praetor of another house sitting: the suit is not brought, or lapses. So none is brought under a throne.
 
 ### Other houses
@@ -410,7 +421,8 @@ Every number here is mine, and a first guess:
 - The grievance as an ambition: the seat of the house for one struck out, to outshine all rivals for one cast out; and
   that the loyal, and everyone when the family has no wills of its own, take it quietly.
 - The suit: a quarter of the purse (the old portion a child could not be denied) and one heirloom in four; that it is
-  brought only where the child was put out with no cause; that a loyal child fond of the new head (30) does not sue;
+  brought only where the child was put out with no cause and the will and custom leave them nothing, so that anything
+  left to them, however small, answers it; that winning sets a striking aside but not a casting out; that a loyal child fond of the new head (30) does not sue;
   that the will sued over is that of any parent who died with them still out; the praetor's rules, mirrored on the
   charges' (55, 6 and 4; the friend at 30); -2 legitimacy and the 10s of regard.
 - That the defence is whoever was sent, else the council's advocate, else the head.
@@ -431,6 +443,8 @@ Every number here is mine, and a first guess:
   the player's house), and desertion in war is not a person's record anywhere in the game (only hulls desert), so other
   heads see only removals from office, the field refused, and those who came over to them by defection.
 - A child who wins does not take back what was entailed, and a suit cannot be appealed.
+- A child the will left less than a quarter cannot sue to have it made up to the quarter: anything left answers the suit.
+- One cast out who wins the suit is not taken back by it, nor made cheaper to take back.
 - Random-play QA (`src/Tools/Qa.cs`) is not wired to the new commands; that file is the owner's to change.
 
 ### How it is built
@@ -441,8 +455,10 @@ Every number here is mine, and a first guess:
 - State: `Disowning` and `WillSuit` (`src/Core/State/Disowning.cs`), `World.Disownings`, `World.WillSuits`; character flags
   `struck_from_the_line` and `cast_out`; counters `defied_the_head:<id>`, `wed_without_leave:<id>`,
   `refused_field_seen:<id>` and `defected_seen:<id>` for causes that would otherwise pass with the year.
-- Reads it: `DynastySystem.Line` (struck out last), `HeadSystem.Eldest` and `Challenger`, `AmbitionSystem.NameHeirRefusal`,
-  the docket (`Docket.Will`).
+- Reads it: `DynastySystem.Line` (struck out last), `HeadSystem.Eldest` and `Challenger`, `AmbitionSystem.NameHeirRefusal`
+  (also for a request to be named heir, through `AnswerRefusal`), `HouseholdSystem.HomeOf` (one cast out has no home in the
+  house that cast them out), the docket (`Docket.Will`, `DisownSystem.WinSays` and `TermsSays`), and `DisownSystem.Remembered`
+  (whether the will or the custom left a child anything).
 - Commands (`src/Core/Commands/DisownCommands.cs`): `DisownCommand(actorId, what, personId)` with `Strike`, `Restore`,
   `CastOut`, `TakeBack`; `WillSuitCommand(actorId, what, suitId, pleaderId = "")` with `Settle`, `Plead`.
 - The screen: the Dynasty window, on a relative's card, "Strike from the line" or "Restore to the line"
