@@ -51,7 +51,7 @@ public static class MercenarySystem
         if (w.Wars.Any(x => x.Involves(actor.HouseId))) return "your house is at war itself: its ships are wanted at home";
         var head = Economy.HeadOf(w, employer); int regard = head != null ? w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0 : 0;
         if (regard < TakesAt) return $"{head?.Name ?? "its head"} thinks too ill of you to put your ships in {employer.Name}'s line (regard {regard}; {TakesAt} or better would do)";
-        if (SenateActs.CompanyFee(w) is > 0 and var fee && w.House(actor.HouseId) is { } sender && RegionSystem.CapitalHolder(w)?.Id != sender.Id && sender.Treasury.Credits < fee)
+        if (SenateActs.CompanyFee(w) is > 0 and var fee && w.House(actor.HouseId) is { } sender && RegionSystem.CapitalHolder(w) is { } chair && chair.Id != sender.Id && sender.Treasury.Credits < fee)   // asked only where another house holds the capital, as Hire takes it
             return $"{SenateActs.LawName(w, SenateActs.CompanyLicence)} asks {Money.Credits(fee)} for the licence, paid to the chair, and the house has {Money.Show(Math.Max(0, sender.Treasury.Credits))}";
         int pay = PayOf(f); return employer.Treasury.Credits >= pay ? null : $"{employer.Name} cannot find the first year's pay ({Money.Credits(pay)}; it has {Money.Show(Math.Max(0, employer.Treasury.Credits))})";
     }
@@ -63,7 +63,10 @@ public static class MercenarySystem
         return $"{f.Name} ({Counted.Hulls(f.Strength)}) sails under {employer.Name}'s colours and at its orders for up to {TermYears} years, against {string.Join(" and ", foes)}. {employer.Name} pays you {Money.Credits(CreditsPerHull)} a hull each year ({Money.Show(PayOf(f))} now) and keeps and fuels the ships. "
             + $"Hulls lost in its battles are lost to you. Your house is thought the less of for selling its sword (legitimacy −{ShameOf(w)}), and the head of each house it is turned on thinks {FoeRegard} the worse of you; {employer.Name}'s head thinks {EmployerRegard} the better. "
             + "It comes home when that house's wars are over, the term is up or the pay is not found. Calling it back sooner breaks the contract."
-            + (SenateActs.CompanyFee(w) is > 0 and var fee ? $" Under {SenateActs.LawName(w, SenateActs.CompanyLicence)} you pay the chair {Money.Credits(fee)} for the licence, and a licensed company costs less standing than an unlicensed one did." : "");
+            + (SenateActs.CompanyFee(w) is var fee && fee <= 0 ? ""
+                : RegionSystem.CapitalHolder(w) is not { } chair ? $" Under {SenateActs.LawName(w, SenateActs.CompanyLicence)} a licensed company costs less standing than an unlicensed one did, and no licence is paid while no house holds the capital."
+                : chair.Id == f.OwnerId ? $" Under {SenateActs.LawName(w, SenateActs.CompanyLicence)} a licensed company costs less standing than an unlicensed one did, and your house, as the chair, pays no licence."
+                : $" Under {SenateActs.LawName(w, SenateActs.CompanyLicence)} you pay the chair {Money.Credits(fee)} for the licence, and a licensed company costs less standing than an unlicensed one did.");
     }
 
     public static void Hire(World w, Character actor, Fleet f, House employer)

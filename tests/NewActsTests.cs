@@ -89,7 +89,15 @@ public class NewActsTests
         // the stewards' standing loan, which every other house takes: less is lent, and less owed for it
         other.Debt = 0; int before = other.Treasury.Credits; var steward = Economy.HeadOf(w, other)!;
         new TakeLoanCommand(steward.Id, v).Execute(new CommandContext(w, TestContent.Rng()));
-        Assert.InRange(other.Treasury.Credits - before, Lending.Step, v.Finance.LoanPrincipal - 1); Assert.True(other.Debt < v.Finance.LoanRepay);
+        int lent = other.Treasury.Credits - before;
+        Assert.InRange(lent, Lending.Step, v.Finance.LoanPrincipal - 1); Assert.True(other.Debt < v.Finance.LoanRepay);
+        Assert.Equal(lent + lent * 10 / 100, other.Debt);   // no loan costs more than the cap: 500 lent at 10 owe 500, the interest rounded down and never up past it
+        // the House screen offers the standing loan as the law leaves it, not as the custom made it
+        var (standLent, standOwes) = SenateActs.StandingLoan(w, v.Finance); Assert.Equal((lent, other.Debt), (standLent, standOwes));
+        Assert.StartsWith($"Borrow {Money.Credits(standLent)} (owe {Money.Show(standOwes)},", CourtProjection.Build(tc, Content).Ledger!.Loan.Label);
+        // a loan of one's choosing at the cap is owed the same way
+        var ctx = new CommandContext(w, TestContent.Rng()); var chosen = new TakeLoanCommand(w.Protagonist!.Id, v, Lending.CountingHouses, Lending.Step);
+        Assert.Null(chosen.Refusal(ctx)); chosen.Execute(ctx); Assert.Equal(Lending.Step + Lending.Step * 10 / 100, mine.Debt);
         // a loan between houses above the cap is refused, and the law is named as the reason: the player's and another's alike
         var third = Third(w, mine, other);
         string? mineAsks = tc.Dealings.LendRefusal(w, Economy.HeadOf(w, mine), third, DealingsSystem.LoanSizes[0], 20);
@@ -97,6 +105,11 @@ public class NewActsTests
         Assert.Equal("the Usury Law allows no more than 10 in the hundred, and this is 20", mineAsks);
         Assert.Equal("the Usury Law allows no more than 10 in the hundred, and this is 30", otherAsks);
         Assert.DoesNotContain("Usury", tc.Dealings.LendRefusal(w, Economy.HeadOf(w, mine), third, DealingsSystem.LoanSizes[0], 10) ?? "");
+        // and a loan between houses at the cap: 500 at 10 owe 500, said so before it is made
+        int small = DealingsSystem.LoanSizes[0]; Assert.StartsWith($"{third.Name} would owe you {Money.Credits(small + small * 10 / 100)},", tc.Dealings.LendSays(w, third, small, 10));
+        Assert.Equal(small + small * 10 / 100, tc.Dealings.Lend(w, other, third, small, 10).Owed);
+        // where contract is free, the interest is rounded up as it always was
+        w.Laws.Remove(PolicySystem.SenateHolder); Assert.Equal(small + (small * 10 + 99) / 100, tc.Dealings.Lend(w, mine, Third(w, mine, other, third), small, 10).Owed);
     }
 
     // ---------------------------------------------------------------- canvassing
@@ -118,6 +131,22 @@ public class NewActsTests
             Act(w, "canvassing", "free"); w.OfficeRecord.Clear(); w.Campaigns.RemoveAll(f => f.CharacterId == head.Id);
             Assert.Null(LadderSystem.CampaignRefusal(w, offices, head, head, LadderSystem.Lavish));
             LadderSystem.Campaign(w, offices, head, head, LadderSystem.Lavish); Assert.Equal(0, Deeds());   // money is free: nothing is written, however lavish
+        }
+        // the other houses, which put coin behind their own candidates the year before a count (LadderSystem's own year), by the same law
+        foreach (var option in new[] { "strict", "free" })
+        {
+            var (_, w2, mine2, _) = Start(); var others = w2.Houses.Values.Where(h => h.Id != mine2.Id && !World.Outsider(h.Id)).ToList();
+            foreach (var h in others) { h.Treasury.Credits = 300; h.Debt = 0; }   // enough for a lavish canvass five times over
+            Act(w2, "canvassing", option); w2.Turn = 4; Assert.Equal(1, LadderSystem.NextIn(w2, offices)); w2.OfficeRecord.Clear();
+            LadderSystem.Tick(w2, offices);
+            var funds = w2.Campaigns.Where(f => f.HouseId != mine2.Id).ToList(); Assert.NotEmpty(funds);
+            bool Written(CampaignFund f) => w2.OfficeRecord.Any(d => d.What == LadderSystem.BoughtElection && d.HouseId == f.HouseId && d.CharacterId == f.CharacterId);
+            if (option == "strict")
+            {
+                Assert.DoesNotContain(funds, f => f.Size == LadderSystem.Lavish); Assert.Contains(funds, f => f.Size == LadderSystem.Handsome);   // the most the law allows
+                Assert.All(funds, f => Assert.Equal(f.Size == LadderSystem.Handsome, Written(f)));   // and a handsome one is written down
+            }
+            else { Assert.Contains(funds, f => f.Size == LadderSystem.Lavish); Assert.DoesNotContain(funds, Written); }   // money is free: nothing is written, however lavish
         }
     }
 
@@ -195,6 +224,21 @@ public class NewActsTests
         }
         var (w2, f2, home2, employer2) = Company(false, "");
         int legit2 = home2.Legitimacy; MercenarySystem.Hire(w2, Economy.HeadOf(w2, home2)!, f2, employer2); Assert.Equal(legit2 - MercenarySystem.Legitimacy, home2.Legitimacy);   // free: the full shame
+        // the licence is asked only where another house holds the capital: with nobody there, a house short of the fee hires out all the same
+        foreach (bool player in new[] { true, false })
+        {
+            var (w3, f3, home3, employer3) = Company(player, "licensed"); var head3 = Economy.HeadOf(w3, home3)!;
+            w3.PlanetOf(w3.Galaxy!.Capital)!.OwnerId = ""; Assert.Null(RegionSystem.CapitalHolder(w3));
+            home3.Treasury.Credits = SenateActs.CompanyFee(w3) - 1;
+            Assert.Null(MercenarySystem.Refusal(w3, head3, f3.Id, employer3.Id)); Assert.DoesNotContain("pay the chair", MercenarySystem.Says(w3, f3, employer3));
+            int credits3 = home3.Treasury.Credits + MercenarySystem.PayOf(f3); MercenarySystem.Hire(w3, head3, f3, employer3); Assert.Equal(credits3, home3.Treasury.Credits);
+        }
+        // the chair is not told it pays itself; another house is told it pays the chair
+        var (w4, f4, home4, employer4) = Company(true, "licensed");
+        w4.PlanetOf(w4.Galaxy!.Capital)!.OwnerId = home4.Id; Assert.Equal(home4.Id, RegionSystem.CapitalHolder(w4)?.Id);
+        Assert.DoesNotContain("pay the chair", MercenarySystem.Says(w4, f4, employer4)); Assert.Contains("pays no licence", MercenarySystem.Says(w4, f4, employer4));
+        w4.PlanetOf(w4.Galaxy!.Capital)!.OwnerId = employer4.Id;
+        Assert.Contains($"you pay the chair {Money.Credits(SenateActs.CompanyFee(w4))} for the licence", MercenarySystem.Says(w4, f4, employer4));
     }
 
     // ---------------------------------------------------------------- the Corn Law
@@ -263,6 +307,23 @@ public class NewActsTests
             int ready = Ready("");
             Assert.Equal(ready + 3, Ready("long")); Assert.Equal(ready - 2, Ready("short"));
         }
+        // the law is the Reach's, for the fleets of the Reach: the raiders and the nations' fleets on the map are neither readier nor dearer for it
+        var raiders = new Fleet { Id = "test_raiders", Name = "Raiders", OwnerId = PirateSystem.HouseId, SystemId = w.HoldingsOf(mine.Id).First(x => x.IsPlanet).SystemId, Strength = 3 }; w.Fleets[raiders.Id] = raiders;
+        var outsiders = new List<Fleet> { raiders };
+        if (w.Fleets.Values.Where(f => World.Outsider(f.OwnerId) && f.OwnerId != PirateSystem.HouseId && !f.IsAway && !f.LaidUp).OrderBy(f => f.Id, StringComparer.Ordinal).FirstOrDefault() is { } nation) outsiders.Add(nation);
+        Assert.Equal(2, outsiders.Count);   // the Old Lion begins with the nations' hosts on the map
+        foreach (var o in outsiders)
+        {
+            Assert.True(World.Outsider(o.OwnerId), o.OwnerId);
+            long Keep(string option) { w.Laws.Remove(PolicySystem.SenateHolder); if (option.Length > 0) Act(w, "law_of_service", option); var u = tc.Fleets.Upkeep(o); return 100L * u.Credits + u.Coin; }
+            int Ready(string option)
+            {
+                w.Laws.Remove(PolicySystem.SenateHolder); if (option.Length > 0) Act(w, "law_of_service", option);
+                o.Readiness = 40; o.Supply = 100; o.DestinationId = ""; o.Eta = 0; tc.Fleets.Tick(w); return o.Readiness;
+            }
+            long plain = Keep(""); Assert.Equal(plain, Keep("long")); Assert.Equal(plain, Keep("short"));
+            int ready = Ready(""); Assert.Equal(ready, Ready("long")); Assert.Equal(ready, Ready("short"));
+        }
     }
 
     // ---------------------------------------------------------------- the Navigation Act
@@ -280,12 +341,30 @@ public class NewActsTests
             Act(w, "navigation_act", "levy");
             Assert.DoesNotContain("Navigation", HouseTradeSystem.WontTrade(w, buyer, seller) ?? "");
             string good = Resource.Materials; seller.Treasury.Set(good, 40); buyer.Treasury.Credits = 1000;
-            int sellerBefore = seller.Treasury.Credits, chairBefore = chair.Treasury.Credits, buyerBefore = buyer.Treasury.Credits;
+            long sellerBefore = seller.Treasury.Total, chairBefore = chair.Treasury.Total, buyerBefore = buyer.Treasury.Total;
             int paid = tc.HouseTrade.Buy(w, buyer, seller, good, 10);
-            Assert.True(paid > 0); int levy = SenateActs.LevyOn(w, seller, paid); Assert.InRange(levy, 1, paid - 1);
-            Assert.Equal(sellerBefore + paid - levy, seller.Treasury.Credits); Assert.Equal(chairBefore + levy + (chair.Id == buyer.Id ? -paid : 0), chair.Treasury.Credits);
-            Assert.Equal(buyerBefore - paid + (chair.Id == buyer.Id ? levy : 0), buyer.Treasury.Credits);
+            // a tenth of the sale, to the single credit: 1,500 credits pay 150, 200 pay 20
+            Assert.True(paid > 0); long sale = (long)paid * Money.PerUnit, levy = sale / 10;
+            Assert.Equal(levy, SenateActs.LevyOn(w, seller, paid)); Assert.Equal(20, SenateActs.LevyOn(w, seller, 2)); Assert.Equal(0, SenateActs.LevyOn(w, chair, paid));
+            Assert.Equal(sellerBefore + sale - levy, seller.Treasury.Total); Assert.Equal(chairBefore + levy + (chair.Id == buyer.Id ? -sale : 0), chair.Treasury.Total);
+            Assert.Equal(buyerBefore - sale + (chair.Id == buyer.Id ? levy : 0), buyer.Treasury.Total);
             Act(w, "navigation_act", "free");
+        }
+        // what the player is told of the levy is what LevyOn takes: the chair is not told it pays itself, and nothing is taken while no house holds the capital
+        {
+            var law = Cat.Law("navigation_act")!; var capital = w.PlanetOf(w.Galaxy!.Capital)!; string held = capital.OwnerId; var buyer = Third(w, mine, chair);
+            Act(w, "navigation_act", "levy"); const string Takes = "the chair takes 10 in the hundred of the sale";
+            string Sells() => tc.HouseTrade.PriceSays(w, buyer, mine, Resource.Materials, selling: false); string Buys() => tc.HouseTrade.PriceSays(w, buyer, mine, Resource.Materials, selling: true);
+            string ToMine() => SenateActs.ToHouse(w, mine, law.DefaultOption, law.Option("levy")!, Content.Offices);
+            capital.OwnerId = chair.Id == mine.Id ? other.Id : chair.Id; Assert.NotEqual(mine.Id, RegionSystem.CapitalHolder(w)?.Id);
+            Assert.Contains(Takes, Sells()); Assert.Contains("of a lot your house sold another for 1,000 credits, the chair would take 100 credits", ToMine());
+            capital.OwnerId = mine.Id; Assert.Equal(0, SenateActs.LevyOn(w, mine, 10));
+            Assert.DoesNotContain(Takes, Sells()); Assert.Contains("your house, as the chair, pays no levy on what it sells", Sells()); Assert.Contains(Takes, Buys());
+            Assert.Contains("your house, as the chair, would take 10 in the hundred of every lot one house sells another, and pay none on its own", ToMine());
+            capital.OwnerId = ""; Assert.Null(RegionSystem.CapitalHolder(w)); Assert.Equal(0, SenateActs.LevyOn(w, mine, 10));
+            Assert.DoesNotContain(Takes, Sells()); Assert.DoesNotContain(Takes, Buys()); Assert.Contains("no levy is taken while no house holds the capital", Sells());
+            Assert.Contains("no levy would be taken while no house holds the capital", ToMine()); Assert.DoesNotContain("the chair would take", ToMine());
+            capital.OwnerId = held; Act(w, "navigation_act", "free");
         }
         // the staple sends more through the chokepoints: every lane world's tolls rise
         var lane = w.Houses.Values.FirstOrDefault(h => w.HoldingsOf(h.Id).Any(x => x.IsPlanet && !x.InRebellion && w.Galaxy!.IsChokepoint(x.SystemId)));
@@ -315,6 +394,23 @@ public class NewActsTests
         }
         var consul = offices.Defs.First(o => o.Elected && o.MinAge > 0); Act(w, "law_of_years", "strict");
         Assert.Contains($"{consul.MinAge + 5} or older", OfficeSystem.Wants(offices, consul, w));
+        // what the player is told the law would do to the house, and how the house leans for it: the ladder and the consulship, a person as they
+        var law = Cat.Law("law_of_years")!; w.Laws.Remove(PolicySystem.SenateHolder);
+        foreach (var x in w.LivingCharacters().Where(x => x.HouseId == mine.Id)) { x.CareerTrack = ""; x.Cursus.Clear(); }   // nobody else of the house is near an office
+        var aedile = offices.Rungs.First(r => r.Requires.Length > 0 && r.MinAge < offices.Rungs.Max(m => m.MinAge));
+        var young = w.LivingCharacters().Where(x => x.HouseId == mine.Id).OrderBy(x => x.Id, StringComparer.Ordinal).First();
+        young.CareerTrack = "law"; young.CareerRank = Math.Max(young.CareerRank, aedile.MinRank); young.Cursus.Add(aedile.Requires); young.Age = aedile.MinAge - 3;
+        var elder = w.LivingCharacters().Where(x => x.HouseId == mine.Id && x.Id != young.Id).OrderBy(x => x.Id, StringComparer.Ordinal).First();
+        elder.CareerTrack = "law"; elder.CareerRank = Math.Max(elder.CareerRank, consul.MinRank); foreach (var r in offices.Rungs) elder.Cursus.Add(r.Id); elder.Age = consul.MinAge - 3; w.WorldCounters.Remove(LadderSystem.BarredKey(elder.Id));
+        string relaxed = SenateActs.ToHouse(w, mine, law.DefaultOption, law.Option("relaxed")!, offices);
+        Assert.Contains($"{young.Name} ({young.Age}) could stand for {aedile.Name.ToLowerInvariant()} at once, where now they wait for {aedile.MinAge}", relaxed);
+        Assert.Contains($"{elder.Name} ({elder.Age}) could stand for consul at once, where now they wait for {consul.MinAge}", relaxed);
+        Assert.DoesNotContain(" it waits", relaxed);
+        Assert.Equal(2, SenateActs.Interest(w, mine, law.DefaultOption, law.Option("relaxed")!, offices));   // two of the house would stand sooner
+        elder.Age = consul.MinAge + 2; young.Age = aedile.MinAge + 2;
+        string strict = SenateActs.ToHouse(w, mine, law.DefaultOption, law.Option("strict")!, offices);
+        Assert.Contains($"{elder.Name} ({elder.Age}) would wait until {consul.MinAge + 5} to stand for consul", strict);
+        Assert.Equal(-2, SenateActs.Interest(w, mine, law.DefaultOption, law.Option("strict")!, offices));
     }
 
     // ---------------------------------------------------------------- citizenship
@@ -388,6 +484,16 @@ public class NewActsTests
         Assert.Contains("every region's allegiance would settle 8 higher; your worlds lie in", act.Laws.Single(l => l.Id == "citizenship").Options.Single(o => o.Id == "whole_reach").Effects);
         Assert.Contains("your house could sell no lot to another house", act.Laws.Single(l => l.Id == "navigation_act").Options.Single(o => o.Id == "staple").Effects);
         Assert.Contains("could hire no fleet out", act.Laws.Single(l => l.Id == "hired_companies").Options.Single(o => o.Id == "forbidden").Effects);
+        // the Land Law moves where prosperity settles, once: it is not a gain every year
+        var estates = act.Laws.Single(l => l.Id == "land_law").Options.Single(o => o.Id == "great_estates").Effects;
+        Assert.StartsWith("prosperity settles 4 higher", estates); Assert.Contains($"the prosperity of {(worlds == 1 ? "your one world" : $"each of your {worlds} worlds")} would settle 4 higher", estates); Assert.DoesNotContain("a year higher", estates);
+        // the counting-houses' terms are told as the House screen gives them: to a house known for bad business, dearer, on every world it holds
+        w.WorldCounters[VentureSystem.BadNameKey(mine.Id)] = w.Turn + 5; var rebel = w.HoldingsOf(mine.Id).First(x => x.IsPlanet); int was = rebel.Rebellion; rebel.Rebellion = 1;
+        var usuryLaw = Cat.Law("usury")!; LoanTerms Counting() => Lending.Lenders(w, mine.Id, Content.Businesses).First(t => t.LenderId == Lending.CountingHouses);
+        var free = Counting(); Act(w, "usury", "capped"); var capped = Counting(); w.Laws.Remove(PolicySystem.SenateHolder);
+        Assert.Contains($"the counting-houses would lend your house {Money.Credits(capped.Limit)} at {capped.RatePct} in the hundred, where they lend {Money.Credits(free.Limit)} at {free.RatePct}",
+            SenateActs.ToHouse(w, mine, usuryLaw.DefaultOption, usuryLaw.Option("capped")!, Content.Offices));
+        rebel.Rebellion = was; w.WorldCounters.Remove(VentureSystem.BadNameKey(mine.Id));
         // and on the docket, an Act another house has moved says the same
         tc.Senate.Add(w, w.Houses.Values.First(h => h.Id != mine.Id && !World.Outsider(h.Id)).Id, "act", "", lawId: "corn_law", lawOption: "free_corn");
         var card = CourtProjection.Build(tc, Content).Senate!.Docket.Single(d => d.KindId == "act");
