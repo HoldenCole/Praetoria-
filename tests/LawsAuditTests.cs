@@ -51,10 +51,12 @@ public class LawsAuditTests
         var owner = w.Businesses.Values.Select(b => w.House(b.OwnerId)).Where(h => h != null && !World.Outsider(h.Id)).Select(h => h!).OrderBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault() ?? mine;
         int Ventures() => tc.Economy.Compute(w, owner.Id, tc.Fleets).Lines.Where(l => l.Kind is "venture" or "business").Sum(l => l.Delta.Credits);
         var mineOf = w.Businesses.Values.Where(b => b.OwnerId == owner.Id && b.CompanyId.Length == 0).OrderBy(b => b.Id, StringComparer.Ordinal).ToList(); Assert.NotEmpty(mineOf);
-        // a tenth more of a venture that pays 400 credits is 40 credits, and the books are kept in hundreds: at the size ventures begin at,
-        // the Act's tenth is lost in the rounding (docs/LAWS_REVIEW.md, "too small to show"). A venture grown large shows it.
-        int small = Ventures(); Act(w, "trade_charter", "open_lanes"); int smallOpen = Ventures(); Act(w, "trade_charter", "customary");
-        Assert.InRange(smallOpen - small, 0, Math.Max(1, small / 5));
+        // a tenth more of a venture that pays 400 credits is 40 credits, and the books are kept in hundreds: at the size ventures begin at
+        // the Act's tenth used to be lost in the rounding (docs/LAWS_REVIEW.md, "too small to show"). It is paid in single credits now.
+        long Exact() { var led = tc.Economy.Compute(w, owner.Id, tc.Fleets); return 100L * led.Lines.Where(l => l.Kind == "venture").Sum(l => l.Delta.Credits) + led.Coin; }
+        long small = Exact(); Assert.Equal(0, tc.Economy.Compute(w, owner.Id, tc.Fleets).Coin);
+        Act(w, "trade_charter", "open_lanes"); long smallOpen = Exact(); Act(w, "trade_charter", "customary");
+        Assert.True(smallOpen > small, $"open lanes left small ventures paying {small} credits as before"); Assert.InRange(smallOpen - small, small / 20, small / 5);   // about a tenth
         foreach (var b in mineOf) b.Level = 12;
         int before = Ventures(); Assert.True(before >= 10 * mineOf.Count, $"ventures at level 12 pay only {before}"); Assert.True(before > 0, "no venture line in the ledger: " + string.Join(",", tc.Economy.Compute(w, owner.Id, tc.Fleets).Lines.Select(l => l.Kind).Distinct()));
         // only the part of the Act that is about ventures: the prices it also moves are measured in MarketTests
@@ -99,5 +101,46 @@ public class LawsAuditTests
         foreach (var x in ReachRead.Also) read.Add(x);
         var unread = Cat.Laws.Where(l => l.Reach).SelectMany(l => l.Options.SelectMany(o => o.Effects.Keys.Select(k => (law: l.Id, option: o.Id, key: k)))).Where(x => !read.Contains(x.key)).ToList();
         Assert.True(unread.Count == 0, "written and read by no rule for the whole Reach: " + string.Join("; ", unread.Select(x => $"{x.law}/{x.option}: {x.key}")));
+    }
+
+    [Fact]
+    public void A_percentage_of_a_small_sum_is_paid_in_single_credits_and_reaches_the_treasury()
+    {
+        var (tc, w, mine, _) = Start(); foreach (var e in Cat.Estates) w.WorldCounters[PolicySystem.ApprovalKey(w, mine.Id, e.Id)] = 0;
+        var fleet = w.Fleets.Values.Where(f => f.OwnerId == mine.Id && !f.LaidUp).OrderBy(f => f.Id, StringComparer.Ordinal).First();
+        w.Laws.Remove(mine.Id); var plain = tc.Fleets.Upkeep(fleet); Assert.Equal(0, plain.Coin); Assert.True(plain.Credits > 0);
+        Own(w, mine, "household_guard", "doubled"); var dear = tc.Fleets.Upkeep(fleet);
+        long was = 100L * plain.Credits, now = 100L * dear.Credits + dear.Coin;
+        Assert.Equal(was * 125 / 100, now);   // a quarter more, to the single credit, whatever the size of the fleet
+        Own(w, mine, "household_guard", "none"); var cheap = tc.Fleets.Upkeep(fleet); Assert.Equal(was * 85 / 100, 100L * cheap.Credits + cheap.Coin);
+    }
+
+    [Fact]
+    public void The_Speaker_s_standing_orders_make_a_motion_dearer_for_every_house_but_the_Speaker_s()
+    {
+        var (tc, w, mine, other) = Start(); var def = Content.Motions.Def("censure")!;
+        var cmd = new Praetoria.Core.Commands.ProposeMotionCommand(w.Protagonist!.Id, "censure", other.Id, tc.Senate);
+        int plain = cmd.Cost(w, mine.Id, def);
+        w.Offices.RemoveAll(o => o.OfficeId == "speaker"); w.Offices.Add(new OfficeHolding { OfficeId = "speaker", HouseId = other.Id, CharacterId = Economy.HeadOf(w, other)!.Id, SinceTurn = w.Turn });
+        int withSpeaker = cmd.Cost(w, mine.Id, def);
+        Own(w, other, "standing_orders", "tight"); Assert.Equal(withSpeaker + 1, cmd.Cost(w, mine.Id, def));
+        Own(w, other, "standing_orders", "open_docket"); Assert.Equal(Math.Max(1, withSpeaker - 1), cmd.Cost(w, mine.Id, def));
+        Assert.True(plain >= 1);
+    }
+
+    [Fact]
+    public void A_doubled_guard_brings_a_fleet_that_is_not_ready_back_to_readiness_sooner()
+    {
+        // A fleet lying at full readiness gains nothing from the law, which is why the probe saw nothing move with a player who sends
+        // no fleet anywhere: the law only shows on crews that have been worked down.
+        int After(string option)
+        {
+            var (tc, w, mine, _) = Start(); foreach (var e in Cat.Estates) w.WorldCounters[PolicySystem.ApprovalKey(w, mine.Id, e.Id)] = 0;
+            w.Laws.Remove(mine.Id); if (option.Length > 0) Own(w, mine, "household_guard", option);
+            var fleet = w.Fleets.Values.Where(f => f.OwnerId == mine.Id && !f.LaidUp).OrderBy(f => f.Id, StringComparer.Ordinal).First(); fleet.Readiness = 40; fleet.DestinationId = ""; fleet.Eta = 0;
+            tc.Fleets.Tick(w); return fleet.Readiness;
+        }
+        int standing = After(""), doubled = After("doubled"), none = After("none");
+        Assert.Equal(standing + 5, doubled); Assert.Equal(standing - 2, none);
     }
 }
