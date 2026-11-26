@@ -120,6 +120,12 @@ public static class EdictSystem
         foreach (var e in w.Edicts) if (e.Domain.Length == 0 && e.TargetId == d.Id && e.Effects.TryGetValue(PriceCeiling, out int pct)) price = Math.Min(price, d.Base * pct / 100.0);
         return price;
     }
+    /// <summary>The edict of maximum prices on a good, and the ceiling it sets a unit, or null when none stands on it.</summary>
+    public static (Edict edict, double ceiling)? CeilingOn(World w, GoodDef d)
+    {
+        foreach (var e in w.Edicts.OrderBy(x => x.Id, StringComparer.Ordinal)) if (e.Domain.Length == 0 && e.TargetId == d.Id && e.Effects.TryGetValue(PriceCeiling, out int pct)) return (e, d.Base * pct / 100.0);
+        return null;
+    }
     /// <summary>Why a house may not move a motion while another rules by decree, or null.</summary>
     public static string? Cowed(World w, string houseId)
     {

@@ -165,6 +165,7 @@ public sealed class HouseTradeSystem
     {
         int already = w.Counter(SoldKey(w.Turn, seller.Id, good)); double reference = Math.Max(1, Spare(w, seller, good) + already);
         double cost = Asks(w, seller, buyer, good) * (units + LotSlopePct / 100.0 * (units * (double)already + units * (double)units / 2.0) / reference);
+        if (_trade.Market.Good(good) is { } d && EdictSystem.CeilingOn(w, d) is { } cap) cost = Math.Min(cost, cap.ceiling * units);   // however large the lot, no unit above the edict's ceiling
         return Math.Max(1, (int)Math.Ceiling(cost - 1e-9));
     }
     /// <summary>What the buyer hands over for a lot offered to it.</summary>
@@ -196,9 +197,12 @@ public sealed class HouseTradeSystem
     {
         int regard = DealingsSystem.RegardOf(w, theirs, mine), pct = RegardPct(regard);
         string moved = pct == 0 ? "" : selling ? $", and {Math.Abs(pct)} in the hundred {(pct > 0 ? "dearer" : "cheaper")} to you" : $", and {Math.Abs(pct)} in the hundred {(pct > 0 ? "less" : "more")} to you";
+        var cap = _trade.Market.Good(good) is { } gd ? EdictSystem.CeilingOn(w, gd) : null;
+        bool held = cap != null && selling && Base(w, good) * (100 + pct) / 100.0 > cap.Value.ceiling + 1e-9;   // the ceiling takes away what the law and the head would have added
         return $"The market's price is {Unit(Mid(w, good))}, and no caravaneer stands between you."
             + (Closed(w, good) ? $" The law keeps {Resource.Label(good)} off the exchanges, and a private sale is {ClosedPct} in the hundred dearer for it." : "")
-            + (selling ? $" Its head thinks {Signed(regard)} of you{moved}." : $" It pays {PaysUnderPct} in the hundred under the market; its head thinks {Signed(regard)} of you{moved}.")
+            + (selling ? $" Its head thinks {Signed(regard)} of you{(held ? "" : moved)}." : $" It pays {PaysUnderPct} in the hundred under the market; its head thinks {Signed(regard)} of you{moved}.")
+            + (cap is { } c ? $" Under {EdictSystem.Lower(c.edict.Name)} no house may sell {Resource.Label(good)} above {Unit(c.ceiling)} a unit{(held ? ", and that is what it may ask of you" : "")}." : "")
             + (SenateActs.TradeLevy(w) is > 0 and var levy   // as LevyOn takes it: nothing of the chair's own sale, and nothing while no house holds the capital
                 ? (RegionSystem.CapitalHolder(w) is not { } chair ? $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} no levy is taken while no house holds the capital."
                     : chair.Id == (selling ? theirs : mine).Id ? $" Under {SenateActs.LawName(w, SenateActs.TradeLevyPct)} {(chair.Id == mine.Id ? "your house" : chair.Name)}, as the chair, pays no levy on what it sells."

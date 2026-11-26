@@ -229,6 +229,10 @@ public class EdictTests
         w.Relationship(Economy.HeadOf(w, seller)!.Id, me.Id).Disposition = -30;
         Assert.Equal(ceiling, tc.HouseTrade.Mid(w, "helium3"), 6); Assert.Equal(ceiling, tc.HouseTrade.Asks(w, seller, mine, "helium3"), 6);
         Assert.True(tc.HouseTrade.Pays(w, mine, seller, "helium3") <= ceiling);
+        // a large lot, which would cost more a unit, is held at the ceiling too; and the price a house names says so
+        Assert.True(tc.HouseTrade.LotCost(w, seller, mine, "helium3", 20) <= (int)Math.Ceiling(ceiling * 20 - 1e-9));
+        Assert.Contains("no house may sell helium-3 above", tc.HouseTrade.PriceSays(w, seller, mine, "helium3", selling: true).ToLowerInvariant());
+        Assert.DoesNotContain("dearer to you", tc.HouseTrade.PriceSays(w, seller, mine, "helium3", selling: true));
         Assert.Equal(w.Market!.Goods["materials"].Price, tc.HouseTrade.Mid(w, "materials"), 9);
         EdictSystem.End(w, InForce(w, "price_edict"), EdictSystem.Withdrawn); Assert.Equal(heDef.Base * 2.5, tc.HouseTrade.Mid(w, "helium3"), 6);
         // rule by decree: no house but the holder's may move a motion, and the others bring none of their own
