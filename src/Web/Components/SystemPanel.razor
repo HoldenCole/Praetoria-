@@ -24,8 +24,32 @@
     string devNext = (nextWorld > 0 ? "A slot more on the home world at " + nextWorld : "") + (nextBody > 0 ? (nextWorld > 0 ? ", on every other place at " : "A slot more on every other place at ") + nextBody : "") + (nextWorld > 0 || nextBody > 0 ? ". " : "")
         + "Buildings may stand at level " + SystemWorks.Roman(levelMay) + (nextUp > 0 ? "; " + SystemWorks.Roman(levelMay + 1) + " at " + nextUp + "." : ".");
     string devTrend = dev < devTop ? "growing toward " + devTop : dev > devTop ? "more than it can bear: falling toward " + devTop : "as high as it can bear";
+    // the standard painted header (docs/VISUAL_SYSTEM.md 4.2, 10): a painting by subject, the holder's wax seal or the ringed planet, the
+    // region as the kicker, the system's name, its world, its people and its holder as facts, and four figures on the plinth
+    var owner = planet != null ? w.House(planet.OwnerId) : null; var region = w.Galaxy.Region(sys.RegionId); string ring = region?.Ring ?? "middle";
+    bool besieged = planet != null && w.Sieges.ContainsKey(planet.Id);
+    string scene = ring == "beyond" ? "steppe" : besieged ? "battle" : planet?.InRebellion == true ? "unrest" : "world";
+    int built = SystemWorks.In(w, sys.Id).Count() + (planet?.Buildings.Count ?? 0), risingAll = w.Projects.Count(p => (p.Kind == Project.Work && SystemWorks.Parse(p.TargetId).systemId == sys.Id) || (p.Kind == Project.Colony && p.TargetId == sys.Id));
+    int places = sys.Bodies.Count(b => !b.IsStar);
+    var heads = new List<WindowHeader.Figure>
+    {
+        new("upgrade", dev.ToString(), "Development", dev > devTop ? "ember" : "brass", Of: "100", Tip: $"[upgrade] Development {dev} of 100\nIt can bear {devTop}: {devParts}. It grows a point a year toward that, two on a prosperous world, and falls under siege or revolt."),
+        new("shaking-hands", planet != null && planet.Population > 0 ? (100 - planet.Unrest).ToString() : "0", planet != null && planet.Population > 0 ? "Loyalty" : "No people", planet != null && planet.Unrest >= 50 ? "ember" : "good", Tip: planet != null && planet.Population > 0 ? $"[shaking-hands] Loyalty {100 - planet.Unrest}\nA hundred less the unrest; below 50 the world is restless." : "[shaking-hands] Nobody lives here yet"),
+        new("build", built.ToString(), risingAll > 0 ? $"Built, {risingAll} rising" : "Built", "brass", Tip: $"[build] Works built\n{built} stand in the system, {risingAll} rising."),
+        planet != null && planet.Population > 0
+            ? new("population", Census.Short(Census.Citizens(w, planet)), "Citizens", "ivory", Tip: $"[population] {Census.Say(Census.Citizens(w, planet))} citizens\nOn the world, scale {planet.Population}.")
+            : new("ringed-planet", places.ToString(), "Places", "ivory", Tip: $"[ringed-planet] Places to build\nEvery body round its sun, and open space: {places} in all.")
+    };
 }
-<div class="sysp" data-system="@sys.Id">
+<div class="sysp @(Infrastructure ? "infra" : "")" data-system="@sys.Id">
+    <WindowHeader Scene="@scene" Kicker="@((region?.Name ?? "") + (ring != "middle" ? " · " + (ring == "beyond" ? "beyond the rim" : "the " + ring) : ""))" Title="@sys.Name" HouseId="@(owner?.Id ?? "")" Accent="@(owner?.AccentColor ?? "#d4a23e")" Glyph="ringed-planet" Figures="heads" Class="sysp-head">
+        <Facts>
+            @{ var pc = sys.Bodies.FirstOrDefault(b => b.IsPrimary); }
+            <span><Icon Name="ringed-planet" Tone="ivory" Size="15" />@Cap(pc != null ? Kind(pc) : "no world")@(pc != null && pc.Feature.Length > 0 && cat.Feature(pc.Feature) is { } pf ? ", " + pf.Name.ToLowerInvariant() : "")</span>
+            <span class="@(mine ? "own" : "")"><Icon Name="castle" Tone="ivory" Size="15" />@(owner == null ? (colony != null ? "A colony on its way" : "Nobody's: it can be settled") : mine ? "Yours" : owner.Name)@(planet != null && planet.InRebellion ? ", in revolt" : besieged ? ", besieged" : "")</span>
+        </Facts>
+    </WindowHeader>
+    @if (sys.Description.Length > 0) { <p class="sysp-lede">@sys.Description</p> }
     @if (planet == null)
     {
         var fc = new FoundColonyCommand(me.Id, sys.Id, cat); string? why = fc.Refusal(ctx);
@@ -34,7 +58,8 @@
             else
             {
                 <div class="empty-line">Nobody holds this system. A colony would make its world yours, and every body round its sun yours to build on.</div>
-                <button class="opt" disabled="@(why != null)" title="@(why ?? $"Ships, settlers and stores. The cost is paid a share a year while they are on the way: {CourtProjection.Bundle(cat.Colony.Cost)} in all. Only the first share is needed in hand to send it. A fleet that stood in the system to make the claim may leave once the colony has sailed.")" @onclick="() => G.Execute(new FoundColonyCommand(me.Id, sys.Id, cat))">Send a colony · @CourtProjection.Bundle(ProjectSystem.Split(cat.Colony.Cost, cat.Colony.BuildTurns).First) now@(cat.Colony.BuildTurns > 1 ? $", the same in each of {Counted.MoreYears(cat.Colony.BuildTurns - 1)}" : "") · lands in @cat.Colony.BuildTurns years</button>
+                <div class="sysp-cost">@CourtProjection.Bundle(ProjectSystem.Split(cat.Colony.Cost, cat.Colony.BuildTurns).First) now@(cat.Colony.BuildTurns > 1 ? $", the same in each of {Counted.MoreYears(cat.Colony.BuildTurns - 1)}" : ""); it lands in @cat.Colony.BuildTurns years.</div>
+                <button class="opt" disabled="@(why != null)" title="@(why ?? $"Ships, settlers and stores. The cost is paid a share a year while they are on the way: {CourtProjection.Bundle(cat.Colony.Cost)} in all. Only the first share is needed in hand to send it. A fleet that stood in the system to make the claim may leave once the colony has sailed.")" @onclick="() => G.Execute(new FoundColonyCommand(me.Id, sys.Id, cat))">Send a colony</button>
                 @if (why != null) { <div class="muted small">@Cap(why).</div> }
             }
         </div>
@@ -42,12 +67,13 @@
     else if (!mine) { <div class="muted small sysp-note">Held by @(w.House(planet.OwnerId)?.Name ?? "another"). What is built here is theirs while they hold the world, and would be yours if you took it.</div> }
     @if (planet != null)
     {
-        <div class="sysp-dev" data-development="@dev" title="@($"Development {dev} of 100. It can bear {devTop}: {devParts}. It grows a point a year toward that, two on a prosperous world, and falls under siege or revolt.")">
-            <span class="dv-level">@devLevel</span>
-            <span class="dv-text"><b>Development</b> <span class="muted">@dev of 100 · @devTrend</span><span class="dv-bar"><i style="@($"width:{dev}%")"></i><u style="@($"left:{devTop}%")"></u></span></span>
+        <div class="sysp-dev" data-development="@dev" title="@($"[upgrade] Development {dev} of 100\nIt can bear {devTop} (the tick): {devParts}. It grows a point a year toward that, two on a prosperous world, and falls under siege or revolt.")">
+            <span class="dv-level" title="@($"Level {devLevel}: a tenth of the development")">@devLevel</span>
+            <span class="dv-text"><span class="dv-l"><b>Development</b><span class="ui-dim">@devTrend</span></span>
+                <Meter Value="@dev" Target="@devTop" Text="@($"{dev}")" Small="/100" Color="@(dev > devTop ? "#c4472f" : "#c9a24a")" /></span>
         </div>
         <div class="muted small sysp-devnote">@devNext</div>
-        <LocalLawBlock HoldingId="@planet.Id" />
+        @if (!Infrastructure) { <LocalLawBlock HoldingId="@planet.Id" /> }
         @if (mine && ClaimSystem.Of(w, sys.Id, house.Id).ToList() is { Count: > 0 } claims)
         {
             /* the claims other houses hold in your belt: what each brings its house, what it owes you, and a price to buy it out
@@ -111,17 +137,18 @@
         int slots = SystemWorks.Slots(w, cat, sys, i), most = b.IsStar ? 0 : b.IsPrimary ? rules.MaxWorld : rules.MaxBody;
         int used = hb.Count + standing.Count(d => !d.IsMegastructure), up = hbRising.Count + rising.Count(p => cat.Work(p.DefId)?.IsMegastructure != true);
         var parts = SystemWorks.SlotParts(w, cat, sys, i).ToList(); string partsLine = string.Join(" · ", parts.Select(x => x.what + " " + x.slots));
-        bool open = _open == i; int idx = i; int px = b.IsStar || b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : 18 + b.Size * 4;
-        string sprite = $"{b.Class}|{sys.Id}{b.Name}|{px}";
+        bool open = _open == i; int idx = i;
         <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "") @(b.IsSpace ? "space" : "") @(world ? "home" : "")" data-body="@b.Class" data-body-index="@idx">
             <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat?.Description ?? Kind(b))">
-                @if (b.IsSpace) { <span class="sprite deep" aria-hidden="true"></span> } else { <img class="sprite" data-planet="@sprite" alt="" /> }
+                @if (b.IsSpace) { <span class="sprite deep" aria-hidden="true"></span> }
+                else if (b.IsStar) { <span class="sysp-sun" aria-hidden="true"></span> }
+                else { <span class="sysp-globe" style="@($"--gs:{GlobePx(b)}px")"><Globe Class="@GlobeClass(b)" Size="@GlobePx(b)" Ringed="@(world && mine)" /></span> }
                 <span class="sysp-name"><b>@b.Name</b><span class="muted">@Kind(b)@(b.IsPrimary ? " · the home world" : "")</span></span>
                 <span class="sysp-marks">
                     @if (feat != null) { <span class="pill small feat">@feat.Name</span> }
-                    @if (b.Deposit.Length > 0) { <span class="pill small dep" title="@($"A {Resource.Label(b.Deposit)} deposit: richness {sys.Deposit(b.Deposit)}")">@Resource.Label(b.Deposit) @(new string('●', sys.Deposit(b.Deposit)))</span> }
+                    @if (b.Deposit.Length > 0) { <span class="pill small dep" title="@($"[{b.Deposit}] A {Resource.Label(b.Deposit)} deposit\nRichness {sys.Deposit(b.Deposit)}")"><Icon Name="@b.Deposit" Tone="@(b.Deposit == "isotopes" ? "ember" : b.Deposit == "rare_earths" ? "ivory" : "steel")" Size="14" /><b>@sys.Deposit(b.Deposit)</b></span> }
                     <span class="sysp-slots" title="@(most == 0 ? "No building slots: only a great work can be raised here" : $"Building slots: {used} built · {up} rising · {slots} open of {most} at the most. From: {partsLine}.")">@for (int k = 0; k < Math.Max(slots, most); k++) { <i class="@(k < used ? "on" : k < used + up ? "up" : k >= slots ? "lock" : "")"></i> }</span>
-                    <span class="sysp-site @(great == null ? "" : greatRising ? "up" : "on")" title="@(great == null ? "The site for a great work: free" : greatRising ? $"{great.Name} is rising on its site" : $"{great.Name} stands on its site")">◆</span>
+                    <span class="sysp-site @(great == null ? "" : greatRising ? "up" : "on")" title="@(great == null ? "The site for a great work: free" : greatRising ? $"{great.Name} is rising on its site" : $"{great.Name} stands on its site")"></span>
                 </span>
             </button>
             @if (!open && (standing.Count > 0 || rising.Count > 0 || hb.Count > 0 || hbRising.Count > 0))
@@ -458,6 +485,9 @@
     {
         if (G.WorkPicture(id) is { } src) { <img class="sw-art" src="@src" alt="" loading="lazy" /> } else { <span class="sw-art none" aria-hidden="true"></span> }
     };
+    /// <summary>The lit globe a body is drawn as (Globe's classes): moons and comets grey, a belt as rock.</summary>
+    private static string GlobeClass(Body b) => b.Class switch { "moon" or "comet" => "belt", "belt" => "belt", _ => b.Class };
+    private static int GlobePx(Body b) => b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : b.Class == "comet" ? 14 : 18 + Math.Min(3, b.Size) * 3;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Bundle(Resources r) => r.IsEmpty() ? "nothing" : CourtProjection.Bundle(r);
     private static string Kind(Body b) => b.Class switch
