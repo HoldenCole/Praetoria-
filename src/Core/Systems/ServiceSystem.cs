@@ -125,6 +125,7 @@ public static class ServiceSystem
         if (c.Flags.Contains(LifeSystem.FrailChar)) return $"{c.Name} is too frail for the sea";
         if (c.Flags.Contains(LifeSystem.RetiredChar)) return $"{c.Name} has retired";
         if (c.Flags.Contains(DynastySystem.HiddenFlag)) return $"{c.Name} is fostered away";
+        if (FleetSystem.Captive(c)) return $"{c.Name} is a prisoner of war until the war is over";
         if (ChargeSystem.NoCommandSays(w, c) is { } away) return away;   // in exile, or a court's order, said before a year at home
         if (TriumphSystem.HomeRefusal(w, c) is { } home) return home;   // home for a triumph, by their own choice (docs/CAESAR.md)
         if (CaesarSystem.Barred(w, c)) return $"the Senate had {c.Name} lay a command down, and {c.Name} may hold none until year {w.Counter(CaesarSystem.BarredKey(c.Id))}";

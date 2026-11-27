@@ -21,7 +21,9 @@ public sealed partial class NationSystem
     /// these are not cleared with <see cref="TurnFlags"/>: each is stamped with its year and struck out at the tick of the year after.</summary>
     public static readonly string[] MapFlags = { "nation_host_sails", "reach_world_occupied", "our_world_occupied", "world_freed_by_us", "world_freed_for_us", "reach_world_ceded", "steppe_world_restless", "steppe_world_lost", "steppe_world_rose", CapitalTakenFlag, FallenFlag, "host_beaten_by_us",
         "peace_negotiated", "peace_negotiated_by_us", "nation_client", "client_breaks", "reach_pays_tribute", "white_peace", "great_ruler_raised", "great_ruler_dead", "great_ruler_strikes", "world_sacked", "world_sacked_by_us", "private_war", "private_war_by_us", "peace_awaits_us", "peace_defied", "peace_defied_by_us", "peace_made",
-        "nation_hires", "ransom_offered", "city_ransomed", "tribute_stopped", "world_plundered_by_us", "nation_bought_peace", "nation_strikes", "nation_comes_back", "world_yields_to_us", "nation_decays", "treasure_taken", "treasure_taken_by_us" };
+        "nation_hires", "ransom_offered", "city_ransomed", "tribute_stopped", "world_plundered_by_us", "nation_bought_peace", "nation_strikes", "nation_comes_back", "world_yields_to_us", "nation_decays", "treasure_taken", "treasure_taken_by_us", WarOverFlag };
+    /// <summary>A war with a nation has ended this year, however it ended: won, lost, negotiated, voted or guttered out.</summary>
+    public const string WarOverFlag = "nation_war_over";
     /// <summary>Raise a year's flag, and the same flag for the nation it is about ("flag:nation"), so a report can be written for one nation.</summary>
     public static void Mark(World w, string flag, Nation? n = null)
     {
@@ -31,6 +33,7 @@ public sealed partial class NationSystem
     private static void ClearMarks(World w)
     {
         foreach (var f in w.WorldFlags.Where(f => MapFlags.Contains(f.Contains(':') ? f[..f.IndexOf(':')] : f) && w.Counter("mark:" + f) < w.Turn).ToList()) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
+        if (!w.HasFlag("world_sacked")) foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(SackerChar))) c.Flags.Remove(SackerChar);
     }
     /// <summary>Count something once for the Reach and once for the nation it concerns ("key:nation"), so each nation on the map can be measured.</summary>
     private static void Bump(World w, string key, Nation n, int by = 1) { w.WorldCounters[key] = w.Counter(key) + by; w.WorldCounters[key + ":" + n.Id] = w.Counter(key + ":" + n.Id) + by; }
