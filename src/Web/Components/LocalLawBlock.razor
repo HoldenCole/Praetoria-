@@ -13,28 +13,31 @@
     int n = LocalLawSystem.Count(cat, h), most = LocalLawSystem.Limit(w, h); var ctx = G.Ctx;
 }
 <div class='local-laws lw-local @(mine ? "mine" : string.Empty)' data-local-laws="@h.Id">
-    <div class="ll-head"><Icon Name="scales" Tone="brass" Size="15" /><b>Local law</b> <span class="ll-count" data-local-count="@n" title="@Cap(LocalLawSystem.LimitWhy(w, h))"><b>@n</b> of @most off the custom</span>@if (mine) { <span class="ll-rule" title="A decree costs influence, and settles the law on this world for some years. It falls on this world alone, and what the estates think of it weighs on the house by the share of its worlds."><Icon Name="info" Tone="ivory" Size="13" />a decree costs influence, and settles the law on this world for some years</span> }</div>
+    <div class="ll-head"><Icon Name="scales" Tone="brass" Size="15" /><b>Local law</b> <span class="ll-count" data-local-count="@n" title="@Cap(LocalLawSystem.LimitWhy(w, h))"><b>@n</b> of @most off the custom</span>@if (mine) { <span class="ll-rule" title="[scales] Local law\nA decree costs influence, and settles the law on this world for some years. It falls on this world alone, and what the estates think of it weighs on the house by the share of its worlds."><Icon Name="info" Tone="ivory" Size="15" /></span> }</div>
     @foreach (var law in cat.Local.Laws)
     {
         var now = LocalLawSystem.Option(cat, h, law.Id)!; int left = mine ? LocalLawSystem.CooldownLeft(w, h, law.Id) : 0;
-        <div class='ll-row @(now.Default ? string.Empty : "custom")' data-local-law="@law.Id">
-            <span class="ll-name" title="@($"[scales] {law.Name}\n{law.Description}")">@law.Name@if (left > 0) { <small class="lw-st warn"><Icon Name="hourglass" Tone="brass" Size="13" />settled for @Counted.MoreYears(left)</small> }</span>
-            <span class="lw-lad @(mine ? "" : "ro")" style="--n:@law.Options.Count">
-            @foreach (var o in law.Options)
+        string nameTip = $"[{Glyph(law.Id)}] {law.Name}\n{law.Description}" + (left > 0 ? $"\nSettled for {Counted.MoreYears(left)}: it cannot be decreed again until then" : string.Empty);
+        <div class='ll-row lw-row @(now.Default ? string.Empty : "custom") @(left > 0 ? "settled" : string.Empty) @(mine ? string.Empty : "ro")' data-local-law="@law.Id">
+            <span class="lw-ic" title="@law.Name"><Icon Name="@Glyph(law.Id)" Tone="@(now.Default ? "ivory" : "brass")" Size="20" /></span>
+            <div class="lw-hd"><b class="ll-name lw-nm" title="@nameTip">@law.Name</b>@if (!now.Default) { <span class="lw-st cust" title="A decree other than the custom is in force on this world">off the custom</span> }</div>
+            <span class="lw-lad @(mine ? "" : "ro")">
+            @for (int i = 0; i < law.Options.Count; i++)
             {
-                var fx = o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => (kv.Key, kv.Value));
+                var o = law.Options[i]; var fx = o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => (kv.Key, kv.Value));
+                if (i > 0) { <i class="lw-step" aria-hidden="true"></i> }
                 if (o.Id == now.Id || !mine)
                 {
-                    <span class='lw-pl @(o.Id == now.Id ? "on ll-now" : "")' title="@ReadTip(law, o, o.Id == now.Id)"><span class="lw-pn">@LawsScreen.PlateName(o.Name)</span><span class="lw-pf">@LawsScreen.MarksOf(fx)</span></span>
+                    bool on = o.Id == now.Id;
+                    <span class='lw-pl @(on ? "on ll-now" : "")' title="@ReadTip(law, o, on, left)">@if (on) { <i class="lw-stud" aria-hidden="true"></i> }<span class="lw-pn">@LawsScreen.PlateName(o.Name)</span>@LawsScreen.MarksOf(fx)@if (on) { if (left > 0) { <span class="lw-in yrs"><Icon Name="hourglass" Tone="dark" Size="13" />@left yr</span> } else { <span class="lw-in">In force</span> } }</span>
                 }
                 else
                 {
                     var cmd = new SetLocalLawCommand(me!.Id, h.Id, law.Id, o.Id, cat); string? no = cmd.Refusal(ctx); var ld = law; var od = o;
-                    string tip = no != null ? $"[padlock] {o.Name}\nYou cannot decree it now. {Cap(no)}.\n{Minds(o)}" : Title(ld, od);
+                    string tip = no != null ? $"[padlock] {Named(o)}\nYou cannot decree it now. {Cap(no)}.\n{Minds(o)}" : Title(ld, od);
                     <span class="lw-cell" title="@tip">
                     <button class='lw-pl @(no != null ? "off" : "")' data-local-option="@Key(law.Id, o.Id)" disabled="@(no != null)" title="@tip" @onclick="() => Ask(ld, od, cmd)">
-                        <span class="lw-pn">@LawsScreen.PlateName(o.Name)</span>
-                        <span class="lw-pf">@LawsScreen.MarksOf(fx)@if (left > 0) { <span class="lw-pc lock"><Icon Name="padlock" Tone="ivory" Size="13" /></span> } else { <span class="lw-pc"><Icon Name="public-speaker" Tone="ivory" Size="13" />@law.Cost</span> }</span>
+                        <span class="lw-pn">@LawsScreen.PlateName(o.Name)</span>@LawsScreen.MarksOf(fx)@if (left > 0) { <span class="lw-pc lock"><Icon Name="padlock" Tone="ivory" Size="13" /></span> } else { <span class="lw-pc"><Icon Name="public-speaker" Tone="ivory" Size="14" />@law.Cost</span> }
                     </button>
                     </span>
                 }
@@ -49,18 +52,26 @@
     private static string Cap(string s) => LawsScreen.Say(s);
     private static string Key(string law, string option) => law + ":" + option;
     private string Minds(LocalLawOptionDef o) => o.Opinions.Count == 0 ? "No estate minds it." : string.Join("\n", o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => $"[{LawsScreen.EstateIcon(kv.Key)}] {G.Content!.Policies.Estate(kv.Key)?.Name ?? kv.Key} = {LawsScreen.Signed(kv.Value)}"));
-    private string ReadTip(LocalLawDef law, LocalLawOptionDef o, bool inForce) => $"[scales] {o.Name}\n{LawsScreen.Prose(LawsScreen.Cap(LocalLawSystem.Does(o)))}.\n{Minds(o)}\n" + (inForce ? "key: In force on this world" + (o.Default ? ", the custom" : "") : "key: The holder of the world may decree it");
+    private string ReadTip(LocalLawDef law, LocalLawOptionDef o, bool inForce, int left) => $"[{Glyph(law.Id)}] {Named(o)}\n{LawsScreen.Prose(LawsScreen.Cap(LocalLawSystem.Does(o)))}.\n{Minds(o)}\n" + (inForce ? "key: In force on this world" + (o.Default ? ", the custom" : "") + (left > 0 ? $"; settled for {Counted.MoreYears(left)}" : "") : "key: The holder of the world may decree it");
+    /// <summary>An option's name at the head of its tooltip: its short form where that says more ("A surcharge on the tithe" for "A surcharge laid on").</summary>
+    private static string Named(LocalLawOptionDef o) => o.Short.Length > o.Name.Length ? LawsScreen.Cap(o.Short) : o.Name;
+    /// <summary>Each local law its own glyph on its row, as on the Laws window.</summary>
+    private static string Glyph(string law) => law switch
+    {
+        "local_tithe" => "receive-money", "garrison" => "checked-shield", "charter" => "scroll-quill", "port" => "trade_hub", "settlers" => "frontier_colony",
+        "labour_levy" => "factory", "dole" => "agri_world", "gates" => "world", _ => "scales"
+    };
     private string Title(LocalLawDef law, LocalLawOptionDef o)
     {
         string minds = LocalLawSystem.Minds(G.Content!.Policies, o);
-        return $"[scales] {o.Name}\n" + LawsScreen.Cap(LocalLawSystem.Does(o)) + "." + (minds.Length > 0 ? " The estates: " + minds + "." : string.Empty) + " " + law.Cost + " influence; settled for " + Counted.Years(law.Cooldown) + ".\nkey: Click to decree it; you are asked first";
+        return $"[{Glyph(law.Id)}] {Named(o)}\n" + LawsScreen.Cap(LocalLawSystem.Does(o)) + "." + (minds.Length > 0 ? " The estates: " + minds + "." : string.Empty) + " " + law.Cost + " influence; settled for " + Counted.Years(law.Cooldown) + ".\nkey: Click to decree it; you are asked first";
     }
     private void Ask(LocalLawDef law, LocalLawOptionDef o, SetLocalLawCommand cmd)
     {
         var h = G.World!.Holding(HoldingId); string world = h?.Name ?? "this world";
         string minds = LocalLawSystem.Minds(G.Content!.Policies, o);
         string says = LawsScreen.Cap(LocalLawSystem.Does(o)) + "." + (minds.Length > 0 ? " The estates: " + minds + "." : string.Empty) + " " + law.Cost + " influence; settled for " + Counted.Years(law.Cooldown) + ".";
-        G.AskDo((o.Default ? "Lift the decree on " : "Decree for ") + world + ": " + o.Name.ToLowerInvariant() + "?", law.Name + " on " + world + ": " + says + " It falls on " + world + " alone, and what the estates think of it weighs on the house by the share of its worlds.", (o.Default ? "Lift it" : "Decree it") + " · " + law.Cost + " influence", cmd);
+        G.AskDo((o.Default ? "Lift the decree on " : "Decree for ") + world + ": " + Named(o).ToLowerInvariant() + "?", law.Name + " on " + world + ": " + says + " It falls on " + world + " alone, and what the estates think of it weighs on the house by the share of its worlds.", (o.Default ? "Lift it" : "Decree it") + " · " + law.Cost + " influence", cmd);
     }
     private void Redraw() => InvokeAsync(StateHasChanged);
     protected override void OnInitialized() => G.Changed += Redraw;

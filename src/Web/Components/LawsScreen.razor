@@ -65,8 +65,10 @@
 <div class="laws-win" data-laws="@_tab">
     <WindowHeader Scene="court" Kicker="@("Laws of " + house.Name)" Title="The Chancery" Glyph="scales" Figures="figures" Class="lw-head">
         <Facts>
-            @foreach (var (icon, text) in positions.Take(4)) { <span><Icon Name="@icon" Tone="ivory" Size="16" />@text</span> }
-            @if (positions.Count > 4) { <span title="@string.Join("\n", positions.Skip(4).Select(x => x.text))"><Icon Name="podium" Tone="ivory" Size="16" />@($"and {positions.Count - 4} more")</span> }
+            @* four facts in two columns; where the header is narrow (1366 wide, or a larger text size) two in one column and the rest in a tooltip *@
+            @for (int i = 0; i < Math.Min(4, positions.Count); i++) { var (icon, text) = positions[i]; <span class="@(i >= 2 ? "lw-fx2" : "")"><Icon Name="@icon" Tone="ivory" Size="16" />@text</span> }
+            @if (positions.Count > 4) { <span class="lw-fmore4" title="@string.Join("\n", positions.Skip(4).Select(x => x.text))"><Icon Name="podium" Tone="ivory" Size="16" />@($"and {positions.Count - 4} more")</span> }
+            @if (positions.Count > 2) { <span class="lw-fmore2" title="@string.Join("\n", positions.Skip(2).Select(x => x.text))"><Icon Name="podium" Tone="ivory" Size="16" />@($"and {positions.Count - 2} more")</span> }
         </Facts>
     </WindowHeader>
     @if (ch != null) { <Tabs Items="tabs" Active="@_tab" OnPick="Pick" /> }
@@ -107,9 +109,9 @@
                             var sl = stepLaw; var so = stepOpt; string? no = so.Refusal; int gain = step!.Value.gain;
                             <span class="es2-step">
                                 <b class="es2-gain ui-up" title="@($"{e.Name} would warm by +{gain} to {so.Name.ToLowerInvariant()} ({sl.Name.ToLowerInvariant()})")">+@gain</b>
-                                <Plate Label="@PlateName(so.Name)" Icon="@LawIcon(sl.Id, sl.Category)" Small="true" Locked="@(no != null)" ShowNeed="false" Need="@(no != null ? Say(no) : "")"
-                                       CostIcon="@(no != null && sl.CooldownLeft > 0 ? "" : "public-speaker")" CostText="@(sl.CooldownLeft > 0 ? Counted.Years(sl.CooldownLeft) : sl.Cost.ToString())"
-                                       Tip="@($"[{LawIcon(sl.Id, sl.Category)}] {sl.Name}: {so.Name.ToLowerInvariant()}\nWould warm {Plain(e.Name)} by +{gain}. {FxSay(so.Effects)}\n{OpinionLines(so)}{(no == null ? $"key: Click to enact it for {sl.Cost} influence; you are asked first" : "")}")"
+                                <Plate Label="@StepName(so.Name)" Icon="@LawIcon(sl.Id, sl.Category)" Small="true" Class="es2-pl" Locked="@(no != null)" ShowNeed="false" Need="@(no != null ? Say(no) : "")"
+                                       CostIcon="@(sl.CooldownLeft > 0 ? "hourglass" : "public-speaker")" CostText="@(sl.CooldownLeft > 0 ? $"{sl.CooldownLeft} yr" : sl.Cost.ToString())"
+                                       Tip="@($"[{LawIcon(sl.Id, sl.Category)}] {sl.Name}: {so.Name.ToLowerInvariant()}{(sl.CooldownLeft > 0 ? $"\nSettled for {Counted.MoreYears(sl.CooldownLeft)}" : "")}\nWould warm {Plain(e.Name)} by +{gain}. {FxSay(so.Effects)}\n{OpinionLines(so)}{(no == null ? $"key: Click to enact it for {sl.Cost} influence; you are asked first" : "")}")"
                                        OnClick="() => AskLaw(sl, so)" data-estate-step="@($"{sl.Id}:{so.Id}")" />
                             </span>
                         }
@@ -131,30 +133,32 @@
                 @foreach (var l in held.OrderBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal))
                 {
                     var law = l; var def = c.Policies.Law(l.Id); bool custom = def != null && l.Options.First(o => o.InForce).Id != def.DefaultOption.Id;
+                    string nameTip = $"[{LawIcon(l.Id, l.Category)}] {l.Name}\n{Prose(l.Description)}\nSet by {l.ScopeName}, and settled for {Counted.Years(def?.Cooldown ?? 6)} once changed" + (l.CooldownLeft > 0 ? $"\nSettled for {Counted.MoreYears(l.CooldownLeft)}: it cannot be changed until then" : "");
                     <div class="lw-row @(custom ? "custom" : "") @(l.CooldownLeft > 0 ? "settled" : "")" data-law="@l.Id">
                         <span class="lw-ic" title="@l.Category"><Icon Name="@LawIcon(l.Id, l.Category)" Tone="brass" Size="22" /></span>
-                        <div class="lw-nm" data-law-open="@l.Id" title="@($"[{LawIcon(l.Id, l.Category)}] {l.Name}\n{Prose(l.Description)}\nSet by {l.ScopeName}, and settled for {Counted.Years(def?.Cooldown ?? 6)} once changed")">
-                            <b>@l.Name</b>
-                            @if (l.CooldownLeft > 0) { <small class="lw-st warn"><Icon Name="hourglass" Tone="brass" Size="13" />settled for @Counted.MoreYears(l.CooldownLeft)</small> }
-                            else { <small class="lw-st">@Over(l.Scope)@if (custom) { <span class="cust">· off the custom</span> }</small> }
+                        <div class="lw-hd">
+                            <b class="lw-nm" data-law-open="@l.Id" title="@nameTip">@l.Name</b><span class="lw-sub" title="@nameTip">@Over(l.Scope)</span>
+                            @if (custom) { <span class="lw-st cust" title="An option other than the custom is in force">off the custom</span> }
                         </div>
-                        <div class="lw-lad" role="radiogroup" aria-label="@l.Name" style="--n:@l.Options.Count">
-                            @foreach (var o in l.Options)
+                        <div class="lw-lad" role="radiogroup" aria-label="@l.Name">
+                            @for (int i = 0; i < l.Options.Count; i++)
                             {
-                                var opt = o; bool locked = o.Refusal != null && !o.InForce; string tip = PlateTip(law, opt, def);
+                                var opt = l.Options[i]; bool locked = opt.Refusal != null && !opt.InForce; string tip = PlateTip(law, opt, def);
+                                if (i > 0) { <i class="lw-step" aria-hidden="true"></i> }
                                 @* a disabled button takes no pointer, so its cell carries the same tooltip: why you may not choose it *@
-                                <span class="lw-cell" title="@tip">
-                                <button class="lw-pl @(o.InForce ? "on" : "") @(locked ? "off" : "") @(def?.DefaultOption.Id == o.Id ? "dflt" : "")" role="radio" aria-checked="@(o.InForce ? "true" : "false")"
+                                <span class="lw-cell @(opt.InForce ? "on" : "")" title="@tip">
+                                <button class="lw-pl @(opt.InForce ? "on" : "") @(locked ? "off" : "") @(def?.DefaultOption.Id == opt.Id ? "dflt" : "")" role="radio" aria-checked="@(opt.InForce ? "true" : "false")"
                                         disabled="@locked" title="@tip" @onclick="() => AskLaw(law, opt)">
-                                    <span class="lw-pn">@PlateName(o.Name)</span>
-                                    <span class="lw-pf">
-                                        @MarksOf(o.Opinions.Select(x => (x.Estate, x.Opinion)))
-                                        @if (!o.InForce)
-                                        {
-                                            @if (l.CooldownLeft > 0) { <span class="lw-pc lock"><Icon Name="padlock" Tone="ivory" Size="13" /></span> }
-                                            else { <span class="lw-pc @(l.Cost > pool ? "short" : "")"><Icon Name="public-speaker" Tone="ivory" Size="14" />@l.Cost</span> }
-                                        }
-                                    </span>
+                                    @if (opt.InForce) { <i class="lw-stud" aria-hidden="true"></i> }
+                                    <span class="lw-pn">@PlateName(opt.Name)</span>
+                                    @MarksOf(opt.Opinions.Select(x => (x.Estate, x.Opinion)))
+                                    @if (opt.InForce)
+                                    {
+                                        if (l.CooldownLeft > 0) { <span class="lw-in yrs"><Icon Name="hourglass" Tone="dark" Size="13" />@l.CooldownLeft yr</span> }
+                                        else { <span class="lw-in">In force</span> }
+                                    }
+                                    else if (l.CooldownLeft > 0) { <span class="lw-pc lock"><Icon Name="padlock" Tone="ivory" Size="13" /></span> }
+                                    else { <span class="lw-pc @(l.Cost > pool ? "short" : "")"><Icon Name="public-speaker" Tone="ivory" Size="14" />@l.Cost</span> }
                                 </button>
                                 </span>
                             }
@@ -175,10 +179,11 @@
             <Section Title="Beyond your gift" Count="@beyond.Count.ToString()" Info="Laws of positions your house does not hold. Whoever holds the position sets them; you see where they stand and what the estates think of each option.">
                 @foreach (var l in beyond.OrderBy(l => l.Category, StringComparer.Ordinal).ThenBy(l => l.Name, StringComparer.Ordinal))
                 {
+                    string bTip = $"[{LawIcon(l.Id, l.Category)}] {l.Name}\n{Prose(l.Description)}\n{Cap(l.ScopeName)} may set it";
                     <div class="lw-row ro" data-law-beyond="@l.Id">
                         <span class="lw-ic" title="@l.Category"><Icon Name="@LawIcon(l.Id, l.Category)" Tone="ivory" Size="22" /></span>
-                        <div class="lw-nm" title="@($"[{LawIcon(l.Id, l.Category)}] {l.Name}\n{l.Description}")"><b>@l.Name</b><small class="lw-st">@(Cap(l.ScopeName)) may set it</small></div>
-                        @ReadLadderOf(l, false)
+                        <div class="lw-hd"><b class="lw-nm" title="@bTip">@l.Name</b><span class="lw-sub" title="@bTip">@WhoMay(l.Scope)</span></div>
+                        @ReadLadderOf(l, false, null)
                     </div>
                 }
             </Section>
@@ -197,16 +202,17 @@
                 @foreach (var r in grp)
                 {
                     var card = ch.Laws.FirstOrDefault(x => x.Id == r.Id); bool custom = r.SetBy.StartsWith("the custom"); string? sub = custom ? null : SetBySays(r, card?.Scope ?? "");
-                    <div class="lw-row ro @(r.Mine ? "mine" : "") @(custom ? "at-custom" : "")" data-reach-law="@r.Id" title="@(r.Act && r.CooldownLeft > 0 ? $"Settled, {Counted.Years(r.CooldownLeft)} before the chamber will hear it again" : null)">
+                    string rTip = $"[{LawIcon(r.Id, r.Category)}] {r.Name}\n{Prose(card?.Description ?? r.Category)}\nIn force, {r.OptionName.ToLowerInvariant()}{(r.Effects.StartsWith("changes no yield") ? ", which changes no yield and no cost" : ", " + Minus(r.Effects))}.\n{(custom ? "The custom, no Act yet carried." : Cap(r.SetBy) + ".")}{(r.Act && r.CooldownLeft > 0 ? $"\nSettled, {Counted.Years(r.CooldownLeft)} before the chamber will hear it again" : "")}";
+                    <div class="lw-row ro @(r.Mine ? "mine" : "") @(custom ? "at-custom" : "")" data-reach-law="@r.Id">
                         <span class="lw-ic" title="@r.Category"><Icon Name="@LawIcon(r.Id, r.Category)" Tone="@(r.Mine ? "brass" : "ivory")" Size="22" /></span>
-                        <div class="lw-nm" title="@($"[{LawIcon(r.Id, r.Category)}] {r.Name}\n{card?.Description ?? r.Category}\nIn force, {r.OptionName.ToLowerInvariant()}{(r.Effects.StartsWith("changes no yield") ? ", which changes no yield and no cost" : ", " + r.Effects)}.{(custom ? " The custom, no Act yet carried." : "")}")">
-                            <b>@r.Name</b>
-                            @* a law at its custom has no sub-line: the lede and the section's rules say what the custom is; only the exceptions are marked *@
-                            @if (r.Act && !custom) { <small class="lw-st act"><Icon Name="vote" Tone="brass" Size="13" />By an Act@(r.CooldownLeft > 0 ? $" · settled {Counted.Years(r.CooldownLeft)}" : "")</small> }
-                            else if (sub != null) { <small class="lw-st @(r.Mine ? "mine" : "") @(sub.StartsWith("No ") || sub.EndsWith("empty") ? "vac" : "")">@sub</small> }
+                        <div class="lw-hd">
+                            <b class="lw-nm" title="@rTip">@r.Name</b>
+                            @* who set it: the custom is a quiet mark on the lit plate; only the exceptions are written, two or three words, the sentence in the tooltip *@
+                            @if (r.Act && !custom) { <span class="lw-sub act" title="@rTip"><Icon Name="vote" Tone="brass" Size="13" />By an Act@(r.CooldownLeft > 0 ? $" · {r.CooldownLeft} yr" : "")</span> }
+                            else if (sub != null) { <span class="lw-sub @(r.Mine ? "mine" : "") @(sub.StartsWith("No ") || sub.EndsWith("empty") ? "vac" : "")" title="@rTip">@sub</span> }
                         </div>
-                        @if (card != null) { @ReadLadderOf(card, r.Mine) }
-                        else { <span class="lw-lad ro" style="--n:1"><span class="lw-pl on"><span class="lw-pn">@r.OptionName</span></span></span> }
+                        @if (card != null) { @ReadLadderOf(card, r.Mine, custom ? "no Act yet" : null) }
+                        else { <span class="lw-lad ro"><span class="lw-pl on" title="@rTip"><i class="lw-stud" aria-hidden="true"></i><span class="lw-pn">@PlateName(r.OptionName)</span>@if (custom) { <span class="lw-in cust">no Act yet</span> }</span></span> }
                     </div>
                 }
                 </div>
@@ -292,10 +298,21 @@
     public static MarkupString Bold(string s) => new(System.Text.RegularExpressions.Regex.Replace(System.Net.WebUtility.HtmlEncode(Minus(s)), @"(?<![\w&#])([+−-]?\d[\d,.]*)(?![\w;])", "<b>$1</b>"));
     /// <summary>The small marks on a plate: each estate that would warm or cool to an option, its glyph in ivory on a dark round chip whose
     /// rim is green (warm) or ember (cool), with a chevron at its corner pointing up or down, and a second chevron for a strong feeling (15
-    /// or more). Shape and colour both, so the two never rest on colour alone. The figures are in the plate's tooltip.</summary>
-    public static RenderFragment MarksOf(IEnumerable<(string estate, int opinion)> ops) => @<span class="lw-mks">@foreach (var x in ops.Where(x => x.opinion != 0)) { <i class="lw-mk @(x.opinion > 0 ? "up" : "down") @(Math.Abs(x.opinion) >= 15 ? "hi" : "")"><Icon Name="@EstateIcon(x.estate)" Tone="ivory" Size="15" /></i> }</span>;
-    /// <summary>A law's options as a ladder to read, not to press: the law of the Reach, and the laws beyond the house's gift.</summary>
-    public static RenderFragment ReadLadderOf(LawCard l, bool mine) => @<span class="lw-lad ro" style="--n:@l.Options.Count">@foreach (var o in l.Options) { <span class="lw-pl @(o.InForce ? "on" : "") @(o.InForce && mine ? "mine" : "")" title="@ReadTip(l, o)"><span class="lw-pn">@PlateName(o.Name)</span><span class="lw-pf">@MarksOf(o.Opinions.Select(x => (x.Estate, x.Opinion)))</span></span> }</span>;
+    /// or more). Shape and colour both, so the two never rest on colour alone. The figures are in the plate's tooltip.
+    /// At most three show and the rest are a "+N" mark (the plate's tooltip has every figure); where the window is narrower, two, or one
+    /// (the CSS picks which "+N" shows, by the window's width in rem, so the larger text sizes are counted).</summary>
+    public static RenderFragment MarksOf(IEnumerable<(string estate, int opinion)> ops)
+    {
+        var list = ops.Where(x => x.opinion != 0).ToList();
+        return @<span class="lw-mks">@for (int i = 0; i < Math.Min(3, list.Count); i++) { var x = list[i]; <i class="lw-mk @(x.opinion > 0 ? "up" : "down") @(Math.Abs(x.opinion) >= 15 ? "hi" : "") m@(i + 1)"><Icon Name="@EstateIcon(x.estate)" Tone="ivory" Size="13" /></i> }@for (int k = 3; k >= 1; k--) { if (list.Count > k) { <i class="lw-mk more k@(k)">+@(list.Count - k)</i> } }</span>;
+    }
+    /// <summary>A law's options as a ladder to read, not to press: the law of the Reach, and the laws beyond the house's gift. <paramref name="mark"/>
+    /// is the quiet word on the plate in force ("no Act yet" for a law of the Senate at its custom, no Act yet carried); otherwise it says "In force".</summary>
+    public static RenderFragment ReadLadderOf(LawCard l, bool mine, string? mark) => @<span class="lw-lad ro">@for (int i = 0; i < l.Options.Count; i++)
+    {
+        var o = l.Options[i]; if (i > 0) { <i class="lw-step" aria-hidden="true"></i> }
+        <span class="lw-pl @(o.InForce ? "on" : "") @(o.InForce && mine ? "mine" : "")" title="@ReadTip(l, o)">@if (o.InForce) { <i class="lw-stud" aria-hidden="true"></i> }<span class="lw-pn">@PlateName(o.Name)</span>@MarksOf(o.Opinions.Select(x => (x.Estate, x.Opinion)))@if (o.InForce) { <span class="lw-in @(mark != null ? "cust" : "")">@(mark ?? "In force")</span> }</span>
+    }</span>;
     private static string ReadTip(LawCard l, LawOptionCard o) => $"[{LawIcon(l.Id, l.Category)}] {o.Name}\n{FxSay(o.Effects)}\n{OpinionLines(o)}" + (o.InForce ? "key: In force now" : "key: " + WhoSets(l.Scope));
     /// <summary>Who may move a law to another option, for a plate that is not in force.</summary>
     private static string WhoSets(string scope) => scope switch
@@ -303,10 +320,22 @@
         "senate" => "Changes only by an Act of the Senate", "chair" => "The holder of the chair sets it", "emperor" => "The Emperor sets it",
         _ when scope.StartsWith("office:") => $"The {scope["office:".Length..].Replace('_', ' ')} sets it, from the office", _ => Cap(PolicySystem.ScopeName(scope)) + " sets it"
     };
-    /// <summary>Who set a law of the Reach, as the line under its name: only the exceptions to the custom are written.</summary>
-    private static string SetBySays(ReachLawLine r, string scope) => r.SetBy.StartsWith("no one holds")
-        ? scope switch { "emperor" => "No Emperor sits", "chair" => "The chair is empty", _ when scope.StartsWith("office:") => $"The {scope["office:".Length..].Replace('_', ' ')}'s chair is empty", _ => Cap(r.SetBy) }
-        : Cap(r.SetBy);
+    /// <summary>Who set a law of the Reach, in two or three words beside its name ("Aurelian, as chair", "Chair empty"); the sentence
+    /// is in the tooltip. Only the exceptions to the custom are written.</summary>
+    private static string SetBySays(ReachLawLine r, string scope)
+    {
+        if (r.SetBy.StartsWith("no one holds"))
+            return scope switch { "emperor" => "No Emperor", "chair" => "Chair empty", _ when scope.StartsWith("office:") => "No " + scope["office:".Length..].Replace('_', ' '), _ => Cap(r.SetBy) };
+        // "set by House Aurelian, as the chair" → "Aurelian, as chair"; "set by you, as the chair" → "You, as chair"
+        var m = System.Text.RegularExpressions.Regex.Match(r.SetBy, @"^set by (?:House )?(.+?), as (?:the |an? )?(.+)$");
+        return m.Success ? Cap(m.Groups[1].Value) + ", as " + m.Groups[2].Value : Cap(r.SetBy);
+    }
+    /// <summary>Who may set a law beyond the house's gift, in two or three words: "The spymaster", "The chair", "A bench's leader".</summary>
+    private static string WhoMay(string scope) => scope switch
+    {
+        "chair" => "The chair", "emperor" => "The Emperor", "bench" => "A bench's leader", "house" => "A house's head", "world" => "A world's holder", "region" => "A region's master",
+        _ when scope.StartsWith("office:") => "The " + scope["office:".Length..].Replace('_', ' '), _ when scope.StartsWith("post:") => "The " + scope["post:".Length..].Replace('_', ' '), _ => Cap(PolicySystem.ScopeName(scope))
+    };
     /// <summary>What a law in the player's gift governs, by the position that puts it there: "The house", "Your worlds", "Your region".</summary>
     private static string Over(string scope) => scope switch
     {
@@ -319,22 +348,59 @@
         "Taxation" => "receive-money", "Military" => "eagle-emblem", "Order" => "scroll-unfurled", "Trade" => "trade", "Labour" => "factory", "Justice" => "scales",
         "Frontier" => "fortress", "The council" => "office-chair", "The household" => "family-house", "Money" => "money-stack", "Land and bread" => "sprout", _ => "scroll-unfurled"
     };
-    /// <summary>The glyph on a law's row: its group's, unless the group's glyph does not say what this law governs at 22px.</summary>
+    /// <summary>The glyph on a law's row: each law its own, so a column of them tells the rows apart (no two alike on one tab, and none
+    /// an estate's glyph, which the marks use); the group's glyph for a law not named here.</summary>
     public static string LawIcon(string id, string category) => id switch
     {
-        "march_law" => "fortress", "settlement" => "frontier_colony", "informers" => "cowled", "embassy" => "dove", "counsel" => "scroll-quill",
-        "court_etiquette" => "castle", "franchise" => "vote", "standing_orders" => "scroll-unfurled", "imperial_edict" => "throne-king",
-        "bench_platform" => "flying-flag", "canvassing" => "podium-winner", "law_of_years" => "sundial", "citizenship" => "roman-toga", _ => GroupIcon(category)
+        // the laws of the house, its worlds and its regions
+        "tithe" => "receive-money", "levies" => "manpower", "court_etiquette" => "castle", "household_guard" => "checked-shield", "tariffs" => "trade",
+        "labour" => "factory", "justice" => "scales", "franchise" => "vote", "march_law" => "fortress", "settlement" => "frontier_colony",
+        "bench_platform" => "flying-flag", "household_wages" => "family-house", "informers" => "cowled", "embassy" => "dove", "counsel" => "scroll-quill",
+        // the law of the Reach: the chair, the offices, the throne and the Senate's Acts
+        "reach_tolls" => "customs_post", "letters_of_marque" => "frigate", "fleet_doctrine" => "target-arrows", "exchange_rates" => "abacus",
+        "standing_orders" => "open-book", "imperial_edict" => "throne-king", "common_law" => "scales", "trade_charter" => "trade_hub", "arms_market" => "cannon",
+        "exchange_levy" => "trade", "levy_of_the_reach" => "rally-the-troops", "usury" => "money-stack", "canvassing" => "podium-winner", "forestalling" => "cargo-crate",
+        "hired_companies" => "cruiser", "corn_law" => "agri_world", "land_law" => "frontier_colony", "law_of_service" => "eagle-emblem", "navigation_act" => "ship",
+        "law_of_years" => "sundial", "citizenship" => "roman-toga",
+        _ => GroupIcon(category)
     };
-    /// <summary>An option's name on its plate, which holds two lines: the long ones shortened, the full name heading the plate's tooltip.</summary>
-    public static string PlateName(string name) => name switch
+    /// <summary>An option's name on its plate, which holds one line: a word or two, the full name heading the plate's tooltip. "Customary"
+    /// for every custom, the article dropped, and the long ones cut to what tells them apart on their law's ladder.</summary>
+    public static string PlateName(string name)
     {
-        "No more than twenty in the hundred" => "Twenty in the hundred", "No more than ten in the hundred" => "Ten in the hundred",
-        "Land for settlers and veterans" => "Settlers and veterans", "The great estates confirmed" => "Estates confirmed",
-        "Citizenship for the whole Reach" => "For the whole Reach", "Citizens of the old worlds only" => "The old worlds only",
-        "Free dealing between houses" => "Free dealing", "Coin forbidden at elections" => "Coin forbidden", "As little as they will take" => "As little as they take",
-        _ => name
-    };
+        string? named = name switch
+        {
+            "Lenient tithe" => "Lenient", "Harsh tithe" => "Harsh", "Volunteers only" => "Volunteers", "The household levy" => "Household", "No standing guard" => "No guard",
+            "A standing guard" => "Standing", "The guard doubled" => "Doubled", "Protective tariffs" => "Protective",
+            "Bonded labour" => "Bonded", "Lenient courts" => "Lenient", "The closed franchise" => "Closed", "The open ballot" => "Open ballot",
+            "Conserve the hulls" => "Conserve hulls", "Aggressive doctrine" => "Aggressive", "Open exchanges" => "Open", "Guarded exchanges" => "Guarded",
+            "A reform platform" => "Reform", "A platform of tradition" => "Tradition", "The Reach's assizes" => "Assizes", "Protected markets" => "Protected",
+            "A licensed market" => "Licensed", "No common levy" => "No levy", "The Reach's levy" => "Reach levy", "A few trusted ears" => "Trusted ears",
+            "Ears in every household" => "Every household", "Every clerk in the courts" => "Every clerk", "As little as they will take" => "Bare wage",
+            "Freedom of contract" => "Free contract", "No more than twenty in the hundred" => "At most 20%", "No more than ten in the hundred" => "At most 10%",
+            "Coin forbidden at elections" => "Coin forbidden", "Money is free" => "Money free", "The corner's premium capped" => "Premium capped",
+            "Engrossing forbidden" => "No engrossing", "Licensed companies" => "Licensed", "Hired companies forbidden" => "Forbidden", "Corn at a fixed price" => "Fixed price",
+            "The great estates confirmed" => "Estates kept", "Land for settlers and veterans" => "Settlers' land", "Free dealing between houses" => "Free dealing",
+            "A levy on private sales" => "Sales levy", "The staple" => "The staple", "The years relaxed" => "Relaxed", "The years enforced" => "Enforced",
+            "Citizens of the old worlds only" => "Old worlds", "Citizenship for the whole Reach" => "Whole Reach",
+            // local law
+            "The tithe remitted" => "Remitted", "A surcharge laid on" => "Surcharge", "A garrison quartered" => "Garrison", "Governed from the seat" => "From the seat",
+            "No grants of land" => "No grants", "No levy of labour" => "No levy", "A levy for public works" => "Public works", "A corn dole and games" => "Dole and games",
+            "Open to the Reach" => "Open", "A closed world" => "Closed",
+            _ => null
+        };
+        if (named != null) return named;
+        if (name.StartsWith("Customary ") || name.StartsWith("The customary ")) return "Customary";
+        foreach (var art in new[] { "The ", "A ", "An " }) if (name.StartsWith(art) && name.Length > art.Length) return Cap(name[art.Length..]);
+        return name;
+    }
+    /// <summary>An option's name on the estates' step plate, which says it without its law beside it: the name with its article dropped
+    /// ("Guard doubled", "Free trade", "Lenient tithe"), or the plate's short name when that is too long for the step.</summary>
+    public static string StepName(string name)
+    {
+        string s = name; foreach (var art in new[] { "The ", "A ", "An " }) if (s.StartsWith(art) && s.Length > art.Length) { s = Cap(s[art.Length..]); break; }
+        return s.Length <= 15 ? s : PlateName(name);
+    }
     /// <summary>The glyph of an estate: its medallion on the estates' rows, and the small mark on a law's plate.</summary>
     public static string EstateIcon(string estate) => estate switch
     {

@@ -36,9 +36,9 @@
                 </div>
                 <div style="min-width:0">
                     <div class="ui-row-nm">@e.Name<span class="lw-named">@Named(e)</span></div>
-                    <div class="lw-fxline">@FxChips(Chips(e.Effects, false, GoodName(e)))<span class="lw-by">@Who(e) · @where</span></div>
+                    <div class="lw-fxline">@FxLine(Chips(e.Effects, false, GoodName(e)), new List<Fx>())<span class="lw-by" title="@($"{Who(e)}, over {where}")">by @(by?.Name ?? w.House(e.IssuerHouseId)?.Name ?? "a magistrate")</span></div>
                 </div>
-                <div class="ui-cols"><span class="lw-term" title="@($"In force until year {e.Until}, then it lapses")"><Icon Name="hourglass" Tone="brass" Size="15" />until year <b>@e.Until</b></span></div>
+                <div class="ui-cols"><span class="lw-term" title="@($"In force until year {e.Until}, then it lapses")"><Icon Name="hourglass" Tone="brass" Size="14" /><span class="lw-long">until year&nbsp;</span><span class="lw-short">yr&nbsp;</span><b>@e.Until</b></span></div>
                 <div>
                     @if (e.IssuerId == pid)
                     {
@@ -75,20 +75,16 @@
                 <div><span class="lw-edic"><Icon Name="@Glyph(d.Id, d.Issuer)" Tone="@(no == null ? "brass" : "ivory")" Size="22" /></span></div>
                 <div style="min-width:0" title="@($"[{Glyph(d.Id, d.Issuer)}] {d.Name}\n{d.Description}\n{LawsScreen.Prose(Does(def))}{(no != null ? $"\nYou cannot issue it now. {Cap(no)}." : "")}\nModelled on {d.Model}")">
                     <div class="ui-row-nm">@d.Name</div>
-                    @if (no != null) { <div class="ui-row-sub lw-no"><Icon Name="padlock" Tone="ivory" Size="14" /><span>@Cap(no)</span></div> }
-                    else
-                    {
-                        var now = Chips(d.Now, true, null); var then = Chips(d.Effects, false, d.Target == "good" ? Dear() : null);
-                        <div class="lw-fxline">@FxChips(now)@if (then.Count > 0 && now.Count > 0) { <span class="lw-then-g"><span class="lw-then">then</span>@FxChips(then.Take(1))</span>@FxChips(then.Skip(1)) } else { @FxChips(then) }</div>
-                    }
+                    @if (no != null) { <div class="ui-row-sub lw-no"><Icon Name="padlock" Tone="ivory" Size="14" /><span>@ShortNo(no)</span></div> }
+                    else { <div class="lw-fxline">@FxLine(Chips(d.Now, true, null), Chips(d.Effects, false, d.Target == "good" ? Dear() : null))</div> }
                 </div>
-                <div class="ui-cols"><span class="lw-term" title="@($"It runs {Counted.Years(d.Years)}, then lapses")"><Icon Name="hourglass" Tone="brass" Size="15" /><b>@d.Years</b>@(d.Years == 1 ? " year" : " years")</span></div>
+                <div class="ui-cols"><span class="lw-term" title="@($"It runs {Counted.Years(d.Years)}, then lapses")"><Icon Name="hourglass" Tone="brass" Size="14" /><b>@d.Years</b><span class="lw-long lw-unit">@(d.Years == 1 ? "year" : "years")</span><span class="lw-short lw-unit">yr</span></span></div>
                 <div>
                     @{ string itip = no != null ? $"[padlock] {d.Name}\nYou cannot issue it now. {Cap(no)}." : $"[{Glyph(d.Id, d.Issuer)}] {d.Name}\n{LawsScreen.Prose(Does(def))}\nkey: Click to issue it; you are asked first"; }
                     <span class="lw-tipwrap" title="@itip">
                     <button class="ui-btn sm lw-issue @(no != null ? "off" : "")" data-edict="@d.Id" disabled="@(no != null)" title="@itip" @onclick="() => Ask(def, target)">
-                        @if (no != null) { <Icon Name="padlock" Tone="ivory" Size="15" /> } else { <Icon Name="scroll-quill" Tone="ivory" Size="15" /> }
-                        Issue
+                        @if (no != null) { <Icon Name="padlock" Tone="ivory" Size="15" Class="lw-iss-ic" /> } else { <Icon Name="scroll-quill" Tone="ivory" Size="15" Class="lw-iss-ic" /> }
+                        <span>Issue</span>
                         <span class="ui-cost">@if (d.Influence > 0) { <Icon Name="public-speaker" Tone="ivory" Size="14" />@d.Influence }@if (d.Credits > 0) { <Icon Name="credits" Tone="brass" Size="14" />@Money.Show(d.Credits) }@if (d.Influence == 0 && d.Credits == 0) { <span>free</span> }</span>
                     </button>
                     </span>
@@ -161,7 +157,46 @@
         }
         return list;
     }
-    private static RenderFragment FxChips(IEnumerable<Fx> chips) => @<span class="lw-fx">@foreach (var f in chips) { <span class="lw-chip @(f.Good > 0 ? "good" : f.Good < 0 ? "bad" : "")" aria-label="@($"{f.Text} {f.Say}")"><Icon Name="@f.Icon" Tone="@f.Tone" Size="18" /><b>@f.Text</b></span> }</span>;
+    private static RenderFragment Chip(Fx f, string cls) => @<span class="lw-chip @(f.Good > 0 ? "good" : f.Good < 0 ? "bad" : "") @cls" aria-label="@($"{f.Text} {f.Say}")"><Icon Name="@f.Icon" Tone="@f.Tone" Size="18" /><b>@f.Text</b></span>;
+    /// <summary>What an edict does as one line of chips: at once, then ("then") each year while it runs. Where the window is wide every chip
+    /// shows; where it is narrow (1366 wide, or a larger text size) the first three, or the first two, and a "+N" chip whose tooltip
+    /// names the rest. Which, the CSS picks by the window's width in rem; nothing is dropped without that mark.</summary>
+    private static RenderFragment FxLine(List<Fx> now, List<Fx> then) => __b =>
+    {
+        var all = now.Concat(then).ToList(); int seq = 0;
+        string Cls(int i) => i >= 3 ? "x3" : i == 2 ? "x2" : "";
+        for (int i = 0; i < all.Count; i++)
+        {
+            if (i == now.Count && now.Count > 0)
+            {
+                // "then" stays with the chip after it, and goes with it
+                __b.OpenElement(seq++, "span"); __b.AddAttribute(seq++, "class", "lw-then-g " + Cls(i));
+                __b.OpenElement(seq++, "span"); __b.AddAttribute(seq++, "class", "lw-then"); __b.AddContent(seq++, "then"); __b.CloseElement();
+                __b.AddContent(seq++, Chip(all[i], "")); __b.CloseElement();
+            }
+            else __b.AddContent(seq++, Chip(all[i], Cls(i)));
+        }
+        foreach (int keep in new[] { 3, 2 })
+            if (all.Count > keep)
+            {
+                __b.OpenElement(seq++, "span"); __b.AddAttribute(seq++, "class", "lw-chip more m" + keep);
+                __b.AddAttribute(seq++, "title", "[scroll-quill] And then\n" + string.Join("\n", all.Skip(keep).Select(f => $"{f.Text} {f.Say}")));
+                __b.AddContent(seq++, $"+{all.Count - keep}"); __b.CloseElement();
+            }
+    };
+    /// <summary>Why an edict may not be issued, short enough for its row ("In force already"); the whole sentence is in the row's tooltip.</summary>
+    private static string ShortNo(string no)
+    {
+        var m = System.Text.RegularExpressions.Regex.Match(no, @"was proclaimed lately: it may be again in year (\d+)"); if (m.Success) return "Again in year " + m.Groups[1].Value;
+        if (no.Contains("is in force already")) return "In force already";
+        if (no.Contains("cannot be in force together")) return "Another stands in its way";
+        if (no.StartsWith("you have ") && no.Contains("is the most one person may have")) return "You have the most in force";
+        if (no.StartsWith("only ")) return Cap(no.Replace(" may issue it", ""));
+        if (no.StartsWith("the house holds no world")) return "No world for it to fall on";
+        if (no.StartsWith("nothing is short")) return "Nothing is short";
+        if (no.StartsWith("needs ")) { int k = no.IndexOf(", and ", StringComparison.Ordinal); if (k < 0) k = no.IndexOf(" and ", StringComparison.Ordinal); return Cap(k > 0 ? no[..k] : no); }
+        return Cap(no);
+    }
     private static string Elsewhere(int n) => n > 0 ? Counted.Of(n, "edict") + " of other houses stand on their own worlds." : string.Empty;
     private static string WithdrawSays() => "[anticlockwise-rotation] Take it back\nTake it back now. Nothing paid for it comes back, and it may not be issued again for some years.";
     private static string Cap(string s) => LawsScreen.Cap(s);
