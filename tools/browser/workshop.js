@@ -20,7 +20,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await click('.scenario.custom'); await page.waitForSelector('.workshop');
   console.log('opened · ' + (await power()).replace(/\n/g, ' '));
   for (const tab of ['The person', 'The face', 'The house', 'What it holds', 'The family', 'The world']) {
-    await click('.workshop .ex-tabs .rung', tab); await page.waitForTimeout(250);
+    await click('.workshop .ui-tab', tab); await page.waitForTimeout(250);
     const text = await page.evaluate(() => document.querySelector('.workshop').innerText);
     console.log(tab + ': ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + text.length + ' chars');
     await page.screenshot({ path: shots + '/workshop-' + tab.toLowerCase().replace(/ /g, '-') + '.png' });
@@ -35,10 +35,10 @@ require('fs').mkdirSync(shots, { recursive: true });
   const blocked = await page.evaluate(() => document.querySelector('button.begin').disabled); console.log('Begin disabled while there are objections: ' + blocked);
   await click('.workshop .ws-row .chip', 'Throw the dice'); await page.waitForTimeout(300); console.log('dice (standard): ' + (await power()).replace(/\n/g, ' ').slice(0, 70) + ' · problems ' + (await problems()).length);
   await click('.workshop .ws-row .chip', preset); await page.waitForTimeout(300);
-  await click('.workshop .ex-tabs .rung', 'The face'); await click('.workshop .chip', 'a scar'); await click('.workshop .swatch'); await page.waitForTimeout(400);
+  await click('.workshop .ui-tab', 'The face'); await click('.workshop .chip', 'a scar'); await click('.workshop .swatch'); await page.waitForTimeout(400);
   await page.screenshot({ path: shots + '/workshop-face.png' });
   if (process.argv[4] === 'academy') {
-    await click('.workshop .ex-tabs .rung', 'The world'); await click('.workshop .chip', 'At the'); await page.waitForTimeout(300); console.log('academy start: problems ' + (await problems()).length);
+    await click('.workshop .ui-tab', 'The world'); await click('.workshop .chip', 'At the'); await page.waitForTimeout(300); console.log('academy start: problems ' + (await problems()).length);
     await click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 }); await page.waitForTimeout(800);
     const text = await page.evaluate(() => document.body.innerText.replace(/\n/g, ' ').slice(0, 160)); console.log('academy screen: ' + (await page.$('.academy-shell') ? 'up' : 'MISSING') + ' · ' + text);
     await page.screenshot({ path: shots + '/custom-academy.png' }); console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e)); await browser.close(); return;
@@ -46,7 +46,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   await click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 }); await page.waitForTimeout(800);
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (el) el.click(); return !!el; }, name);
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  // the year is on the date plate of the top bar (data-turn); the old "Turn N" text is kept as a fallback
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   await closeWindows(); await rail('House'); await page.waitForTimeout(500);
   for (let t = 0; t < turns; t++) { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 600; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } }
   await closeWindows();
