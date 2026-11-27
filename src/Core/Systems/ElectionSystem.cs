@@ -180,7 +180,7 @@ public static class ElectionSystem
         }
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("stands_for_consul:")).ToList()) w.WorldFlags.Remove(f);
         OrderSystem.SweepCanvass(w);
-        w.WorldCounters["elections"] = w.Counter("elections") + 1; w.WorldFlags.Add("election_held");
+        w.WorldCounters["elections"] = w.Counter("elections") + 1; w.WorldFlags.Add("election_held"); w.WorldCounters["mark:election_held"] = w.Turn;   // marked, so the year's reports of it come in its year (docs/events/votes.md)
         w.Log($"The Senate elects its consuls: {string.Join(", ", winners.Select((kv, i) => $"{w.House(kv.Key)?.Name ?? kv.Key} ({kv.Value}) as {consuls[Math.Min(i, consuls.Count - 1)].Name}"))}.{(nominees.Count > winners.Count ? " Also standing: " + string.Join(", ", tally.Where(kv => winners.All(x => x.Key != kv.Key)).OrderByDescending(kv => kv.Value).Select(kv => $"{w.House(kv.Key)?.Name ?? kv.Key} ({kv.Value})")) + "." : "")}");
     }
 

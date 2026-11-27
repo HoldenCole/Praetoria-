@@ -154,6 +154,7 @@ public static partial class LadderSystem
                 LifeSystem.Note(w, c, "office", $"Elected {rung.Name.ToLowerInvariant()}.");
                 if (c.HouseId == mine) { c.Flags.Add(ElectedChar); if (c.Id == p!.Id) Mark(w, ElectedFlag); else Mark(w, KinElectedFlag); }
             }
+            VoteMarks.LadderCounted(w, candidates, winners, mine);   // who beat one of the house, and who one of the house beat (docs/events/votes.md)
             foreach (var c in winners.Where(c => c.HouseId == mine && c.Id != p!.Id && (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id)?.Backing ?? 0) > 0))
             { var owed = w.Relationship(c.Id, p!.Id); owed.Disposition = Math.Clamp(owed.Disposition + 6, -100, 100); }   // one who was spoken for and won knows what they owe
             foreach (var c in candidates.Where(c => c.HouseId == mine && !winners.Contains(c)))
@@ -623,6 +624,7 @@ public static partial class LadderSystem
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         foreach (var c in w.Characters.Values) { if (!w.HasFlag(ElectedFlag) && !w.HasFlag(KinElectedFlag)) c.Flags.Remove(ElectedChar); c.Flags.Remove(StandingChar); }
         if (!w.HasFlag(ExposedFlag) && !w.HasFlag(KinExposedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(ExposedChar);
+        VoteMarks.ClearLadder(w);
         if (!w.HasFlag(SpokenForFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(SpokenForChar);
         if (!w.HasFlag(PatronFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(PatronChar);
         if (!w.HasFlag(FellOutFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(FellOutChar);

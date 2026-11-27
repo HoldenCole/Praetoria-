@@ -421,6 +421,7 @@ public sealed class SenateSystem
         var mine = w.Protagonist?.HouseId;
         // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
         foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags).Concat(NationSystem.SenateTurnFlags)) w.WorldFlags.Remove(f);
+        VoteMarks.ClearSession(w);   // and the people in it: who voted with the player, who took its purse (docs/events/votes.md)
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn)) (m.ForecastFor, m.ForecastAgainst) = Tally(w, m);   // where it stood before the chair spoke
         ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
         LadderSystem.ChairActs(w, this);   // the Speaker orders the docket and the presiding consul speaks from the chair (docs/LADDER.md, "The chair")
@@ -472,7 +473,7 @@ public sealed class SenateSystem
         {
             if (!BribeComesOut(w, m, boughtId)) continue;
             m.Votes[boughtId] = 0; var payer = w.House(payerId); if (payer != null) LegitimacyBook.Move(w, payer, -BribeOutLegitimacy, LegitimacyBook.Scandal, "A bought vote came out on the floor");
-            if (payerId == mine) w.WorldFlags.Add("bribe_out");
+            if (payerId == mine) VoteMarks.PurseOut(w, boughtId);   // the flag, a session long, and the head who took the purse
             w.Log($"It comes out on the floor that {payer?.Name ?? "a house"} paid {w.House(boughtId)?.Name} for its vote. The vote is struck, and {payer?.Name} is thought the less of.");
         }
         if (_fleets?.Catalog is { } provinceRules) ProvinceSystem.NoteVotes(w, provinceRules, m, def.Interest, def.Target == "house", mine, ObligeRegard, DefyRegard);   // the houses over those who voted take note (docs/PROVINCES.md)
@@ -492,6 +493,7 @@ public sealed class SenateSystem
             if (expected != 0 && m.Votes[mine] == -expected) FactionSystem.BreakWhip(w, mine, bench);
         }
         FactionSystem.RecordVotes(w, m, m.Kind, platform: !def.Rank);
+        VoteMarks.Counted(w, m, mine);   // who voted which way on the player's motion, and an abstention the bench's leader saw (docs/events/votes.md)
         if (!IsPetition(m)) { string standingKey = "senate_standing:" + m.ProposerHouseId; w.WorldCounters[standingKey] = Math.Max(0, w.Counter(standingKey) + (m.Passed ? 1 : -1)); }
         if (PetitionEstate(m) is { } estate) Answer(w, m, estate, mine);
         string text = Describe(w, m);
@@ -622,6 +624,7 @@ public sealed class SenateSystem
         {
             PolicySystem.Enact(w, Policies, PolicySystem.SenateHolder, law.Id, opt.Id);
             w.WorldFlags.Add("act_passed"); w.WorldFlags.Add("act_passed:" + law.Id); w.WorldCounters["acts_passed"] = w.Counter("acts_passed") + 1;
+            VoteMarks.ActCarried(w, m, mine);   // the houses that voted against it (docs/events/votes.md)
             w.Log($"An Act of the Senate: {law.Name.ToLowerInvariant()} is now {opt.Name.ToLowerInvariant()} throughout the Reach.");
         }
         if (def.EmbargoTurns > 0 && target != null)
@@ -809,6 +812,7 @@ public sealed class SenateSystem
     private void WriteFlags(World w, string? mine)
     {
         foreach (var f in w.WorldFlags.Where(f => f is "motion_open" or "motion_against_me" or "embargoed" or "act_open" or "petition_open" || f.StartsWith("petition_open:")).ToList()) w.WorldFlags.Remove(f);
+        VoteMarks.Docket(w, this, mine);   // who moves what, and who has not made up their mind on the player's motion (docs/events/votes.md)
         if (mine == null) return;
         var open = Docket(w).ToList();
         if (open.Count > 0) w.WorldFlags.Add("motion_open");
