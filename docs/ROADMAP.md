@@ -15,7 +15,7 @@ deterministic and saves and loads.
 
 | | Now |
 |---|---|
-| Automated tests | 838 |
+| Automated tests | 1,390 |
 | Events with text | 454 in 38 files |
 | Open gaps (docs/GAPS.md) | 204: 60 small, 123 a cycle, 21 several cycles, as `./tools/gaps.sh` counts them on 2026-11-26 (Y1 to Y10 mapped with local law, edicts and the new Acts of the Senate; docs/LAWS_REVIEW.md, section 6; then Y1 closed and Y11 mapped, docs/BREAKAWAY.md; then Q15a, R1a and R18a closed by the first three ideas from docs/IDEAS_FROM_MODS.md, with Q15, R1 and R18 left open for what remains; and M11 mapped, found by the browser check; then Q15, C7a, L11a and N11a closed by three ideas from docs/IDEAS_FROM_IMPERATOR.md, with C10, C11, L14 and N31 mapped). 122 closed so far |
 | Starts | 8 on the title screen and a character of your own; 3 hidden (a test fixture, two blank bases) |

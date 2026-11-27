@@ -172,9 +172,10 @@ public sealed class CaesarSystem
         if (w.IsImperium) return "under a throne honours are the throne's to give";
         if (w.CivilWar != null || GreatWar(w)) return "not while the Reach is at war with itself";
         var g = GeneralOf(w, target); if (g == null) return $"nobody of {target.Name} commands a fleet";
-        if (w.Recalls.Any(r => r.HouseId == target.Id)) return $"{g.Name} is under recall";
+        bool you = g.Id == w.ProtagonistId;   // the player reads "you", not their own name
+        if (w.Recalls.Any(r => r.HouseId == target.Id)) return you ? "you are under recall" : $"{g.Name} is under recall";
         int n = Laurels(w, g);
-        return n >= TriumphLaurels ? null : $"{g.Name} has {n} of the {TriumphLaurels} victories a triumph asks";
+        return n >= TriumphLaurels ? null : you ? $"you have {n} of the {TriumphLaurels} victories a triumph asks" : $"{g.Name} has {n} of the {TriumphLaurels} victories a triumph asks";
     }
 
     /// <summary>How a house leans on a triumph for the general of <paramref name="target"/>.</summary>

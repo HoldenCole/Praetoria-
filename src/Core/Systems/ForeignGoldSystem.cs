@@ -314,7 +314,7 @@ public static class ForeignGoldSystem
     /// 2 senators on this motion: your own house; House Aurelian, which took it."</summary>
     public static string KnownSays(World w, List<GoldOffer> known, string payer, string? mine)
     {
-        if (known.Count == 0) return $"No senator is known to have had gold from {payer} on this motion. They write to senators the year a war on them, or on a nation they favour, is moved, if it would carry or nearly.";
+        if (known.Count == 0) return $"No senator is known to have had gold from {payer} on this motion. They write to senators the year a war on them, or on a nation they favour, is moved, if it would carry or nearly and their purse can pay what they would offer.";
         static string Did(GoldOffer o) => o.Answer switch { Exposed => "told the chamber", Taken => "took it", Refused => "refused it", _ => "" };
         var names = known.Select(o => o.HouseId == mine ? "your own house" + (o.Ask == Withdraw ? ", to withdraw it" : string.Empty)
             : (w.House(o.HouseId)?.Name ?? o.HouseId) + (o.Ask == Withdraw ? ", which moved it" + (Did(o).Length > 0 ? " and " + Did(o) : string.Empty) : Did(o).Length > 0 ? ", which " + Did(o) : string.Empty));

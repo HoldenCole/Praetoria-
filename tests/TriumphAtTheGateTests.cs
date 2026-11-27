@@ -87,7 +87,7 @@ public class TriumphAtTheGateTests
         Assert.Equal(me.Id, f.AdmiralId); Assert.Equal(0, CaesarSystem.Triumphs(w, me)); Assert.Equal(0, CaesarSystem.Laurels(w, me));
         Assert.Null(CaesarSystem.Grievance(w, mine)); Assert.True(w.HasFlag(TriumphSystem.DeclinedFlag)); Assert.Equal(1, w.Counter(TriumphSystem.DeclinedKey));
         Assert.Contains(me.Life!.Deeds, d => d.Kind == "triumph_declined"); Assert.Equal(TriumphSystem.Keep, w.TriumphVotes.Single().Choice);
-        Assert.Contains("has 0 of the 3 victories", tc.Caesar.TriumphRefusal(w, mine));   // the victories that earned it have had their answer
+        Assert.Contains("you have 0 of the 3 victories", tc.Caesar.TriumphRefusal(w, mine));   // the victories that earned it have had their answer
 
         // voted again, and left unanswered: the year it was voted in ends with the answer still wanted, and the next it lapses
         w.WorldCounters[CaesarSystem.LaurelKey(me.Id)] = 3; tc.Caesar.TriumphVoted(w, mine, null, passed: true);
