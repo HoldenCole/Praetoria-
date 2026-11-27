@@ -1,6 +1,10 @@
+@preservewhitespace true
 @using Praetoria.Core.Systems
 @inject GameClient G
 @implements IDisposable
+@* Your duties this year, on the Senate window (docs/LADDER.md, "Duties"; docs/VISUAL_SYSTEM.md 4.6, 4.7): each position that asks
+   something of the head this year is an entry with its glyph, what it is, and its choices as plates with what each does beside it;
+   a duty done is one quiet line. What the officers of the Reach did follows. *@
 @{
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var offices = c.Offices; var policy = c.Policies;
     var seat = LadderSystem.DutyOf(w, pid, LadderSystem.SeatKind); var bench = LadderSystem.DutyOf(w, pid, LadderSystem.Hearing, LadderSystem.Appeal);
@@ -21,6 +25,7 @@
         _ => "held the office"
     };
     var post = LadderSystem.DutyOf(w, pid, LadderSystem.Desk, LadderSystem.Posting, LadderSystem.Brief, LadderSystem.Ledgers, LadderSystem.Watch);
+    int waitingN = new object?[] { charge, seat, bench, post }.Count(x => x != null);
     string postTitle = post == null ? "" : PostTitle(post.Kind);
     string postSays = post == null ? "" : LadderSystem.DutySays(w, policy, post);
     bool judge = LadderSystem.OnTheBench(p); int absent = w.Counter(LadderSystem.AbsentKey);
@@ -44,96 +49,123 @@
         _ => "sat"
     };
 }
-<section class="panel duties">
-    <h3><Icon Name="senate" Size="13" /> Your duties this year <span class="muted">what your positions ask of you</span></h3>
-    <div class="muted small">A position is work, not a title. Each of these is yours alone to decide, once a year. The business of an elected office is on the ladder below.</div>
+<section class="panel duties sn-panel">
+    <p class="ui-lede sn-lede">A position is work, not a title. Each of these is yours alone to decide, once a year; the business of an elected office is on the Ladder.</p>
+    <Section Title="Your duties this year" Count="@(waitingN > 0 ? waitingN.ToString() : "")" Info="What your positions ask of you: the charge of an office of the Reach, your seat in the Senate, a matter before your bench, and the work of your rank. Each is decided once a year; one left undone is noticed.">
+        <Right><span>@(rank.Length > 0 ? Cap(rank) : "")</span></Right>
+    </Section>
     @if (charge != null)
     {
-        <div class="rung-row duty-charge">
-            <div><b>@chargeTitle</b></div>
-            <div class="small">@chargeSays</div>
-            @foreach (var choice in LadderSystem.ChoicesOf(offices, charge))
-            {
-                string ch = choice; var no = new DutyCommand(pid, LadderSystem.Charge, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, charge, ch);
-                <div class="suit-acts">
-                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick='() => G.ExecuteTold(new DutyCommand(pid, LadderSystem.Charge, ch, offices, policy), "The year\u2019s duty", Label(ch))'>@Label(ch)</button>
-                    <span class="muted small">@tip</span>
-                </div>
-            }
-            <div class="muted small">A great office held and not used is noticed, and said.</div>
-        </div>
-    }
-    else if (holdsCharge) { <div class="muted small">@ChargeDone</div> }
-    @if (seat != null)
-    {
-        <div class="rung-row duty-seat">
-            <div><b>Your seat in the Senate</b></div>
-            <div class="small">@seatSays</div>
-            @foreach (var choice in LadderSystem.DutyChoices(LadderSystem.SeatKind))
-            {
-                string ch = choice; var no = new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, seat, ch);
-                <div class="suit-acts">
-                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick='() => G.ExecuteTold(new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy), "The year\u2019s duty", Label(ch))'>@Label(ch)</button>
-                    <span class="muted small">@tip</span>
-                </div>
-            }
-            @if (absentLine.Length > 0) { <div class="small bad">@absentLine</div> }
-            <div class="muted small committee-line">@LadderSystem.CommitteeSays(w, w.House(p.HouseId)!) @LadderSystem.AttendanceSays(w, p)</div>
-            <div class="suit-acts"><span class="muted small">Sit instead on</span>
-                @foreach (var cm in LadderSystem.Committees.Where(x => x != LadderSystem.CommitteeOf(w, w.House(p.HouseId)!)))
+        <div class="sn-ent rung-row duty-charge waits">
+            <span class="sn-ic mine"><Icon Name="podium" Tone="brass" Size="22" /></span>
+            <div class="sn-ent-main">
+                <div class="sn-hd"><b class="sn-nm">@chargeTitle</b><span class="sn-tag warn">waits on you</span></div>
+                <div class="sn-tx">@chargeSays</div>
+                <div class="sn-choices">
+                @foreach (var choice in LadderSystem.ChoicesOf(offices, charge))
                 {
-                    string cid = cm; var noMove = new CommitteeCommand(pid, cid).Refusal(G.Ctx);
-                    <button class="opt inline tiny" disabled="@(noMove != null)" title="@(noMove ?? MoveTip)" @onclick="() => G.Execute(new CommitteeCommand(pid, cid))">@LadderSystem.CommitteeName(cm)</button>
+                    string ch = choice; var no = new DutyCommand(pid, LadderSystem.Charge, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, charge, ch);
+                    <div class="sn-choice suit-acts">
+                        <Plate Label="@Label(ch)" Small="true" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? tip)" OnClick='() => G.ExecuteTold(new DutyCommand(pid, LadderSystem.Charge, ch, offices, policy), "The year’s duty", Label(ch))' />
+                        <span class="sn-say">@tip</span>
+                    </div>
                 }
+                </div>
+                <div class="sn-say ui-mute">A great office held and not used is noticed, and said.</div>
             </div>
         </div>
     }
-    else if (!holdsCharge) { <div class="muted small">@(sat ? SeatDone : SeatNotYet) @(inReach ? LadderSystem.CommitteeSays(w, w.House(p.HouseId)!) + " " + LadderSystem.AttendanceSays(w, p) : "")</div> }
+    else if (holdsCharge) { <div class="sn-done"><Icon Name="check" Tone="good" Size="14" /><span>@ChargeDone</span></div> }
+    @if (seat != null)
+    {
+        <div class="sn-ent rung-row duty-seat waits">
+            <span class="sn-ic"><Icon Name="greek-temple" Tone="ivory" Size="22" /></span>
+            <div class="sn-ent-main">
+                <div class="sn-hd"><b class="sn-nm">Your seat in the Senate</b><span class="sn-tag warn">not yet spent</span></div>
+                <div class="sn-tx">@seatSays</div>
+                <div class="sn-choices">
+                @foreach (var choice in LadderSystem.DutyChoices(LadderSystem.SeatKind))
+                {
+                    string ch = choice; var no = new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, seat, ch);
+                    <div class="sn-choice suit-acts">
+                        <Plate Label="@Label(ch)" Small="true" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? tip)" OnClick='() => G.ExecuteTold(new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy), "The year’s duty", Label(ch))' />
+                        <span class="sn-say">@tip</span>
+                    </div>
+                }
+                </div>
+                @if (absentLine.Length > 0) { <div class="sn-note bad"><Icon Name="alert" Tone="ember" Size="15" /><span>@absentLine</span></div> }
+                <div class="sn-say ui-dim committee-line">@LadderSystem.CommitteeSays(w, w.House(p.HouseId)!) @LadderSystem.AttendanceSays(w, p)</div>
+                <div class="sn-acts suit-acts"><span class="sn-lbl">Sit instead on</span>
+                    @foreach (var cm in LadderSystem.Committees.Where(x => x != LadderSystem.CommitteeOf(w, w.House(p.HouseId)!)))
+                    {
+                        string cid = cm; var noMove = new CommitteeCommand(pid, cid).Refusal(G.Ctx);
+                        <Plate Label="@LadderSystem.CommitteeName(cm)" Small="true" Locked="@(noMove != null)" Disabled="@(noMove != null)" Tip="@(noMove ?? MoveTip)" OnClick="() => G.Execute(new CommitteeCommand(pid, cid))" />
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else if (!holdsCharge) { <div class="sn-done"><Icon Name="@(sat ? "check" : "hourglass")" Tone="@(sat ? "good" : "ivory")" Size="14" /><span>@(sat ? SeatDone : SeatNotYet) @(inReach ? LadderSystem.CommitteeSays(w, w.House(p.HouseId)!) + " " + LadderSystem.AttendanceSays(w, p) : "")</span></div> }
     @if (bench != null)
     {
-        <div class="rung-row duty-bench">
-            <div><b>@benchTitle</b> <span class="muted small">@rank</span></div>
-            <div class="small">@benchSays</div>
-            @foreach (var choice in LadderSystem.DutyChoices(bench.Kind))
-            {
-                string ch = choice; string kind = bench.Kind; var no = new DutyCommand(pid, kind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, bench, ch);
-                <div class="suit-acts">
-                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick='() => G.ExecuteTold(new DutyCommand(pid, kind, ch, offices, policy), "The year\u2019s duty", Label(ch))'>@Label(ch)</button>
-                    <span class="muted small">@tip</span>
+        <div class="sn-ent rung-row duty-bench waits">
+            <span class="sn-ic mine"><Icon Name="scales" Tone="brass" Size="22" /></span>
+            <div class="sn-ent-main">
+                <div class="sn-hd"><b class="sn-nm">@benchTitle</b><span class="sn-sub">@rank</span><span class="sn-tag warn">waits on you</span></div>
+                <div class="sn-tx">@benchSays</div>
+                <div class="sn-choices">
+                @foreach (var choice in LadderSystem.DutyChoices(bench.Kind))
+                {
+                    string ch = choice; string kind = bench.Kind; var no = new DutyCommand(pid, kind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, bench, ch);
+                    <div class="sn-choice suit-acts">
+                        <Plate Label="@Label(ch)" Small="true" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? tip)" OnClick='() => G.ExecuteTold(new DutyCommand(pid, kind, ch, offices, policy), "The year’s duty", Label(ch))' />
+                        <span class="sn-say">@tip</span>
+                    </div>
+                }
                 </div>
-            }
-            <div class="muted small">Left unheard, it is noticed.</div>
+                <div class="sn-say ui-mute">Left unheard, it is noticed.</div>
+            </div>
         </div>
     }
-    else if (judge) { <div class="muted small">@(heard ? BenchDone : BenchNotYet)</div> }
+    else if (judge) { <div class="sn-done"><Icon Name="@(heard ? "check" : "hourglass")" Tone="@(heard ? "good" : "ivory")" Size="14" /><span>@(heard ? BenchDone : BenchNotYet)</span></div> }
     @if (post != null)
     {
-        <div class="rung-row duty-post">
-            <div><b>@postTitle</b> <span class="muted small">@rank</span></div>
-            <div class="small">@postSays</div>
-            @foreach (var choice in LadderSystem.DutyChoices(post.Kind))
-            {
-                string ch = choice; string kind = post.Kind; var no = new DutyCommand(pid, kind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, post, ch);
-                <div class="suit-acts">
-                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick='() => G.ExecuteTold(new DutyCommand(pid, kind, ch, offices, policy), "The year\u2019s duty", Label(ch))'>@Label(ch)</button>
-                    <span class="muted small">@tip</span>
+        <div class="sn-ent rung-row duty-post waits">
+            <span class="sn-ic"><Icon Name="@PostIcon(post.Kind)" Tone="ivory" Size="22" /></span>
+            <div class="sn-ent-main">
+                <div class="sn-hd"><b class="sn-nm">@postTitle</b><span class="sn-sub">@rank</span></div>
+                <div class="sn-tx">@postSays</div>
+                <div class="sn-choices">
+                @foreach (var choice in LadderSystem.DutyChoices(post.Kind))
+                {
+                    string ch = choice; string kind = post.Kind; var no = new DutyCommand(pid, kind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, post, ch);
+                    <div class="sn-choice suit-acts">
+                        <Plate Label="@Label(ch)" Small="true" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? tip)" OnClick='() => G.ExecuteTold(new DutyCommand(pid, kind, ch, offices, policy), "The year’s duty", Label(ch))' />
+                        <span class="sn-say">@tip</span>
+                    </div>
+                }
                 </div>
-            }
+            </div>
         </div>
     }
-    else if (post == null && charge == null) { <div class="muted small">@NoBench</div> }
-    @if (officers.Count > 0)
+    else if (post == null && charge == null) { <div class="sn-done"><Icon Name="check" Tone="ivory" Size="14" /><span>@NoBench</span></div> }
+    @if (officers.Count > 0 || kin.Count > 0)
     {
-        <details class="small"><summary>What the officers of the Reach did this year (@officers.Count)</summary>
-            @foreach (var (b, who) in officers)
+        <Section Title="What others did" Count="@((officers.Count + kin.Count).ToString())" Info="What the officers of the Reach did with their charge this year, and the rulings of the bench that touch your house." Class="sn-sub-sec">
+            @if (officers.Count > 0)
             {
-                <div class="muted small">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), @(offices.Def(b.RungId)?.Name ?? "officer"): @DidCharge(b).</div>
+                <details class="sn-det"><summary><Icon Name="chev" Size="11" Class="flat" />What the officers of the Reach did this year (@officers.Count)</summary>
+                    @foreach (var (b, who) in officers)
+                    {
+                        <div class="sn-tx ui-dim">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), @(offices.Def(b.RungId)?.Name ?? "officer"): @DidCharge(b).</div>
+                    }
+                </details>
             }
-        </details>
-    }
-    @foreach (var (b, who) in kin)
-    {
-        <div class="muted small">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), on the bench: @Did(b).</div>
+            @foreach (var (b, who) in kin)
+            {
+                <div class="sn-note sn-pad"><Icon Name="scales" Tone="ivory" Size="15" /><span>@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), on the bench: @Did(b).</span></div>
+            }
+        </Section>
     }
 </section>
 
@@ -149,6 +181,8 @@
         LadderSystem.Desk => "Your desk: the year's returns", LadderSystem.Posting => "Your posting: a year ashore", LadderSystem.Brief => "A brief",
         LadderSystem.Ledgers => "The ledgers", LadderSystem.Watch => "A junior's year", _ => "Your work"
     };
+    private static string PostIcon(string kind) => kind switch { LadderSystem.Desk => "desk", LadderSystem.Posting => "eagle-emblem", LadderSystem.Brief => "scroll-quill", LadderSystem.Ledgers => "abacus", LadderSystem.Watch => "spyglass", _ => "tied-scroll" };
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private const string NoBench = "Your rank asks nothing more of you this year. Every rank in a service has work: a brief, the ledgers or the watches for a junior; a bench, a desk or a posting above that.";
     private static string Label(string choice) => choice switch
     {

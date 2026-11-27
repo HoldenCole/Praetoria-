@@ -1,7 +1,12 @@
+@preservewhitespace true
 @using Praetoria.Core.Systems
 @using Praetoria.Core.Presentation
 @inject GameClient G
 @implements IDisposable
+@* The courts on the Senate window (docs/LADDER.md, "The courts"; docs/VISUAL_SYSTEM.md 4.6, 4.7): sections of rows. The docket (every
+   matter that touches the house, each an entry with how it is answered), the charges against the powerful, a suit to bring, what the
+   courts have ruled, what stands on the record against former magistrates, what stands against the house, and the praetors on the
+   bench with their faces. *@
 @{
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var offices = c.Offices;
     bool active = LadderSystem.Active(w, offices);
@@ -20,164 +25,194 @@
 }
 @if (active)
 {
-<section class="panel courts">
-    <h3><Icon Name="senate" Size="13" /> The courts <span class="muted">@(charges.Count + more) on the record · @bench.Count praetor@(bench.Count == 1 ? "" : "s") of other houses sitting</span></h3>
-    <div class="muted small">@Intro</div>
-
-    <div class="hh-head" data-docket="1"><b>The docket</b> <span class="muted small">Every matter before the courts that touches your house, and when it is heard. Until then you may answer it.</span></div>
-    @if (docket.Count == 0) { <div class="muted small" data-docket-empty="1">Nothing that touches your house is before the courts.</div> }
-    @foreach (var e in docket)
-    {
-        string eid = e.Id;
-        if (e.Kind == Docket.Charge)
+<section class="panel courts sn-panel">
+    <Section Title="The courts" Count="@(docket.Count > 0 ? docket.Count.ToString() : "")" Info="@(Intro + " The docket below is every matter before the courts that touches your house, and when it is heard. Until then you may answer it.")">
+        <Right><span>@(charges.Count + more) on the record · @bench.Count praetor@(bench.Count == 1 ? "" : "s") of other houses sitting</span></Right>
+        <ChildContent>
+        <span hidden data-docket="1"></span>
+        @if (docket.Count == 0) { <div class="ui-empty" data-docket-empty="1"><Icon Name="scales" Tone="ivory" Size="46" /><div><p>Nothing that touches your house is before the courts.</p></div></div> }
+        @foreach (var e in docket)
         {
-            var charge = w.Indictments.First(x => x.Id == eid); var accused = w.Char(charge.AccusedId)!;
-            var noAdmit = new ChargeCommand(pid, ChargeCommand.Admit, eid, offices).Refusal(G.Ctx);
-            string admitTip = noAdmit ?? LadderSystem.AdmitSays(w, accused); string admitLabel = "Admit it · pay " + Money.Show(LadderSystem.FineCredits);
-            string answers = e.Pleader.Length > 0 ? e.Pleader + " is to answer it." : "Nobody is to answer it yet.";
-            <div class="suit court-suit warn" data-charge="@eid" data-kind="@e.Kind">
-                <b>@e.Title</b> <span class="muted">@e.Over · the fine is @Money.Credits(e.Sum) · heard @e.Heard by @e.Judge@(e.JudgeIs.Length > 0 ? ", who is " + e.JudgeIs : string.Empty)</span>
-                <div class="small">@e.Law @answers</div>
-                <div class="suit-acts">
-                    <button class="opt inline tiny" data-admit="@eid" disabled="@(noAdmit != null)" title="@admitTip" @onclick="() => AskAdmit(eid, accused.Name)">@admitLabel</button>
-                    @foreach (var a in pleaders)
-                    {
-                        string aid = a.Id; var noDefend = new ChargeCommand(pid, ChargeCommand.Plead, eid, offices, aid).Refusal(G.Ctx); string defendTip = noDefend ?? LadderSystem.ChargePleadSays(w, charge, a);
-                        <button class="opt inline tiny" data-defend="@aid" disabled="@(noDefend != null)" title="@defendTip" @onclick="() => G.Execute(new ChargeCommand(pid, ChargeCommand.Plead, eid, offices, aid))">Send @a.Name to plead · @LadderSystem.PleadInfluence influence</button>
-                    }
+            string eid = e.Id;
+            if (e.Kind == Docket.Charge)
+            {
+                var charge = w.Indictments.First(x => x.Id == eid); var accused = w.Char(charge.AccusedId)!;
+                var noAdmit = new ChargeCommand(pid, ChargeCommand.Admit, eid, offices).Refusal(G.Ctx);
+                string admitTip = noAdmit ?? LadderSystem.AdmitSays(w, accused);
+                string answers = e.Pleader.Length > 0 ? e.Pleader + " is to answer it." : "Nobody is to answer it yet.";
+                <div class="sn-ent suit court-suit warn" data-charge="@eid" data-kind="@e.Kind">
+                    <span class="sn-pic">@SenateScreen.Face(w, accused, "scales")</span>
+                    <div class="sn-ent-main">
+                        <div class="sn-hd"><b class="sn-nm">@e.Title</b><span class="sn-fig down" title="The fine"><Icon Name="credits" Tone="ember" Size="15" />@Money.Show(e.Sum)</span></div>
+                        <div class="sn-sub2">@e.Over · heard @e.Heard by @e.Judge@(e.JudgeIs.Length > 0 ? ", who is " + e.JudgeIs : string.Empty)</div>
+                        <div class="sn-tx">@e.Law @answers</div>
+                        <div class="sn-acts suit-acts">
+                            <Plate Label="Admit it" Small="true" Locked="@(noAdmit != null)" Disabled="@(noAdmit != null)" Tip="@admitTip" CostIcon="credits" CostText="@Money.Show(LadderSystem.FineCredits)" OnClick="() => AskAdmit(eid, accused.Name)" data-admit="@eid" />
+                            @foreach (var a in pleaders)
+                            {
+                                string aid = a.Id; var noDefend = new ChargeCommand(pid, ChargeCommand.Plead, eid, offices, aid).Refusal(G.Ctx); string defendTip = noDefend ?? LadderSystem.ChargePleadSays(w, charge, a);
+                                <Plate Label="@("Send " + a.Name + " to plead")" Small="true" Locked="@(noDefend != null)" Disabled="@(noDefend != null)" Tip="@defendTip" CostIcon="public-speaker" CostText="@LadderSystem.PleadInfluence.ToString()" OnClick="() => G.Execute(new ChargeCommand(pid, ChargeCommand.Plead, eid, offices, aid))" data-defend="@aid" />
+                            }
+                        </div>
+                    </div>
                 </div>
+            }
+            else if (e.Kind == Docket.Will)
+            {
+                var ws = w.WillSuits.First(x => x.Id == eid);
+                var noTerms = new WillSuitCommand(pid, WillSuitCommand.Settle, eid).Refusal(G.Ctx);
+                string termsTip = noTerms ?? DisownSystem.TermsSays(w, ws);
+                string answers = e.Pleader.Length > 0 ? e.Pleader + " is to answer it." : string.Empty;
+                string winSays = DisownSystem.WinSays(w, ws);
+                <div class="sn-ent suit court-suit warn" data-undutiful-will="@eid" data-kind="@e.Kind">
+                    <span class="sn-ic bad"><Icon Name="scroll-unfurled" Tone="ember" Size="22" /></span>
+                    <div class="sn-ent-main">
+                        <div class="sn-hd"><b class="sn-nm">@e.Title</b></div>
+                        <div class="sn-sub2">@e.Over · heard @e.Heard by @e.Judge@(e.JudgeIs.Length > 0 ? ", who is " + e.JudgeIs : string.Empty)</div>
+                        <div class="sn-tx">@e.Law @winSays @answers</div>
+                        <div class="sn-acts suit-acts">
+                            <Plate Label="Come to terms" Small="true" Locked="@(noTerms != null)" Disabled="@(noTerms != null)" Tip="@termsTip" CostIcon="credits" CostText="@Money.Show(ws.Share)" OnClick="() => G.Execute(new WillSuitCommand(pid, WillSuitCommand.Settle, eid))" data-will-terms="@eid" />
+                            @foreach (var a in pleaders)
+                            {
+                                string aid = a.Id; var noAnswer = new WillSuitCommand(pid, WillSuitCommand.Plead, eid, aid).Refusal(G.Ctx); string answerTip = noAnswer ?? DisownSystem.PleadSays(w, ws, a);
+                                <Plate Label="@("Send " + a.Name + " to answer")" Small="true" Locked="@(noAnswer != null)" Disabled="@(noAnswer != null)" Tip="@answerTip" CostIcon="public-speaker" CostText="@LadderSystem.PleadInfluence.ToString()" OnClick="() => G.Execute(new WillSuitCommand(pid, WillSuitCommand.Plead, eid, aid))" data-will-plead="@aid" />
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                var s = w.OfficeWork.First(x => x.Id == eid); var other = w.House(e.OtherId); string otherName = other?.Name ?? string.Empty; bool forUs = e.Good; int stake = e.Sum;
+                var noSettle = new SuitCommand(pid, SuitCommand.Settle, eid).Refusal(G.Ctx); var noCounter = new SuitCommand(pid, SuitCommand.Counter, eid).Refusal(G.Ctx);
+                string ruled = forUs ? "If the praetor rules on the law, " + otherName + " pays you " + Money.Show(stake) + "." : "If the praetor rules on the law, you pay " + otherName + " " + Money.Show(stake) + ".";
+                string pleads = e.Pleader.Length > 0 ? " " + e.Pleader + " is to plead it." : string.Empty;
+                string settleTip = noSettle ?? (forUs ? otherName + " pays you " + Money.Show(stake / 2) + " now and the suit is withdrawn: half, but certain, whatever the praetor is" : "You pay " + otherName + " " + Money.Show(stake / 2) + " now and the suit is withdrawn: half of what a ruling on the law would cost");
+                string counterTip = noCounter ?? CounterSays(otherName, stake);
+                <div class="sn-ent suit court-suit @(forUs ? string.Empty : "warn")" data-suit="@eid" data-kind="@e.Kind">
+                    <span class="sn-pic"><Sigil HouseId="@e.OtherId" Accent="@(other?.AccentColor ?? "#888")" Size="34" /></span>
+                    <div class="sn-ent-main">
+                        <div class="sn-hd"><b class="sn-nm">@e.Title</b><span class="sn-fig @(forUs ? "up" : "down")" title="What turns on it"><Icon Name="credits" Tone="@(forUs ? "good" : "ember")" Size="15" />@Money.Show(stake)</span></div>
+                        <div class="sn-sub2">over @e.Over · @Money.Credits(stake) turn on it · heard @e.Heard by @e.Judge@(e.JudgeIs.Length > 0 ? ", who is " + e.JudgeIs : string.Empty)</div>
+                        <div class="sn-tx">@e.Law @ruled@pleads</div>
+                        <div class="sn-acts suit-acts">
+                            <Plate Label="@(forUs ? "Take terms" : "Come to terms")" Small="true" Locked="@(noSettle != null)" Disabled="@(noSettle != null)" Tip="@settleTip" CostIcon="credits" CostText="@(Money.Show(stake / 2) + (forUs ? " to you" : ""))" OnClick="() => AskSettle(eid, forUs, otherName, stake / 2)" data-settle="@eid" />
+                            @if (e.Kind == Docket.Against && !s.Countered) { <Plate Label="Counter-sue" Small="true" Locked="@(noCounter != null)" Disabled="@(noCounter != null)" Tip="@counterTip" OnClick="() => AskCounter(eid, otherName, stake)" data-counter="@eid"><Cost><Icon Name="credits" Tone="brass" Size="14" />@Money.Show(LadderSystem.FeeOf(stake)) <Icon Name="laurels" Tone="brass" Size="14" />@LadderSystem.CounterClout</Cost></Plate> }
+                            @foreach (var a in pleaders)
+                            {
+                                string aid = a.Id; var noPlead = new SuitCommand(pid, SuitCommand.Plead, eid, aid).Refusal(G.Ctx); string pleadTip = noPlead ?? LadderSystem.PleadSays(w, s, a);
+                                <Plate Label="@("Send " + a.Name + " to plead")" Small="true" Locked="@(noPlead != null)" Disabled="@(noPlead != null)" Tip="@pleadTip" CostIcon="public-speaker" CostText="@LadderSystem.PleadInfluence.ToString()" OnClick="() => G.Execute(new SuitCommand(pid, SuitCommand.Plead, eid, aid))" data-plead="@aid" />
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        @foreach (var ws in willsDecided)
+        {
+            <div class="sn-hist suit court-ruling @(ws.Outcome == DisownSystem.Undutiful ? "warn" : "good")" data-undutiful-will="@ws.Id" data-decided="@ws.Outcome">
+                <b class="sn-chip @(ws.Outcome == DisownSystem.Undutiful ? "down" : "up")">year @ws.DecidedTurn</b><span class="sn-hist-t"><b>The suit over the will of @ws.DeceasedName</b> <span class="ui-mute">@ws.How</span></span>
             </div>
         }
-        else if (e.Kind == Docket.Will)
-        {
-            var ws = w.WillSuits.First(x => x.Id == eid);
-            var noTerms = new WillSuitCommand(pid, WillSuitCommand.Settle, eid).Refusal(G.Ctx);
-            string termsTip = noTerms ?? DisownSystem.TermsSays(w, ws);
-            string termsLabel = "Come to terms · " + Money.Show(ws.Share);
-            string answers = e.Pleader.Length > 0 ? e.Pleader + " is to answer it." : string.Empty;
-            string winSays = DisownSystem.WinSays(w, ws);
-            <div class="suit court-suit warn" data-undutiful-will="@eid" data-kind="@e.Kind">
-                <b>@e.Title</b> <span class="muted">@e.Over · heard @e.Heard by @e.Judge@(e.JudgeIs.Length > 0 ? ", who is " + e.JudgeIs : string.Empty)</span>
-                <div class="small">@e.Law @winSays @answers</div>
-                <div class="suit-acts">
-                    <button class="opt inline tiny" data-will-terms="@eid" disabled="@(noTerms != null)" title="@termsTip" @onclick="() => G.Execute(new WillSuitCommand(pid, WillSuitCommand.Settle, eid))">@termsLabel</button>
-                    @foreach (var a in pleaders)
-                    {
-                        string aid = a.Id; var noAnswer = new WillSuitCommand(pid, WillSuitCommand.Plead, eid, aid).Refusal(G.Ctx); string answerTip = noAnswer ?? DisownSystem.PleadSays(w, ws, a);
-                        <button class="opt inline tiny" data-will-plead="@aid" disabled="@(noAnswer != null)" title="@answerTip" @onclick="() => G.Execute(new WillSuitCommand(pid, WillSuitCommand.Plead, eid, aid))">Send @a.Name to answer · @LadderSystem.PleadInfluence influence</button>
-                    }
-                </div>
-            </div>
-        }
-        else
-        {
-            var s = w.OfficeWork.First(x => x.Id == eid); var other = w.House(e.OtherId); string otherName = other?.Name ?? string.Empty; bool forUs = e.Good; int stake = e.Sum;
-            var noSettle = new SuitCommand(pid, SuitCommand.Settle, eid).Refusal(G.Ctx); var noCounter = new SuitCommand(pid, SuitCommand.Counter, eid).Refusal(G.Ctx);
-            string ruled = forUs ? "If the praetor rules on the law, " + otherName + " pays you " + Money.Show(stake) + "." : "If the praetor rules on the law, you pay " + otherName + " " + Money.Show(stake) + ".";
-            string pleads = e.Pleader.Length > 0 ? " " + e.Pleader + " is to plead it." : string.Empty;
-            string settleTip = noSettle ?? (forUs ? otherName + " pays you " + Money.Show(stake / 2) + " now and the suit is withdrawn: half, but certain, whatever the praetor is" : "You pay " + otherName + " " + Money.Show(stake / 2) + " now and the suit is withdrawn: half of what a ruling on the law would cost");
-            string settleLabel = forUs ? "Take terms · " + Money.Show(stake / 2) + " to you" : "Come to terms · pay " + Money.Show(stake / 2);
-            string counterTip = noCounter ?? CounterSays(otherName, stake);
-            string tone = forUs ? string.Empty : "warn";
-            string counterLabel = "Counter-sue · " + Money.Show(LadderSystem.FeeOf(stake)) + " and " + LadderSystem.CounterClout + " clout";
-            <div class="suit court-suit @tone" data-suit="@eid" data-kind="@e.Kind">
-                <b>@e.Title</b> <span class="muted">over @e.Over · @Money.Credits(stake) turn on it · heard @e.Heard by @e.Judge@(e.JudgeIs.Length > 0 ? ", who is " + e.JudgeIs : string.Empty)</span>
-                <div class="small">@e.Law @ruled@pleads</div>
-                <div class="suit-acts">
-                    <button class="opt inline tiny" data-settle="@eid" disabled="@(noSettle != null)" title="@settleTip" @onclick="() => AskSettle(eid, forUs, otherName, stake / 2)">@settleLabel</button>
-                    @if (e.Kind == Docket.Against && !s.Countered) { <button class="opt inline tiny" data-counter="@eid" disabled="@(noCounter != null)" title="@counterTip" @onclick="() => AskCounter(eid, otherName, stake)">@counterLabel</button> }
-                    @foreach (var a in pleaders)
-                    {
-                        string aid = a.Id; var noPlead = new SuitCommand(pid, SuitCommand.Plead, eid, aid).Refusal(G.Ctx); string pleadTip = noPlead ?? LadderSystem.PleadSays(w, s, a);
-                        <button class="opt inline tiny" data-plead="@aid" disabled="@(noPlead != null)" title="@pleadTip" @onclick="() => G.Execute(new SuitCommand(pid, SuitCommand.Plead, eid, aid))">Send @a.Name to plead · @LadderSystem.PleadInfluence influence</button>
-                    }
-                </div>
-            </div>
-        }
-    }
-
-    @foreach (var ws in willsDecided)
-    {
-        string wtone = ws.Outcome == DisownSystem.Undutiful ? "warn" : "good";
-        <div class="suit court-ruling @wtone" data-undutiful-will="@ws.Id" data-decided="@ws.Outcome">Year @ws.DecidedTurn: <b>the suit over the will of @ws.DeceasedName</b> <span class="muted">@ws.How</span></div>
-    }
+        </ChildContent>
+    </Section>
 
     <PowerfulCharges />
 
-    <div class="hh-head" data-bring="1"><b>Bring a suit</b> <span class="muted small">Against a house you have a quarrel with, on a ground the record gives you. It costs a fee and @LadderSystem.BringClout clout, its head thinks the worse of you, and the loser pays what turns on it. Once a year. You have @house.Treasury.Influence clout.</span></div>
-    @if (quarrels.Count == 0) { <div class="muted small" data-no-quarrel="1">You have no quarrel with any house that a court would hear. It takes a war, or two heads who think ill of each other.</div> }
-    @foreach (var q in quarrels.Take(_allQuarrels ? 12 : 3))
+    @if (quarrels.Count == 0) { <div class="ui-empty" data-no-quarrel="1"><Icon Name="scales" Tone="ivory" Size="46" /><div><p>You have no quarrel with any house that a court would hear. It takes a war, or two heads who think ill of each other.</p></div></div> }
+    else
     {
-        string qid = q.Id; var judge = LadderSystem.Bench(w, house.Id, qid); bool war = w.AtWar(house.Id, qid);
-        string why = war ? "at war with your house" : "its head and you think ill of each other (" + (-LadderSystem.Heat(w, house, q)) + " between you)";
-        string hears = judge == null ? "No praetor of a third house sits to hear it." : "It would come before " + judge.Name + " of " + (w.House(judge.HouseId)?.Name ?? string.Empty) + ", who is " + Nature(judge) + ".";
-        <div class="suit court-quarrel" data-quarrel="@qid">
-            <b>@q.Name</b> <span class="muted">@why</span>
-            <div class="muted small">@hears</div>
-            @foreach (var g in LadderSystem.Grounds(w, house, q))
-            {
-                string matter = g.Matter; var noBring = new BringSuitCommand(pid, qid, matter, offices).Refusal(G.Ctx); int fee = LadderSystem.FeeOf(g.Stake);
-                string law = LadderSystem.LawOn(g, house.Id); string bringTip = noBring ?? BringSays(q.Name, g.Stake);
-                string leans = g.RightId == house.Id ? string.Empty : "warn";
-                string bringLabel = "Bring it · " + Money.Show(fee) + " and " + LadderSystem.BringClout + " clout";
-                <div class="small @leans" data-ground="@matter">
-                    Over @g.Says <span class="muted">(@g.Record)</span> · @Money.Credits(g.Stake) · @law
-                    <button class="opt inline tiny" data-bring-suit="@matter" disabled="@(noBring != null)" title="@bringTip" @onclick="() => AskBring(qid, matter)">@bringLabel</button>
+    <Section Title="Bring a suit" Count="@(quarrels.Count > 0 ? quarrels.Count.ToString() : "")" Info="@($"Against a house you have a quarrel with, on a ground the record gives you. It costs a fee and {LadderSystem.BringClout} clout, its head thinks the worse of you, and the loser pays what turns on it. Once a year.")" Class="sn-sub-sec">
+        <Right><span data-bring="1" title="Clout in store, which bringing a suit spends"><Icon Name="laurels" Tone="ivory" Size="15" /> <b>@house.Treasury.Influence</b> clout</span></Right>
+        <ChildContent>
+        @foreach (var q in quarrels.Take(_allQuarrels ? 12 : 3))
+        {
+            string qid = q.Id; var judge = LadderSystem.Bench(w, house.Id, qid); bool war = w.AtWar(house.Id, qid);
+            string why = war ? "at war with your house" : "its head and you think ill of each other (" + Counted.Figure(-LadderSystem.Heat(w, house, q)) + " between you)";
+            string hears = judge == null ? "No praetor of a third house sits to hear it." : "It would come before " + judge.Name + " of " + (w.House(judge.HouseId)?.Name ?? string.Empty) + ", who is " + Nature(judge) + ".";
+            <div class="sn-ent suit court-quarrel" data-quarrel="@qid">
+                <span class="sn-pic"><Sigil HouseId="@q.Id" Accent="@q.AccentColor" Size="34" /></span>
+                <div class="sn-ent-main">
+                    <div class="sn-hd"><b class="sn-nm">@q.Name</b><span class="sn-sub @(war ? "ui-down" : "")">@why</span></div>
+                    <div class="sn-tx ui-dim">@hears</div>
+                    @foreach (var g in LadderSystem.Grounds(w, house, q))
+                    {
+                        string matter = g.Matter; var noBring = new BringSuitCommand(pid, qid, matter, offices).Refusal(G.Ctx); int fee = LadderSystem.FeeOf(g.Stake);
+                        string law = LadderSystem.LawOn(g, house.Id); string bringTip = noBring ?? BringSays(q.Name, g.Stake);
+                        <div class="sn-ground @(g.RightId == house.Id ? string.Empty : "warn")" data-ground="@matter">
+                            <span class="sn-say">Over @g.Says <span class="ui-mute">(@g.Record)</span> · @Money.Credits(g.Stake) · @law</span>
+                            <Plate Label="Bring it" Small="true" Locked="@(noBring != null)" Disabled="@(noBring != null)" Tip="@bringTip" OnClick="() => AskBring(qid, matter)" data-bring-suit="@matter"><Cost><Icon Name="credits" Tone="brass" Size="14" />@Money.Show(fee) <Icon Name="laurels" Tone="brass" Size="14" />@LadderSystem.BringClout</Cost></Plate>
+                        </div>
+                    }
                 </div>
-            }
-        </div>
+            </div>
+        }
+        @if (moreQuarrels > 0) { <div class="sn-more" data-more-quarrels="1"><Link Label="@(_allQuarrels ? "Show fewer" : "Show " + moreQuarrels + " more")" OnClick="() => _allQuarrels = !_allQuarrels" /></div> }
+        </ChildContent>
+    </Section>
     }
-    @if (moreQuarrels > 0) { <button class="opt inline tiny" data-more-quarrels="1" @onclick="() => _allQuarrels = !_allQuarrels">@(_allQuarrels ? "Show fewer" : "Show " + moreQuarrels + " more")</button> }
 
     @if (rulings.Count > 0)
     {
-        <div class="hh-head" data-rulings="1"><b>What the courts have ruled on your house</b></div>
-        @foreach (var r in rulings)
-        {
-            bool won = r.WinnerId == house.Id; var them = w.House(won ? r.LoserId : r.WinnerId);
-            <div class="suit court-ruling @(won ? "good" : "warn")">Year @r.Turn: <b>@(won ? $"{them?.Name} paid you {Money.Credits(r.Sum)}" : $"you paid {them?.Name} {Money.Credits(r.Sum)}")</b><span class="muted">@(r.Matter.Length > 0 ? " over " + r.Matter : "") · @(r.Judge.Length > 0 ? r.Judge + ", praetor: " : "")@r.How</span></div>
-        }
-        @if (w.Judgments.Count > 5) { <button class="opt inline tiny" @onclick="() => _allRulings = !_allRulings">@(_allRulings ? "Show fewer" : "Show all " + w.Judgments.Count)</button> }
+        <Section Title="What the courts ruled" Count="@w.Judgments.Count.ToString()" Info="What the courts have ruled on your house, the latest first." Class="sn-sub-sec">
+            <span hidden data-rulings="1"></span>
+            @foreach (var r in rulings)
+            {
+                bool won = r.WinnerId == house.Id; var them = w.House(won ? r.LoserId : r.WinnerId);
+                <div class="sn-hist suit court-ruling @(won ? "good" : "warn")"><b class="sn-chip @(won ? "up" : "down")">year @r.Turn</b><span class="sn-hist-t"><b>@(won ? $"{them?.Name} paid you {Money.Credits(r.Sum)}" : $"you paid {them?.Name} {Money.Credits(r.Sum)}")</b><span class="ui-mute">@(r.Matter.Length > 0 ? " over " + r.Matter : "") · @(r.Judge.Length > 0 ? r.Judge + ", praetor: " : "")@r.How</span></span></div>
+            }
+            @if (w.Judgments.Count > 5) { <div class="sn-more"><Link Label="@(_allRulings ? "Show fewer" : "Show all " + w.Judgments.Count)" OnClick="() => _allRulings = !_allRulings" /></div> }
+        </Section>
     }
 
-    <div class="hh-head"><b>On the record</b> <span class="muted small">What former magistrates of other houses did and have not answered for. A charge is heard once.</span></div>
-    @if (charges.Count == 0) { <div class="muted small">Nothing stands against anybody who no longer sits. It is kept @LadderSystem.RecordYears years.</div> }
-    @foreach (var d in charges)
-    {
-        string did = d.Id; var who = w.Char(d.CharacterId)!; var judge = LadderSystem.Court(w, d, house.Id);
-        var no = new ProsecutionCommand(pid, ProsecutionCommand.Prosecute, did, offices).Refusal(G.Ctx);
-        string hears = judge == null ? "No praetor of a third house sits to hear it." : "It would come before " + judge.Name + " of " + (w.House(judge.HouseId)?.Name ?? "") + ", who is " + LadderSystem.Verdict(w, d, house.Id, judge).why + ".";
-        string label = "Bring the charge · " + LadderSystem.ProsecuteInfluence + " influence";
-        <div class="suit court-charge">
-            <b>@who.Name</b> <span class="muted">of @(w.House(d.HouseId)?.Name) · @LadderSystem.DeedSays(w, offices, d)</span>
-            <div class="muted small">@hears</div>
-            <div class="suit-acts"><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? ChargeTip)" @onclick="() => G.Execute(new ProsecutionCommand(pid, ProsecutionCommand.Prosecute, did, offices))">@label</button></div>
-        </div>
-    }
-    @if (more > 0 || _all) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : "Show " + more + " more")</button> }
+    <Section Title="On the record" Count="@((charges.Count + more) > 0 ? (charges.Count + more).ToString() : "")" Info="What former magistrates of other houses did and have not answered for. A charge is heard once." Class="sn-sub-sec"
+             IsEmpty="@(charges.Count == 0 && !_all)" EmptyIcon="scroll-unfurled" EmptyLine="@($"Nothing stands against anybody who no longer sits. It is kept {LadderSystem.RecordYears} years.")">
+        @foreach (var d in charges)
+        {
+            string did = d.Id; var who = w.Char(d.CharacterId)!; var judge = LadderSystem.Court(w, d, house.Id);
+            var no = new ProsecutionCommand(pid, ProsecutionCommand.Prosecute, did, offices).Refusal(G.Ctx);
+            string hears = judge == null ? "No praetor of a third house sits to hear it." : "It would come before " + judge.Name + " of " + (w.House(judge.HouseId)?.Name ?? "") + ", who is " + LadderSystem.Verdict(w, d, house.Id, judge).why + ".";
+            <div class="sn-ent suit court-charge">
+                <span class="sn-pic">@SenateScreen.Face(w, who, "scales")</span>
+                <div class="sn-ent-main">
+                    <div class="sn-hd"><b class="sn-nm">@who.Name</b><span class="sn-sub">of @(w.House(d.HouseId)?.Name) · @LadderSystem.DeedSays(w, offices, d)</span></div>
+                    <div class="sn-tx ui-dim">@hears</div>
+                    <div class="sn-acts suit-acts"><Plate Label="Bring the charge" Small="true" Icon="scales" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? ChargeTip)" CostIcon="public-speaker" CostText="@LadderSystem.ProsecuteInfluence.ToString()" OnClick="() => G.Execute(new ProsecutionCommand(pid, ProsecutionCommand.Prosecute, did, offices))" /></div>
+                </div>
+            </div>
+        }
+        @if (more > 0 || _all) { <div class="sn-more"><Link Label="@(_all ? "Show fewer" : "Show " + more + " more")" OnClick="() => _all = !_all" /></div> }
+    </Section>
 
     @if (ours.Count > 0)
     {
-        <div class="hh-head"><b>Against your own house</b> <span class="muted small">Any house that thinks ill enough of yours may bring these, once the one named no longer sits.</span></div>
-        @foreach (var d in ours)
-        {
-            var who = w.Char(d.CharacterId)!; bool sits = !LadderSystem.ChargedAtOnce(d) && LadderSystem.Seat(w, who.Id)?.OfficeId == d.RungId;
-            <div class="suit court-ours"><b>@who.Name</b> <span class="muted">@LadderSystem.DeedSays(w, offices, d) · @(sits ? "still sits, and cannot be touched" : "can be charged") · forgotten in year @(d.Turn + LadderSystem.RecordYears + 1)</span></div>
-        }
+        <Section Title="Against your house" Count="@ours.Count.ToString()" Info="Any house that thinks ill enough of yours may bring these, once the one named no longer sits." Class="sn-sub-sec">
+            @foreach (var d in ours)
+            {
+                var who = w.Char(d.CharacterId)!; bool sits = !LadderSystem.ChargedAtOnce(d) && LadderSystem.Seat(w, who.Id)?.OfficeId == d.RungId;
+                <div class="ui-row sn-row suit court-ours">
+                    <div>@SenateScreen.Face(w, who, "scales")</div>
+                    <div class="sn-rmain"><div class="ui-row-nm">@who.Name</div><div class="ui-row-sub sn-wrap">@LadderSystem.DeedSays(w, offices, d) · @(sits ? "still sits, and cannot be touched" : "can be charged") · forgotten in year @(d.Turn + LadderSystem.RecordYears + 1)</div></div>
+                    <div class="ui-cols">@if (!sits) { <span class="sn-tag warn">can be charged</span> }</div><div></div>
+                </div>
+            }
+        </Section>
     }
 
-    <div class="hh-head"><b>The bench</b> <span class="muted small">A praetor can be offered a sum. One who takes it finds for your house whenever it is before them, while they sit, until it comes out.</span></div>
-    @if (bench.Count == 0) { <div class="muted small">No praetor of another house sits this year.</div> }
-    @foreach (var j in bench)
-    {
-        string jid = j.Id; var no = new ProsecutionCommand(pid, ProsecutionCommand.Buy, jid, offices).Refusal(G.Ctx); string nature = Nature(j); bool mine = LadderSystem.BoughtBy(w, j) == house.Id;
-        string tip = nature == "upright" ? UprightTip : nature == "known to be for sale" ? SaleTip : MaybeTip; string label = "Offer · " + Money.Show(LadderSystem.BribeCredits) + " of your own";
-        <div class="suit court-bench">
-            <b>@j.Name</b> <span class="muted">of @(w.House(j.HouseId)?.Name) · @nature</span>
-            @if (mine) { <span class="pill small warn">in your pocket</span> }
-            else { <span class="suit-acts"><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => G.Execute(new ProsecutionCommand(pid, ProsecutionCommand.Buy, jid, offices))">@label</button></span> }
-        </div>
-    }
+    <Section Title="The bench" Count="@(bench.Count > 0 ? bench.Count.ToString() : "")" Info="A praetor can be offered a sum. One who takes it finds for your house whenever it is before them, while they sit, until it comes out." Class="sn-sub-sec"
+             IsEmpty="@(bench.Count == 0)" EmptyIcon="scales" EmptyLine="No praetor of another house sits this year.">
+        @foreach (var j in bench)
+        {
+            string jid = j.Id; var no = new ProsecutionCommand(pid, ProsecutionCommand.Buy, jid, offices).Refusal(G.Ctx); string nature = Nature(j); bool mine = LadderSystem.BoughtBy(w, j) == house.Id;
+            string tip = nature == "upright" ? UprightTip : nature == "known to be for sale" ? SaleTip : MaybeTip;
+            <div class="ui-row sn-row suit court-bench">
+                <div>@SenateScreen.Face(w, j, "scales")</div>
+                <div class="sn-rmain"><div class="ui-row-nm">@j.Name</div><div class="ui-row-sub">of @(w.House(j.HouseId)?.Name) · <span class="@(nature == "upright" ? "ui-up" : nature == "known to be for sale" ? "ui-warn-t" : "")">@nature</span></div></div>
+                <div class="ui-cols">@if (mine) { <span class="pill small warn sn-tag warn">in your pocket</span> }</div>
+                <div>@if (!mine) { <span class="suit-acts"><Plate Label="Offer" Small="true" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? tip + $" It costs {Money.Credits(LadderSystem.BribeCredits)} of your own.")" CostIcon="credits" CostText="@Money.Show(LadderSystem.BribeCredits)" OnClick="() => G.Execute(new ProsecutionCommand(pid, ProsecutionCommand.Buy, jid, offices))" /></span> }</div>
+            </div>
+        }
+    </Section>
 </section>
 }
 

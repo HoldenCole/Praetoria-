@@ -1,8 +1,10 @@
+@preservewhitespace true
 @inject GameClient G
 @implements IDisposable
 @* Foreign gold on a war motion (docs/BEYOND.md, "Foreign gold in the Senate"): the sum sent to you and the three answers, what you
    answered, and the senators the nation is known to have reached on this motion, as far as you can know it. Under a throne nothing is sent
-   (the record is not kept there), so the block shows only what was sent before the throne rose. *@
+   (the record is not kept there), so the block shows only what was sent before the throne rose. The offer is a strip on the motion,
+   the three answers plates under it. *@
 @{
     var w = G.World!; var c = G.Content!; var me = w.Protagonist; var m = w.Motions.FirstOrDefault(x => x.Id == MotionId);
     bool kept = LadderSystem.Active(w, c.Offices);
@@ -14,21 +16,21 @@
 }
 @if (payer != null)
 {
-    <div class="foreign-gold" data-foreign-gold-motion="@MotionId">
+    <div class="foreign-gold sn-gold" data-foreign-gold-motion="@MotionId">
         @if (waiting != null)
         {
             string oid = waiting.Id;
-            <div class="small warn" data-foreign-gold-offer="@oid">@Offer(waiting)</div>
-            <div class="row small">
+            <div class="ui-wstrip sn-strip" data-foreign-gold-offer="@oid"><Icon Name="coins-pile" Tone="brass" Size="18" /><span class="ui-wstrip-t"><b>Foreign gold.</b> @Offer(waiting)</span></div>
+            <div class="sn-acts">
                 @foreach (var ans in ForeignGoldSystem.Answers)
                 {
                     string a = ans; string? no = new ForeignGoldCommand(pid, oid, a).Refusal(G.Ctx);
-                    <button class="opt inline" data-foreign-gold="@a" disabled="@(no != null)" title="@(no ?? Does(a, waiting))" @onclick="() => G.Execute(new ForeignGoldCommand(pid, oid, a))" @onclick:stopPropagation="true">@Label(a, waiting)</button>
+                    <Plate Label="@Label(a)" Small="true" Class="@(a == ForeignGoldSystem.Take ? "sn-veto" : "")" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? Does(a, waiting))" CostIcon="@(a == ForeignGoldSystem.Take ? "credits" : "")" CostText="@(a == ForeignGoldSystem.Take ? Money.Show(waiting.Sum) : "")" OnClick="() => G.Execute(new ForeignGoldCommand(pid, oid, a))" data-foreign-gold="@a" />
                 }
             </div>
         }
-        else if (answered != null) { <div class="small muted" data-foreign-gold-answered="@answered.Answer">@Answered(answered)</div> }
-        <div class="small muted" data-gold-known="@known.Count">@ForeignGoldSystem.KnownSays(w, known, payerName, me?.HouseId)</div>
+        else if (answered != null) { <div class="sn-note" data-foreign-gold-answered="@answered.Answer"><Icon Name="coins-pile" Tone="ivory" Size="15" /><span>@Answered(answered)</span></div> }
+        <div class="sn-note ui-dim" data-gold-known="@known.Count"><Icon Name="spyglass" Tone="ivory" Size="15" /><span>@ForeignGoldSystem.KnownSays(w, known, payerName, me?.HouseId)</span></div>
     </div>
 }
 @code {
@@ -40,9 +42,9 @@
 
     private static string Offer(GoldOffer o) =>
         $"A factor of {o.NationName} has called with {Money.Credits(o.Sum)} for you, {ForeignGoldSystem.AskSays(o)}. Nothing is written down. It is yours to take, to refuse, or to tell the Senate of, until the vote.";
-    private static string Label(string answer, GoldOffer o) => answer switch
+    private static string Label(string answer) => answer switch
     {
-        ForeignGoldSystem.Take => "Take it · " + Money.Show(o.Sum),
+        ForeignGoldSystem.Take => "Take it",
         ForeignGoldSystem.Refuse => "Refuse it",
         _ => "Tell the Senate"
     };

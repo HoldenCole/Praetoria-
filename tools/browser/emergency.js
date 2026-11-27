@@ -17,7 +17,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
   const dismiss = async () => { for (let i = 0; i < 10; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(250); } };
-  await dismiss(); await rail('Senate'); await page.waitForTimeout(600);
+  const consuls = () => page.evaluate(() => { const t = document.querySelector('.ui-tab[data-tab="offices"]'); if (t) t.click(); });   // the consulship is under the Senate's Offices
+  await dismiss(); await rail('Senate'); await page.waitForTimeout(600); await consuls(); await page.waitForTimeout(400);
   let sawDanger = false, sawPowers = false;
   for (let year = 1; year <= years && !sawPowers; year++) {
     const read = await page.evaluate(() => {
@@ -27,7 +28,7 @@ require('fs').mkdirSync(shots, { recursive: true });
     });
     if (read.danger && !sawDanger) { sawDanger = true; console.log(`year ${year}: ${read.danger}`); const el = await page.$('.panel.consulship'); if (el) await el.screenshot({ path: shots + '/emergency-danger.png' }); }
     if (read.card) { sawPowers = true; console.log(`year ${year}: ${read.card}`); const el = await page.$('.panel.consulship'); if (el) { await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: shots + '/emergency-powers.png' }); } break; }
-    await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); await page.waitForTimeout(1500); await dismiss(); await rail('Senate'); await page.waitForTimeout(350);
+    { const before = await page.evaluate(() => { const d = document.querySelector('[data-turn]'); return d ? +d.dataset.turn : -1; }); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 600; i++) { await page.waitForTimeout(50); if (await page.evaluate(() => { const d = document.querySelector('[data-turn]'); return d ? +d.dataset.turn : -1; }) > before) break; } await page.waitForTimeout(300); } await dismiss(); await rail('Senate'); await page.waitForTimeout(350); await consuls(); await page.waitForTimeout(350);
   }
   if (!sawDanger) console.log(`the Reach was in no danger in ${years} years`); else if (!sawPowers) console.log(`no consul was voted the powers in ${years} years`);
   await rail('Chronicle'); await page.waitForTimeout(500);

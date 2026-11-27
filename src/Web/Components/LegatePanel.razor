@@ -1,3 +1,4 @@
+@preservewhitespace true
 @using Praetoria.Core.Systems
 @inject GameClient G
 @implements IDisposable
@@ -11,25 +12,34 @@
 }
 @if (auths.Count > 0)
 {
-    <section class="panel" data-legate>
-        <h3><Icon Name="fleet" Size="13" /> Name a legate <span class="muted">as @string.Join(" and ", auths.Select(ServiceSystem.AuthorityName))</span></h3>
-        <div class="muted small">A fleet under your office may be given to somebody of any house, who commands it for you: an office fleet, the state's fleet, or one of your house's own. The victories and the crews' regard are the legate's; the fleet stays where it was. The commission ends when you no longer hold the office, and you may relieve them on the Military window. @ServiceSystem.AgentCost agent.</div>
-        @if (fleets.Count == 0) { <div class="muted small" data-legate-none="1">No fleet in commission is under your office now.</div> }
+    <section class="panel sn-panel" data-legate>
+        <Section Title="Name a legate" Count="@(fleets.Count > 0 ? fleets.Count.ToString() : "")" Info="@($"A fleet under your office may be given to somebody of any house, who commands it for you: an office fleet, the state's fleet, or one of your house's own. The victories and the crews' regard are the legate's; the fleet stays where it was. The commission ends when you no longer hold the office, and you may relieve them on the Military window. It costs {ServiceSystem.AgentCost} agent.")">
+            <Right><span>as @string.Join(" and ", auths.Select(ServiceSystem.AuthorityName))</span></Right>
+        </Section>
+        @if (fleets.Count == 0) { <p class="sn-say sn-pad ui-dim" data-legate-none="1">No fleet in commission is under your office now.</p> }
         @foreach (var f in fleets)
         {
             var cands = ServiceSystem.Candidates(w, f, 8); string fid = f.Id; string pick = _pick.GetValueOrDefault(fid, cands.FirstOrDefault()?.Id ?? string.Empty);
             var name = new NameLegateCommand(pid, fid, pick, c.Offices); string? no = pick.Length == 0 ? "nobody of another house is free to command it" : name.Refusal(G.Ctx);
-            <div class="line small" data-legate-fleet="@fid"><b>@f.Name</b> <span class="muted">@Counted.Hulls(f.Strength) · @(f.Office ? "the Reach's own" : "your house's") · @(FleetSystem.AdmiralOf(w, f)?.Name ?? "no admiral")</span>
-                <select class="sel" data-legate-pick="@fid" @onchange="e => _pick[fid] = e.Value?.ToString() ?? string.Empty">
-                    @foreach (var k in cands) { <option value="@k.Id" selected="@(k.Id == pick)">@k.Name of @(w.House(k.HouseId)?.Name) · tactics @k.Skill("tactics")</option> }
-                </select>
-                <button class="opt inline tiny" data-name-legate="@fid" disabled="@(no != null)" title="@(no ?? NameHelp(f.Name))" @onclick="() => G.Execute(new NameLegateCommand(pid, fid, pick, c.Offices))">Name legate</button>
-                @if (no != null && pick.Length > 0) { <span class="muted"> · @no</span> }</div>
+            var adm = FleetSystem.AdmiralOf(w, f);
+            <div class="sn-ent line" data-legate-fleet="@fid">
+                <span class="sn-ic @(f.Office ? "mine" : "")"><Icon Name="fleet" Tone="@(f.Office ? "brass" : "ivory")" Size="22" /></span>
+                <div class="sn-ent-main">
+                    <div class="sn-hd"><b class="sn-nm">@f.Name</b><span class="sn-sub">@Counted.Hulls(f.Strength) · @(f.Office ? "the Reach's own" : "your house's") · @(adm?.Name ?? "no admiral")</span></div>
+                    <div class="sn-form">
+                        <span class="sn-selwrap"><select class="sel" data-legate-pick="@fid" @onchange="e => _pick[fid] = e.Value?.ToString() ?? string.Empty">
+                            @foreach (var k in cands) { <option value="@k.Id" selected="@(k.Id == pick)">@k.Name of @(w.House(k.HouseId)?.Name) · tactics @k.Skill("tactics")</option> }
+                        </select><Icon Name="chev" Tone="brass" Size="12" /></span>
+                        <Plate Label="Name legate" Small="true" Icon="eagle-emblem" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? NameHelp(f.Name))" CostIcon="cowled" CostText="@ServiceSystem.AgentCost.ToString()" OnClick="() => G.Execute(new NameLegateCommand(pid, fid, pick, c.Offices))" data-name-legate="@fid" />
+                        @if (no != null && pick.Length > 0) { <span class="sn-no">@SenateScreen.Cap(no)</span> }
+                    </div>
+                </div>
+            </div>
         }
         @if (named.Count > 0)
         {
-            <h4>Your legates</h4>
-            @foreach (var s in named) { <div class="line small" data-legate-named="@s.FleetId">@ServiceSystem.Says(w, s)</div> }
+            <div class="sn-sub-h">Your legates</div>
+            @foreach (var s in named) { <div class="sn-note sn-pad line" data-legate-named="@s.FleetId"><Icon Name="eagle-emblem" Tone="brass" Size="15" /><span>@ServiceSystem.Says(w, s)</span></div> }
         }
     </section>
 }
