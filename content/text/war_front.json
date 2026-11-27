@@ -1,0 +1,142 @@
+{
+  "texts": [
+    {
+      "id": "out_of_the_line",
+      "title": "Out of the Line",
+      "body": "Your fleet has won the day, and the dispatches all say the same thing: {officer.name} did not wait for the signal. They took their ships out of the line, round the enemy's flank, and the enemy broke. It won the battle. It was also against orders, and the whole fleet saw it. What you write now is what the Reach will read.",
+      "choices": {
+        "name_them": "Name {officer.name} in the dispatch.",
+        "promote_them": "Promote {officer.name}.",
+        "rebuke_them": "Rebuke {officer.name} for breaking the line.",
+        "take_the_credit": "Let the dispatch say it was your plan."
+      }
+    },
+    {
+      "id": "ran_from_the_battle",
+      "title": "The Officer Who Ran",
+      "body": "The battle is lost, and the reports agree on one thing. Before the line broke, {officer.name} pulled their ships out of it and made for home. The line broke after. Whether it would have held if they had stayed, nobody can say; the crews are already saying it would.",
+      "choices": {
+        "strip_them": "Strip {officer.name} of the command, before the fleet.",
+        "cover_for_them": "Write the report so the line broke somewhere else.",
+        "ask_them_why": "Ask {officer.name} why."
+      }
+    },
+    {
+      "id": "a_laurel_at_the_peace",
+      "title": "A Laurel at the Peace",
+      "body": "The war is over. When the Senate draws up its list of those who served, the houses put names forward, and the house's name goes with whoever it chooses. {officer.name} served you well in the war, and everyone in the house knows it, {officer.name} most of all.",
+      "choices": {
+        "name_them_to_the_senate": "Put {officer.name}'s name to the Senate.",
+        "a_purse": "Give them a purse from the house (300 credits).",
+        "thank_them": "Thank them, and no more."
+      }
+    },
+    {
+      "id": "the_other_dispatch",
+      "title": "The Other Dispatch",
+      "body": "The war is over, and {officer.name} has written their own account of the battle. It does not say what yours said. It is being copied and read in the city, in the wardrooms and in the Senate's corridors, and people are asking you which one is true.",
+      "choices": {
+        "answer_it": "Answer it in the Senate.",
+        "make_amends": "Make it up with {officer.name}.",
+        "pay_for_silence": "Pay for their silence (400 credits).",
+        "let_it_stand": "Let it stand."
+      }
+    },
+    {
+      "id": "a_place_in_the_fleet",
+      "title": "A Place in the Fleet",
+      "body": "{kin.name} is young, and the war is all anyone in the house talks about. They have come to ask you for a place aboard the house's fleet. They have it all worked out: what they will do, who they will serve under. They have not worked out what you will feel when the reports come in.",
+      "choices": {
+        "send_them": "Send {kin.name} aboard the house's fleet.",
+        "take_them_on_your_staff": "Take {kin.name} onto your own staff.",
+        "a_safe_post": "Find them a post at the yards (1 influence).",
+        "forbid_it": "Forbid it."
+      }
+    },
+    {
+      "id": "blooded_in_battle",
+      "title": "Blooded in Battle",
+      "body": "The house's fleet has been in action, and {kin.name} was aboard. They came through it. Their letter is short, and the handwriting is not the same as in the last one.",
+      "choices": {
+        "a_step_up": "Ask the Admiralty to give {kin.name} a step.",
+        "bring_them_home": "Bring {kin.name} home now they have seen it.",
+        "leave_them_with_the_fleet": "Leave them with the fleet."
+      }
+    },
+    {
+      "id": "taken_in_battle",
+      "title": "Taken in Battle",
+      "body": "Among those pulled from the wrecks of {prisoner.house}'s line is {prisoner.name}, {prisoner.rankName} and captain of one of their ships. They are aboard your flagship under guard. {prisoner.house} will want them back, and will remember how they came home.",
+      "choices": {
+        "ransom_them": "Ransom {prisoner.name} to {prisoner.house} (400 credits).",
+        "exchange_them": "Exchange them for your own crews they hold.",
+        "parole_them": "Let them go on their word not to fight you again in this war.",
+        "parade_them": "Parade {prisoner.name} through your capital."
+      }
+    },
+    {
+      "id": "the_parole_broken",
+      "title": "The Parole Broken",
+      "body": "{parolee.name} gave you their word not to fight you again in this war, and you let them go on it. {parolee.house} has given them a fleet, and it is in the line against yours.",
+      "choices": {
+        "denounce_them": "Denounce {parolee.name} in the Senate (1 influence).",
+        "send_a_herald": "Send a herald to say it to their face.",
+        "let_it_go": "Let it go: it is a war."
+      }
+    },
+    {
+      "id": "a_parley_before_battle",
+      "title": "A Parley Before Battle",
+      "body": "{foe.name} of {foe.house} has a fleet a year out from yours, under way and coming. Their herald is aboard your flagship with a request: before the guns, will you meet them? Commanders have talked before battles for as long as there have been battles. Sometimes there is no battle afterwards.",
+      "choices": {
+        "offer_a_white_peace": "Offer a white peace: nothing changes hands.",
+        "meet_under_a_truce": "Meet under a flag of truce, and fight tomorrow.",
+        "count_their_ships": "Use the parley to count their ships.",
+        "send_the_herald_back": "Send the herald back unheard."
+      }
+    },
+    {
+      "id": "the_spoils_of_a_sack",
+      "title": "The Spoils of a Sack",
+      "body": "{sacker.house}'s fleet is home from beyond the rim. It sacked a world out there and came back low in the water, and {sacker.name} is selling what it carried: metals, stores, worked things from a world that is not theirs. Plunder sells fast and cheap. {sacker.name} has sent word that {sacker.house} will sail again, and has room for a partner.",
+      "choices": {
+        "buy_from_the_plunder": "Buy from the plunder (500 credits).",
+        "put_money_into_the_next_raid": "Put money into their next raid (300 credits).",
+        "call_for_a_tax_on_plunder": "Call in the Senate for a tax on plunder (1 influence).",
+        "have_nothing_to_do_with_it": "Have nothing to do with it."
+      }
+    },
+    {
+      "id": "a_scandal_in_the_accounts",
+      "title": "A Scandal in the Accounts",
+      "body": "The war beyond the rim is over, and the money you put into {partner.house}'s raids has come back, with a good deal more. So have the Senate's auditors, who are going through the plunder of the war house by house. Your name is in {partner.name}'s books.",
+      "choices": {
+        "keep_it": "Keep it, and say nothing (800 credits).",
+        "give_it_to_the_crews": "Give it to the families of the crews.",
+        "share_it_with_the_auditor": "Share it with the auditor (500 credits)."
+      }
+    },
+    {
+      "id": "the_fleet_paid_off",
+      "title": "The Fleet Paid Off",
+      "body": "The war is over and the crews are coming home: men and women who have done nothing for years but fight, more of them than the peace has work for. The quays are full of them. They want paying, and then they want to know what they are for now.",
+      "choices": {
+        "pay_them_off": "Pay them off in full (600 credits).",
+        "settle_them": "Settle them on the house's worlds (200 credits).",
+        "keep_them_under_arms": "Keep them under arms.",
+        "turn_them_loose": "Turn them loose unpaid."
+      }
+    },
+    {
+      "id": "who_pays_for_the_war",
+      "title": "Who Pays for the War",
+      "body": "The war is over, and the house's treasury is close to empty. The war has to be paid for, and there are only so many people to pay for it: the people of your worlds, the merchants whose cargoes the fleet protected, or the house itself.",
+      "choices": {
+        "a_war_tax": "A war tax on the commons (600 credits).",
+        "a_levy_on_cargoes": "A levy on the merchants' cargoes (500 credits).",
+        "sell_the_war_stores": "Sell the war stores on the Exchange (4 materials).",
+        "the_house_carries_it": "The house carries it."
+      }
+    }
+  ]
+}

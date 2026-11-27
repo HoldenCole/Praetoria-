@@ -492,6 +492,7 @@ top.Glory = Math.Min(12, top.Glory + 4); LegitimacyBook.Move(w, top, LegitimacyT
     private static void EndWar(World w, Nation n, NationDef d)
     {
         n.AtWar = false; n.BeganIt = false; n.LastWarEnd = w.Turn; w.WorldCounters.Remove(UnpressedKey(n));
+        Mark(w, WarOverFlag, n);   // however it ended, it is over: for the reports of what the war left behind (docs/events/war.md)
         if (n.WarOf.Length > 0) w.WorldCounters.Remove(DefiedSinceKey(n.WarOf)); n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0; w.WorldCounters.Remove(ComeHomeKey(n));
         foreach (var h in w.Houses.Keys.ToList()) w.WorldCounters.Remove(WinsKey(h, n.Id));
         foreach (var f in Expeditions(w, n.Id).ToList()) GoHome(w, f, d, "is recalled: the war is over");

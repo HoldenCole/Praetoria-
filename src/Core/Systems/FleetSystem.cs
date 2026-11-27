@@ -101,6 +101,20 @@ public sealed class FleetSystem
     public static string AtWarFlag(string houseId) => $"at_war:{houseId}";
     public const string SuingForPeaceFlag = "suing_for_peace";
     public const string AdmiralFlag = "admiral";                  // the character commands a fleet
+    /// <summary>Who was in a battle, for the reports of it (docs/events/war.md). An admiral or captain of the player's house, not the
+    /// head, who stood in the line of a battle the house fought this year: until the next year's tick.</summary>
+    public const string InTheBattleChar = "in_the_battle";
+    /// <summary>A captain of the beaten line taken by the player's side when it wins a battle that cost the loser
+    /// <see cref="PrisonerLosses"/> hulls or more. A prisoner leaves the captaincy and may hold none, and goes home when the two houses
+    /// are at peace. <see cref="HeldChar"/>: one the house has said it keeps to the peace (the report about them is answered).
+    /// <see cref="ParoleChar"/>: one let go on their word not to fight the house again in this war, cleared with the war.</summary>
+    public const string PrisonerChar = "taken_prisoner", HeldChar = "held_to_the_peace", ParoleChar = "on_parole";
+    public const int PrisonerLosses = 2;
+    /// <summary>An enemy fleet a year out from a system where a fleet of the player's lies, under way to it: its commander carries
+    /// <see cref="BearsDownChar"/> and the world <see cref="BearsDownFlag"/> for the year (the parley before the battle).</summary>
+    public const string BearsDownFlag = "enemy_bears_down", BearsDownChar = "bears_down_on_us";
+    /// <summary>The player's house has made peace with a house it was at war with: raised for the year it happens and the next.</summary>
+    public const string OurPeaceFlag = "our_peace";
 
     private readonly FleetRules _rules;
     private readonly HoldingCatalog _catalog;
@@ -157,6 +171,7 @@ public sealed class FleetSystem
         _world = w;
         LastBattles.Clear();
         foreach (var f in DepthTurnFlags) w.WorldFlags.Remove(f);
+        WarMarks(w);
         if (w.HasFlag(ConquestMadeFlag) && w.Counter("mark:" + ConquestMadeFlag) < w.Turn - 1) { w.WorldFlags.Remove(ConquestMadeFlag); w.WorldCounters.Remove("mark:" + ConquestMadeFlag); }   // a conquest is a report for the year it is made and the next, not for ever
         if (w.HasFlag(DeclaredOnMeFlag) && w.Counter("mark:" + DeclaredOnMeFlag) < w.Turn - 1) { w.WorldFlags.Remove(DeclaredOnMeFlag); w.WorldCounters.Remove("mark:" + DeclaredOnMeFlag); }
         if (w.Galaxy == null) { UpdateIntel(w); return; }
@@ -196,7 +211,76 @@ public sealed class FleetSystem
 
         RefreshAdmiralFlags(w);
         WarWeariness(w);
+        BearingDown(w);
         UpdateIntel(w);
+    }
+
+    // ---------------- the people of a war, for its reports (docs/events/war.md) ----------------
+
+    /// <summary>Last year's marks are struck out: who was in the battle, who bore down on the house; a prisoner or a parole whose
+    /// war is over goes home; the peace is news for the year it is made and the next.</summary>
+    private static void WarMarks(World w)
+    {
+        var mine = w.Protagonist?.HouseId;
+        foreach (var c in w.Characters.Values.OrderBy(c => c.Id, StringComparer.Ordinal))
+        {
+            c.Flags.Remove(InTheBattleChar); c.Flags.Remove(BearsDownChar);
+            if (!c.Flags.Contains(PrisonerChar) && !c.Flags.Contains(ParoleChar)) continue;
+            if (c.Alive && mine != null && c.HouseId != mine && w.AtWar(c.HouseId, mine)) continue;
+            bool held = c.Flags.Contains(PrisonerChar);
+            c.Flags.Remove(PrisonerChar); c.Flags.Remove(HeldChar); c.Flags.Remove(ParoleChar);
+            if (held && c.Alive) w.Log($"{c.Name} goes home to {w.House(c.HouseId)?.Name ?? c.HouseId}: the war in which {c.Name} was taken is over.");
+        }
+        if (w.HasFlag(BearsDownFlag)) { w.WorldFlags.Remove(BearsDownFlag); w.WorldCounters.Remove("mark:" + BearsDownFlag); }
+        if (w.HasFlag(OurPeaceFlag) && w.Counter("mark:" + OurPeaceFlag) < w.Turn - 1) { w.WorldFlags.Remove(OurPeaceFlag); w.WorldCounters.Remove("mark:" + OurPeaceFlag); }
+    }
+
+    /// <summary>Is this person a prisoner of war? A prisoner may hold no command until the war is over.</summary>
+    public static bool Captive(Character c) => c.Flags.Contains(PrisonerChar);
+
+    /// <summary>The admirals and captains of a house who stand in a system with its fleets, in fleet order.</summary>
+    private static List<Character> OfficersIn(World w, string houseId, string systemId) =>
+        w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && !f.IsAway && f.SystemId == systemId).OrderBy(f => f.Id, StringComparer.Ordinal)
+            .SelectMany(f => new[] { AdmiralOf(w, f), CaptainOf(w, f) }).Where(c => c != null && c.HouseId == houseId).Select(c => c!).Distinct().ToList();
+
+    /// <summary>The officers of the beaten line who could be taken: of the loser's own house, not its head and not a nation's. Its
+    /// captains, from its strongest fleet in the system first; then the admirals, who are taken only if their fleet goes down.</summary>
+    private static List<(Character who, string fleetId, bool captain)> CaptainsIn(World w, string houseId, string systemId)
+    {
+        if (houseId == PirateSystem.HouseId || w.Foreign(houseId)) return new();
+        var head = w.House(houseId) is { } h ? Economy.HeadOf(w, h) : null;
+        var fleets = w.Fleets.Values.Where(f => f.OwnerId == houseId && !f.Moving && !f.IsAway && f.SystemId == systemId).OrderByDescending(f => f.Strength).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();
+        bool Takeable(Character? c) => c != null && c.HouseId == houseId && c.Id != head?.Id && !c.Flags.Contains(NationSystem.ForeignChar);
+        return fleets.Where(f => Takeable(CaptainOf(w, f))).Select(f => (CaptainOf(w, f)!, f.Id, true))
+            .Concat(fleets.Where(f => Takeable(AdmiralOf(w, f))).Select(f => (AdmiralOf(w, f)!, f.Id, false))).ToList();
+    }
+
+    /// <summary>After a battle the player's house fought: its officers who were in the line are marked, and if it won and the beaten line
+    /// lost <see cref="PrisonerLosses"/> hulls or more, the first of its captains still alive is taken prisoner and leaves the captaincy,
+    /// or, where none is, an admiral whose fleet went down.</summary>
+    private static void MarkTheBattle(World w, string player, List<Character> ours, List<(Character who, string fleetId, bool captain)> theirs, string loser, int loserLosses, string place)
+    {
+        foreach (var c in ours.Where(c => c.Alive && c.Id != w.ProtagonistId)) c.Flags.Add(InTheBattleChar);
+        if (loserLosses < PrisonerLosses) return;
+        var pick = theirs.FirstOrDefault(x => x.who.Alive && !Captive(x.who) && (x.captain || !w.Fleets.ContainsKey(x.fleetId)));
+        if (pick.who is not { } taken) return;
+        foreach (var f in w.Fleets.Values.Where(f => f.CaptainId == taken.Id)) f.CaptainId = "";
+        foreach (var f in w.Fleets.Values.Where(f => f.AdmiralId == taken.Id)) f.AdmiralId = "";   // (an admiral taken commands nothing from a cell)
+        taken.Flags.Add(PrisonerChar); taken.Flags.Remove(ParoleChar); taken.Flags.Remove(AdmiralFlag);
+        w.Log($"{taken.Name} of {w.House(loser)?.Name ?? loser} is taken from the wrecks at {place} and held by {w.House(player)?.Name ?? player} until the house pays, or the war ends.");
+    }
+
+    /// <summary>An enemy fleet under way that comes next year into a system where a fleet of the player's lies: its commander bears down
+    /// on the house, and the house has the year to answer (a parley, or the battle).</summary>
+    private static void BearingDown(World w)
+    {
+        var mine = w.Protagonist?.HouseId; if (mine == null || w.Galaxy == null) return;
+        var ours = w.Fleets.Values.Where(f => f.OwnerId == mine && !f.Moving && !f.IsAway && !f.LaidUp).Select(f => f.SystemId).ToHashSet();
+        foreach (var f in w.Fleets.Values.Where(f => f.Moving && f.Eta == 1 && ours.Contains(f.DestinationId) && f.OwnerId != PirateSystem.HouseId && w.AtWar(f.OwnerId, mine)).OrderBy(f => f.Id, StringComparer.Ordinal))
+        {
+            if (Commander(w, f) is not { } c || c.HouseId != f.OwnerId) continue;
+            c.Flags.Add(BearsDownChar); w.WorldFlags.Add(BearsDownFlag); w.WorldCounters["mark:" + BearsDownFlag] = w.Turn;
+        }
     }
 
     // ---------------- supply, campaigns, loyalty (docs/MILITARY.md) ----------------
@@ -548,6 +632,7 @@ public sealed class FleetSystem
         if (ChargeSystem.NoCommandSays(w, c) is { } away) return away;   // in exile, or a court's order, said before a year at home
         if (TriumphSystem.HomeRefusal(w, c) is { } home) return home;   // home for a triumph (docs/CAESAR.md)
         if (CaesarSystem.Barred(w, c)) return "the Senate had them lay a command down";
+        if (Captive(c)) return $"{c.Name} is a prisoner of war, and holds no command until the war is over";
         return null;
     }
 
@@ -702,6 +787,7 @@ public sealed class FleetSystem
         RefreshWarFlags(w);
         RefreshSiegeFlag(w);
         w.Log($"{w.House(a)?.Name ?? a} and {w.House(b)?.Name ?? b} make peace.");
+        if (w.Protagonist?.HouseId is { } mine && war.Involves(mine)) { w.WorldFlags.Add(OurPeaceFlag); w.WorldCounters["mark:" + OurPeaceFlag] = w.Turn; }   // news for the year, for the reports of the peace (docs/events/war.md)
         WarLedger.Finish(w, war, "peace was made");
     }
 
@@ -838,6 +924,9 @@ public sealed class FleetSystem
         int winnerLosses = Math.Max(0, Math.Min(winnerStrength - 1, (int)Math.Floor(winnerStrength * _rules.WinnerLossRatio * Math.Min(1.0, pl / pw) * LossMult(sWin))));
 
         var loserAdmirals = Admirals(w, loser, systemId); var winnerAdmirals = Admirals(w, winner, systemId);
+        // who of the player's house stood in the line, and the captains of the beaten line, before the wrecks are counted (docs/events/war.md)
+        string? me = w.Protagonist?.HouseId; bool ourBattle = me != null && (winner == me || loser == me);
+        var oursIn = ourBattle ? OfficersIn(w, me!, systemId) : new(); var theirCaptains = ourBattle && winner == me ? CaptainsIn(w, loser, systemId) : new();
         ApplyLosses(w, loser, systemId, loserLosses, _rules.LoserReadinessCost);
         ApplyLosses(w, winner, systemId, winnerLosses, _rules.WinnerReadinessCost);
         var player = w.Protagonist?.HouseId;
@@ -862,6 +951,7 @@ public sealed class FleetSystem
         var ledBefore = w.Fleets.Values.Where(f => !f.Moving && f.SystemId == systemId && (f.OwnerId == winner || f.OwnerId == loser)).ToDictionary(f => f.Id, f => Commander(w, f)?.Id ?? "");
         AdmiralOutcomes(w, rng, winnerAdmirals, loserAdmirals, winner);
         CaptainsTakeOver(w, ledBefore, player);
+        if (ourBattle) MarkTheBattle(w, me!, oursIn, theirCaptains, loser, loserLosses, w.Galaxy!.System(systemId)?.Name ?? systemId);
         Retreat(w, loser, systemId);
 
         var sys = w.Galaxy!.System(systemId)?.Name ?? systemId;
