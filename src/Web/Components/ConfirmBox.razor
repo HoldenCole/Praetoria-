@@ -1,16 +1,22 @@
 @inject GameClient G
 @implements IDisposable
-@* The one question the game asks before something that cannot be taken back (docs/PLAYTHROUGH.md): any screen calls G.Ask. *@
+@* The one question the game asks before something that cannot be taken back (docs/PLAYTHROUGH.md): any screen calls G.Ask. A small
+   box in the window frame (docs/VISUAL_SYSTEM.md 4.1) over the dimmed map: a kicker, the question in Cinzel, what it means, and the
+   two answers, the one that acts as the gold plate. *@
 @if (G.Asking is { } a)
 {
     <div class="confirm-veil" @onclick="() => G.Answer(false)">
-        <div class="confirm-box" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
-            <h3>@a.Title</h3>
-            <p>@a.Text</p>
-            <div class="confirm-row">
-                <button class="btn ghost" data-confirm="no" @onclick="() => G.Answer(false)">@a.No</button>
-                <button class="btn primary" data-confirm="yes" @onclick="() => G.Answer(true)">@a.Yes</button>
+        <div class="confirm-box ui-win" role="dialog" aria-modal="true" @onclick:stopPropagation="true">
+            <div class="ui-win-body cb-body">
+                <div class="ui-kick"><Icon Name="padlock" Tone="brass" Size="14" />Before it is done</div>
+                <h3>@a.Title</h3>
+                <p>@a.Text</p>
+                <div class="confirm-row">
+                    <button class="btn ghost" data-confirm="no" @onclick="() => G.Answer(false)">@a.No</button>
+                    <button class="btn primary" data-confirm="yes" @onclick="() => G.Answer(true)">@a.Yes</button>
+                </div>
             </div>
+            <i class="ui-win-frame" aria-hidden="true"></i>
         </div>
     </div>
 }
@@ -18,14 +24,17 @@
 @if (G.Asking == null && G.Told is { } t)
 {
     <div class="confirm-veil" @onclick="G.Dismiss">
-        <div class="confirm-box outcome" role="dialog" aria-modal="true" data-outcome="1" @onclick:stopPropagation="true">
-            <div class="outcome-kicker">What came of it</div>
-            <h3>@t.Title</h3>
-            @if (t.Chose.Length > 0) { <p class="outcome-chose">“@t.Chose”</p> }
-            @foreach (var line in t.Lines) { <p>@line</p> }
-            <div class="confirm-row">
-                <button class="btn primary" data-outcome-ok="1" @onclick="G.Dismiss">So be it</button>
+        <div class="confirm-box outcome ui-win" role="dialog" aria-modal="true" data-outcome="1" @onclick:stopPropagation="true">
+            <div class="ui-win-body cb-body">
+                <div class="outcome-kicker ui-kick"><Icon Name="wax-seal" Tone="brass" Size="14" />What came of it</div>
+                <h3>@t.Title</h3>
+                @if (t.Chose.Length > 0) { <p class="outcome-chose">“@t.Chose”</p> }
+                @foreach (var line in t.Lines) { <p>@line</p> }
+                <div class="confirm-row">
+                    <button class="btn primary" data-outcome-ok="1" @onclick="G.Dismiss">So be it</button>
+                </div>
             </div>
+            <i class="ui-win-frame" aria-hidden="true"></i>
         </div>
     </div>
 }

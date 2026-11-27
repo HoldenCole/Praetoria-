@@ -29,7 +29,8 @@ async function open(viewport, query = '') {
 // clicks through the page's own code, so a slow frame cannot make the click miss
 const rail = (page, name) => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (el) el.click(); return !!el; }, name);
 const closeWindows = async page => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-const turnNo = page => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+// the year is on the date plate of the top bar (data-turn); the old "Turn N" text is kept as a fallback
+const turnNo = page => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
 async function endTurn(page) {
   await closeWindows(page); const before = await turnNo(page); const started = Date.now();
   await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); });

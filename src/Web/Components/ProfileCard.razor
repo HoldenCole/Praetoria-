@@ -8,35 +8,48 @@
 }
 @if (p != null)
 {
-    <div class="overlay profile-veil" @onclick="G.CloseProfile">
-        <article class="profile @(p.Alive ? "" : "dead")" style="--accent:@p.Accent" @onclick:stopPropagation="true" role="dialog" aria-label="@p.Name">
-            <button class="profile-x" @onclick="G.CloseProfile" title="Close" aria-label="Close">×</button>
-            <header class="profile-head">
-                <div class="profile-frame"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@p.Accent" Size="232" Opens="false" /><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i></div>
-                <div class="profile-who">
-                    <div class="profile-house"><i></i>@p.HouseName@(p.Ancestry.Length > 0 ? $" · {p.Ancestry}" : "")@(p.IsYou ? " · you" : "")@(p.Alive ? "" : " · dead")</div>
-                    <h2>@p.Name</h2>
-                    @if (G.World?.Protagonist is { } pme && G.World.Char(p.Id) is { } pch && !p.IsYou)
-                    {
-                        string kinWord = Kinship.Of(G.World, pme, pch), born = Kinship.ChildOfSays(G.World, pch);
-                        @if (kinWord.Length + born.Length > 0) { <div class="profile-kin muted small" data-kin="@kinWord">@(kinWord.Length > 0 ? char.ToUpperInvariant(kinWord[0]) + kinWord[1..] : "")@(kinWord.Length > 0 && born.Length > 0 ? " · " : "")@born</div> }
-                    }
-                    @if (p.Epithet.Length > 0) { <div class="profile-epithet">@p.Epithet</div> }
-                    <div class="profile-station">@p.Station@(p.Alive ? $" · {p.Age} years" : $" · died at {p.Age}")</div>
-                    @if (p.Offices.Count > 0) { <div class="profile-offices">@foreach (var o in p.Offices) { <span>@o</span> }</div> }
-                    <p class="profile-story">@(p.IsYou ? p.Story.Replace("their own", "your own").Replace(" Wants to ", " You want to ") : p.Story)</p>
+    var ph = w!.House(p.HouseId);
+    @* The card (docs/VISUAL_SYSTEM.md 4.15, 5.2): a window in the frame over the dimmed map. Its head is the person's painting by
+       career under the shade, their portrait plate (150 by 188, the dead in greyscale with the ribbon) with their house's wax seal on
+       its corner, the kicker, the name in Cinzel, what they are and the story; then what they think of you and you of them as two
+       diverging meters, health and renown, and four sections: what they are like, what they are good at, whose they are (kin as
+       portrait plates) and what they have done. *@
+    <div class="overlay pc-veil" @onclick="G.CloseProfile">
+        <article class="profile pc ui-win @(p.Alive ? "" : "dead")" style="--accent:@p.Accent" @onclick:stopPropagation="true" role="dialog" aria-label="@p.Name">
+            <div class="ui-win-body pc-body">
+                <header class="pc-head">
+                    <div class="ui-head-art" style="background-image:url('img/scenes/@(Scene(p)).webp')"></div><div class="ui-head-shade"></div>
+                    <div class="pc-portrait">
+                        <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@p.Accent" Size="150" Height="188" Opens="false" />
+                        @if (ph != null) { <i class="pc-seal"><Sigil HouseId="@ph.Id" Accent="@ph.AccentColor" Size="40" Mode="seal" /></i> }
+                    </div>
+                    <div class="pc-who">
+                        <div class="ui-kick pc-house">@p.HouseName@(p.Ancestry.Length > 0 ? $" · {p.Ancestry}" : "")@(p.IsYou ? " · you" : "")@(p.Alive ? "" : " · dead")</div>
+                        <h2 class="ui-title">@p.Name</h2>
+                        @if (G.World?.Protagonist is { } pme && G.World.Char(p.Id) is { } pch && !p.IsYou)
+                        {
+                            string kinWord = Kinship.Of(G.World, pme, pch), born = Kinship.ChildOfSays(G.World, pch);
+                            @if (kinWord.Length + born.Length > 0) { <div class="pc-kinword" data-kin="@kinWord">@(kinWord.Length > 0 ? char.ToUpperInvariant(kinWord[0]) + kinWord[1..] : "")@(kinWord.Length > 0 && born.Length > 0 ? " · " : "")@born</div> }
+                        }
+                        @if (p.Epithet.Length > 0) { <div class="pc-epithet">@p.Epithet</div> }
+                        <div class="ui-facts pc-station"><span><Icon Name="@(p.Alive ? "heart-beats" : "candle-light")" Tone="ivory" Size="16" /><b>@p.Station</b></span><span>@(p.Alive ? $"{p.Age} years" : $"died at {p.Age}")</span></div>
+                        @if (p.Offices.Count > 0) { <div class="pc-offices">@foreach (var o in p.Offices) { <span><Icon Name="podium" Tone="brass" Size="13" />@o</span> }</div> }
+                        <p class="pc-story">@(p.IsYou ? p.Story.Replace("their own", "your own").Replace(" Wants to ", " You want to ") : p.Story)</p>
+                    </div>
+                </header>
+                <div class="pc-scroll">
                     @if (p.TheirsOfYou is { } t && p.YoursOfThem is { } y)
                     {
-                        <div class="regards">
-                            <div class="regard">
-                                <div class="rg-top"><span>What they think of you</span><b class="@Tone(t.Disposition)">@Cap(t.Word)@(t.Bond.Length > 0 ? $" · {t.Bond}" : "") <em>@Signed(t.Disposition)</em></b></div>
-                                <div class="rg-bar"><i class="@Tone(t.Disposition)" style="@Fill(t.Disposition)"></i></div>
-                                @if (t.Reasons.Count > 0) { <div class="rg-why">@string.Join(" · ", t.Reasons)</div> }
-                                @if (G.World?.Protagonist is { } heirNow) { foreach (var line in InheritedRegard.Why(G.World, p.Id, heirNow.Id)) { <div class="rg-why" data-inherited-regard="@line.Kind">@line.Text</div> } }
+                        <div class="pc-regards">
+                            <div class="pc-regard">
+                                <Meter Label="Of you" Kind="diverging" Value="@t.Disposition" Text="@Signed(t.Disposition)" ValueClass="@Tone(t.Disposition)" Tip="What they think of you" />
+                                <div class="pc-rg-top"><span>What they think of you</span><b class="@Tone(t.Disposition)">@Cap(t.Word)@(t.Bond.Length > 0 ? $" · {t.Bond}" : "")</b></div>
+                                @if (t.Reasons.Count > 0) { <div class="pc-rg-why">@string.Join(" · ", t.Reasons)</div> }
+                                @if (G.World?.Protagonist is { } heirNow) { foreach (var line in InheritedRegard.Why(G.World, p.Id, heirNow.Id)) { <div class="pc-rg-why" data-inherited-regard="@line.Kind">@line.Text</div> } }
                             </div>
-                            <div class="regard">
-                                <div class="rg-top"><span>What you think of them</span><b class="@Tone(y.Disposition)">@Cap(y.Word)@(y.Bond.Length > 0 ? $" · {y.Bond}" : "") <em>@Signed(y.Disposition)</em></b></div>
-                                <div class="rg-bar"><i class="@Tone(y.Disposition)" style="@Fill(y.Disposition)"></i></div>
+                            <div class="pc-regard">
+                                <Meter Label="Of them" Kind="diverging" Value="@y.Disposition" Text="@Signed(y.Disposition)" ValueClass="@Tone(y.Disposition)" Tip="What you think of them" />
+                                <div class="pc-rg-top"><span>What you think of them</span><b class="@Tone(y.Disposition)">@Cap(y.Word)@(y.Bond.Length > 0 ? $" · {y.Bond}" : "")</b></div>
                             </div>
                         </div>
                     }
@@ -45,54 +58,56 @@
                         /* act on a person from their profile (docs/PLAYTHROUGH.md, Family): a visit or amends, and a slight */
                         var visit = new SeekAllyCommand(actor.Id, them.Id); var slight = new NeedleRivalCommand(actor.Id, them.Id); bool canVisit = visit.CanExecute(G.Ctx), canSlight = slight.CanExecute(G.Ctx);
                         int theirs = G.World.GetRelationship(them.Id, actor.Id)?.Disposition ?? 0; string visitWord = theirs < 0 ? "Make amends" : "Pay a visit";
-                        <div class="profile-acts" data-profile-acts="@p.Id">
+                        <div class="pc-acts" data-profile-acts="@p.Id">
                             <button class="opt inline" data-visit="1" disabled="@(!canVisit)" title="@(canVisit ? $"1 influence. {them.Name} thinks 10 the better of you, and you of them. It can be done again while you have influence to spend." : "needs 1 influence")" @onclick="() => G.Execute(visit)">@visitWord · 1 influence</button>
                             <button class="opt inline" data-slight="1" disabled="@(!canSlight)" title="@(canSlight ? $"1 influence. {them.Name} thinks 10 the worse of you, and you 5 the worse of them." : "needs 1 influence")" @onclick='() => G.Ask("Slight " + them.Name + "?", them.Name + " thinks 10 the worse of you, and you 5 the worse of them. It costs 1 influence.", "Slight them", () => G.Execute(slight))'>Slight them · 1 influence</button>
-                            <span class="muted small">A gift or a loan is made under House, in your purse; a post is given where the post is: a fleet under Military, a world or a duty of the household under House.</span>
+                            <span class="pc-note">A gift or a loan is made under House, in your purse; a post is given where the post is: a fleet under Military, a world or a duty of the household under House.</span>
                         </div>
                     }
-                    <div class="profile-gauges">
-                        <div class="pg" title="Age lowers what it can be; wounds, illness and strain lower it."><span>Health</span><div class="rg-meter"><i style="width:@(p.Health)%"></i></div><b>@p.HealthName</b></div>
-                        <div class="pg" title="What they are apart from their house: how far they rose and what they did."><span>Renown</span><div class="rg-meter brass"><i style="width:@(Math.Min(100, p.Renown))%"></i></div><b>@p.Renown</b></div>
-                        @if (p.Sway > 0) { <div class="pg" title="How far their fleets would follow them against the Senate."><span>Sway</span><div class="rg-meter brass"><i style="width:@(Math.Min(100, p.Sway))%"></i></div><b>@p.Sway</b></div> }
+                    <div class="pc-gauges">
+                        <Meter Label="Health" Value="@p.Health" Text="@p.HealthName" Color="#8cc47e" Tip="Age lowers what it can be; wounds, illness and strain lower it." />
+                        <Meter Label="Renown" Value="@(Math.Min(100, p.Renown))" Text="@p.Renown.ToString()" Tip="What they are apart from their house: how far they rose and what they did." />
+                        @if (p.Sway > 0) { <Meter Label="Sway" Value="@(Math.Min(100, p.Sway))" Text="@p.Sway.ToString()" Tip="How far their fleets would follow them against the Senate." /> }
+                    </div>
+                    <div class="pc-sections">
+                        <section>
+                            <Section Title="What they are like" />
+                            @if (p.Nature.Count + p.Aptitude.Count == 0) { <p class="pc-empty">Nothing is known of their nature yet.</p> }
+                            @foreach (var tr in p.Nature) { <div class="pc-trait nature"><b>@Cap(tr.Name)</b><span>@tr.Description</span></div> }
+                            @foreach (var tr in p.Aptitude) { <div class="pc-trait apt"><b>@Cap(tr.Name)</b><span>@tr.Description</span></div> }
+                            @if (p.Ambition.Length > 0) { <div class="pc-trait amb"><b>Wants</b><span>To @(p.Ambition.ToLowerInvariant()).</span></div> }
+                            @if (p.Marks.Count > 0) { <div class="pc-marks">@foreach (var mk in p.Marks) { <span>@mk</span> }</div> }
+                        </section>
+                        <section>
+                            <Section Title="What they are good at" />
+                            @if (p.Skills.Count == 0) { <p class="pc-empty">Untrained.</p> }
+                            @foreach (var s in p.Skills) { <div class="pc-skill"><Meter Label="@Cap(s.Name)" Value="@s.Value" Max="10" Tip="@SkillWords.For(s.Name.ToLowerInvariant())" /></div> }
+                        </section>
+                        <section>
+                            <Section Title="Whose they are" Count="@(p.Kin.Count > 0 ? p.Kin.Count.ToString() : "")" />
+                            @if (p.Kin.Count == 0) { <p class="pc-empty">No kin the record knows.</p> }
+                            <div class="pc-kin">
+                                @foreach (var k in p.Kin.Take(8))
+                                {
+                                    var kc = w!.Char(k.Id); var kh = kc != null ? w.House(kc.HouseId) : null;
+                                    <button class="pk" @onclick="() => G.ShowProfile(k.Id)" title="Open @k.Name">
+                                        <Portrait Id="@k.Id" Name="@k.Name" Sex="@(kc?.Sex ?? "")" Age="@k.Age" Alive="@k.Alive" Accent="@(kh?.AccentColor ?? p.Accent)" Size="46" Height="56" Opens="false" />
+                                        <span><b>@k.Name</b><em>@k.Relation · @(k.Alive ? k.Age.ToString() : "dead at " + k.Age)</em></span>
+                                    </button>
+                                }
+                            </div>
+                            @if (p.Kin.Count > 8) { <p class="pc-empty">and @(p.Kin.Count - 8) more.</p> }
+                        </section>
+                        <section class="wide">
+                            <Section Title="What they have done" Count="@(p.Deeds.Count > 0 ? p.Deeds.Count.ToString() : "")" />
+                            @if (p.Deeds.Count == 0) { <p class="pc-empty">Nothing the record remembers yet.</p> }
+                            <ol class="pc-deeds">@foreach (var d in p.Deeds) { <li><time>Year @d.Turn<em>aged @d.Age</em></time><span>@d.Text</span></li> }</ol>
+                        </section>
                     </div>
                 </div>
-            </header>
-            <div class="profile-body">
-                <section>
-                    <h3>What they are like</h3>
-                    @if (p.Nature.Count + p.Aptitude.Count == 0) { <p class="muted small">Nothing is known of their nature yet.</p> }
-                    @foreach (var tr in p.Nature) { <div class="pt nature"><b>@Cap(tr.Name)</b><span>@tr.Description</span></div> }
-                    @foreach (var tr in p.Aptitude) { <div class="pt apt"><b>@Cap(tr.Name)</b><span>@tr.Description</span></div> }
-                    @if (p.Ambition.Length > 0) { <div class="pt amb"><b>Wants</b><span>To @(p.Ambition.ToLowerInvariant()).</span></div> }
-                    @if (p.Marks.Count > 0) { <div class="profile-marks">@foreach (var mk in p.Marks) { <span>@mk</span> }</div> }
-                </section>
-                <section>
-                    <h3>What they are good at</h3>
-                    @if (p.Skills.Count == 0) { <p class="muted small">Untrained.</p> }
-                    @foreach (var s in p.Skills) { <div class="ps" title="@SkillWords.For(s.Name.ToLowerInvariant())"><span>@Cap(s.Name)</span><div class="sk-pips">@for (int i = 1; i <= 10; i++) { <i class="@(i <= s.Value ? "on" : "")"></i> }</div><b>@s.Value</b></div> }
-                </section>
-                <section>
-                    <h3>Whose they are</h3>
-                    @if (p.Kin.Count == 0) { <p class="muted small">No kin the record knows.</p> }
-                    <div class="profile-kin">
-                        @foreach (var k in p.Kin.Take(8))
-                        {
-                            var kc = w!.Char(k.Id); var kh = kc != null ? w.House(kc.HouseId) : null;
-                            <button class="pk" @onclick="() => G.ShowProfile(k.Id)" title="Open @k.Name">
-                                <Portrait Id="@k.Id" Name="@k.Name" Sex="@(kc?.Sex ?? "")" Age="@k.Age" Alive="@k.Alive" Accent="@(kh?.AccentColor ?? p.Accent)" Size="44" Opens="false" />
-                                <span><b>@k.Name</b><em>@k.Relation · @(k.Alive ? k.Age.ToString() : "dead at " + k.Age)</em></span>
-                            </button>
-                        }
-                    </div>
-                    @if (p.Kin.Count > 8) { <p class="muted small">and @(p.Kin.Count - 8) more.</p> }
-                </section>
-                <section class="wide">
-                    <h3>What they have done</h3>
-                    @if (p.Deeds.Count == 0) { <p class="muted small">Nothing the record remembers yet.</p> }
-                    <ol class="profile-deeds">@foreach (var d in p.Deeds) { <li><time>Year @d.Turn<em>aged @d.Age</em></time><span>@d.Text</span></li> }</ol>
-                </section>
             </div>
+            <i class="ui-win-frame" aria-hidden="true"></i>
+            <button class="ui-round ui-close profile-x" @onclick="G.CloseProfile" title="Close (Esc)" aria-label="Close"><Icon Name="close" Tone="ivory" Size="13" /></button>
         </article>
     </div>
 }
@@ -103,7 +118,9 @@
     private void Refresh() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= Refresh;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
-    private static string Signed(int v) => v > 0 ? "+" + v : v.ToString();
+    private static string Signed(int v) => v > 0 ? "+" + v : Counted.Figure(v);
+    /// <summary>The painting at the head of the card, by what the person is (docs/VISUAL_SYSTEM.md 4.2: a person by career).</summary>
+    private static string Scene(PersonProfile p) => !p.Alive ? "funeral" : SceneArt.For(p.Station, p.Station + " " + string.Join(" ", p.Offices)) is var s && s != "audience" ? s : p.Age < 16 ? "family" : "court";
     private static string Tone(int v) => v >= 10 ? "good" : v <= -10 ? "bad" : "";
     /// <summary>A bar from the middle: rightward for regard, leftward for dislike.</summary>
     private static string Fill(int v) { int half = Math.Min(50, Math.Abs(v) / 2); return v >= 0 ? $"left:50%;width:{half}%" : $"left:{50 - half}%;width:{half}%"; }

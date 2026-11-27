@@ -31,7 +31,8 @@ const { chromium } = require('playwright'); const path = require('path');
   const star = await page.evaluate(() => { const l = document.querySelector('.sys-label.mine'); if (!l) return null; const r = l.getBoundingClientRect(); return [r.left + r.width / 2, r.top - 40]; });
   if (star) { await page.mouse.move(star[0], star[1], { steps: 5 }); await page.waitForTimeout(500); const shown = await note(); await page.mouse.move(1450, 420, { steps: 6 }); await page.waitForTimeout(500); need(shown >= 0 && (await note()) === 0, 'the map\'s note on a star goes when the pointer moves onto the list'); }
   await page.screenshot({ path: path.join(out, 'map-near.png') });
-  await page.click('.map-tools button[title*="whole"], .map-tools button:has-text("▣")'); await page.waitForTimeout(3500); await page.mouse.move(820, 130); await page.waitForTimeout(300);
+  // the whole Reach: the console's fit plate (docs/VISUAL_SYSTEM.md 3.8), or the map's own button where the console is not drawn
+  await page.click('.console [data-map="fit"]:visible, .map-tools button[title*="whole"]:visible'); await page.waitForTimeout(3500); await page.mouse.move(820, 130); await page.waitForTimeout(300);
   await page.screenshot({ path: path.join(out, 'map-far.png') });
   await page.evaluate(() => praetoriaSpace.select('anvils_rest')); await page.waitForTimeout(1200); await page.click('button:has-text("Go into the system")'); await page.waitForTimeout(3500); await page.mouse.move(900, 900);
   await page.screenshot({ path: path.join(out, 'map-system.png') });

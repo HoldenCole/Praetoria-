@@ -53,24 +53,25 @@ done again has the same result. It does let a player see what an act did and the
 
 ## Settings
 
-Built 2026-11-21 from the playthroughs (docs/PLAYTHROUGH.md, "A first game": N47, N3). **Options** in the top bar and on
-the title opens them. They are kept in the browser (`localStorage`, key `praetoria.settings`) and apply to every saga
+Built 2026-11-21 from the playthroughs (docs/PLAYTHROUGH.md, "A first game": N47, N3). **Options** in the game menu (the cog
+at the right of the top bar, or Esc on the map) and on the title opens them. They are kept in the browser (`localStorage`, key `praetoria.settings`) and apply to every saga
 played in it; the page reads them before the game starts, so the title is already at the chosen size.
 
 | setting | what it does |
 |---|---|
 | Text size | Small, Normal, Large, Larger: the root size is 13.5, 15, 16.5 or 18 pixels. Every size in the stylesheet is in `rem`, and so are the widths of the rail, the windows and the outliner, so the layout grows with the words. The map does not change. |
-| Enter ends the year | On by default. Off, a year ends only by the End Turn button. |
-| Number keys open windows | On by default. |
+| Enter ends the year | On by default. Off, a year ends only by the End Year medallion. |
+| Number keys open windows | On by default, in the order of the rail. |
+| Show rail labels | Off by default. On, each socket of the rail carries its window's name under it (the name shows beside a socket on hover either way). Kept as `railLabels`. |
 | The year in brief | Every year, or only when asked (the same choice the card itself offers). |
 
 The window also lists the keys. They cannot be changed to others; that is not built.
 
 **Sound.** The game has no music and no sound, so the window says so and offers no switch. A dead slider would be a lie.
 
-**A top bar too short for its content** (a narrow screen, or the larger sizes on a 1600-pixel one): the house, the stores
-and the year's pools keep their room; the gaps close first, then the era's name gives way, then the year's label is cut
-short. Before this the stores ran over the house's name.
+**A top bar too short for its content** (under 1500 pixels wide, or at the Larger size): the strategic three and the year's
+pools fold into one "Pools" plate that opens them below it, the yearly changes go to each stock's tooltip, and the date plate
+loses its second line (docs/VISUAL_SYSTEM.md 2.4). Before this the stores ran over the house's name.
 
 The title has three more buttons for the same reason (the newcomer looked there first): **Saved sagas**, **Options**, and
 **Glossary and lectures** (the handbook without the primer, which speaks to the head of a house and needs a saga).
@@ -162,13 +163,22 @@ yet switched on, Settings → Pages → Source *Deploy from a branch* → `gh-pa
 
 ## Layout — the grand-strategy shell
 
-A fixed shell, not a scrolling page: a resource strip across the top (treasury with per-turn forecasts, action pools,
-era and turn), a navigation rail of screens down the left, the **outliner** down the right (reports, alerts, council,
-fleets, holdings — every line jumps to the screen that acts on it), and End Turn docked bottom-right. Reports open as
-event windows with the cast's portraits; the first visitor steps forward when a turn begins.
+The shell of docs/VISUAL_SYSTEM.md 3 (2026-11-27): the map fills the screen and everything sits at its edges. The top bar
+(the ruler's portrait with the house's seal, the arms, three wells of stocks, Undo, the date plate that opens the year in
+brief, the game menu); the rail of sockets in groups with pips (a round brass pip for a decision, a notched ember diamond for
+danger) and the house's standard at its foot; one window docked beside the rail; the **alerts row** of badges over the free
+map (each alert has a kind and a severity in `Presentation/Alerts.cs`; one badge per kind, the sentences in its tooltip, a
+right-click dismisses a kind for the year); **toasts** for the year's news; the **outliner** on the right (reports with a
+crop of their painting, fleets, holdings, the council's count; it folds to its heads with a window open); the **console** in
+the bottom-right (your seat, fit, the map's modes, the legend, the minimap with its caption) with **End Year** on its rim.
+Reports open as event windows with the cast's portraits; the first visitor steps forward when a turn begins.
 
-- `Pages/Index.razor` — the shell and its state: current screen, open report, succession interstitial, epilogue.
-- `Components/TopBar.razor`, `Outliner.razor`, `EventWindow.razor` — the frame.
+- `Pages/Index.razor` — the shell and its state: current screen, open report, succession interstitial, epilogue; the rail,
+  the docked-window host, the console and End Year.
+- `Components/TopBar.razor`, `Outliner.razor`, `AlertsRow.razor`, `Toasts.razor`, `EventWindow.razor` — the frame;
+  `Components/Ui/Box.razor` — the framed box the year in brief, the handbook, the saves and the settings stand in;
+  `wwwroot/js/shell.js` — tells the map what the interface covers (`praetoria:covered`), works the console, zooms on Page
+  Up and Page Down.
 - `Components/OfficeScreen.razor` — **the Office**: an SVG room (walls, floor, window on your seat's world, banners with the
   house sigil, desk and chair, decor) that visitors with reports walk into; *Furnish the office* changes it, stored in
   `World.Cosmetics` so the save carries it. Beside it: the character sheet, "since your last turn", the Great Crisis.
@@ -223,7 +233,7 @@ event windows with the cast's portraits; the first visitor steps forward when a 
   panels for the sheet (traits), career ladder, ambition, stress, honors, marks, skills, blood and bonds, those who
   matter, your story so far.
 - `Components/CreationScreen.razor` — the title and creation screen.
-- `Components/Portrait.razor`, `Sigil.razor` — procedural portraits and heraldry; `Services/Svg.cs` — SVG helpers.
+- `Components/Portrait.razor`, `Sigil.razor` — painted portrait plates and the house's marks; `Services/Svg.cs` — SVG helpers.
 - `Services/GameClient.cs` — the one object the UI talks to. `wwwroot/css/app.css` — the look.
 
 ## Art and how it is made

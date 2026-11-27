@@ -75,6 +75,8 @@
       const fx = /^\[([\w-]+)\] (.+?) = (.+)$/.exec(ln);
       if (fx) { const d = document.createElement('div'); d.className = 'fx'; const w = document.createElement('span'); write(w, fx[2], skip, budget); const v = document.createElement('span'); v.className = 'v' + (/^[−-]/.test(fx[3]) ? ' down' : /^\+/.test(fx[3]) ? ' up' : ''); v.textContent = fx[3]; d.innerHTML = glyph(fx[1], ''); d.append(w, v); tipEl.appendChild(d); continue; }
       if (/^key: /.test(ln)) { const f = document.createElement('div'); f.className = 'foot'; for (const part of ln.slice(5).split(/(\[[^\]]+\])/)) { if (/^\[.+\]$/.test(part)) { const k = document.createElement('kbd'); k.textContent = part.slice(1, -1); f.append(k); } else if (part) f.append(part); } tipEl.appendChild(f); continue; }
+      // "* sentence": one item of a list (the alerts of a badge), a whole sentence with a brass diamond before it, never split in two
+      if (/^\* /.test(ln)) { const d = document.createElement('div'); d.className = 'li'; write(d, ln.slice(2), skip, budget); tipEl.appendChild(d); continue; }
       const d = document.createElement('div'); const k = /^(.+?): (.+)$/.exec(ln);
       if (k && lines.length > 2) { d.className = 'row'; const a = document.createElement('span'), b = document.createElement('span'); write(a, k[1], skip, budget); b.textContent = k[2]; d.append(a, b); }
       else write(d, ln, skip, budget);

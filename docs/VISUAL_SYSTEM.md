@@ -30,6 +30,20 @@ Where the system lives in the client (the foundation, 2026-11-27; the windows an
 - **Textures and paths**: `--tex-steel` and `--tex-leather` are registered as urls (`@property`), so a window's sheet in
   `css/win/` may use them; any other `url()` written in a window's sheet is relative to `css/win/` (`../../img/...`).
 - **Scripts**: WindowFrame's close keeps the class `win-close` and Tabs' buttons carry `data-tab`, so `tools/browser` finds them.
+- **The shell** (step 3, 2026-11-27): `Pages/Index.razor` (the rail with its groups, pips and standard; the docked-window host;
+  the console and End Year), `Components/TopBar.razor`, `Outliner.razor`, `AlertsRow.razor`, `Toasts.razor`, `ProfileCard.razor`,
+  the boxes (`YearBrief`, `Primer`, `SavesBox`, `SettingsBox` with "Show rail labels", `ConfirmBox`) in `Components/Ui/Box.razor`,
+  and the shell's block at the end of `app.css`. Each alert's kind and severity come from `src/Core/Presentation/Alerts.cs`
+  (`tests/AlertsTests.cs`). `js/shell.js` tells the map which rectangles the interface covers: the event `praetoria:covered`
+  on window, `data-covered="x,y,w,h"` (the docked window) on `.gs-shell.game`, and `praetoriaSpace.cover(rects)` if the map
+  offers it; it also works the console's tools and minimap through `praetoriaSpace` without drawing anything.
+- **A window in the docked host**: the host (`main.screen.window.docked-win`, `data-screen`) draws the frame, the close roundel
+  and one scrolling page (`.win-body`, the brass bar, the fade over the last 56px). A window rebuilt on the parts renders its
+  `WindowHeader`, `Tabs` and sections straight inside it, with no `WindowFrame` of its own: the host's old title strip steps aside
+  when a `.ui-head` is in the body. To hold the header and tabs still while only the body scrolls, wrap the body in
+  `<div class="ui-wbody fades">`. A window that brings its own `WindowFrame` makes the host step aside entirely (CSS `:has`),
+  but its close then carries `.win-close`, which the scripts' `closeWindows()` clicks; the host's own close is
+  `[data-close-window]`, so the scripts leave docked windows open as before.
 - **Sizes**: `python3 tools/rem.py <sheet>` converts px to rem as 2.4 says (media queries, the map's geometry and hairlines stay px).
 - **Assets**: `src/Web/wwwroot/img/ui/` (the three frames) and `img/tex/` (the two tiles); credits in `CREDITS.md`.
 - `assets/ui.css`, `assets/shell.js` and `tools/` below name the mockups' own reference implementation, which is not in the
