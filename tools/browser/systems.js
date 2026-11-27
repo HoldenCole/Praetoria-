@@ -29,7 +29,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   check(bodies.length >= 5, bodies.length + ' bodies listed, the sun among them'); bodies.forEach(b => console.log('       ' + b));
   check(bodies.some(b => b.includes('the sun') && b.includes('slots 0 +site')), 'the sun has no building slot, and a site for a great work');
   check(bodies.some(b => b.includes('Open space')), 'open space is a place to build, tied to no world'); check(bodies.some(b => b.includes('*')), 'a body has a feature no other system need have');
-  check(bodies.some(b => b.includes("the system's world") && !b.includes('slots 0')), "the system's own world shows its holding's slots");
+  check(bodies.some(b => /the system's world|the home world/.test(b) && !b.includes('slots 0')), "the system's own world shows its holding's slots");
   await page.screenshot({ path: shots + '/system-seat.png' });
   // open each body until one offers something that can be built now, and build it
   const n = bodies.length; let builtName = null;

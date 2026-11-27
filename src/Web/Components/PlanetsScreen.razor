@@ -1,10 +1,13 @@
 @inject GameClient G
 @inject IJSRuntime JS
+@* The Worlds window (docs/VISUAL_SYSTEM.md 5.3: "rows of lit globes by region"). The world painting with the ringed planet in its medallion,
+   the Reach in three facts and five figures on the plinth. Four tabs: the worlds, region by region, each a row with its lit globe (opened in
+   place for what stands there, its local law and the way to it on the map); the regions, each a row with its unrest as a meter; the great
+   cities; and where a colony can go. Styles in css/win/worlds.css. *@
 @{
     var w = G.World!; var c = G.Content!; var house = w.House(w.Protagonist!.HouseId)!;
     var nodes = GalaxyProjection.Nodes(w).ToDictionary(n => n.SystemId); var regions = GalaxyProjection.Regions(w);
-    var fn = _focus != null && nodes.TryGetValue(_focus, out var f0) ? f0 : null;
-    int myWorlds = nodes.Values.Count(n => n.IsPlayerTerritory && n.PlanetHoldingId != null), restless = nodes.Values.Count(n => n.Population > 0 && n.Unrest >= 50), unclaimed = nodes.Values.Count(n => n.OwnerHouseId == null);
+    int restless = nodes.Values.Count(n => n.Population > 0 && n.Unrest >= 50), unclaimed = nodes.Values.Count(n => n.OwnerHouseId == null);
     var shown = _region == null ? regions : regions.Where(r => r.Id == _region).ToList();
 
     // The picture (docs/DASHBOARDS.md): what is yours, what is restless, and what is there to be had.
@@ -12,138 +15,205 @@
     var ours = worlds.Where(n => n.IsPlayerTerritory).OrderByDescending(n => n.Unrest).ThenBy(n => n.SystemId, StringComparer.Ordinal).ToList(); var worst = ours.FirstOrDefault();
     var marches = regions.Where(r => r.FreeMarch).ToList(); var unruly = regions.OrderByDescending(r => r.Unrest).FirstOrDefault();
     int withDeposits = nodes.Values.Count(n => n.Deposits is { Count: > 0 }), oursDeposits = nodes.Values.Count(n => n.IsPlayerTerritory && n.Deposits is { Count: > 0 });
+    int stationsAll = w.Holdings.Values.Count(h => !h.IsPlanet);
     string story, storyTone;
     if (worst is { Unrest: >= 50 }) { story = $"{worst.Name}, a world of yours, is restless: loyalty {100 - worst.Unrest}. You hold {ours.Count} of the Reach's {worlds.Count} worlds."; storyTone = "bad"; }
     else if (ours.Count == 0) { story = $"You hold no world. {Counted.Systems(unclaimed)} lie unclaimed, and {restless} of the Reach's {peopled.Count} peopled worlds are restless."; storyTone = ""; }
     else { story = $"You hold {ours.Count} of the Reach's {worlds.Count} worlds, and none of them is restless{(worst == null ? "" : worst.Unrest == 0 ? ": every one is wholly loyal" : $": the least loyal is {worst.Name}, at {100 - worst.Unrest}")}. Across the Reach {restless} of {peopled.Count} peopled worlds are restless{(unruly != null && restless > 0 ? $", most of all in {unruly.Name}" : "")}."; storyTone = "good"; }
+    var great = CitySystem.Great(w, c.Holdings).ToList();
+    var sites = SystemWorks.ColonySites(w, c.Holdings, house); var me = w.Protagonist!;
+
+    var figures = new List<WindowHeader.Figure>
+    {
+        new("ringed-planet", ours.Count.ToString(), "Your worlds", "brass", Of: worlds.Count.ToString(),
+            Tip: "[ringed-planet] Your worlds\n" + (ours.Count == 0 ? "A fief is won, granted, or married into." : Counted.Worlds(ours.Count) + " of the Reach" + Apos + "s " + worlds.Count + ", in " + Counted.Regions(ours.Select(n => n.RegionId).Distinct().Count()) + ".")),
+        new("shaking-hands", worst == null ? "0" : (100 - worst.Unrest).ToString(), worst == null ? "No world held" : "Least loyal", worst == null ? "ivory" : worst.Unrest >= 50 ? "ember" : worst.Unrest >= 35 ? "brass" : "good",
+            Tip: $"[shaking-hands] Your least loyal world\n{(worst == null ? "You hold no world." : $"{worst.Name}, at {100 - worst.Unrest}.")} Loyalty is a hundred less the unrest. Below 50 a world is restless: it yields less and may rise."),
+        new("threat", restless.ToString(), "Restless", restless > 3 ? "ember" : "ivory", Of: peopled.Count.ToString(),
+            Tip: $"[threat] Restless in the Reach\n{restless} of {peopled.Count} peopled worlds{(unruly != null && unruly.Unrest > 0 ? $". The worst region is {unruly.Name}" : "")}."),
+        new("flag-objective", unclaimed.ToString(), "Unclaimed", "ivory",
+            Tip: $"[flag-objective] Unclaimed systems\n{(unclaimed == 0 ? "Every system has a master." : "Systems with no master: to be settled or taken.")}{(sites.Count > 0 ? $" {sites.Count} lie within reach of a colony of yours." : "")}"),
+        new("helium3", withDeposits.ToString(), "With deposits", "steel", Delta: oursDeposits > 0 ? oursDeposits + " yours" : "",
+            Tip: $"[helium3] Deposits\nHelium-3, rare earths and isotopes lie under {Counted.Systems(withDeposits)}; {oursDeposits} of them are yours. What you lack, you buy.")
+    };
+    var tabs = new List<Tabs.Tab>
+    {
+        new("worlds", "Worlds", "ringed-planet", ours.Count.ToString(), Tip: "The worlds of the Reach, region by region: who holds each, its loyalty, its prosperity, its people and what lies under it"),
+        new("regions", "Regions", "region", regions.Count.ToString(), Tip: "The regions: who dominates each, how restless it is and what it thinks of the magistrates"),
+        new("cities", "Cities", "crown", great.Count.ToString(), Hidden: great.Count == 0, Tip: "The great cities of the Reach, one of each kind"),
+        new("colonies", "Colonies", "position-marker", sites.Count(s => s.Refusal == null) is int canSend and > 0 ? canSend.ToString() : "", sites.Any(s => s.Refusal == null), Hidden: sites.Count == 0, Tip: "Where a colony can go: systems nobody holds near your worlds")
+    };
 }
-<div class="dash worlds" style="--accent:@house.AccentColor">
-    <header class="dash-head picture">
-        <div class="dh-title"><Icon Name="worlds" Size="18" /> <b>The Worlds of @w.Galaxy!.Name</b> <span class="muted">@regions.Count regions · @nodes.Count systems · @w.Holdings.Values.Count(h => !h.IsPlanet) stations</span></div>
-        <p class="headline @storyTone">@story</p>
-        <div class="tiles">
-            <Tile Label="Yours" Value="@($"{ours.Count} of {worlds.Count}")" Share="@(worlds.Count > 0 ? 100 * ours.Count / worlds.Count : 0)" Note="@(ours.Count == 0 ? "a fief is won, granted, or married into" : $"worlds, in {Counted.Regions(ours.Select(n => n.RegionId).Distinct().Count())}")" Title="The bar is your share of the Reach's worlds." />
-            @if (worst != null) { <Tile Label="Your least loyal" Value="@($"{100 - worst.Unrest}")" Share="@(100 - worst.Unrest)" Tone="@(worst.Unrest >= 50 ? "bad" : worst.Unrest >= 35 ? "warn" : "good")" Note="@($"{worst.Name} · restless below 50")" Title="Loyalty is a hundred less the unrest. A restless world yields less and may rise." /> }
-            <Tile Label="Restless in the Reach" Value="@restless.ToString()" Share="@(peopled.Count > 0 ? 100 * restless / peopled.Count : 0)" Tone="@(restless > 3 ? "warn" : "")" Note="@($"of {peopled.Count} peopled worlds{(unruly != null && unruly.Unrest > 0 ? $" · worst region: {unruly.Name}" : "")}")" />
-            <Tile Label="Unclaimed" Value="@unclaimed.ToString()" Note="@(unclaimed == 0 ? "every system has a master" : "systems with no master: to be settled or taken")" />
-            <Tile Label="Free marches" Value="@(marches.Count == 0 ? "none" : marches.Count.ToString())" Tone="@(marches.Count > 0 ? "warn" : "")" Note="@(marches.Count == 0 ? "no region has thrown off the Reach" : string.Join(", ", marches.Take(2).Select(r => r.Name)))" Title="A region that answers to nobody." />
-            <Tile Label="Deposits" Value="@withDeposits.ToString()" Share="@(withDeposits > 0 ? 100 * oursDeposits / withDeposits : 0)" Note="@($"systems with something under them · {oursDeposits} of them yours")" Title="Helium-3, rare earths and isotopes lie under some systems; what you lack, you buy." />
-        </div>
-    </header>
-    <div class="dash-grid worlds-grid">
-        <nav class="cw-tabs">
-            @foreach (var (id, label) in new[] { ("worlds", "The worlds"), ("regions", "The regions") }) { var tid = id; <button class="rung @(_tab == tid ? "here" : "")" @onclick="() => _tab = tid">@label</button> }
-        </nav>
-        @if (_tab == "worlds") {
-        <section class="panel" data-great-cities="@CitySystem.Great(w, c.Holdings).Count()">
-            <h3><Icon Name="worlds" Size="13" /> The great cities of the Reach <span class="muted">one of each · click to go there</span></h3>
-            @foreach (var (gk, gw, gi) in CitySystem.Great(w, c.Holdings))
-            {
-                string gsys = gw.SystemId; var gholder = w.House(ProvinceSystem.HolderOf(gw, gi)); var gb = c.Holdings.Work(gk.Building); bool gstands = gb != null && (gw.Provinces[gi].Buildings.Contains(gb.Id) || w.BodyWorks.Any(x => x.SystemId == gsys && x.DefId == gb.Id));
-                string gdoes = CitySystem.Says(gk); string gonly = gb == null ? "" : " Only here: " + gb.Name + (gstands ? " (it stands)." : " (not yet raised).");
-                <div class="great-row" @onclick="() => OnFocus.InvokeAsync(gsys)">
-                    <b>★ @gw.Provinces[gi].City</b> <span class="city-kind">@gk.Name</span> <span class="muted small">on @gw.Name · @Census.Say(CitySystem.Citizens(w, c.Holdings, gw, gi)) citizens · held by <span style="color:@(gholder?.AccentColor ?? "inherit")">@(gholder?.Id == house.Id ? "your house" : gholder?.Name ?? "nobody")</span></span>
-                    <div class="muted small">@gk.What @(gdoes.Length > 0 ? gdoes + "." : "")@gonly</div>
-                </div>
-            }
-        </section>
-        var sites = SystemWorks.ColonySites(w, c.Holdings, house); var me = w.Protagonist!;
-        <section class="panel" data-colony-sites="@sites.Count">
-            <h3><Icon Name="worlds" Size="13" /> Where a colony can go <span class="muted">systems nobody holds, within @SystemWorks.ColonySearch lanes of a world of yours</span></h3>
-            @if (sites.Count == 0) { <div class="muted">No empty system lies within reach of your worlds. One is opened when a world falls empty, or by taking a fleet further out.</div> }
-            @foreach (var st in sites.Take(10))
-            {
-                string sid = st.SystemId; var send = new FoundColonyCommand(me.Id, sid, c.Holdings);
-                var move = st.FleetId != null && st.FleetLanes > 0 ? new MoveFleetCommand(me.Id, st.FleetId, sid, c.Fleets) : null; string? moveNo = move?.Refusal(G.Ctx);
-                <div class="colony-row" data-colony-site="@sid">
-                    <button class="opt inline tiny" title="Show it on the map" @onclick="() => OnFocus.InvokeAsync(sid)">▸</button>
-                    <b>@st.Name</b> <span class="muted small">@(st.Class.Length > 0 ? st.Class : "no world") @(st.Deposits.Length > 0 ? "· " + st.Deposits : "") · @(st.Lanes < 0 ? "no lane from your worlds" : st.Lanes + (st.Lanes == 1 ? " lane" : " lanes") + " from " + st.FromWorld)</span>
-                    @if (st.Refusal == null) { <button class="opt inline" data-send-colony="@sid" @onclick="() => AskColony(send, st.Name)">Send a colony</button> }
-                    else if (st.InReach) { <span class="small warn">@Cap(st.Refusal)</span> }
-                    else
-                    {
-                        <span class="small muted">Too far for a colony until a fleet of yours stands in it.</span>
-                        @if (move != null) { <button class="opt inline tiny" data-send-fleet="@sid" disabled="@(moveNo != null)" title="@(moveNo ?? "Once it stands there, the colony can be sent from this list or from the system itself.")" @onclick="() => G.Execute(move)">Send @st.FleetName (@st.FleetLanes @(st.FleetLanes == 1 ? "lane" : "lanes"))</button> }
-                        else if (st.FleetId == null) { <span class="small muted">You have no fleet to send.</span> }
-                    }
-                </div>
-            }
-            <div class="muted small colony-note">A colony is sent to a system that lies one lane from a world of yours, or has a fleet of yours standing in it. It costs @CourtProjection.Bundle(c.Holdings.Colony.Cost), paid by the year over the @Counted.Years(Math.Max(1, c.Holdings.Colony.BuildTurns)) it is on the way; when it lands the system's world is yours. The list looks @SystemWorks.ColonySearch lanes out from your worlds.</div>
-        </section>
-        <section class="panel">
-            <h3><Icon Name="worlds" Size="13" /> The world board <span class="muted">click a world</span></h3>
-            <div class="pick-row"><span class="muted small">Region</span> <select @onchange='e => _region = string.IsNullOrEmpty(e.Value?.ToString()) ? null : e.Value!.ToString()'><option value="">all the regions</option>@foreach (var r in regions) { <option value="@r.Id" selected="@(_region == r.Id)">@r.Name</option> }</select></div>
-            @foreach (var r in shown)
-            {
-                <div class="region-head" style="--accent:@r.AccentColor"><h4>@r.Name <span class="ring @r.Ring">@r.Ring</span></h4><span class="muted small">@r.Culture · @(r.DominantHouseName != null ? $"{r.DominantHouseName} dominates" : "no house dominates")@(r.FreeMarch ? " · FREE MARCH" : "")@(r.StateName != null ? " · " + r.StateName : "") · unrest @r.Unrest</span></div>
-                <table class="standings worlds-tbl">
-                    <thead><tr><th>World</th><th>Class</th><th>Holder</th><th>Governor</th><th>Loyalty</th><th>Prosperity</th><th>Pop</th><th>Riches</th></tr></thead>
-                    <tbody>
-                    @foreach (var id in r.SystemIds)
-                    {
-                        var n = nodes[id]; var owner = n.OwnerHouseId != null ? w.House(n.OwnerHouseId) : null;
-                        <tr class="@(n.IsPlayerTerritory ? "mine" : "") @(id == _focus ? "here" : "")" @onclick="() => _focus = id">
-                            <td class="hn"><img class="sprite" data-planet="@n.PlanetClass|@n.SystemId|20" alt="" /> <b>@n.Name</b>@if (n.Capital) { <span class="tier small opulent">capital</span> }@if (n.Chokepoint) { <span class="pill small" title="chokepoint">⋈</span> }</td>
-                            <td class="muted">@n.PlanetClass</td>
-                            <td>@if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="13" /> <span>@owner.Name</span> } else { <span class="muted">—</span> }</td>
-                            <td class="muted small">@(n.GovernorName ?? "")</td>
-                            <td>@if (n.Population > 0) { <span class="mbar"><i style="width:@(100 - n.Unrest)%; background:@(n.Unrest >= 50 ? "var(--warn)" : "var(--good)")"></i></span>@(100 - n.Unrest) }</td>
-                            <td>@if (n.PlanetHoldingId != null) { <span class="mbar"><i style="width:@n.Prosperity%; background:var(--brass)"></i></span>@n.Prosperity }</td>
-                            <td class="muted" title="@(n.Population > 0 ? "scale " + n.Population : "")">@(n.Population > 0 && n.PlanetHoldingId != null && w.Holding(n.PlanetHoldingId) is { } nh ? Census.Short(Census.Citizens(w, nh)) : "")</td>
-                            <td class="small">@if (n.Stations > 0) { <span class="pill small">@n.Stations st</span> }@if (n.Belt > 0) { <span class="pill small" title="belt richness @n.Belt">@(new string('●', n.Belt))</span> }@if (n.Deposits is { Count: > 0 }) { foreach (var d in n.Deposits) { <span class="pill small dep" title="@Resource.Label(d.Key) deposit, richness @d.Value">@(d.Key == "helium3" ? "³He" : d.Key == "rare_earths" ? "RE" : "Iso") @d.Value</span> } }@if (n.Ventures > 0) { <span class="pill small" title="ventures">@n.Ventures v</span> }</td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            }
-        </section>
-        }
-        <aside class="dash-side">
-            @if (fn != null)
-            {
-                var planet = fn.PlanetHoldingId != null ? w.Holding(fn.PlanetHoldingId) : null; var owner = fn.OwnerHouseId != null ? w.House(fn.OwnerHouseId) : null; var region = regions.FirstOrDefault(r => r.Id == fn.RegionId);
-                var stations = w.Holdings.Values.Where(h => h.SystemId == fn.SystemId && !h.IsPlanet).ToList(); var sys = w.Galaxy.System(fn.SystemId);
-                var fleets = GalaxyProjection.Fleets(w).Where(f => f.SystemId == fn.SystemId).ToList();
-        @if (_tab == "worlds") {
-                <section class="panel">
-                    <div class="seat-card">
-                        <img class="sprite big" data-planet="@fn.PlanetClass|@fn.SystemId|64" alt="" />
-                        <div class="sc-body">
-                            <div class="sc-name">@fn.Name <span class="muted">@fn.PlanetClass world@(region != null ? $" · {region.Name}" : "") · @fn.Culture culture</span></div>
-                            <div class="muted small">@(owner != null ? $"held by {owner.Name}" : "unclaimed")@(fn.GovernorName != null ? $" · governor {fn.GovernorName}" : "")@(planet != null ? $" · {c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization}" : "")@(fn.Population > 0 ? $" · {(planet != null ? Census.Say(Census.Citizens(w, planet)) : fn.Population.ToString())} citizens · loyalty {100 - fn.Unrest}" : "")@(fn.Rebellion > 0 ? $" · rebellion {fn.Rebellion}" : "")</div>
-                            @if (planet != null) { <div class="muted small">Built: @(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</div> }
-                            @if (stations.Count > 0) { <div class="muted small">Stations: @string.Join(", ", stations.Select(s => s.Name))</div> }
-                            @if (fn.Deposits is { Count: > 0 }) { <div class="muted small">Deposits: @string.Join(", ", fn.Deposits.Select(d => $"{Resource.Label(d.Key)} ({d.Value})"))</div> }
-                            @if (fleets.Count > 0) { <div class="muted small">In the sky: @string.Join(", ", fleets.Select(f => $"{f.Name} ({f.OwnerHouseName}, {f.Strength})"))</div> }
-                            @if (sys != null && sys.Description.Length > 0) { <div class="muted small">@sys.Description</div> }
-                            @if (planet != null && planet.IsPlanet) { <LocalLawBlock HoldingId="@planet.Id" /> }
-                            <div class="sc-actions"><button class="opt inline tiny" @onclick="() => OnFocus.InvokeAsync(fn.SystemId)">Open on the galaxy map</button></div>
-                        </div>
-                        <button class="win-close" @onclick="() => _focus = null">✕</button>
-                    </div>
-                </section>
-        }
-            }
-        @if (_tab == "regions") {
-            <section class="panel">
-                <h3><Icon Name="galaxy" Size="13" /> The regions</h3>
-                @foreach (var r in regions)
+<div class="wl-win" data-worlds="@_tab" style="--accent:@house.AccentColor">
+    <WindowHeader Scene="world" Kicker="The worlds" Title="@w.Galaxy!.Name" Glyph="ringed-planet" Figures="figures" Class="wl-head">
+        <Facts>
+            <span title="The regions of the Reach and beyond it"><Icon Name="region" Tone="ivory" Size="16" />@Counted.Regions(regions.Count)</span>
+            <span title="Every system on the map"><Icon Name="world" Tone="ivory" Size="16" />@Counted.Systems(nodes.Count)</span>
+            <span title="Stations in orbit across the Reach"><Icon Name="station" Tone="ivory" Size="16" />@Counted.Stations(stationsAll)</span>
+            <span class="@(marches.Count > 0 ? "warn" : "")" title="A region that answers to nobody"><Icon Name="flying-flag" Tone="ivory" Size="16" />@(marches.Count == 0 ? "No free march" : marches.Count == 1 ? "A free march: " + marches[0].Name : Counted.Of(marches.Count, "free march") + ": " + string.Join(", ", marches.Take(2).Select(r => r.Name)))</span>
+        </Facts>
+    </WindowHeader>
+    <Tabs Items="tabs" Active="@_tab" OnPick="Pick" Class="wl-tabs" />
+    <div class="ui-wbody fades wl-body">
+    @if (_tab == "regions")
+    {
+        var worstRegion = regions.OrderByDescending(r => r.Unrest).FirstOrDefault();
+        <p class="ui-lede wl-lede">@MilitaryScreen.Bold($"{Counted.Regions(regions.Count(r => r.Ring != "beyond"))} of the Reach{(regions.Any(r => r.Ring == "beyond") ? $" and {regions.Count(r => r.Ring == "beyond")} beyond the rim" : "")}. " + (worstRegion != null && worstRegion.Unrest > 0 ? $"The most restless is {worstRegion.Name}, at {worstRegion.Unrest}." : "None is restless.") + " Pick one to see its worlds.")</p>
+        @foreach (var ring in new[] { "core", "middle", "rim", "beyond" }.Where(x => regions.Any(r => r.Ring == x)))
+        {
+            var inRing = regions.Where(r => r.Ring == ring).ToList();
+            <Section Title="@RingName(ring)" Count="@inRing.Count.ToString()" Info="@RingSays(ring, w.IsImperium)">
+                @foreach (var r in inRing)
                 {
-                    int mineHere = r.SystemIds.Count(id => nodes[id].IsPlayerTerritory);
-                    <div class="region-row" style="--accent:@r.AccentColor" @onclick='() => { _region = r.Id; _tab = "worlds"; }'><b>@r.Name</b> <span class="ring @r.Ring">@r.Ring</span><div class="muted small">@r.SystemIds.Count systems · @(r.DominantHouseName ?? "no one") dominates@(mineHere > 0 ? $" · {mineHere} yours" : "")@(r.FreeMarch ? " · free march" : "")</div>
-                        <div class="gauge" title="regional unrest"><span>Unrest</span><i><b style="width:@r.Unrest%" class="@(r.Unrest >= 50 ? "low" : "")"></b></i><em>@r.Unrest</em></div>
-                        @if (w.Counter(LadderSystem.RegionTrustKey(r.Id)) != 0) { int rt = LadderSystem.RegionTrust(w, r.Id); <div class="gauge" title="What this region thinks of the magistrates, against the Reach's @LadderSystem.Trust(w). Under @LadderSystem.TrustLow it holds a little less closely to the Reach each year; at @LadderSystem.TrustHigh or more, a little closer."><span>Magistrates</span><i><b style="width:@rt%" class="@(rt < LadderSystem.TrustLow ? "low" : "")"></b></i><em>@rt</em></div> }</div>
+                    int mineHere = r.SystemIds.Count(id => nodes[id].IsPlayerTerritory); string rid = r.Id;
+                    int rt = w.Counter(LadderSystem.RegionTrustKey(r.Id)) != 0 ? LadderSystem.RegionTrust(w, r.Id) : -1;
+                    <div class="wl-region @(r.FreeMarch || r.StateName != null ? "free" : "")" style="--rc:@r.AccentColor" data-region="@r.Id" title="@($"[region] {r.Name}\n{r.Description}\nClick for its worlds")" @onclick='() => { _region = rid; _tab = "worlds"; }'>
+                        <span class="wr-sw" aria-hidden="true"></span>
+                        <div class="wr-id">
+                            <div class="wr-nm"><b>@r.Name</b>@if (r.FreeMarch) { <span class="wl-st warn">free march</span> }@if (r.StateName != null) { <span class="wl-st warn">@r.StateName@(r.StateAtWar ? ", fighting for it" : "")</span> }</div>
+                            <div class="wr-sub">@Cap(r.Culture) · @Counted.Systems(r.SystemIds.Count) · @(r.DominantHouseName != null ? r.DominantHouseName + " dominates" : "no house dominates")@(mineHere > 0 ? $" · {mineHere} yours" : "")</div>
+                        </div>
+                        <div class="wr-meters">
+                            <Meter Label="Unrest" Value="@r.Unrest" Text="@r.Unrest.ToString()" Color="@(r.Unrest >= 50 ? "#c4472f" : "#c9a24a")" ValueClass="@(r.Unrest >= 50 ? "ui-down" : "")" Tip="[threat] Regional unrest, 0 to 100" />
+                            @if (rt >= 0) { <Meter Label="Magistrates" Value="@rt" Target="@LadderSystem.TrustLow" Text="@rt.ToString()" Color="@(rt < LadderSystem.TrustLow ? "#c4472f" : "#8cc47e")" Tip="@($"[scales] What this region thinks of the magistrates\nAgainst the Reach's {LadderSystem.Trust(w)}. Under {LadderSystem.TrustLow} (the tick) it holds a little less closely to the Reach each year; at {LadderSystem.TrustHigh} or more, a little closer.")" /> }
+                        </div>
+                        <Icon Name="chev" Size="12" Class="flat wr-chev" />
+                    </div>
                 }
-            </section>
+            </Section>
         }
-        </aside>
+    }
+    else if (_tab == "cities")
+    {
+        <p class="ui-lede wl-lede">@MilitaryScreen.Bold($"The Reach has {(great.Count == 1 ? "1 great city" : great.Count + " great cities")}, one of each kind; {great.Count(g => ProvinceSystem.HolderOf(g.world, g.index) == house.Id)} of them in your hands. Click one to go there.")</p>
+        <div data-great-cities="@great.Count">
+            <Section Title="The great cities" Count="@great.Count.ToString()" Info="One great city of each kind stands in the Reach. Each gives its holder something no other city does, and each has a building that can be raised only there.">
+                @foreach (var (gk, gw, gi) in great)
+                {
+                    string gsys = gw.SystemId; var gholder = w.House(ProvinceSystem.HolderOf(gw, gi)); var gb = c.Holdings.Work(gk.Building); bool gstands = gb != null && (gw.Provinces[gi].Buildings.Contains(gb.Id) || w.BodyWorks.Any(x => x.SystemId == gsys && x.DefId == gb.Id));
+                    string gdoes = CitySystem.Says(gk); string gonly = gb == null ? "" : " Only here: " + gb.Name + (gstands ? " (it stands)." : " (not yet raised).");
+                    string gcls = nodes.TryGetValue(gsys, out var gn) ? gn.PlanetClass : "terran";
+                    <div class="wl-city @(gholder?.Id == house.Id ? "mine" : "")" title="@($"[crown] {gw.Provinces[gi].City}, {gk.Name}\nClick and the map goes to it")" @onclick="() => OnFocus.InvokeAsync(gsys)">
+                        <span class="wl-pic"><Globe Class="@gcls" Size="40" Ringed="@(gholder?.Id == house.Id)" /><i class="wl-crown"><Icon Name="crown" Tone="brass" Size="16" /></i></span>
+                        <div class="wc-t">
+                            <div class="wc-nm"><b>@gw.Provinces[gi].City</b><span class="wl-st">@gk.Name</span></div>
+                            <div class="wc-sub">on @gw.Name · @Census.Say(CitySystem.Citizens(w, c.Holdings, gw, gi)) citizens · held by @if (gholder != null) { <Sigil HouseId="@gholder.Id" Accent="@gholder.AccentColor" Size="14" /> }<span class="@(gholder?.Id == house.Id ? "wl-own" : "")">@(gholder?.Id == house.Id ? "your house" : gholder?.Name ?? "nobody")</span></div>
+                            <div class="wc-does">@MilitaryScreen.Minus(gk.What + " " + (gdoes.Length > 0 ? gdoes + "." : "") + gonly)</div>
+                        </div>
+                        <Icon Name="chev" Size="12" Class="flat wr-chev" />
+                    </div>
+                }
+            </Section>
+        </div>
+    }
+    else if (_tab == "colonies")
+    {
+        int ready = sites.Count(s => s.Refusal == null);
+        <p class="ui-lede wl-lede">@MilitaryScreen.Bold(sites.Count == 0 ? "No empty system lies within reach of your worlds. One is opened when a world falls empty, or by taking a fleet further out."
+            : $"{Counted.Systems(sites.Count)} nobody holds lie within {SystemWorks.ColonySearch} lanes of a world of yours, and a colony could be sent to {ready} of them now.")</p>
+        <div data-colony-sites="@sites.Count">
+            <Section Title="Where a colony can go" Count="@sites.Count.ToString()" IsEmpty="@(sites.Count == 0)"
+                     Info="@($"A colony is sent to a system that lies one lane from a world of yours, or has a fleet of yours standing in it. It costs {CourtProjection.Bundle(c.Holdings.Colony.Cost)}, paid by the year over the {Counted.Years(Math.Max(1, c.Holdings.Colony.BuildTurns))} it is on the way; when it lands the system's world is yours. The list looks {SystemWorks.ColonySearch} lanes out from your worlds.")">
+                <Right><span><b>@CourtProjection.Bundle(c.Holdings.Colony.Cost)</b> over @Counted.Years(Math.Max(1, c.Holdings.Colony.BuildTurns))</span></Right>
+                <ChildContent>
+                @foreach (var st in sites.Take(10))
+                {
+                    string sid = st.SystemId; var send = new FoundColonyCommand(me.Id, sid, c.Holdings);
+                    var move = st.FleetId != null && st.FleetLanes > 0 ? new MoveFleetCommand(me.Id, st.FleetId, sid, c.Fleets) : null; string? moveNo = move?.Refusal(G.Ctx);
+                    <div class="wl-site" data-colony-site="@sid">
+                        <span class="wl-pic">@if (st.Class.Length > 0) { <Globe Class="@st.Class" Size="36" Ringed="false" /> } else { <span class="wl-void"></span> }</span>
+                        <div class="wc-t">
+                            <div class="wc-nm"><b>@st.Name</b><button class="ui-link wl-map" title="Show it on the map" @onclick="() => OnFocus.InvokeAsync(sid)">on the map<Icon Name="chev" Size="11" Class="flat" /></button></div>
+                            <div class="wc-sub">@(st.Class.Length > 0 ? Cap(st.Class) + " world" : "No world")@(st.Deposits.Length > 0 ? " · " + st.Deposits : "") · @(st.Lanes < 0 ? "no lane from your worlds" : st.Lanes + (st.Lanes == 1 ? " lane" : " lanes") + " from " + st.FromWorld)</div>
+                            @if (st.Refusal != null && st.InReach) { <div class="wc-does ui-warn-t">@Cap(st.Refusal)</div> }
+                            else if (st.Refusal != null) { <div class="wc-does">Too far for a colony until a fleet of yours stands in it.@if (st.FleetId == null) { <span> You have no fleet to send.</span> }</div> }
+                        </div>
+                        <span class="wl-act">
+                            @if (st.Refusal == null) { <Plate Label="Send a colony" Small="true" Icon="position-marker" data-send-colony="@sid" Tip="@($"[position-marker] Send a colony to {st.Name}\nShips, settlers and stores: {CourtProjection.Bundle(c.Holdings.Colony.Cost)} in all, a share each year while they are on the way. When it lands the world is yours, small and loyal. You are asked first.")" OnClick="() => AskColony(send, st.Name)" /> }
+                            else if (!st.InReach && move != null) { <Plate Label="@($"Send {st.FleetName}")" Small="true" Icon="fleet" CostIcon="hourglass" CostText="@($"{st.FleetLanes} {(st.FleetLanes == 1 ? "lane" : "lanes")}")" Locked="@(moveNo != null)" Disabled="@(moveNo != null)" ShowNeed="false" Need="@Cap(moveNo ?? "")" data-send-fleet="@sid" Tip="[fleet] Send a fleet there\nOnce it stands there, the colony can be sent from this list or from the system itself." OnClick="() => G.Execute(move)" /> }
+                        </span>
+                    </div>
+                }
+                </ChildContent>
+            </Section>
+        </div>
+    }
+    else
+    {
+        <p class="ui-lede wl-lede @storyTone">@MilitaryScreen.Bold(story)</p>
+        <div class="wl-pick">
+            <span class="wl-pl">Region</span>
+            <Select Options="@RegionOptions(regions)" Value="@(_region ?? "")" Placeholder="All the regions" OnChange="v => _region = v.Length == 0 ? null : v" Tip="Show one region's worlds, or all of them" />
+            @if (_region != null) { <button class="ui-link" @onclick="() => _region = null">All the regions<Icon Name="chev" Size="11" Class="flat" /></button> }
+        </div>
+        @foreach (var r in shown)
+        {
+            int mineHere = r.SystemIds.Count(id => nodes[id].IsPlayerTerritory);
+            <Section Title="@r.Name" Count="@r.SystemIds.Count.ToString()" Info="@($"{Cap(r.Culture)} culture, the {r.Ring} ring. {(r.DominantHouseName != null ? r.DominantHouseName + " dominates it" : "No house dominates it")}{(r.FreeMarch ? "; it is a free march, answering to nobody" : "")}{(r.StateName != null ? "; it is " + r.StateName : "")}. Unrest {r.Unrest}. {r.Description}")">
+                <Right><span class="wl-ring ring @r.Ring">@r.Ring</span>@if (mineHere > 0) { <span><b>@mineHere</b> yours</span> }@if (r.Unrest > 0) { <span class="@(r.Unrest >= 50 ? "ui-down" : "")" title="Regional unrest"><Icon Name="threat" Tone="@(r.Unrest >= 50 ? "ember" : "ivory")" Size="14" /><b class="@(r.Unrest >= 50 ? "ui-down" : "")">@r.Unrest</b></span> }</Right>
+                <ChildContent>
+                @foreach (var id in r.SystemIds)
+                {
+                    var n = nodes[id]; var owner = n.OwnerHouseId != null ? w.House(n.OwnerHouseId) : null; string sid = id; bool open = id == _focus;
+                    var planet = n.PlanetHoldingId != null ? w.Holding(n.PlanetHoldingId) : null;
+                    <div class="wl-world @(n.IsPlayerTerritory ? "mine" : "") @(open ? "on" : "") @(n.Population > 0 && n.Unrest >= 50 ? "restless" : "")" data-system="@id">
+                        <div class="ww-row" title="@($"[ringed-planet] {n.Name}\nClick for what is there; again to fold it")" @onclick="() => _focus = open ? null : sid">
+                            <span class="wl-pic"><Globe Class="@n.PlanetClass" Size="40" Ringed="@n.IsPlayerTerritory" />@if (n.Capital) { <i class="wl-crown" title="The capital"><Icon Name="crown" Tone="brass" Size="15" /></i> }</span>
+                            <div class="ww-id">
+                                <div class="ww-nm"><b>@n.Name</b>@if (n.Chokepoint) { <span class="wl-st" title="A chokepoint: its holder takes tolls, and an enemy fleet cannot pass while one of the holder's sits here">chokepoint</span> }@if (n.Rebellion > 0) { <span class="wl-st bad">in revolt</span> }</div>
+                                <div class="ww-sub">@Cap(n.PlanetClass) world · @if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="14" /><span class="@(n.IsPlayerTerritory ? "wl-own" : "")">@(n.IsPlayerTerritory ? "yours" : owner.Name)</span> } else { <span class="ui-mute">nobody's</span> }</div>
+                            </div>
+                            <div class="ww-cells">
+                                @if (n.Population > 0) { <Cell Icon="shaking-hands" Tone="@(n.Unrest >= 50 ? "ember" : "good")" Value="@((100 - n.Unrest).ToString())" Class="@(n.Unrest >= 50 ? "ui-down" : "")" Tip="@($"[shaking-hands] Loyalty {100 - n.Unrest}\nA hundred less the unrest; below 50 the world is restless")" /> } else { <span class="ui-cell ww-empty"></span> }
+                                @if (n.PlanetHoldingId != null) { <Cell Icon="sprout" Tone="good" Value="@n.Prosperity.ToString()" Tip="@($"[sprout] Prosperity {n.Prosperity}")" /> } else { <span class="ui-cell ww-empty"></span> }
+                                @if (n.Population > 0 && planet != null) { <Cell Icon="population" Tone="ivory" Value="@Census.Short(Census.Citizens(w, planet))" Tip="@($"[population] {Census.Say(Census.Citizens(w, planet))} citizens\nScale {n.Population}")" Class="ww-pop" /> } else { <span class="ui-cell ww-empty ww-pop"></span> }
+                                <span class="ww-riches">
+                                    @if (n.Deposits is { Count: > 0 }) { foreach (var d in n.Deposits) { <span class="ww-dep" title="@($"[{d.Key}] {Resource.Label(d.Key)} deposit\nRichness {d.Value}")"><Icon Name="@d.Key" Tone="@(d.Key == "isotopes" ? "ember" : d.Key == "rare_earths" ? "ivory" : "steel")" Size="15" /><small>@d.Value</small></span> } }
+                                    @if (n.Stations > 0) { <span class="ww-dep" title="@($"[station] {Counted.Stations(n.Stations)} in orbit")"><Icon Name="station" Tone="ivory" Size="15" /><small>@n.Stations</small></span> }
+                                    @if (n.Belt > 0) { <span class="ww-dep" title="@($"[materials] An asteroid belt\nRichness {n.Belt}")"><Icon Name="materials" Tone="steel" Size="15" /><small>@n.Belt</small></span> }
+                                    @if (n.Ventures > 0) { <span class="ww-dep" title="@($"[factory] {Counted.Ventures(n.Ventures)}")"><Icon Name="factory" Tone="brass" Size="15" /><small>@n.Ventures</small></span> }
+                                </span>
+                            </div>
+                            <Icon Name="chev" Size="12" Class="@("flat wr-chev" + (open ? " open" : ""))" />
+                        </div>
+                        @if (open)
+                        {
+                            var stations = w.Holdings.Values.Where(h => h.SystemId == n.SystemId && !h.IsPlanet).ToList(); var sys = w.Galaxy.System(n.SystemId);
+                            var fleets = GalaxyProjection.Fleets(w).Where(f => f.SystemId == n.SystemId).ToList();
+                            <div class="ww-open">
+                                @if (sys != null && sys.Description.Length > 0) { <p class="ww-desc">@sys.Description</p> }
+                                <div class="ww-facts">
+                                    <span class="k">Held by</span><span>@(owner != null ? owner.Name : "nobody: it is unclaimed")@(n.Culture.Length > 0 ? $" · {n.Culture} culture" : "")</span>
+                                    @if (n.GovernorName != null) { <span class="k">Governor</span><span>@n.GovernorName</span> }
+                                    @if (planet != null) { <span class="k">Industry</span><span>@(c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization)</span> }
+                                    @if (n.Population > 0) { <span class="k">Citizens</span><span>@(planet != null ? Census.Say(Census.Citizens(w, planet)) : n.Population.ToString()) · loyalty @(100 - n.Unrest)@(n.Rebellion > 0 ? $" · rebellion {n.Rebellion}" : "")</span> }
+                                    @if (planet != null) { <span class="k">Built</span><span>@(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</span> }
+                                    @if (stations.Count > 0) { <span class="k">Stations</span><span>@string.Join(", ", stations.Select(s => s.Name))</span> }
+                                    @if (n.Deposits is { Count: > 0 }) { <span class="k">Deposits</span><span>@string.Join(", ", n.Deposits.Select(d => $"{Resource.Label(d.Key)} ({d.Value})"))</span> }
+                                    @if (fleets.Count > 0) { <span class="k">In the sky</span><span>@string.Join(", ", fleets.Select(f => $"{f.Name} ({f.OwnerHouseName}, {f.Strength})"))</span> }
+                                </div>
+                                @if (planet != null && planet.IsPlanet) { <LocalLawBlock HoldingId="@planet.Id" /> }
+                                <div class="ww-acts"><Plate Label="Open on the map" Small="true" Icon="position-marker" Tip="[position-marker] Open on the map\nThe map goes to the system, and its panel opens" OnClick="() => OnFocus.InvokeAsync(sid)" /></div>
+                            </div>
+                        }
+                    </div>
+                }
+                </ChildContent>
+            </Section>
+        }
+    }
     </div>
 </div>
 
 @code {
     [Parameter] public EventCallback<string> OnFocus { get; set; }
     private string? _focus, _region;
+    private const string Apos = "'";
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private void Pick(string key) => _tab = key;
+    private static List<Select.Option> RegionOptions(IReadOnlyList<MapRegion> regions) => new List<Select.Option> { new("", "All the regions") }.Concat(regions.Select(r => new Select.Option(r.Id, r.Name, r.Ring))).ToList();
+    private static string RingName(string ring) => ring switch { "core" => "The core", "middle" => "The middle ring", "rim" => "The rim", _ => "Beyond the rim" };
+    private static string RingSays(string ring, bool imperium) => ring switch { "core" => imperium ? "Commerce and the court." : "Commerce and the Senate.", "rim" => "Lawless, restless, breaking away.", "beyond" => "Not the Reach: a nation's own space.", _ => "Leaning either way." };
     private void AskColony(FoundColonyCommand cmd, string name)
     {
         var cat = G.Content!.Holdings; int years = Math.Max(1, cat.Colony.BuildTurns);
@@ -155,6 +225,6 @@
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
-    private void OpenOn(string tab) { if (tab is "worlds" or "regions") _tab = tab; }
+    private void OpenOn(string tab) { if (tab is "worlds" or "regions" or "cities" or "colonies") _tab = tab; }
     protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { } }
 }

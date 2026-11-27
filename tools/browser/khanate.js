@@ -23,7 +23,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const labels = await page.evaluate(() => document.body.innerText.match(/Vashti Steppe|Thessaran Shore|Ardent Concord|Outer Compact|Hollow Crown/g) || []);
   console.log('named on the map screen: ' + [...new Set(labels)].join(', '));
   await page.evaluate(() => { const el = [...document.querySelectorAll('.rail-btn')].find(e => /^military$/i.test(e.innerText.trim())); if (el) el.click(); }); await page.waitForTimeout(500);
-  await page.evaluate(() => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => /beyond the reach/i.test(e.innerText)); if (t) t.click(); }); await page.waitForTimeout(600);
+  await page.evaluate(() => { const t = (document.querySelector('.screen.window .ui-tab[data-tab="abroad"]') || [...document.querySelectorAll('.ex-tabs .rung')].find(e => /beyond the reach/i.test(e.innerText))); if (t) t.click(); }); await page.waitForTimeout(600);
   const rows = await page.evaluate(() => [...document.querySelectorAll('.panel.abroad .nation')].map(n => n.innerText.replace(/\s+/g, ' ').slice(0, 1100)));
   for (const [name, seat] of [['vashti', 'khal orda'], ['thessar', 'thessar'], ['ardent concord', 'concordia'], ['outer compact', 'the wardenry'], ['hollow crown', 'porphyra']]) {
     const row = rows.find(r => new RegExp(name, 'i').test(r)); console.log(row ? '· ' + row : name + ' is not shown');

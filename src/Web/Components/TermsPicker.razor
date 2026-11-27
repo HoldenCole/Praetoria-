@@ -5,20 +5,30 @@
     var bride = ours.Sex == "female" ? ours : theirs; bool weReceive = bride.Id == theirs.Id; int due = CourtshipSystem.CustomaryDowry(W, bride.HouseId);
     string custom = CourtshipSystem.DefaultNameHouse(W, ours, theirs);
 }
-<div class="terms">
-    <span title="@(weReceive ? "Credits that come to your house with the bride. Ask for less and they agree more readily." : "Credits your house sends with the bride. Offer more and they agree more readily.")">@(weReceive ? "Dowry asked" : "Dowry offered")</span>
-    @foreach (var d in Levels)
-    {
-        string lv = d; int amt = CourtshipSystem.DowryAmount(W, bride.HouseId, d);
-        int lean = CourtshipSystem.Terms(W, Suit, d, Kids) - CourtshipSystem.Terms(W, Suit, CourtshipSystem.Customary, Kids); int can = Math.Max(0, W.House(bride.HouseId)?.Treasury.Credits ?? 0);
-        <button class="opt inline tiny @(Dowry == d ? "here" : "")" title="@((lean == 0 ? "What custom expects: it moves their yes neither way." : $"Their yes {(lean > 0 ? "+" : "−")}{Math.Abs(lean)} against the customary sum.") + (amt > 0 && weReceive && can < amt ? $" Their treasury holds {Money.Show(can)}: that is all that would come." : amt > 0 && !weReceive && can < amt ? $" Your treasury holds {Money.Show(can)}: the rest would have to come from your purse, or go unpaid." : ""))" @onclick="() => OnChange.InvokeAsync((lv, Kids))">@(Dowry == d ? "✓ " : "")@(d == CourtshipSystem.None ? "none" : $"{d} · {Money.Show(amt)}")@(amt > 0 && weReceive && can < amt ? $" (they can raise {Money.Show(can)})" : "")</button>
-    }
-    <i></i>
-    <span title="By custom the head of a house keeps the seat's children, otherwise the greater house does, otherwise the father's. The contract can say otherwise, at a price.">Children's name</span>
-    <button class="opt inline tiny @(Kids.Length == 0 ? "here" : "")" title="@($"Nothing is written. Custom here gives the children the name of {W.House(custom)?.Name}: {(ours.Id == W.ProtagonistId || theirs.Id == W.ProtagonistId ? "the head of a house keeps the seat's children" : "the greater house keeps them, or the father's where the houses are equal")}. It moves their yes neither way.")" @onclick="() => OnChange.InvokeAsync((Dowry, string.Empty))">@(Kids.Length == 0 ? "✓ " : "")by custom (@Short(W.House(custom)?.Name))</button>
-    <button class="opt inline tiny @(Kids == ours.HouseId ? "here" : "")" title="@(custom == ours.HouseId ? "Written into the contract. It is what custom gives here already, so it costs nothing: it only makes it certain." : "Written into the contract against custom: their yes −15.")" @onclick="() => OnChange.InvokeAsync((Dowry, ours.HouseId))">@(Kids == ours.HouseId ? "✓ " : "")yours@(custom == ours.HouseId ? " (as custom)" : " · −15")</button>
-    <button class="opt inline tiny @(Kids == theirs.HouseId ? "here" : "")" title="@(custom == ours.HouseId ? "You give up what custom gives you: their yes +15, and the children are of their house, not yours." : "It is what custom gives here already: it only makes it certain.")" @onclick="() => OnChange.InvokeAsync((Dowry, theirs.HouseId))">@(Kids == theirs.HouseId ? "✓ " : "")theirs@(custom == ours.HouseId ? " · +15" : " (as custom)")</button>
-    <div class="muted small" data-where-they-live>Marriage moves nobody. @bride.Name stays of @(W.House(bride.HouseId)?.Name) and @((bride.Id == ours.Id ? theirs : ours).Name) of @(W.House((bride.Id == ours.Id ? theirs : ours).HouseId)?.Name): each goes on living with their own house and serving it, and holds what posts they held. A spouse comes to live in your house only if you take them into the household afterwards (House, the Household).</div>
+<div class="terms tp-terms">
+    <div class="tp-row">
+        <span class="tp-l" title="@(weReceive ? "Credits that come to your house with the bride. Ask for less and they agree more readily." : "Credits your house sends with the bride. Offer more and they agree more readily.")">@(weReceive ? "Dowry asked" : "Dowry offered")</span>
+        <span class="ui-seg tp-seg" role="radiogroup">
+            @foreach (var d in Levels)
+            {
+                string lv = d; int amt = CourtshipSystem.DowryAmount(W, bride.HouseId, d);
+                int lean = CourtshipSystem.Terms(W, Suit, d, Kids) - CourtshipSystem.Terms(W, Suit, CourtshipSystem.Customary, Kids); int can = Math.Max(0, W.House(bride.HouseId)?.Treasury.Credits ?? 0);
+                bool short_ = amt > 0 && can < amt;
+                <button class="@(Dowry == d ? "on" : "")" role="radio" aria-checked="@(Dowry == d ? "true" : "false")" title="@((lean == 0 ? "What custom expects: it moves their yes neither way." : $"Their yes {(lean > 0 ? "+" : "−")}{Math.Abs(lean)} against the customary sum.") + (short_ && weReceive ? $" Their treasury holds {Money.Show(can)}: that is all that would come." : short_ && !weReceive ? $" Your treasury holds {Money.Show(can)}: the rest would have to come from your purse, or go unpaid." : ""))" @onclick="() => OnChange.InvokeAsync((lv, Kids))">@(d == CourtshipSystem.None ? "None" : Cap(d))@if (amt > 0) { <small>@Money.Show(amt)</small> }</button>
+            }
+        </span>
+        @{ int chosen = CourtshipSystem.DowryAmount(W, bride.HouseId, Dowry), raise = Math.Max(0, W.House(bride.HouseId)?.Treasury.Credits ?? 0); }
+        @if (chosen > raise) { <span class="tp-note ui-warn-t" title="@(weReceive ? "Their treasury cannot meet the sum: that is all that would come." : "Your treasury cannot meet the sum: the rest would come from your purse, or go unpaid.")">@(weReceive ? "They can raise" : "Your treasury holds") @Money.Show(raise)</span> }
+    </div>
+    <div class="tp-row">
+        <span class="tp-l" title="By custom the head of a house keeps the seat's children, otherwise the greater house does, otherwise the father's. The contract can say otherwise, at a price.">Children's name</span>
+        <span class="ui-seg tp-seg" role="radiogroup">
+            <button class="@(Kids.Length == 0 ? "on" : "")" role="radio" aria-checked="@(Kids.Length == 0 ? "true" : "false")" title="@($"Nothing is written. Custom here gives the children the name of {W.House(custom)?.Name}: {(ours.Id == W.ProtagonistId || theirs.Id == W.ProtagonistId ? "the head of a house keeps the seat's children" : "the greater house keeps them, or the father's where the houses are equal")}. It moves their yes neither way.")" @onclick="() => OnChange.InvokeAsync((Dowry, string.Empty))">By custom <small>@Short(W.House(custom)?.Name)</small></button>
+            <button class="@(Kids == ours.HouseId ? "on" : "")" role="radio" aria-checked="@(Kids == ours.HouseId ? "true" : "false")" title="@(custom == ours.HouseId ? "Written into the contract. It is what custom gives here already, so it costs nothing: it only makes it certain." : "Written into the contract against custom: their yes −15.")" @onclick="() => OnChange.InvokeAsync((Dowry, ours.HouseId))">Yours <small>@(custom == ours.HouseId ? "as custom" : "−15")</small></button>
+            <button class="@(Kids == theirs.HouseId ? "on" : "")" role="radio" aria-checked="@(Kids == theirs.HouseId ? "true" : "false")" title="@(custom == ours.HouseId ? "You give up what custom gives you: their yes +15, and the children are of their house, not yours." : "It is what custom gives here already: it only makes it certain.")" @onclick="() => OnChange.InvokeAsync((Dowry, theirs.HouseId))">Theirs <small>@(custom == ours.HouseId ? "+15" : "as custom")</small></button>
+        </span>
+    </div>
+    <div class="tp-where" data-where-they-live>Marriage moves nobody. @bride.Name stays of @(W.House(bride.HouseId)?.Name) and @((bride.Id == ours.Id ? theirs : ours).Name) of @(W.House((bride.Id == ours.Id ? theirs : ours).HouseId)?.Name): each goes on living with their own house and serving it, and holds what posts they held. A spouse comes to live in your house only if you take them into the household afterwards (House, the Household).</div>
 </div>
 
 @code {
@@ -28,5 +38,6 @@
     [Parameter] public string Kids { get; set; } = "";
     [Parameter] public EventCallback<(string dowry, string kids)> OnChange { get; set; }
     private static readonly string[] Levels = { CourtshipSystem.None, CourtshipSystem.Customary, CourtshipSystem.Rich };
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Short(string? name) => (name ?? "").Replace("House ", "");
 }

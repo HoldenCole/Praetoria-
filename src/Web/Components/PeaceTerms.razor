@@ -1,16 +1,19 @@
 @inject GameClient G
-@* What a peace with a house may ask, by how the war stands (docs/PLAYTHROUGH.md 9): every term with what it does, and why one would be refused. *@
+@* What a peace with a house may ask, by how the war stands (docs/PLAYTHROUGH.md 9): every term a row, its plate and what it does, and
+   why one would be refused in warn colour beside a locked plate (docs/VISUAL_SYSTEM.md 4.11). Shown under a war on the Military window's
+   Fleets tab and on the Houses window. Styles in css/win/military.css. *@
 <div class="peace-terms" data-peace="@War.EnemyHouseId">
-    <div class="small muted">@Standing()</div>
+    <div class="pt-lead"><Icon Name="dove" Tone="ivory" Size="16" /><span>@Standing()</span></div>
     @foreach (var t in War.Terms)
     {
-        bool can = t.Accepted && War.CanPay;
+        bool can = t.Accepted && War.CanPay; var term = t;
         <div class="peace-term @(can ? "" : "off")">
-            <button class="opt" disabled="@(!can)" data-term="@t.Kind" title="@(t.Accepted ? (War.CanPay ? t.What : "No influence left this year: an envoy costs 1") : Cap(t.Why))" @onclick="() => Put(t)">@t.Label</button>
-            <span class="small @(t.Accepted ? "muted" : "bad")">@(t.Accepted ? t.What : Cap(t.Why) + ".")</span>
+            <Plate Label="@t.Label" Small="true" Icon="dove" CostIcon="public-speaker" CostText="1" Locked="@(!can)" Disabled="@(!can)" ShowNeed="false" data-term="@t.Kind"
+                   Tip="@("[dove] " + t.Label + "\n" + (t.Accepted ? (War.CanPay ? t.What + " The envoy costs 1 influence." : "No influence left this year: an envoy costs 1") : Cap(t.Why)))" OnClick="() => Put(term)" />
+            <span class="pt-what @(t.Accepted ? "" : "ui-need")">@(t.Accepted ? t.What : Cap(t.Why) + ".")</span>
         </div>
     }
-    @if (War.Terms.Count > 0 && !War.CanPay) { <div class="small bad">An envoy costs 1 influence, and this year's is spent.</div> }
+    @if (War.Terms.Count > 0 && !War.CanPay) { <div class="pt-warn ui-need">An envoy costs 1 influence, and this year's is spent.</div> }
 </div>
 
 @code {
