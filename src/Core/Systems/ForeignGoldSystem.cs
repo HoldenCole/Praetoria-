@@ -322,6 +322,11 @@ public static class ForeignGoldSystem
     }
 
     /// <summary>What the sum was for, in words: "to vote against the war on the Hollow Crown".</summary>
+    /// <summary>What taking the sum does, for the button's title: the purse, the vote it asks, the record, and (unless it buys the motion off,
+    /// which leaves no vote to break it at) what voting for the war after all would cost.</summary>
+    public static string TakeSays(GoldOffer o) =>
+        $"{Money.Credits(o.Sum)} into your own purse. {(o.Ask == Withdraw ? "Your motion is withdrawn at once." : o.Ask == Against ? "Your house is declared against the war." : "Your house is declared to stay away.")} It goes on the record: any house may charge you with it before a praetor, at once and for {Counted.Years(LadderSystem.RecordYears)}."
+        + (o.Ask == Withdraw ? "" : $" Vote for the war after all and they send your house nothing for {Counted.Years(BrokenYears)}.");
     public static string AskSays(GoldOffer o) => o.Ask switch
     {
         Against => $"to vote against the war on {o.WarOnName}",

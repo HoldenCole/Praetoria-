@@ -45,7 +45,8 @@ A house's **general** is whoever of its own people commands one of its fleets an
 ## The triumph
 
 A motion before the Senate (`triumph`, 2 influence), for the general of a house. Any house with a voice in the Senate may
-move it, for itself or another, and so may anyone who has held a magistracy, whatever door their house sits by.
+move it, for itself or another, and so may anyone who has held a magistracy, whatever door their house sits by, unless
+they or the head of their house are in exile.
 
 - It asks **three victories** since the last triumph. A victory beyond the Reach counts; bringing a nation to terms
   counts two more.
@@ -97,6 +98,15 @@ for the triumph is refused while the recall stands ("the Senate has since recall
 at its order, not to a triumph"), and one under recall is not brought home to stand for office either: neither is a way
 out of a recall.
 
+**Abroad, or before a court.** A triumph is had at the gate of the Reach. One who goes into exile with a triumph still to
+answer has it void, and one abroad may not come home for one ("you are in exile at the court of ..."); a triumph voted to
+one already abroad is void at the year's end. One who goes into exile while home for a triumph (or home to stand) has the
+year at home ended: nothing is held for them, the crews' devotion to them goes, the house may fill the flag at once, and
+nothing is taken up when the year is out. Nor is coming home a way out of a court's order to lay a command down
+(docs/LADDER.md, "A charge against the powerful"): a fleet that waits for one at home is theirs in the court's eyes, and
+laying it down at the court's order gives that fleet up, with the court's five years' bar. Every refusal says the exile or
+the court before the year at home, and the gate lists only those who are still home: living, of the house, and not abroad.
+
 **Who chooses.** The player is asked, on the Military window (the general and the Senate) and on the Senate window's
 chamber (`data-triumph-choice="home"`, `"keep"`), and the outliner says so. The answer is wanted by the end of the year
 after the vote; left unanswered, the triumph lapses as if declined. One of the player's house chooses for themselves, as
@@ -120,7 +130,8 @@ a great name in arms) could move a triumph. Now anyone who has held a magistracy
 (`Character.Cursus`, or a seat now): a triumph and leave to stand in absence are the generals' business, and the only
 motions so opened. A house with no voice is told so: "the house has its votes but no voice in the Senate, and you have
 held no magistracy". Other houses move by the same rule. Under a throne the door is shut to everyone, and the throne's
-rule is said instead ("the Senate hears a Baron, or a Judge").
+rule is said instead ("the Senate hears a Baron, or a Judge"). A house whose head is in exile moves neither, whoever of it
+has held a magistracy: it moves nothing but its own exile's return (docs/LADDER.md, "Exile").
 
 #### The numbers
 
@@ -132,7 +143,7 @@ rule is said instead ("the Senate hears a Baron, or a Judge").
 | the proposer | thought 10 the better of when it is voted, whatever the general then does |
 | declined | nothing given, the victories counted off at the vote, no cause |
 | leave to stand in absence | 2 influence; lasts until the next election (the ladder's or the consuls') has been held |
-| who may move a triumph or leave | a house with a voice, or anyone who has held a magistracy |
+| who may move a triumph or leave | a house with a voice, or anyone who has held a magistracy; not while they or their head are in exile |
 | other houses ask leave | in the two years before a count, one a year: their consul, or their general with sway of 20 or more; a friend of regard 30 moves it for a house with no voice |
 | other houses' commanders come home to stand | the year before a count, the only one the house has for a rung or the consulship, unless at war; the fleet held until the count is past |
 | finished triumphs kept for the record | 40 |
@@ -229,6 +240,10 @@ player's.
   of the house; the player is told when another house's commander lays down a fleet of theirs; the year at home is said
   as itself on every refusal; and a consul's seat passes within the house to one who commands away, since succeeding to a
   seat is not standing for it.
+- Mended after the three Imperator ideas met: that a triumph is had at the gate of the Reach, so exile voids one not yet
+  answered and ends a year at home; that a fleet held for one at home is a command for a court, so coming home is no way
+  out of a court's order; that a house whose head is abroad moves no triumph and no leave; and that the gate lists only
+  those still home. No figure changed.
 
 #### What is not built
 
@@ -239,7 +254,8 @@ player's.
 - Governing abroad (docs/IDEAS_FROM_IMPERATOR.md, entry 6) is not counted as away: there are no governorships yet.
 - Leave is for a house, not for one person, and there is no leave for the consulship alone.
 - A magistrate or consul elected in absence holds the office while commanding; nothing asks them to come home.
-- The random and scripted players (`src/Tools/Qa.cs`) do not yet answer a triumph: theirs lapse, as a passive player's do.
+- The scripted players (`src/Tools/Scripted.cs`) do not answer a triumph: theirs lapse, as a passive player's do. The random
+  player of the soak answers one home or keep, and moves leave to stand in absence, at low rates (`Qa.ServiceAndLine`).
 - There is no act of laying a command down without giving the fleet to someone: one who would stand brings the fleet to
   the capital, gives it to another, resigns a command by service, or asks leave, and the refusal names those.
 

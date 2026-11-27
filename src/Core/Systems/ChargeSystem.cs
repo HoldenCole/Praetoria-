@@ -71,6 +71,9 @@ public sealed class ChargeSystem
     }
     /// <summary>Whether this person commands a fleet: their house's, or another's by service.</summary>
     public static bool Commands(World w, Character c) => w.Fleets.Values.Any(f => f.AdmiralId == c.Id) || ServiceSystem.Held(w, c) != null;
+    /// <summary>Whether this person holds a command in the court's eyes: one they command, or one held for them while they are home for a
+    /// triumph or to stand for office (<see cref="TriumphSystem.HeldBy"/>). Coming home is no way out of a court's order to lay it down.</summary>
+    public static bool HoldsCommand(World w, Character c) => Commands(w, c) || w.TriumphVotes.Count > 0 && w.Fleets.Values.Any(f => TriumphSystem.HeldFor(w, f, c.Id));
 
     // ---------------- exile ----------------
 
@@ -100,7 +103,7 @@ public sealed class ChargeSystem
     private (string id, string name) Refuge(World w)
     {
         var n = w.Nations.Where(n => !n.Fallen && !n.AtWar && _nations.Def(n.Id) != null).OrderByDescending(n => n.Disposition).ThenBy(n => n.Id, StringComparer.Ordinal).FirstOrDefault();
-        return n == null ? ("", "") : (n.Id, _nations.Def(n.Id)!.Name);
+        return n == null ? ("", "") : (n.Id, ForeignGoldSystem.Name(_nations, n.Id));   // as a sentence names it: "the Free Cities of Thessar"
     }
 
     /// <summary>They go into exile before the verdict: the charge is not heard, their offices and commands lapse, and they live at
@@ -115,7 +118,8 @@ public sealed class ChargeSystem
         // the offices of the Reach and the magistracies lapse
         w.Magistrates.RemoveAll(m => m.CharacterId == who.Id); w.Candidacies.RemoveAll(cd => cd.CharacterId == who.Id);
         foreach (var o in w.Offices.Where(o => o.CharacterId == who.Id).ToList()) { if (_offices.Def(o.OfficeId) is { } def) OfficeSystem.Strip(w, def, "they have gone into exile", false); else w.Offices.Remove(o); }
-        LayCommandDown(w, who, $"{who.Name} has gone into exile");
+        LayCommandDown(w, who, $"{who.Name} has gone into exile", TriumphSystem.WentAbroad);
+        TriumphSystem.Forgo(w, who, TriumphSystem.WentAbroad, waiting: true);   // and a triumph still to be answered is void: it is had at the gate of the Reach
         if (c != null)
         {
             c.Outcome = Exiled; c.Answer = ExileAnswer; c.HeardTurn = w.Turn;
@@ -137,10 +141,12 @@ public sealed class ChargeSystem
         }
     }
 
-    /// <summary>Whatever they command, they command no longer: their fleets are left without an admiral, a command by service ends, and a
-    /// captaincy is given up.</summary>
-    private static void LayCommandDown(World w, Character who, string how)
+    /// <summary>Whatever they command, they command no longer: their fleets are left without an admiral, a command by service ends, a
+    /// captaincy is given up, and a fleet held for them while they are home (for a triumph, or to stand) is held no longer
+    /// (<paramref name="ended"/> says why, on the record of the year at home).</summary>
+    private static void LayCommandDown(World w, Character who, string how, string ended)
     {
+        TriumphSystem.Forgo(w, who, ended);
         foreach (var s in w.Service.Where(s => s.CommanderId == who.Id).ToList()) ServiceSystem.End(w, s, how);
         foreach (var f in w.Fleets.Values.Where(f => f.AdmiralId == who.Id).OrderBy(f => f.Id, StringComparer.Ordinal)) { if (f.Devotion >= CaesarSystem.DevotedAt) f.Loyalty = Math.Max(0, f.Loyalty - 5); f.AdmiralId = ""; f.DevotedTo = ""; f.Devotion = 0; }
         foreach (var f in w.Fleets.Values.Where(f => f.CaptainId == who.Id)) f.CaptainId = "";
@@ -227,6 +233,7 @@ public sealed class ChargeSystem
         foreach (var c in w.Indictments.Where(c => c.Powerful && c.HouseId == house.Id).OrderBy(c => c.Id, StringComparer.Ordinal))
         {
             var who = w.Char(c.AccusedId); if (who == null) continue;
+            if (!who.Alive && (c.Sentence == LayDown || c.Outcome.Length == 0)) continue;   // one who has died answers nothing: it lapses at the courts
             if (c.Sentence == LayDown) return $"a praetor has convicted {who.Name}, who must lay the command down";
             if (c.Outcome.Length == 0) return $"{Nm(w, c.AccuserId)} has charged {who.Name} before a praetor";
             if (c.HeardTurn >= w.Turn - 1) return $"{Nm(w, c.AccuserId)} brought {who.Name} before a praetor";
@@ -250,7 +257,7 @@ public sealed class ChargeSystem
         if (accuserId == mine && d.HouseId != mine)
             w.Tell("info", $"Your charge against {who.Name} of {Nm(w, d.HouseId)} is heard at the end of next year. {who.Name} is {PowerfulWhy(w, who)}: they may stand trial, go into exile, or, if they have the fleet and the name for it, cross the line. If they are let go, your house loses {1 + AcquittalLegitimacy} legitimacy.", "senate:ladder", who.Id);
         else if (d.HouseId == mine)
-            w.Tell("warn", $"{who.Name} is {PowerfulWhy(w, who)}. Before the charge is heard " + (who.Id == w.ProtagonistId ? "you" : who.Name) + " may stand trial, go into exile beyond the Reach, or cross the line if the house has the fleet and the name. It is a cause, as a recall is.", "senate:ladder", who.Id);
+            w.Tell("warn", (who.Id == w.ProtagonistId ? "You are " : who.Name + " is ") + $"{PowerfulWhy(w, who)}. Before the charge is heard " + (who.Id == w.ProtagonistId ? "you" : who.Name) + " may stand trial, go into exile beyond the Reach, or cross the line if the house has the fleet and the name. It is a cause, as a recall is.", "senate:ladder", who.Id);
     }
 
     /// <summary>A charge against the powerful has been heard. Let go, the house that brought it pays for it and the accused is the
@@ -270,7 +277,7 @@ public sealed class ChargeSystem
             return;
         }
         Bump(w, ConvictedKey);
-        if (!Commands(w, who)) return;
+        if (!HoldsCommand(w, who)) return;   // home for a triumph, or to stand, the fleet that waits for them is theirs to lay down
         held.Sentence = LayDown; held.AnswerBy = w.Turn + LayDownYears;
         w.Log($"{who.Name} is convicted, and holds a command: the court orders it laid down by the end of year {held.AnswerBy}.");
         if (who.HouseId == mine) w.Tell("warn", $"{(who.Id == w.ProtagonistId ? "You are" : who.Name + " is")} convicted while in command. The command must be laid down by the end of year {held.AnswerBy}, or the house crosses the line.", "senate:ladder", who.Id);
@@ -302,9 +309,9 @@ public sealed class ChargeSystem
         {
             if (c.Outcome.Length > 0 && c.Sentence != LayDown) return "it has been answered";
             if (CaesarSystem.GeneralOf(w, house) is var general && general?.Id != who.Id)
-                return general != null && Commands(w, who) ? $"{general.Name} is the house's general, not {(self ? "you" : who.Name)}: only its general can cross the line"
+                return general != null && Commands(w, who) ? $"{(general.Id == w.ProtagonistId ? "you are" : general.Name + " is")} the house's general, not {(self ? "you" : who.Name)}: only its general can cross the line"
                     : $"{(self ? "you command" : who.Name + " commands")} none of the house's fleets: only its general can cross the line";
-            return _caesar.CrossRefusal(w, house);
+            return who.Id == w.ProtagonistId ? CaesarSystem.ToYou(_caesar.CrossRefusal(w, house), who) : _caesar.CrossRefusal(w, house);
         }
         if (c.Outcome.Length > 0) return "it has been answered";
         if (wilful) return $"{who.Name} will answer it as they think fit: it is their name";
@@ -332,7 +339,7 @@ public sealed class ChargeSystem
     /// <summary>A convicted commander lays the command down: the fleets are left without an admiral and they may hold none for some years.</summary>
     private static void LaidDownBy(World w, Character who, Indictment c, bool late)
     {
-        LayCommandDown(w, who, "laid down at the order of the court");
+        LayCommandDown(w, who, "laid down at the order of the court", TriumphSystem.CourtOrder);
         w.WorldCounters[CaesarSystem.BarredKey(who.Id)] = w.Turn + CaesarSystem.BarredYears; w.WorldCounters[CourtBarKey(who.Id)] = w.Turn + CaesarSystem.BarredYears;
         c.Sentence = LaidDown; Bump(w, LaidDownKey);
         if (late && w.House(c.HouseId) is { } h) LegitimacyBook.Move(w, h, -TakenLegitimacy, LegitimacyBook.Courts, "The court's officers took a command that was not laid down");
@@ -369,6 +376,22 @@ public sealed class ChargeSystem
     /// <summary>Has this house said it will charge this person the day the command is laid down, and do they still command? Then it waits.</summary>
     public static bool Waits(World w, string accuserId, string characterId) =>
         w.ChargeThreats.Count > 0 && w.ChargeThreats.Any(t => t.Outcome.Length == 0 && t.AccuserId == accuserId && t.AccusedId == characterId) && w.Char(characterId) is { } c && Commands(w, c);
+
+    /// <summary>When an act on the record is forgotten, for the screen: in a year, or not while a house's word that it will be charged stands.</summary>
+    public static string ForgottenSays(World w, OfficeDeed d) =>
+        w.ChargeThreats.FirstOrDefault(t => t.Outcome.Length == 0 && t.DeedId == d.Id) is { } t ? $"kept on the record while {Nm(w, t.AccuserId)}'s word stands" : $"forgotten in year {d.Turn + LadderSystem.RecordYears + 1}";
+    /// <summary>A threat of a charge as the courts panel says it to <paramref name="houseId"/>: made by the house, or against one of its people;
+    /// once the command is laid down, the year the charge is due by (and, to the general's house, that it is no longer a cause).</summary>
+    public static string ThreatSays(World w, ChargeThreat t, string houseId)
+    {
+        string gName = w.Char(t.AccusedId)?.Name ?? "the general"; int due = t.LaidDownTurn + ThreatGraceYears;
+        if (t.AccuserId == houseId)
+            return t.LaidDownTurn > 0 ? $"{gName} has laid the command down. Bring the charge by the end of year {due}, from the record below, or your house loses {ThreatEmptyLegitimacy} legitimacy."
+                : $"You have let it be known that {gName} will be charged the day the command is laid down. If the charge is never brought, your house loses {ThreatEmptyLegitimacy} legitimacy.";
+        string said = $"{Nm(w, t.AccuserId)} has let it be known that {(t.AccusedId == w.ProtagonistId ? "you" : gName)} will be charged the day the command is laid down.";
+        return t.LaidDownTurn > 0 ? $"{said} The command was laid down in year {t.LaidDownTurn}, so the charge is due by the end of year {due}, and it is no longer a cause to cross the line."
+            : $"{said} While it stands it is a cause to cross the line.";
+    }
 
     /// <summary>What the house could charge this general with: an act of theirs on the record a court would hear.</summary>
     public static OfficeDeed? ThreatDeed(World w, string accuserId, Character general) => LadderSystem.Chargeable(w, accuserId).FirstOrDefault(d => d.CharacterId == general.Id);
@@ -424,7 +447,7 @@ public sealed class ChargeSystem
             else if (c.Sentence == LayDown)
             {
                 if (marching) { Settle(w, c, house); continue; }
-                if (!Commands(w, who)) { c.Sentence = LaidDown; continue; }
+                if (!HoldsCommand(w, who)) { c.Sentence = LaidDown; continue; }   // a fleet held for them while they are home is a command still
                 bool ours = house.Id == mine;
                 if (!ours) LaidDownBy(w, who, c, late: false);   // had they meant to cross, they would have crossed with the year's generals
                 else if (who.Id != w.ProtagonistId && w.FamilyAutonomy > 0 && !CourtshipSystem.Wilful(who)) LaidDownBy(w, who, c, late: false);   // it is the court's order, and they keep the law
@@ -443,7 +466,7 @@ public sealed class ChargeSystem
             var d = w.OfficeRecord.FirstOrDefault(x => x.Id == t.DeedId);
             if (d != null && (d.Answered || LadderSystem.UnderCharge(w, d.Id))) { t.Outcome = Lapsed; Bump(w, ThreatsLapsedKey); continue; }   // another answered for it first
             bool commands = Commands(w, g);
-            if (d != null && commands) continue;
+            if (d != null && commands && t.LaidDownTurn == 0) continue;   // once laid down the charge is due, though the command be taken up again (home for a triumph, or to stand)
             if (d != null && t.LaidDownTurn == 0)
             {
                 t.LaidDownTurn = w.Turn;

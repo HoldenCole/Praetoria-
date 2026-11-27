@@ -114,6 +114,7 @@ internal static class Qa
         Section($"Rarely fired (≤ {Math.Max(1, runs / 10)} across all runs)", rare.Select(kv => $"{kv.Key} ×{kv.Value}"));
         Section("Choices never taken (on events that did fire)", neverTaken);
         Section("Commands the randomised player gave", taken.Where(kv => kv.Key.StartsWith("cmd/")).OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key[4..]} ×{kv.Value}"));
+        Section("The triumph, the charge and the gold: what the randomised player gave", ImperatorLabels.Select(l => $"{l} ×{taken.GetValueOrDefault("imp/" + l)} (offered {taken.GetValueOrDefault("imp-offered/" + l)})"));
         Section("Unresolved text tokens", tokens.OrderBy(t => t, StringComparer.Ordinal));
         Section("Chronicle oddities (first 40)", oddities.Distinct().Take(40));
 
@@ -264,23 +265,36 @@ internal static class Qa
     /// resumed save draw the same list.</summary>
     private static void Act(TurnController tc, World w, ContentDatabase content, IRng decisions, Dictionary<string, int>? taken)
     {
-        var cands = Candidates(tc, w, content, decisions); cands.AddRange(ServiceAndLine(w, content, decisions)); if (cands.Count == 0) return;
+        var labels = new Dictionary<ICommand, string>();
+        var cands = Candidates(tc, w, content, decisions); cands.AddRange(ServiceAndLine(w, content, decisions, tc, labels)); if (cands.Count == 0) return;
         var ctx = new CommandContext(w, WorldBuilder.RngFor(w));
         int done = 0;
+        if (taken != null) foreach (var l in labels.Values) taken["imp-offered/" + l] = taken.GetValueOrDefault("imp-offered/" + l) + 1;
+        // what waits on the player for an answer (a triumph, a charge, gold) has a year at most: when it is offered, it is tried first
+        foreach (var c in cands.Where(c => labels.TryGetValue(c, out var l) && AnswerLabel(l)).ToList())
+        {
+            cands.Remove(c);
+            if (!tc.Executor.TryExecute(c, ctx)) continue;
+            done++;
+            if (taken != null) { string key = "cmd/" + c.GetType().Name.Replace("Command", ""); taken[key] = taken.GetValueOrDefault(key) + 1; taken["imp/" + labels[c]] = taken.GetValueOrDefault("imp/" + labels[c]) + 1; }
+        }
         for (int tries = 0; tries < 4 && cands.Count > 0 && done < 2; tries++)
         {
             int i = decisions.NextInt(0, cands.Count); var c = cands[i]; cands.RemoveAt(i);
             if (!tc.Executor.TryExecute(c, ctx)) continue;
             done++;
             if (taken != null) { string key = "cmd/" + c.GetType().Name.Replace("Command", ""); taken[key] = taken.GetValueOrDefault(key) + 1; }
+            if (taken != null && labels.TryGetValue(c, out var label)) taken["imp/" + label] = taken.GetValueOrDefault("imp/" + label) + 1;
         }
     }
 
     /// <summary>The random player's commands by service and over the line of the house (docs/MILITARY.md, "A command by service";
     /// docs/HOUSEHOLD.md, "Struck from the line, cast out, and the undutiful will"), offered to the soak only: the scripted players
     /// (Scripted.cs) seek and answer service on their own terms, and none of them would strike a child out by chance. Built in id
-    /// order; the draws choose which of the rarer ones are offered and whom each names.</summary>
-    internal static List<ICommand> ServiceAndLine(World w, ContentDatabase content, IRng decisions)
+    /// order; the draws choose which of the rarer ones are offered and whom each names. With the turn, it offers too the answers and moves of
+    /// the triumph at the gate, the charge against the powerful and foreign gold (docs/CAESAR.md, docs/LADDER.md, docs/BEYOND.md), each only
+    /// where its Refusal allows it, and names each in <paramref name="labels"/> for the soak's count.</summary>
+    internal static List<ICommand> ServiceAndLine(World w, ContentDatabase content, IRng decisions, TurnController? tc = null, Dictionary<ICommand, string>? labels = null)
     {
         var cands = new List<ICommand>();
         var p = w.Protagonist; if (p is not { Alive: true } || w.House(p.HouseId) is not { } house) return cands;
@@ -324,7 +338,54 @@ internal static class Qa
             if (decisions.NextInt(0, 4) == 0) cands.Add(new WillSuitCommand(p.Id, WillSuitCommand.Settle, s.Id));
             if (grown.Count > 0 && decisions.NextInt(0, 3) == 0) cands.Add(new WillSuitCommand(p.Id, WillSuitCommand.Plead, s.Id, grown[decisions.NextInt(0, grown.Count)].Id));
         }
+        if (tc != null) Imperator(tc, w, offices, decisions, p, house, cands, labels);
         return cands;
+    }
+
+    private static bool AnswerLabel(string label) => label.StartsWith("triumph ", StringComparison.Ordinal) || label.StartsWith("charge ", StringComparison.Ordinal) || label.StartsWith("gold ", StringComparison.Ordinal);
+    /// <summary>The labels the soak counts these by, in the order the report gives them.</summary>
+    private static readonly string[] ImperatorLabels = { "triumph home", "triumph keep", "motion absence", "motion home", "charge trial", "charge exile", "charge cross", "charge lay_down", "threaten charge", "gold take", "gold refuse", "gold expose" };
+
+    /// <summary>The triumph at the gate, the charge against the powerful and foreign gold, for the soak: a triumph waiting for the player is
+    /// answered home or keep; leave to stand in absence is moved for a house with someone commanding away, and a return for a house with an
+    /// exile; a charge against the powerful waiting on the player is answered with one of its legal answers; a general of another house who may
+    /// be threatened is; and gold waiting on the house is taken, refused or told of. Low rates, every choice from the decision stream, and only
+    /// what the command's own Refusal allows.</summary>
+    private static void Imperator(TurnController tc, World w, Praetoria.Core.Data.OfficeCatalog offices, IRng decisions, Character p, House house, List<ICommand> cands, Dictionary<ICommand, string>? labels)
+    {
+        var ctx = new CommandContext(w, WorldBuilder.RngFor(w));
+        void Offer(ICommand c, string label) { if (!c.CanExecute(ctx)) return; cands.Add(c); if (labels != null) labels[c] = label; }
+        if (TriumphSystem.Waiting(w, p.Id) != null && decisions.NextInt(0, 2) == 0)
+        {
+            string choice = decisions.NextInt(0, 2) == 0 ? TriumphSystem.Home : TriumphSystem.Keep;
+            Offer(new TriumphCommand(p.Id, choice, tc.Caesar), "triumph " + choice);
+        }
+        if (tc.Senate.Motions.Def(TriumphSystem.LeaveKind) != null && decisions.NextInt(0, 4) == 0)
+        {
+            var away = w.Houses.Values.Where(h => !World.Outsider(h.Id) && TriumphSystem.LeaveRefusal(w, h, house.Id) == null).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
+            if (away.Count > 0) Offer(new ProposeMotionCommand(p.Id, TriumphSystem.LeaveKind, away[decisions.NextInt(0, away.Count)].Id, tc.Senate), "motion absence");
+        }
+        if (tc.Senate.Motions.Def(ChargeSystem.HomeKind) != null && w.Exiles.Count > 0 && decisions.NextInt(0, 3) == 0)
+        {
+            var exiled = w.Exiles.Select(x => x.HouseId).Distinct().OrderBy(id => id, StringComparer.Ordinal).ToList();
+            Offer(new ProposeMotionCommand(p.Id, ChargeSystem.HomeKind, exiled[decisions.NextInt(0, exiled.Count)], tc.Senate), "motion home");
+        }
+        foreach (var c in ChargeSystem.Touching(w, house.Id).Where(c => c.HouseId == house.Id))
+        {
+            var legal = new[] { ChargeSystem.Trial, ChargeSystem.ExileAnswer, ChargeSystem.Cross, ChargeSystem.LayDown }.Where(a => tc.Charges.AnswerRefusal(w, p, c, a) == null).ToList();
+            if (legal.Count > 0 && decisions.NextInt(0, 2) == 0) { string a = legal[decisions.NextInt(0, legal.Count)]; Offer(new AnswerChargeCommand(p.Id, c.Id, a, tc.Charges), "charge " + a); }
+        }
+        if (decisions.NextInt(0, 6) == 0)
+        {
+            var generals = w.Fleets.Values.Where(f => f.AdmiralId.Length > 0).Select(f => f.AdmiralId).Distinct().OrderBy(id => id, StringComparer.Ordinal)
+                .Select(id => w.Char(id)).Where(g => g != null && g.HouseId != house.Id && ChargeSystem.ThreatRefusal(w, p, g) == null).Select(g => g!).ToList();
+            if (generals.Count > 0) Offer(new ThreatenChargeCommand(p.Id, generals[decisions.NextInt(0, generals.Count)].Id, offices), "threaten charge");
+        }
+        foreach (var o in ForeignGoldSystem.Waiting(w, house.Id).OrderBy(o => o.Id, StringComparer.Ordinal).ToList())
+        {
+            var legal = new[] { ForeignGoldSystem.Take, ForeignGoldSystem.Refuse, ForeignGoldSystem.Expose }.Where(a => ForeignGoldSystem.AnswerRefusal(w, p, o, a) == null).ToList();
+            if (legal.Count > 0 && decisions.NextInt(0, 2) == 0) { string a = legal[decisions.NextInt(0, legal.Count)]; Offer(new ForeignGoldCommand(p.Id, o.Id, a), "gold " + a); }
+        }
     }
 
     /// <summary>Every command the protagonist might give this turn, built in id order. The draws on <paramref name="decisions"/>

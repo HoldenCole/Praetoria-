@@ -81,7 +81,8 @@ public sealed record OfficeCard(string Id, string Name, string Description, stri
 public sealed record ElectionCard(int NextIn, int TermTurns, IReadOnlyList<(string Party, string PartyAccent, string HouseId, string HouseName, string Accent, int Tally)> Nominees, bool Standing, string? StandRefusal, bool AmConsul, bool CanVeto);
 /// <summary>The Senate as a place of action (GDD §6.1): the docket, the history, what the player may move, and their weight in the chamber.</summary>
 public sealed record SenateCard(IReadOnlyList<MotionCard> Docket, IReadOnlyList<MotionCard> History, IReadOnlyList<MotionProposal> Proposals, int MyWeight, int TotalWeight, bool MayPropose, bool Embargoed, int EmbargoLifts, IReadOnlyList<OfficeCard>? Offices = null,
-    IReadOnlyList<FactionCard>? Factions = null, string? FoundRefusal = null, string? LeaveRefusal = null, int Followers = 0, ElectionCard? Election = null);
+    IReadOnlyList<FactionCard>? Factions = null, string? FoundRefusal = null, string? LeaveRefusal = null, int Followers = 0, ElectionCard? Election = null,
+    string? HeadAbroad = null);   // why the house may move nothing but its own exile's return, said to the player: its head is in exile (docs/LADDER.md, "Exile")
 
 /// <summary>One option of a law: in force or not, what it does, what the estates think of it, and why it cannot be chosen.</summary>
 public sealed record LawOptionCard(string Id, string Name, bool InForce, string Effects, IReadOnlyList<(string Estate, string Name, int Opinion)> Opinions, string? Refusal);
@@ -615,7 +616,8 @@ public static class CourtProjection
                 w.HasFlag(ElectionSystem.StandFlag(house.Id)), new StandForConsulCommand(p.Id, senate.Offices).Refusal(ctx), ElectionSystem.IsConsul(w, senate.Offices, house.Id), ElectionSystem.MayVeto(w, senate.Offices, house.Id));
         }
         return new SenateCard(docket, history, proposals, senate.Weight(w, house.Id), total, senate.MayPropose(w, house.Id), SenateSystem.Embargoed(w, house.Id), Math.Max(0, w.Counter("embargo:" + house.Id) - w.Turn), offices,
-            factions, new FoundFactionCommand(p.Id).Refusal(ctx), new LeaveFactionCommand(p.Id).Refusal(ctx), FoundFactionCommand.Followers(w, house.Id).Count, election);
+            factions, new FoundFactionCommand(p.Id).Refusal(ctx), new LeaveFactionCommand(p.Id).Refusal(ctx), FoundFactionCommand.Followers(w, house.Id).Count, election,
+            ChargeSystem.HeadAbroadSays(w, house, p.Id));
     }
 
     /// <summary>Battles about to be joined, the campaign, and the protagonist's own command style (docs/MILITARY.md).</summary>

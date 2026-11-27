@@ -389,6 +389,7 @@ public static class DisownSystem
             var child = w.Char(d.PersonId);
             if (child is not { Alive: true } || child.Id == heir.Id || child.Age < Adult || !IsChildOf(child, previous) || !WouldSue(w, child, heir)) continue;
             if (Remembered(w, house, previous, child)) continue;   // the will, or the custom of the house, did not forget them
+            if (ChargeSystem.Abroad(w, child)) { w.Log($"{child.Name} would sue that {previous.Name}'s will was undutiful, but is in exile, and an exile brings no suit before the courts of the Reach."); continue; }
             if (w.WillSuits.Any(s => s.PlaintiffId == child.Id && s.DeceasedId == previous.Id)) continue;
             var judge = LadderSystem.Bench(w, house.Id, child.HouseId); if (judge == null) { w.Log($"{child.Name} would sue that {previous.Name}'s will was undutiful, but no praetor of another house sits to hear it."); continue; }
             var things = w.Heirlooms.Where(i => i.HolderId == previous.Id && !i.Entailed).OrderByDescending(i => i.Value).ThenBy(i => i.Id, StringComparer.Ordinal).ToList();
@@ -436,13 +437,16 @@ public static class DisownSystem
         if (w.Char(s.JudgeId) is { Alive: true } j && LadderSystem.Seat(w, j.Id)?.OfficeId == LadderSystem.Praetor && j.HouseId != s.HouseId && j.HouseId != other) return j;
         return LadderSystem.Bench(w, s.HouseId, other);
     }
-    /// <summary>Who answers it for the house: whoever the head sent, else the house's advocate on the council, else the head.</summary>
+    /// <summary>Who answers it for the house: whoever the head sent, else the house's advocate on the council, else the head; and if the
+    /// head is abroad, the best pleader of the house at home. Nobody in exile is heard (docs/LADDER.md, "Exile").</summary>
     public static Character? AnswersFor(World w, WillSuit s)
     {
         var house = w.House(s.HouseId); if (house == null) return null;
-        if (w.Char(s.PleaderId) is { Alive: true } p && p.HouseId == house.Id && p.Id != s.PlaintiffId) return p;
-        if (house.Duty(HouseholdSystem.Advocate)?.HolderId is { Length: > 0 } adv && w.Char(adv) is { Alive: true } a && a.HouseId == house.Id && a.Id != s.PlaintiffId) return a;
-        return Economy.HeadOf(w, house);
+        if (w.Char(s.PleaderId) is { Alive: true } p && p.HouseId == house.Id && p.Id != s.PlaintiffId && !ChargeSystem.Abroad(w, p)) return p;
+        if (house.Duty(HouseholdSystem.Advocate)?.HolderId is { Length: > 0 } adv && w.Char(adv) is { Alive: true } a && a.HouseId == house.Id && a.Id != s.PlaintiffId && !ChargeSystem.Abroad(w, a)) return a;
+        if (Economy.HeadOf(w, house) is { } head && !ChargeSystem.Abroad(w, head)) return head;
+        return w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != s.PlaintiffId && c.Age >= Adult && !ChargeSystem.Abroad(w, c))
+            .OrderByDescending(LadderSystem.Craft).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
     }
     public static int DefenceOf(World w, WillSuit s) => AnswersFor(w, s) is { } a ? LadderSystem.Craft(a) + (HouseholdSystem.IsAdvocateOf(w, s.HouseId, a.Id) ? w.Counter(HouseholdSystem.CounselEdgeKey(s.HouseId)) : 0) : 0;
     /// <summary>In a hundred, how likely the child wins before a praetor who goes by the pleading.</summary>
@@ -520,6 +524,7 @@ public static class DisownSystem
         if (s == null || s.Outcome.Length > 0 || s.HouseId != house.Id) return "no such suit is waiting";
         if (pleader is not { Alive: true } || pleader.HouseId != house.Id || pleader.Age < Adult) return "there is no one of age in the house to send";
         if (pleader.Id == s.PlaintiffId) return "they are the one who brings it";
+        if (ChargeSystem.AbroadSays(w, pleader, pleader.Id == w.ProtagonistId) is { } away) return away;   // an exile pleads in no court
         return s.PleaderId == pleader.Id ? "they are already to answer it" : null;
     }
     public static void SendPleader(World w, Character head, WillSuit s, Character pleader)
@@ -542,9 +547,10 @@ public static class DisownSystem
         foreach (var s in w.WillSuits.Where(s => s.Outcome.Length == 0 && s.Turn < w.Turn).OrderBy(s => s.Id, StringComparer.Ordinal).ToList())
         {
             var house = w.House(s.HouseId); var child = w.Char(s.PlaintiffId); var head = house != null ? Economy.HeadOf(w, house) : null; var judge = JudgeOf(w, s);
-            if (house == null || head == null || child is not { Alive: true } || child.Id == head.Id || judge == null)
+            if (house == null || head == null || child is not { Alive: true } || child.Id == head.Id || judge == null || ChargeSystem.Abroad(w, child))
             {
-                s.Outcome = Lapsed; s.DecidedTurn = w.Turn; s.How = judge == null ? "lapsed: no praetor of another house sat to hear it" : "lapsed: there was nobody left to bring it, or to answer it";
+                s.Outcome = Lapsed; s.DecidedTurn = w.Turn; s.How = judge == null ? "lapsed: no praetor of another house sat to hear it" : child != null && ChargeSystem.Abroad(w, child) ? "lapsed: the one who brought it went into exile, and an exile brings no suit"
+                    : "lapsed: there was nobody left to bring it, or to answer it";
                 w.Log($"The suit over the will of {s.DeceasedName} lapses.");
                 if (house != null && Mine(w, house.Id)) w.Tell("info", $"{(child != null ? child.Name + "'s" : "The")} suit over the will of {s.DeceasedName} has lapsed: {s.How["lapsed: ".Length..]}.", "senate:ladder");
                 continue;

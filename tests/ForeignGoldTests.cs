@@ -363,4 +363,14 @@ public class ForeignGoldTests
         Assert.True(w.Nation("thessar")!.PurseOpened); Assert.InRange(w.Nation("thessar")!.Purse, 0, ForeignGoldSystem.Cap(Content.Nations.Def("thessar")!));
         Assert.All(w.GoldOffers, x => Assert.True(x.Settled || w.Motions.Any(m => m.Id == x.MotionId && m.Open)));
     }
+
+    [Fact]
+    public void Taking_a_sum_to_withdraw_a_motion_says_nothing_of_a_vote_there_will_not_be()
+    {
+        var withdraw = new GoldOffer { Id = "o1", Ask = ForeignGoldSystem.Withdraw, Sum = 10 }; var against = new GoldOffer { Id = "o2", Ask = ForeignGoldSystem.Against, Sum = 10 };
+        Assert.Contains("Your motion is withdrawn at once.", ForeignGoldSystem.TakeSays(withdraw)); Assert.DoesNotContain("Vote for the war after all", ForeignGoldSystem.TakeSays(withdraw));
+        Assert.Contains($"Vote for the war after all and they send your house nothing for {Counted.Years(ForeignGoldSystem.BrokenYears)}.", ForeignGoldSystem.TakeSays(against));
+        string razor = File.ReadAllText(Path.Combine(ContentLocator.FindContentDir(), "..", "src", "Web", "Components", "ForeignGoldBlock.razor"));
+        Assert.Contains("ForeignGoldSystem.Take => ForeignGoldSystem.TakeSays(o)", razor);
+    }
 }
