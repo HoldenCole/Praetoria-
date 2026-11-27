@@ -17,7 +17,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
-  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.screen.window .rung')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (t) t.click(); }, name); await page.waitForTimeout(400); };
+  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.screen.window .rung, .screen.window .ui-tab')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (t) t.click(); }, name); await page.waitForTimeout(400); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const confirm = async () => { await page.waitForTimeout(300); const said = await page.evaluate(() => { const b = document.querySelector('[data-confirm="yes"]'); if (!b) return 'no question was asked'; const q = (b.closest('.confirm-box') || {}).innerText || ''; b.click(); return q.replace(/\s+/g, ' ').slice(0, 300); }); console.log('  asked: ' + said); await page.waitForTimeout(600); const out = await page.evaluate(() => { const o = document.querySelector('[data-outcome-ok]'); const t = o ? (o.closest('.confirm-box') || {}).innerText || '' : ''; if (o) o.click(); return t.replace(/\s+/g, ' ').slice(0, 300); }); if (out) console.log('  outcome: ' + out); await page.waitForTimeout(300); };
   const text = sel => page.evaluate(s => { const e = document.querySelector(s); return e ? e.innerText.replace(/\s+/g, ' ') : 'NOT FOUND: ' + s; }, sel);
@@ -25,11 +25,12 @@ require('fs').mkdirSync(shots, { recursive: true });
   const suspicious = t => /NaN|undefined|Exception|@\(|\(s\)/.test(t) ? 'SUSPICIOUS TEXT' : 'ok';
   await closeWindows();
 
-  // the Laws window: the law of the Reach by category, and the edicts
-  await rail('Laws'); await page.waitForTimeout(700); await tab('The law of the Reach');
+  // the Laws window: the law of the Reach by category, and the edicts (each on its own tab)
+  await rail('Laws'); await page.waitForTimeout(700); await tab('The Reach');
   const cats = await page.evaluate(() => [...document.querySelectorAll('[data-reach-category]')].map(e => e.getAttribute('data-reach-category')));
   console.log('law of the Reach, by category: ' + cats.join(', '));
   await page.screenshot({ path: shots + '/laws-reach.png' }); console.log('saved laws-reach.png');
+  await tab('Edicts');
   const edicts = await text('[data-edicts]'); console.log('edicts panel: ' + suspicious(edicts) + ' · ' + edicts.slice(0, 400));
   const can = await page.evaluate(() => [...document.querySelectorAll('[data-edict]')].map(b => b.getAttribute('data-edict') + (b.disabled ? ' (no: ' + (b.title || '').slice(0, 60) + ')' : ' (yes)')));
   console.log('edicts offered: ' + can.join('; '));
@@ -46,7 +47,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const set = await page.evaluate(() => { const want = ['dole:corn_dole', 'local_tithe:remitted', 'charter:chartered']; for (const k of want) { const b = document.querySelector('[data-local-option="' + k + '"]'); if (b && !b.disabled) { b.click(); return k; } } const b = [...document.querySelectorAll('[data-local-option]')].find(e => !e.disabled); if (b) { b.click(); return b.getAttribute('data-local-option'); } return ''; });
   console.log('set: ' + (set || 'none could be set')); if (set) { await confirm(); await shot('[data-local-laws]', 'local-laws-set.png'); console.log('block now: ' + (await text('[data-local-laws]')).slice(0, 300)); }
   await closeWindows();
-  await rail('Laws'); await page.waitForTimeout(700); await tab('The laws in your gift');
+  await rail('Laws'); await page.waitForTimeout(700); await tab('Your laws');
   console.log('summary on the Laws window: ' + (await text('[data-local-summary]')).slice(0, 300));
   await shot('[data-local-summary]', 'local-laws-summary.png');
   await closeWindows();

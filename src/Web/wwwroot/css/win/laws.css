@@ -1,28 +1,188 @@
-/* The laws window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
-   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
-.es-bar { position: relative; height: .4rem; background: rgba(255,255,255,.08); border-radius: 3px; margin: .3rem 0; } .es-bar .zero { position: absolute; left: 50%; top: -2px; width: 1px; height: .6667rem; background: rgba(255,255,255,.35); } .es-bar .fill { position: absolute; top: 0; height: 100%; border-radius: 3px; } .es-bar .fill.pos { background: var(--good); } .es-bar .fill.neg { background: var(--bad); }
-.law-cat { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--brass2); margin: .6rem 0 .2rem; }
-.law-head { cursor: pointer; display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; } .law-desc { margin: .3rem 0 .45rem; }
-.law-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; } .law-opt { text-align: left; background: rgba(0,0,0,.35); color: inherit; border: 1px solid var(--line); border-radius: 4px; padding: .4rem .5rem; cursor: pointer; font: inherit; } .law-opt:hover:not(:disabled) { border-color: var(--brass2); } .law-opt:disabled { opacity: .55; cursor: default; } .law-opt.here { border-color: var(--brass2); box-shadow: 0 0 0 1px var(--brass3) inset; opacity: 1; }
-.lo-name { font-weight: 600; } .lo-fx { min-height: 1.2em; margin: .15rem 0; } .lo-op { display: flex; flex-wrap: wrap; gap: .2rem; } .opin { font-size: .68rem; padding: 0 .3rem; border-radius: 3px; border: 1px solid var(--line); } .opin.pos { color: var(--good); } .opin.neg { color: var(--bad); }
-@media (max-width: 1100px) {
-  .law-options { grid-template-columns: 1fr; }
+/* The Laws window (docs/VISUAL_SYSTEM.md 4 and 5.3): the court painting and its plinth, the estates as diverging meters, every law as
+   one row with its options as a ladder of joined plates, the edicts and local law as rows. Loaded after app.css, so a rule here wins over
+   a shared rule of the same weight. Only this window's files (LawsScreen, EdictsPanel, LocalLawBlock, LocalLawSummary) use the classes
+   below; where a shared part lacks something (a ladder that is pressed per plate, a diverging meter with a target), it is varied here. */
+
+.laws-win { --lw-name: 11.6rem; --lw-gut-l: 1.8667rem; --lw-gut-r: 1.6rem; }
+
+/* the old window rule for every h3 in a docked window (app.css, ".game .win-body h3") outweighs the section heading's own: put it back */
+.game .win-body .laws-win .ui-sec h3, .game .win-body .local-summary .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
+
+/* the painted header: the court, its hall and the bench at the end of it; the five figures spread along the plinth */
+.laws-win .ui-head-art { background-position: center 42%; }
+/* the court is a bright hall of white columns: the shade behind the text column reaches a little further than on a darker painting */
+.laws-win .ui-head-shade { background:
+  linear-gradient(90deg, rgba(8,10,15,.9) 0%, rgba(8,10,15,.74) 40%, rgba(8,10,15,.3) 70%, rgba(8,10,15,.22) 100%),
+  linear-gradient(180deg, rgba(8,10,15,.35) 0%, rgba(8,10,15,0) 26%, rgba(8,10,15,0) 58%, rgba(8,10,15,.9) 100%); }
+.laws-win .ui-plinth { justify-content: space-between; }
+.laws-win .ui-plinth .ui-fig + .ui-fig { margin-left: .6rem; padding-left: 1rem; }
+.laws-win .ui-facts { max-width: 33rem; }
+.laws-win .ui-title { white-space: nowrap; }
+@media (max-width: 1500px) {
+  .laws-win { --lw-name: 9.4rem; --lw-gut-r: 1.2rem; }
+  .laws-win .ui-plinth { padding: 0 1.2rem 0 1.3333rem; }
+  .laws-win .ui-plinth .ui-fig { gap: .4rem; }
+  .laws-win .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
+  .laws-win .ui-plinth .ui-fig + .ui-fig { margin-left: .2667rem; padding-left: .6667rem; }
+  .laws-win .ui-head-text { right: 3.6rem; }
 }
-/* the law of the Reach (Chancery) */
-.reach-line { padding: .2rem 0; border-bottom: 1px dotted rgba(255,255,255,.06); }
-.reach-line.act b { color: var(--accent); }
-.reach-line .pos { color: #9fd79f; }
-.es-bar.big { height: .6667rem; margin: .4rem 0; } .es-bar .target { position: absolute; top: -.2rem; width: 2px; height: 1.0667rem; background: var(--ink); opacity: .8; }
-.es-bar .band { position: absolute; top: 0; height: 100%; opacity: .12; pointer-events: none; } .es-bar .band.loyal { left: 65%; right: 0; background: var(--brass2); } .es-bar .band.hostile { left: 0; right: 65%; background: var(--bad); }
-.law-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.3333rem, 1fr)); gap: .5rem; margin-bottom: .6rem; } .law-grid .law.open { grid-column: 1 / -1; }
-.law-grid .law { border: 1px solid var(--line); border-radius: 4px; padding: .45rem .55rem; background: rgba(5,7,12,.35); } .law-grid .law.custom { border-color: var(--brass3); } .law-grid .law-head { cursor: pointer; } .law-grid .inforce { color: var(--brass2); }
-.chancery2-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
-.es-row { display: grid; grid-template-columns: minmax(8.6667rem, 11.3333rem) minmax(0, 1fr) 5.6rem; align-items: center; column-gap: .7rem; padding: .4rem .2rem .45rem; border-bottom: 1px dotted var(--line); }
-.es-row .es-who { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; } .es-row .es-who b { font-size: .95rem; } .es-row .es-bar.big { margin: 0; }
-.es-row .es-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; } .es-row .es-val b { font-size: 1rem; } .es-row .es-val i { font-style: normal; font-size: .7rem; margin-left: .35rem; color: var(--muted); } .es-row .es-val i.up { color: #9fdcb6; } .es-row .es-val i.down { color: #f0937f; }
-.es-row .es-note { grid-column: 1 / -1; font-size: .76rem; color: var(--ink2); margin-top: .2rem; } .es-row .es-note .good { color: #9fdcb6; } .es-row .es-note .warn { color: #f0937f; } .es-row.hostile b { color: #f0a090; } .es-row.loyal b { color: var(--brass2); }
-.es-key { margin-top: .5rem; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .45rem; } .es-key .k { display: inline-block; width: .9333rem; height: .5333rem; border-radius: 2px; } .es-key .k.fill { background: var(--good); } .es-key .k.target { width: 2px; height: .8rem; background: var(--ink); }
-.es-key .k.loyal { background: var(--brass2); opacity: .35; } .es-key .k.hostile { background: var(--bad); opacity: .35; }
-table.reach-table td { font-size: .78rem; } table.reach-table td:first-child { white-space: nowrap; }
-.local-summary .ls-row { padding: .1rem 0; }
-.law-open { margin-left: .45rem; white-space: nowrap; color: var(--brass2); border: 1px solid var(--brass3); border-radius: 3px; padding: 0 .4rem; font-size: .72rem; letter-spacing: .04em; } .law-head:hover .law-open { background: rgba(200,160,80,.15); }
+
+.laws-win .lw-body { padding-bottom: 2.4rem; }
+.laws-win .lw-lede { margin-bottom: .2667rem; }
+.laws-win .ui-sec { padding-left: var(--lw-gut-l); padding-right: var(--lw-gut-r); }
+.laws-win .ui-sec-r { white-space: nowrap; }
+.laws-win .ui-empty { padding-left: var(--lw-gut-l); }
+
+/* ---- the estates: one row each, a medallion with the estate's glyph, a diverging meter with where the laws are taking it, a step ---- */
+.lw-key { display: inline-flex; align-items: center; gap: .4rem; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); }
+.lw-key b { font-weight: 600; color: var(--ink); margin-right: .4rem; }
+.lw-key .k { width: .8rem; height: .5333rem; display: inline-block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.6); }
+.lw-key .k.loy { background: rgba(201,162,74,.45); } .lw-key .k.hos { background: rgba(224,85,63,.45); }
+
+.es2-row { display: grid; grid-template-columns: 2.9333rem minmax(0, 1fr); column-gap: .9333rem; row-gap: .2667rem; align-items: center; position: relative;
+  padding: .6667rem var(--lw-gut-r) .6rem var(--lw-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
+.es2-row:hover { background: linear-gradient(90deg, rgba(201,162,74,.10), rgba(255,255,255,.02)); }
+.es2-row:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.es2-pic { grid-row: 1 / span 2; align-self: start; width: 2.9333rem; height: 2.9333rem; border-radius: 50%; display: grid; place-items: center; --rim: linear-gradient(160deg, #a5813a, #4a3510 50%, #8a6a2a);
+  background: radial-gradient(circle at 50% 38%, #232b3b, #07090d 76%) padding-box, var(--rim) border-box; border: 2px solid transparent; box-shadow: 0 0 0 1px #000, inset 0 1px 4px #000, 0 2px 4px rgba(0,0,0,.6); }
+.es2-pic .icon { width: 1.6rem; height: 1.6rem; }
+.es2-row.loyal .es2-pic { --rim: conic-gradient(from 210deg, #f6e2a0, #8a6a2a, #e9cd84, #5b4316, #f6e2a0); box-shadow: 0 0 0 1px #000, inset 0 1px 4px #000, 0 0 10px rgba(232,196,110,.3); }
+.es2-row.hostile .es2-pic { --rim: conic-gradient(from 210deg, #ffc3a6, #9b2d1a, #ec6c4c, #5a1a0e, #ffc3a6); }
+.es2-l1 { display: grid; grid-template-columns: 9.3333rem minmax(0, 1fr) 4.9333rem; align-items: center; column-gap: .9333rem; min-width: 0; }
+.es2-nm { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; }
+.es2-row.loyal .es2-nm { color: var(--brass-hi); }
+.es2-trk { position: relative; height: .5333rem; }
+.es2-trk .band { position: absolute; top: 0; bottom: 0; }
+.es2-trk .band.hos { left: 0; width: 35%; background: linear-gradient(90deg, rgba(224,85,63,.20), rgba(224,85,63,.09)); box-shadow: inset -1px 0 0 rgba(236,108,76,.55); }
+.es2-trk .band.loy { left: 65%; right: 0; background: linear-gradient(90deg, rgba(201,162,74,.09), rgba(201,162,74,.20)); box-shadow: inset 1px 0 0 rgba(233,205,132,.55); }
+.es2-trk .ui-fill { z-index: 1; } .es2-trk .ui-tick { z-index: 2; } .es2-trk .ui-mid { z-index: 2; }
+.es2-val { display: flex; align-items: baseline; justify-content: flex-end; gap: .3333rem; white-space: nowrap; font-variant-numeric: tabular-nums lining-nums; }
+.es2-val b { font: 600 1.0667rem/1 var(--f-ui); color: var(--ink); }
+.es2-val small { display: inline-flex; align-items: center; gap: .1333rem; font: 600 .8333rem/1 var(--f-ui); color: var(--ink-mute); }
+.es2-val small .icon { width: .6667rem; height: .6667rem; }
+.es2-val small.up { color: var(--good); } .es2-val small.down { color: #ef8a74; }
+.es2-val small.down .icon { transform: rotate(90deg); } .es2-val small.up .icon { transform: rotate(-90deg); }
+.es2-l2 { display: flex; align-items: center; flex-wrap: wrap; gap: .3333rem .8rem; min-height: 1.8667rem; min-width: 0; }
+.es2-note { flex: 1 1 14rem; min-width: 0; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.es2-mood { color: var(--ink); font-weight: 500; }
+.es2-pet { display: inline-flex; align-items: center; gap: .3rem; margin-left: .4rem; color: var(--warn); }
+.es2-step { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: .5333rem; font: 400 .8667rem/1 var(--f-ui); color: var(--ink-mute); }
+.es2-would b { font-weight: 600; }
+.es2-step .ui-btn.sm { height: 1.8667rem; }
+.es2-step .ui-btn.off .ui-cost { color: var(--warn); }
+
+/* ---- a law: ONE row. Its group's glyph in a socket, its name and state, and its options as a ladder of joined plates ---- */
+.lw-pool { display: inline-flex; align-items: center; gap: .3333rem; } .lw-pool b { font-size: 1rem; }
+.lw-pool.none b { color: var(--warn); }
+.lw-row { display: grid; grid-template-columns: 2.5333rem var(--lw-name) minmax(0, 1fr); column-gap: .8rem; align-items: center; position: relative;
+  min-height: 3.8667rem; padding: .4rem var(--lw-gut-r) .4rem var(--lw-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
+.lw-row:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.015)); }
+.lw-row:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.lw-ic { width: 2.5333rem; height: 2.5333rem; display: grid; place-items: center; border-radius: 3px;
+  background: radial-gradient(circle at 50% 40%, #222a3b, #0b0e15 78%); box-shadow: inset 0 1px 3px rgba(0,0,0,.9), inset 0 0 0 1px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px rgba(165,129,58,.28); }
+.lw-ic .icon { width: 1.4667rem; height: 1.4667rem; }
+.lw-row.custom .lw-ic { box-shadow: inset 0 1px 3px rgba(0,0,0,.9), inset 0 0 0 1px rgba(0,0,0,.8), 0 0 0 1px rgba(233,205,132,.7), 0 0 8px rgba(232,196,110,.18); }
+.lw-nm { min-width: 0; cursor: default; }
+.lw-nm > b { display: block; font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
+.lw-st { display: flex; align-items: center; gap: .3rem; margin-top: .2rem; font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-mute); }
+.lw-st .icon { width: .8rem; height: .8rem; flex: none; }
+.lw-st.warn { color: var(--warn); } .lw-st.cust, .lw-st.act, .lw-st .cust { color: var(--brass-ink); } .lw-st.mine { color: var(--brass-hi); }
+.lw-st.quiet { font-style: italic; font-weight: 400; color: var(--ink-mute); letter-spacing: .02em; }
+.lw-dia { width: .4rem; height: .4rem; flex: none; transform: rotate(45deg); box-shadow: inset 0 0 0 1px rgba(201,162,74,.7); display: inline-block; margin-right: .1333rem; }
+
+/* the ladder: plates joined with no gaps (the Segmented part's look); the one in force recessed and lit with a brass foot */
+.lw-lad { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); min-width: 0; border: 1px solid #000; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 0 1px rgba(165,129,58,.16); }
+.lw-pl { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: .3333rem; min-width: 0; min-height: 3.0667rem; margin: 0; padding: .4rem .5333rem .3333rem .6rem;
+  text-align: left; font: 600 .9rem/1.2 var(--f-ui); color: #d3ccb8; background: linear-gradient(#2b3346, #1a1f2b); border: 0; border-radius: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.4); cursor: pointer; opacity: 1; text-shadow: 0 1px 0 #000; }
+.lw-lad > * + * { border-left: 1px solid #000; }
+/* a disabled plate takes no pointer, so the cell under it (which carries the same tooltip) says why it may not be chosen */
+.lw-cell { display: flex; min-width: 0; position: relative; } .lw-cell > .lw-pl { flex: 1 1 auto; }
+button.lw-pl:disabled, .lw-tipwrap > button:disabled { pointer-events: none; }
+.lw-tipwrap { display: inline-flex; }
+.lw-pn { display: block; }
+.lw-pf { display: flex; align-items: center; gap: .4rem; min-height: 1.0667rem; }
+button.lw-pl:hover:not(:disabled):not(.on) { color: #fff6dc; background: linear-gradient(#38425c, #222a3b); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 0 0 1px var(--brass-mid), 0 0 10px rgba(232,196,110,.12); z-index: 1; }
+button.lw-pl:active:not(:disabled):not(.on) { background: #0b0e14; box-shadow: inset 0 2px 4px #000; }
+.lw-pl.on { color: var(--brass-hi); cursor: default; background: radial-gradient(ellipse at 50% 135%, rgba(232,196,110,.30), rgba(232,196,110,.06) 60%, rgba(232,196,110,0) 80%), #0b0e14;
+  box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass), inset 0 0 0 1px rgba(0,0,0,.6); }
+.lw-pl.on::after { content: ""; position: absolute; right: .4667rem; top: .5333rem; width: .4rem; height: .4rem; transform: rotate(45deg); background: linear-gradient(135deg, #fbeab4, #c9a24a 55%, #6f5020); box-shadow: 0 0 0 1px #000, 0 0 6px rgba(246,226,160,.5); }
+.lw-pl.on .lw-pn { padding-right: .8rem; }
+.lw-pl.on.mine { color: #fff3c8; }
+.lw-pl.off, .lw-pl:disabled { opacity: 1; cursor: not-allowed; color: #aaa497; background: linear-gradient(#1d222d, #141821); }
+.lw-pl.off .lw-mks { opacity: .6; }
+.lw-lad.ro .lw-pl:not(.on) { cursor: default; color: #b4ae9f; background: linear-gradient(#222836, #171b25); }
+.lw-pc { margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: .2rem; padding-left: .4rem; border-left: 1px solid rgba(255,255,255,.12); box-shadow: -1px 0 0 #000;
+  font: 600 .8333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+.lw-pc .icon { width: .8667rem; height: .8667rem; }
+.lw-pc.short { color: var(--warn); } .lw-pc.lock .icon { opacity: .8; }
+
+/* the marks: an estate's glyph, green with a notch pointing up for one who would warm to it, red with a notch pointing down for one who
+   would cool; a second notch for a strong feeling (15 or more). Shape and colour both, so the two never depend on colour alone. */
+.lw-mks { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .2667rem .3333rem; min-width: 0; }
+.lw-mk { position: relative; display: inline-grid; place-items: center; width: 1.1333rem; height: 1.1333rem; font-style: normal; }
+.lw-mk .icon { width: 1.0667rem; height: 1.0667rem; stroke-width: 30px; }
+.lw-mk::after, .lw-mk.hi::before { content: ""; position: absolute; right: -.2rem; width: 0; height: 0; border-left: .1667rem solid transparent; border-right: .1667rem solid transparent; filter: drop-shadow(0 0 1px #000); }
+.lw-mk.up::after { top: -.1333rem; border-bottom: .2667rem solid #a6df92; }
+.lw-mk.down::after { bottom: -.1333rem; border-top: .2667rem solid #f07a60; }
+.lw-mk.up.hi::before { top: .2rem; border-bottom: .2667rem solid #a6df92; }
+.lw-mk.down.hi::before { bottom: .2rem; border-top: .2667rem solid #f07a60; }
+
+/* the law of the Reach: the categories hold their rows; a link to the Senate at the section's right */
+.lw-grp + .lw-grp .lw-row:first-child { box-shadow: inset 0 1px 0 rgba(201,162,74,.10); }
+.lw-row.mine .lw-nm > b { color: var(--brass-hi); }
+.lw-senate { font-size: .9333rem; }
+
+@media (max-width: 1500px) {
+  .lw-pl { font-size: .8667rem; padding: .3333rem .4rem .3rem .4667rem; }
+  .lw-row { column-gap: .6rem; }
+  .lw-ic { width: 2.2667rem; height: 2.2667rem; } .lw-row { grid-template-columns: 2.2667rem var(--lw-name) minmax(0, 1fr); }
+  .es2-l1 { grid-template-columns: 7.6rem minmax(0, 1fr) 4.5333rem; column-gap: .6667rem; }
+  .es2-nm { font-size: .9333rem; }
+  .lw-key { display: none; }
+}
+
+/* ---- edicts: rows with the issuer's face, what it does, the term on a plate and the cost on the Issue plate ---- */
+.lw-edicts .ui-row { padding-left: var(--lw-gut-l); padding-right: var(--lw-gut-r); }
+.lw-edic { width: 2.6667rem; height: 2.6667rem; border-radius: 50%; display: grid; place-items: center; margin: 0 auto;
+  background: radial-gradient(circle at 50% 38%, #232b3b, #07090d 76%) padding-box, linear-gradient(160deg, #a5813a, #4a3510 50%, #8a6a2a) border-box; border: 2px solid transparent; box-shadow: 0 0 0 1px #000, inset 0 1px 4px #000; }
+.lw-edic .icon { width: 1.4667rem; height: 1.4667rem; }
+.lw-ed.no .lw-edic { filter: saturate(.4) brightness(.85); }
+.laws-win .ui-row-sub.lw-wrap, .local-summary .ui-row-sub.lw-wrap { white-space: normal; overflow: visible; text-overflow: clip; }
+.lw-no { color: var(--warn); }
+.lw-by { font-size: .8667rem; color: var(--ink-mute); }
+.lw-named { font-weight: 500; color: var(--ink-dim); }
+.lw-term { display: inline-flex; align-items: center; justify-content: center; gap: .3333rem; min-width: 5.8667rem; height: 1.8667rem; padding: 0 .6rem; white-space: nowrap; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim);
+  background: #07090e; border-radius: 2px; box-shadow: var(--sh-inset); }
+.lw-term b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.lw-term .icon { width: .9333rem; height: .9333rem; }
+.lw-issue .ui-cost { gap: .2rem; } .lw-issue .ui-cost .icon + span, .lw-issue .ui-cost .icon ~ .icon { margin-left: .2rem; }
+.lw-issue.off { color: #b9b4a8; }
+.lw-quiet { display: inline-flex; align-items: center; gap: .3333rem; font: italic 400 .8667rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; cursor: help; }
+.lw-as { font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); }
+.lw-target { display: flex; align-items: center; gap: .8rem; padding: .6667rem var(--lw-gut-r) .6667rem var(--lw-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
+.lw-selwrap { position: relative; display: inline-flex; align-items: center; }
+.lw-selwrap > .icon { position: absolute; right: .6667rem; width: .8rem; height: .8rem; transform: rotate(90deg); pointer-events: none; }
+select.lw-sel { -webkit-appearance: none; appearance: none; min-width: 15rem; height: 2.1333rem; padding: 0 2rem 0 .8rem; font: 500 .9333rem/1 var(--f-ui); color: var(--ink); cursor: pointer;
+  background: linear-gradient(#262e40, #161b27); border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-plate), 0 0 0 1px var(--brass-mid); }
+select.lw-sel:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+select.lw-sel option { background: #12161f; color: var(--ink); }
+
+/* ---- local law on the Laws window: a row for each world under a decree ---- */
+.local-summary .ui-row { padding-left: var(--lw-gut-l, 1.8667rem); padding-right: var(--lw-gut-r, 1.6rem); }
+.local-summary .ui-globe { margin: 0 auto; display: block; }
+
+/* ---- local law on a world (the Worlds window's card, the system panel): each law a row with its ladder ---- */
+.local-laws.lw-local { margin: .6rem 0; padding: .5333rem .6667rem .6667rem; border: 0; border-radius: 0; font-size: .9333rem;
+  background: linear-gradient(180deg, rgba(201,162,74,.06), rgba(5,7,10,.35) 2.4rem), rgba(5,7,10,.35); box-shadow: inset 0 1px 0 rgba(201,162,74,.45), inset 0 0 0 1px rgba(0,0,0,.5); }
+.local-laws.lw-local .ll-head { display: flex; align-items: center; flex-wrap: wrap; gap: .3333rem .5333rem; margin: 0 0 .4667rem; font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); }
+.local-laws.lw-local .ll-head > b { font: 600 .8667rem/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
+.local-laws.lw-local .ll-head .icon { width: 1rem; height: 1rem; }
+.local-laws.lw-local .ll-count b { color: var(--ink); font-weight: 600; }
+.local-laws.lw-local .ll-rule { display: inline-flex; align-items: center; gap: .3rem; color: var(--ink-mute); }
+.local-laws.lw-local .ll-rule .icon { width: .8667rem; height: .8667rem; }
+.local-laws.lw-local .ll-row { display: grid; grid-template-columns: 8.8rem minmax(0, 1fr); align-items: center; column-gap: .6667rem; padding: .2rem 0; border-top: 0; }
+.local-laws.lw-local .ll-row + .ll-row { border-top: 1px solid rgba(255,255,255,.04); }
+.local-laws.lw-local .ll-name { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); opacity: 1; }
+.local-laws.lw-local .ll-row.custom .ll-name { color: var(--brass-hi); }
+.local-laws.lw-local .ll-row.custom .ll-now { color: var(--brass-hi); }
+.local-laws.lw-local .lw-pl { min-height: 2.6667rem; font-size: .8667rem; padding: .3333rem .4rem .2667rem .4667rem; }

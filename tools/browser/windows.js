@@ -6,7 +6,8 @@
 //
 // Needs the build served locally (see README.md here). Screenshots go to PRAETORIA_SHOTS (default ./shots). PRAETORIA_ONLY=house,laws
 // looks at some windows only; PRAETORIA_W and PRAETORIA_H set the size (1600 by 1000), PRAETORIA_SCALE the device scale (1).
-// Tabs are found as the old .cw-tabs/.ex-tabs rungs or the shared Tabs part (.ui-tabs .ui-tab, docs/VISUAL_SYSTEM.md 4.4).
+// Tabs are found as the old .cw-tabs/.ex-tabs rungs or the shared Tabs part (.ui-tabs .ui-tab, docs/VISUAL_SYSTEM.md 4.4), in a window
+// that brings its own frame (.ui-win) or one drawn in the shell's docked window (.screen.window).
 const { chromium } = require('playwright');
 const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.argv[3] || '0', 10);
 const quick = process.argv[4] === 'quick';
@@ -41,9 +42,9 @@ require('fs').mkdirSync(shots, { recursive: true });
     if (only.length && !only.includes(r)) continue;
     await page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n); if (el) el.click(); }, r);
     await page.waitForTimeout(1500);
-    const tabs = await page.evaluate(() => [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung, .ui-win .ui-tabs .ui-tab')].map(e => e.innerText.trim()));
+    const tabs = await page.evaluate(() => [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung, .ui-win .ui-tabs .ui-tab, .screen.window .ui-tabs .ui-tab')].map(e => e.innerText.trim()));
     for (let i = 0; i < Math.max(1, tabs.length); i++) {
-      if (tabs.length > 0) { await page.evaluate(i => { const b = [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung, .ui-win .ui-tabs .ui-tab')][i]; if (b) b.click(); }, i); await page.waitForTimeout(700); }
+      if (tabs.length > 0) { await page.evaluate(i => { const b = [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung, .ui-win .ui-tabs .ui-tab, .screen.window .ui-tabs .ui-tab')][i]; if (b) b.click(); }, i); await page.waitForTimeout(700); }
       const l = await look(); if (!l) { console.log(r + ': no window opened'); continue; }
       const name = r + (tabs.length > 0 ? '_' + tabs[i].toLowerCase().replace(/[^a-z]+/g, '-').replace(/-+$/, '') : '');
       if (!quick) await page.screenshot({ path: shots + '/win_' + name + '.png' });
