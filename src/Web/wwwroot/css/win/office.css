@@ -1,0 +1,29 @@
+/* The office window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+.traits { display: flex; flex-wrap: wrap; gap: .3rem; margin: .4rem 0 .5rem; }
+.office-stage { position: relative; height: calc(100vh - 3.8667rem - 1.6rem); min-height: 28rem; border: 1px solid var(--line2); border-radius: 4px; overflow: hidden; background: #0b0f17; box-shadow: 0 0 0 1px #0b0e14, 0 0 0 2px var(--brass3), 0 20px 60px rgba(0,0,0,.6); container-type: size; font-size: .933rem; }
+.office-stage > * { font-size: 2cqh; }
+.office-stage > * { position: absolute; }
+.decor { left: 4%; top: 44%; width: 20%; z-index: 3; background: #0d1119; border: .35em solid #5a4a2a; box-shadow: 0 8px 24px rgba(0,0,0,.6); padding: .5em; display: flex; flex-direction: column; gap: .3em; }
+.decor svg { width: 100%; height: auto; } .decor .plaque { font-family: var(--display); font-size: .75em; letter-spacing: .15em; color: var(--brass2); text-align: center; text-transform: uppercase; }
+.decor.trophies .shelf { display: flex; justify-content: space-around; padding: .6em 0; background: linear-gradient(180deg, #1a1512, #0d0a08); }
+.decor.archive .books { display: flex; align-items: flex-end; gap: 2px; height: 3.2em; padding: 0 .3em; background: #1a1a22; } .decor.archive .books i { flex: 1; display: block; border-top: 1px solid rgba(255,255,255,.15); }
+.stage-foot { left: 0; right: 0; bottom: 0; z-index: 8; display: flex; justify-content: space-between; align-items: center; padding: .4rem .8rem; background: linear-gradient(180deg, rgba(8,11,17,.6), rgba(8,11,17,.95)); border-top: 1px solid var(--line); font-size: .933rem; }
+.stage-title { display: inline-flex; align-items: center; gap: .4rem; }
+.customize { left: 0; right: 0; bottom: 2.9rem; z-index: 9; padding: .5rem .8rem .7rem; background: rgba(8,11,17,.95); border-top: 1px solid var(--line); display: grid; gap: .35rem; font-size: .933rem; }
+.slot-label { width: 4.6667rem; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-family: var(--display); }
+/* 3D office */
+.office-stage .gl-host { position: absolute; inset: 0; } .office-stage .gl-host canvas.gl { display: block; width: 100%; height: 100%; }
+.stage-visitors { position: absolute; left: .8rem; top: .8rem; display: flex; flex-direction: column; gap: .35rem; z-index: 5; max-width: 20rem; }
+.stage-chip { display: flex; flex-direction: column; align-items: flex-start; text-align: left; background: rgba(8,11,17,.78); border: 1px solid var(--line2); border-left: 3px solid var(--brass); border-radius: 3px; padding: .35rem .6rem; color: var(--ink); backdrop-filter: blur(4px); }
+.stage-chip:hover { border-color: var(--brass); box-shadow: 0 0 12px rgba(201,162,74,.3); } .stage-chip.ambient { border-left-color: #4a6a8a; }
+.stage-chip .who { font-family: var(--display); font-size: .85rem; color: var(--brass2); } .stage-chip .what { font-size: .8rem; color: var(--ink2); }
+.stage-chip.empty { color: var(--muted); font-style: italic; font-family: var(--serif); }
+/* ===== the hall, the command deck, the keep ===== */
+.office-side { max-height: calc(100vh - 3.8667rem - 1.6rem); overflow-y: auto; padding-right: .2rem; }
+.office-side .person { cursor: pointer; } .office-side .person:hover { background: rgba(201,162,74,.06); }
+.office-side .line { cursor: default; }
+.office-side details.fleet-card { border: 1px solid var(--line); border-radius: 3px; padding: .3rem .5rem; margin: .35rem 0; background: rgba(5,7,12,.4); }
+.office-side details.fleet-card > summary { cursor: pointer; display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; } .office-side details.fleet-card > summary .pill { margin-left: auto; }
+.stage-title { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+.office-side .sheet-head { gap: .7rem; } .office-side .sheet-head h2 { font-size: 1.4rem; }

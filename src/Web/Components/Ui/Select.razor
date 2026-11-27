@@ -1,0 +1,37 @@
+@* A select (docs/VISUAL_SYSTEM.md 4.12): a plate with a brass ring and a chevron that opens a list in the medium frame. An option can
+   carry a person's portrait plate (24 by 28) or an empty post, and a dim note ("your wife"); the current one has a brass bar. *@
+<span class="ui-select @(_open ? " open" : "") @(Class.Length > 0 ? " " + Class : "")" @onfocusout="Blur">
+    <button class="ui-select-btn" aria-haspopup="listbox" aria-expanded="@(_open ? "true" : "false")" title="@Tip" @onclick="() => _open = !_open">
+        <span>@(Options.FirstOrDefault(o => o.Key == Value)?.Text ?? Placeholder)</span><Icon Name="chev" Tone="brass" Size="12" />
+    </button>
+    @if (_open)
+    {
+        <span class="ui-menu" role="listbox">
+            @foreach (var o in Options)
+            {
+                var k = o.Key;
+                <button class="@(k == Value ? "on" : "")" role="option" aria-selected="@(k == Value ? "true" : "false")" @onclick="() => Pick(k)">
+                    @if (o.PersonId.Length > 0) { <Portrait Id="@o.PersonId" Name="@o.Text" Sex="@o.Sex" Age="@o.Age" Accent="@o.Accent" Size="24" Height="28" Opens="false" /> }
+                    else if (o.EmptyGlyph.Length > 0) { <Portrait Size="24" Height="28" EmptyGlyph="@o.EmptyGlyph" Opens="false" /> }
+                    @o.Text
+                    @if (o.Note.Length > 0) { <small>@o.Note</small> }
+                </button>
+            }
+        </span>
+    }
+</span>
+@code {
+    public sealed record Option(string Key, string Text, string Note = "", string PersonId = "", string Sex = "", int Age = 30, string Accent = "#d4a23e", string EmptyGlyph = "");
+    [Parameter] public IReadOnlyList<Option> Options { get; set; } = Array.Empty<Option>();
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string Placeholder { get; set; } = "Choose";
+    [Parameter] public string Tip { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public EventCallback<string> OnChange { get; set; }
+    /// <summary>Open from the start (the parts sheet shows the list).</summary>
+    [Parameter] public bool StartOpen { get; set; }
+    private bool _open;
+    protected override void OnInitialized() => _open = StartOpen;
+    private async Task Pick(string k) { _open = false; await OnChange.InvokeAsync(k); }
+    private async Task Blur() { await Task.Delay(150); if (_open && !StartOpen) { _open = false; StateHasChanged(); } }
+}

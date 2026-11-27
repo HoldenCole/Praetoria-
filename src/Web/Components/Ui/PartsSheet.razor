@@ -1,0 +1,191 @@
+@* The parts sheet (docs/VISUAL_SYSTEM.md, docs/ui/components.jpg): every shared window part on one page, drawn by the real components,
+   to be photographed against the mockup. Open the client with ?parts (a static server serves it). Nothing here touches a game. *@
+<style>
+    body:has(.parts-sheet) { background: var(--tex-leather); background-color: var(--base); }
+    .parts-sheet { position: relative; width: 106.6667rem; min-height: 132rem; color: var(--ink); font: 400 .9333rem/1.4 var(--f-ui); }
+    .parts-sheet .pcol { position: absolute; top: 1.2rem; }
+    .parts-sheet .c1 { left: 1.7333rem; width: 31.8667rem; } .parts-sheet .c2 { left: 35.7333rem; width: 33.3333rem; } .parts-sheet .c3 { left: 71.2rem; width: 33.8667rem; }
+    .parts-sheet h4 { margin: 0 0 .6667rem; padding-bottom: .4667rem; font: 600 .8667rem/1 var(--f-display); letter-spacing: .12em; text-transform: uppercase; color: var(--brass-ink); border-bottom: 1px solid rgba(201,162,74,.4); display: block; }
+    .parts-sheet h4::before, .parts-sheet h4::after { display: none; }
+    .parts-sheet .blk { margin-bottom: 1.3333rem; }
+    .parts-sheet .lbl { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-mute); }
+    .parts-sheet .type { display: grid; grid-template-columns: 7.7333rem 1fr; row-gap: .5333rem; align-items: baseline; }
+    .parts-sheet .swg { display: grid; grid-template-columns: repeat(8, 1fr); gap: .4rem; }
+    .parts-sheet .swg div { position: relative; height: 2rem; border-radius: 1px; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px rgba(255,255,255,.06); }
+    .parts-sheet .swg span { position: absolute; left: 0; top: 2.4rem; font: 500 .8rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
+    .parts-sheet .line { display: flex; align-items: center; gap: .6667rem; flex-wrap: wrap; margin-bottom: .6rem; }
+    .parts-sheet .line > .lbl { width: 5.7333rem; flex: none; }
+    .parts-sheet .pfs { display: flex; align-items: flex-end; gap: .9333rem; }
+    .parts-sheet figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: .4rem; }
+    .parts-sheet figcaption { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
+    .parts-sheet .marks { display: flex; gap: .9333rem; align-items: center; }
+    .parts-sheet .gtip.demo { position: relative; z-index: 1; opacity: 1; pointer-events: none; width: 20rem; max-width: none; white-space: normal; }
+    .parts-sheet .gtip.demo.nest { position: absolute; left: 15.4667rem; top: 7.4667rem; width: 17.8667rem; z-index: 2; }
+    .parts-sheet .gtip.demo u { text-decoration: none; border-bottom: 1px dotted var(--brass); color: #f0dfb0; }
+    .parts-sheet .icons { display: grid; grid-template-columns: repeat(4, 1fr); row-gap: .6667rem; }
+    .parts-sheet .icons figure { flex-direction: row; gap: .6rem; } .parts-sheet .icons figcaption { font-size: .8667rem; }
+    .parts-sheet .sock { width: 2.6667rem; height: 2.6667rem; border-radius: 3px; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #222a3b, #0b0e15 78%); box-shadow: inset 0 1px 3px rgba(0,0,0,.9), inset 0 0 0 1px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.07), 0 0 0 1px rgba(165,129,58,.22); }
+    .parts-sheet .sock .icon { filter: drop-shadow(0 1px 0 #000) drop-shadow(0 0 3px rgba(255,240,210,.12)); }
+    .parts-sheet .sock.on { background: linear-gradient(180deg, #f3dd9a, #c9a24a 45%, #8f6c2a); box-shadow: 0 0 0 1px #000, inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 0 rgba(0,0,0,.25), 0 0 14px rgba(232,196,110,.35); }
+    .parts-sheet .row6 { display: flex; gap: .9333rem; align-items: center; flex-wrap: wrap; }
+    .parts-sheet .tile { width: 2.6667rem; height: 2.6667rem; display: grid; place-items: center; position: relative; background: radial-gradient(circle at 50% 35%, #263045, #0b0e15 80%); box-shadow: 0 0 0 1px #000, 0 0 0 2px #8a6a2a, 0 0 0 3px #000; }
+    .parts-sheet .tile::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: .2667rem; background: var(--tb); box-shadow: 0 -1px 0 #000; }
+    .parts-sheet .tg { display: flex; gap: 1.0667rem; } .parts-sheet .tg figcaption { font-size: .8rem; }
+    .parts-sheet .ui-tabs { padding: .6667rem .6667rem 0; }
+    .parts-sheet .ui-sec { margin-top: 0; padding-left: 1.7333rem; }
+    .parts-sheet .ui-empty { padding: 4px 0 12px; }
+    .parts-sheet .world { display: grid; grid-template-columns: auto 1fr; gap: .2rem 1rem; align-items: center; }
+</style>
+<div class="parts-sheet">
+    <div class="pcol c1">
+        <div class="blk"><h4>Type: three faces</h4>
+            <div class="type">
+                <span class="lbl">Cinzel 600, 30</span><span style="font:600 2rem/1 var(--f-display);letter-spacing:.04em;color:#f5e9c9">House Castellan</span>
+                <span class="lbl">Cinzel 600, 13.5</span><span style="font:600 .9rem/1 var(--f-display);letter-spacing:.1em;color:var(--brass-ink)">THE WORLDS</span>
+                <span class="lbl">Alegreya italic, 17</span><span style="font:italic 400 1.1333rem/1.3 var(--f-prose);color:#e3d9c0">The house clears <b style="font-style:normal">400</b> a year.</span>
+                <span class="lbl">Alegreya, 18.5</span><span style="font:400 1.2333rem/1.3 var(--f-prose);color:#e8dfc8">Lucius Aurelian gives you an order.</span>
+                <span class="lbl">Plex 600, 15 / 14</span><span><span style="font:600 1rem/1 var(--f-ui)">The Lion's March</span> <span style="font:400 .9333rem/1 var(--f-ui);color:var(--ink-dim)">Agri-world · Greywater</span></span>
+                <span class="lbl">Plex 600, 20</span><span style="font:600 1.3333rem/1 var(--f-ui);font-variant-numeric:tabular-nums">2,500 <span class="ui-up" style="font-size:.8667rem">+1,000</span> 41<small style="font-size:.8667rem;color:var(--ink-mute)">/85</small></span>
+                <span class="lbl">Plex 600, 12 caps</span><span style="font:600 .8rem/1 var(--f-ui);letter-spacing:.1em;color:var(--brass-ink)">OF YOUR HOUSE</span>
+            </div></div>
+        <div class="blk"><h4>Colour tokens</h4>
+            <div class="swg">@foreach (var (c, n) in Tokens1) { <div style="background:@c"><span>@n</span></div> }</div>
+            <div class="swg" style="margin-top:1.6rem">@foreach (var (c, n) in Tokens2) { <div style="background:@c"><span>@n</span></div> }</div>
+        </div>
+        <div class="blk" style="margin-top:2.2667rem"><h4>Portrait plates: one frame at every size</h4>
+            <div class="pfs">
+                <figure><Portrait Id="parts_lucius" Name="Lucius Castellan" Sex="male" Age="38" Accent="#d4a23e" Size="150" Height="188" Opens="false" /><figcaption>150 by 188, window frame</figcaption></figure>
+                <figure><Portrait Id="parts_ysolde" Name="Ysolde Castellan" Sex="female" Age="34" Accent="#d4a23e" Size="70" Height="88" Opens="false" /><figcaption>70 by 88</figcaption></figure>
+                <figure><Portrait Id="parts_bastien" Name="Bastien Castellan" Sex="male" Age="71" Accent="#d4a23e" Size="46" Height="56" Opens="false" Condition="pill" ConditionTip="Ill" /><figcaption>ill</figcaption></figure>
+                <figure><Portrait Id="parts_helene" Name="Helene Castellan" Sex="female" Age="74" Accent="#d4a23e" Size="46" Height="56" Opens="false" Alive="false" /><figcaption>the dead</figcaption></figure>
+                <figure><Portrait Size="46" Height="56" EmptyGlyph="office-chair" Name="No governor" /><figcaption>an empty post</figcaption></figure>
+            </div></div>
+        <div class="blk"><h4>House marks</h4>
+            <div class="marks">
+                <figure><Sigil HouseId="castellan" Accent="#D4A23E" Size="76" Mode="seal" /><span class="lbl">your house, wax</span></figure>
+                <figure><Sigil HouseId="varro" Accent="#3A86FF" Size="76" Mode="seal" /><span class="lbl">another house</span></figure>
+                <figure><Icon Name="wax-seal" Tone="brass" Size="34" /><span class="lbl">unanswered</span></figure>
+                <figure><Sigil HouseId="castellan" Accent="#D4A23E" Size="34" /><span class="lbl">the arms</span></figure>
+                <figure><Sigil HouseId="castellan" Accent="#D4A23E" Size="40" Mode="standard" /><span class="lbl">standard</span></figure>
+            </div></div>
+        <div class="blk"><h4>Empty state and warn strip</h4>
+            <EmptyState Icon="shaking-hands" Text="No old friends and no old enemies yet." LinkLabel="Open Relations" />
+            <WarnStrip Icon="office-chair" Lead="No governor."><ChildContent>Aurel Castellan is dead and the chair is empty.</ChildContent><Action><Plate Label="Appoint" Small="true" Tip="Choose a governor for Cinder Gate" /></Action></WarnStrip>
+        </div>
+    </div>
+
+    <div class="pcol c2">
+        <div class="blk"><h4>Buttons and controls</h4>
+            <div class="line"><span class="lbl">action</span><Plate Label="Invest" Icon="sprout" CostIcon="credits" CostText="600" Tip="Invest in the world's prosperity" /><Plate Label="Build" Icon="build" CostText="15 ready" Class="hov" Tip="Build on the world" /><Plate Label="Appoint" Icon="office-chair" Class="down" Tip="Appoint a governor" /></div>
+            <div class="line"><span class="lbl">locked</span><Plate Label="Appoint" Icon="office-chair" Locked="true" Need="Needs a relative of age with no post" /></div>
+            <div class="line"><span class="lbl">primary</span><Plate Label="Move the motion" Icon="vote" Primary="true" CostIcon="public-speaker" CostText="1" Tip="Put the motion to the Senate" /><Link Label="Open Worlds" /></div>
+            <div class="line"><span class="lbl">segmented</span><Segmented Label="Tithe" Value="normal" Options="@Tithes" OnChange="v => { }" /></div>
+            <div class="line"><span class="lbl">select</span><Select Value="ysolde" Options="@People" StartOpen="true" /></div>
+            <div class="line" style="margin-top:9.4rem"><span class="lbl">check</span><Check Value="@_check" Label="Show the year in brief at its start" OnChange="v => _check = v" /></div>
+            <div class="line"><span class="lbl">stepper</span><Stepper Label="Lot" Value="@_lot" Min="1" Max="20" OnChange="v => _lot = v" /></div>
+        </div>
+        <div class="blk"><h4>Meters</h4>
+            <div style="display:grid;gap:.3333rem">
+                <Meter Label="Loyalty" Value="100" Color="#8cc47e" />
+                <Meter Label="Prosperity" Value="59" Target="75" Small="/75" />
+                <Meter Label="Maren Oriel" Value="-20" Kind="diverging" Text="−20" ValueClass="ui-down" />
+                <Meter Label="Net a year" Value="-35" Kind="signed" Max="100" Text="−350" ValueClass="ui-down" />
+            </div></div>
+        <div class="blk"><h4>Tooltip, with a term that opens another</h4>
+            <div style="position:relative;height:20rem">
+                <div class="gtip demo on" data-side="right"><b><Icon Name="laurels" Tone="ivory" Size="17" />Clout</b><div>The house's political capital in store. Seats and standing earn it; decrees and <u>the Exchange</u> spend it. It is not this year's <u>influence</u>, which is how much you can act in the Senate this year.</div><div class="foot">21 in store, +4 this year</div></div>
+                <div class="gtip demo nest on" data-level="1"><b><Icon Name="public-speaker" Tone="ivory" Size="17" />Influence, treasury actions and agents</b><div>The three things you can spend in a year. Influence is for politics, <u>treasury</u> actions for orders that take the house's officers, and agents for quiet business. All three come back each year.</div><div class="fx"><Icon Name="credits" Tone="brass" Size="18" /><span>Credits</span><span class="v down">−600 <small>2,500 to 1,900</small></span></div><div class="foot">Press <kbd>1</kbd> or click to choose it</div></div>
+            </div></div>
+    </div>
+
+    <div class="pcol c3">
+        <div class="blk"><h4>Tabs and a section heading</h4>
+            <Tabs Items="@TabItems" Active="goods" OnPick="k => { }" />
+            <Section Title="The goods" Count="5" Info="The Reach's market: prices move with what is brought up and shipped."><Right><Link Label="Spread 30%" /></Right></Section>
+        </div>
+        <div class="blk"><h4>Table: 36px rows, an order bar at the foot</h4>
+            <DataTable>
+                <Head><th>Good</th><th>Price</th><th>12 years</th><th>5 years</th><th>Market</th><th>Held</th></Head>
+                <ChildContent>
+                    @foreach (var (icon, tone, nm, price, spark, ch, mkt, held, of) in Goods)
+                    {
+                        <tr class="@(nm == "Materials" ? "on" : "")"><td><Icon Name="@icon" Tone="@tone" Size="17" />@nm</td><td>@price</td><td><Spark Values="@spark" /></td><td class="@(ch.StartsWith("+") ? "ui-up" : "ui-down")">@ch</td><td>@mkt</td><td>@held <small>of @of</small></td></tr>
+                    }
+                </ChildContent>
+                <OrderBar><span class="ui-order-nm">Materials</span><Stepper Label="Lot" Value="@_lot" Min="1" Max="20" OnChange="v => _lot = v" /><span class="ui-order-sp"></span><Plate Label="Buy" CostIcon="credits" CostText="1,200" Tip="Buy five lots of materials" /><Plate Label="Sell" CostIcon="credits" CostText="700" Tip="Sell five lots of materials" /></OrderBar>
+            </DataTable>
+        </div>
+        <div class="blk"><h4>The rail, the stocks and the trait groups</h4>
+            <div class="icons">@foreach (var (n, i) in Rail) { <figure><div class="sock @(n == "House" ? "on" : "")"><Icon Name="@i" Tone="@(n == "House" ? "dark" : "ivory-hi")" Size="24" /></div><figcaption>@n</figcaption></figure> }</div>
+            <div class="row6" style="margin-top:.9333rem">@foreach (var (i, t) in Stocks) { <Icon Name="@i" Tone="@t" Size="22" /> }</div>
+            <div class="tg" style="margin-top:.9333rem">@foreach (var (b, i, n) in Traits) { <figure><div class="tile" style="--tb:@b"><Icon Name="@i" Tone="ivory" Size="24" /></div><figcaption>@n</figcaption></figure> }</div>
+        </div>
+        <div class="blk"><h4>A world, a row, a globe</h4>
+            <Row Name="The Lion's March" SubText="Agri-world · Greywater · Reach culture"><Picture><Globe Class="terran" Size="40" /></Picture><Cells><Cell Icon="population" Tone="ivory" Value="3.8" Small=" bn" /></Cells><Action><Plate Label="Invest" Small="true" CostIcon="credits" CostText="600" Tip="Invest in the world" /></Action></Row>
+            <div style="padding:.6rem 0 0 0"><Slots Filled="@Works" Free="4" /></div>
+        </div>
+    </div>
+    <div class="pcol" style="left:1.7333rem;top:68rem;width:49.3333rem;height:62rem">
+        <h4>A window: frame, painted header, plinth, tabs, lede, sections, rows, a world, meters</h4>
+        <WindowFrame OnClose="() => { }" Class="demo-win" style="height:58rem">
+            <Header>
+                <WindowHeader Scene="world" HouseId="castellan" Accent="#D4A23E" Kicker="Your house" Title="House Castellan" Figures="@Plinth">
+                    <Facts><span><Icon Name="laurels" Tone="ivory" Size="16" /><b>Proconsul</b></span><span><Icon Name="population" Tone="ivory" Size="16" />Reach culture</span><span><Icon Name="population" Tone="ivory" Size="16" /><b>4.55 bn</b> citizens</span><span><Icon Name="scales" Tone="ivory" Size="16" />Tithe <b>normal</b></span></Facts>
+                </WindowHeader>
+            </Header>
+            <Tabs><Tabs Items="@HouseTabs" Active="estate" OnPick="k => { }" /></Tabs>
+            <ChildContent>
+                <p class="ui-lede">The house holds <b>2</b> worlds and <b>1</b> province, and clears <b>400</b> a year after its dues.</p>
+                <Section Title="The worlds" Count="2" Info="Each world yields to the house; a governor keeps it loyal."><Right>Yields <b>+1,150</b> a year</Right></Section>
+                <div class="ui-row" style="grid-template-columns:4.6667rem minmax(0,1fr) auto;align-items:start">
+                    <Globe Class="terran" Size="62" />
+                    <div style="min-width:0">
+                        <div class="ui-row-nm" style="font-size:1.1333rem">The Lion's March</div><div class="ui-row-sub">Agri-world · Greywater · Reach culture</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:.8rem">
+                            <div style="display:grid;gap:.3333rem"><Meter Label="Loyalty" Value="100" Color="#8cc47e" /><Meter Label="Prosperity" Value="59" Target="75" Small="/75" /><Meter Label="Population" Value="38" Text="3.8 bn" Color="#9ba1ab" /></div>
+                            <Slots Filled="@Works" Free="4" />
+                        </div>
+                        <div style="margin-top:.6rem"><WarnStrip Icon="office-chair" Lead="No governor."><ChildContent>Aurel Castellan is dead and the chair is empty.</ChildContent><Action><Plate Label="Appoint" Small="true" Tip="Choose a governor" /></Action></WarnStrip></div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:.4rem;align-items:flex-end"><Plate Label="Build" Icon="build" CostText="15 ready" Tip="Build on the world" /><Plate Label="Invest" Icon="sprout" CostIcon="credits" CostText="600" Tip="Invest in the world's prosperity" /></div>
+                </div>
+                <Section Title="Held under others" Count="1" />
+                <Row Name="Cinder Gate Diggings" SubText="Province of the Varro · dues to House Varro"><Picture><span class="ui-thumb"><img src="img/works/mine.webp" alt="" /></span></Picture><Cells><Cell Icon="materials" Tone="steel" Value="+11" /><Cell Icon="credits" Value="−120" Class="ui-down" /></Cells><Action><Plate Label="Petition" Small="true" Tip="Ask House Varro to lighten the dues" /></Action></Row>
+                <Section Title="What the estate yields" Info="The year's ledger: gains in brass, losses in ember." />
+                <div style="display:grid;gap:.3333rem;padding:.6rem 1.6rem 0 1.8667rem"><Meter Label="Harvests" Value="60" Kind="signed" Text="+600" ValueClass="ui-up" /><Meter Label="Dues" Value="-12" Kind="signed" Text="−120" ValueClass="ui-down" /><Meter Label="Wages" Value="-8" Kind="signed" Text="−80" ValueClass="ui-down" /></div>
+                <Section Title="An empty section" IsEmpty="true" EmptyLine="No province is held under the house yet." EmptyIcon="castle" EmptyLink="Open Worlds" />
+            </ChildContent>
+        </WindowFrame>
+    </div>
+</div>
+@code {
+    private bool _check = true; private int _lot = 5;
+    private static readonly (string, string)[] Tokens1 = { ("#07090e", "well"), ("#0e1117", "base"), ("#171c27", "raised"), ("#212836", "plate"), ("#f6e2a0", "brass-hi"), ("#c9a24a", "brass"), ("#a5813a", "brass-mid"), ("#6f5020", "brass-lo") };
+    private static readonly (string, string)[] Tokens2 = { ("#ece4d0", "ink"), ("#c3baa4", "ink-dim"), ("#9ba1ab", "ink-mute"), ("#8cc47e", "good"), ("#e0553f", "bad"), ("#e3a64a", "warn"), ("#e9b949", "own land"), ("#e3d3a4", "Reach edge") };
+    private static readonly IReadOnlyList<(string, string, string)> Tithes = new[] { ("light", "Light", "A light tithe"), ("normal", "Normal", "The usual tithe"), ("heavy", "Heavy", "A heavy tithe") };
+    private static readonly IReadOnlyList<Select.Option> People = new[]
+    {
+        new Select.Option("ysolde", "Ysolde Castellan", "your wife", "parts_ysolde", "female", 34),
+        new Select.Option("bastien", "Bastien Castellan", "your uncle", "parts_bastien", "male", 71),
+        new Select.Option("none", "Leave the chair empty", EmptyGlyph: "office-chair"),
+    };
+    private static readonly IReadOnlyList<Tabs.Tab> TabItems = new[] { new Tabs.Tab("goods", "Goods", "materials"), new Tabs.Tab("ventures", "Ventures", "factory"), new Tabs.Tab("projects", "Projects", "build", "2", true), new Tabs.Tab("shares", "Shares", "receive-money", "4") };
+    private static readonly (string, string, string, string, double[], string, string, string, string)[] Goods =
+    {
+        ("materials", "steel", "Materials", "189", new double[] { 2, 3, 4, 5, 7, 8, 12 }, "+26%", "40", "45", "270"),
+        ("manpower", "ivory", "Manpower", "208", new double[] { 6, 4, 7, 5, 8, 6, 8 }, "+4%", "90", "41", "568"),
+        ("helium3", "steel", "Helium-3", "851", new double[] { 1, 2, 4, 7, 8, 10, 13 }, "+42%", "7", "12", "137"),
+        ("rare_earths", "ivory", "Rare earths", "910", new double[] { 7, 6, 7, 6, 7, 7, 8 }, "+1%", "8", "3", "22"),
+        ("isotopes", "ember", "Isotopes", "1,246", new double[] { 4, 4, 5, 4, 5, 6, 6 }, "+4%", "4", "0", "11"),
+    };
+    private static readonly (string, string)[] Rail = { ("You", "roman-toga"), ("Dynasty", "family-tree"), ("House", "castle"), ("Worlds", "ringed-planet"), ("Military", "eagle-emblem"), ("Exchange", "trade"), ("Senate", "greek-temple"), ("Laws", "scales"), ("Houses", "flying-flag"), ("Chronicle", "scroll-unfurled"), ("Office", "desk") };
+    private static readonly (string, string)[] Stocks = { ("credits", "brass"), ("swap-bag", "brass"), ("materials", "steel"), ("manpower", "ivory"), ("laurels", "ivory"), ("exotics", "steel"), ("helium3", "steel"), ("rare_earths", "ivory"), ("isotopes", "ember"), ("public-speaker", "ivory"), ("scroll-quill", "ivory"), ("cowled", "ivory") };
+    private static readonly (string, string, string)[] Traits = { ("#7fa8d6", "stairs-goal", "nature"), ("#8cc47e", "compass", "aptitude"), ("#c9a24a", "fleet", "ambition"), ("#b8452f", "pill", "a condition") };
+    private static readonly IReadOnlyList<WindowHeader.Figure> Plinth = new[]
+    {
+        new WindowHeader.Figure("credits", "2,500", "Treasury", "brass", Delta: "+200"), new WindowHeader.Figure("money-stack", "14,200", "Wealth", "brass"),
+        new WindowHeader.Figure("ringed-planet", "2", "Worlds", "ivory"), new WindowHeader.Figure("legitimacy", "61", "Legitimacy", "ivory"), new WindowHeader.Figure("trophy", "3rd", "Among houses", "brass"),
+    };
+    private static readonly IReadOnlyList<Tabs.Tab> HouseTabs = new[] { new Tabs.Tab("estate", "Estate", "castle"), new Tabs.Tab("ledger", "Ledger", "abacus"), new Tabs.Tab("household", "Household", "three-friends", "1", true), new Tabs.Tab("council", "Council", "round-table"), new Tabs.Tab("court", "Court", "throne-king"), new Tabs.Tab("purse", "Purse", "swap-bag") };
+    private static readonly IReadOnlyList<(string, string)> Works = new[] { ("img/works/farm_complex.webp", "Farm complex"), ("img/works/power_plant.webp", "Power plant"), ("img/works/mine.webp", "Mine") };
+}

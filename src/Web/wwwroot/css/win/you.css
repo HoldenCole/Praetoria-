@@ -1,0 +1,83 @@
+/* The you window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+.dbar { position: relative; height: .4667rem; background: rgba(255,255,255,.07); border-radius: 3px; } .dbar .zero { position: absolute; left: 50%; top: -2px; width: 1px; height: .7333rem; background: rgba(255,255,255,.35); } .dbar .fill { position: absolute; top: 0; height: 100%; border-radius: 3px; } .dbar .fill.pos { background: var(--good); } .dbar .fill.neg { background: var(--bad); }
+.deed { font-size: .84rem; padding: .12rem 0; color: var(--ink2); } .deed span { display: inline-block; min-width: 3.4rem; color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; }
+/* ---- education and skills (docs/EDUCATION.md) ---- */
+.learn-rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.3333rem, 1fr)); gap: .22rem 1.2rem; margin: .45rem 0 .5rem; }
+.learn-row { display: grid; grid-template-columns: 6.6rem 1fr 3rem; align-items: center; gap: .4rem; font-size: .76rem; }
+.learn-row span { color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-size: .64rem; white-space: nowrap; } .learn-row.studied span { color: var(--brass2); }
+.learn-row i { position: relative; display: block; height: .5333rem; background: rgba(255,255,255,.08); border-radius: 3px; }
+.learn-row i b { position: absolute; left: 0; top: 0; height: 100%; background: var(--brass); border-radius: 3px 0 0 3px; }
+.learn-row i s { position: absolute; top: 0; height: 100%; background: var(--brass2); opacity: .45; text-decoration: none; }
+.learn-row i u { position: absolute; top: -.2rem; width: 2px; height: .9333rem; background: var(--ink); opacity: .8; }
+.learn-row em { font-style: normal; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); } .learn-row em small { color: var(--muted); }
+.profile-veil { z-index: 60; backdrop-filter: blur(3px); align-items: start; overflow-y: auto; padding: 4vh 1rem; }
+.profile { position: relative; width: min(62.6667rem, 100%); background: linear-gradient(180deg, #171d2c, #0d1119), var(--noise); background-blend-mode: overlay; border: 1px solid var(--brass); border-radius: 4px;
+  box-shadow: 0 0 0 1px #0b0e14, 0 0 0 3px var(--brass3), 0 30px 90px rgba(0,0,0,.8); animation: profile-in .18s ease-out; }
+.profile-x { position: absolute; top: .45rem; right: .55rem; z-index: 2; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--line2); background: rgba(5,7,12,.7); color: var(--ink2); font-size: 1.2rem; line-height: 1; }
+.profile-x:hover { border-color: var(--brass); color: var(--brass2); }
+.profile-head { display: grid; grid-template-columns: auto 1fr; gap: 1.3rem; padding: 1.2rem 1.4rem 1.1rem; border-bottom: 1px solid var(--line2);
+  background: linear-gradient(100deg, color-mix(in srgb, var(--accent) 26%, transparent), transparent 46%), radial-gradient(ellipse at 0% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%); }
+.profile-frame, .hero-frame { position: relative; align-self: start; padding: .3333rem; background: linear-gradient(135deg, #f1d78e, #8a6c2a 45%, #e6c77a 70%, #6d5420); border-radius: 3px; box-shadow: 0 10px 30px rgba(0,0,0,.65), inset 0 0 0 1px rgba(0,0,0,.5); line-height: 0; }
+.profile-frame .c { position: absolute; width: .9333rem; height: .9333rem; border: 2px solid #fff2c4; opacity: .75; pointer-events: none; }
+.profile-frame .c.tl { top: -.2667rem; left: -.2667rem; border-right: 0; border-bottom: 0; } .profile-frame .c.tr { top: -.2667rem; right: -.2667rem; border-left: 0; border-bottom: 0; }
+.profile-frame .c.bl { bottom: -.2667rem; left: -.2667rem; border-right: 0; border-top: 0; } .profile-frame .c.br { bottom: -.2667rem; right: -.2667rem; border-left: 0; border-top: 0; }
+.profile.dead .profile-frame { filter: grayscale(.5); }
+.profile-who { min-width: 0; padding-right: 1.6rem; }
+.profile-house { font-family: var(--display); font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink2); display: flex; align-items: center; gap: .45rem; }
+.profile-house i { width: .7rem; height: .7rem; background: var(--accent); border: 1px solid rgba(255,255,255,.35); transform: rotate(45deg); flex: none; }
+.profile-epithet { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--brass2); margin-bottom: .1rem; }
+.profile-station { color: var(--ink2); font-size: .92rem; }
+.profile-offices { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .45rem; } .profile-offices span { font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; padding: .12rem .55rem; border: 1px solid var(--brass3); color: var(--brass2); background: rgba(201,162,74,.08); border-radius: 2px; }
+.profile-story { font-family: var(--serif); font-size: 1.16rem; line-height: 1.4; color: var(--ink); margin: .6rem 0 .7rem; max-width: 60ch; }
+.regards { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem .9rem; margin-bottom: .6rem; }
+.rg-top { display: flex; justify-content: space-between; gap: .6rem; align-items: baseline; font-size: .8rem; } .rg-top span { color: var(--muted); } .rg-top b { font-weight: 600; color: var(--ink); text-align: right; }
+.rg-top b.good { color: var(--good); } .rg-top b.bad { color: var(--bad); } .rg-top em { font-style: normal; opacity: .75; margin-left: .25rem; font-variant-numeric: tabular-nums; }
+.rg-bar { position: relative; height: .4667rem; margin-top: .35rem; background: rgba(0,0,0,.55); border: 1px solid var(--line); border-radius: 4px; }
+.rg-bar::after { content: ""; position: absolute; left: 50%; top: -.2rem; bottom: -.2rem; width: 1px; background: var(--ink2); opacity: .6; }
+.rg-bar i { position: absolute; top: 0; bottom: 0; background: var(--line2); border-radius: 3px; } .rg-bar i.good { background: linear-gradient(90deg, #3f7f57, #6fbf8a); } .rg-bar i.bad { background: linear-gradient(90deg, #d8705a, #8c3f31); }
+.rg-why { font-size: .78rem; color: var(--ink2); margin-top: .4rem; line-height: 1.35; }
+.profile-gauges { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
+.rg-meter { width: 5.6rem; height: .4rem; background: rgba(0,0,0,.55); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; } .rg-meter i { display: block; height: 100%; background: linear-gradient(90deg, #4f9a6a, #6fbf8a); } .rg-meter.brass i { background: linear-gradient(90deg, var(--brass3), var(--brass2)); }
+.profile-body { display: grid; grid-template-columns: 1.15fr .9fr 1fr; gap: 1.1rem 1.4rem; padding: 1rem 1.4rem 1.3rem; }
+.profile-body section { min-width: 0; } .profile-body section.wide { grid-column: 1 / -1; }
+.pt.amb { border-left-color: var(--brass); } .pt.amb b { color: var(--brass2); }
+.profile-marks { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .5rem; } .profile-marks span { font-size: .74rem; padding: .1rem .5rem; border: 1px solid var(--line2); border-radius: 999px; color: var(--ink2); background: rgba(0,0,0,.3); }
+.sk-pips { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; } .sk-pips i { height: .5333rem; background: rgba(0,0,0,.5); border: 1px solid var(--line); border-radius: 1px; } .sk-pips i.on { background: linear-gradient(180deg, var(--brass2), var(--brass)); border-color: var(--brass3); }
+.profile-kin { display: grid; gap: .3rem; }
+.pk { display: flex; align-items: center; gap: .55rem; text-align: left; background: rgba(5,7,12,.4); border: 1px solid var(--line); border-radius: 3px; padding: .25rem .5rem .25rem .25rem; }
+.pk:hover { border-color: var(--brass); background: #1d1a12; } .pk span { display: grid; min-width: 0; line-height: 1.2; } .pk b { font-weight: 600; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .pk em { font-style: normal; color: var(--muted); font-size: .76rem; }
+.profile-deeds { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; }
+.profile-deeds li { display: grid; grid-template-columns: 6.2rem 1fr; gap: .8rem; padding: .3rem 0; border-bottom: 1px dotted var(--line); font-family: var(--serif); font-size: 1.05rem; line-height: 1.35; }
+.profile-deeds time { font-family: var(--sans); font-size: .78rem; color: var(--brass2); display: grid; align-content: start; } .profile-deeds time em { font-style: normal; color: var(--muted); }
+@media (max-width: 760px) {
+  .profile-head { grid-template-columns: 1fr; justify-items: start; } .profile-frame .portrait { width: 11.2rem !important; height: 11.2rem !important; }
+  .regards { grid-template-columns: 1fr; } .profile-body { grid-template-columns: 1fr; } .profile-who h2 { font-size: 1.6rem; }
+}
+.hero-frame { padding: .2667rem; }
+/* the profile is a window too */
+.profile { border-radius: 0; border: 1px solid #000; box-shadow: 0 0 0 1px var(--brass3), 0 0 0 2px #000, 0 0 0 5px rgba(201,162,74,.22), 0 40px 100px rgba(0,0,0,.85); background: #0f1219 var(--noise); }
+.profile .regard { background: none; border: 0; border-radius: 0; padding: .2rem 0 .4rem; } .profile-x { border-radius: 0; border: 1px solid #000; } .profile-offices span, .profile-marks span { border-radius: 0; border: 0; background: none; padding: 0 .9rem 0 0; color: var(--brass2); }
+.profile .pk { border: 0; border-bottom: 1px solid rgba(255,255,255,.07); border-radius: 0; background: none; padding: .3rem 0; } .profile .pk:hover { background: linear-gradient(90deg, rgba(201,162,74,.16), transparent); }
+.profile-frame, .hero-frame { border-radius: 0; } .profile h3 { justify-content: flex-start; }
+/* ==== The windows, one by one (docs/ART_DIRECTION.md) ==== */
+/* 1. The character window: the person on top, as Crusader Kings III lays it out; the rest behind tabs */
+.cw-head { display: grid; grid-template-columns: auto 1fr; gap: 1.2rem; align-items: start; margin-bottom: .8rem; }
+.cw-who { min-width: 0; } .cw-who h2 { font-size: 1.9rem; line-height: 1.1; margin: .3rem 0 .1rem; letter-spacing: .03em; }
+.cw-close { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .7rem; margin-top: .9rem; }
+.cw-near { display: grid; justify-items: center; gap: .25rem; } .cw-near span { font-family: var(--display); font-size: .56rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); } .cw-near.heir span { color: var(--good); }
+.cw-traits { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; padding: .5rem 0 .55rem; border-top: 1px solid var(--line); }
+.cw-trait { font-family: var(--serif); font-size: 1.08rem; font-style: italic; cursor: help; padding-bottom: 1px; border-bottom: 1px solid transparent; }
+.cw-trait.nature { color: #e7b7c9; border-bottom-color: #6b3b50; } .cw-trait.apt { color: #a9d1ff; border-bottom-color: #2e4b75; } .cw-trait.amb { color: var(--brass2); border-bottom-color: var(--brass3); }
+.cw-skills { display: flex; flex-wrap: wrap; gap: 0; border-top: 1px solid var(--line); }
+.cw-skill { flex: 1 1 5.7333rem; display: grid; justify-items: center; padding: .45rem .3rem .4rem; border-left: 1px solid var(--line); cursor: help; } .cw-skill:first-child { border-left: 0; }
+.cw-skill b { font-family: var(--display); font-size: 1.5rem; line-height: 1; color: var(--ink); } .cw-skill span { font-family: var(--display); font-size: .56rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-top: .2rem; }
+@media (max-width: 620px) {
+  .cw-head { grid-template-columns: 1fr; }
+}
+.mark-word { border-bottom: 1px dotted var(--line); cursor: help; } .mark-word + .mark-word::before { content: " · "; }
+/* what can be done to a person, on their profile */
+.profile-acts { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: .5rem 0; }
+/* Your own aim, on the character sheet */
+.aim { margin: .3rem 0 .5rem; }
+.aim .gauge { margin-bottom: .2rem; }

@@ -1,0 +1,20 @@
+/* The military window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+.plot .node { stroke: rgba(0,0,0,.7); stroke-width: 1; } .plot .node.mine { stroke: #f1d78e; stroke-width: 2.5; } .plot .node.enemy { stroke: #d8705a; stroke-width: 2.5; } .plot .node.choke { stroke-dasharray: 2 2; }
+.plot .nlabel { fill: #b7b1a3; font-size: .733rem; text-anchor: middle; font-family: var(--sans); } .plot .nlabel.enemy { fill: #e0937f; }
+.fcard { margin: .5rem 0; }
+.abroad .nrow { display: flex; align-items: center; gap: .5333rem; flex-wrap: wrap; }
+.abroad .nrow .mbar { flex: 1 1 5.3333rem; min-width: 4rem; }
+.abroad .abroad-war { margin-bottom: .5333rem; }
+.caesar-war { border-color: var(--bad, #c0504d); }
+.crew-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .2rem .5rem; align-items: center; padding: .3rem 0; border-top: 1px dotted var(--line); } .crew-row > span:first-child { grid-column: 1 / -1; }
+.crew-row .gauge { display: flex; align-items: center; gap: .35rem; } .crew-row .gauge i { flex: 1; }
+.plot .node.far { stroke: none; opacity: .85; }
+.plot .nlabel { font-size: .867rem; } .plot .nlabel.mine { fill: #f1d78e; font-weight: 600; font-size: 1rem; }
+.plot .flabel { fill: #b7b1a3; font-size: .8rem; text-anchor: middle; font-family: var(--sans); } .plot .flabel.mine { fill: #f1d78e; } .plot .flabel.enemy { fill: #f0937f; font-weight: 600; }
+.plot-legend .lg.node.mine { border-radius: 50%; background: var(--accent, #c9a24a); box-shadow: 0 0 0 2px #f1d78e; }
+.hbar { display: block; height: .4667rem; min-width: 4rem; background: rgba(255,255,255,.06); border-radius: 2px; overflow: hidden; } .hbar i { display: block; height: 100%; }
+.plot .nlabel.far { fill: #6f7890; font-size: .733rem; } .plot .flabel { font-size: .867rem; }
+.deck .row .opt, .deck details.orders .opt { white-space: nowrap; } .deck .fcard .row { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .4rem; margin: .25rem 0; }
+.plot .nlabel { font-size: .733rem; } .plot .nlabel.mine { font-size: .867rem; } .plot .nlabel.far { font-size: .633rem; } .plot .flabel { font-size: .7rem; }
+.battle-sides { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; font-size: .86rem; margin: .25rem 0; }

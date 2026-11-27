@@ -1,0 +1,16 @@
+/* The chronicle window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+/* archive (Chronicle) */
+.archive-grid { grid-template-columns: minmax(0, 1fr); }
+.timeline { width: 100%; height: auto; display: block; background: #080b12; border: 1px solid var(--line); border-radius: 4px; }
+.timeline .base { stroke: #3a4866; } .timeline .vol { fill: rgba(255,255,255,.02); stroke: rgba(255,255,255,.08); cursor: pointer; } .timeline .vol.here { fill: rgba(201,162,74,.08); stroke: var(--brass3); } .timeline .vol:hover { fill: rgba(201,162,74,.06); }
+.timeline .tick { fill: #55617a; } .timeline .tick.notable { fill: #c9a24a; } .timeline .tick.war { fill: #d8705a; } .timeline .gen { fill: #f1d78e; font-size: .8rem; text-anchor: middle; } .timeline .tl { fill: #7d8699; font-size: .667rem; } .timeline .tl.end { text-anchor: end; }
+.entries { columns: 2 28rem; column-gap: 1.2rem; margin-top: .5rem; }
+.timeline .tl.mid { text-anchor: middle; } .tl-key .tk { display: inline-block; width: .4rem; height: .8rem; background: #55617a; } .tl-key .tk.war { background: #d8705a; } .tl-key .tk.notable { background: #c9a24a; } .tl-key .gen { color: #f1d78e; font-weight: 400; }
+.chron-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 1.2rem; margin: .6rem 0 .2rem; } .chron-controls .vols { margin-bottom: 0; }
+.year-block { margin-top: .7rem; } .year-block h4 { margin: 0 0 .3rem; padding-bottom: .2rem; border-bottom: 1px solid var(--line2); } .year-block h4 .muted { font-family: var(--sans); font-size: .72rem; letter-spacing: 0; text-transform: none; margin-left: .5rem; }
+.kd { display: inline-block; width: .4667rem; height: .4667rem; border-radius: 50%; margin-right: .4rem; background: #5d6880; vertical-align: middle; } .kd.war { background: #d8705a; } .kd.dynasty { background: #c9a24a; } .kd.politics { background: #6f9be0; } .kd.coin { background: #6fbf8a; } .kd.realm { background: #a78bda; }
+.yline { font-size: .86rem; padding: .2rem 0 .2rem .6rem; border-bottom: 1px dotted var(--line); border-left: 2px solid transparent; line-height: 1.4; }
+.yline.own { border-left-color: var(--accent, var(--brass3)); color: var(--ink); background: linear-gradient(90deg, rgba(255,255,255,.035), transparent 60%); }
+.yline.event { font-family: var(--serif); font-size: .95rem; }
+.chron-controls .sel { max-width: 12rem; }

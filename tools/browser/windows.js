@@ -4,7 +4,9 @@
 //
 //   node windows.js ["Start title"] [years to play first] [quick]      quick: report only, no photographs
 //
-// Needs the build served locally (see README.md here). Screenshots go to PRAETORIA_SHOTS (default ./shots).
+// Needs the build served locally (see README.md here). Screenshots go to PRAETORIA_SHOTS (default ./shots). PRAETORIA_ONLY=house,laws
+// looks at some windows only; PRAETORIA_W and PRAETORIA_H set the size (1600 by 1000), PRAETORIA_SCALE the device scale (1).
+// Tabs are found as the old .cw-tabs/.ex-tabs rungs or the shared Tabs part (.ui-tabs .ui-tab, docs/VISUAL_SYSTEM.md 4.4).
 const { chromium } = require('playwright');
 const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.argv[3] || '0', 10);
 const quick = process.argv[4] === 'quick';
@@ -12,7 +14,8 @@ const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots 
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } }); page.setDefaultTimeout(60000);
+  const only = (process.env.PRAETORIA_ONLY || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
+  const page = await browser.newPage({ viewport: { width: +(process.env.PRAETORIA_W || 1600), height: +(process.env.PRAETORIA_H || 1000) }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 1) }); page.setDefaultTimeout(60000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -25,7 +28,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const rails = await page.evaluate(() => [...document.querySelectorAll('.rail-btn')].map(e => e.innerText.trim().toLowerCase()).filter(n => n && n !== 'galaxy'));
   // what a window says of itself: how far it scrolls, and its sections that are a heading over one muted line
   const look = () => page.evaluate(() => {
-    const body = document.querySelector('.screen.window .win-body'); if (!body) return null;
+    const body = document.querySelector('.screen.window .win-body') || document.querySelector('.ui-win .ui-wbody'); if (!body) return null;
     const hollow = [...body.querySelectorAll('section.panel')].filter(s => {
       const h = s.querySelector('h3'); if (!h || s.getBoundingClientRect().height === 0) return false;
       const rest = [...s.children].filter(c => c !== h && c.getBoundingClientRect().height > 0);
@@ -35,11 +38,12 @@ require('fs').mkdirSync(shots, { recursive: true });
   });
   let long = 0, hollowAll = 0;
   for (const r of rails) {
+    if (only.length && !only.includes(r)) continue;
     await page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n); if (el) el.click(); }, r);
     await page.waitForTimeout(1500);
-    const tabs = await page.evaluate(() => [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung')].map(e => e.innerText.trim()));
+    const tabs = await page.evaluate(() => [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung, .ui-win .ui-tabs .ui-tab')].map(e => e.innerText.trim()));
     for (let i = 0; i < Math.max(1, tabs.length); i++) {
-      if (tabs.length > 0) { await page.evaluate(i => { const b = [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung')][i]; if (b) b.click(); }, i); await page.waitForTimeout(700); }
+      if (tabs.length > 0) { await page.evaluate(i => { const b = [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung, .ui-win .ui-tabs .ui-tab')][i]; if (b) b.click(); }, i); await page.waitForTimeout(700); }
       const l = await look(); if (!l) { console.log(r + ': no window opened'); continue; }
       const name = r + (tabs.length > 0 ? '_' + tabs[i].toLowerCase().replace(/[^a-z]+/g, '-').replace(/-+$/, '') : '');
       if (!quick) await page.screenshot({ path: shots + '/win_' + name + '.png' });

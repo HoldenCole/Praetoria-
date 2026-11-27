@@ -1,0 +1,16 @@
+/* The dynasty window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+.sc-flags { margin-top: .25rem; display: flex; flex-wrap: wrap; gap: .25rem; }
+/* lineage (Dynasty) */
+.lineage-grid { grid-template-columns: minmax(0, 1.5fr) minmax(21.3333rem, 1fr); }
+.tree .link { fill: none; stroke: #4e4230; stroke-width: 1.5; }
+.tree .tn.dead .nm { fill: #7d8699; }
+.tree .nm { fill: #e8e2d3; font-size: .8rem; text-anchor: middle; font-family: var(--serif); }
+/* ---- courtship and marriage (docs/MARRIAGE.md) ---- */
+.dash-col { display: flex; flex-direction: column; gap: .8rem; min-width: 0; }
+.suit-head { margin-bottom: .2rem; }
+.tree-wrap { overflow-x: auto; display: flex; justify-content: center; } .tree-wrap .tree { flex: 0 1 auto; }
+.tree .nm { font-size: 1rem; }
+/* The table of prospects: headers that sort */
+table.prospects th.sortable { cursor: pointer; text-decoration: underline dotted; text-underline-offset: .2rem; }
+table.prospects th.sortable.here { color: var(--gold, #d8b25a); text-decoration: none; }

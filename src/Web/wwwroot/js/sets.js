@@ -484,16 +484,16 @@ function timelineCanvas(ticks, turn, accent) {
   ctx.strokeStyle = '#6b4a22'; ctx.lineWidth = 3; ctx.strokeRect(14, 14, 996, 336); ctx.fillStyle = '#3a2410'; ctx.font = '600 30px Cinzel, serif'; ctx.textAlign = 'center'; ctx.fillText('THE CHRONICLE', 512, 58);
   const x0 = 60, x1 = 964, y = 230; ctx.strokeStyle = '#3a2410'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
   const span = Math.max(10, turn); const X = tn => x0 + (x1 - x0) * (tn - 1) / Math.max(1, span - 1);
-  for (let tn = 1; tn <= span; tn += Math.max(1, Math.round(span / 20))) { ctx.beginPath(); ctx.moveTo(X(tn), y - 8); ctx.lineTo(X(tn), y + 8); ctx.stroke(); ctx.fillStyle = '#5a3a18'; ctx.font = '16px Cormorant Garamond, serif'; ctx.fillText(String(tn), X(tn), y + 34); }
+  for (let tn = 1; tn <= span; tn += Math.max(1, Math.round(span / 20))) { ctx.beginPath(); ctx.moveTo(X(tn), y - 8); ctx.lineTo(X(tn), y + 8); ctx.stroke(); ctx.fillStyle = '#5a3a18'; ctx.font = '16px Alegreya, serif'; ctx.fillText(String(tn), X(tn), y + 34); }
   for (const tk of ticks) { const x = X(tk.turn); if (tk.war) { ctx.fillStyle = '#9a2a1a'; ctx.beginPath(); ctx.moveTo(x, y - 46); ctx.lineTo(x + 8, y - 30); ctx.lineTo(x - 8, y - 30); ctx.fill(); } if (tk.notable) { ctx.fillStyle = accent; ctx.beginPath(); ctx.arc(x, y - 18, 6, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#3a2410'; ctx.lineWidth = 1.5; ctx.stroke(); } if (tk.gen) { ctx.fillStyle = '#3a2410'; ctx.font = '600 14px Cinzel, serif'; ctx.fillText('GEN ' + tk.gen, x, y - 60); ctx.fillRect(x - 1, y - 54, 2, 36); } }
   ctx.fillStyle = '#9a2a1a'; ctx.beginPath(); ctx.arc(X(turn), y, 7, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#5a3a18'; ctx.font = 'italic 18px Cormorant Garamond, serif'; ctx.textAlign = 'left'; ctx.fillText('● notable   ▲ war   | a new generation', 60, 320);
+  ctx.fillStyle = '#5a3a18'; ctx.font = 'italic 18px Alegreya, serif'; ctx.textAlign = 'left'; ctx.fillText('● notable   ▲ war   | a new generation', 60, 320);
   return c;
 }
 function pageCanvas(title, lines) {
   const c = document.createElement('canvas'); c.width = 512; c.height = 320; const ctx = c.getContext('2d');
   ctx.fillStyle = '#efe3c4'; ctx.fillRect(0, 0, 512, 320); ctx.fillStyle = '#d8c9a4'; ctx.fillRect(254, 0, 4, 320);
-  ctx.fillStyle = '#3a2410'; ctx.font = '600 20px Cinzel, serif'; ctx.textAlign = 'center'; ctx.fillText((title || '').toUpperCase(), 128, 34); ctx.font = '15px Cormorant Garamond, serif'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#3a2410'; ctx.font = '600 20px Cinzel, serif'; ctx.textAlign = 'center'; ctx.fillText((title || '').toUpperCase(), 128, 34); ctx.font = '15px Alegreya, serif'; ctx.textAlign = 'left';
   lines.slice(0, 16).forEach((l, i) => { const col = i < 8 ? 18 : 272; const y = 66 + (i % 8) * 28; ctx.fillText(l.slice(0, 34), col, y); });
   return c;
 }
@@ -554,9 +554,9 @@ function sheetCanvas(o) {
   const c = document.createElement('canvas'); c.width = 512; c.height = 300; const ctx = c.getContext('2d');
   ctx.fillStyle = '#efe3c4'; ctx.fillRect(0, 0, 512, 300); ctx.strokeStyle = '#6b4a22'; ctx.lineWidth = 2; ctx.strokeRect(8, 8, 496, 284);
   ctx.fillStyle = '#3a2410'; ctx.font = '600 22px Cinzel, serif'; ctx.textAlign = 'left'; ctx.fillText('RECORD OF SERVICE', 22, 40);
-  ctx.font = '17px Cormorant Garamond, serif'; ctx.fillText((o.track || '') + ' · ' + (o.rank || ''), 22, 66); ctx.fillText('Ambition: ' + (o.ambition || '—'), 22, 90);
-  const skills = (o.skills || []).slice(0, 7); skills.forEach((sk, i) => { const y = 118 + i * 24; ctx.fillStyle = '#3a2410'; ctx.font = '15px Cormorant Garamond, serif'; ctx.fillText(sk.name, 22, y + 12); ctx.fillStyle = '#d8c9a4'; ctx.fillRect(150, y, 330, 12); ctx.fillStyle = o.accent || '#c9a24a'; ctx.fillRect(150, y, 330 * Math.min(1, (sk.value || 0) / 5), 12); });
-  if (!skills.length) { ctx.fillStyle = '#5a3a18'; ctx.font = 'italic 16px Cormorant Garamond, serif'; ctx.fillText('Untrained.', 22, 130); }
+  ctx.font = '17px Alegreya, serif'; ctx.fillText((o.track || '') + ' · ' + (o.rank || ''), 22, 66); ctx.fillText('Ambition: ' + (o.ambition || '—'), 22, 90);
+  const skills = (o.skills || []).slice(0, 7); skills.forEach((sk, i) => { const y = 118 + i * 24; ctx.fillStyle = '#3a2410'; ctx.font = '15px Alegreya, serif'; ctx.fillText(sk.name, 22, y + 12); ctx.fillStyle = '#d8c9a4'; ctx.fillRect(150, y, 330, 12); ctx.fillStyle = o.accent || '#c9a24a'; ctx.fillRect(150, y, 330 * Math.min(1, (sk.value || 0) / 5), 12); });
+  if (!skills.length) { ctx.fillStyle = '#5a3a18'; ctx.font = 'italic 16px Alegreya, serif'; ctx.fillText('Untrained.', 22, 130); }
   return c;
 }
 

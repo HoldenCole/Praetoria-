@@ -1,0 +1,22 @@
+@* A lit planet (docs/VISUAL_SYSTEM.md 4.8): light, land, sea and shadow by the world's class, an atmosphere, a terminator, and (when
+   Ringed) a thin brass orbit ring. Size in px at the normal text size: 62 in an estate, 18 in the outliner. *@
+<span class="ui-globe @(Ringed ? " ringed" : "") @(Size < 30 ? " sm" : "")" style="width:@W;height:@W;@Style" title="@Tip"></span>
+@code {
+    [Parameter] public string Class { get; set; } = "terran";
+    [Parameter] public int Size { get; set; } = 62;
+    [Parameter] public bool Ringed { get; set; } = true;
+    [Parameter] public string Tip { get; set; } = "";
+    private string W => (Size / 15.0).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture) + "rem";
+    /// <summary>Light, land, sea, shadow and atmosphere for a planet class (the classes of Svg.Planet).</summary>
+    public static (string g0, string g1, string g2, string g3, string atm) Ramp(string cls) => cls switch
+    {
+        "forge" => ("#ffd8a8", "#d86a33", "#8a2f1c", "#3d140d", "rgba(255,120,70,.45)"),
+        "arid" or "barren" => ("#fbe3b4", "#d9a35c", "#8a5a26", "#3f2510", "rgba(255,200,130,.35)"),
+        "ocean" => ("#d6ecff", "#4f8fd6", "#1d4f8f", "#0b2346", "rgba(120,180,255,.45)"),
+        "frozen" => ("#ffffff", "#cfe3f2", "#7fa2c0", "#2a3d52", "rgba(200,230,255,.4)"),
+        "gas" => ("#fff0cf", "#e2b87a", "#a0703a", "#3d2a14", "rgba(255,220,160,.35)"),
+        "belt" => ("#e6e0d4", "#a89f90", "#6a6256", "#26231f", "rgba(220,210,190,.25)"),
+        _ => ("#d6efcf", "#6aa36a", "#2f6b56", "#1d4a7a", "rgba(110,190,255,.45)")
+    };
+    private string Style { get { var r = Ramp(Class); return $"--g0:{r.g0};--g1:{r.g1};--g2:{r.g2};--g3:{r.g3};--atm:{r.atm}"; } }
+}

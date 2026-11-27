@@ -1,0 +1,38 @@
+/* The senate window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+.sphere { padding: .3rem 0; border-bottom: 1px dotted var(--line); } .sphere-head { display: flex; justify-content: space-between; font-size: .9rem; }
+.sphere-bar { display: flex; height: .6667rem; border-radius: 2px; overflow: hidden; background: rgba(0,0,0,.5); border: 1px solid var(--line); margin-top: .25rem; } .sphere-bar i { display: block; height: 100%; } .sphere-bar i.mine { box-shadow: inset 0 0 0 1px #fff; }
+.mo-head { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; } .mo-text { margin: .25rem 0 .4rem; }
+.bench-row { display: flex; align-items: center; gap: .35rem; padding: .15rem 0; border-bottom: 1px dashed rgba(255,255,255,.06); font-size: .82rem; } .bench-row .bn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .bench-row .stance { min-width: 3.6rem; font-size: .78rem; text-align: right; } .bench-row .stance.for { color: var(--good); } .bench-row .stance.against { color: var(--bad); }
+.proposal { padding: .35rem 0; border-bottom: 1px dashed rgba(255,255,255,.06); } .proposal .sel { background: rgba(0,0,0,.4); color: inherit; border: 1px solid var(--line); border-radius: 3px; padding: .2rem .4rem; margin: .2rem .4rem .2rem 0; max-width: 14rem; }
+.proposal:has(optgroup) .sel { max-width: 100%; min-width: 22rem; } /* an Act of the Reach: the law, what is in force now and what each option would do, read whole */
+.hist { padding: .15rem 0; } .hist .good { color: var(--good); } .hist .warn { color: var(--bad); }
+.bench-row .wt { min-width: 1.2rem; text-align: right; }
+.off-card { border-left: 2px solid var(--line2); padding: .25rem .5rem; margin: .3rem 0; overflow-wrap: anywhere; } .off-card.mine { border-left-color: var(--brass2); } .off-card.vacant { opacity: .8; } .of-head b { white-space: nowrap; } .off-card .small { display: block; white-space: normal; }
+.bench-members { display: flex; align-items: center; gap: .25rem; flex-wrap: wrap; margin: .2rem 0; } .bench-members .member { display: inline-flex; }
+/* the chamber */
+.hemicycle { width: 100%; height: auto; display: block; background: radial-gradient(ellipse at 50% 100%, rgba(201,162,74,.06), transparent 60%); border-radius: 4px; }
+.hemicycle .rostrum { fill: #e6c77a; font-family: var(--display); font-size: .933rem; letter-spacing: .1em; text-transform: uppercase; }
+.hemicycle .seat { stroke: rgba(0,0,0,.6); stroke-width: 1; cursor: pointer; transition: r .12s; } .hemicycle .seat:hover { r: 11; stroke: #fff; }
+.hemicycle .seat.mine { stroke: #f1d78e; stroke-width: 2.5; } .hemicycle .seat.focus { stroke: #ffffff; stroke-width: 3; }
+.hemicycle .seat.for { stroke: #6fbf8a; stroke-width: 3; } .hemicycle .seat.against { stroke: #d8705a; stroke-width: 3; } .hemicycle .seat.abstain { opacity: .45; }
+.chamber-legend .lg.key i.abstain { background: #55617a; opacity: .45; }
+.spheres-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.6667rem, 1fr)); gap: .3rem .9rem; margin-top: .5rem; }
+/* resolutions */
+.resolutions .motion { cursor: pointer; } .resolutions .motion.watched { box-shadow: inset 0 0 0 1px var(--brass3); }
+.tally-line b.good { color: var(--good); } .tally-line b.warn { color: var(--bad); }
+.party-dot { display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; margin-right: .3rem; vertical-align: middle; border: 1px solid rgba(0,0,0,.5); }
+.nominee { display: flex; align-items: center; gap: .35rem; padding: .18rem 0; border-bottom: 1px dotted var(--line); font-size: .84rem; } .nominee > span { flex: 1; min-width: 0; } .nominee .tally-n { font-variant-numeric: tabular-nums; }
+.rung-row { border-top: 1px dotted var(--line); padding: .45rem 0 .35rem; line-height: 1.4; }
+.senate2-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.rung-needs { margin: .25rem 0 .35rem; } .rung-needs .kv.small { font-size: .82rem; }
+/* the Senate: the chamber is the picture, so it comes first; what is before it follows */
+.game .win-body .senate2-grid { display: flex; flex-direction: column; } .game .win-body .senate2-grid > .deck-col:nth-child(2) { order: -1; }
+.game .win-body .senate2-grid .panel.resolutions:empty { display: none; }
+.path-no { margin: .1rem 0 .3rem; }
+/* A house that may not move a motion is not shown sixteen dead forms (docs/PLAYTHROUGH.md, the Senate). */
+.propose.cannot .proposal { display: none; }
+/* the roll call: under each house, why it leans as it does */
+.bench-why { padding: 0 0 .25rem 1.4rem; line-height: 1.25; border-bottom: 1px dashed rgba(255,255,255,.06); }
+/* under a crisis: what it is and what each answer does, read from its rules */
+.crisis-facts { margin-top: .3rem; } .crisis-facts > summary { font-size: .78rem; cursor: pointer; color: var(--ink2); } .crisis-facts .small { margin: .2rem 0; line-height: 1.3; }

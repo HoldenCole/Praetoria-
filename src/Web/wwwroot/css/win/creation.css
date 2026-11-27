@@ -1,0 +1,88 @@
+/* The creation window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+@media (max-width: 1100px) {
+  .creation { grid-template-columns: 1fr; }
+}
+/* title / creation */
+.title-screen { max-width: 78.6667rem; margin: 0 auto; padding: 2.5rem 1rem 3rem; }
+.hero { text-align: center; margin-bottom: 2rem; }
+.hero-mark { color: var(--brass); font-size: 2rem; }
+.hero h1 { font-size: 3.4rem; letter-spacing: .32em; margin: 0; background: linear-gradient(180deg, #f1dc9c, #b58a2e); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero .tag { font-family: var(--serif); font-style: italic; font-size: 1.25rem; color: var(--ink2); margin: .2rem 0 .3rem; }
+.hero .ver { color: var(--muted); font-size: .85rem; margin: 0 0 1rem; }
+.hero .btn { margin: .25rem .3rem; }
+.creation { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.creation .col h2 { font-size: 1.35rem; margin-top: .5rem; border-bottom: 1px solid var(--line); padding-bottom: .25rem; }
+.creation h3 { margin-top: 1rem; }
+.scenario-list { display: grid; gap: .5rem; margin-bottom: 1rem; }
+.scenario { text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; }
+.scenario:hover { border-color: var(--line2); } .scenario.selected { border-color: var(--brass); background: var(--panel2); box-shadow: inset 3px 0 0 var(--brass); }
+.sc-meta { color: var(--muted); font-size: .8rem; } .sc-desc { color: var(--ink2); font-size: .88rem; margin-top: .2rem; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem .9rem; }
+.bg-desc { font-size: .9rem; color: var(--ink2); margin: .5rem 0 0; }
+.title-foot { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 2.5rem; }
+/* the workshop: a character of the player's own making */
+.creation .col.wide { flex: 2 1 0; min-width: 0; }
+.scenario.custom { border-style: dashed; } .scenario.custom .sc-name { color: var(--brass2); }
+.workshop { display: flex; flex-direction: column; gap: .6rem; }
+.ws-top { display: flex; gap: .9rem; align-items: flex-start; }
+.ws-summary { display: flex; flex-direction: column; gap: .35rem; min-width: 0; flex: 1; }
+.ws-modes, .ws-row { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+.ws-power { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; font-size: .9rem; }
+.ws-power.formidable b, .ws-power.overpowered b { color: #FFBE0B; } .ws-power.absurd b { color: #E63946; } .ws-power.able b, .ws-power.modest b { color: #2EC27E; }
+.ws-bar { display: inline-block; width: 9rem; height: .45rem; background: rgba(255,255,255,.08); border-radius: 3px; overflow: hidden; } .ws-bar i { display: block; height: 100%; background: #2EC27E; } .ws-bar i.over { background: #E63946; }
+.ws-skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: .25rem .8rem; }
+.ws-skill { display: flex; align-items: center; gap: .3rem; } .ws-skill span { flex: 1; text-transform: capitalize; font-size: .85rem; } .ws-skill b { width: 1.4rem; text-align: center; }
+.swatch { width: 1.7rem; height: 1.7rem; border-radius: 4px; border: 2px solid transparent; cursor: pointer; padding: 0; } .swatch.on { border-color: #fff; box-shadow: 0 0 0 1px var(--brass2); }
+.ws-goods { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .3rem .7rem; } .ws-goods label, .ws-wide { display: flex; flex-direction: column; font-size: .78rem; color: var(--muted); gap: .15rem; }
+.ws-goods input, .ws-line input, .ws-line select, .ws-wide select { background: rgba(5,7,12,.6); border: 1px solid var(--line2); color: var(--ink); border-radius: 3px; padding: .2rem .35rem; font-size: .85rem; }
+.ws-worlds { display: flex; flex-wrap: wrap; gap: .3rem; max-height: 14rem; overflow-y: auto; }
+.ws-line { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: .2rem 0; }
+.ws-line.sub { margin: 0 0 .55rem 1.1rem; padding-left: .6rem; border-left: 2px solid var(--line2); } .ws-line.sub select { font-size: .8rem; } .ws-kin-what { min-width: 3.6rem; } .ws-line input[type=number] { width: 4.2rem; }
+.ws-problems { border: 1px solid rgba(230,57,70,.5); background: rgba(230,57,70,.08); border-radius: 4px; padding: .5rem .7rem; font-size: .84rem; } .ws-problems b { display: block; margin-bottom: .2rem; color: #E63946; }
+@media (max-width: 700px) {
+  .ws-top { flex-direction: column; }
+}
+.workshop .chip.file { text-transform: none; letter-spacing: 0; font-family: var(--sans); font-size: .85rem; cursor: pointer; display: inline-flex; align-items: center; }
+/* the You screen opens on the person */
+.hero { display: grid; grid-template-columns: auto 1fr; gap: 1.1rem; align-items: start; margin-bottom: .7rem; }
+@media (max-width: 620px) {
+  .hero { grid-template-columns: 1fr; }
+}
+/* ---- The title: the painting, the name, a list to choose from ---- */
+body:has(.title-screen) { background: #05070c url("../../img/scenes/title.webp") center top / cover fixed no-repeat; }
+body:has(.title-screen)::before { content: ""; position: fixed; inset: 0; background: linear-gradient(90deg, rgba(5,7,12,.84), rgba(5,7,12,.56) 55%, rgba(5,7,12,.3)), linear-gradient(180deg, transparent 45%, rgba(5,7,12,.85)); pointer-events: none; z-index: 0; }
+.title-screen { position: relative; z-index: 1; }
+.title-screen .scenario { border: 0; border-radius: 0; background: none; border-bottom: 1px solid rgba(255,255,255,.08); padding: .5rem .8rem; box-shadow: none; }
+.title-screen .scenario:hover { background: linear-gradient(90deg, rgba(201,162,74,.12), transparent); }
+.title-screen .scenario.selected { background: linear-gradient(90deg, rgba(201,162,74,.24), transparent 80%); box-shadow: inset 3px 0 0 var(--brass2); border-bottom-color: rgba(201,162,74,.3); }
+.title-screen .scenario:not(.selected) > :not(:first-child) { display: none; } .title-screen .scenario-list { gap: 0; }
+.title-screen .chip, .title-screen .btn, .title-screen select, .title-screen input { border-radius: 0; } .title-screen .chip { border: 1px solid #000; background: linear-gradient(180deg, #2b3246, #171c29); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); color: var(--ink); }
+.title-screen .chip.on { background: linear-gradient(180deg, #5a4a22, #2e2612); color: var(--brass2); box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 0 0 1px var(--brass3); }
+.title-screen .panel, .title-screen .card { background: rgba(8,10,16,.6); border-radius: 0; }
+.face-pick { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; margin: .4rem 0 .8rem; } .face-pick .face { width: 5.0667rem; height: 5.0667rem; padding: 0; border: 1px solid #000; box-shadow: 0 0 0 1px var(--line2); background: #0b0e14; overflow: hidden; }
+.face-pick .face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block; } .face-pick .face:hover { box-shadow: 0 0 0 1px var(--brass); } .face-pick .face.on { box-shadow: 0 0 0 2px var(--brass2), 0 0 14px rgba(230,199,122,.5); }
+.face-life { display: flex; flex-wrap: wrap; gap: .6rem; margin: .4rem 0 .9rem; } .face-life figure { margin: 0; width: 6.9333rem; text-align: center; } .face-life img { width: 6.9333rem; height: 6.9333rem; object-fit: cover; object-position: 50% 18%; display: block; border: 1px solid #000; box-shadow: 0 0 0 1px var(--brass3); }
+.face-life figcaption { font-family: var(--display); font-size: .62rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); margin-top: .3rem; }
+.setting-boosts { grid-column: 1 / -1; display: grid; gap: .3rem; margin: .2rem 0 .5rem; font-size: .8rem; color: var(--muted); }
+.setting-boosts > span { text-transform: uppercase; letter-spacing: .06em; } .setting-boosts > span .small { text-transform: none; letter-spacing: 0; }
+.setting-boosts label.boost { display: grid; grid-template-columns: auto auto 1fr; align-items: baseline; gap: .5rem; text-transform: none; letter-spacing: 0; font-size: .88rem; color: var(--text, #e8e2d4); cursor: pointer; }
+.setting-boosts label.boost input { width: auto; margin: 0; align-self: center; } .setting-boosts label.boost b { font-weight: 600; white-space: nowrap; }
+/* the title's heading is one centred column: the You window's .hero (a portrait beside a name) is a grid, and must not reach here */
+.title-screen .hero { display: block; text-align: center; }
+.title-screen .hero .btn.big { display: inline-block; max-width: 100%; }
+.title-acts { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; margin-top: .7rem; }
+.title-acts .btn { margin: 0; font-family: var(--sans); font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; padding: .5rem 1rem; }
+/* the creator's map (docs/CHARACTER.md): the worlds a new house may start with, on the map they sit on */
+.ws-map-wrap { display: grid; grid-template-columns: 1fr; gap: .5rem; margin-bottom: .5rem; }
+.ws-map { width: 100%; height: auto; background: radial-gradient(ellipse at 50% 45%, rgba(40,52,84,.5), rgba(5,7,12,.85)); border: 1px solid var(--line2); }
+.ws-lane { stroke: rgba(174,183,201,.2); stroke-width: 1; }
+.ws-site { cursor: pointer; } .ws-site .hit { fill: transparent; } .ws-site .dot { stroke-width: 1.2; }
+.ws-site:hover .dot { stroke: #fff; stroke-width: 1.8; } .ws-site .ring { fill: none; stroke: var(--brass2); stroke-width: 2; }
+.ws-site.no { cursor: not-allowed; } .ws-site.no .dot { opacity: .35; } .ws-site.beyond .dot { stroke-dasharray: 2 2; }
+.ws-site text { fill: var(--ink); font-size: .8rem; font-family: var(--sans); paint-order: stroke; stroke: #05070c; stroke-width: 3px; pointer-events: none; }
+.ws-site.mine text { fill: var(--brass2); font-weight: 600; }
+.ws-site-card { border: 1px solid var(--line); background: rgba(5,7,12,.55); padding: .6rem .7rem; min-height: 7.5rem; }
+.ws-site-head { margin-bottom: .3rem; } .ws-site-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem; }
+.ws-site-card .kv { font-size: .84rem; } .ws-site-card .warn, .ws-site-card > .muted.small { display: block; margin-top: .4rem; }
+.ws-fold > summary { cursor: pointer; color: var(--ink2); font-size: .82rem; margin: .2rem 0 .4rem; }

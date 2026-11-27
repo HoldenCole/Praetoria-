@@ -1,0 +1,26 @@
+@* The window (docs/VISUAL_SYSTEM.md 4.1): the brass frame as an overlay above a leather body cut to the frame's chamfer, so a
+   scrolling body never clips it; a brass roundel with a drawn cross closes it. Header and Tabs stand above the body; the body
+   scrolls as one page under a thin brass scrollbar and fades over its last 56px. A window whose body does not scroll ends at its
+   content height (Scrolls false), so the map shows below it. Docked puts it beside the rail, at the shell's width. *@
+<section class="ui-win @(Docked ? " docked" : "") @(Class.Length > 0 ? " " + Class : "")" @attributes="Attrs">
+    <div class="ui-win-body">
+        @Header
+        @Tabs
+        <div class="ui-wbody @(Scrolls ? " fades" : " still")">@ChildContent</div>
+    </div>
+    <i class="ui-win-frame" aria-hidden="true"></i>
+    @if (OnClose.HasDelegate)
+    {
+        <button class="ui-round ui-close win-close" title="Close (Esc)" aria-label="Close" @onclick="OnClose"><Icon Name="close" Tone="ivory" Size="13" /></button>
+    }
+</section>
+@code {
+    [Parameter] public RenderFragment? Header { get; set; }
+    [Parameter] public RenderFragment? Tabs { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public bool Scrolls { get; set; } = true;
+    [Parameter] public bool Docked { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+}

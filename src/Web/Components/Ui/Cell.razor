@@ -1,0 +1,10 @@
+@* A figure in a row: an icon and a number, right-aligned (docs/VISUAL_SYSTEM.md 4.7). *@
+<span class="ui-cell @(Class.Length > 0 ? " " + Class : "")" title="@Tip">@if (Icon.Length > 0) { <Icon Name="@Icon" Tone="@Tone" Size="17" /> }@Value@if (Small.Length > 0) { <small>@Small</small> }</span>
+@code {
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Tone { get; set; } = "brass";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string Small { get; set; } = "";
+    [Parameter] public string Tip { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+}

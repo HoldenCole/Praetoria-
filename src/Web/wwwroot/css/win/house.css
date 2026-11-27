@@ -1,0 +1,49 @@
+/* The house window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+.banner .tail { position: absolute; left: -1px; right: -1px; bottom: -3em; height: 3em; background: inherit; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.pdot { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; vertical-align: middle; margin-right: .2rem; }
+.res-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem; margin-top: .6rem; } .res-cell { background: rgba(5,7,12,.5); border: 1px solid var(--line); border-radius: 3px; padding: .35rem .5rem; display: flex; flex-direction: column; } .res-cell b { font-size: 1.1rem; font-variant-numeric: tabular-nums; } .res-cell small { font-size: .7rem; } .res-cell .up { color: var(--good); } .res-cell .down { color: var(--bad); }
+@media (max-width: 1100px) {
+  .res-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.wealth-row { display: grid; grid-template-columns: auto minmax(0, 1fr) 2.6rem; align-items: center; gap: .4rem; padding: .16rem 0; font-size: .88rem; } .wealth-row .bar { grid-column: 1 / -1; height: .2667rem; background: rgba(255,255,255,.05); border-radius: 2px; overflow: hidden; margin-top: -.1rem; } .wealth-row .bar i { display: block; height: 100%; } .wealth-row b { text-align: right; } .wealth-row.mine span { color: var(--brass2); }
+/* governors, raiders */
+.gov-chip { font-size: .72rem; padding: .02rem .4rem; border-radius: 999px; border: 1px solid var(--line2); margin-left: .3rem; } .gov-chip.loyal { color: #9ed0a0; } .gov-chip.cool { color: var(--muted); } .gov-chip.hostile { color: #e07a5f; border-color: #6a3b2e; } .gov-chip.able { color: #ffe8a3; }
+.res-cell.strat { border-color: rgba(120,160,220,.25); }
+.holding-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(17.3333rem, 1fr)); gap: .6rem; }
+.hcard.restless { border-color: rgba(216,112,90,.5); }
+.hc-head .pdot { width: 1.2rem; height: 1.2rem; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+.ledger-bars { margin: .3rem 0; }
+.purse-row { padding: .25rem 0; border-top: 1px dotted var(--line); font-size: .86rem; } .purse-row .suit-acts { display: flex; }
+.rich-house { margin-bottom: .9rem; padding-bottom: .5rem; border-bottom: 1px solid var(--line); } .rich-house > .hh-head:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+.rich-row { padding: .25rem 0; border-top: 1px dotted var(--line); font-size: .86rem; } .rich-row .suit-acts { display: flex; flex-wrap: wrap; }
+.hh-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 0 1.6rem; } .hh-cols > div > .hh-head:first-child { border-top: 0; margin-top: 0; padding-top: 0; }
+@media (max-width: 1000px) {
+  .hh-cols { grid-template-columns: minmax(0, 1fr); }
+}
+.panel.household .duty-top { display: flex; align-items: baseline; gap: .4rem; flex-wrap: wrap; }
+.keep2-grid { grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr); }
+.keep .res-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: .2rem; } .keep .res-cell { display: grid; grid-template-columns: auto 1fr; align-items: baseline; column-gap: .4rem; padding: .25rem .45rem; }
+.keep .res-cell > span { grid-column: 1 / -1; font-size: .68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .keep .res-cell small { text-align: right; white-space: nowrap; }
+.person .p-who { flex: 1 1 calc(100% - 2.9333rem); min-width: 0; } .dash .wealth-row .bar { grid-column: auto; } .person .p-what { display: block; font-size: .74rem; color: var(--muted); } .person .p-what i { font-style: normal; } .person .p-what i.good { color: #9fdcb6; } .person .p-what i.bad { color: #f0937f; }
+.ledger-sub { margin: .7rem 0 .2rem; font-family: var(--sans); font-size: .64rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink2); font-weight: 600; } .ledger-sub .muted { letter-spacing: 0; text-transform: none; font-weight: 400; margin-left: .4rem; }
+.money-settings { margin: -.2rem 0 .6rem; }
+.court-sum { margin: .1rem 0 .6rem; } .court-offers { display: grid; gap: .3rem; margin: .35rem 0; }
+.court-offer { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .5rem; padding: .25rem .4rem; background: rgba(255,255,255,.025); border: 1px solid var(--line2); border-radius: 3px; } .court-offer > div { min-width: 0; line-height: 1.25; }
+.pips { letter-spacing: .08em; color: var(--gold, #d8b25a); font-size: .8em; white-space: nowrap; }
+.council-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr)); gap: .9rem 1.4rem; } .council-grid .duty { border-top: 1px solid var(--line2); padding-top: .5rem; }
+.duty-says { margin: .15rem 0 .35rem; padding-left: .55rem; border-left: 2px solid var(--line2); color: #cfc8b6; } .duty-says.bad { border-left-color: var(--bad, #d9a441); }
+.legacy { display: inline-flex; align-items: center; gap: .2rem; margin-right: .5rem; }
+.why-col { margin: .35rem 0; } .why-line { display: flex; justify-content: space-between; gap: .6rem; padding: .08rem 0; border-bottom: 1px dotted var(--line); } .why-line em { font-style: normal; font-variant-numeric: tabular-nums; } .why-line em.good { color: #2EC27E; } .why-line em.bad { color: #E63946; } .why-line.sum { border-bottom: 0; font-weight: 600; }
+/* Borrowing: one row a lender, the amount between its steppers */
+details.borrow { display: block; margin-top: .4rem; }
+details.borrow .lender { border-top: 1px solid var(--line, rgba(255,255,255,.08)); padding: .35rem 0; }
+details.borrow .lender.off { opacity: .7; }
+details.borrow .lender .row { align-items: center; gap: .35rem; flex-wrap: wrap; }
+details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant-numeric: tabular-nums; }
+.petition-row { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; padding: .2rem 0; }
+.held-under { margin: .3rem 0 .7rem; }
+.held-under h4 { margin: .2rem 0 .3rem; }
+.held-under .held-row { display: block; width: 100%; text-align: left; }
+/* The world's card in the House window: what is rising, and building from there */
+.hc-rising { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; margin: .2rem 0; }

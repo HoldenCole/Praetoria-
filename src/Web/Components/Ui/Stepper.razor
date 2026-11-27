@@ -1,0 +1,18 @@
+@* A quantity (docs/VISUAL_SYSTEM.md 4.12): a joined stepper, a minus plate, a recessed figure, a plus plate. *@
+<span class="ui-step-wrap">
+    @if (Label.Length > 0) { <span class="ui-seg-l">@Label</span> }
+    <span class="ui-step" title="@Tip">
+        <button aria-label="Fewer" disabled="@(Value - Step < Min)" @onclick="() => OnChange.InvokeAsync(Math.Max(Min, Value - Step))"><Icon Name="minus" Tone="ivory" Size="12" /></button>
+        <b>@Value</b>
+        <button aria-label="More" disabled="@(Value + Step > Max)" @onclick="() => OnChange.InvokeAsync(Math.Min(Max, Value + Step))"><Icon Name="plus" Tone="ivory" Size="12" /></button>
+    </span>
+</span>
+@code {
+    [Parameter] public int Value { get; set; }
+    [Parameter] public int Min { get; set; }
+    [Parameter] public int Max { get; set; } = 999;
+    [Parameter] public int Step { get; set; } = 1;
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Tip { get; set; } = "";
+    [Parameter] public EventCallback<int> OnChange { get; set; }
+}

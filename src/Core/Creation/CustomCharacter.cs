@@ -70,7 +70,7 @@ public sealed class CustomCharacter
     public string Background { get; set; } = "";
 
     public string HouseName { get; set; } = "";
-    public string Accent { get; set; } = "#E63946";
+    public string Accent { get; set; } = Presentation.Palette.Player;
     public string Culture { get; set; } = "reach";
     /// <summary>What the people of the house look like (content/ancestries); empty leaves it to the dice of the house.</summary>
     public string Ancestry { get; set; } = "";
@@ -138,7 +138,7 @@ public static class CharacterWorkshop
     public const string CustomFlag = "custom_character", FreeFlag = "custom_free", PowerCounter = "custom_power";
     public static readonly string[] Skills = { "administration", "charisma", "diplomacy", "discipline", "economics", "engineering", "gunnery", "intrigue", "law", "leadership", "logistics", "oratory", "tactics" };
     public static readonly string[] Goods = { Resource.Credits, Resource.Materials, Resource.Manpower, Resource.Influence, Resource.Exotics, Resource.Helium3, Resource.RareEarths, Resource.Isotopes };
-    public static readonly string[] Accents = { "#E63946", "#3A86FF", "#FFBE0B", "#2EC27E", "#C9D1DC", "#FB8500", "#9B5DE5", "#00B4D8", "#F15BB5", "#8AC926" };
+    public static readonly string[] Accents = Presentation.Palette.Choices.Take(10).ToArray();   // gold, then the house list (docs/VISUAL_SYSTEM.md 10)
     public const int MinAge = 16, MaxAge = 80, AcademyAge = 16;
     /// <summary>A spouse from a named house (docs/CHARACTER.md): what it costs in a standard start, and what the head of that house and
     /// the new head think of each other on the first day.</summary>

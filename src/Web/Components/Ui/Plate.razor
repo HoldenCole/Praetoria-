@@ -1,0 +1,37 @@
+@* A button (docs/VISUAL_SYSTEM.md 4.11): an action plate with a 16px icon and a verb-first label of one to three words; the cost
+   sits inside at the right after a hairline. Primary is the gold plate, one per window at most. Small is 28px, for strips and rows.
+   Locked: the plate goes dark, its glyph becomes a padlock, the label stays legible, and the requirement is written in warn colour
+   beside it (when Need is set and there is room) and always in the tooltip. Every plate has a tooltip (Tip). *@
+<span class="ui-plate-wrap">
+    <button class="ui-btn @(Primary && !Locked ? " primary" : "") @(Small ? " sm" : "") @(Locked ? " off" : "") @(Class.Length > 0 ? " " + Class : "")" title="@(Locked && Need.Length > 0 ? (Tip.Length > 0 ? Tip + "\n" : "") + Need : Tip)"
+            aria-disabled="@(Locked ? "true" : "false")" disabled="@Disabled" @onclick="Click" @attributes="Attrs">
+        @if (Locked) { <Icon Name="padlock" Tone="ivory" Size="16" /> }
+        else if (Icon.Length > 0) { <Icon Name="@Icon" Tone="@(Primary ? "dark" : IconTone)" Size="16" /> }
+        @Label
+        @if (CostText.Length > 0 || Cost != null)
+        {
+            <span class="ui-cost">@if (CostIcon.Length > 0) { <Icon Name="@CostIcon" Tone="@(Primary ? "dark" : "brass")" Size="14" /> }@CostText@Cost</span>
+        }
+    </button>
+    @if (Locked && ShowNeed && Need.Length > 0) { <span class="ui-need">@Need</span> }
+</span>
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string IconTone { get; set; } = "ivory";
+    [Parameter] public string CostIcon { get; set; } = "";
+    [Parameter] public string CostText { get; set; } = "";
+    [Parameter] public RenderFragment? Cost { get; set; }
+    [Parameter] public bool Primary { get; set; }
+    [Parameter] public bool Small { get; set; }
+    [Parameter] public bool Locked { get; set; }
+    /// <summary>What a locked plate needs, in "you": "Needs a relative of age with no post".</summary>
+    [Parameter] public string Need { get; set; } = "";
+    [Parameter] public bool ShowNeed { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string Tip { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+    private Task Click() => Locked ? Task.CompletedTask : OnClick.InvokeAsync();
+}

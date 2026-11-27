@@ -1,0 +1,16 @@
+@* Building slots (docs/VISUAL_SYSTEM.md 4.8): a label row ("Buildings", "4 of 5 free"), each filled slot the building's painting
+   (its name in the tooltip), each free slot a hatched well with a faint plus. The count written matches the slots drawn. *@
+<div class="ui-slots-wrap @(Class.Length > 0 ? " " + Class : "")">
+    @if (Label.Length > 0) { <div class="ui-slots-head"><span>@Label</span><span><b>@Free</b> of @(Filled.Count + Free) free</span></div> }
+    <div class="ui-slots">
+        @foreach (var (img, name) in Filled) { <span class="ui-slot" title="@name"><img src="@img" alt="@name" loading="lazy" /></span> }
+        @for (int i = 0; i < Free; i++) { <span class="ui-slot free" title="@FreeTip"><Icon Name="plus" Tone="ivory" Size="13" /></span> }
+    </div>
+</div>
+@code {
+    [Parameter] public IReadOnlyList<(string img, string name)> Filled { get; set; } = Array.Empty<(string, string)>();
+    [Parameter] public int Free { get; set; }
+    [Parameter] public string Label { get; set; } = "Buildings";
+    [Parameter] public string FreeTip { get; set; } = "A free slot";
+    [Parameter] public string Class { get; set; } = "";
+}

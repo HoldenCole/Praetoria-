@@ -20,6 +20,11 @@
         }
     </div>
 }
+else if (_parts)
+{
+    @* every shared window part on one sheet (docs/VISUAL_SYSTEM.md, the parts sheet): open the client with ?parts *@
+    <PartsSheet />
+}
 else if (G.Turn == null)
 {
     <CreationScreen HasAutosave="@_hasAutosave" SaveLabel="@_saveLabel" KeptSaves="@_keptSaves" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" OnSaves="() => _saves = true" OnSettings="() => _settings = true" OnHandbook="() => _primer = true" />
@@ -167,6 +172,7 @@ else
 <ConfirmBox />
 
 @code {
+    private bool _parts;
     private static readonly (string id, string glyph, string label)[] Screens =
     {
         ("office", "", "Office"), ("character", "", "You"), ("galaxy", "", "Galaxy"), ("planets", "", "Worlds"), ("senate", "", "Senate"), ("house", "", "House"), ("exchange", "", "Exchange"),
@@ -224,6 +230,7 @@ else
     {
         G.Changed += OnChanged;
         Praetoria.Core.Diagnostics.Perf.Enabled = Nav.Uri.Contains("perf");
+        _parts = new Uri(Nav.Uri).Query.Contains("parts");
         await G.LoadAsync();
         await ReadSaves(); await ReadSettings();
         try { _beenBefore = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.academy.graduated")); } catch { }

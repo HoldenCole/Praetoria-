@@ -1,0 +1,13 @@
+@* A checkbox (docs/VISUAL_SYSTEM.md 4.12): an 18px well with a brass check; the native box is hidden, not removed, so keys work. *@
+<label class="ui-check @(Class.Length > 0 ? " " + Class : "")" title="@Tip">
+    <input type="checkbox" checked="@Value" @onchange="e => OnChange.InvokeAsync(e.Value is true)" />
+    <span class="ui-check-box">@if (Value) { <Icon Name="check" Size="13" Class="flat" /> }</span>
+    @Label
+</label>
+@code {
+    [Parameter] public bool Value { get; set; }
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Tip { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public EventCallback<bool> OnChange { get; set; }
+}

@@ -1,0 +1,29 @@
+/* The event window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+/* event window */
+.win-backdrop { position: fixed; inset: 0; background: rgba(2, 4, 8, .6); backdrop-filter: blur(2px); display: grid; place-items: center; z-index: 30; padding: 1rem; }
+.win-head { display: flex; align-items: center; gap: .8rem; padding: .8rem 1.1rem .2rem; } .win-head h2 { flex: 1; font-size: 1.5rem; } .win-head .tier { font-size: .66rem; letter-spacing: .18em; color: var(--muted); font-family: var(--display); } .win-head .glyph { color: var(--brass); }
+.ev-body { padding: .3rem 1.1rem .6rem; display: grid; grid-template-columns: auto 1fr; gap: 1.1rem; align-items: start; }
+.win-cast { display: flex; flex-direction: column; gap: .7rem; }
+.prose { font-family: var(--serif); font-size: 1.2rem; line-height: 1.55; color: var(--ink2); margin: 0; }
+.prose::first-letter { font-family: var(--display); font-size: 2.6em; float: left; line-height: .85; margin: .05em .12em 0 0; color: var(--brass2); }
+.win-choices { padding: .3rem 1.1rem 1.1rem; display: grid; gap: .4rem; }
+@media (max-width: 1100px) {
+  .win-cast { flex-direction: row; flex-wrap: wrap; }
+}
+/* the kicker takes the register's accent (app.css, the role register) */
+.win-head .kicker { color: var(--reg, var(--muted)); letter-spacing: .14em; font-size: .66rem; }
+.win-art { position: relative; height: 16.6667rem; background: #141a26 center 35% / cover no-repeat; display: flex; align-items: flex-end; }
+.win-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(15,18,25,.05) 30%, rgba(15,18,25,.72) 72%, #0f1219 100%); pointer-events: none; }
+.win-art .win-head { position: relative; z-index: 1; display: block; padding: 0 1.4rem .5rem; width: 100%; }
+.win-art .win-head h2 { font-family: var(--display); font-size: 1.9rem; letter-spacing: .06em; text-transform: uppercase; margin: .15rem 0 0; color: #f4ead0; text-shadow: 0 2px 10px #000, 0 0 2px #000; }
+.win-art .win-head .tier { background: none; border: 0; padding: 0; color: var(--brass2); text-shadow: 0 1px 4px #000; }
+.win-art .win-close { position: absolute; top: .6rem; right: .6rem; z-index: 2; border-radius: 0; border: 1px solid #000; background: rgba(12,15,22,.8); }
+.win.event .ev-body { padding: .6rem 1.4rem .9rem; gap: 1.4rem; }
+.win.event .prose { font-size: 1.22rem; line-height: 1.5; color: #d9d2c0; }
+.win.event .win-choices { padding: .2rem 1.4rem 1.3rem; gap: .35rem; }
+@media (max-width: 640px) {
+  .win-art { height: 11.3333rem; } .win.event .ev-body { grid-template-columns: 1fr; }
+}
+/* Under a report's prose, the facts of the occasion it is about (docs/PLAYTHROUGH.md, reports). */
+.ev-body .facts { border-left: 2px solid var(--brass); padding-left: .6rem; color: var(--ink-2, #b9b3a3); margin-top: .5rem; }

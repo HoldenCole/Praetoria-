@@ -1,0 +1,26 @@
+@* A row (docs/VISUAL_SYSTEM.md 4.7): one grid for every list. A picture (a building's painting, a globe or a portrait plate), the
+   name, one subtitle, figures as icon-and-number cells right-aligned, one action at the right. Hover or On: a brass-tinted plate with
+   a brass bar at the left. Secondary actions belong in the tooltip. *@
+<div class="ui-row @(Picture == null ? " nopic" : "") @(OnClick.HasDelegate ? " click" : "") @(On ? " on" : "") @(Class.Length > 0 ? " " + Class : "")" title="@Tip" @onclick="OnClick" @attributes="Attrs">
+    @if (Picture != null) { <div>@Picture</div> }
+    <div style="min-width:0">
+        <div class="ui-row-nm">@Name@NameExtra</div>
+        @if (Sub != null) { <div class="ui-row-sub">@Sub</div> } else if (SubText.Length > 0) { <div class="ui-row-sub">@SubText</div> }
+    </div>
+    <div class="ui-cols">@Cells</div>
+    <div>@Action</div>
+</div>
+@code {
+    [Parameter] public RenderFragment? Picture { get; set; }
+    [Parameter] public string Name { get; set; } = "";
+    [Parameter] public RenderFragment? NameExtra { get; set; }
+    [Parameter] public RenderFragment? Sub { get; set; }
+    [Parameter] public string SubText { get; set; } = "";
+    [Parameter] public RenderFragment? Cells { get; set; }
+    [Parameter] public RenderFragment? Action { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter] public bool On { get; set; }
+    [Parameter] public string Tip { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+}

@@ -1,0 +1,28 @@
+/* The laws window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
+.es-bar { position: relative; height: .4rem; background: rgba(255,255,255,.08); border-radius: 3px; margin: .3rem 0; } .es-bar .zero { position: absolute; left: 50%; top: -2px; width: 1px; height: .6667rem; background: rgba(255,255,255,.35); } .es-bar .fill { position: absolute; top: 0; height: 100%; border-radius: 3px; } .es-bar .fill.pos { background: var(--good); } .es-bar .fill.neg { background: var(--bad); }
+.law-cat { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--brass2); margin: .6rem 0 .2rem; }
+.law-head { cursor: pointer; display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; } .law-desc { margin: .3rem 0 .45rem; }
+.law-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; } .law-opt { text-align: left; background: rgba(0,0,0,.35); color: inherit; border: 1px solid var(--line); border-radius: 4px; padding: .4rem .5rem; cursor: pointer; font: inherit; } .law-opt:hover:not(:disabled) { border-color: var(--brass2); } .law-opt:disabled { opacity: .55; cursor: default; } .law-opt.here { border-color: var(--brass2); box-shadow: 0 0 0 1px var(--brass3) inset; opacity: 1; }
+.lo-name { font-weight: 600; } .lo-fx { min-height: 1.2em; margin: .15rem 0; } .lo-op { display: flex; flex-wrap: wrap; gap: .2rem; } .opin { font-size: .68rem; padding: 0 .3rem; border-radius: 3px; border: 1px solid var(--line); } .opin.pos { color: var(--good); } .opin.neg { color: var(--bad); }
+@media (max-width: 1100px) {
+  .law-options { grid-template-columns: 1fr; }
+}
+/* the law of the Reach (Chancery) */
+.reach-line { padding: .2rem 0; border-bottom: 1px dotted rgba(255,255,255,.06); }
+.reach-line.act b { color: var(--accent); }
+.reach-line .pos { color: #9fd79f; }
+.es-bar.big { height: .6667rem; margin: .4rem 0; } .es-bar .target { position: absolute; top: -.2rem; width: 2px; height: 1.0667rem; background: var(--ink); opacity: .8; }
+.es-bar .band { position: absolute; top: 0; height: 100%; opacity: .12; pointer-events: none; } .es-bar .band.loyal { left: 65%; right: 0; background: var(--brass2); } .es-bar .band.hostile { left: 0; right: 65%; background: var(--bad); }
+.law-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.3333rem, 1fr)); gap: .5rem; margin-bottom: .6rem; } .law-grid .law.open { grid-column: 1 / -1; }
+.law-grid .law { border: 1px solid var(--line); border-radius: 4px; padding: .45rem .55rem; background: rgba(5,7,12,.35); } .law-grid .law.custom { border-color: var(--brass3); } .law-grid .law-head { cursor: pointer; } .law-grid .inforce { color: var(--brass2); }
+.chancery2-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+.es-row { display: grid; grid-template-columns: minmax(8.6667rem, 11.3333rem) minmax(0, 1fr) 5.6rem; align-items: center; column-gap: .7rem; padding: .4rem .2rem .45rem; border-bottom: 1px dotted var(--line); }
+.es-row .es-who { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; } .es-row .es-who b { font-size: .95rem; } .es-row .es-bar.big { margin: 0; }
+.es-row .es-val { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; } .es-row .es-val b { font-size: 1rem; } .es-row .es-val i { font-style: normal; font-size: .7rem; margin-left: .35rem; color: var(--muted); } .es-row .es-val i.up { color: #9fdcb6; } .es-row .es-val i.down { color: #f0937f; }
+.es-row .es-note { grid-column: 1 / -1; font-size: .76rem; color: var(--ink2); margin-top: .2rem; } .es-row .es-note .good { color: #9fdcb6; } .es-row .es-note .warn { color: #f0937f; } .es-row.hostile b { color: #f0a090; } .es-row.loyal b { color: var(--brass2); }
+.es-key { margin-top: .5rem; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .45rem; } .es-key .k { display: inline-block; width: .9333rem; height: .5333rem; border-radius: 2px; } .es-key .k.fill { background: var(--good); } .es-key .k.target { width: 2px; height: .8rem; background: var(--ink); }
+.es-key .k.loyal { background: var(--brass2); opacity: .35; } .es-key .k.hostile { background: var(--bad); opacity: .35; }
+table.reach-table td { font-size: .78rem; } table.reach-table td:first-child { white-space: nowrap; }
+.local-summary .ls-row { padding: .1rem 0; }
+.law-open { margin-left: .45rem; white-space: nowrap; color: var(--brass2); border: 1px solid var(--brass3); border-radius: 3px; padding: 0 .4rem; font-size: .72rem; letter-spacing: .04em; } .law-head:hover .law-open { background: rgba(200,160,80,.15); }
