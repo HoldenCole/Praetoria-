@@ -1,6 +1,10 @@
+@preservewhitespace true
 @using Praetoria.Core.Systems
 @inject GameClient G
 @implements IDisposable
+@* The ladder of offices on the Senate window (docs/LADDER.md; docs/VISUAL_SYSTEM.md 4.6, 4.7): a section, the next election and the
+   magistrates' trust as its first lines, the year's business of the head's own office as an entry with its choices, then each rung as
+   an entry: who sits in it (their faces), who of the house stands for it and what is spent on them, and the plate to stand. *@
 @{
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var offices = c.Offices;
     bool active = LadderSystem.Active(w, offices); int next = LadderSystem.CountIn(w, offices);
@@ -34,107 +38,136 @@
     };
     string Held(Character x) => x.Cursus.Count == 0 ? "nothing yet" : string.Join(", then ", x.Cursus.Select(id => offices.Rung(id)?.Name.ToLowerInvariant() ?? id));
 }
-<section class="panel cursus">
-    <h3><Icon Name="senate" Size="13" /> The ladder of offices <span class="muted">@(active ? $"the next election in {Counted.Years(next)}" : "there are no elections under a throne")</span></h3>
-    @if (!active) { <div class="muted small">Under the Imperium offices are the throne's to give. The ladder belongs to the Republic.</div> }
+<section class="panel cursus sn-panel">
+    @if (active)
+    {
+        string when = next <= 0 ? "at the end of this year" : next == 1 ? "at the end of next year, year " + (w.Turn + 1) : "in " + next + " years, at the end of year " + (w.Turn + next);
+        <p class="ui-lede sn-lede" data-next-election="@next">@SenateScreen.Bold((p.Cursus.Count == 0 ? "You have held no office yet." : $"You have been {Held(p)}.") + $" The next election is {when}, and {Counted.Names(w.Candidacies.Count)} {Counted.Are(w.Candidacies.Count)} down so far.")</p>
+    }
+    <Section Title="The ladder of offices" Info="Each rung is held by a person, for five years, and filled by election: every rung below the consulship at the same count, and names go down before it. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides.">
+        <Right><span>@(active ? $"the next election in {Counted.Years(next)}" : "there are no elections under a throne")</span></Right>
+    </Section>
+    @if (!active) { <EmptyState Icon="stairs-goal" Text="Under the Imperium offices are the throne's to give. The ladder belongs to the Republic." /> }
     else
     {
-        <div class="muted small">Each rung is held by a person, for five years, and filled by election. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides. You have been: <b>@Held(p)</b>.</div>
-        <div class="small" data-next-election="@next"><b>The next election is @(next <= 0 ? "at the end of this year" : next == 1 ? "at the end of next year (year " + (w.Turn + 1) + ")" : "in " + next + " years, at the end of year " + (w.Turn + next))</b>: every rung below the consulship is filled then, and names go down before it. @Counted.Names(w.Candidacies.Count) @Counted.Are(w.Candidacies.Count) down so far.</div>
-        @if (TriumphSystem.HasLeave(w, house.Id)) { <div class="small good" data-absence-leave="1">The Senate has given your house leave to stand in absence: at the next election those of the house who command away from the capital may stand without coming home.</div> }
-        <div class="small">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span> <span class="muted small">@trustDoes</span></div>
-        @if (LadderSystem.TrustApartSays(w) is { Length: > 0 } apart) { <div class="muted small" title="An office's own name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a little less closely to the Reach each year.">@apart</div> }
-        @if (taintLine.Length > 0) { <div class="small bad">@taintLine</div> }
+        <div class="sn-intro">
+            @if (TriumphSystem.HasLeave(w, house.Id)) { <p class="sn-say ui-up" data-absence-leave="1">The Senate has given your house leave to stand in absence: at the next election those of the house who command away from the capital may stand without coming home.</p> }
+            <div class="sn-trust"><Meter Label="Trust in office" Value="@trust" Max="100" Color="@(trust < LadderSystem.TrustLow ? "#b8452f" : trust < 50 ? "#e3a64a" : "#8cc47e")" Tip="@TrustTip" /><span class="sn-say">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span> @trustDoes</span></div>
+            @if (LadderSystem.TrustApartSays(w) is { Length: > 0 } apart) { <p class="sn-say ui-dim" title="An office's own name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a little less closely to the Reach each year.">@apart</p> }
+            @if (taintLine.Length > 0) { <div class="ui-wstrip bad sn-strip"><Icon Name="alert" Tone="ember" Size="18" /><span class="ui-wstrip-t">@taintLine</span></div> }
+        </div>
         @if (work != null)
         {
-            <div class="rung-row office-work">
-                <div><b>@workTitle</b></div>
-                <div class="small">@workSays</div>
-                @foreach (var choice in LadderSystem.ChoicesFor(work.Kind))
-                {
-                    string ch = choice; var no = new LadderCommand(pid, LadderCommand.Decide, pid, ch, offices).Refusal(G.Ctx); string tip = LadderSystem.ChoiceSays(w, work, ch);
-                    <div class="suit-acts">
-                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Decide, pid, ch, offices))">@Label(ch)</button>
-                        <span class="muted small">@tip</span>
+            <div class="sn-ent rung-row office-work waits">
+                <span class="sn-ic mine"><Icon Name="@RungIcon(mySeat?.OfficeId ?? "")" Tone="brass" Size="22" /></span>
+                <div class="sn-ent-main">
+                    <div class="sn-hd"><b class="sn-nm">@workTitle</b><span class="sn-tag warn">waits on you</span></div>
+                    <div class="sn-tx">@workSays</div>
+                    <div class="sn-choices">
+                    @foreach (var choice in LadderSystem.ChoicesFor(work.Kind))
+                    {
+                        string ch = choice; var no = new LadderCommand(pid, LadderCommand.Decide, pid, ch, offices).Refusal(G.Ctx); string tip = LadderSystem.ChoiceSays(w, work, ch);
+                        <div class="sn-choice suit-acts">
+                            <Plate Label="@Label(ch)" Small="true" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? tip)" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Decide, pid, ch, offices))" />
+                            <span class="sn-say">@tip</span>
+                        </div>
+                    }
                     </div>
-                }
-                <div class="muted small">Left undone, the clerks close it at the year's end, and it is noticed.</div>
+                    <div class="sn-say ui-mute">Left undone, the clerks close it at the year's end, and it is noticed.</div>
+                </div>
             </div>
         }
-        else if (mySeat != null) { <div class="muted small">@(hadWork ? WorkDone : WorkNotYet)</div> }
+        else if (mySeat != null) { <p class="sn-say sn-pad ui-dim">@(hadWork ? WorkDone : WorkNotYet)</p> }
         @if (done.Count > 0)
         {
-            <details class="small"><summary>What the magistrates did this year (@done.Count)</summary>
+            <details class="sn-det"><summary><Icon Name="chev" Size="11" Class="flat" />What the magistrates did this year (@done.Count)</summary>
                 @foreach (var (b, who) in done)
                 {
-                    <div class="muted small">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), @(offices.Rung(b.RungId)?.Name.ToLowerInvariant() ?? "in office"): @Did(b).</div>
+                    <div class="sn-tx ui-dim">@who!.Name@(who.HouseId == house.Id ? " (yours)" : " of " + w.House(who.HouseId)?.Name), @(offices.Rung(b.RungId)?.Name.ToLowerInvariant() ?? "in office"): @Did(b).</div>
                 }
             </details>
         }
         @foreach (var rung in offices.Rungs)
         {
             string rid = rung.Id; var holders = LadderSystem.Holders(w, rung.Id); var ours = w.Candidacies.Where(x => x.RungId == rung.Id).ToList();
-            var stand = new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices).Refusal(G.Ctx);
-            <div class="rung-row">
-                <div><b>@rung.Name</b> <span class="muted small">@Counted.Seats(rung.Seats) · from @SenateActs.AgeFor(w, rung.MinAge)@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {Money.Show(rung.Stipend)} a year" : "")</span></div>
-                <div class="muted small">@rung.Description</div>
-                <div class="small">Sitting: @(holders.Count == 0 ? "nobody" : string.Join("; ", holders.Select(h => { var x = w.Char(h.CharacterId); return x == null ? "" : x.HouseId == house.Id ? $"{x.Name} (yours)" : $"{x.Name} of {w.House(x.HouseId)?.Name}"; })))</div>
-                @foreach (var cd in ours)
-                {
-                    var x = w.Char(cd.CharacterId); if (x == null) continue; string xid = x.Id; var back = new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices).Refusal(G.Ctx);
-                    @if (TriumphSystem.AwaySays(w, x) is { } awayNow) { <div class="small warn" data-stand-away="@xid">@Cap(awayNow). The name is taken down at the year's end unless the fleet is brought to the capital, or the command given up, first.</div> }
-                    <div class="suit-acts">
-                        <span class="small"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="muted">(the count is @(next <= 0 ? "at this year's end" : "in " + Counted.Years(next) + "") · @Counted.Names(w.Candidacies.Count(o => o.RungId == cd.RungId)) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
-                        <button class="opt inline tiny" disabled="@(back != null)" title="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))">@(x.Id == pid ? "Call in what is owed" : "Speak for them") · @LadderSystem.BackInfluence influence</button>
-                        @foreach (var size in LadderSystem.CampaignSizes)
+            var stand = new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices).Refusal(G.Ctx); bool sitsHere = mySeat?.OfficeId == rung.Id;
+            <div class="sn-ent rung-row @(sitsHere ? "mine" : "")" data-rung-office="@rid">
+                <span class="sn-ic @(sitsHere ? "mine" : "")"><Icon Name="@RungIcon(rid)" Tone="@(sitsHere ? "brass" : "ivory")" Size="22" /></span>
+                <div class="sn-ent-main">
+                    <div class="sn-hd"><b class="sn-nm">@rung.Name</b><span class="sn-sub">@Counted.Seats(rung.Seats) · from @SenateActs.AgeFor(w, rung.MinAge)@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {Money.Show(rung.Stipend)} a year" : "")</span>
+                        @if (sitsHere) { <span class="sn-tag mine">you sit</span> }</div>
+                    <div class="sn-tx ui-dim">@rung.Description</div>
+                    <div class="sn-sitting"><span class="sn-lbl">Sitting:</span>
+                        @if (holders.Count == 0) { <i class="ui-mute">nobody</i> }
+                        @foreach (var h in holders)
                         {
-                            /* coin behind the canvass, out of the treasury (docs/WEALTH.md, "Things worth a rich house's money") */
-                            string sz = size, fk = xid + "|" + sz; var fundNo = new FundCampaignCommand(pid, xid, sz, offices).Refusal(G.Ctx); int due = Math.Max(0, LadderSystem.CampaignCost(sz) - (LadderSystem.CampaignOf(w, xid)?.Spent ?? 0));
-                            string fundTip = FundTip(sz), fundLabel = FundLabel(sz, due, LadderSystem.CampaignOf(w, xid) != null);
-                            <button class="opt inline tiny" data-fund-canvass="@fk" disabled="@(fundNo != null)" title="@(fundNo ?? fundTip)" @onclick="() => G.Execute(new FundCampaignCommand(pid, xid, sz, offices))">@fundLabel</button>
-                        }
-                        @if (x.Id == pid) { <button class="opt inline tiny" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Withdraw, pid, string.Empty, offices))">Withdraw</button> }
-                        else
-                        {
-                            var down = new LadderCommand(pid, LadderCommand.Dissuade, xid, string.Empty, offices).Refusal(G.Ctx);
-                            <button class="opt inline tiny" disabled="@(down != null)" title="@(down ?? AskDown)" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Dissuade, xid, string.Empty, offices))">Ask them to stand down</button>
+                            var x = w.Char(h.CharacterId); if (x == null) continue;
+                            <span class="sn-who @(x.HouseId == house.Id ? "mine" : "")"><Portrait Id="@x.Id" Name="@x.Name" Sex="@x.Sex" Age="@x.Age" Accent="@(w.House(x.HouseId)?.AccentColor ?? "#888")" Size="20" />@(x.HouseId == house.Id ? $"{x.Name} (yours)" : $"{x.Name} of {w.House(x.HouseId)?.Name}")</span>
                         }
                     </div>
-                }
-                @if (ours.Count > 0)
-                {
-                    /* what coin is behind whom for this office, and, for one of the house who keeps a house at the capital, how the count stands */
-                    var rivals = LadderSystem.RivalCampaigns(w, rid); var mineFunds = ours.Select(o => LadderSystem.CampaignOf(w, o.CharacterId)).Where(f => f != null).ToList();
-                    bool hears = G.Turn != null && ours.Any(o => WealthSystem.AtTheCapital(w, o.CharacterId));
-                    if (mineFunds.Count > 0) { <div class="small" data-canvass-paid="@rid">@string.Join("; ", mineFunds.Select(f => (f!.CharacterId == pid ? "Your canvass" : (w.Char(f.CharacterId)?.Name ?? "One of yours") + "'s canvass") + " has " + Money.Credits(f.Spent) + " of the house's behind it, worth " + f.Votes + " votes")).</div> }
-                    if (rivals.Count > 0) { <div class="small warn" data-canvass-rivals="@rid">@string.Join("; ", rivals.Select(f => (w.House(f.HouseId)?.Name ?? "A house") + " has put " + Money.Credits(f.Spent) + " behind its candidate, worth " + f.Votes + " votes")).</div> }
-                    if (hears)
+                    @foreach (var cd in ours)
                     {
-                        var stands = LadderSystem.CountAsItStands(w, offices, rung, id => G.Turn!.Senate.Weight(w, id));
-                        <div class="muted small" data-count-stands="@rid" title="Heard at the capital, where one of yours standing for this office keeps a house. It is how the count would go if it were held today, and it changes as names go down and coin is spent.">As the count stands, for @Counted.Seats(rung.Seats): @string.Join(", ", stands.Take(8).Select(x => (x.who.HouseId == house.Id ? x.who.Name + " (yours)" : x.who.Name + " of " + (w.House(x.who.HouseId)?.Name ?? "")) + " " + x.votes)).</div>
+                        var x = w.Char(cd.CharacterId); if (x == null) continue; string xid = x.Id; var back = new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices).Refusal(G.Ctx);
+                        @if (TriumphSystem.AwaySays(w, x) is { } awayNow) { <div class="sn-note warn" data-stand-away="@xid"><Icon Name="eagle-emblem" Tone="brass" Size="15" /><span>@Cap(awayNow). The name is taken down at the year's end unless the fleet is brought to the capital, or the command given up, first.</span></div> }
+                        <div class="sn-cand">
+                            <Portrait Id="@x.Id" Name="@x.Name" Sex="@x.Sex" Age="@x.Age" Accent="@house.AccentColor" Size="24" Height="28" />
+                            <span class="sn-say"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="ui-mute">(the count is @(next <= 0 ? "at this year's end" : "in " + Counted.Years(next) + "") · @Counted.Names(w.Candidacies.Count(o => o.RungId == cd.RungId)) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
+                        </div>
+                        <div class="sn-acts suit-acts">
+                            <Plate Label="@(x.Id == pid ? "Call in what is owed" : "Speak for them")" Small="true" Icon="public-speaker" Locked="@(back != null)" Disabled="@(back != null)" Tip="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" CostIcon="public-speaker" CostText="@LadderSystem.BackInfluence.ToString()" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))" />
+                            @foreach (var size in LadderSystem.CampaignSizes)
+                            {
+                                /* coin behind the canvass, out of the treasury (docs/WEALTH.md, "Things worth a rich house's money") */
+                                string sz = size, fk = xid + "|" + sz; var fundNo = new FundCampaignCommand(pid, xid, sz, offices).Refusal(G.Ctx); int due = Math.Max(0, LadderSystem.CampaignCost(sz) - (LadderSystem.CampaignOf(w, xid)?.Spent ?? 0));
+                                bool paid = due == 0 && LadderSystem.CampaignOf(w, xid) != null;
+                                <Plate Label="@(paid ? Cap(LadderSystem.CampaignName(sz)) + ": paid for" : "Pay for " + LadderSystem.CampaignName(sz))" Small="true" Locked="@(fundNo != null)" Disabled="@(fundNo != null)" Tip="@(fundNo ?? FundTip(sz))" CostIcon="@(paid ? "" : "credits")" CostText="@(paid ? "" : Money.Show(due))" OnClick="() => G.Execute(new FundCampaignCommand(pid, xid, sz, offices))" data-fund-canvass="@fk" />
+                            }
+                            @if (x.Id == pid) { <Plate Label="Withdraw" Small="true" Tip="Take your name down from the count" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Withdraw, pid, string.Empty, offices))" /> }
+                            else
+                            {
+                                var down = new LadderCommand(pid, LadderCommand.Dissuade, xid, string.Empty, offices).Refusal(G.Ctx);
+                                <Plate Label="Ask them to stand down" Small="true" Locked="@(down != null)" Disabled="@(down != null)" Tip="@(down ?? AskDown)" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Dissuade, xid, string.Empty, offices))" />
+                            }
+                        </div>
                     }
-                    else { <div class="muted small">One of the house with a house at the capital would hear how this count stands before it is held (House, Purses and the will).</div> }
-                }
-                @if (myStand == null)
-                {
-                    <div class="suit-acts">
-                        <button class="opt inline tiny" disabled="@(stand != null)" title="@(stand ?? "your name goes down for the next election")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices))">Stand for @rung.Name.ToLowerInvariant() · @LadderSystem.StandInfluence influence</button>
-                        @if (stand != null) { <span class="muted small">@Cap(You(stand)).</span> }
-                    </div>
-                }
-                @if (mySeat?.OfficeId == rung.Id && rung.Games > 0)
-                {
-                    var games = new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices).Refusal(G.Ctx);
-                    <div class="suit-acts"><button class="opt inline" disabled="@(games != null)" title="@(games ?? "the house gains standing, and it is written into your life")" @onclick="() => G.Execute(new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices))">Give games · @Money.Show(rung.Games) credits of your own</button></div>
-                }
+                    @if (ours.Count > 0)
+                    {
+                        /* what coin is behind whom for this office, and, for one of the house who keeps a house at the capital, how the count stands */
+                        var rivals = LadderSystem.RivalCampaigns(w, rid); var mineFunds = ours.Select(o => LadderSystem.CampaignOf(w, o.CharacterId)).Where(f => f != null).ToList();
+                        bool hears = G.Turn != null && ours.Any(o => WealthSystem.AtTheCapital(w, o.CharacterId));
+                        if (mineFunds.Count > 0) { <div class="sn-note" data-canvass-paid="@rid"><Icon Name="credits" Tone="brass" Size="15" /><span>@string.Join("; ", mineFunds.Select(f => (f!.CharacterId == pid ? "Your canvass" : (w.Char(f.CharacterId)?.Name ?? "One of yours") + "'s canvass") + " has " + Money.Credits(f.Spent) + " of the house's behind it, worth " + f.Votes + " votes")).</span></div> }
+                        if (rivals.Count > 0) { <div class="sn-note warn" data-canvass-rivals="@rid"><Icon Name="credits" Tone="ember" Size="15" /><span>@string.Join("; ", rivals.Select(f => (w.House(f.HouseId)?.Name ?? "A house") + " has put " + Money.Credits(f.Spent) + " behind its candidate, worth " + f.Votes + " votes")).</span></div> }
+                        if (hears)
+                        {
+                            var stands = LadderSystem.CountAsItStands(w, offices, rung, id => G.Turn!.Senate.Weight(w, id));
+                            <div class="sn-note" data-count-stands="@rid" title="Heard at the capital, where one of yours standing for this office keeps a house. It is how the count would go if it were held today, and it changes as names go down and coin is spent."><Icon Name="vote" Tone="brass" Size="15" /><span>As the count stands, for @Counted.Seats(rung.Seats): @string.Join(", ", stands.Take(8).Select(x => (x.who.HouseId == house.Id ? x.who.Name + " (yours)" : x.who.Name + " of " + (w.House(x.who.HouseId)?.Name ?? "")) + " " + x.votes)).</span></div>
+                        }
+                        else { <div class="sn-say ui-mute">One of the house with a house at the capital would hear how this count stands before it is held (House, Purses and the will).</div> }
+                    }
+                    @if (myStand == null)
+                    {
+                        <div class="sn-acts suit-acts">
+                            <Plate Label="@("Stand for " + rung.Name.ToLowerInvariant())" Small="true" Icon="stairs-goal" Locked="@(stand != null)" Disabled="@(stand != null)" Tip="@(stand ?? "Your name goes down for the next election")" CostIcon="public-speaker" CostText="@LadderSystem.StandInfluence.ToString()" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices))" />
+                            @if (stand != null) { <span class="sn-no">@Cap(You(stand)).</span> }
+                        </div>
+                    }
+                    @if (sitsHere && rung.Games > 0)
+                    {
+                        var games = new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices).Refusal(G.Ctx);
+                        <div class="sn-acts suit-acts"><Plate Label="Give games" Small="true" Icon="laurels" Locked="@(games != null)" Disabled="@(games != null)" Tip="@(games ?? $"The house gains standing, and it is written into your life. It costs {Money.Credits(rung.Games)} of your own.")" CostIcon="credits" CostText="@Money.Show(rung.Games)" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Games, pid, string.Empty, offices))" /><span class="sn-say ui-mute">credits of your own</span></div>
+                    }
+                </div>
             </div>
         }
         @if (consul != null)
         {
-            <div class="rung-row">
-                <div><b>Consul</b> <span class="muted small">2 seats · from @SenateActs.AgeFor(w, consul.MinAge) · must have been @(offices.Rung(consul.Requires)?.Name.ToLowerInvariant() ?? "praetor") · elected every tenth year</span></div>
-                <div class="small">@(consulMan != null ? $"{(consulMan.Id == pid ? "You are" : consulMan.Name + " is")} of an age and a record to stand for the house." : consulAway != null ? "Nobody of the house may stand for consul who is in the capital." : $"Nobody of the house is yet {SenateActs.AgeFor(w, consul.MinAge)} and has been praetor. The house cannot stand for consul.")</div>
-                @if (consulAway != null && TriumphSystem.AwaySays(w, consulAway) is { } consulNo) { <div class="small warn" data-consul-away="@consulAway.Id">@Cap(consulNo).@(consulMan != null ? " Until then the house would stand in the person of " + consulMan.Name + "." : string.Empty)</div> }
+            <div class="sn-ent rung-row" data-rung-office="consul">
+                <span class="sn-ic"><Icon Name="podium" Tone="ivory" Size="22" /></span>
+                <div class="sn-ent-main">
+                    <div class="sn-hd"><b class="sn-nm">Consul</b><span class="sn-sub">2 seats · from @SenateActs.AgeFor(w, consul.MinAge) · must have been @(offices.Rung(consul.Requires)?.Name.ToLowerInvariant() ?? "praetor") · elected every tenth year</span></div>
+                    <div class="sn-tx">@(consulMan != null ? $"{(consulMan.Id == pid ? "You are" : consulMan.Name + " is")} of an age and a record to stand for the house." : consulAway != null ? "Nobody of the house may stand for consul who is in the capital." : $"Nobody of the house is yet {SenateActs.AgeFor(w, consul.MinAge)} and has been praetor. The house cannot stand for consul.")</div>
+                    @if (consulAway != null && TriumphSystem.AwaySays(w, consulAway) is { } consulNo) { <div class="sn-note warn" data-consul-away="@consulAway.Id"><Icon Name="eagle-emblem" Tone="brass" Size="15" /><span>@Cap(consulNo).@(consulMan != null ? " Until then the house would stand in the person of " + consulMan.Name + "." : string.Empty)</span></div> }
+                </div>
             </div>
         }
     }
@@ -151,7 +184,8 @@
         LadderSystem.Law => "Rule on the law", LadderSystem.Friend => "Rule for a friend", LadderSystem.Gift => "Take the gift",
         LadderSystem.Settle => "Bring them to terms", LadderSystem.Both => "Lanes and grain both", _ => choice
     };
-    private static string FundLabel(string size, int due, bool paid) => due == 0 && paid ? Cap(LadderSystem.CampaignName(size)) + ": paid for" : "Pay for " + LadderSystem.CampaignName(size) + " · " + Money.Show(due);
+    /// <summary>The glyph of a rung: the accounts, the works, the courts.</summary>
+    private static string RungIcon(string rung) => rung switch { "quaestor" => "abacus", "aedile" => "build", "praetor" => "scales", _ => "stairs-goal" };
     private static string FundTip(string size) => "Out of the treasury: " + LadderSystem.CampaignVotes(size) + " votes at the count in all, besides what speaking for them does." + (size == LadderSystem.Lavish ? " It goes on the record as votes bought: any house may charge them with it before a praetor, and one convicted loses the office and may not stand for " + Counted.Years(LadderSystem.BarYears) + "." : "");
     private const string AskDown = "It is their name. The loyal will take it down; the wilful will not, and either will think less of you.";
     private static string You(string s) => s.Replace("they have", "you have").Replace("they must", "you must").Replace("they command", "you command");

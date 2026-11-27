@@ -1,6 +1,12 @@
+@preservewhitespace true
 @using Praetoria.Core.Commands
 @using Praetoria.Core.Systems
 @inject GameClient G
+@* The Senate window (docs/VISUAL_SYSTEM.md 5.3): the senate painting with the kicker, the title, the house's place in the chamber as facts
+   and five figures on the plinth. Six tabs: the chamber (the hemicycle under the header, the benches beside it, the motions before the
+   chamber, what was decided lately and the houses' weight in the three estates), the motions the house may move, the offices (the
+   consulship and its election, the offices of the Reach, the legates, the parties, the house's rank and the throne, the crises), the
+   year's duties, the ladder of offices with the courts, and the orders with breaking away. Every block is a section of rows. *@
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
     var spheres = c.Spheres.IsEmpty ? new List<string>() : c.Spheres.Defs.Select(s => s.Id).ToList();
@@ -25,7 +31,7 @@
     var focusHead = focusHouse != null ? Economy.HeadOf(w, focusHouse) : null;
     var focusStance = watched?.Stances.FirstOrDefault(x => x.HouseId == _focus);
     int myWeight = senate.Weight(w, house.Id);
-    // a seat is drawn in its bench's colour, so that the legend under the chamber reads against it
+    // a seat is drawn in its bench's colour, so that the legend beside the chamber reads against it
     var seatFill = ordered.GroupBy(x => x.h.Id).ToDictionary(g => g.Key, g => g.First().bench is { } sb ? (sb.Accent.Length > 0 ? sb.Accent : w.House(sb.LeaderHouseId)?.AccentColor ?? "#888") : "#7d8598");
     // The picture (docs/DASHBOARDS.md): what is before the chamber and how it will go, whose the seats are, and when the next count is.
     int seatRank = 1 + seatHouses.Count(x => x.weight > myWeight); var topSeat = seatHouses.OrderByDescending(x => x.weight).ThenBy(x => x.h.Id, StringComparer.Ordinal).FirstOrDefault();
@@ -33,7 +39,7 @@
     bool largest = myBench != null && benches.Count > 0 && benches[0].Id == myBench.Id;
     int motions = sen?.Docket.Count ?? 0, carry = sen?.Docket.Count(d => d.ForWeight > d.AgainstWeight) ?? 0; var againstMe = sen?.Docket.FirstOrDefault(d => d.AgainstMe);
     var elect = sen?.Election; var lead = elect?.Nominees.OrderByDescending(n => n.Tally).Select(n => (n.HouseName, n.Tally)).FirstOrDefault();
-    bool yearUnspent = LadderSystem.DutyOf(w, p.Id, LadderSystem.SeatKind) != null, workWaits = w.OfficeWork.Any(b => b.HolderId == p.Id && b.Choice.Length == 0);
+    bool yearUnspent = LadderSystem.DutyOf(w, p.Id, LadderSystem.SeatKind) != null; int workWaiting = w.OfficeWork.Count(b => b.HolderId == p.Id && b.Choice.Length == 0); bool workWaits = workWaiting > 0;
     int trust = LadderSystem.Trust(w);
     string countLine = elect == null ? "" : elect.AmConsul ? " You hold the consulship." : elect.NextIn == 0 ? $" The consuls are elected at the year's end{(lead is { HouseName: not null } l1 ? $"; {l1.HouseName} leads the count" : "")}." : $" The consuls are elected in {elect.NextIn} years.";
     string story, storyTone;
@@ -42,446 +48,423 @@
     else if (motions > 0) { var first = sen.Docket[0]; story = motions == 1 ? $"One motion is before the chamber: {first.KindName}, moved by {first.ProposerName}. As the benches lean it {(first.ForWeight > first.AgainstWeight ? "carries" : "fails")}, {first.ForWeight} to {first.AgainstWeight}.{countLine}" : $"{motions} motions are before the chamber. As the benches lean, {carry} carry and {motions - carry} fail.{countLine}"; storyTone = ""; }
     else { story = $"Nothing is before the Senate this year. You hold {myWeight} of its {totalSeats} seats{(myBench != null ? $"; {myBench.Name}, your bench, hold {benchSeats}, {(benchSeats >= majority ? "a majority" : $"{majority - benchSeats} short of a majority")}" : " and sit on no bench")}.{countLine}"; storyTone = ""; }
     if (yearUnspent) story += " Your own year in the Senate is not yet spent.";
-}
-<div class="dash senate" style="--accent:@house.AccentColor">
-    <header class="dash-head picture">
-        <div class="dh-title"><Icon Name="houses" Size="18" /> <b>@(w.Era == "imperium" ? "The Imperial Senate" : "The Senate of the Reach")</b>
-            <span class="muted">@seatHouses.Count houses · @totalSeats seats · @benches.Count bench@(benches.Count == 1 ? "" : "es") · @(s?.Throne.HoldsThrone == true ? "the throne is yours" : s?.Throne.EmperorName != null ? $"the throne is {s.Throne.EmperorName}'s" : w.IsImperium ? "the throne stands empty" : "a republic: no throne stands")</span></div>
-        <p class="headline @storyTone">@story</p>
-        <div class="tiles">
-            <Tile Label="Your seats" Value="@($"{myWeight} of {totalSeats}")" Share="@(topSeat.h != null && topSeat.weight > 0 ? 100 * myWeight / topSeat.weight : 0)" Tone="@(myWeight == 0 ? "warn" : "")"
-                  Note="@(myWeight == 0 ? "the house has no seat" : topSeat.h == null || topSeat.h.Id == house.Id ? $"the most of any house, of {seatHouses.Count}" : $"{Ordinal(seatRank)} of {seatHouses.Count} houses · {topSeat.h.Name} has {topSeat.weight}")"
-                  Title="A house votes with the weight of its seats. The bar is your seats against the house that has most." />
-            <Tile Label="Your bench" Value="@(myBench?.Name ?? "none")" Share="@(myBench != null ? 100 * benchSeats / totalSeats : -1)" Tone="@(myBench != null && benchSeats >= majority ? "good" : "")"
-                  Note="@(myBench == null ? "you vote alone; a bench votes together" : benchSeats >= majority ? $"{benchSeats} seats: a majority of the chamber" : $"{benchSeats} seats{(largest ? ", the largest bench" : "")} · {majority - benchSeats} short of a majority")"
-                  Title="The bar is your bench's share of the whole chamber." />
-            <Tile Label="Before the chamber" Value="@(motions == 0 ? "nothing" : motions == 1 ? "1 motion" : motions + " motions")" Tone="@(againstMe != null ? "bad" : "")"
-                  Note="@(sen == null ? "" : motions == 0 ? (sen.MayPropose ? "you may move one" : "and you may not move one") : againstMe != null ? "one of them against you" : $"{carry} to carry, {motions - carry} to fail, as it stands")"
-                  Title="Motions are voted at the year's end, by weight of seats." />
-            @if (ThroneSystem.Emperor(w) is { } sits)
-            {
-                int th = ThroneSystem.Hold(w); var up = w.Rising != null ? w.House(w.Rising.HouseId) : null;
-                <Tile Label="The throne" Value="@($"{th} · {ThroneSystem.HoldName(th)}")" Share="@th" Tone="@(th < ThroneSystem.RiseAt || up != null ? "bad" : th < ThroneSystem.ShakenAt ? "warn" : "good")"
-                      Note="@(up != null ? $"{up.Name} has raised a standard" : sits.Id == house.Id ? "your hold on it" : $"the hold of {sits.Name}")"
-                      Title="@($"How firmly the house on the throne holds it, out of 100. Below {ThroneSystem.RiseAt} for two years and a house of rank raises a standard. What it is made of is under Offices, parties and titles.")" />
-            }
-            @if (elect != null)
-            {
-                <Tile Label="The consulship" Value="@(elect.AmConsul ? "yours" : elect.NextIn == 0 ? "this year" : elect.NextIn == 1 ? "next year" : $"in {elect.NextIn} years")" Tone="@(elect.AmConsul ? "good" : "")"
-                      Note="@(elect.AmConsul ? (elect.CanVeto ? "your veto is unspent this term" : "your veto is spent this term") : (elect.Standing ? "you stand" : "you do not stand") + (lead is { HouseName: not null } l2 ? $" · {l2.HouseName} leads with {l2.Tally}" : " · no candidate yet"))"
-                      Title="@($"Two consuls are elected every {elect.TermTurns} years, by the weight of the houses that vote for them.")" />
-            }
-            <Tile Label="Fear of you" Value="@threat.ToString()" Share="@(100 * threat / SphereSystem.CoalitionThreshold)" Tone="@(threat >= SphereSystem.CoalitionThreshold ? "bad" : threat * 3 >= SphereSystem.CoalitionThreshold * 2 ? "warn" : "")"
-                  Note="@($"the houses draw together at {SphereSystem.CoalitionThreshold}" + (pressure > 0 ? $" · pressure {pressure} of {SphereSystem.MaxCoalitionPressure}" : ""))"
-                  Title="How over-mighty the Reach thinks your house. Past the mark, the houses begin to combine against it." />
-            <Tile Label="Trust in the magistrates" Value="@trust.ToString()" Share="@trust" Tone="@(trust < LadderSystem.TrustLow ? "bad" : trust < 50 ? "warn" : trust >= LadderSystem.TrustHigh ? "good" : "")"
-                  Note="@(trust < LadderSystem.TrustLow ? "the squares blame whoever holds office" : trust < 50 ? "a scandal costs twice the votes" : trust >= LadderSystem.TrustHigh ? "office is honoured" : "neither honoured nor blamed")"
-                  Title="@LadderSystem.TrustSays(w)" />
-            @if (sen?.Embargoed == true) { <Tile Label="Embargo" Value="@($"{Counted.Years(sen.EmbargoLifts)}")" Tone="bad" Note="the Reach does not trade with you until it lifts" /> }
-        </div>
-    </header>
 
-    <div class="ex-tabs">
-        <button class="rung @(_view == "chamber" ? "here" : "")" @onclick='() => _view = "chamber"'>The chamber@(motions > 0 ? $" · {motions}" : "")</button>
-        <button class="rung @(_view == "move" ? "here" : "")" @onclick='() => _view = "move"'>Move a motion</button>
-        @if (sen?.Election != null) { <button class="rung @(_view == "consuls" ? "here" : "")" @onclick='() => _view = "consuls"'>The consuls</button> }
-        <button class="rung @(_view == "offices" ? "here" : "")" @onclick='() => _view = "offices"'>Offices and parties</button>
-        <button class="rung @(_view == "duties" ? "here" : "") @(workWaits ? "warn" : "")" @onclick='() => _view = "duties"'>Your duties@(workWaits ? " · waiting" : "")</button>
-        <button class="rung @(_view == "ladder" ? "here" : "")" @onclick='() => _view = "ladder"'>Ladder and courts</button>
-        <button class="rung @(_view == "orders" ? "here" : "")" @onclick='() => _view = "orders"'>The orders</button>
-    </div>
-    @if (_view == "duties") { <div class="dash-grid deck-one"><div class="deck-col"><DutiesPanel /></div></div> }
-    else if (_view == "ladder") { <div class="dash-grid deck-one"><div class="deck-col"><LadderPanel /><CourtsPanel /></div></div> }
-    else if (_view == "orders") { <div class="dash-grid deck-one"><div class="deck-col"><OrdersPanel /><BreakawayPanel /></div></div> }
-    else if (_view == "offices")
+    // the header: the house's place in the chamber as facts, and five figures on the plinth (numbers only)
+    string throneLine = s?.Throne.HoldsThrone == true ? "The throne is yours" : s?.Throne.EmperorName != null ? $"The throne is {s.Throne.EmperorName}'s" : w.IsImperium ? "The throne stands empty" : "A republic: no throne stands";
+    string consulFact = elect == null ? (benches.Count == 1 ? "1 bench" : $"{benches.Count} benches") :elect.AmConsul ? "You hold the consulship" : elect.NextIn == 0 ? "Consuls elected this year" : elect.NextIn == 1 ? "Consuls elected next year" : $"Consuls elected in {Counted.Years(elect.NextIn)}";
+    var facts = new List<(string icon, string text, string tip)>
     {
-    <div class="dash-grid senate2-grid">
-        <div class="deck-col">
-        @if (sen?.Offices is { Count: > 0 })
-        {
-            <section class="panel">
-                <h3><Icon Name="throne" Size="13" /> The offices of the Reach</h3>
-                @foreach (var o in sen.Offices.Where(o => !o.Elected))
-                {
-                    <div class="off-card @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
-                        <div class="of-head"><b>@o.Name</b> <span class="muted small">@o.Track rank @o.MinRank+@(o.Hulls > 0 ? $" · {Counted.OfficeHulls(o.Hulls)}" : "")</span></div>
-                        <div class="small">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="12" /> <span>@o.HolderName of @o.HolderHouse</span> <span class="muted">since turn @o.Since</span> } else { <span class="muted">vacant</span> }
-                            @if (o.MyCandidate != null && !o.Mine) { <span class="muted"> · @o.MyCandidate qualifies@(sen.MayPropose ? ": move a Commission" : ", but your house may not move a motion yet")</span> }</div>
-                    </div>
-                }
-            </section>
-        }
-        <LegatePanel />
-        @if (sen != null && (sen.Factions is { Count: > 0 } || sen.FoundRefusal == null || sen.Followers > 0))
-        {
-            <section class="panel">
-                <h3><Icon Name="houses" Size="13" /> The parties <span class="muted">four of the Republic, and any you found</span></h3>
-                @foreach (var fa in sen.Factions ?? Array.Empty<FactionCard>())
-                {
-                    <div class="bench @(fa.Mine ? "mine" : "")" style="--party:@fa.LeaderAccent" title="@(fa.Description.Length > 0 ? fa.Description : fa.Platform.Length > 0 ? fa.Platform : "no record yet")">
-                        <div class="of-head"><i class="party-dot" style="background:@fa.LeaderAccent"></i><b>@fa.Name</b> <span class="muted small">weight @fa.Weight · led by <span style="color:@fa.LeaderAccent">@fa.LeaderName</span>@(fa.Record != 0 ? $" · record {(fa.Record > 0 ? "+" : "")}{fa.Record}" : "")</span></div>
-                        <div class="bench-members">@foreach (var mb in fa.Members) { <span class="member" title="@mb.Name"><Sigil HouseId="@mb.Id" Accent="@mb.Accent" Size="13" /></span> }
-                            @if (fa.Platform.Length > 0) { <span class="muted small"> · @fa.Platform</span> }</div>
-                        @if (fa.Courts.Length > 0 || fa.LawPlatform.Length > 0) { <div class="muted small">@(fa.Courts.Length > 0 ? $"courts {fa.Courts}" : "")@(fa.Courts.Length > 0 && fa.LawPlatform.Length > 0 ? " · " : "")@fa.LawPlatform</div> }
-                        @{ var seated = FactionSystem.Of(w, house.Id); string faId = fa.Id, faName = fa.Name; }
-                        @if (fa.Mine && seated != null && seated.LeaderHouseId != house.Id)
-                        {
-                            /* ask the bench to choose between you and its leader (docs/PLAYTHROUGH.md, Medium, The Senate, P9 and P99) */
-                            var askLead = new ChallengeLeaderCommand(pid, senate); string? leadNo = askLead.Refusal(G.Ctx); var count = FactionSystem.LeadCount(w, id => senate.Weight(w, id), house.Id);
-                            <div class="small" data-lead-count="@(count is { } lc ? lc.mine + ":" + lc.leaders : "")">
-                                @if (count is { } cnt) { <span class="muted">If the bench were asked to choose, @cnt.mine of its seats would be behind you and @cnt.leaders behind @fa.LeaderName. </span> }
-                                <button class="opt inline tiny" data-challenge disabled="@(leadNo != null)" title="@(leadNo ?? askLead.Says(w))" @onclick='() => G.Ask("Ask " + faName + " to choose its leader?", askLead.Says(w), "Ask the bench", () => G.Execute(askLead))'>Ask the bench to choose · @FactionSystem.ChallengeInfluence influence</button>
-                            </div>
-                        }
-                        @if (!fa.Mine && seated != null)
-                        {
-                            <button class="opt inline tiny" data-cross="@fa.Id" disabled="@(fa.JoinRefusal != null)" title="@(fa.JoinRefusal ?? $"{FactionSystem.JoinInfluence} influence, in one step: you leave {seated.Name} and sit with {fa.Name}. {FactionSystem.WalkSays(w, seated)}.")" @onclick="() => AskCross(faId, faName)">cross to them · @FactionSystem.JoinInfluence</button>
-                            @if (fa.JoinRefusal != null) { <span class="muted small">@fa.JoinRefusal</span> }
-                        }
-                        else if (!fa.Mine) { <button class="opt inline tiny" disabled="@(fa.JoinRefusal != null)" title="@(fa.JoinRefusal ?? $"{FactionSystem.JoinInfluence} influence: take a seat with them")" @onclick="() => G.Execute(new JoinFactionCommand(pid, fa.Id))">take a seat · @FactionSystem.JoinInfluence</button> }
-                        else if (sen.LeaveRefusal == null) { <button class="opt inline tiny" title="@($"Leave the bench and sit with none. It costs no influence. {(seated != null ? FactionSystem.WalkSays(w, seated) : "")}.")" @onclick="() => G.Execute(new LeaveFactionCommand(pid))">leave</button> }
-                    </div>
-                }
-                @if (!(sen.Factions?.Any(f => f.Mine) ?? false)) { <button class="opt inline" disabled="@(sen.FoundRefusal != null)" title="@(sen.FoundRefusal ?? $"{FactionSystem.FoundInfluence} influence: a bench of your own, with those who vote with you")" @onclick="() => G.Execute(new FoundFactionCommand(pid))">Found a bench@(sen.Followers > 0 ? $" · {sen.Followers} would follow" : "")</button> }
-            </section>
-        }
-        </div>
-        <div class="deck-col">
-        @if (s != null)
-        {
-            <section class="panel">
-                <h3><Icon Name="throne" Size="13" /> The ladder of titles</h3>
-                <div class="ladder">
-                    @foreach (var t in ladder) { int r = c.Titles.RankOf(t.Id); int mr = c.Titles.RankOf(house.Title); <span class="rung @(r == mr ? "here" : r < mr ? "past" : "")" data-rung="@t.Id" title="@RungTip(t)">@t.NameIn(G.World!.Era)</span> }
-                </div>
-                <div class="kv"><span>Legitimacy</span><b>@s.Legitimacy@(s.NextTitle != null ? $" / {s.NextRequirement} for {s.NextTitle}" : "")</b></div>
-                @if (s.Made is { } made)
-                {
-                    <details data-legitimacy-details><summary title="@made.Line">What it is made of</summary><LegitimacyMade Card="made" /></details>
-                }
-                @if (s.NextTitle != null)
-                {
-                    <div class="rung-needs" data-rung-needs="@s.NextTitle">
-                        <div class="muted small" data-rung-earned>@s.Earned</div>
-                        @foreach (var need in s.Needs) { <div class="kv small @(need.Met ? string.Empty : "warn")" data-rung-need="@need.Id" data-met="@(need.Met ? 1 : 0)"><span>@need.Asks</span><b>@(need.Met ? "✓" : "✗") @need.Has</b></div> }
-                    </div>
-                }
-                @if (s.Instability > 0) { <div class="kv warn"><span>Instability</span><b>@s.Instability</b></div> }
-                @if (s.Claims.Count > 0) { <div class="kv"><span>Claims held</span><b>@string.Join(", ", s.Claims.Select(cl => c.Titles.NameOf(cl, w.Era)))</b></div> }
-                @if (s.NextTitle != null) { foreach (var path in s.Paths) { var pth = path; string ptip = path.Available ? path.Tooltip : PathWhy(path); <button class="opt" data-path="@path.Id" disabled="@(!path.Available)" title="@ptip" @onclick="() => AskPath(pth, s.NextTitle)">@path.Label <span class="muted small">· @path.Cost</span></button> @if (!path.Available && path.Refusal != null) { <div class="sw-no path-no">@path.Label: @path.Refusal.</div> } } }
-                <details open="@w.IsImperium"><summary>@(w.IsImperium ? "The throne" : "The end of the Republic") @(s.Throne.HoldsThrone ? "· yours" : s.Throne.EmperorName != null ? $"· {s.Throne.EmperorName}" : w.IsImperium ? "· empty" : "· no throne stands")</summary>
-                    @if (ThroneSystem.Emperor(w) is { } onThrone)
-                    {
-                        int hold = ThroneSystem.Hold(w); var holdParts = ThroneSystem.HoldParts(w); var rising = w.Rising; var riser = rising != null ? w.House(rising.HouseId) : null;
-                        string? raiseNo = new ThroneCommand(pid, ThroneCommand.Raise, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx), overNo = new ThroneCommand(pid, ThroneCommand.Pretender, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx), byNo = new ThroneCommand(pid, ThroneCommand.Throne, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx);
-                        <div class="kv @(hold < ThroneSystem.RiseAt ? "warn" : "")" title="@("Out of 100, from 50. " + string.Join(" · ", holdParts.Select(x => $"{x.what} {(x.points >= 0 ? "+" : "")}{x.points}")) + $". Below {ThroneSystem.RiseAt} for two years and a house of rank that has no love for the throne raises a standard.")"><span>The hold of @onThrone.Name</span><b>@hold · @ThroneSystem.HoldName(hold)</b></div>
-                        <div class="muted small">@string.Join(" · ", holdParts.Where(x => x.points != 0).OrderBy(x => x.points).Take(4).Select(x => $"{x.what} {(x.points >= 0 ? "+" : "")}{x.points}"))</div>
-                        @if (rising != null && riser != null)
-                        {
-                            <div class="small"><b class="warn">@riser.Name has raised a standard</b>, since year @rising.Since.@(rising.With.Count > 0 ? $" With it: {string.Join(", ", rising.With.Select(id => w.House(id)?.Name))}." : "")@(rising.Against.Count > 0 ? $" By the throne: {string.Join(", ", rising.Against.Select(id => w.House(id)?.Name))}." : "") It is broken if the war goes against it, its fleet is spent, or @ThroneSystem.PretenderYears years pass.</div>
-                            @if (overNo == null || byNo == null)
-                            {
-                                <div class="suit-acts">
-                                    <button class="opt inline" disabled="@(overNo != null)" title="@(overNo ?? $"Your house is at war with the throne. {riser.Name}'s head thinks better of you; the throne's does not forget it.")" @onclick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Pretender, c.Titles, G.Turn!.Fleets))">Go over to @riser.Name</button>
-                                    <button class="opt inline" disabled="@(byNo != null)" title="@(byNo ?? $"Your house is at war with {riser.Name}. The throne thinks better of you; {riser.Name}'s head does not forget it.")" @onclick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Throne, c.Titles, G.Turn!.Fleets))">Stand by the throne</button>
-                                </div>
-                            }
-                        }
-                        @if (!s.Throne.HoldsThrone) { <button class="opt" disabled="@(raiseNo != null)" title="@(raiseNo ?? "A war for the throne itself: it is not ended by treaty. The other houses take a side by what their heads think of you and of the one who sits there. You take the throne by the terms of a seizure; if the war goes against you, your fleet is spent, or eight years pass, you are broken.")" @onclick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Raise, c.Titles, G.Turn!.Fleets))">Raise your standard against the throne (3 influence)</button> }
-                    }
-                    <button class="opt" disabled="@(s.Throne.ProclaimRefusal != null)" title="@s.Throne.ProclaimRefusal" @onclick="() => G.Execute(new ProclaimImperiumCommand(pid, c.Titles))">Proclaim the Imperium (3 influence, 2 agents)</button>
-                    <button class="opt" disabled="@(s.Throne.SeizeRefusal != null)" title="@s.Throne.SeizeRefusal" @onclick="() => G.Execute(new SeizeThroneCommand(pid, c.Titles, c.Friction))">Seize the throne (2 treasury, 2 agents)</button>
-                </details>
-                <details><summary>Succession: @s.SuccessionLaw</summary>@foreach (var o in s.LawOptions) { <button class="opt" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new SetSuccessionLawCommand(pid, o.Id))">@o.Label</button> }</details>
-                @if (s.Honors.Count > 0) { <div class="kv"><span><Icon Name="honor" Size="13" /> Honors</span><b>@string.Join(", ", s.Honors)</b></div> }
-            </section>
-        }
-        @if (m.Crises is { } cr)
-        {
-            <section class="panel">
-                <h3><Icon Name="crisis" Size="13" /> Crises</h3>
-                <div class="muted small">@cr.Counters</div>
-                @foreach (var a in cr.Active)
-                {
-                    <div class="crisis"><div><b>@a.Name</b> · <span title="How much relief it takes to end it. It does not grow with time; it rises only if the crisis breaks out again while it is active.">severity @a.Severity</span> · since year @a.Since @(a.Author != null ? $"· set going by {a.Author}" : "· nobody set it going: it came of itself")</div>
-                        @foreach (var d in a.Dampers) { <button class="opt" disabled="@(!d.Available)" title="@d.Tooltip" @onclick="() => Damper(d)">@d.Label</button> }
-                        @if (G.Turn!.Crises is { } engine && engine.Def(a.Id) is { } cdef)
-                        {
-                            <details class="crisis-facts" data-crisis-facts="@a.Id"><summary>What this is, and what each answer does</summary>
-                                @foreach (var line in CrisisFacts.For(w, engine, cdef, c.Recovery)) { <div class="small"><b>@line.Label.</b> @line.Text</div> }
-                            </details>
-                        }</div>
-                }
-                @if (cr.Active.Count == 0) { <div class="muted">No crisis is active.</div> }
-                @if (cr.Causable.Count > 0) { <div class="flag">Ripe to be lit, by you or by a rival: @string.Join(", ", cr.Causable)</div> }
-                @if (m.GreatCrisis is { } gc) { <div class="kv" title="How near the Reach is to the next stage of its great war. Before the war it rises each year by what is wrong with the Reach (the Senate window lists what) and falls back when nothing is; once the war has begun it runs on, faster the more wars there are. The second figure is where the next stage begins."><span>@gc.Name</span><b>@(gc.Resolved ? "resolved" : gc.Stage ?? "not yet") · @gc.Clock@(gc.NextAt != null ? $"/{gc.NextAt}" : "")</b></div> }
-            </section>
-        }
-        </div>
-    </div>
+        ("greek-temple", $"{Counted.Houses(seatHouses.Count)} · {Counted.Seats(totalSeats)}", $"{Counted.Houses(seatHouses.Count)} sit in the chamber, with {Counted.Seats(totalSeats)} between them, on {benches.Count} {(benches.Count == 1 ? "bench" : "benches")}. A majority is {majority}."),
+        ("flying-flag", myBench != null ? "Your bench, " + Plain(myBench.Name) : "You sit on no bench", myBench != null ? $"{myBench.Name}: {benchSeats} seats{(largest ? ", the largest bench" : "")}, {(benchSeats >= majority ? "a majority of the chamber" : $"{majority - benchSeats} short of a majority")}" : "You vote alone; a bench votes together"),
+        ("throne-king", throneLine, w.IsImperium ? "Who holds the throne of the Reach" : "The Republic has no throne; it ends only if a house ends it"),
+        (elect == null ? "flying-flag" : "sundial", consulFact, elect == null ? $"{benches.Count} {(benches.Count == 1 ? "bench" : "benches")} in the chamber" : $"Two consuls are elected every {elect.TermTurns} years, by the weight of the houses that vote for them." + (lead is { HouseName: not null } l3 ? $" {l3.HouseName} leads the count with {l3.Tally}." : " No candidate yet."))
+    };
+    string seatNote = myWeight == 0 ? "the house has no seat" : topSeat.h == null || topSeat.h.Id == house.Id ? $"the most of any house, of {seatHouses.Count}" : $"{Ordinal(seatRank)} of {seatHouses.Count} houses · {topSeat.h.Name} has {topSeat.weight}";
+    string benchNote = myBench == null ? "you vote alone; a bench votes together" : benchSeats >= majority ? $"{benchSeats} seats: a majority of the chamber" : $"{benchSeats} seats{(largest ? ", the largest bench" : "")} · {majority - benchSeats} short of a majority";
+    string motionNote = sen == null ? "" : motions == 0 ? (sen.MayPropose ? "you may move one" : "and you may not move one") : againstMe != null ? "one of them against you" : $"{carry} to carry, {motions - carry} to fail, as it stands";
+    var figures = new List<WindowHeader.Figure>
+    {
+        new("vote", myWeight.ToString(), "Your seats", myWeight == 0 ? "ember" : "brass", Of: totalSeats.ToString(), Tip: $"[vote] Your seats\n{Cap(seatNote)}.\nA house votes with the weight of its seats.")
+    };
+    if (ThroneSystem.Emperor(w) is { } sits)
+    {
+        int th = ThroneSystem.Hold(w); var up = w.Rising != null ? w.House(w.Rising.HouseId) : null;
+        figures.Add(new("throne-king", th.ToString(), "The throne", th < ThroneSystem.RiseAt || up != null ? "ember" : th < ThroneSystem.ShakenAt ? "ivory" : "good", Of: "100",
+            Tip: $"[throne-king] The throne · {ThroneSystem.HoldName(th)}\n{Cap(up != null ? $"{up.Name} has raised a standard" : sits.Id == house.Id ? "your hold on it" : $"the hold of {sits.Name}")}.\nHow firmly the house on the throne holds it, out of 100. Below {ThroneSystem.RiseAt} for two years and a house of rank raises a standard. What it is made of is under Offices."));
     }
-    else
+    else figures.Add(new("flying-flag", benchSeats.ToString(), myBench != null ? "Bench seats" : "No bench", myBench != null && benchSeats >= majority ? "good" : "ivory", Tip: $"[flying-flag] Your bench{(myBench != null ? " · " + myBench.Name : "")}\n{Cap(benchNote)}.\nA majority is {majority} of {totalSeats} seats."));
+    figures.Add(new("scroll-quill", motions.ToString(), motions == 1 ? "Motion" : "Motions", againstMe != null ? "ember" : "ivory", Tip: $"[scroll-quill] Before the chamber\n{(motionNote.Length > 0 ? Cap(motionNote) + ".\n" : "")}Motions are voted at the year's end, by weight of seats."));
+    figures.Add(new("threat", threat.ToString(), "Fear of you", threat >= SphereSystem.CoalitionThreshold ? "ember" : "ivory", Of: SphereSystem.CoalitionThreshold.ToString(),
+        Tip: $"[threat] Fear of you\nHow over-mighty the Reach thinks your house. Past the mark, the houses begin to combine against it.\nThe houses draw together at {SphereSystem.CoalitionThreshold}" + (pressure > 0 ? $"; pressure {pressure} of {SphereSystem.MaxCoalitionPressure}" : "") + "."));
+    figures.Add(new("scales", trust.ToString(), "Trust in office", trust < LadderSystem.TrustLow ? "ember" : trust >= LadderSystem.TrustHigh ? "good" : "ivory", Of: "100",
+        Tip: $"[scales] Trust in the magistrates\n{Cap(trust < LadderSystem.TrustLow ? "the squares blame whoever holds office" : trust < 50 ? "a scandal costs twice the votes" : trust >= LadderSystem.TrustHigh ? "office is honoured" : "neither honoured nor blamed")}.\n{LadderSystem.TrustSays(w)}"));
+
+    int ladderCount = LadderSystem.Active(w, c.Offices) ? Docket.Of(w, c.Offices, house.Id).Count + (LadderSystem.BusinessOf(w, pid) != null ? 1 : 0) : 0;
+    var tabs = new List<Tabs.Tab>
     {
-    <div class="dash-grid senate2-grid">
-        <div class="deck-col">
-        @if (sen == null) { <section class="panel resolutions"><div class="muted">The Senate does not sit in this age.</div></section> }
-        else if (_view == "chamber") { <section class="panel resolutions">
-            <TriumphGate />
-            @if (sen.Docket.Count > 0 || sen.History.Count > 0) { <h3><Icon Name="influence" Size="13" /> Before the chamber <span class="muted">voted at the year's end · by weight of seats · a tie fails</span></h3> }
-                @if (sen.Docket.Count == 0) { <div class="empty-line">Nothing is before the Senate this year.@(sen.MayPropose ? " What you could move is under Move a motion; one moved now is voted at the end of next year." : "")</div> }
-                @foreach (var mo in sen.Docket)
+        new("chamber", "Chamber", "greek-temple", motions > 0 ? motions.ToString() : "", againstMe != null || (sen?.Docket.Any(d => w.Motions.FirstOrDefault(x => x.Id == d.Id) is { } mm && !mm.Votes.ContainsKey(house.Id)) ?? false), Tip: "The chamber: its seats and benches, the motions before it, and what it decided lately"),
+        new("move", "Motions", "scroll-quill", Tip: "Move a motion: what your house may put before the chamber"),
+        new("offices", "Offices", "podium", elect is { NextIn: 0 } ? "!" : "", elect is { NextIn: 0 }, Tip: "The consulship, the offices of the Reach, the parties, your rank and the crises"),
+        new("duties", "Duties", "tied-scroll", workWaits ? workWaiting.ToString() : "", workWaits, Tip: "Your duties this year: what your positions ask of you"),
+        new("ladder", "Ladder", "stairs-goal", ladderCount > 0 ? ladderCount.ToString() : "", ladderCount > 0, Tip: "The ladder of offices, and the courts"),
+        new("orders", "Orders", "laurels", Tip: "The three orders, patronage, and breaking away")
+    };
+}
+<div class="sn-win" data-senate="@_view">
+    <WindowHeader Scene="senate" Kicker="The Senate" Title="@(w.Era == "imperium" ? "The Imperial Senate" : "The Senate of the Reach")" Glyph="greek-temple" Figures="figures" Class="sn-head">
+        <Facts>
+            @for (int i = 0; i < facts.Count; i++) { var (icon, text, tip) = facts[i]; <span class="@(i >= 2 ? "sn-fx2" : "")" title="@tip"><Icon Name="@icon" Tone="ivory" Size="16" />@text</span> }
+            <span class="sn-fmore" title="@string.Join("\n", facts.Skip(2).Select(x => x.text))"><Icon Name="podium" Tone="ivory" Size="16" />and 2 more</span>
+        </Facts>
+    </WindowHeader>
+    <Tabs Items="tabs" Active="@_view" OnPick="Pick" />
+    <div class="ui-wbody fades sn-body">
+    @if (sen == null && _view is "chamber" or "move") { <EmptyState Icon="greek-temple" Text="The Senate does not sit in this age." /> }
+    else if (_view == "chamber")
+    {
+        <p class="ui-lede sn-lede @storyTone">@Bold(story)</p>
+        @if (sen!.Embargoed) { <div class="ui-wstrip bad sn-strip"><Icon Name="customs_post" Tone="ember" Size="18" /><span class="ui-wstrip-t"><b>Embargo, @Counted.Years(sen.EmbargoLifts).</b> The Reach does not trade with you until it lifts.</span></div> }
+        <TriumphGate />
+        @* the chamber: the seats on their arcs, each bench a wedge in its colour; the benches beside it with their seats *@
+        <div class="sn-chamber">
+            <div class="sn-hemi">
+                @{ int rows = Rows(totalSeats); double rf = R0 + (rows - 1) * DR + 26; string vb = F(500 - rf - 6) + " " + F(520 - rf - 6) + " " + F(2 * rf + 12) + " " + F(rf + 14); }
+                <svg class="hemicycle" viewBox="@vb" role="img" aria-label="the Senate's seats">
+                    <defs>
+                        <radialGradient id="sn-floor" cx="50%" cy="100%" r="100%"><stop offset="0" stop-color="#1e2330" /><stop offset=".7" stop-color="#11141b" /><stop offset="1" stop-color="#0a0c11" /></radialGradient>
+                        <linearGradient id="sn-rim" x1="0" x2="1"><stop offset="0" stop-color="#6f5020" /><stop offset=".5" stop-color="#c9a24a" /><stop offset="1" stop-color="#6f5020" /></linearGradient>
+                    </defs>
+                    <path d="@($"M {F(500 - rf)} 520 A {F(rf)} {F(rf)} 0 0 1 {F(500 + rf)} 520 Z")" fill="url(#sn-floor)" stroke="url(#sn-rim)" stroke-width="2" />
+                    <path d="@($"M {F(500 - R0 + 34)} 520 A {F(R0 - 34)} {F(R0 - 34)} 0 0 1 {F(500 + R0 - 34)} 520")" fill="none" stroke="rgba(201,162,74,.22)" stroke-width="1" />
+                    <path d="M 440 520 A 60 60 0 0 1 560 520 Z" fill="#1d1a12" stroke="#a5813a" stroke-width="1.5" />
+                    @foreach (var seat in seats)
+                    {
+                        int st = watched != null && stanceOf.TryGetValue(seat.houseId, out var sv) ? sv : 0;
+                        string cls = (seat.houseId == house.Id ? "mine " : "") + (seat.houseId == _focus ? "focus " : "") + (watched == null ? "" : st > 0 ? "for" : st < 0 ? "against" : "abstain");
+                        <circle cx="@F(seat.x)" cy="@F(seat.y)" r="8.5" class="seat @cls" style="fill:@(seatFill.TryGetValue(seat.houseId, out var sf) ? sf : seat.accent)" @onclick="() => _focus = seat.houseId"><title>@seat.name · @Counted.Seats(seat.weight)@(seat.bench != null ? $" · {seat.bench}" : "")</title></circle>
+                    }
+                </svg>
+                <div class="sn-hemi-cap"><b>@(sen.Offices?.FirstOrDefault(o => o.Id == "speaker")?.HolderName ?? "Nobody")</b> at the rostrum · @(watched != null ? $"seats ringed by their lean on {watched.KindName}" : "each dot a seat, in its bench's colour; yours are ringed. Click one for its house.")</div>
+            </div>
+            <div class="sn-legend">
+                <div class="sn-leg-h"><span>Benches</span><span title="@($"A motion carries with more seats for it than against; {majority} of {totalSeats} is a majority of the whole chamber")">majority <b>@majority</b></span></div>
+                @foreach (var f in benches)
                 {
-                    int total = Math.Max(1, mo.ForWeight + mo.AgainstWeight);
-                    var motionNow = w.Motions.FirstOrDefault(x => x.Id == mo.Id); bool motionHeld = motionNow?.HeldOver == true; int motionChair = motionNow?.Chair ?? 0;
-                    bool tied = mo.ForWeight == mo.AgainstWeight && mo.ForWeight > 0; var presides = LadderSystem.Presiding(w);
-                    bool chairCarries = tied && presides != null && (presides.HouseId == house.Id ? mo.MyStance : mo.Stances.FirstOrDefault(x => x.HouseId == presides.HouseId)?.Stance ?? 0) > 0;
-                    <div class="motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : mo.Petition ? "petition" : "") @(watched?.Id == mo.Id ? "watched" : "")" @onclick="() => _watch = mo.Id">
-                        <div class="mo-head"><b>@mo.KindName</b> <span class="muted small">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this year" : "next year")@(motionHeld ? " · held over by the Speaker" : "")@(motionChair != 0 ? $" · the chair has spoken {(motionChair > 0 ? "for" : "against")} it" : "")</span></div>
-                        <div class="mo-text">@mo.Text</div>
+                    int wt = f.Members.Sum(x => senate.Weight(w, x)); var lh = w.House(f.LeaderHouseId); string acc = f.Accent.Length > 0 ? f.Accent : lh?.AccentColor ?? "#888";
+                    <div class="sn-bench @(f.Members.Contains(house.Id) ? "mine" : "")" title="@($"{f.Name}\nLed by {lh?.Name ?? f.LeaderHouseId}\n{string.Join(", ", f.Members.Select(x => w.House(x)?.Name ?? x))}")">
+                        <i class="sw" style="background:@acc"></i><span class="nm">@f.Name</span><span class="bar"><i style="width:@Pc(100.0 * wt / totalSeats);background:@acc"></i><i class="mj" style="left:@Pc(100.0 * majority / totalSeats)"></i></span><b>@wt</b>
+                    </div>
+                }
+                <div class="sn-bench none"><i class="sw"></i><span class="nm">Unaffiliated</span><span class="bar"><i style="width:@Pc(100.0 * ordered.Where(x => x.bench == null).Sum(x => x.weight) / totalSeats)"></i></span><b>@ordered.Where(x => x.bench == null).Sum(x => x.weight)</b></div>
+                @if (watched != null) { <div class="sn-key"><i class="for"></i>for <i class="against"></i>against <i class="abstain"></i>abstains</div> }
+                @if (sen.Docket.Count > 1)
+                {
+                    <div class="sn-leanon"><span class="ui-seg-l">Show lean on</span>
+                        <span class="ui-seg sn-seg">@foreach (var d in sen.Docket) { var did = d.Id; <button class="@(watched?.Id == did ? "on" : "")" title="@d.Text" @onclick="() => _watch = did">@d.KindName</button> }</span>
+                    </div>
+                }
+            </div>
+        </div>
+        @if (focusHouse != null)
+        {
+            var rel = focusHead != null ? w.GetRelationship(focusHead.Id, pid) : null; int d = rel?.Disposition ?? 0; var cn = focusHead != null ? m.Connections.FirstOrDefault(x => x.Id == focusHead.Id) : null;
+            var fb = FactionSystem.Of(w, focusHouse.Id);
+            <div class="sn-focus seat-card" data-focus-house="@focusHouse.Id">
+                <div class="sn-focus-pic">@if (focusHead != null) { <Portrait Id="@focusHead.Id" Name="@focusHead.Name" Sex="@focusHead.Sex" Age="@focusHead.Age" Accent="@focusHouse.AccentColor" Size="46" Height="56" /> } else { <Portrait Size="46" Height="56" EmptyGlyph="castle" /> }</div>
+                <div class="sn-focus-main">
+                    <div class="sn-hd"><Sigil HouseId="@focusHouse.Id" Accent="@focusHouse.AccentColor" Size="16" /><b class="sn-nm">@focusHouse.Name</b><span class="sn-sub">@(c.Titles.NameOf(focusHouse.Title, G.World!.Era)) · @Counted.Seats(senate.Weight(w, focusHouse.Id))@(fb != null ? $" · {fb.Name}{(fb.LeaderHouseId == focusHouse.Id ? " (leads)" : "")}" : "")</span></div>
+                    <div class="sn-tx">@(focusHead != null ? $"{focusHead.Name}, {c.Careers.RankName(focusHead.CareerTrack, focusHead.CareerRank, G.World!.Era) ?? "head"}" : "no head") · legitimacy @focusHouse.Legitimacy@(focusHouse.SphereInfluence.Any(k => k.Value > 0) ? " · " + string.Join(" · ", focusHouse.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}")) : "")
+                        @if (focusHouse.Id != house.Id) { <span> · <span class="@(d < -20 ? "ui-down" : d > 20 ? "ui-up" : "")">disposition @Counted.Figure(d)</span>@if (w.AtWar(house.Id, focusHouse.Id)) { <b class="ui-down"> · at war</b> }</span> }</div>
+                    @if (watched != null && focusStance != null && focusHouse.Id != house.Id)
+                    {
+                        <div class="sn-acts"><span class="sn-say">On @watched.KindName: <b class="@(focusStance.Stance > 0 ? "ui-up" : focusStance.Stance < 0 ? "ui-down" : "")">@(focusStance.Stance > 0 ? "for" : focusStance.Stance < 0 ? "against" : "abstains")@(focusStance.Declared ? "" : " (leaning)")</b></span>
+                            <Plate Label="Whip" Small="true" Locked="@(focusStance.LobbyRefusal != null)" Disabled="@(focusStance.LobbyRefusal != null)" Tip="@(focusStance.LobbyRefusal ?? "1 influence: lean them your way")" CostIcon="public-speaker" CostText="1" OnClick="() => G.Execute(new LobbyCommand(pid, watched.Id, focusHouse.Id, watched.MyStance >= 0 ? 1 : -1))" />
+                            <Plate Label="Bribe" Small="true" Locked="@(focusStance.BribeRefusal != null)" Disabled="@(focusStance.BribeRefusal != null)" Tip="@(focusStance.BribeRefusal ?? BribeTip(focusStance))" CostIcon="credits" CostText="@Money.Show(focusStance.BribePrice)" OnClick="() => AskBribe(watched.Id, focusStance, watched.MyStance >= 0 ? 1 : -1)" /></div>
+                    }
+                    @if (cn != null && cn.Actions.Count > 0) { <div class="sn-acts">@foreach (var o in TreatyFirst(cn.Actions)) { var oid = o.Id; var ol = o.Label; <Plate Label="@o.Label" Small="true" Locked="@(o.Refusal != null)" Disabled="@(o.Refusal != null)" Tip="@(o.Refusal ?? o.Label)" OnClick="() => AskConn(oid, ol, cn.Id)" /> }</div> }
+                </div>
+                <button class="ui-round sn-x" title="Close the house" aria-label="Close" @onclick="() => _focus = null"><Icon Name="close" Tone="ivory" Size="11" /></button>
+            </div>
+        }
+
+        @* the motions before the chamber: each one an entry, its tally as a bar, the house's vote as joined plates, the roll call under it *@
+        <Section Title="Before the chamber" Count="@(motions > 0 ? motions.ToString() : "")" Info="Motions are voted at the year's end, by weight of seats; a tie fails, unless the one presiding is for it. Click a motion to colour the seats by how they lean on it."
+                 IsEmpty="@(sen.Docket.Count == 0)" EmptyIcon="scroll-quill" EmptyLine="@("Nothing is before the Senate this year." + (sen.MayPropose ? " What you could move is under Motions; one moved now is voted at the end of next year." : ""))" EmptyLink="@(sen.MayPropose ? "Move a motion" : "")" OnEmptyLink='() => Pick("move")'>
+            <Right>@if (motions > 0) { <span><b class="ui-up">@carry</b> carry · <b class="@(motions - carry > 0 ? "ui-down" : "")">@(motions - carry)</b> fail</span> }</Right>
+            <ChildContent>
+            @foreach (var mo in sen.Docket)
+            {
+                int total = Math.Max(1, mo.ForWeight + mo.AgainstWeight);
+                var motionNow = w.Motions.FirstOrDefault(x => x.Id == mo.Id); bool motionHeld = motionNow?.HeldOver == true; int motionChair = motionNow?.Chair ?? 0;
+                bool tied = mo.ForWeight == mo.AgainstWeight && mo.ForWeight > 0; var presides = LadderSystem.Presiding(w);
+                bool chairCarries = tied && presides != null && (presides.HouseId == house.Id ? mo.MyStance : mo.Stances.FirstOrDefault(x => x.HouseId == presides.HouseId)?.Stance ?? 0) > 0;
+                bool carries = mo.ForWeight > mo.AgainstWeight || chairCarries; string moId = mo.Id;
+                <div class="sn-mo motion @(mo.AgainstMe ? "against" : mo.Mine ? "mine" : mo.Petition ? "petition" : "") @(watched?.Id == mo.Id ? "watched" : "")" data-motion="@mo.Id">
+                    <span class="sn-ic @(mo.AgainstMe ? "bad" : mo.Mine ? "mine" : "")" title="@mo.KindName"><Icon Name="@MotionIcon(mo)" Tone="@(mo.AgainstMe ? "ember" : mo.Mine ? "brass" : "ivory")" Size="22" /></span>
+                    <div class="sn-mo-main">
+                        <div class="sn-hd click" title="Click to colour the chamber by how the houses lean on it" @onclick="() => _watch = moId">
+                            <b class="sn-nm">@mo.KindName</b>
+                            <span class="sn-sub">@(mo.Petition ? "the petition of" : "moved by") <span style="color:@mo.ProposerAccent">@mo.ProposerName</span> · vote @(mo.ProposedTurn < w.Turn ? "at the end of this year" : "next year")@(motionHeld ? " · held over by the Speaker" : "")@(motionChair != 0 ? $" · the chair has spoken {(motionChair > 0 ? "for" : "against")} it" : "")</span>
+                            <span class="sn-verdict @(carries ? "up" : "down")">@(carries ? "Carries" : "Fails")</span>
+                        </div>
+                        <div class="sn-tx">@mo.Text</div>
                         <ForeignGoldBlock MotionId="@mo.Id" />
                         @{ int patronWish = motionNow != null ? senate.PatronWish(w, motionNow, house.Id) : 0; }
-                        @if (patronWish != 0) { <div class="small warn">Your patron, @(w.House(house.PatronId)?.Name), wants this @(patronWish > 0 ? "carried" : "thrown out"). How you vote will be noticed.</div> }
+                        @if (patronWish != 0) { <div class="sn-note warn"><Icon Name="shaking-hands" Tone="brass" Size="15" /><span>Your patron, @(w.House(house.PatronId)?.Name), wants this @(patronWish > 0 ? "carried" : "thrown out"). How you vote will be noticed.</span></div> }
                         @if (motionNow != null && senate.Motions.Def(motionNow.Kind) is { } wishDef)
                         {
                             /* the houses you hold a province under, and what each wants of this motion (docs/PLAYTHROUGH.md, Medium, The Senate, P90) */
                             foreach (var ow in ProvinceSystem.Wishes(w, c.Holdings, motionNow, wishDef.Interest, wishDef.Target == "house", house.Id))
                             {
-                                <div class="small warn" data-overlord-wish="@ow.over.Id">@ow.over.Name, which you hold @ow.province under, wants this @(ow.want > 0 ? "carried" : "thrown out"). Vote its way and its head thinks @SenateSystem.ObligeRegard the better of you@(ow.defied > 0 ? " and one of your votes against it is forgotten" : ""); vote the other way and it thinks @Math.Abs(SenateSystem.DefyRegard) the worse. You have voted against it @Counted.Times(ow.defied) on what touched it: at @ow.bears, if it is at least your match in arms and at peace, it asks for the province back.</div>
+                                <div class="sn-note warn" data-overlord-wish="@ow.over.Id"><Icon Name="castle" Tone="brass" Size="15" /><span>@ow.over.Name, which you hold @ow.province under, wants this @(ow.want > 0 ? "carried" : "thrown out"). Vote its way and its head thinks @SenateSystem.ObligeRegard the better of you@(ow.defied > 0 ? " and one of your votes against it is forgotten" : ""); vote the other way and it thinks @Math.Abs(SenateSystem.DefyRegard) the worse. You have voted against it @Counted.Times(ow.defied) on what touched it: at @ow.bears, if it is at least your match in arms and at peace, it asks for the province back.</span></div>
                             }
                         }
-                        <div class="tally"><span class="for" style="width:@(100 * mo.ForWeight / total)%"></span><span class="against" style="width:@(100 * mo.AgainstWeight / total)%"></span></div>
-                        <div class="small tally-line"><b class="@(mo.ForWeight > mo.AgainstWeight || chairCarries ? "good" : "warn")">@(mo.ForWeight > mo.AgainstWeight ? "Carries" : chairCarries ? $"Tied: carries on the casting vote of {presides!.Name}, presiding," : tied && presides != null ? $"Tied: fails, since {presides.Name}, presiding, is not for it," : mo.ForWeight == mo.AgainstWeight ? "Tied: fails" : "Fails") as the benches lean</b> <span class="muted">· for @mo.ForWeight · against @mo.AgainstWeight</span></div>
+                        <div class="sn-tally" title="@($"For {mo.ForWeight}, against {mo.AgainstWeight}, by weight of seats, as the benches lean")">
+                            <b class="f">@mo.ForWeight</b>
+                            <span class="sn-tally-trk"><i class="for" style="width:@Pc(100.0 * mo.ForWeight / total)"></i><i class="against" style="width:@Pc(100.0 * mo.AgainstWeight / total)"></i><i class="half"></i></span>
+                            <b class="a">@mo.AgainstWeight</b>
+                        </div>
+                        <div class="sn-tally-line tally-line"><b class="@(carries ? "ui-up" : "ui-down")">@(mo.ForWeight > mo.AgainstWeight ? "Carries" : chairCarries ? $"Tied: carries on the casting vote of {presides!.Name}, presiding," : tied && presides != null ? $"Tied: fails, since {presides.Name}, presiding, is not for it," : mo.ForWeight == mo.AgainstWeight ? "Tied: fails" : "Fails") as the benches lean</b> <span class="ui-mute">· for @mo.ForWeight · against @mo.AgainstWeight</span></div>
                         @if (motionNow != null)
                         {
                             bool declared = motionNow.Votes.TryGetValue(house.Id, out var myVote); int myLean = Math.Sign(senate.Lean(w, motionNow, house.Id));
-                            <div class="small @(declared ? "good" : "muted")" data-myvote="@(declared ? myVote : 9)">@(declared ? $"You have declared {(myVote > 0 ? "for it" : myVote < 0 ? "against it" : "that you abstain")}. You may change it until the year ends." : $"You have not declared. Left alone, your house votes as it leans: {(myLean > 0 ? "for" : myLean < 0 ? "against" : "it abstains")}.")</div>
                             var paid = motionNow.BoughtBy.Where(kv => kv.Value == house.Id).Select(kv => (w.House(kv.Key)?.Name ?? kv.Key) + (motionNow.Bought.GetValueOrDefault(kv.Key) > 0 ? " (for)" : " (against)")).ToList();
-                            @if (paid.Count > 0) { <div class="small warn" data-bought="@paid.Count">Votes you have paid for on this motion: @string.Join(", ", paid). One time in @SenateSystem.BribeOutOneIn each comes out at the count.</div> }
+                            @if (paid.Count > 0) { <div class="sn-note warn" data-bought="@paid.Count"><Icon Name="credits" Tone="brass" Size="15" /><span>Votes you have paid for on this motion: @string.Join(", ", paid). One time in @SenateSystem.BribeOutOneIn each comes out at the count.</span></div> }
+                            <div class="sn-vote">
+                                <span class="ui-seg" role="radiogroup" aria-label="Your vote">
+                                    @foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") })
+                                    { <button class="@(mo.MyStance == stance ? "on" : "")" role="radio" aria-checked="@(mo.MyStance == stance ? "true" : "false")" title="@VoteTip(stance)" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))">@label</button> }
+                                </span>
+                                <span class="sn-myvote @(declared ? "ui-up" : "")" data-myvote="@(declared ? myVote : 9)">@(declared ? $"You have declared {(myVote > 0 ? "for it" : myVote < 0 ? "against it" : "that you abstain")}. You may change it until the year ends." : $"You have not declared. Left alone, your house votes as it leans: {(myLean > 0 ? "for" : myLean < 0 ? "against" : "it abstains")}.")</span>
+                            </div>
                         }
-                        <div class="row small">
-                            @foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") })
-                            { <button class="opt inline @(mo.MyStance == stance ? "here" : "")" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))" @onclick:stopPropagation="true">@label</button> }
-                            @if (LadderSystem.SpeakerOf(w)?.Id == pid) { var holdNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.HoldMotion); <button class="opt inline veto" disabled="@(holdNo != null)" title="@(holdNo ?? "As Speaker: it is not reached this year, and is voted next year. Once a year; whoever moved it will not thank you.")" @onclick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.HoldMotion, G.Turn!.Senate))" @onclick:stopPropagation="true">Hold it over</button> }
-                            @if (presides?.Id == pid)
-                            {
-                                var forNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.SpeakFor); var againstNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.SpeakAgainst);
-                                <button class="opt inline" disabled="@(forNo != null)" title="@(forNo ?? "As presiding consul: the houses lean with the chair. Once a year.")" @onclick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.SpeakFor, G.Turn!.Senate))" @onclick:stopPropagation="true">Speak for it from the chair</button>
-                                <button class="opt inline" disabled="@(againstNo != null)" title="@(againstNo ?? "As presiding consul: the houses lean with the chair. Once a year.")" @onclick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.SpeakAgainst, G.Turn!.Senate))" @onclick:stopPropagation="true">Speak against it</button>
-                            }
-                            @if (sen.Election is { AmConsul: true }) { <button class="opt inline veto" disabled="@(mo.VetoRefusal != null)" title="@(mo.VetoRefusal ?? "the consul's veto: struck from the docket, once a term")" @onclick='() => G.AskDo("Veto this motion?", mo.Text + " It is struck from the docket and cannot be moved again this term. A consul has one veto a term: this spends yours. The house that moved it will not thank you.", "Veto it", new VetoCommand(pid, mo.Id, c.Offices, G.Turn!.Senate))' @onclick:stopPropagation="true">Veto</button> }
-                        </div>
-                        <details @onclick:stopPropagation="true"><summary>The benches · whip them</summary>
+                        else
+                        {
+                            <div class="sn-vote"><span class="ui-seg" role="radiogroup" aria-label="Your vote">@foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") }) { <button class="@(mo.MyStance == stance ? "on" : "")" title="@VoteTip(stance)" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))">@label</button> }</span></div>
+                        }
+                        @{ bool speaker = LadderSystem.SpeakerOf(w)?.Id == pid, chair = presides?.Id == pid, consul = sen.Election is { AmConsul: true }; }
+                        @if (speaker || chair || consul)
+                        {
+                            <div class="sn-acts">
+                                @if (speaker) { var holdNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.HoldMotion); <Plate Label="Hold it over" Small="true" Icon="hourglass" Locked="@(holdNo != null)" Disabled="@(holdNo != null)" Tip="@(holdNo ?? "As Speaker: it is not reached this year, and is voted next year. Once a year; whoever moved it will not thank you.")" OnClick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.HoldMotion, G.Turn!.Senate))" /> }
+                                @if (chair)
+                                {
+                                    var forNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.SpeakFor); var againstNo = LadderSystem.ChairRefusal(w, p, motionNow, LadderSystem.SpeakAgainst);
+                                    <Plate Label="Speak for it from the chair" Small="true" Icon="public-speaker" Locked="@(forNo != null)" Disabled="@(forNo != null)" Tip="@(forNo ?? "As presiding consul: the houses lean with the chair. Once a year.")" OnClick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.SpeakFor, G.Turn!.Senate))" />
+                                    <Plate Label="Speak against it" Small="true" Icon="public-speaker" Locked="@(againstNo != null)" Disabled="@(againstNo != null)" Tip="@(againstNo ?? "As presiding consul: the houses lean with the chair. Once a year.")" OnClick="() => G.Execute(new ChairCommand(pid, mo.Id, LadderSystem.SpeakAgainst, G.Turn!.Senate))" />
+                                }
+                                @if (consul) { <Plate Label="Veto" Small="true" Icon="close" Class="sn-veto" Locked="@(mo.VetoRefusal != null)" Disabled="@(mo.VetoRefusal != null)" Tip="@(mo.VetoRefusal ?? "The consul's veto: struck from the docket, once a term")" OnClick='() => G.AskDo("Veto this motion?", mo.Text + " It is struck from the docket and cannot be moved again this term. A consul has one veto a term: this spends yours. The house that moved it will not thank you.", "Veto it", new VetoCommand(pid, mo.Id, c.Offices, G.Turn!.Senate))' /> }
+                            </div>
+                        }
+                        <details class="sn-roll">
+                            <summary><Icon Name="chev" Size="11" Class="flat" />The benches · whip them<span class="ui-mute">@Counted.Houses(Math.Min(16, mo.Stances.Count))</span></summary>
                             @{ int margin = mo.ForWeight - mo.AgainstWeight; int side = mo.MyStance >= 0 ? 1 : -1; }
-                            <div class="small" data-margin="@margin">As the benches lean it @(margin > 0 ? $"carries by {margin}" : margin < 0 ? $"fails by {-margin}" : "is tied, and a tie fails unless the chair is for it"), by weight of seats. A house that goes from one side to the other moves that by twice its seats; one that goes to abstaining, or comes from it, by its seats. A whip is worth @SenateSystem.LobbyWeight to a house's lean and a bought vote @SenateSystem.BribeWeight; a house votes for above nought, against below it, and abstains at nought.</div>
+                            <div class="sn-roll-say" data-margin="@margin">As the benches lean it @(margin > 0 ? $"carries by {margin}" : margin < 0 ? $"fails by {-margin}" : "is tied, and a tie fails unless the chair is for it"), by weight of seats. A house that goes from one side to the other moves that by twice its seats; one that goes to abstaining, or comes from it, by its seats. A whip is worth @SenateSystem.LobbyWeight to a house's lean and a bought vote @SenateSystem.BribeWeight; a house votes for above nought, against below it, and abstains at nought.</div>
                             @foreach (var st in mo.Stances.Take(16))
                             {
-                                var why = motionNow != null ? senate.Why(w, motionNow, st.HouseId) : new List<(string why, int by)>(); int leanNow = why.Sum(x => x.by);
-                                <div class="bench-row">
-                                    <Sigil HouseId="@st.HouseId" Accent="@st.Accent" Size="12" /> <span class="bn" title="@(st.Faction != null ? $"{st.HouseName} · {st.Faction}{(st.FactionLeader ? " (leads)" : "")}" : st.HouseName)">@st.HouseName@(st.Faction != null ? (st.FactionLeader ? " ★" : " ·") : "")</span><span class="wt muted">@st.Weight</span>
-                                    <span class="stance @(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "")" title="@(st.Declared ? "declared" : "leaning — a whip may move it")">@(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "abstains")@(st.Declared ? "" : "?")</span>
-                                    <button class="opt inline tiny" disabled="@(st.LobbyRefusal != null)" title="@(st.LobbyRefusal ?? "1 influence. " + MoveSays(st, leanNow, side, SenateSystem.LobbyWeight))" @onclick="() => G.Execute(new LobbyCommand(pid, mo.Id, st.HouseId, mo.MyStance >= 0 ? 1 : -1))">whip</button>
-                                    <button class="opt inline tiny" disabled="@(st.BribeRefusal != null)" title="@(st.BribeRefusal ?? BribeTip(st))" @onclick="() => AskBribe(mo.Id, st, mo.MyStance >= 0 ? 1 : -1)">bribe · @Money.Show(st.BribePrice)</button>
+                                var why = motionNow != null ? senate.Why(w, motionNow, st.HouseId) : new List<(string why, int by)>(); int leanNow = why.Sum(x => x.by); var stl = st;
+                                <div class="sn-roll-row bench-row">
+                                    <Sigil HouseId="@st.HouseId" Accent="@st.Accent" Size="16" />
+                                    <div class="sn-roll-nm">
+                                        <span class="bn" title="@(st.Faction != null ? $"{st.HouseName} · {st.Faction}{(st.FactionLeader ? " (leads)" : "")}" : st.HouseName)">@st.HouseName@if (st.FactionLeader) { <Icon Name="crown" Tone="brass" Size="12" /> }@if (st.Faction != null) { <small>@st.Faction</small> }</span>
+                                        @if (why.Count > 0) { <span class="bench-why" data-why-vote="@st.HouseId">leans @Signed(leanNow): @string.Join("; ", why.Take(3).Select(x => $"{x.why} ({Signed(x.by)})"))@(why.Count > 3 ? $"; and {Counted.LesserThings(why.Count - 3)} ({Signed(why.Skip(3).Sum(x => x.by))})" : "")</span> }
+                                    </div>
+                                    <span class="wt" title="@Counted.Seats(st.Weight)">@st.Weight</span>
+                                    <span class="stance @(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "")" title="@(st.Declared ? "declared" : "leaning: a whip may move it")">@(st.Stance > 0 ? "for" : st.Stance < 0 ? "against" : "abstains")@if (!st.Declared) { <i>?</i> }</span>
+                                    <Plate Label="Whip" Small="true" Locked="@(st.LobbyRefusal != null)" Disabled="@(st.LobbyRefusal != null)" Tip="@(st.LobbyRefusal ?? "1 influence. " + MoveSays(st, leanNow, side, SenateSystem.LobbyWeight))" OnClick="() => G.Execute(new LobbyCommand(pid, mo.Id, stl.HouseId, mo.MyStance >= 0 ? 1 : -1))" />
+                                    <Plate Label="Bribe" Small="true" Locked="@(st.BribeRefusal != null)" Disabled="@(st.BribeRefusal != null)" Tip="@(st.BribeRefusal ?? BribeTip(st))" CostIcon="credits" CostText="@Money.Show(st.BribePrice)" OnClick="() => AskBribe(mo.Id, stl, mo.MyStance >= 0 ? 1 : -1)" />
                                 </div>
-                                @if (why.Count > 0) { <div class="bench-why muted small" data-why-vote="@st.HouseId">leans @Signed(leanNow): @string.Join("; ", why.Take(3).Select(x => $"{x.why} ({Signed(x.by)})"))@(why.Count > 3 ? $"; and {Counted.LesserThings(why.Count - 3)} ({Signed(why.Skip(3).Sum(x => x.by))})" : "")</div> }
                             }
-                            <div class="muted small">Whipping leans a house toward your own stance (for, unless you voted against).</div>
+                            <div class="sn-roll-say">Whipping leans a house toward your own stance (for, unless you voted against).</div>
                         </details>
                     </div>
-                }
-                @if (sen.History.Count > 0)
-                {
-                    <details open="@(sen.Docket.Count == 0)"><summary>Decided lately · @sen.History.Count</summary>
-                        @foreach (var h in sen.History) { <div class="muted small hist"><b class="@(h.Passed ? "good" : "warn")">@(h.Vetoed ? $"vetoed by {h.VetoedBy}" : h.Passed ? "carried" : "thrown out")</b> @(h.Vetoed ? "" : $"{h.ForWeight}–{h.AgainstWeight} · ")turn @h.ProposedTurn · @h.Text@(h.Swing.Length > 0 ? " (" + h.Swing + ")" : "")</div> }
-                    </details>
-                }
-        </section> }
-        else if (_view == "move") { <section class="panel resolutions">
-                <h3>Move a motion</h3>
-                @{ var oweMe = WealthSystem.OweMe(w, house.Id); var iOwe = WealthSystem.IOwe(w, house.Id); }
-                @if (oweMe.Count + iOwe.Count > 0)
-                {
-                    <div class="small" data-favours="@(oweMe.Count + iOwe.Count)">
-                        @if (oweMe.Count > 0) { <span><b>Owe you a favour:</b> @string.Join(", ", oweMe.Select(h => $"{h.Name} ({FavourLeft(w, h.Id, house.Id)})")). Each leans @Signed(WealthSystem.FavourLeanBy) for the next motion you move, and the favour is spent at that vote. To call one in for something else, see House, under what is owed. </span> }
-                        @if (iOwe.Count > 0) { <span><b>You owe a favour to:</b> @string.Join(", ", iOwe.Select(h => $"{h.Name} ({FavourLeft(w, house.Id, h.Id)})")). Vote for that house's next motion and the account is even; vote otherwise and its head remembers who kept the gift.</span> }
-                    </div>
-                }
-                <div class="propose @(sen.MayPropose || _showForms ? "" : "cannot")">@if (!sen.MayPropose) { <div class="muted" data-cannot-move="1">Your house may not move a motion yet: @NoSeatLine(w).TrimStart('·', ' ').@(!w.IsImperium && TriumphSystem.HeldMagistracy(w, w.Protagonist!) ? MayMoveGenerals : string.Empty) <button class="opt inline tiny" @onclick="() => _showForms = !_showForms">@(_showForms ? "Hide the motions" : "Show what could be moved, " + sen.Proposals.Count + " kinds")</button></div> }
-                    @foreach (var pr in sen.Proposals)
-                    {
-                        <div class="proposal">
-                            <div><b>@pr.KindName</b> <span class="muted small">(@pr.Influence influence)</span> <span class="muted small">@pr.Description</span>
-                                @if (senate.Motions.Def(pr.KindId) is { } mdef && CourtProjection.MotionDoes(mdef) is { Length: > 0 } does) { <div class="small" data-motion-does="@pr.KindId">@does A motion is voted at the end of the year after it is moved.</div> }</div>
-                            @if (ForecastSays(pr) is { Length: > 0 } fare) { <div class="small" data-motion-fare="@pr.KindId">@fare</div> }
-                            @foreach (var (ab, asWhat) in AskAbove.Above(w, house.Id))
-                            {
-                                /* your patron or your bench's leader may move it in its own name: the way a house with no voice gets a
-                                   motion onto the floor (docs/PLAYTHROUGH.md, Medium, The Senate, P6) */
-                                var askMove = AskMoveCmd(pr, ab.Id); string? askMoveNo = askMove.Refusal(G.Ctx); string abName = ab.Name;
-                                <div class="small" data-ask-move="@(pr.KindId + "|" + ab.Id)">
-                                    <button class="opt inline tiny" disabled="@(askMoveNo != null)" title="@(askMoveNo ?? $"{ab.Name}, {asWhat}, moves it in its own name and at its own cost in influence, with the choices made here. It is counted as that house's motion: the houses lean as they think of {ab.Name}, not of you. You owe it a favour for it.")" @onclick='() => G.Ask("Ask " + abName + " to move it?", abName + " moves this motion in its own name, with the choices made here. The houses lean as they think of " + abName + ", not of you. You owe it a favour: vote for the next motion it moves and the account is even.", "Ask", () => G.Execute(askMove))'>Ask @ab.Name to move it</button>
-                                    @if (askMoveNo != null) { <span class="muted">@char.ToUpperInvariant(askMoveNo[0])@askMoveNo[1..].</span> }
-                                </div>
-                            }
-                            @if (pr.NeedsLaw && pr.Laws != null)
-                            {
-                                <select class="sel" @onchange="e => SetLaw(pr.KindId, e)">
-                                    <option value="">— which law of the Reach —</option>
-                                    @foreach (var grp in pr.Laws.GroupBy(l => l.Category)) { <optgroup label="@grp.Key" data-act-category="@grp.Key">@foreach (var l in grp) { <option value="@l.Id">@l.Name · now @l.Options.First(o => o.Id == l.InForce).Name.ToLowerInvariant()</option> }</optgroup> }
-                                </select>
-                                @if (ActLaw(pr) is { } al)
-                                {
-                                    <div class="muted small">@al.Description</div>
-                                    <select class="sel" @onchange="e => SetOption(pr.KindId, e)">
-                                        <option value="">— be set to —</option>
-                                        @foreach (var o in al.Options.Where(o => o.Id != al.InForce)) { <option value="@o.Id">@o.Name · @o.Effects@(o.Opinions.Length > 0 ? " · " + o.Opinions : "")</option> }
-                                    </select>
-                                    @if (ActOption(pr) is { } chosenOpt) { <div class="small" data-act-option-does="@chosenOpt.Id"><b>@chosenOpt.Name</b>: @(chosenOpt.Effects.TrimEnd('.')). @(chosenOpt.Opinions.Length > 0 ? "The estates: " + chosenOpt.Opinions + "." : "")</div> }
-                                }
-                                <button class="opt inline" disabled="@(!CanMoveAct(pr))" title="@ActRefusal(pr)" @onclick="() => MoveAct(pr.KindId)">Move it</button>
-                                @if (ActRefusal(pr) is { } ar && ActOption(pr) != null) { <span class="muted small">@ar</span> }
-                            }
-                            else if (pr.TargetType == "none") { <button class="opt inline" disabled="@(pr.Refusal != null)" title="@pr.Refusal" @onclick="() => MoveNone(pr.KindId)">Move it</button> }
-                            else
-                            {
-                                <select class="sel" @onchange="e => SetTarget(pr.KindId, e)">
-                                    <option value="">— choose @(pr.TargetType == "house" ? "a house" : pr.TargetType == "nation" ? "a nation beyond the Reach" : pr.TargetType == "edict" ? "an edict in force" : "a region") —</option>
-                                    @foreach (var t in pr.Targets) { <option value="@t.Id">@t.Name</option> }
-                                </select>
-                                @if (pr.NeedsOffice && pr.Offices != null)
-                                {
-                                    <select class="sel" @onchange="e => SetOffice(pr.KindId, e)">
-                                        <option value="">— which office —</option>
-                                        @foreach (var o in pr.Offices) { <option value="@o.Id">@o.Name</option> }
-                                    </select>
-                                }
-                                { string? tno = TargetRefusal(pr); <button class="opt inline" disabled="@(tno != null)" title="@tno" @onclick="() => MoveTarget(pr.KindId)">Move it</button> @if (tno != null && !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId))) { <span class="muted small" data-motion-no>@tno</span> } }
-                            }
-                        </div>
-                    }
-                </div>
-        </section> }
-        </div>
-        <div class="deck-col">
-        @if (_view == "chamber") {
-        <section class="panel chamber">
-            <h3><Icon Name="influence" Size="13" /> The chamber <span class="muted">@(watched != null ? $"seats coloured by their lean on: {watched.KindName}" : "each dot a seat, in its bench's colour · yours are ringed · click one for its house")</span></h3>
-            <svg class="hemicycle" viewBox="0 0 1000 540" role="img" aria-label="the Senate's seats">
-                <defs><radialGradient id="floor" cx="50%" cy="100%" r="70%"><stop offset="0" stop-color="#1b2234" /><stop offset="1" stop-color="#0a0e16" /></radialGradient></defs>
-                <path d="M 40 520 A 460 460 0 0 1 960 520 Z" fill="url(#floor)" stroke="#2a3348" />
-                <path d="M 440 520 A 60 60 0 0 1 560 520 Z" fill="#1d1a12" stroke="#8a6c2a" />
-                <text x="500" y="508" text-anchor="middle" class="rostrum">@(sen?.Offices?.FirstOrDefault(o => o.Id == "speaker")?.HolderName ?? "the rostrum")</text>
-                @foreach (var seat in seats)
-                {
-                    int st = watched != null && stanceOf.TryGetValue(seat.houseId, out var sv) ? sv : 0;
-                    string cls = (seat.houseId == house.Id ? "mine " : "") + (seat.houseId == _focus ? "focus " : "") + (watched == null ? "" : st > 0 ? "for" : st < 0 ? "against" : "abstain");
-                    <circle cx="@seat.x.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" cy="@seat.y.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)" r="8.5" class="seat @cls" style="fill:@(seatFill.TryGetValue(seat.houseId, out var sf) ? sf : seat.accent)" @onclick="() => _focus = seat.houseId"><title>@seat.name · @Counted.Seats(seat.weight)@(seat.bench != null ? $" · {seat.bench}" : "")</title></circle>
-                }
-            </svg>
-            <div class="chamber-legend">
-                @foreach (var f in benches)
-                {
-                    int wt = f.Members.Sum(x => senate.Weight(w, x)); var lh = w.House(f.LeaderHouseId);
-                    <span class="lg @(f.Members.Contains(house.Id) ? "mine" : "")" title="led by @(lh?.Name ?? f.LeaderHouseId) · @string.Join(", ", f.Members.Select(x => w.House(x)?.Name ?? x))"><i style="background:@(f.Accent.Length > 0 ? f.Accent : lh?.AccentColor ?? "#888")"></i>@f.Name <b>@wt</b></span>
-                }
-                <span class="lg"><i class="none"></i>unaffiliated <b>@ordered.Where(x => x.bench == null).Sum(x => x.weight)</b></span>
-                @if (watched != null) { <span class="lg key"><i class="for"></i>for <i class="against"></i>against <i class="abstain"></i>abstains</span> }
-                @if (sen != null && sen.Docket.Count > 1) { <span class="lg">show lean on: @foreach (var d in sen.Docket) { <button class="opt inline tiny @(watched?.Id == d.Id ? "here" : "")" @onclick="() => _watch = d.Id">@d.KindName</button> }</span> }
-            </div>
-            @if (focusHouse != null)
-            {
-                var rel = focusHead != null ? w.GetRelationship(focusHead.Id, pid) : null; int d = rel?.Disposition ?? 0; var cn = focusHead != null ? m.Connections.FirstOrDefault(x => x.Id == focusHead.Id) : null;
-                var fb = FactionSystem.Of(w, focusHouse.Id);
-                <div class="seat-card">
-                    @if (focusHead != null) { <Portrait Id="@focusHead.Id" Name="@focusHead.Name" Sex="@focusHead.Sex" Age="@focusHead.Age" Accent="@focusHouse.AccentColor" Size="56" /> }
-                    <div class="sc-body">
-                        <div class="sc-name"><Sigil HouseId="@focusHouse.Id" Accent="@focusHouse.AccentColor" Size="14" /> @focusHouse.Name <span class="muted">@(c.Titles.NameOf(focusHouse.Title, G.World!.Era)) · @Counted.Seats(senate.Weight(w, focusHouse.Id))@(fb != null ? $" · {fb.Name}{(fb.LeaderHouseId == focusHouse.Id ? " (leads)" : "")}" : "")</span></div>
-                        <div class="muted small">@(focusHead != null ? $"{focusHead.Name}, {c.Careers.RankName(focusHead.CareerTrack, focusHead.CareerRank, G.World!.Era) ?? "head"}" : "no head") · legitimacy @focusHouse.Legitimacy · @string.Join(" · ", focusHouse.SphereInfluence.Where(k => k.Value > 0).Select(k => $"{k.Key} {k.Value}"))
-                            @if (focusHouse.Id != house.Id) { <span> · <span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">disposition @d</span>@(w.AtWar(house.Id, focusHouse.Id) ? " · AT WAR" : "")</span> }</div>
-                        @if (watched != null && focusStance != null && focusHouse.Id != house.Id)
-                        {
-                            <div class="small">On @watched.KindName: <b class="@(focusStance.Stance > 0 ? "good" : focusStance.Stance < 0 ? "warn" : "")">@(focusStance.Stance > 0 ? "for" : focusStance.Stance < 0 ? "against" : "abstains")@(focusStance.Declared ? "" : " (leaning)")</b>
-                                <button class="opt inline tiny" disabled="@(focusStance.LobbyRefusal != null)" title="@(focusStance.LobbyRefusal ?? "1 influence: lean them your way")" @onclick="() => G.Execute(new LobbyCommand(pid, watched.Id, focusHouse.Id, watched.MyStance >= 0 ? 1 : -1))">whip</button>
-                                <button class="opt inline tiny" disabled="@(focusStance.BribeRefusal != null)" title="@(focusStance.BribeRefusal ?? BribeTip(focusStance))" @onclick="() => AskBribe(watched.Id, focusStance, watched.MyStance >= 0 ? 1 : -1)">bribe · @Money.Show(focusStance.BribePrice)</button></div>
-                        }
-                        @if (cn != null) { <div class="sc-actions">@foreach (var o in TreatyFirst(cn.Actions)) { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(o.Id, o.Label, cn.Id)">@o.Label</button> }</div> }
-                    </div>
-                    <button class="win-close" @onclick="() => _focus = null">✕</button>
                 </div>
             }
-            <div class="muted small" data-sphere-legend>The three estates of the Reach. A house's weight in each is the ranks of its family serving on that track, added up; each bar is cut by house, yours outlined. Weight in the Senate is also what your vote counts for in the chamber. A share well above an even split is what makes the other houses fear you.</div>
-            <div class="spheres-row">
+            </ChildContent>
+        </Section>
+        @if (sen.History.Count > 0)
+        {
+            <Section Title="Decided lately" Count="@sen.History.Count.ToString()" Info="What the chamber decided in the last years: carried, thrown out or vetoed, with the count by weight of seats.">
+                @foreach (var h in _allHistory ? sen.History : sen.History.Take(4))
+                {
+                    <div class="sn-hist hist @(h.Passed ? "won" : "lost")">
+                        <b class="sn-chip @(h.Vetoed ? "veto" : h.Passed ? "up" : "down")">@(h.Vetoed ? $"vetoed by {h.VetoedBy}" : h.Passed ? "carried" : "thrown out")</b>
+                        <span class="sn-hist-t"><span class="ui-mute">@(h.Vetoed ? "" : $"{h.ForWeight}–{h.AgainstWeight} · ")turn @h.ProposedTurn ·</span> @h.Text@(h.Swing.Length > 0 ? " (" + h.Swing + ")" : "")</span>
+                    </div>
+                }
+                @if (sen.History.Count > 4) { <div class="sn-more"><Link Label="@(_allHistory ? "Show fewer" : "Show all " + sen.History.Count)" OnClick="() => _allHistory = !_allHistory" /></div> }
+            </Section>
+        }
+        <Section Title="Weight in the estates" Count="@spheres.Count.ToString()" Info="The three estates of the Reach. A house's weight in each is the ranks of its family serving on that track, added up; each bar is cut by house, yours outlined. Weight in the Senate is also what your vote counts for in the chamber. A share well above an even split is what makes the other houses fear you.">
+            <div class="sn-spheres spheres-row" data-sphere-legend>
                 @foreach (var sp in spheres)
                 {
-                    var shares = w.Houses.Values.Select(h => (h, v: h.SphereInfluence.TryGetValue(sp, out var v) ? v : 0)).Where(x => x.v > 0).OrderByDescending(x => x.v).ToList(); int total = Math.Max(1, shares.Sum(x => x.v));
-                    var def = c.Spheres.IsEmpty ? null : c.Spheres.Defs.FirstOrDefault(x => x.Id == sp);
-                    <div class="sphere" title="@SphereTip(sp, def?.Name ?? sp)">
-                        <div class="sphere-head"><b>@(def?.Name ?? sp)</b> <span class="muted">your weight @(house.SphereInfluence.TryGetValue(sp, out var mine) ? mine : 0) of @total</span></div>
-                        <div class="sphere-bar">@foreach (var x in shares) { <i style="width:@(100.0 * x.v / total)%; background:@x.h.AccentColor" title="@x.h.Name @x.v" class="@(x.h.Id == house.Id ? "mine" : "")"></i> }</div>
+                    var shares = w.Houses.Values.Select(h => (h, v: h.SphereInfluence.TryGetValue(sp, out var v) ? v : 0)).Where(x => x.v > 0).OrderByDescending(x => x.v).ToList(); int stotal = Math.Max(1, shares.Sum(x => x.v));
+                    var def = c.Spheres.IsEmpty ? null : c.Spheres.Defs.FirstOrDefault(x => x.Id == sp); int mineW = house.SphereInfluence.TryGetValue(sp, out var mw) ? mw : 0;
+                    <div class="sn-sphere sphere" title="@SphereTip(sp, def?.Name ?? sp)">
+                        <span class="sn-sphere-nm">@Cap(def?.Name ?? sp)</span>
+                        <span class="sphere-bar">@foreach (var x in shares) { <i style="width:@Pc(100.0 * x.v / stotal); background:@x.h.AccentColor" title="@x.h.Name @x.v" class="@(x.h.Id == house.Id ? "mine" : "")"></i> }</span>
+                        <span class="sn-sphere-v"><b>@mineW</b><small>/@stotal</small></span>
                     </div>
                 }
             </div>
-        </section>
+        </Section>
+    }
+    else if (_view == "move")
+    {
+        var oweMe = WealthSystem.OweMe(w, house.Id); var iOwe = WealthSystem.IOwe(w, house.Id);
+        <p class="ui-lede sn-lede">@Bold(sen!.MayPropose ? $"Your house may move a motion. It costs influence of this year's and is voted at the end of the year after it is moved, by weight of seats; you hold {myWeight} of {totalSeats}." : $"Your house may not move a motion yet. It votes on every motion with its {myWeight} seats; a house above yours may move one in its own name.")</p>
+        @if (oweMe.Count + iOwe.Count > 0)
+        {
+            <Section Title="Favours" Count="@((oweMe.Count + iOwe.Count).ToString())" Info="A favour owed leans a house your way on the next motion you move, and is spent at that vote. One you owe is settled by voting for that house's next motion.">
+                <div class="sn-favours" data-favours="@(oweMe.Count + iOwe.Count)">
+                    @if (oweMe.Count > 0) { <div class="sn-note"><Icon Name="shaking-hands" Tone="good" Size="15" /><span><b>Owe you a favour:</b> @string.Join(", ", oweMe.Select(h => $"{h.Name} ({FavourLeft(w, h.Id, house.Id)})")). Each leans @Signed(WealthSystem.FavourLeanBy) for the next motion you move, and the favour is spent at that vote. To call one in for something else, see House, under what is owed.</span></div> }
+                    @if (iOwe.Count > 0) { <div class="sn-note"><Icon Name="shaking-hands" Tone="ivory" Size="15" /><span><b>You owe a favour to:</b> @string.Join(", ", iOwe.Select(h => $"{h.Name} ({FavourLeft(w, house.Id, h.Id)})")). Vote for that house's next motion and the account is even; vote otherwise and its head remembers who kept the gift.</span></div> }
+                </div>
+            </Section>
         }
+        <div class="propose @(sen.MayPropose || _showForms ? "" : "cannot")">
+            @if (!sen.MayPropose)
+            {
+                <div class="ui-wstrip sn-strip" data-cannot-move="1"><Icon Name="padlock" Tone="brass" Size="18" />
+                    <span class="ui-wstrip-t"><b>No voice.</b> Your house may not move a motion yet: @NoSeatLine(w).TrimStart('·', ' ').@(!w.IsImperium && TriumphSystem.HeldMagistracy(w, w.Protagonist!) ? MayMoveGenerals : string.Empty)</span>
+                    <button class="ui-btn sm" title="Every kind of motion, what it costs and what it does, though your house may not move one yet" @onclick="() => _showForms = !_showForms">@(_showForms ? "Hide the motions" : "Show what could be moved, " + sen.Proposals.Count + " kinds")</button>
+                </div>
+            }
+            @if (sen.MayPropose || _showForms)
+            {
+                <Section Title="What may be moved" Count="@sen.Proposals.Count.ToString()" Info="Each kind of motion, what it costs in influence and what it does. Choose what it is about and move it; a motion is voted at the end of the year after it is moved. Your patron or your bench's leader may move it in its own name for you.">
+                    <Right><span class="sn-pool" title="Influence of this year's, which moving a motion spends"><Icon Name="public-speaker" Tone="ivory" Size="16" /><b>@m.Pools.Influence</b> to spend</span></Right>
+                </Section>
+            }
+            @foreach (var pr in sen.Proposals)
+            {
+                var prk = pr.KindId;
+                <div class="proposal sn-ent" data-proposal="@pr.KindId">
+                    <span class="sn-ic"><Icon Name="@KindIcon(pr.KindId)" Tone="ivory" Size="20" /></span>
+                    <div class="sn-ent-main">
+                        <div class="sn-hd"><b class="sn-nm">@pr.KindName</b><span class="sn-sub" title="@pr.Description">@pr.Description</span><span class="sn-cost" title="Influence of this year's"><Icon Name="public-speaker" Tone="ivory" Size="14" />@pr.Influence</span></div>
+                        @if (senate.Motions.Def(pr.KindId) is { } mdef && CourtProjection.MotionDoes(mdef) is { Length: > 0 } does) { <div class="sn-tx" data-motion-does="@pr.KindId" title="A motion is voted at the end of the year after it is moved.">@does</div> }
+                        @if (ForecastSays(pr) is { Length: > 0 } fare) { <div class="sn-note" data-motion-fare="@pr.KindId"><Icon Name="vote" Tone="brass" Size="15" /><span>@fare</span></div> }
+                        <div class="sn-form">
+                        @if (pr.NeedsLaw && pr.Laws != null)
+                        {
+                            <span class="sn-selwrap"><select class="sel" @onchange="e => SetLaw(pr.KindId, e)">
+                                <option value="">Which law of the Reach</option>
+                                @foreach (var grp in pr.Laws.GroupBy(l => l.Category)) { <optgroup label="@grp.Key" data-act-category="@grp.Key">@foreach (var l in grp) { <option value="@l.Id">@l.Name · now @l.Options.First(o => o.Id == l.InForce).Name.ToLowerInvariant()</option> }</optgroup> }
+                            </select><Icon Name="chev" Tone="brass" Size="12" /></span>
+                            @if (ActLaw(pr) is { } al)
+                            {
+                                <span class="sn-selwrap"><select class="sel" @onchange="e => SetOption(pr.KindId, e)">
+                                    <option value="">Be set to</option>
+                                    @foreach (var o in al.Options.Where(o => o.Id != al.InForce)) { <option value="@o.Id">@o.Name · @o.Effects@(o.Opinions.Length > 0 ? " · " + o.Opinions : "")</option> }
+                                </select><Icon Name="chev" Tone="brass" Size="12" /></span>
+                            }
+                            <Plate Label="Move it" Small="true" Icon="scroll-quill" Locked="@(!CanMoveAct(pr))" Disabled="@(!CanMoveAct(pr))" Tip="@(ActRefusal(pr) ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveAct(prk)" />
+                        }
+                        else if (pr.TargetType == "none") { <Plate Label="Move it" Small="true" Icon="scroll-quill" Locked="@(pr.Refusal != null)" Disabled="@(pr.Refusal != null)" Tip="@(pr.Refusal ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveNone(prk)" /> @if (pr.Refusal != null) { <span class="sn-no">@Cap(pr.Refusal)</span> } }
+                        else
+                        {
+                            <span class="sn-selwrap"><select class="sel" @onchange="e => SetTarget(pr.KindId, e)">
+                                <option value="">@(pr.TargetType == "house" ? "Choose a house" : pr.TargetType == "nation" ? "Choose a nation beyond the Reach" : pr.TargetType == "edict" ? "Choose an edict in force" : "Choose a region")</option>
+                                @foreach (var t in pr.Targets) { <option value="@t.Id">@t.Name</option> }
+                            </select><Icon Name="chev" Tone="brass" Size="12" /></span>
+                            @if (pr.NeedsOffice && pr.Offices != null)
+                            {
+                                <span class="sn-selwrap"><select class="sel" @onchange="e => SetOffice(pr.KindId, e)">
+                                    <option value="">Which office</option>
+                                    @foreach (var o in pr.Offices) { <option value="@o.Id">@o.Name</option> }
+                                </select><Icon Name="chev" Tone="brass" Size="12" /></span>
+                            }
+                            { string? tno = TargetRefusal(pr); <Plate Label="Move it" Small="true" Icon="scroll-quill" Locked="@(tno != null)" Disabled="@(tno != null)" Tip="@(tno ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveTarget(prk)" /> @if (tno != null && !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId))) { <span class="sn-no" data-motion-no>@Cap(tno)</span> } }
+                        }
+                        </div>
+                        @if (pr.NeedsLaw && ActLaw(pr) is { } al2)
+                        {
+                            <div class="sn-tx ui-dim">@al2.Description</div>
+                            @if (ActOption(pr) is { } chosenOpt) { <div class="sn-note" data-act-option-does="@chosenOpt.Id"><Icon Name="scales" Tone="brass" Size="15" /><span><b>@chosenOpt.Name</b>: @(chosenOpt.Effects.TrimEnd('.')). @(chosenOpt.Opinions.Length > 0 ? "The estates: " + chosenOpt.Opinions + "." : "")</span></div> }
+                            @if (ActRefusal(pr) is { } ar && ActOption(pr) != null) { <div class="sn-no">@Cap(ar)</div> }
+                        }
+                        @foreach (var (ab, asWhat) in AskAbove.Above(w, house.Id))
+                        {
+                            /* your patron or your bench's leader may move it in its own name: the way a house with no voice gets a
+                               motion onto the floor (docs/PLAYTHROUGH.md, Medium, The Senate, P6) */
+                            var askMove = AskMoveCmd(pr, ab.Id); string? askMoveNo = askMove.Refusal(G.Ctx); string abName = ab.Name;
+                            <div class="sn-acts" data-ask-move="@(pr.KindId + "|" + ab.Id)">
+                                <Plate Label="@("Ask " + ab.Name + " to move it")" Small="true" Icon="shaking-hands" Locked="@(askMoveNo != null)" Disabled="@(askMoveNo != null)" Tip="@(askMoveNo ?? $"{ab.Name}, {asWhat}, moves it in its own name and at its own cost in influence, with the choices made here. It is counted as that house's motion: the houses lean as they think of {ab.Name}, not of you. You owe it a favour for it.")" OnClick='() => G.Ask("Ask " + abName + " to move it?", abName + " moves this motion in its own name, with the choices made here. The houses lean as they think of " + abName + ", not of you. You owe it a favour: vote for the next motion it moves and the account is even.", "Ask", () => G.Execute(askMove))' />
+                                @if (askMoveNo != null) { <span class="sn-no">@Cap(askMoveNo).</span> }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (_view == "offices")
+    {
+        var consuls = sen?.Offices?.Where(o => o.Elected).ToList() ?? new List<OfficeCard>();
+        var others = sen?.Offices?.Where(o => !o.Elected).ToList() ?? new List<OfficeCard>();
+        int heldByUs = sen?.Offices?.Count(o => o.Mine) ?? 0, vacant = others.Count(o => o.HolderHouse == null);
+        <p class="ui-lede sn-lede">@Bold((elect != null ? (elect.AmConsul ? "You hold the consulship. " : elect.NextIn == 0 ? "The consuls are elected at the end of this year. " : $"The consuls are elected in {elect.NextIn} years. ") : "") + $"{(others.Count == 1 ? "One office" : others.Count + " offices")} of the Reach {(others.Count == 1 ? "is" : "are")} filled by the Senate's commission{(vacant > 0 ? $", {vacant} of them vacant" : "")}; your house holds {heldByUs}.")</p>
         @if (sen?.Election is { } el)
         {
-            var consuls = sen.Offices?.Where(o => o.Elected).ToList() ?? new List<OfficeCard>();
-        @if (_view == "consuls") {
-            <section class="panel consulship">
-                <h3><Icon Name="throne" Size="13" /> The consulship <span class="muted">elected every @el.TermTurns years · @(el.NextIn == 0 ? "the next at the end of this year" : el.NextIn == 1 ? "the next at the end of next year" : "the next in " + el.NextIn + " years")</span></h3>
+            var em = w.Emergency; string? danger = EmergencySystem.Danger(w); var emHolder = em != null ? w.Char(em.HolderId) : null; bool emMine = em != null && em.HolderId == pid;
+            string? askNo = new ProposeMotionCommand(pid, "emergency", house.Id, senate).Refusal(G.Ctx), lifeNo = new ProposeMotionCommand(pid, "for_life", house.Id, senate).Refusal(G.Ctx);
+            string? levyNo = new EmergencyCommand(pid, EmergencyCommand.Levy).Refusal(G.Ctx), layNo = new EmergencyCommand(pid, EmergencyCommand.LayDown).Refusal(G.Ctx);
+            <div class="panel consulship">
+                <Section Title="The consulship" Count="@consuls.Count.ToString()" Info="@($"Two consuls are elected every {el.TermTurns} years, by the weight of the houses that vote for them. A consul adds weight in the chamber, has one veto a term, may speak from the chair, and decides a tied Senate.")">
+                    <Right><span>every <b>@el.TermTurns</b> years · @(el.NextIn == 0 ? "the next at the end of this year" : el.NextIn == 1 ? "the next at the end of next year" : "the next in " + el.NextIn + " years")</span></Right>
+                </Section>
                 @foreach (var o in consuls)
                 {
-                    <div class="off-card @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
-                        <div class="of-head"><b>@o.Name</b> <span class="muted small">weight +@(o.Id == "consul_senior" ? 4 : 3) · the veto</span></div>
-                        <div class="small">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="12" /> <span>@o.HolderName of @o.HolderHouse</span> <span class="muted">since turn @o.Since</span> } else { <span class="muted">vacant until the election</span> }</div>
+                    var holder = OfficeSystem.Holding(w, o.Id) is { } hh ? w.Char(hh.CharacterId) : null;
+                    <div class="ui-row sn-row off-row @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description">
+                        <div>@Face(w, holder, "podium")</div>
+                        <div class="sn-rmain"><div class="ui-row-nm">@o.Name</div>
+                            <div class="ui-row-sub">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="14" /> <b>@o.HolderName</b>@($" of {o.HolderHouse} · since turn {o.Since}") } else { <i>vacant until the election</i> }</div></div>
+                        <div class="ui-cols"><span class="ui-cell" title="Weight in the chamber while in office"><Icon Name="vote" Tone="brass" Size="16" />+@(o.Id == "consul_senior" ? 4 : 3)</span><span class="sn-tag" title="A consul may strike one motion from the docket a term">the veto</span></div>
+                        <div></div>
                     </div>
-                }
-                @{
-                    var em = w.Emergency; string? danger = EmergencySystem.Danger(w); var emHolder = em != null ? w.Char(em.HolderId) : null; bool emMine = em != null && em.HolderId == pid;
-                    string? askNo = new ProposeMotionCommand(pid, "emergency", house.Id, senate).Refusal(G.Ctx), lifeNo = new ProposeMotionCommand(pid, "for_life", house.Id, senate).Refusal(G.Ctx);
-                    string? levyNo = new EmergencyCommand(pid, EmergencyCommand.Levy).Refusal(G.Ctx), layNo = new EmergencyCommand(pid, EmergencyCommand.LayDown).Refusal(G.Ctx);
                 }
                 @if (em != null)
                 {
-                    <div class="off-card emergency @(emMine ? "mine" : "")" title="While the powers run the other consul has no veto, the holder may strike one motion a year, the Senate leans toward what the holder moves, the houses can be levied without a vote, and no election is held. They are to be laid down when the term is up or the danger is past.">
-                        <div class="of-head"><b>Emergency powers</b> <span class="muted small">voted for @em.Cause · @(em.Due ? (em.KeptYears > 0 ? $"kept {Counted.Years(em.KeptYears)} past leave" : "due to be laid down") : $"until year {em.Until}")@(em.Renewals > 0 ? $" · extended {Counted.Times(em.Renewals)}" : "")</span></div>
-                        <div class="small">@(emHolder?.Name ?? "A consul") of @(w.House(em.HouseId)?.Name) holds them, since year @em.Since.@(emMine && em.Due ? $" Each year you keep them costs the Reach's trust, your house's standing and every head's regard; after {EmergencySystem.KeptMax} the Senate takes them." : "")</div>
-                        @if (emMine)
-                        {
-                            <div class="suit-acts">
-                                <button class="opt inline" disabled="@(layNo != null)" title="@(layNo ?? $"Give them back. Your house gains {EmergencySystem.LaidDownStanding} standing (two more if it is before they are due), the Reach trusts its magistrates more, and every head thinks better of you. Nothing is gained if you have kept them past leave.")" @onclick="() => G.Execute(new EmergencyCommand(pid, EmergencyCommand.LayDown))">Lay them down</button>
-                                <button class="opt inline" disabled="@(levyNo != null)" title="@(levyNo ?? $"Every other house pays up to {Money.Credits(EmergencySystem.LevyCredits)} to yours, without a vote. Each head thinks the worse of you, and the Reach a little less of its magistrates. Once a year.")" @onclick="() => G.Execute(new EmergencyCommand(pid, EmergencyCommand.Levy))">Levy on the houses</button>
-                                <button class="opt inline" disabled="@(askNo != null)" title="@(askNo ?? "Put it to the Senate that the powers run three years more. Each time you ask, the houses are slower to agree.")" @onclick='() => MoveSelf("emergency")'>Ask for more time</button>
-                                <button class="opt inline veto" disabled="@(lifeNo != null)" title="@(lifeNo ?? "Put it to the Senate that you hold them for life. If it carries, the Republic ends by its own vote and you rule. If it fails, the Senate ends the powers in the same breath and your house is disgraced.")" @onclick='() => MoveSelf("for_life")'>Ask for them for life</button>
-                            </div>
-                        }
+                    <div class="ui-row sn-row off-card emergency @(emMine ? "mine" : "")" title="While the powers run the other consul has no veto, the holder may strike one motion a year, the Senate leans toward what the holder moves, the houses can be levied without a vote, and no election is held. They are to be laid down when the term is up or the danger is past.">
+                        <div>@Face(w, emHolder, "crisis")</div>
+                        <div class="sn-rmain"><div class="ui-row-nm sn-bad">Emergency powers</div>
+                            <div class="ui-row-sub">voted for @em.Cause · @(em.Due ? (em.KeptYears > 0 ? $"kept {Counted.Years(em.KeptYears)} past leave" : "due to be laid down") : $"until year {em.Until}")@(em.Renewals > 0 ? $" · extended {Counted.Times(em.Renewals)}" : "")</div>
+                            <div class="sn-tx">@(emHolder?.Name ?? "A consul") of @(w.House(em.HouseId)?.Name) holds them, since year @em.Since.@(emMine && em.Due ? $" Each year you keep them costs the Reach's trust, your house's standing and every head's regard; after {EmergencySystem.KeptMax} the Senate takes them." : "")</div>
+                            @if (emMine)
+                            {
+                                <div class="sn-acts suit-acts">
+                                    <Plate Label="Lay them down" Small="true" Locked="@(layNo != null)" Disabled="@(layNo != null)" Tip="@(layNo ?? $"Give them back. Your house gains {EmergencySystem.LaidDownStanding} standing (two more if it is before they are due), the Reach trusts its magistrates more, and every head thinks better of you. Nothing is gained if you have kept them past leave.")" OnClick="() => G.Execute(new EmergencyCommand(pid, EmergencyCommand.LayDown))" />
+                                    <Plate Label="Levy on the houses" Small="true" Locked="@(levyNo != null)" Disabled="@(levyNo != null)" Tip="@(levyNo ?? $"Every other house pays up to {Money.Credits(EmergencySystem.LevyCredits)} to yours, without a vote. Each head thinks the worse of you, and the Reach a little less of its magistrates. Once a year.")" OnClick="() => G.Execute(new EmergencyCommand(pid, EmergencyCommand.Levy))" />
+                                    <Plate Label="Ask for more time" Small="true" Locked="@(askNo != null)" Disabled="@(askNo != null)" Tip="@(askNo ?? "Put it to the Senate that the powers run three years more. Each time you ask, the houses are slower to agree.")" OnClick='() => MoveSelf("emergency")' />
+                                    <Plate Label="Ask for them for life" Small="true" Class="sn-veto" Locked="@(lifeNo != null)" Disabled="@(lifeNo != null)" Tip="@(lifeNo ?? "Put it to the Senate that you hold them for life. If it carries, the Republic ends by its own vote and you rule. If it fails, the Senate ends the powers in the same breath and your house is disgraced.")" OnClick='() => MoveSelf("for_life")' />
+                                </div>
+                            }
+                        </div>
+                        <div></div><div></div>
                     </div>
                 }
                 else if (danger != null)
                 {
-                    <div class="muted small">The Reach is in danger: @danger. The Senate may be asked to give a consul its emergency powers for @EmergencySystem.Years years.
-                        @if (el.AmConsul) { <button class="opt inline" disabled="@(askNo != null)" title="@(askNo ?? "Put it to the Senate. The graver the danger the readier it is; a consul it fears is refused.")" @onclick='() => MoveSelf("emergency")'>Ask for them</button> }</div>
+                    <div class="ui-wstrip bad sn-strip"><Icon Name="crisis" Tone="ember" Size="18" />
+                        <span class="ui-wstrip-t muted small">The Reach is in danger: @danger. The Senate may be asked to give a consul its emergency powers for @EmergencySystem.Years years.</span>
+                        @if (el.AmConsul) { <Plate Label="Ask for them" Small="true" Locked="@(askNo != null)" Disabled="@(askNo != null)" Tip="@(askNo ?? "Put it to the Senate. The graver the danger the readier it is; a consul it fears is refused.")" OnClick='() => MoveSelf("emergency")' /> }
+                    </div>
                 }
-                <h4>The nominees as they stand</h4>
-                @foreach (var n in el.Nominees) { <div class="nominee"><i class="party-dot" style="background:@n.PartyAccent"></i><Sigil HouseId="@n.HouseId" Accent="@n.Accent" Size="13" /> <span><b>@n.HouseName</b> <span class="muted small">for @n.Party</span></span><b class="tally-n">@n.Tally</b>@{ var nid = n.HouseId; var canvassNo = G.Turn!.Orders.CanvassRefusal(w, house, nid, el.Nominees.Select(x => x.HouseId)); }<button class="opt inline tiny" disabled="@(canvassNo != null)" title="@(canvassNo ?? "largesse in the candidate's name: one more vote's weight at the election")" @onclick="() => Canvass(nid)">Canvass · @Money.Show(OrderSystem.CanvassCredits)</button></div> }
-                @if (el.Nominees.Count == 0) { <div class="muted small">No house of standing has a candidate yet.</div> }
-                else { <div class="small" data-election-chances="1">@ChancesSay(el, c.Offices)</div> }
+                <Section Title="The nominees" Count="@(el.Nominees.Count > 0 ? el.Nominees.Count.ToString() : "")" Info="The nominees as they stand. A house votes for its own candidate, else the one it has pledged its seats to, else its patron's, else its bench's; a house on no bench for the candidate whose head it likes best. A canvass in a candidate's name adds one vote's weight at the election."
+                         IsEmpty="@(el.Nominees.Count == 0)" EmptyIcon="vote" EmptyLine="No house of standing has a candidate yet.">
+                    @foreach (var n in el.Nominees.OrderByDescending(x => x.Tally))
+                    {
+                        var nid = n.HouseId; var canvassNo = G.Turn!.Orders.CanvassRefusal(w, house, nid, el.Nominees.Select(x => x.HouseId)); var nHead = w.House(nid) is { } nh ? Economy.HeadOf(w, nh) : null;
+                        <div class="ui-row sn-row nominee @(nid == house.Id ? "mine" : "")">
+                            <div>@Face(w, nHead, "castle")</div>
+                            <div class="sn-rmain"><div class="ui-row-nm"><Sigil HouseId="@n.HouseId" Accent="@n.Accent" Size="15" /> @n.HouseName</div>
+                                <div class="ui-row-sub"><i class="sn-sw" style="background:@n.PartyAccent"></i>for @n.Party</div></div>
+                            <div class="ui-cols"><span class="ui-cell tally-n" title="Votes at the count as it stands"><Icon Name="vote" Tone="brass" Size="16" />@n.Tally</span></div>
+                            <div><Plate Label="Canvass" Small="true" Locked="@(canvassNo != null)" Disabled="@(canvassNo != null)" Tip="@(canvassNo ?? "Largesse in the candidate's name: one more vote's weight at the election")" CostIcon="credits" CostText="@Money.Show(OrderSystem.CanvassCredits)" OnClick="() => Canvass(nid)" /></div>
+                        </div>
+                    }
+                    <div class="sn-say" data-election-chances="1">@ChancesSay(el, c.Offices)</div>
+                </Section>
                 @if (el.Nominees.Count > 0 && !el.Standing && !el.AmConsul)
                 {
                     /* your seats can be pledged to a nominee (docs/PLAYTHROUGH.md, Medium, The Senate, P59) */
                     string? pledged = ElectionSystem.PledgedTo(w, house.Id);
-                    <div class="suit-acts" data-pledge="@(pledged ?? "")">
-                        <span class="small">@(pledged != null ? "Your seats are pledged to " + (w.House(pledged)?.Name ?? pledged) + "." : "Your " + Counted.Seats(G.Turn!.Senate.Weight(w, house.Id)) + " " + Counted.Go(G.Turn!.Senate.Weight(w, house.Id)) + " as your bench or your patron has it. Pledge them to:")</span>
+                    <div class="sn-acts sn-pad suit-acts" data-pledge="@(pledged ?? "")">
+                        <span class="sn-say">@(pledged != null ? "Your seats are pledged to " + (w.House(pledged)?.Name ?? pledged) + "." : "Your " + Counted.Seats(G.Turn!.Senate.Weight(w, house.Id)) + " " + Counted.Go(G.Turn!.Senate.Weight(w, house.Id)) + " as your bench or your patron has it. Pledge them to:")</span>
                         @if (pledged != null)
                         {
                             var back = new PledgeVotesCommand(pid, string.Empty, c.Offices, G.Turn!.Senate);
-                            <button class="opt inline tiny" title="@($"Its head thinks {ElectionSystem.UnpledgeRegard} the worse of you for it.")" @onclick="() => G.Execute(back)">Take the pledge back</button>
+                            <Plate Label="Take the pledge back" Small="true" Tip="@($"Its head thinks {ElectionSystem.UnpledgeRegard} the worse of you for it.")" OnClick="() => G.Execute(back)" />
                         }
                         else
                         {
                             @foreach (var n in el.Nominees.Where(x => x.HouseId != house.Id))
                             {
                                 var pl = new PledgeVotesCommand(pid, n.HouseId, c.Offices, G.Turn!.Senate); string? plNo = pl.Refusal(G.Ctx); string nname = n.HouseName;
-                                <button class="opt inline tiny" data-pledge-to="@n.HouseId" disabled="@(plNo != null)" title="@(plNo ?? pl.Says(w))" @onclick='() => G.Ask("Pledge your seats to " + nname + "?", pl.Says(w), "Pledge them", () => G.Execute(pl))'>@n.HouseName</button>
+                                <Plate Label="@n.HouseName" Small="true" Locked="@(plNo != null)" Disabled="@(plNo != null)" Tip="@(plNo ?? pl.Says(w))" OnClick='() => G.Ask("Pledge your seats to " + nname + "?", pl.Says(w), "Pledge them", () => G.Execute(pl))' data-pledge-to="@n.HouseId" />
                             }
                         }
                     </div>
@@ -490,29 +473,197 @@
                 {
                     /* whom the bench would put forward, you or another of it (docs/PLAYTHROUGH.md, Medium, The Senate, P87) */
                     string rivalName = w.House(bc.rivalId)?.Name ?? bc.rivalId; string Names(List<string> ids) => ids.Count == 0 ? "its own seats only" : "with " + string.Join(", ", ids.Select(x => w.House(x)?.Name ?? x));
-                    <div class="small" data-bench-nomination="@(bc.won ? "yours" : "theirs")">
-                        <b>Inside @ownBench.Name.</b>
+                    <div class="sn-note sn-pad" data-bench-nomination="@(bc.won ? "yours" : "theirs")"><Icon Name="flying-flag" Tone="@(bc.won ? "good" : "brass")" Size="15" />
+                        <span><b>Inside @ownBench.Name.</b>@(" ")
                         @if (ownBench.LeaderHouseId == house.Id) { <span>You lead the bench: its nomination is yours when you stand.</span> }
                         else
                         {
                             <span>@(el.Standing ? "You have declared, and the bench" : "If you declared, the bench") @(bc.won ? "puts you forward" : "puts " + rivalName + " forward, not you"): @bc.mine of its seats behind you (@Names(bc.forMine)), @bc.rival behind @rivalName (@Names(bc.forRival)). Each other member backs whichever of you its head thinks the better of.@(bc.won ? "" : " You may still stand alone against the bench's nominee, with your own seats and whatever is pledged to you; the rest of the bench votes for " + rivalName + ".")</span>
+                        }</span>
+                    </div>
+                }
+                <div class="sn-acts sn-pad sn-stand">
+                    <Plate Label="@(el.AmConsul ? ConsulIs(c.Offices) : StandWord(c.Offices, el.Standing))" Icon="podium" Locked="@(el.StandRefusal != null)" Disabled="@(el.StandRefusal != null)" Tip="@(el.StandRefusal ?? StandSays(c.Offices))" CostIcon="@(el.AmConsul || el.Standing ? "" : "public-speaker")" CostText="@(el.AmConsul || el.Standing ? "" : ElectionSystem.StandInfluence.ToString())" OnClick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))" />
+                    @if (el.StandRefusal != null) { <span class="sn-no">@Cap(el.StandRefusal)</span> }
+                </div>
+                @if (el.AmConsul)
+                {
+                    <div class="sn-note sn-pad"><Icon Name="close" Tone="@(el.CanVeto ? "brass" : "ivory")" Size="15" /><span>@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket in the chamber." : "Your veto is spent this term.")</span></div>
+                    <div class="sn-note sn-pad" data-consul-year><Icon Name="tied-scroll" Tone="brass" Size="15" /><span>A consul has a charge every year (render the Reach's account, sweep its most lawless region, or see to your bench's business), may speak from the chair on one motion, and decides a tied Senate. <Link Label="Your duties" OnClick='() => Pick("duties")' /></span></div>
+                }
+            </div>
+        }
+        @if (others.Count > 0)
+        {
+            <Section Title="The offices of the Reach" Count="@others.Count.ToString()" Info="Offices filled by the Senate's commission: each asks a rank on a track, and some bring a fleet. A Commission moved in the chamber puts a candidate of your house in a vacant office.">
+                @foreach (var o in others)
+                {
+                    var holder = OfficeSystem.Holding(w, o.Id) is { } hh ? w.Char(hh.CharacterId) : null;
+                    <div class="ui-row sn-row off-row @(o.Mine ? "mine" : "") @(o.HolderHouse == null ? "vacant" : "")" title="@o.Description" data-office="@o.Id">
+                        <div>@Face(w, holder, OfficeIcon(o.Id))</div>
+                        <div class="sn-rmain"><div class="ui-row-nm">@o.Name <span class="sn-req">@o.Track rank @o.MinRank+@(o.Hulls > 0 ? $" · {Counted.OfficeHulls(o.Hulls)}" : "")</span></div>
+                            <div class="ui-row-sub">@if (o.HolderHouse != null) { <Sigil HouseId="@o.HolderHouseId" Accent="@o.HolderAccent" Size="14" /> <b>@o.HolderName</b>@($" of {o.HolderHouse} · since turn {o.Since}") } else { <i>vacant</i> }
+                                @if (o.MyCandidate != null && !o.Mine) { <span class="sn-candq"> · @o.MyCandidate qualifies@(sen!.MayPropose ? ": move a Commission" : ", but your house may not move a motion yet")</span> }</div></div>
+                        <div class="ui-cols">@if (o.Mine) { <span class="sn-tag mine">yours</span> }</div>
+                        <div></div>
+                    </div>
+                }
+            </Section>
+        }
+        <LegatePanel />
+        @if (sen != null && (sen.Factions is { Count: > 0 } || sen.FoundRefusal == null || sen.Followers > 0))
+        {
+            var seated = FactionSystem.Of(w, house.Id);
+            <Section Title="The parties" Count="@((sen.Factions?.Count ?? 0).ToString())" Info="Four parties of the Republic, and any you found. A bench votes together: to vote against its leader's line is to break the whip. Crossing the floor costs influence, and the bench you leave remembers it.">
+                @foreach (var fa in sen.Factions ?? Array.Empty<FactionCard>())
+                {
+                    string faId = fa.Id, faName = fa.Name;
+                    <div class="ui-row sn-row sn-party bench @(fa.Mine ? "mine" : "")" style="--party:@fa.LeaderAccent" title="@(fa.Description.Length > 0 ? fa.Description : fa.Platform.Length > 0 ? fa.Platform : "no record yet")">
+                        <div class="sn-party-pic"><i class="sn-party-sw"></i><Sigil HouseId="@fa.LeaderHouseId" Accent="@fa.LeaderAccent" Size="30" /></div>
+                        <div class="sn-rmain">
+                            <div class="ui-row-nm">@fa.Name@if (fa.Mine) { <span class="sn-tag mine">your bench</span> }</div>
+                            <div class="ui-row-sub">led by <span style="color:@fa.LeaderAccent">@fa.LeaderName</span>@(fa.Record != 0 ? $" · record {(fa.Record > 0 ? "+" : "−")}{Math.Abs(fa.Record)}" : "")@(fa.Platform.Length > 0 ? " · " + fa.Platform : "")</div>
+                            <div class="sn-members bench-members">@foreach (var mb in fa.Members) { <span class="member" title="@mb.Name"><Sigil HouseId="@mb.Id" Accent="@mb.Accent" Size="15" /></span> }</div>
+                            @if (fa.Courts.Length > 0 || fa.LawPlatform.Length > 0) { <div class="sn-tx ui-dim sn-clamp" title="@((fa.Courts.Length > 0 ? $"Courts {fa.Courts}" : "") + (fa.Courts.Length > 0 && fa.LawPlatform.Length > 0 ? "\n" : "") + LawsLines(fa.LawPlatform))">@(fa.Courts.Length > 0 ? $"courts {fa.Courts}" : "")@(fa.Courts.Length > 0 && fa.LawPlatform.Length > 0 ? " · " : "")@fa.LawPlatform</div> }
+                            @if (fa.Mine && seated != null && seated.LeaderHouseId != house.Id)
+                            {
+                                /* ask the bench to choose between you and its leader (docs/PLAYTHROUGH.md, Medium, The Senate, P9 and P99) */
+                                var askLead = new ChallengeLeaderCommand(pid, senate); string? leadNo = askLead.Refusal(G.Ctx); var count = FactionSystem.LeadCount(w, id => senate.Weight(w, id), house.Id);
+                                <div class="sn-acts" data-lead-count="@(count is { } lc ? lc.mine + ":" + lc.leaders : "")">
+                                    @if (count is { } cnt) { <span class="sn-say">If the bench were asked to choose, @cnt.mine of its seats would be behind you and @cnt.leaders behind @fa.LeaderName.</span> }
+                                    <Plate Label="Ask the bench to choose" Small="true" Locked="@(leadNo != null)" Disabled="@(leadNo != null)" Tip="@(leadNo ?? askLead.Says(w))" CostIcon="public-speaker" CostText="@FactionSystem.ChallengeInfluence.ToString()" OnClick='() => G.Ask("Ask " + faName + " to choose its leader?", askLead.Says(w), "Ask the bench", () => G.Execute(askLead))' data-challenge="1" />
+                                </div>
+                            }
+                            @if (!fa.Mine && seated != null && fa.JoinRefusal != null) { <div class="sn-no">@Cap(fa.JoinRefusal)</div> }
+                        </div>
+                        <div class="ui-cols"><span class="ui-cell" title="The bench's weight in the chamber"><Icon Name="vote" Tone="brass" Size="16" />@fa.Weight</span></div>
+                        <div>
+                            @if (!fa.Mine && seated != null) { <Plate Label="Cross to them" Small="true" Locked="@(fa.JoinRefusal != null)" Disabled="@(fa.JoinRefusal != null)" Tip="@(fa.JoinRefusal ?? $"{FactionSystem.JoinInfluence} influence, in one step: you leave {seated.Name} and sit with {fa.Name}. {FactionSystem.WalkSays(w, seated)}.")" CostIcon="public-speaker" CostText="@FactionSystem.JoinInfluence.ToString()" OnClick="() => AskCross(faId, faName)" data-cross="@fa.Id" /> }
+                            else if (!fa.Mine) { <Plate Label="Take a seat" Small="true" Locked="@(fa.JoinRefusal != null)" Disabled="@(fa.JoinRefusal != null)" Tip="@(fa.JoinRefusal ?? $"{FactionSystem.JoinInfluence} influence: take a seat with them")" CostIcon="public-speaker" CostText="@FactionSystem.JoinInfluence.ToString()" OnClick="() => G.Execute(new JoinFactionCommand(pid, faId))" /> }
+                            else if (sen.LeaveRefusal == null) { <Plate Label="Leave" Small="true" Tip="@($"Leave the bench and sit with none. It costs no influence. {(seated != null ? FactionSystem.WalkSays(w, seated) : "")}.")" OnClick="() => G.Execute(new LeaveFactionCommand(pid))" /> }
+                        </div>
+                    </div>
+                }
+                @if (!(sen.Factions?.Any(f => f.Mine) ?? false))
+                {
+                    <div class="sn-acts sn-pad"><Plate Label="Found a bench" Icon="flying-flag" Locked="@(sen.FoundRefusal != null)" Disabled="@(sen.FoundRefusal != null)" Tip="@(sen.FoundRefusal ?? $"{FactionSystem.FoundInfluence} influence: a bench of your own, with those who vote with you")" CostIcon="public-speaker" CostText="@FactionSystem.FoundInfluence.ToString()" OnClick="() => G.Execute(new FoundFactionCommand(pid))" />
+                        @if (sen.Followers > 0) { <span class="sn-say">@sen.Followers would follow</span> }
+                        @if (sen.FoundRefusal != null) { <span class="sn-no">@Cap(sen.FoundRefusal)</span> }</div>
+                }
+            </Section>
+        }
+        @if (s != null)
+        {
+            int mr = c.Titles.RankOf(house.Title);
+            <Section Title="The house's rank" Count="" Info="The ladder of titles. A rung is earned by legitimacy, and from Legate up by land or seats; a petition for it goes before the Senate. It may also be taken by force or by a claim.">
+                <Right>@if (s.NextTitle != null) { <span>next, <b>@s.NextTitle</b> at @s.NextRequirement</span> }</Right>
+                <ChildContent>
+                <div class="sn-titles">
+                    @for (int i = 0; i < ladder.Count; i++)
+                    {
+                        var t = ladder[i]; int r = c.Titles.RankOf(t.Id);
+                        if (i > 0) { <i class="sn-step" aria-hidden="true"></i> }
+                        <span class="sn-rung @(r == mr ? "here on" : r < mr ? "past" : "")" data-rung="@t.Id" title="@RungTip(t)">@if (r == mr) { <i class="sn-stud" aria-hidden="true"></i> }@t.NameIn(G.World!.Era)</span>
+                    }
+                </div>
+                <div class="sn-legit">
+                    <Meter Label="Legitimacy" Value="@s.Legitimacy" Max="100" Target="@(s.NextTitle != null ? s.NextRequirement : (double?)null)" Text="@(s.Legitimacy + (s.NextTitle != null ? $" / {s.NextRequirement}" : ""))" Tip="@(s.NextTitle != null ? $"Legitimacy {s.Legitimacy}; {s.NextTitle} asks {s.NextRequirement} (the brass tick)" : $"Legitimacy {s.Legitimacy}")" />
+                </div>
+                @if (s.Made is { } made)
+                {
+                    <details class="sn-det" data-legitimacy-details><summary title="@made.Line"><Icon Name="chev" Size="11" Class="flat" />What it is made of</summary><LegitimacyMade Card="made" /></details>
+                }
+                @if (s.NextTitle != null)
+                {
+                    <div class="sn-needs rung-needs" data-rung-needs="@s.NextTitle">
+                        <div class="sn-tx" data-rung-earned>@s.Earned</div>
+                        @foreach (var need in s.Needs)
+                        {
+                            <div class="sn-need kv @(need.Met ? "met" : "warn")" data-rung-need="@need.Id" data-met="@(need.Met ? 1 : 0)"><span><Icon Name="@(need.Met ? "check" : "close")" Tone="@(need.Met ? "good" : "ember")" Size="13" />@need.Asks</span><b>@need.Has</b></div>
                         }
                     </div>
                 }
-                <button class="opt" disabled="@(el.StandRefusal != null)" title="@(el.StandRefusal ?? StandSays(c.Offices))" @onclick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))">@(el.AmConsul ? ConsulIs(c.Offices) : StandWord(c.Offices, el.Standing))</button>
-                @if (el.AmConsul)
+                @if (s.Instability > 0) { <div class="sn-need kv warn"><span><Icon Name="crisis" Tone="ember" Size="13" />Instability</span><b>@s.Instability</b></div> }
+                @if (s.Claims.Count > 0) { <div class="sn-need kv"><span><Icon Name="claim" Tone="ivory" Size="13" />Claims held</span><b>@string.Join(", ", s.Claims.Select(cl => c.Titles.NameOf(cl, w.Era)))</b></div> }
+                @if (s.Honors.Count > 0) { <div class="sn-need kv"><span><Icon Name="honor" Tone="brass" Size="13" />Honors</span><b>@string.Join(", ", s.Honors)</b></div> }
+                @if (s.NextTitle != null && s.Paths.Count > 0)
                 {
-                    <div class="muted small">@(el.CanVeto ? "Your veto is unspent this term: strike a motion from the docket above." : "Your veto is spent this term.")</div>
-                    <div class="small" data-consul-year>A consul has a charge every year (render the Reach's account, sweep its most lawless region, or see to your bench's business), may speak from the chair on one motion, and decides a tied Senate. <button class="opt inline tiny" @onclick='() => _view = "duties"'>Your duties ▸</button></div>
+                    <div class="sn-paths">
+                        @foreach (var path in s.Paths)
+                        {
+                            var pth = path; string ptip = path.Available ? path.Tooltip : PathWhy(path);
+                            <div class="sn-path">
+                                <Plate Label="@path.Label" Small="true" Icon="@(path.Id == "seize" ? "crossed-sabres" : path.Id == "petition" ? "scroll-quill" : "claim")" Locked="@(!path.Available)" Disabled="@(!path.Available)" Tip="@ptip" CostText="@path.Cost" OnClick="() => AskPath(pth, s.NextTitle)" data-path="@path.Id" />
+                                @if (!path.Available && path.Refusal != null) { <span class="sn-no path-no">@path.Refusal.</span> }
+                            </div>
+                        }
+                    </div>
                 }
-            </section>
+                <details class="sn-det" open="@w.IsImperium"><summary><Icon Name="chev" Size="11" Class="flat" />@(w.IsImperium ? "The throne" : "The end of the Republic") @(s.Throne.HoldsThrone ? "· yours" : s.Throne.EmperorName != null ? $"· {s.Throne.EmperorName}" : w.IsImperium ? "· empty" : "· no throne stands")</summary>
+                    @if (ThroneSystem.Emperor(w) is { } onThrone)
+                    {
+                        int hold = ThroneSystem.Hold(w); var holdParts = ThroneSystem.HoldParts(w); var rising = w.Rising; var riser = rising != null ? w.House(rising.HouseId) : null;
+                        string? raiseNo = new ThroneCommand(pid, ThroneCommand.Raise, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx), overNo = new ThroneCommand(pid, ThroneCommand.Pretender, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx), byNo = new ThroneCommand(pid, ThroneCommand.Throne, c.Titles, G.Turn!.Fleets).Refusal(G.Ctx);
+                        <div class="sn-need kv @(hold < ThroneSystem.RiseAt ? "warn" : "")" title="@("Out of 100, from 50. " + string.Join(" · ", holdParts.Select(x => $"{x.what} {(x.points >= 0 ? "+" : "−")}{Math.Abs(x.points)}")) + $". Below {ThroneSystem.RiseAt} for two years and a house of rank that has no love for the throne raises a standard.")"><span><Icon Name="throne-king" Tone="ivory" Size="13" />The hold of @onThrone.Name</span><b>@hold · @ThroneSystem.HoldName(hold)</b></div>
+                        <div class="sn-tx ui-dim">@string.Join(" · ", holdParts.Where(x => x.points != 0).OrderBy(x => x.points).Take(4).Select(x => $"{x.what} {(x.points >= 0 ? "+" : "−")}{Math.Abs(x.points)}"))</div>
+                        @if (rising != null && riser != null)
+                        {
+                            <div class="sn-tx"><b class="ui-warn-t">@riser.Name has raised a standard</b>, since year @rising.Since.@(rising.With.Count > 0 ? $" With it: {string.Join(", ", rising.With.Select(id => w.House(id)?.Name))}." : "")@(rising.Against.Count > 0 ? $" By the throne: {string.Join(", ", rising.Against.Select(id => w.House(id)?.Name))}." : "") It is broken if the war goes against it, its fleet is spent, or @ThroneSystem.PretenderYears years pass.</div>
+                            @if (overNo == null || byNo == null)
+                            {
+                                <div class="sn-acts suit-acts">
+                                    <Plate Label="@("Go over to " + riser.Name)" Small="true" Locked="@(overNo != null)" Disabled="@(overNo != null)" Tip="@(overNo ?? $"Your house is at war with the throne. {riser.Name}'s head thinks better of you; the throne's does not forget it.")" OnClick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Pretender, c.Titles, G.Turn!.Fleets))" />
+                                    <Plate Label="Stand by the throne" Small="true" Locked="@(byNo != null)" Disabled="@(byNo != null)" Tip="@(byNo ?? $"Your house is at war with {riser.Name}. The throne thinks better of you; {riser.Name}'s head does not forget it.")" OnClick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Throne, c.Titles, G.Turn!.Fleets))" />
+                                </div>
+                            }
+                        }
+                        @if (!s.Throne.HoldsThrone) { <div class="sn-acts"><Plate Label="Raise your standard against the throne" Small="true" Icon="flying-flag" Locked="@(raiseNo != null)" Disabled="@(raiseNo != null)" Tip="@(raiseNo ?? "A war for the throne itself: it is not ended by treaty. The other houses take a side by what their heads think of you and of the one who sits there. You take the throne by the terms of a seizure; if the war goes against you, your fleet is spent, or eight years pass, you are broken.")" CostIcon="public-speaker" CostText="3" OnClick="() => G.Execute(new ThroneCommand(pid, ThroneCommand.Raise, c.Titles, G.Turn!.Fleets))" /></div> }
+                    }
+                    <div class="sn-acts">
+                        <Plate Label="Proclaim the Imperium" Small="true" Icon="throne-king" Locked="@(s.Throne.ProclaimRefusal != null)" Disabled="@(s.Throne.ProclaimRefusal != null)" Tip="@(s.Throne.ProclaimRefusal ?? "Proclaim the Imperium: 3 influence, 2 agents")" OnClick="() => G.Execute(new ProclaimImperiumCommand(pid, c.Titles))"><Cost><Icon Name="public-speaker" Tone="brass" Size="14" />3 <Icon Name="cowled" Tone="brass" Size="14" />2</Cost></Plate>
+                        <Plate Label="Seize the throne" Small="true" Icon="crossed-sabres" Locked="@(s.Throne.SeizeRefusal != null)" Disabled="@(s.Throne.SeizeRefusal != null)" Tip="@(s.Throne.SeizeRefusal ?? "Seize the throne: 2 treasury actions, 2 agents")" OnClick="() => G.Execute(new SeizeThroneCommand(pid, c.Titles, c.Friction))"><Cost><Icon Name="scroll-quill" Tone="brass" Size="14" />2 <Icon Name="cowled" Tone="brass" Size="14" />2</Cost></Plate>
+                    </div>
+                </details>
+                <details class="sn-det"><summary><Icon Name="chev" Size="11" Class="flat" />Succession: @s.SuccessionLaw</summary>
+                    <div class="sn-acts">@foreach (var o in s.LawOptions) { var oid = o.Id; <Plate Label="@o.Label" Small="true" Locked="@(o.Refusal != null)" Disabled="@(o.Refusal != null)" Tip="@(o.Refusal ?? "Set the house's succession to " + o.Label.ToLowerInvariant())" OnClick="() => G.Execute(new SetSuccessionLawCommand(pid, oid))" /> }</div>
+                </details>
+                </ChildContent>
+            </Section>
         }
+        @if (m.Crises is { } cr)
+        {
+            <Section Title="Crises" Count="@(cr.Active.Count > 0 ? cr.Active.Count.ToString() : "")" Info="@("A crisis is answered by what relieves it; how much relief it takes is its severity. " + cr.Counters)">
+                <Right>@if (m.GreatCrisis is { } gc0) { <span title="How near the Reach is to the next stage of its great war">@gc0.Name: <b>@(gc0.Resolved ? "resolved" : gc0.Stage ?? "not yet")</b></span> }</Right>
+                <ChildContent>
+                <div class="sn-tx sn-pad ui-dim">@cr.Counters</div>
+                @foreach (var a in cr.Active)
+                {
+                    <div class="sn-ent crisis">
+                        <span class="sn-ic bad"><Icon Name="crisis" Tone="ember" Size="20" /></span>
+                        <div class="sn-ent-main">
+                            <div class="sn-hd"><b class="sn-nm">@a.Name</b><span class="sn-sub"><span title="How much relief it takes to end it. It does not grow with time; it rises only if the crisis breaks out again while it is active.">severity @a.Severity</span> · since year @a.Since @(a.Author != null ? $"· set going by {a.Author}" : "· nobody set it going: it came of itself")</span></div>
+                            <div class="sn-acts">@foreach (var dmp in a.Dampers) { var dd = dmp; <Plate Label="@dmp.Label" Small="true" Locked="@(!dmp.Available)" Disabled="@(!dmp.Available)" Tip="@dmp.Tooltip" OnClick="() => Damper(dd)" /> }</div>
+                            @if (G.Turn!.Crises is { } engine && engine.Def(a.Id) is { } cdef)
+                            {
+                                <details class="sn-det crisis-facts" data-crisis-facts="@a.Id"><summary><Icon Name="chev" Size="11" Class="flat" />What this is, and what each answer does</summary>
+                                    @foreach (var line in CrisisFacts.For(w, engine, cdef, c.Recovery)) { <div class="sn-tx"><b>@line.Label.</b> @line.Text</div> }
+                                </details>
+                            }
+                        </div>
+                    </div>
+                }
+                @if (cr.Active.Count == 0) { <EmptyState Icon="crisis" Text="No crisis is active." /> }
+                @if (cr.Causable.Count > 0) { <div class="ui-wstrip sn-strip flag"><Icon Name="crisis" Tone="brass" Size="18" /><span class="ui-wstrip-t"><b>Ripe to be lit,</b> by you or by a rival: @string.Join(", ", cr.Causable)</span></div> }
+                @if (m.GreatCrisis is { } gc) { <div class="sn-legit" title="How near the Reach is to the next stage of its great war. Before the war it rises each year by what is wrong with the Reach (the Orders tab lists what) and falls back when nothing is; once the war has begun it runs on, faster the more wars there are. The second figure is where the next stage begins."><Meter Label="@gc.Name" Value="@gc.Clock" Max="@(Math.Max(1, gc.NextAt ?? Math.Max(gc.Clock, 1)))" Color="#b8452f" Text="@((gc.Resolved ? "resolved" : gc.Stage ?? "not yet") + " · " + gc.Clock + (gc.NextAt != null ? $"/{gc.NextAt}" : ""))" /></div> }
+                </ChildContent>
+            </Section>
         }
-        </div>
-    </div>
     }
+    else if (_view == "duties") { <DutiesPanel /> }
+    else if (_view == "ladder") { <LadderPanel /><CourtsPanel /> }
+    else if (_view == "orders") { <OrdersPanel /><BreakawayPanel /> }
+    </div>
 </div>
-
 
 @code {
     /* crossing the floor: say what leaving costs before it is done */
@@ -535,7 +686,8 @@
         if (at < seats) { int next = order.Count > seats ? order[seats].Tally : 0; return said + $" Your house is {(at == 0 ? "first" : "second")} with {order[at].Tally}, {order[at].Tally - next} clear of the first house left out."; }
         return said + $" Your house is {at + 1}{(at == 2 ? "rd" : "th")} with {order[at].Tally}: {winners[^1].Tally - order[at].Tally + 1} more would put it among the elected. A canvass adds one; a house that comes over to your bench, or takes you for patron, brings its seats.";
     }
-    private static string Signed(int n) => n > 0 ? "+" + n : n < 0 ? "−" + (-n) : "0";
+    public static string Signed(int n) => n > 0 ? "+" + n : n < 0 ? "−" + (-n) : "0";
+    private static string VoteTip(int stance) => stance > 0 ? "Declare your house for it: your seats count for it at the year's end" : stance < 0 ? "Declare your house against it: your seats count against it at the year's end" : "Declare that your house abstains: your seats count on neither side";
     private static string VoteWord(int lean) => lean > 0 ? "for" : lean < 0 ? "against" : "abstaining";
     /* what a whip or a bought vote would do to one house: where its lean goes, and whether its vote changes */
     private static string MoveSays(Praetoria.Core.Presentation.StanceLine st, int lean, int side, int worth)
@@ -569,14 +721,16 @@
         _ => $"Weight in {name}: the ranks of your family serving on that track, added up.",
     };
     private string _view = "chamber";
-    /// <summary>The tab an alert asked for, and a stamp that changes each time one asks; a stamp is used once.</summary>
+    private bool _allHistory;
+    private void Pick(string k) => _view = k;
     private static string BribeTip(StanceLine st) => $"{Money.Credits(st.BribePrice)} from the treasury to the head of {st.HouseName}: its own vote leans your way by {SenateSystem.BribeWeight}." + (st.FactionLeader ? " It leads a bench, but the bench was not paid and does not follow a bought vote." : "") + $" One time in {SenateSystem.BribeOutOneIn} it comes out at the count: the vote is struck and your house loses {SenateSystem.BribeOutLegitimacy} legitimacy.";
     private void AskBribe(string motionId, StanceLine st, int side) => G.Ask("Pay " + st.HouseName + " for its vote?", BribeTip(st), "Pay " + Money.Show(st.BribePrice), () => G.Execute(new LobbyCommand(G.World!.ProtagonistId, motionId, st.HouseId, side, bribe: true)));
     private bool _showForms;
+    /// <summary>The tab an alert asked for, and a stamp that changes each time one asks; a stamp is used once. The consulship is under Offices.</summary>
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;
-    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) _view = Tab; } }
+    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) _view = Tab switch { "consuls" => "offices", "chamber" or "move" or "offices" or "duties" or "ladder" or "orders" => Tab, _ => _view }; } }
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
     private const string MayMoveGenerals = " You have held a magistracy, so a triumph and leave to stand in absence are yours to move all the same.";
     private static string NoSeatLine(World w) => w.IsImperium ? "· only a house of rank, or a Judge, may" : "· the house has its votes but no voice: a voice comes by land of rank, a Judge at its head, a name great in arms, or enrolment by the census";
@@ -613,8 +767,6 @@
         var (f, a) = senate.Forecast(w, mine, pr.KindId, t, o, law, opt);
         return $"If it were moved now it would {(f > a ? $"carry by {f - a}" : f < a ? $"fail by {a - f}" : "be tied, and a tie fails unless the chair is for it")}: for {f}, against {a}, your own seats counted for. The vote is at the end of next year, and the benches can be whipped and will shift before then.";
     }
-    private bool CanMove(MotionProposal pr) => !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId)) && (!pr.NeedsOffice || !string.IsNullOrEmpty(_office.GetValueOrDefault(pr.KindId)))
-        && (pr.Refusal == null || pr.Refusal == "not against yourself" || pr.Refusal == "already before the Senate" || pr.Refusal.StartsWith("no one of") || pr.Refusal.EndsWith("holds it already"));
     /* the motion as chosen in the form, to be moved by a house above yours in its own name */
     private AskToMoveCommand AskMoveCmd(MotionProposal pr, string byHouseId)
     {
@@ -627,20 +779,24 @@
 
     /// <summary>The hemicycle (Lawgivers-style): every seat on concentric arcs, filled left to right in bench order so each bench holds a wedge;
     /// seat k of N sits at angle fraction (k + ½)/N and on row k mod R, with R the fewest rows whose arcs hold N seats at a readable spacing.</summary>
+    private const double R0 = 150, DR = 40, Spacing = 23;
+    private static int Rows(int n) { int rows = 1; while (Enumerable.Range(0, rows).Sum(r => (int)(Math.PI * (R0 + r * DR) / Spacing)) < n && rows < 12) rows++; return rows; }
     private static List<(double x, double y, string houseId, string name, string accent, int weight, string? bench)> Seats(List<(House h, int weight, Faction? bench)> ordered)
     {
         var list = new List<(double, double, string, string, string, int, string?)>();
-        int n = Math.Max(1, ordered.Sum(x => x.weight)); const double cx = 500, cy = 520, r0 = 150, dr = 40, spacing = 23;
-        int rows = 1; while (Enumerable.Range(0, rows).Sum(r => (int)(Math.PI * (r0 + r * dr) / spacing)) < n && rows < 12) rows++;
+        int n = Math.Max(1, ordered.Sum(x => x.weight)); const double cx = 500, cy = 520;
+        int rows = Rows(n);
         int k = 0;
         foreach (var (h, weight, bench) in ordered)
             for (int i = 0; i < weight; i++, k++)
             {
-                double t = (k + 0.5) / n, a = Math.PI - t * Math.PI; double rr = r0 + (k % rows) * dr;
+                double t = (k + 0.5) / n, a = Math.PI - t * Math.PI; double rr = R0 + (k % rows) * DR;
                 list.Add((cx + rr * Math.Cos(a), cy - rr * Math.Sin(a), h.Id, h.Name, h.AccentColor, weight, bench?.Name));
             }
         return list;
     }
+    private static string F(double v) => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+    public static string Pc(double v) => Math.Clamp(v, 0, 100).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%";
     /* what a rung of the ladder asks: the standing; from Legate up, land or seats, and the Senate's vote on a petition */
     private static string RungTip(Praetoria.Core.Progression.TitleDef t)
     {
@@ -663,4 +819,29 @@
         return (willing.Count > 0 ? willing : matches.Take(1)).Concat(actions.Where(o => !o.Id.StartsWith("marry:")));
     }
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }
+
+    // ---- shared by the Senate's panels ----
+    /// <summary>A person's face for a row (46 by 56), or an empty post with the post's glyph when nobody holds it (docs/VISUAL_SYSTEM.md 4.15).</summary>
+    public static RenderFragment Face(World w, Character? x, string glyph, int size = 46, int height = 56) => @<text>@if (x == null) { <Portrait Size="size" Height="height" EmptyGlyph="@glyph" /> } else { <Portrait Id="@x.Id" Name="@x.Name" Sex="@x.Sex" Age="@x.Age" Alive="@x.Alive" Accent="@(w.House(x.HouseId)?.AccentColor ?? "#888")" Size="size" Height="height" /> }</text>;
+    /// <summary>The glyph of a motion by its kind, on the docket and in the list of what may be moved.</summary>
+    public static string KindIcon(string kind) => kind switch
+    {
+        "censure" => "alert", "recognition" => "medal", "elevation" => "stairs-goal", "levy" => "receive-money", "relief" => "sprout", "peace" => "dove", "commission" => "podium",
+        "act" => "scales", "petition" => "three-friends", "foreign_war" => "war", "foreign_peace" => "peace", "breakup" => "trade", "rescue" => "money-stack", "triumph" => "laurels",
+        "absence" => "sundial", "recall" => "eagle-emblem", "home" => "family-house", "reconquest" => "flying-flag", "embargo" => "customs_post", "emergency" => "crisis",
+        "for_life" => "throne-king", "annul" => "scroll-unfurled", _ => "vote"
+    };
+    private static string MotionIcon(MotionCard mo) => mo.AgainstMe ? "threat" : KindIcon(mo.KindId);
+    private static string OfficeIcon(string id) => id switch
+    {
+        "speaker" => "public-speaker", "treasurer" => "abacus", "admiral" => "eagle-emblem", "censor" => "scales", _ when id.Contains("admiral") => "eagle-emblem", _ when id.Contains("treas") => "abacus", _ => "podium"
+    };
+    /// <summary>A party's platform of laws, one law to a line, for its tooltip.</summary>
+    private static string LawsLines(string platform) => string.Join("\n", platform.Split(" · ", StringSplitOptions.RemoveEmptyEntries).Select(x => "* " + Cap(x)));
+    public static string Plain(string name) => name.StartsWith("The ") ? "the " + name[4..] : name;
+    public static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>The true minus sign for a loss the rules write with a hyphen.</summary>
+    public static string Minus(string s) => System.Text.RegularExpressions.Regex.Replace(s, @"(?<![\w−-])-(?=\d)", "−");
+    /// <summary>A tab's lede in Alegreya italic with its numbers in bold roman figures (docs/VISUAL_SYSTEM.md 4.5).</summary>
+    public static MarkupString Bold(string s) => new(System.Text.RegularExpressions.Regex.Replace(System.Net.WebUtility.HtmlEncode(Minus(s)), @"(?<![\w&#])([+−-]?\d[\d,.]*)(?![\w;])", "<b>$1</b>"));
 }

@@ -1,8 +1,10 @@
+@preservewhitespace true
 @using Praetoria.Core.Systems
 @inject GameClient G
 @implements IDisposable
 @* A triumph is had at the gate (docs/CAESAR.md, "The triumph"): the general's answer when the Senate has voted one, and the year at home.
-   Shown on the Military window (the general and the Senate) and on the Senate window, where the vote is. *@
+   Shown on the Military window (the general and the Senate) and on the Senate window, where the vote is: an entry with the laurels,
+   the two answers as plates, and the year at home as a labelled row. *@
 @if (G.World is { } w && w.Protagonist is { } p && G.Turn is { } turn)
 {
     var asked = TriumphSystem.Waiting(w, p.Id);
@@ -11,19 +13,22 @@
     {
         var goHome = new TriumphCommand(p.Id, TriumphSystem.Home, turn.Caesar); var keep = new TriumphCommand(p.Id, TriumphSystem.Keep, turn.Caesar);
         string? noHome = goHome.Refusal(G.Ctx), noKeep = keep.Refusal(G.Ctx);
-        <div class="caesar-recall" data-triumph-asked="@asked.Turn">
-            <b>The Senate has voted you a triumph.</b>
-            <div class="muted small">It is had at the gate: to have it you come home and lay the command down. Answer it by the end of this year, or it is taken as declined.</div>
-            <div class="small">@TriumphSystem.HomeSays(w, p)</div>
-            <div class="suit-acts">
-                <button class="opt inline" data-triumph-choice="home" disabled="@(noHome != null)" title="@(noHome ?? HomeTip)" @onclick="() => G.Execute(goHome)">Come home for the triumph</button>
-                <button class="opt inline" data-triumph-choice="keep" disabled="@(noKeep != null)" title="@(noKeep ?? TriumphSystem.KeepSays)" @onclick="() => G.Execute(keep)">Decline it and keep the fleet</button>
+        <div class="sn-triumph caesar-recall" data-triumph-asked="@asked.Turn">
+            <span class="sn-ic mine"><Icon Name="laurels" Tone="brass" Size="24" /></span>
+            <div class="sn-ent-main">
+                <div class="sn-hd"><b class="sn-nm">The Senate has voted you a triumph.</b><span class="sn-tag warn">answer by the year's end</span></div>
+                <div class="sn-tx ui-dim">It is had at the gate: to have it you come home and lay the command down. Answer it by the end of this year, or it is taken as declined.</div>
+                <div class="sn-tx">@TriumphSystem.HomeSays(w, p)</div>
+                <div class="sn-acts suit-acts">
+                    <Plate Label="Come home for the triumph" Small="true" Icon="laurels" Locked="@(noHome != null)" Disabled="@(noHome != null)" Tip="@(noHome ?? HomeTip)" OnClick="() => G.Execute(goHome)" data-triumph-choice="home" />
+                    <Plate Label="Decline it and keep the fleet" Small="true" Icon="fleet" Locked="@(noKeep != null)" Disabled="@(noKeep != null)" Tip="@(noKeep ?? TriumphSystem.KeepSays)" OnClick="() => G.Execute(keep)" data-triumph-choice="keep" />
+                </div>
             </div>
         </div>
     }
     foreach (var t in home)
     {
-        <div class="ac-fact" data-triumph-home="@t.CharacterId"><span>At the gate</span><p>@HomeLine(w, t)</p></div>
+        <div class="sn-fact ac-fact" data-triumph-home="@t.CharacterId"><span>At the gate</span><p>@HomeLine(w, t)</p></div>
     }
 }
 
