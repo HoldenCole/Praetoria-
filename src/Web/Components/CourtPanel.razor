@@ -2,62 +2,77 @@
 @inject GameClient G
 @implements IDisposable
 @* The house's own court (docs/COURT.md; the owner, 2026-11-22: "families (house) should have a small court, but not the same thing
-   as the title court"). Seven small positions that go with the house whatever rank or office it holds. Each is held by one of the
-   commons sworn to the house, or by one of the family. A card for each: what it does, who holds it, who offers, who of the family could. *@
+   as the title court"), on the House window's Court tab. Seven small positions that go with the house whatever rank or office it
+   holds, each held by one of the commons sworn to the house or by one of the family. Each position is a row (docs/VISUAL_SYSTEM.md
+   4.7): who holds it and what it is worth this year; an empty one lists who of the commons offers, and who of the family could. *@
 @{
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var names = c.Names;
     int wages = CourtSystem.Wages(w, house); var wageLaw = c.Policies.Laws.FirstOrDefault(l => l.Id == "household_wages"); var wageNow = wageLaw != null ? PolicySystem.Option(w, c.Policies, house.Id, wageLaw.Id) : null;
     int lawWage = PolicySystem.Modifier(w, c.Policies, house.Id, "court_wage"); int paid = house.Court.Where(r => r.KinId.Length == 0).Sum(r => Math.Max(0, r.Wage + lawWage));
     var kin = w.LivingCharacters().Where(k => k.HouseId == house.Id && k.Id != pid && k.Age >= DynastySystem.AgeOfMajority).OrderBy(k => k.Id, StringComparer.Ordinal).ToList();
 }
-<section class="panel household council court" data-court-panel>
-    <div class="hh-head" data-court><b>The house's court</b> <span class="muted small">Seven small positions that belong to the house and not to any rank or office it holds: they go with you whatever you rise to, and stay if you fall. Each is held by one of the commons sworn to the house, who is paid, or by one of the family, who is not. Nothing has to be filled.</span></div>
-    <div class="small court-sum" data-court-sum>@house.Court.Count of @CourtSystem.Positions.Length filled · wages <b>@Money.Coin(paid)</b> a year@(wageLaw != null ? $" · {wageLaw.Name}: {wageNow?.Name ?? "unset"}, set in the Laws window" : "")</div>
-    <div class="council-grid">
+<section class="panel household council court hs-court" data-court-panel>
+    <p class="ui-lede hs-lede" data-court>@HouseScreen.Bold($"Seven small positions that belong to the house, {house.Court.Count} of them filled. They go with you whatever you rise to, and stay if you fall.")</p>
+    <Section Title="The house's court" Count="@($"{house.Court.Count} of {CourtSystem.Positions.Length}")" Info="Seven small positions that belong to the house and not to any rank or office it holds: they go with you whatever you rise to, and stay if you fall. Each is held by one of the commons sworn to the house, who is paid, or by one of the family, who is not. Nothing has to be filled.">
+        <Right><span class="court-sum" data-court-sum="@house.Court.Count" title="@($"{house.Court.Count} of {CourtSystem.Positions.Length} filled.{(wageLaw != null ? $" {wageLaw.Name}: {wageNow?.Name ?? "unset"}, set in the Laws window." : "")}")">Wages <b>@Money.Coin(paid)</b> a year</span></Right>
+        <ChildContent>
     @foreach (var role in CourtSystem.Positions)
     {
         var r = house.Position(role); string rl = role; int skill = CourtSystem.Skill(w, house.Id, role);
-        <div class="duty" data-position="@role" data-held="@(r != null ? "1" : "0")">
-            <div class="duty-top">
-                <b>@CourtSystem.Name(role)</b> <span class="muted small">@CourtSystem.Does(role)</span>
-                @if (r != null) { <button class="opt inline tiny" data-dismiss="@role" title="@(r.KinId.Length > 0 ? "Take the place back from them." : "Let them go. Somebody who has served eight years or more is not turned out without the rest of the household seeing it.")" @onclick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Dismiss, rl, string.Empty, names))">@(r.KinId.Length > 0 ? "Take it back" : "Let them go")</button> }
-            </div>
+        <div class="duty hs-post @(r == null ? "empty" : "")" data-position="@role" data-held="@(r != null ? "1" : "0")">
+            <Row Name="@CourtSystem.Name(role)" Tip="@CourtSystem.Does(role)">
+                <Picture>
+                    @if (r != null) { <Portrait Id="@(r.KinId.Length > 0 ? r.KinId : r.Id)" Name="@r.Name" Sex="@r.Sex" Age="@r.Age" Accent="@house.AccentColor" Size="46" Height="56" Opens="@(r.KinId.Length > 0)" /> }
+                    else { <Portrait Size="46" Height="56" EmptyGlyph="@Glyph(role)" Name="@($"{CourtSystem.Name(role)}: empty")" /> }
+                </Picture>
+                <Sub>@if (r != null) { <span><b>@r.Name</b>, @r.Age · @(r.KinId.Length > 0 ? "of the family" : "of the commons") · @Years(w.Turn - r.Since) in the place</span> } else { <span class="ui-mute">Empty. @Without(role)</span> }</Sub>
+                <Cells>
+                    @if (r != null)
+                    {
+                        <span class="ui-cell" title="How good they are at it, of five. It is what the position is worth where it acts. One of the commons grows a point better every six years in the place.">@Pips(skill)</span>
+                        @if (r.KinId.Length == 0)
+                        {
+                            <Cell Icon="credits" Value="@Math.Max(0, r.Wage + lawWage).ToString()" Tip="Their wage a year, in single credits" />
+                            <span class="ui-cell @(r.Loyalty < 30 ? "ui-down" : "")" title="How far they are the house's own. It grows each year they are paid and falls hard each year they are not. At 60 they stay through unpaid years; under it, two unpaid years and they go.">@r.Loyalty<small>&nbsp;loyal</small></span>
+                        }
+                    }
+                </Cells>
+                <Action>@if (r != null) { <Plate Label="@(r.KinId.Length > 0 ? "Take it back" : "Let them go")" Small="true" data-dismiss="@role" Tip="@(r.KinId.Length > 0 ? "Take the place back from them." : "Let them go. Somebody who has served eight years or more is not turned out without the rest of the household seeing it.")" OnClick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Dismiss, rl, string.Empty, names))" /> }</Action>
+            </Row>
+            <div class="hs-post-body">
             @if (r != null)
             {
-                <div class="suit-who">
-                    <Portrait Id="@(r.KinId.Length > 0 ? r.KinId : r.Id)" Name="@r.Name" Sex="@r.Sex" Age="@r.Age" Accent="@house.AccentColor" Size="34" Opens="@(r.KinId.Length > 0)" />
-                    <div><b>@r.Name</b> <span class="muted">@r.Age · @(r.KinId.Length > 0 ? "of the family" : "of the commons") · @Years(w.Turn - r.Since) in the place</span>
-                        <div class="small"><span title="How good they are at it, of five. It is what the position is worth where it acts. One of the commons grows a point better every six years in the place.">Skill <span class="pips">@Pips(skill)</span></span>
-                            @if (r.KinId.Length == 0) { <span> · wage @Math.Max(0, r.Wage + lawWage) a year · <span class="@(r.Loyalty < 30 ? "bad" : "")" title="How far they are the house's own. It grows each year they are paid and falls hard each year they are not. At 60 they stay through unpaid years; under it, two unpaid years and they go.">loyalty @r.Loyalty</span></span> }
-                            @if (r.UnpaidYears > 0) { <span class="bad"> · unpaid for @Counted.Years(r.UnpaidYears)</span> }</div>
-                        @if (r.From.Length > 0) { <div class="muted small">@Sentence(r.From)</div> }
-                        <div class="small">@Worth(role, skill)</div></div>
-                </div>
+                @if (r.UnpaidYears > 0) { <WarnStrip Icon="credits" Lead="Unpaid." Bad="true">They have gone unpaid for @Counted.Years(r.UnpaidYears).</WarnStrip> }
+                <p class="hs-says"><Icon Name="sprout" Tone="good" Size="15" />@Worth(role, skill)</p>
+                @if (r.From.Length > 0) { <p class="hs-note">@Sentence(r.From)</p> }
             }
             else
             {
-                <div class="muted small">Empty. @Without(role)</div>
+                var offers = CourtSystem.Offers(w, names, house, role).ToList();
                 <div class="court-offers" data-offers="@role">
-                    <div class="muted small">Of the commons, these would take it this year:</div>
-                    @foreach (var o in CourtSystem.Offers(w, names, house, role))
+                    @if (offers.Count == 0) { <p class="hs-note">Nobody of the commons offers this year.</p> } else { <div class="hs-sub-hd">Of the commons, these would take it this year</div> }
+                    @foreach (var o in offers)
                     {
                         string oid = o.Id; var no = CourtSystem.HireRefusal(w, names, p, role, o.Id);
-                        <div class="court-offer">
-                            <Portrait Id="@o.Id" Name="@o.Name" Sex="@o.Sex" Age="@o.Age" Accent="@house.AccentColor" Size="28" Opens="false" />
-                            <div><b>@o.Name</b> <span class="muted">@o.Age</span> <span class="pips" title="Skill, of five">@Pips(o.Skill)</span><div class="muted small">@Sentence(o.From)</div></div>
-                            <button class="opt inline tiny" data-hire="@role" disabled="@(no != null)" title="@(no ?? "Swear them to the house. The wage is paid each year from the treasury.")" @onclick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Hire, rl, oid, names))">Take on · @Math.Max(0, o.Wage + lawWage) a year</button>
+                        <div class="hs-pick court-offer">
+                            <Portrait Id="@o.Id" Name="@o.Name" Sex="@o.Sex" Age="@o.Age" Accent="@house.AccentColor" Size="24" Height="28" Opens="false" />
+                            <span class="hs-pick-tt"><span class="hs-pick-nm">@o.Name <small>@o.Age</small> @Pips(o.Skill)</span><span class="hs-pick-sub" title="@Sentence(o.From)">@Sentence(o.From)</span></span>
+                            <Plate Label="Take on" Small="true" CostIcon="credits" CostText="@($"{Math.Max(0, o.Wage + lawWage)} a year")" data-hire="@role" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="Swear them to the house. The wage is paid each year from the treasury, in single credits." OnClick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Hire, rl, oid, names))" />
                         </div>
                     }
                 </div>
-                <div class="suit-acts" data-kin-for="@role"><span class="muted small" title="One of the family holds a place for nothing, and is the better disposed to you for being given it. They are as good at it as their own training makes them.">Or one of the family</span>
+                <div class="hs-line" data-kin-for="@role">
+                    <span class="hs-lbl" title="One of the family holds a place for nothing, and is the better disposed to you for being given it. They are as good at it as their own training makes them.">Or one of the family</span>
                     @{ var could = kin.Where(k => CourtSystem.AppointRefusal(w, p, role, k) == null).OrderByDescending(k => CourtSystem.KinFit(k, role)).ThenBy(k => k.Id, StringComparer.Ordinal).Take(4).ToList(); }
-                    @if (could.Count == 0) { <span class="muted small">nobody free and willing</span> }
-                    @foreach (var k in could) { string kid = k.Id; <button class="opt inline tiny" data-appoint="@role" @onclick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Appoint, rl, kid, names))">@First(k.Name) · skill @CourtSystem.KinFit(k, role)</button> }
+                    @if (could.Count == 0) { <span class="hs-mute-s">nobody free and willing</span> }
+                    @foreach (var k in could) { string kid = k.Id; <Plate Label="@($"{First(k.Name)} · skill {CourtSystem.KinFit(k, role)}")" Small="true" data-appoint="@role" Tip="@($"{k.Name} holds it for nothing, and thinks the better of you for it")" OnClick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Appoint, rl, kid, names))" /> }
                 </div>
             }
+            </div>
         </div>
     }
-    </div>
+        </ChildContent>
+    </Section>
 </section>
 
 @code {
@@ -68,7 +83,19 @@
     private static string First(string name) => name.Split(' ')[0];
     private static string Sentence(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..] + ".";
     private static string Years(int n) => n <= 0 ? "this year" : n == 1 ? "a year" : $"{n} years";
-    private static string Pips(int n) => new string('●', Math.Clamp(n, 0, CourtSystem.MaxSkill)) + new string('○', CourtSystem.MaxSkill - Math.Clamp(n, 0, CourtSystem.MaxSkill));
+    /// <summary>Skill as five drawn pips, the held ones lit (the Unicode dots are gone: docs/VISUAL_SYSTEM.md 8.1).</summary>
+    private static RenderFragment Pips(int n) => b =>
+    {
+        int k = Math.Clamp(n, 0, CourtSystem.MaxSkill);
+        b.OpenElement(0, "span"); b.AddAttribute(1, "class", "hs-pips"); b.AddAttribute(2, "title", $"Skill {k} of {CourtSystem.MaxSkill}"); b.AddAttribute(3, "aria-label", $"skill {k} of {CourtSystem.MaxSkill}");
+        for (int i = 0; i < CourtSystem.MaxSkill; i++) { b.OpenElement(4, "i"); if (i < k) b.AddAttribute(5, "class", "on"); b.CloseElement(); }
+        b.CloseElement();
+    };
+    private static string Glyph(string role) => role switch
+    {
+        CourtSystem.Tutor => "open-book", CourtSystem.Nurse => "family-house", CourtSystem.Physician => "caduceus", CourtSystem.Guard => "checked-shield",
+        CourtSystem.DuelMaster => "crossed-sabres", CourtSystem.Shipwright => "ship", CourtSystem.Ceremonies => "laurels", _ => "throne-king"
+    };
     /// <summary>What the place is worth this year, in the figure the rule uses.</summary>
     private static string Worth(string role, int s) => role switch
     {

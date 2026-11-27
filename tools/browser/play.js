@@ -59,11 +59,11 @@ const suspicious = text => /NaN|undefined|Exception|Infinity|at Praetoria|@\(/.t
   if (mode === 'exchange') {
     await rail(page, 'Exchange'); await page.waitForTimeout(600);
     for (const name of ['Goods', 'Ventures', 'Projects', 'Shares']) {
-      const ok = await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => e.innerText.includes(n)); if (t) t.click(); return !!t; }, name); if (!ok) { console.log(name + ': NO TAB'); continue; }
+      const ok = await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung, .screen.window .ui-tab')].find(e => e.innerText.includes(n)); if (t) t.click(); return !!t; }, name); if (!ok) { console.log(name + ': NO TAB'); continue; }
       await page.waitForTimeout(500);
-      const did = await page.evaluate(n => { const pick = sel => [...document.querySelectorAll(sel)].find(b => !b.disabled); const b = n === 'Ventures' ? pick('.standings.ventures button') : n === 'Shares' ? [...document.querySelectorAll('.standings.shares button')].find(x => !x.disabled && x.innerText.startsWith('Buy')) : n === 'Goods' ? [...document.querySelectorAll('.standings.goods button')].find(x => !x.disabled && x.innerText.startsWith('Buy')) : null; if (b) { const t = b.innerText; b.click(); return t.replace(/\n/g, ' ').slice(0, 40); } return ''; }, name);
-      await page.waitForTimeout(400); const text = await page.evaluate(() => document.querySelector('.dash.exchange').innerText);
-      console.log(name + ': ' + (suspicious(text) ? 'SUSPICIOUS TEXT' : 'ok') + (did ? ' · clicked "' + did + '"' : '')); await page.screenshot({ path: shots + '/exchange-' + name.toLowerCase() + '.png' });
+      const did = await page.evaluate(n => { const pick = sel => [...document.querySelectorAll(sel)].find(b => !b.disabled); const b = n === 'Ventures' ? pick('[data-found-table] button, .standings.ventures button') : n === 'Shares' ? [...document.querySelectorAll('[data-shares-table] button, .standings.shares button')].find(x => !x.disabled && x.innerText.startsWith('Buy')) : n === 'Goods' ? [...document.querySelectorAll('[data-goods-table] button, .standings.goods button')].find(x => !x.disabled && x.innerText.startsWith('Buy')) : null; if (b) { const t = b.innerText; b.click(); return t.replace(/\n/g, ' ').slice(0, 40); } return ''; }, name);
+      await page.waitForTimeout(400); const text = await page.evaluate(() => (document.querySelector('.screen.window') || document.querySelector('.dash.exchange') || document.body).innerText);
+      console.log(name + ': ' + (suspicious(text) ? 'SUSPICIOUS TEXT' : 'ok') + (did ? ' · clicked "' + did + '"' : '')); await page.locator('.screen.window').screenshot({ path: shots + '/exchange-' + name.toLowerCase() + '.png', timeout: 180000 });
     }
   } else {
     for (const s of (extra || 'House,Senate,Laws,You,Worlds,Exchange,Military,Dynasty,Houses,Chronicle').split(',')) {

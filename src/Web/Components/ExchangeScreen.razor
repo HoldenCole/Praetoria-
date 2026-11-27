@@ -1,5 +1,11 @@
 @inject GameClient G
 @using Praetoria.Core.Presentation
+@* The Exchange (docs/VISUAL_SYSTEM.md 5.3: "Exchange: the goods table (4.13)"). The market hall's painting with the trade glyph in a
+   brass medallion, "The markets of the Reach" over "The Exchange", the house's terms, the wars and the index as facts, and five
+   figures: what the house has to trade with, its spread, the dearest and the cheapest good against their usual price, and its
+   ventures. Four tabs: Goods (one table of 36px rows; the chosen good's order docks in one order bar at the table's foot, a lot and
+   Buy and Sell with what they come to, instead of an input in every row), Ventures (the House's ventures moved here), Projects and
+   Shares. Rules go in "i" tooltips; sections and rows, never cards. *@
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!; var t = c.Trade;
     var mk = m.Market;
@@ -13,7 +19,6 @@
     var lacking = goods.Where(g => g.Held <= 0 && g.NetPerTurn < 0).OrderBy(g => g.NetPerTurn).FirstOrDefault();
     int ventures = m.Businesses?.Count ?? 0, earning = m.Businesses?.Sum(x => x.Earnings) ?? 0, sites = m.Assets?.Projects.Count ?? 0, net = m.Ledger?.Net.Credits ?? 0;
     string terms = mk == null ? "" : mk.OwnMarket ? "through your own market" : "through the caravaneers";
-    static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
     string story, storyTone;
     if (mk == null) { story = "There is no market in this age."; storyTone = ""; }
     else if (mk.Embargoed) { story = "The Senate's embargo closes the exchanges to your house. Nothing may be bought or sold until it lifts."; storyTone = "bad"; }
@@ -26,136 +31,163 @@
             + $" You trade {terms} at a {mk.SpreadPct}% spread."; storyTone = cg.CornerMine ? "" : "warn"; }
     else if (mover != null && mover.ChangePct != 0) { story = $"{mover.Name} has moved most: {Signed(mover.ChangePct)}% in five years. {Cap(mover.Cause)}. You trade {terms} at a {mk.SpreadPct}% spread."; storyTone = ""; }
     else { story = $"Prices are steady. You trade {terms} at a {mk.SpreadPct}% spread."; storyTone = ""; }
+
+    var figures = new List<WindowHeader.Figure>
+    {
+        new("credits", Money.Held(house.Treasury), "To trade with", m.Treasury.Insolvent ? "ember" : "brass", Delta: net == 0 ? "" : HouseScreen.Sg(net),
+            Tip: $"[credits] Credits to trade with\nWhat the treasury holds: {Money.Held(house.Treasury)}.\nA year: {(net > 0 ? $"+{Money.Show(net)} coming in" : net < 0 ? $"−{Money.Show(-net)} going out" : "neither growing nor shrinking")}")
+    };
+    if (mk != null)
+    {
+        figures.Add(new("trade", mk.Embargoed ? "Shut" : $"{mk.SpreadPct}%", "Your spread", mk.Embargoed ? "ember" : mk.OwnMarket ? "brass" : "ivory",
+            Tip: $"[trade] Your terms\nThe spread is what you lose between the price you buy at and the price you sell at.\n{(mk.Embargoed ? "Embargoed: nothing bought or sold until it lifts." : mk.OwnMarket ? "Through your own market: the narrow spread." : $"Through the caravaneers. A market of your own, a free port or a patronage office makes it {c.Market.Rules.SpreadPct}%.")}"));
+        if (dearest != null)
+            figures.Add(new(IconOf(dearest.Id), Against(dearest) == 0 ? "0%" : Signed(Against(dearest)) + "%", "Dearest good", Against(dearest) >= 50 ? "ember" : ToneOf(dearest.Id),
+                Tip: $"[{IconOf(dearest.Id)}] The dearest good\n{dearest.Name}: {Money.Show(dearest.Price)} a unit against a usual {Money.Show(dearest.Base)}{(dearest.Held > 0 ? $"; you hold {dearest.Held}" : "")}.\n{Cap(dearest.Cause)}"));
+        if (cheapest != null && cheapest.Id != dearest?.Id)
+            figures.Add(new(IconOf(cheapest.Id), Against(cheapest) == 0 ? "0%" : Signed(Against(cheapest)) + "%", "Cheapest good", Against(cheapest) <= -30 ? "good" : ToneOf(cheapest.Id),
+                Tip: $"[{IconOf(cheapest.Id)}] The cheapest good\n{cheapest.Name}: {Money.Show(cheapest.Price)} a unit against a usual {Money.Show(cheapest.Base)}{(cheapest.Held > 0 ? $"; you hold {cheapest.Held}" : "")}.\n{Cap(cheapest.Cause)}"));
+    }
+    figures.Add(new("factory", ventures.ToString(), ventures == 0 ? "Ventures" : "Ventures, a year", ventures > 0 && earning > 0 ? "brass" : "ivory", Delta: ventures == 0 || earning == 0 ? "" : HouseScreen.Sg(earning),
+        Tip: $"[factory] Your ventures\n{(ventures == 0 ? (sites > 0 ? $"None yet: {Counted.Sites(sites)} being built." : "None. Coin that is not land still counts.") : $"{(earning > 0 ? "+" : earning < 0 ? "−" : "")}{Money.Show(Math.Abs(earning))} a year between them{(sites > 0 ? $"; {Counted.Sites(sites)} being built" : "")}.")}\nkey: Found, enlarge, buy and sell them on the Ventures tab"));
+
+    var tabs = new List<Tabs.Tab>
+    {
+        new("goods", "Goods", "cargo-crate", Tip: "Every good of the Reach: its price, where it has been, and an order to buy or sell"),
+        new("ventures", "Ventures", "factory", (m.Assets?.Offers.Count ?? 0) is > 0 and var oc ? oc.ToString() : "", (m.Assets?.Offers.Count ?? 0) > 0, Tip: "Your ventures, what can be founded, belt claims, and the ventures other houses would sell"),
+        new("projects", "Projects", "build", sites > 0 ? sites.ToString() : "", Tip: "What is being built: years left, what is paid and what is owed"),
+        new("shares", "Shares", "coins-pile", m.Exchange?.Companies.Count is > 0 and var cc ? cc.ToString() : "", Tip: "The companies of the Exchange, your paper, the boards you sit on, and war bonds")
+    };
+    var sel = goods.FirstOrDefault(g => g.Id == _sel) ?? lacking ?? goods.FirstOrDefault();
 }
-<div class="dash exchange" style="--accent:@m.HouseAccent">
-    <header class="dash-head picture">
-        <div class="dh-title"><Icon Name="trade_hub" Size="18" /> <b>The Exchange</b>
-            <span class="muted">the Reach's markets · prices follow what the houses make, burn and fight over</span></div>
-        <p class="headline @storyTone">@story</p>
-        <div class="tiles">
-            <Tile Label="Credits to trade with" Value="@Money.Held(house.Treasury)" Tone="@(m.Treasury.Insolvent ? "bad" : "")" Note="@(net > 0 ? $"+{Money.Show(net)} a year coming in" : net < 0 ? $"−{Money.Show(-net)} a year going out" : "neither growing nor shrinking")" />
-            @if (mk != null)
-            {
-                <Tile Label="Your terms" Value="@(mk.Embargoed ? "embargoed" : $"{mk.SpreadPct}% spread")" Tone="@(mk.Embargoed ? "bad" : mk.OwnMarket ? "good" : "warn")"
-                      Note="@(mk.Embargoed ? "nothing bought or sold until it lifts" : mk.OwnMarket ? "through your own market: the narrow spread" : $"through the caravaneers · a market of your own makes it {c.Market.Rules.SpreadPct}%")" Title="The spread is what you lose between the price you buy at and the price you sell at." />
-                @if (dearest != null)
-                {
-                    <Tile Label="Dearest good" Value="@(Against(dearest) == 0 ? "usual price" : Signed(Against(dearest)) + "%")" Tone="@(Against(dearest) >= 50 ? "warn" : "")"
-                          Note="@($"{dearest.Name}: {Money.Show(dearest.Price)} a unit against a usual {Money.Show(dearest.Base)}{(dearest.Held > 0 ? $" · you hold {dearest.Held}" : "")}")" Title="@Cap(dearest.Cause)" />
-                }
-                @if (cheapest != null && cheapest.Id != dearest?.Id)
-                {
-                    <Tile Label="Cheapest good" Value="@(Against(cheapest) == 0 ? "usual price" : Signed(Against(cheapest)) + "%")" Tone="@(Against(cheapest) <= -30 ? "good" : "")"
-                          Note="@($"{cheapest.Name}: {Money.Show(cheapest.Price)} a unit against a usual {Money.Show(cheapest.Base)}{(cheapest.Held > 0 ? $" · you hold {cheapest.Held}" : "")}")" Title="@Cap(cheapest.Cause)" />
-                }
-            }
-            <Tile Label="Wars in the Reach" Value="@wars.ToString()" Tone="@(wars > 0 ? "warn" : "")" Note="@(wars > 0 ? "each lifts fuel, isotopes, crews and materials" : "peace: yards and magazines are not buying ahead")" />
-            <Tile Label="Your ventures" Value="@(ventures == 0 ? "none" : ventures.ToString())" Tone="@(ventures > 0 && earning > 0 ? "good" : "")" Note="@(ventures == 0 ? (sites > 0 ? $"{Counted.Sites(sites)} being built" : "coin that is not land still counts") : $"{(earning > 0 ? "+" : earning < 0 ? "−" : "")}{Money.Show(Math.Abs(earning))} a year between them{(sites > 0 ? $" · {Counted.Sites(sites)} being built" : "")}")" Title="Found, enlarge, buy and sell them on the Ventures tab." />
-        </div>
-    </header>
-
-    <div class="ex-tabs">
-        @foreach (var (id, label, count) in Tabs(m)) { <button class="rung @(_tab == id ? "here" : "")" @onclick="() => _tab = id">@label@(count > 0 ? $" · {count}" : "")</button> }
-    </div>
-
+<div class="ex-win" data-exchange="@_tab" style="--accent:@m.HouseAccent">
+    <WindowHeader Scene="market" Kicker="The markets of the Reach" Title="The Exchange" Glyph="trade" Figures="figures" Class="ex-head">
+        <Facts>
+            @if (mk != null) { <span title="@(mk.OwnMarket ? "Your own market narrows the spread" : $"You have no market of your own and do not hold the capital: the caravaneers carry your orders at a {mk.SpreadPct}% spread. A market, a free port or a patronage office narrows it to {c.Market.Rules.SpreadPct}%.")"><Icon Name="trade" Tone="ivory" Size="16" />@(mk.Embargoed ? "Embargoed" : mk.OwnMarket ? "Your own market" : "The caravaneers")</span> }
+            <span title="@(wars > 0 ? "Each war lifts fuel, isotopes, crews and materials" : "Peace: yards and magazines are not buying ahead")"><Icon Name="war" Tone="@(wars > 0 ? "ember" : "ivory")" Size="16" />@(wars == 0 ? "The Reach at peace" : wars == 1 ? "One war in the Reach" : $"{wars} wars in the Reach")</span>
+            @if (m.Exchange is { } ex0) { <span title="@($"The Exchange's index, {(ex0.IndexChangePct >= 0 ? "+" : "−")}{Math.Abs(ex0.IndexChangePct)}% in five years; confidence in the Reach {ex0.ConfidencePct}")"><Icon Name="coins-pile" Tone="ivory" Size="16" />Index <b>@ex0.Index.ToString("0")</b></span> }
+        </Facts>
+    </WindowHeader>
+    <Tabs Items="tabs" Active="@_tab" OnPick="k => _tab = k" />
+    <div class="ui-wbody fades ex-body" @key="_tab">
     @if (_tab == "ventures") { <ExchangeVentures Model="m" /> }
     else if (_tab == "projects") { <ExchangeProjects Model="m" OnTab="@(x => _tab = x)" OnGo="OnGo" /> }
     else if (_tab == "shares") { <ExchangeShares Model="m" /> }
     else
     {
-    <div class="dash-grid deck-one">
-        <div class="deck-col">
-        <section class="panel">
-            <h3><Icon Name="materials" Size="13" /> Goods <span class="muted">credits a unit · hover a good for what moves it · held, of all there is in the Reach</span></h3>
-            @if (mk == null) { <div class="muted">No market in this age.</div> }
-            else
-            {
-                @if (mk.Embargoed) { <div class="flag">The Senate's embargo closes the exchanges to your house. Nothing may be bought or sold until it lifts.</div> }
-                else if (!mk.OwnMarket) { <div class="muted small">You have no market of your own and do not hold the capital: the caravaneers carry your orders at a @mk.SpreadPct% spread. A market, a free port or a patronage office narrows it to @c.Market.Rules.SpreadPct%.</div> }
-                <table class="standings goods">
-                    <thead><tr><th>Good</th><th>Price</th><th title="the last twelve years; the dash is the usual price">12 years</th><th title="the change over five years">5 yrs</th><th title="what the merchants hold">Stock</th><th title="what your house holds, and what it makes or burns a year; beneath, all there is in the Reach: the merchants' stock and every house's store. Who holds the most is under the table.">Held</th><th>Order</th></tr></thead>
-                    <tbody>
-                    @foreach (var g in mk.Goods)
+        <p class="ui-lede ex-lede @storyTone">@HouseScreen.Bold(story)</p>
+        @if (mk == null) { <EmptyState Icon="trade" Text="No market in this age." /> }
+        else
+        {
+            @if (mk.Embargoed) { <WarnStrip Icon="padlock" Lead="Embargoed." Bad="true" Class="ex-strip">The Senate's embargo closes the exchanges to your house. Nothing may be bought or sold until it lifts.</WarnStrip> }
+            <Section Title="Goods" Count="@goods.Count.ToString()" Info="@MovesAPrice">
+                <Right><span title="@(mk.OwnMarket ? "" : $"You have no market of your own and do not hold the capital: the caravaneers carry your orders at a {mk.SpreadPct}% spread. A market, a free port or a patronage office narrows it to {c.Market.Rules.SpreadPct}%.")">@Cap(terms) · <b>@mk.SpreadPct%</b> spread</span></Right>
+                <ChildContent>
+                <div class="ex-goods" data-goods-table>
+                    <DataTable Class="ex-table">
+                        <Head>
+                            <th title="Credits a unit; hover a good for what moves it">Good</th><th>Price</th><th title="The last twelve years">12 years</th><th title="The change over five years">5 yrs</th><th title="What the merchants hold">Stock</th>
+                            <th title="What your house holds, and what it makes or burns a year; and all there is in the Reach: the merchants' stock and every house's store. Who holds the most is under the table.">Held</th>
+                        </Head>
+                        <ChildContent>
+                        @foreach (var g in goods)
+                        {
+                            string gid = g.Id; bool on = sel?.Id == g.Id;
+                            <tr class="@(on ? "on" : "") @(g.Price >= g.Base * 1.5 ? "spike" : g.Price <= g.Base * 0.7 ? "slump" : "")" title="@($"{Cap(g.Cause)}\nbuy {(g.CanBuy && g.BuyRefusal == null ? Money.Show(g.BuyUnit) : "none")} · sell {Money.Show(g.SellUnit)} a unit, before your order's own weight\nkey: Click to put it in the order bar")" data-good="@g.Id" @onclick="() => _sel = gid">
+                                <td><Icon Name="@IconOf(g.Id)" Tone="@ToneOf(g.Id)" Size="17" />@g.Name@if (g.Deficit >= 15) { <span class="ex-chip warn" title="The Reach needs more than it brings up and is shipped">short @g.Deficit%</span> }@if (g.CornerHouseId.Length > 0) { <span class="ex-chip @(g.Cornered ? "warn" : "")" data-good-corner="@g.Id" title="@g.CornerHeld">@(g.Cornered ? "cornered" : g.CornerSharePct + "%")</span> }</td>
+                                <td class="ex-price @(g.Price >= g.Base * 1.5 ? "ui-down" : g.Price <= g.Base * 0.7 ? "ui-up" : "")">@Money.Show(g.Price)</td>
+                                <td><Spark Values="g.History" Color="@(g.Price >= g.Base * 1.5 ? "#e0553f" : g.Price <= g.Base * 0.7 ? "#8cc47e" : "#c9a24a")" /></td>
+                                <td class="@(g.ChangePct >= 10 ? "ui-warn-t" : g.ChangePct <= -10 ? "ui-up" : "ui-mute")">@Signed(g.ChangePct)%</td>
+                                <td>@g.Stock</td>
+                                <td title="@HoldTitle(g)">@g.Held@if (g.NetPerTurn != 0) { <small class="@(g.NetPerTurn > 0 ? "ui-up" : "ui-down")">&nbsp;@Signed(g.NetPerTurn)</small> }<small class="ex-of" data-good-all="@g.Id">&nbsp;of @g.All</small></td>
+                            </tr>
+                        }
+                        </ChildContent>
+                        <OrderBar>
+                        @if (sel != null)
+                        {
+                            int qty = Qty(sel.Id); string sid = sel.Id;
+                            var buy = MarketSystem.QuoteBuy(w, t, house.Id, sel.Id, qty); var sell = MarketSystem.QuoteSell(w, t, house.Id, sel.Id, qty);
+                            <span class="ui-order-nm"><Icon Name="@IconOf(sel.Id)" Tone="@ToneOf(sel.Id)" Size="18" />@sel.Name</span>
+                            <span class="ex-quote" title="What one unit costs you to buy and brings you sold, before your order's own weight: the price, your spread, and what the Reach's law of trade adds or takes.">@(sel.CanBuy && sel.BuyRefusal == null ? $"buy {Money.Show(sel.BuyUnit)}" : "not to be bought") · sell @Money.Show(sel.SellUnit)</span>
+                            <span class="ui-order-sp"></span>
+                            <span class="ui-seg-l" title="How many units to buy or sell at once. Change it: the plates show the lot and what it comes to.">Lot</span>
+                            <span class="ui-step ex-step">
+                                <button aria-label="Fewer" disabled="@(qty <= 1)" @onclick="() => _qty[sid] = Math.Max(1, qty - 1)"><Icon Name="minus" Tone="ivory" Size="12" /></button>
+                                <input type="number" min="1" max="999" value="@qty" aria-label="Units in the lot" @oninput="e => SetQty(sid, e)" />
+                                <button aria-label="More" disabled="@(qty >= 999)" @onclick="() => _qty[sid] = Math.Min(999, qty + 1)"><Icon Name="plus" Tone="ivory" Size="12" /></button>
+                            </span>
+                            @if (sel.CanBuy) { <Plate Label="@($"Buy {qty}")" CostIcon="credits" CostText="@(buy.Credits > 0 ? Money.Show(buy.Credits) : "nothing")" Locked="@(buy.Refusal != null)" Disabled="@(buy.Refusal != null)" ShowNeed="false" Need="@(buy.Refusal ?? "")" Tip="@($"[credits] Buy {qty} {sel.Name.ToLowerInvariant()}\n{Money.Show(buy.UnitPrice)} a unit with your order's weight\n[{IconOf(sel.Id)}] {sel.Name} = +{qty}, {sel.Held} to {sel.Held + qty}\n[credits] Credits = −{Money.Show(buy.Credits)}")" OnClick="() => G.Execute(new BuyGoodCommand(pid, sid, qty, t))" /> }
+                            @if (sel.CanSell) { <Plate Label="@($"Sell {qty}")" CostIcon="credits" CostText="@(sell.Refusal == null ? Money.Show(sell.Credits) : "nothing")" Locked="@(sell.Refusal != null)" Disabled="@(sell.Refusal != null)" ShowNeed="false" Need="@(sell.Refusal ?? "")" Tip="@($"[credits] Sell {qty} {sel.Name.ToLowerInvariant()}\n{Money.Show(sell.UnitPrice)} a unit with your order's weight\n[{IconOf(sel.Id)}] {sel.Name} = −{qty}, {sel.Held} to {Math.Max(0, sel.Held - qty)}\n[credits] Credits = +{Money.Show(sell.Credits)}")" OnClick="() => G.Execute(new SellGoodCommand(pid, sid, qty, t))" /> }
+                        }
+                        </OrderBar>
+                    </DataTable>
+                    @if (sel != null)
                     {
-                        int qty = Qty(g.Id);
-                        var buy = MarketSystem.QuoteBuy(w, t, house.Id, g.Id, qty); var sell = MarketSystem.QuoteSell(w, t, house.Id, g.Id, qty);
-                        bool loud = g.Price >= g.Base * 1.5 || g.Price <= g.Base * 0.7 || g.Deficit >= 15 || g.BuyRefusal != null || Math.Abs(g.ChangePct) >= 10 || g.CornerHouseId.Length > 0;
-                        <tr class="@(g.Price >= g.Base * 1.5 ? "spike" : g.Price <= g.Base * 0.7 ? "slump" : "") @(loud ? "" : "quiet")" title="@Cap(g.Cause)">
-                            <td class="hn"><Icon Name="@(Icons.Paths.ContainsKey(g.Id) ? g.Id : "materials")" Size="14" /> <b>@g.Name</b>@if (g.Deficit >= 15) { <span class="pill small warn" title="the Reach needs more than it brings up and is shipped">short @g.Deficit%</span> }</td>
-                            <td><b>@Money.Show(g.Price)</b> <span class="muted small quote" title="What one unit costs you to buy and brings you sold, before your order's own weight: the price, your spread, and what the Reach's law of trade adds or takes.">@(g.CanBuy && g.BuyRefusal == null ? $"buy {Money.Show(g.BuyUnit)}" : "not to be bought") · sell @Money.Show(g.SellUnit)</span></td>
-                            <td>@((MarkupString)Spark(g))</td>
-                            <td><span class="@(g.ChangePct >= 10 ? "warn" : g.ChangePct <= -10 ? "good" : "muted")">@(g.ChangePct > 0 ? "+" : "")@g.ChangePct%</span></td>
-                            <td>@g.Stock</td>
-                            <td title="@HoldTitle(g)">@g.Held @if (g.NetPerTurn != 0) { <small class="@(g.NetPerTurn > 0 ? "up" : "down")">@(g.NetPerTurn > 0 ? "+" : "")@g.NetPerTurn</small> } <br /><small class="muted" style="white-space:nowrap" data-good-all="@g.Id">of @g.All</small></td>
-                            <td class="order">
-                                <label class="lot" title="How many units to buy or sell at once. Change it: the buttons show the lot and what it comes to."><small class="muted">lot</small> <input type="number" min="1" max="999" value="@qty" @oninput="e => SetQty(g.Id, e)" /></label>
-                                <span class="order-btns">
-                                @if (g.CanBuy) { <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? $"{Money.Show(buy.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new BuyGoodCommand(pid, g.Id, qty, t))">Buy @qty · @(buy.Credits > 0 ? Money.Show(buy.Credits) + " cr" : "—")</button> }
-                                @if (g.CanSell) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{Money.Show(sell.UnitPrice)} a unit with your order's weight")" @onclick="() => G.Execute(new SellGoodCommand(pid, g.Id, qty, t))">Sell @qty · @(sell.Refusal == null ? Money.Show(sell.Credits) + " cr" : "—")</button> }
-                                </span>
-                            </td>
-                        </tr>
-                        @if (loud) { <tr class="cause"><td colspan="7"><div style="max-width:38rem;white-space:normal">@if (g.CornerHouseId.Length > 0) { <span class="pill small @(g.Cornered ? "warn" : string.Empty)" style="margin-right:.45rem" data-good-corner="@g.Id" title="@g.CornerHeld">@CornerPill(g)</span> }<span class="muted small">@Cap(g.Cause)@(g.BuyRefusal != null ? " · " + g.BuyRefusal : "")</span>@if (g.CornerHouseId.Length > 0) { <span class="muted small" data-good-corner-word="@g.Id" title="@CornerWord(g)"> · @RowWord(g)</span> }</div></td></tr> }
+                        <p class="ex-cause" data-good-cause="@sel.Id"><b>@sel.Name:</b> @Cap(sel.Cause)@(sel.BuyRefusal != null ? " · " + sel.BuyRefusal : "")@if (sel.CornerHouseId.Length > 0) { <span data-good-corner-word="@sel.Id" title="@CornerWord(sel)"> · @CornerPill(sel). @RowWord(sel)</span> }</p>
                     }
-                    </tbody>
-                </table>
-                <details class="orders" data-holders-fold><summary>Who holds what, and what a corner would take</summary>
-                <div class="muted small" data-holders-trade style="max-width:38rem;white-space:normal;margin:.2rem 0 .35rem">@FromStores()</div>
-                @foreach (var g in mk.Goods)
-                {
-                    <div class="ac-fact" data-holding="@g.Id"><span>@g.Name</span><p><b>@g.All</b> in the Reach: the merchants hold @g.Stock, the houses @(g.All - g.Stock).
-                        @foreach (var h in g.Holders) { <span class="pill small @(h.Mine ? "good" : string.Empty)" data-holder="@h.HouseId" style="border-color:@h.Accent">@(h.Mine ? "Your house" : h.Name) @h.Units · @h.SharePct%</span> }
-                        @if (g.Holders.Count == 0) { <span class="muted">No house holds any.</span> }
-                        <br /><span data-corner-word="@g.Id">@CornerWord(g)</span></p></div>
-                }
-                </details>
-                <details class="orders"><summary>What moves a price</summary>
-                <div class="ac-fact"><span>War</span><p>Every war lifts demand for fuel, isotopes, rare earths, crews and materials: yards and magazines buying ahead.</p></div>
-                <div class="ac-fact"><span>Siege and revolt</span><p>A blockaded world sends half; a world in revolt sends nothing. If it made much of a good, the price shows it.</p></div>
-                <div class="ac-fact"><span>Raiders</span><p>Lawless lanes lose a share of everything that travels them.</p></div>
-                <div class="ac-fact"><span>The nations</span><p>Nations at peace ship goods in. War with one closes its ports; a tributary ships double.</p></div>
-                <div class="ac-fact"><span>The law</span><p>The Trade Charter taxes or frees every purchase. The Arms Market decides whether isotopes may be bought at all.</p></div>
-                <div class="ac-fact"><span>You</span><p>Buy a tenth of the stock and the market notices. Buy half and everyone pays for it next year. An order moves the price against itself by its share of the merchants' stock, so a large one costs more a unit than the quote. Splitting it does not help.</p></div>
-                <div class="ac-fact" data-corner-rule><span>A corner</span><p>@CornerRule() <b>@CornersNow(mk.Goods)</b></p></div>
-                </details>
-            }
-        </section>
-
-            @if (m.Standing is { } s && s.ExchangeOptions.Count > 0)
-            {
-                <div class="favours-row" title="Clout (the house's political capital in store) is not a good and has no market. It is bought and sold in private, at a fixed and poor rate. A house with no exchange of its own gets half.">
-                    <span class="fr-label"><Icon Name="influence" Size="13" /> Favours for coin</span>
-                    @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))">@o.Label</button> }
                 </div>
-            }
-        </div>
-    </div>
+                <p class="hs-note ex-corners" data-corner-rule title="@CornerRule()"><Icon Name="crown" Tone="brass" Size="15" />@CornersNow(goods)</p>
+                </ChildContent>
+            </Section>
+
+            <div data-holders-fold>
+            <Section Title="Who holds what" Count="@goods.Count(g => g.Holders.Count > 0).ToString()" Info="@FromStores()">
+                <Right><button class="ui-link" data-holders-toggle @onclick="() => _holders = !_holders">@(_holders ? "Hide" : "Show what a corner would take")<Icon Name="chev" Size="11" Class="flat" /></button></Right>
+                <ChildContent>
+                @if (_holders)
+                {
+                    <p class="hs-note" data-holders-trade>@FromStores()</p>
+                    @foreach (var g in goods)
+                    {
+                        <div class="ex-hold" data-holding="@g.Id">
+                            <span class="ex-hold-nm"><Icon Name="@IconOf(g.Id)" Tone="@ToneOf(g.Id)" Size="16" />@g.Name</span>
+                            <span class="ex-hold-all"><b>@g.All</b> in the Reach: the merchants @g.Stock, the houses @(g.All - g.Stock)</span>
+                            <span class="ex-hold-who">
+                                @foreach (var h in g.Holders) { <span class="ex-holder @(h.Mine ? "mine" : "")" data-holder="@h.HouseId" title="@($"{(h.Mine ? "Your house" : h.Name)}: {h.Units}, {h.SharePct}% of all there is")"><i style="background:@h.Accent"></i>@(h.Mine ? "Your house" : h.Name) <b>@h.SharePct%</b></span> }
+                                @if (g.Holders.Count == 0) { <span class="ui-mute">No house holds any.</span> }
+                            </span>
+                            <span class="ex-hold-word" data-corner-word="@g.Id">@CornerWord(g)</span>
+                        </div>
+                    }
+                }
+                </ChildContent>
+            </Section>
+            </div>
+        }
+        @if (m.Standing is { } s && s.ExchangeOptions.Count > 0)
+        {
+            <div class="favours-row">
+            <Section Title="Favours for coin" Count="@s.ExchangeOptions.Count.ToString()" Info="Clout (the house's political capital in store) is not a good and has no market. It is bought and sold in private, at a fixed and poor rate. A house with no exchange of its own gets half.">
+                <div class="hs-line">
+                    @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <Plate Label="@Cap(o.Label)" Icon="laurels" Small="true" Locked="@(o.Refusal != null)" Disabled="@(o.Refusal != null)" ShowNeed="false" Need="@(o.Refusal ?? "")" Tip="@o.Label" OnClick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))" /> }
+                </div>
+            </Section>
+            </div>
+        }
     }
+    </div>
 </div>
 
 @code {
     private string _tab = "goods";
+    private string? _sel; private bool _holders;
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
-    private void OpenOn(string tab) { if (tab is "goods" or "projects" or "shares" or "ventures") _tab = tab; }
-    private static IEnumerable<(string id, string label, int count)> Tabs(CourtModel m)
-    {
-        yield return ("goods", "Goods", 0);
-        yield return ("ventures", "Ventures", (m.Assets?.Offers.Count ?? 0));
-        yield return ("projects", "Projects", m.Assets?.Projects.Count ?? 0);
-        yield return ("shares", "Shares", m.Exchange?.Companies.Count ?? 0);
-    }
+    private void OpenOn(string tab) { var t = tab.Split(':'); if (t[0] is "goods" or "projects" or "shares" or "ventures") _tab = t[0]; if (t[0] == "goods" && t.Length > 1) _sel = t[1]; }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private readonly Dictionary<string, int> _qty = new();
     private int Qty(string good) => _qty.TryGetValue(good, out var q) ? q : 5;
     private void SetQty(string good, ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var q)) _qty[good] = Math.Clamp(q, 1, 999); }
-    private static string F2(double v) => v.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
-    private static string F1(double v) => v.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
+    /// <summary>A good's glyph and its metal (docs/VISUAL_SYSTEM.md 8.3).</summary>
+    public static string IconOf(string good) => Icons.Paths.ContainsKey(good) ? good : "materials";
+    public static string ToneOf(string good) => HouseScreen.ResTone(good);
     // cornering a good (docs/ECONOMY_MARKET.md, "Cornering a good"): who holds what, and the plain word
     private static string CornerPill(GoodLine g) => g.Cornered ? (g.CornerMine ? "your corner" : "cornered by " + g.CornerHouseName) : (g.CornerMine ? "you hold " : g.CornerHouseName + " holds ") + g.CornerSharePct + "%";
     private static string Listing(IEnumerable<string> names) { var xs = names.ToList(); return xs.Count <= 1 ? string.Concat(xs) : string.Join(", ", xs.Take(xs.Count - 1)) + " and " + xs[^1]; }
@@ -175,14 +207,15 @@
         var held = goods.Where(g => g.CornerHouseId.Length > 0).Select(g => $"{(g.CornerMine ? "your house" : g.CornerHouseName)} {(g.Cornered ? "has cornered" : $"holds {g.CornerSharePct}% of the")} {g.Name.ToLowerInvariant()}").ToList();
         return held.Count == 0 ? "No house holds a third of any good now." : "Now: " + string.Join("; ", held) + ".";
     }
-    /// <summary>A twelve-year price line against the usual price: 120 by 26, the dash at base.</summary>
-    private static string Spark(GoodLine g)
+    /// <summary>What moves a price: the rules, for the Goods section's "i".</summary>
+    private static readonly string MovesAPrice = string.Join("\n", new[]
     {
-        var h = g.History; if (h.Count == 0) return "";
-        double lo = Math.Min(h.Min(), g.Base) * 0.9, hi = Math.Max(h.Max(), g.Base) * 1.1; if (hi - lo < 0.01) hi = lo + 0.01;
-        double Y(double v) => 24 - (v - lo) / (hi - lo) * 22; double X(int i) => h.Count == 1 ? 118 : 2 + i * 116.0 / (h.Count - 1);
-        string pts = string.Join(" ", h.Select((v, i) => $"{F1(X(i))},{F1(Y(v))}"));
-        string colour = g.Price >= g.Base * 1.5 ? "#E63946" : g.Price <= g.Base * 0.7 ? "#2EC27E" : "#C9D1DC";
-        return $"<svg class=\"spark\" viewBox=\"0 0 120 26\" width=\"120\" height=\"26\" role=\"img\" aria-label=\"price history\"><line x1=\"0\" x2=\"120\" y1=\"{F1(Y(g.Base))}\" y2=\"{F1(Y(g.Base))}\" stroke=\"#5b6577\" stroke-dasharray=\"3 3\" stroke-width=\"1\"/><polyline points=\"{pts}\" fill=\"none\" stroke=\"{colour}\" stroke-width=\"1.8\" stroke-linejoin=\"round\"/><circle cx=\"{F1(X(h.Count - 1))}\" cy=\"{F1(Y(h[^1]))}\" r=\"2.4\" fill=\"{colour}\"/></svg>";
-    }
+        "[trade] What moves a price",
+        "War: every war lifts demand for fuel, isotopes, rare earths, crews and materials, yards and magazines buying ahead.",
+        "Siege and revolt: a blockaded world sends half; a world in revolt sends nothing. If it made much of a good, the price shows it.",
+        "Raiders: lawless lanes lose a share of everything that travels them.",
+        "The nations: nations at peace ship goods in. War with one closes its ports; a tributary ships double.",
+        "The law: the Trade Charter taxes or frees every purchase. The Arms Market decides whether isotopes may be bought at all.",
+        "You: buy a tenth of the stock and the market notices. Buy half and everyone pays for it next year. An order moves the price against itself by its share of the merchants' stock, so a large one costs more a unit than the quote. Splitting it does not help."
+    });
 }
