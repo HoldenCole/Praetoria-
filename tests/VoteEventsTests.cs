@@ -228,17 +228,16 @@ public class VoteEventsTests
     public void AVoteForAVote_AndTheBoughtVoteCalledIn()
     {
         var after = EveryChoice("a_vote_for_a_vote", () => VoteForAVote());
-        { var (w, b) = after["give_your_word"]; var senator = Bound(w, b, "senator"); Assert.Contains("owes_you_a_vote", senator.Flags);
-          var again = Find(w, "a_vote_for_a_vote"); Assert.False(again is { } a && a.binding.TryGet("senator", out var id) && id == senator.Id);   // one bargain at a time with the same house
-          // the bargain is real: at the next session it is a favour owed each way, before the count
-          string mine = w.Protagonist!.HouseId; var tc = new TurnController(w, Content); w.Turn++; tc.Senate.Tick(w);
-          Assert.DoesNotContain("owes_you_a_vote", senator.Flags);
-          Assert.False(WealthSystem.FavourOwed(w, mine, senator.HouseId));     // spent on their motion, counted this session: the player's vote was judged
-          Assert.True(WealthSystem.FavourOwed(w, senator.HouseId, mine));      // and theirs is owed to the player's next motion
-          var m = tc.Senate.Add(w, mine, "levy", "");
-          Assert.Contains(tc.Senate.Why(w, m, senator.HouseId), x => x.why.Contains("owes") && x.by == WealthSystem.FavourLeanBy);
-          foreach (var h in Chamber(w)) m.Votes[h.Id] = 1; w.Turn++; tc.Senate.Tick(w);
-          Assert.False(WealthSystem.FavourOwed(w, senator.HouseId, mine)); }   // spent at the count of the player's motion
+        { var (w, b) = after["give_your_word"]; var senator = Bound(w, b, "senator"); string mine = w.Protagonist!.HouseId;
+          // the bargain is made as the choice is (docs/events/votes.md, "Promises"): their house owes yours a vote, and your word on their
+          // motion is a pledge, your vote declared for it; tests/VotePromisesTests.cs plays both through the count
+          Assert.DoesNotContain("owes_you_a_vote", senator.Flags); Assert.True(WealthSystem.FavourOwed(w, senator.HouseId, mine));
+          var theirs = SenateSystem.Docket(w).First(m => m.ProposerHouseId == senator.HouseId);
+          Assert.Equal(senator.HouseId, DealingsSystem.PledgeOn(w, mine, theirs.Id)?.ToHouseId); Assert.Equal(1, theirs.Votes[mine]);
+          var tc = new TurnController(w, Content); w.Turn++; tc.Senate.Tick(w);
+          Assert.Contains(VoteMarks.BargainBarredChar, senator.Flags);          // one bargain at a time with the same house
+          var again = Find(w, "a_vote_for_a_vote"); Assert.False(again is { } a && a.binding.TryGet("senator", out var id) && id == senator.Id);
+          Assert.True(WealthSystem.FavourOwed(w, senator.HouseId, mine)); }    // and theirs is owed to the player's next motion
         { var (w, b) = after["name_a_price"]; var senator = Bound(w, b, "senator"); Assert.Contains("bought_your_vote", senator.Flags);
           // the thread: the motion it was sold for is voted at the year's end; when the buyer next moves one, it is called in
           var tc = new TurnController(w, Content); w.Turn++; tc.Senate.Tick(w);
@@ -249,8 +248,8 @@ public class VoteEventsTests
 
         var settled = EveryChoice("a_bought_vote_called_in", () => VoteForAVote((w, head) => head.Flags.Add("bought_your_vote")));
         Assert.All(settled.Values, x => Assert.DoesNotContain("bought_your_vote", Bound(x.w, x.b, "buyer").Flags));
-        { var (w, b) = settled["vote_as_they_ask"]; var buyer = Bound(w, b, "buyer"); Assert.Contains(VoteMarks.VotePromisedChar, buyer.Flags);
-          VoteMarks.Bargains(w, w.Protagonist!.HouseId);                        // the promise is one the count of their motion will judge
+        { var (w, b) = settled["vote_as_they_ask"]; var buyer = Bound(w, b, "buyer"); Assert.DoesNotContain(VoteMarks.VotePromisedChar, buyer.Flags);   // made a favour as the choice is
+          VoteMarks.Bargains(w, w.Protagonist!.HouseId);                        // the promise is one the count of their motion will judge (and a second pass makes nothing more)
           Assert.True(WealthSystem.FavourOwed(w, w.Protagonist!.HouseId, buyer.HouseId)); Assert.False(WealthSystem.FavourOwed(w, buyer.HouseId, w.Protagonist!.HouseId)); }
         Assert.Contains("grudge_against_you", Bound(settled["show_them_the_door"].w, settled["show_them_the_door"].b, "buyer").Flags);   // spurned in front of the chamber, they remember it
         Assert.DoesNotContain("grudge_against_you", Bound(settled["give_back_the_coin"].w, settled["give_back_the_coin"].b, "buyer").Flags);

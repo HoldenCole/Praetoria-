@@ -38,6 +38,12 @@
             {
               "type": "charFlag",
               "role": "senator",
+              "flag": "no_bargain_with_you",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "senator",
               "flag": "bought_your_vote",
               "value": false
             }

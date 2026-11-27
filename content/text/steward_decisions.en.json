@@ -17,7 +17,7 @@
       "body": "It comes, as you knew it would, at the worst possible moment — that being the only moment a man like {creditor.name} of {creditor.house} ever chooses. The loan that saved you is called in, with the warm and terrible courtesy of someone who holds all the cards and wants you to admire how gently they play them. The debt is real. The question is what currency you settle it in, and what you are willing to become to be free of it.",
       "choices": {
         "pay_in_full": "Pay it in coin, in full. Clean, costly, done.",
-        "pay_with_favor": "Pay in favor — a vote, a posting, a door. Trade one debt for a deeper one.",
+        "pay_with_favor": "Pay in favour: your house will owe theirs a vote. Trade one debt for another.",
         "refuse_to_pay": "Make the debt disappear. Records, witnesses, leverage — all of it. Keep the enemy."
       }
     },

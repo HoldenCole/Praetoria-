@@ -197,6 +197,7 @@ public static class ElectionSystem
     public static void Veto(World w, OfficeCatalog offices, string houseId, Motion m)
     {
         m.Resolved = true; m.Passed = false; m.ResolvedTurn = w.Turn; m.Vetoed = true; m.VetoedBy = houseId;
+        DealingsSystem.Struck(w, m);   // a word given on it is void, and a favour owed its mover waits (docs/WEALTH.md)
         if (w.Emergency != null) { EmergencySystem.Vetoed(w, houseId); w.WorldCounters["vetoes"] = w.Counter("vetoes") + 1; if (m.ProposerHouseId == w.Protagonist?.HouseId) w.WorldFlags.Add("vetoed_mine"); return; }
         w.WorldCounters["veto_used:" + houseId] = TermStart(w, offices, houseId); w.WorldCounters["vetoes"] = w.Counter("vetoes") + 1;
         if (m.ProposerHouseId == w.Protagonist?.HouseId) w.WorldFlags.Add("vetoed_mine");

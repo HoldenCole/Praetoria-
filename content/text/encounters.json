@@ -112,7 +112,7 @@
       "title": "A Favour Repaid",
       "body": "{debtor.name} of {debtor.house} has not forgotten what you did for them. They have come to say so, and to ask what you would have from them in return.",
       "choices": {
-        "their_voice": "Ask for their house's voice when you need it.",
+        "their_voice": "Ask for their house's vote when you need it.",
         "the_coin": "Ask for 400 credits, and call it settled.",
         "ask_nothing": "Ask nothing. It was never a debt.",
         "not_yet": "Not yet. Keep it owed."

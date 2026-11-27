@@ -108,7 +108,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked a seated house to raise the matter in its own name. It cost a favour. That is what friends with seats are for."
+              "text": "{self.name} asked a seated house to raise the matter in its own name, and spent some of the house's influence to have it done. That is what friends with seats are for."
             }
           ],
           "requires": [

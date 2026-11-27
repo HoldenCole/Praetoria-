@@ -215,7 +215,21 @@
         },
         {
           "id": "pay_with_favor",
+          "requires": [
+            {
+              "type": "charFlag",
+              "role": "creditor",
+              "flag": "no_bargain_with_you",
+              "value": false
+            }
+          ],
           "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "creditor",
+              "flag": "promised_your_vote",
+              "value": true
+            },
             {
               "type": "setCharFlag",
               "role": "self",
@@ -241,7 +255,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} could not pay in coin, so {creditor.name} of {creditor.house} named the other price: a vote, a posting, a door opened. The debt is cleared and a new kind of obligation takes its place — the kind that does not appear in any ledger, and never quite ends."
+              "text": "{self.name} could not pay in coin, so {creditor.name} of {creditor.house} named the other price: the house's vote. The debt is cleared, and in its place your house owes {creditor.house} a favour, called in on the next motion it moves, or in coin if it is ever short."
             }
           ]
         },

@@ -230,6 +230,7 @@ public static class ForeignGoldSystem
     /// <summary>The mover took the sum: the motion is taken back before it is voted.</summary>
     private static void Withdrawn(World w, Motion m, GoldOffer o)
     {
+        DealingsSystem.Struck(w, m);   // a word given on it is void, and a favour owed its mover waits (docs/WEALTH.md)
         w.Motions.Remove(m); Count(w, BoughtOffKey);
         if (w.Nation(o.NationId) is { } payer) payer.BoughtOffTurn = w.Turn;
         string key = "senate_standing:" + m.ProposerHouseId; w.WorldCounters[key] = Math.Max(0, w.Counter(key) - WithdrawStanding);

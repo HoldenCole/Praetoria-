@@ -46,7 +46,11 @@ kind, in the pattern of the existing `Mark()` moments.
   for a vote (`owes_you_a_vote`) into two favours owed and a promised vote (`promised_your_vote`) into one, which the Senate already
   keeps and judges at the count; `lost_at_the_count` on your relative who lost at the ladder; `dined_with_you` on a consul, who once
   in the term lets a motion of yours stand (`ElectionSystem`). Round 2: `standing_heard` on a relative whose candidacy you answered,
-  struck by the ladder when they no longer stand; one pair of victor and loser live at a time at the ladder's count.
+  struck by the ladder when they no longer stand; one pair of victor and loser live at a time at the ladder's count. The vote
+  promises (2026-11-27, docs/events/votes.md "Promises"): a bargain is made as the choice is (`EventEngine.Resolve` calls
+  `VoteMarks.Bargains`); a favour owed to your house is a vote for your motion (`WealthSystem.VotesFor`); the word given in *A Vote
+  for a Vote* is a pledge; `their_house_owes_you_a_vote` (*A Favour Repaid*, *The Whip*, *A Friend at Another Table*) and
+  `no_bargain_with_you` (a favour standing, or a broken word) are marked; `whip`, `lender` and `creditor` are outsiders' parts.
 - **Family** (`DynastySystem`, `CourtshipSystem`, `HouseholdSystem`): `born_to_the_house`, `schooling_begins` (a child of six),
   `kin_came_of_age` (sixteen), `grandchild_of_the_head`; `in_law` on the head of your spouse's family; `wedding_remembered` every
   tenth year of your marriage; `left_unpaid` on someone who leaves the household unpaid. In review: `chose_own_road` on one who comes

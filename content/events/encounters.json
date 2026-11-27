@@ -1642,12 +1642,20 @@
       "choices": [
         {
           "id": "their_voice",
+          "requires": [
+            {
+              "type": "charFlag",
+              "role": "debtor",
+              "flag": "no_bargain_with_you",
+              "value": false
+            }
+          ],
           "effects": [
             {
-              "type": "adjustResource",
-              "role": "self",
-              "resource": "influence",
-              "delta": 2
+              "type": "setCharFlag",
+              "role": "debtor",
+              "flag": "their_house_owes_you_a_vote",
+              "value": true
             },
             {
               "type": "setCharFlag",
@@ -1657,7 +1665,7 @@
             },
             {
               "type": "log",
-              "text": "{debtor.name} of {debtor.house} paid what they owed {self.name} with their house's voice."
+              "text": "{debtor.name} of {debtor.house} will pay what they owed {self.name} with their house's voice: {debtor.house} owes your house a vote."
             }
           ]
         },

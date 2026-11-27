@@ -126,9 +126,14 @@ public sealed class SenateSystem
         if (FactionSystem.Of(w, leaderId) is { } f && m.TargetId != leaderId && _motions.Def(m.Kind) is { } pd) lean += Math.Sign(f.Platform.GetValueOrDefault(pd.Interest));
         return lean;
     }
-    /// <summary>The leader's stance a member follows: the vote the leader cast, unless that vote was paid for.</summary>
+    /// <summary>The leader's stance a member follows: the vote the leader cast, unless that vote was paid for, in coin or with a favour
+    /// the leader's house owes the player's (it is the leader's debt, not the bench's, so the forecast and the count agree).</summary>
     public int LeaderStance(World w, Motion m, Faction f) =>
-        m.Votes.TryGetValue(f.LeaderHouseId, out var v) && !m.Bought.ContainsKey(f.LeaderHouseId) ? v : Math.Sign(LeaderLean(w, m, f.LeaderHouseId));
+        m.Votes.TryGetValue(f.LeaderHouseId, out var v) && !m.Bought.ContainsKey(f.LeaderHouseId) && !Owes(w, m, f.LeaderHouseId) ? v : Math.Sign(LeaderLean(w, m, f.LeaderHouseId));
+
+    /// <summary>A house that owes the player's house a favour, on a motion that house moves: it votes for it whatever it leans
+    /// (WealthSystem.VotesFor; docs/WEALTH.md, "A favour owed is a vote"). The whip count, the forecast and the count all read this.</summary>
+    public bool Owes(World w, Motion m, string houseId) => WealthSystem.VotesFor(w, m, houseId, _motions.Def(m.Kind));
 
     /// <summary>What it costs to buy a house's vote on a motion: more for a house that weighs more in the Senate and stands higher,
     /// more for one that leads a bench, more for one whose head thinks ill of the buyer.</summary>
@@ -173,7 +178,7 @@ public sealed class SenateSystem
         int lean = 0; void Add(int by, string because) { if (by == 0) return; lean += by; why?.Add((because, by)); }
         Add(toProposer >= 20 ? 1 : toProposer <= -20 ? -1 : 0, "what its head thinks of " + pn);
         Add(OldTie(w, def, m, head, houseId), "old ties with your house"); Add(LadderSystem.CommitteeLean(w, def.Interest, m.ProposerHouseId, houseId), "your standing on its committee");
-        Add(LadderSystem.ChairLeanOf(w, m, houseId), "the chair's word"); Add(WealthSystem.FavourLean(w, houseId, m.ProposerHouseId), "it owes " + pn + " a favour"); Add(FeudSystem.Lean(w, houseId, m.ProposerHouseId), "there is blood between it and " + pn);
+        Add(LadderSystem.ChairLeanOf(w, m, houseId), "the chair's word"); Add(WealthSystem.StrikesAt(m, houseId, def) ? 0 : WealthSystem.FavourLean(w, houseId, m.ProposerHouseId), "it owes " + pn + " a favour"); Add(FeudSystem.Lean(w, houseId, m.ProposerHouseId), "there is blood between it and " + pn);
         Add(houseId != m.ProposerHouseId ? EmergencySystem.HolderLean(w, m.ProposerHouseId) : 0, pn + " holds emergency powers");
         // sway (docs/REPUBLIC.md stage 3): a house leans with whoever it depends on — its patron, its creditor, the house whose fuel
         // its fleets burn — for what that house wants, and against what is aimed at it
@@ -385,7 +390,7 @@ public sealed class SenateSystem
     }
 
     /// <summary>The declared or predicted stance of a house: a declared vote if any, else the sign of its lean.</summary>
-    public int Stance(World w, Motion m, string houseId) => m.Votes.TryGetValue(houseId, out var v) ? v : Math.Sign(Lean(w, m, houseId));
+    public int Stance(World w, Motion m, string houseId) => m.Votes.TryGetValue(houseId, out var v) ? v : Owes(w, m, houseId) ? 1 : Math.Sign(Lean(w, m, houseId));
 
     public (int forWeight, int againstWeight) Tally(World w, Motion m)
     {
@@ -422,7 +427,8 @@ public sealed class SenateSystem
         // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
         foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags).Concat(NationSystem.SenateTurnFlags)) w.WorldFlags.Remove(f);
         VoteMarks.ClearSession(w);   // and the people in it: who voted with the player, who took its purse (docs/events/votes.md)
-        VoteMarks.Bargains(w, mine);   // a vote given for a vote in last year's reports is a favour owed, before the count (docs/events/votes.md)
+        VoteMarks.Bargains(w, mine);   // a vote given for a vote in last year's reports is a favour owed, before the count (docs/events/votes.md); made at the choice, this is a backstop
+        WealthSystem.Answered(w);   // a gift said to buy nothing, or sent back, before the count of the giver's motion judges the vote (docs/WEALTH.md)
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn)) (m.ForecastFor, m.ForecastAgainst) = Tally(w, m);   // where it stood before the chair spoke
         ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
         LadderSystem.ChairActs(w, this);   // the Speaker orders the docket and the presiding consul speaks from the chair (docs/LADDER.md, "The chair")
@@ -465,9 +471,17 @@ public sealed class SenateSystem
         // the rivals declare: the leaders of the benches first, then the rest by name. The order is fixed because a house leans with its
         // leader's vote when that is already cast; taken in the order the houses happen to be held, a house made after a save could vote
         // before its leader in one game and after in the same game resumed
+        // A house that owes the player's house a favour votes for its motion whatever it leans (docs/WEALTH.md, "A favour owed is a vote"):
+        // noted with whether it would have of its own accord, since only a vote the favour bought spends it
+        var owed = new Dictionary<string, bool>();
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => FactionSystem.Of(w, h.Id)?.LeaderHouseId == h.Id ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
-            if (!m.Votes.ContainsKey(h.Id)) m.Votes[h.Id] = Math.Sign(Lean(w, m, h.Id));
-        WealthSystem.FavoursCalled(w, m);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
+        {
+            if (m.Votes.ContainsKey(h.Id)) continue;
+            int lean = Math.Sign(Lean(w, m, h.Id));
+            if (Owes(w, m, h.Id)) { owed[h.Id] = lean > 0; lean = 1; }
+            m.Votes[h.Id] = lean;
+        }
+        WealthSystem.FavoursCalled(w, m, def, owed);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
         DealingsSystem.MotionCounted(w, m);   // a vote pledged to another house was kept or broken (docs/WEALTH.md, "Dealings between houses")
         // a purse comes out one time in four: the vote it bought is struck, and the house that paid is thought the less of
         foreach (var (boughtId, payerId) in m.BoughtBy.OrderBy(kv => kv.Key, StringComparer.Ordinal).ToList())
@@ -793,7 +807,7 @@ public sealed class SenateSystem
     {
         var m = new Motion { Id = $"motion_{w.Counter("motions_proposed") + 1}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, TitleId = titleId, ProposedTurn = w.Turn };
         int f = 0, a = 0;
-        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) { int s = Math.Sign(LeanNow(w, m, h.Id, null)); if (s > 0) f += Weight(w, h.Id); else if (s < 0) a += Weight(w, h.Id); }
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) { int s = Owes(w, m, h.Id) ? 1 : Math.Sign(LeanNow(w, m, h.Id, null)); if (s > 0) f += Weight(w, h.Id); else if (s < 0) a += Weight(w, h.Id); }
         return (f, a);
     }
 
@@ -804,9 +818,11 @@ public sealed class SenateSystem
         var m = new Motion { Id = $"motion_{n}", Kind = kind, ProposerHouseId = proposerHouseId, TargetId = targetId, OfficeId = officeId, LawId = lawId, LawOption = lawOption, TitleId = titleId, ProposedTurn = w.Turn };
         w.Motions.Add(m);
         w.Log($"Before the Senate: {Describe(w, m)} The vote is next session.");
-        // a house the player owes a favour to has moved: this is where it is called in, and the player is told so
-        if (w.Protagonist?.HouseId is { } owing && owing != proposerHouseId && WealthSystem.FavourOwed(w, owing, proposerHouseId) && w.House(proposerHouseId) is { } owed)
-            w.Tell("warn", $"{owed.Name} has moved a motion, and you owe it a favour: this is where it is called in. Vote for it and the account is even; vote otherwise and its head thinks {-WealthSystem.FavourBroken:+0;-0} of you.", "senate:chamber", owed.Id);
+        // a house the player owes a favour to has moved: this is where it is called in, and the player is told so (not on a motion that
+        // strikes at the player's house, nor between houses at war: WealthSystem.FavoursCalled does not call it in there)
+        if (w.Protagonist?.HouseId is { } owing && owing != proposerHouseId && WealthSystem.FavourOwed(w, owing, proposerHouseId) && !w.AtWar(owing, proposerHouseId)
+            && !WealthSystem.StrikesAt(m, owing, _motions.Def(kind)) && w.House(proposerHouseId) is { } owed)
+            w.Tell("warn", $"{owed.Name} has moved a motion, and you owe it a favour: it is called in at this motion's count. Vote for it and the account is even; vote otherwise and its head thinks {-WealthSystem.FavourBroken:+0;-0} of you. If the motion is struck before the count, the favour waits for the next one it moves.", "senate:chamber", owed.Id);
         return m;
     }
 

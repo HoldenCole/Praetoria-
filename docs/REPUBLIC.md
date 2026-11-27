@@ -152,6 +152,26 @@ pledge of its seats, as in the section above), or to move a motion in its own na
 that house proposes it, at that house's cost). Heard at +10 regard; one favour owed at a time (`WealthSystem.OweFor`);
 once in two years for each house. Other houses do not ask the player.
 
+## Promises in the Senate (2026-11-27)
+
+The owner: "Make sure the vote promises actually work" (docs/events/votes.md, "Promises"). What the chamber now does with
+a promise:
+
+- **An owed vote is a sure vote.** A house that owes the player's house a favour votes for its motions whatever it leans
+  (`SenateSystem.Owes`, `WealthSystem.VotesFor`): `Stance`, `Tally`, `Forecast` and the count read it, the whip count shows
+  it as declared with the line "votes for it: it owes your house a favour", and a house that owes your house a vote is
+  not marked undecided on your motion. The favour is spent at the count only where it changed the vote. Not on a motion
+  that strikes at that house; not while the two are at war.
+- **A bench follows its leader's own mind**, not a vote the leader cast for a favour it owes (`LeaderStance`), as it does
+  not follow a bought one; otherwise the forecast and the count parted on the bench's members.
+- **A favour the player owes** is called in at the count of the creditor's next motion that does not strike at the
+  player's house, and the notice when it is moved says so, and that a motion struck before the count leaves it waiting.
+  A motion moved at the player's asking (`AskToMoveCommand`) is marked `Motion.MovedFor` and does not settle it.
+- **A motion struck before its count** (`ElectionSystem.Veto`, or withdrawn for foreign gold) voids a word given on it
+  and tells the player a favour owed its mover waits (`DealingsSystem.Struck`).
+- **A word given in a report** (*A Vote for a Vote*) is a pledge (`DealingsSystem.GiveWord`), the player's vote declared,
+  judged at the count as any pledge is.
+
 ## The lead of a bench by a contest (2026-11-21)
 
 From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P9 and P99). `ChallengeLeaderCommand`,

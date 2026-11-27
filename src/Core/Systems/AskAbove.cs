@@ -95,6 +95,8 @@ public static class AskAbove
     public static void Move(World w, CommandContext ctx, CommandExecutor executor, House by, House of, string kind, string targetId, SenateSystem senate, string officeId, string lawId, string optionId)
     {
         var cmd = AsTheirs(w, of, kind, targetId, senate, officeId, lawId, optionId); if (cmd == null || !executor.TryExecute(cmd, ctx)) return;
+        // the favour is settled on the next motion it moves of its own, not on this one, which the asker is for already (WealthSystem.FavoursCalled)
+        if (w.Motions.LastOrDefault(m => m.Open && m.ProposerHouseId == of.Id) is { } moved) moved.MovedFor = by.Id;
         w.Log($"{of.Name} moves it at the asking of {by.Name}. It is a favour owed."); Asked(w, by, of);
     }
 }

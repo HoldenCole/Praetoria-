@@ -251,7 +251,8 @@ standard is ever taken in a war. Both were closed the same day: see the next sec
 - **Sent to ask.** A head with a motion before the Senate and 6,000 credits sends one, in about one such year in ten,
   to the head of the weightiest house that is neither friend nor enemy (−10 to 19). Kept, it is **a favour owed**.
 - **A favour owed is a vote leaned.** A house that owes the proposer a favour leans two further for the motion, and
-  the favour is spent when it is voted.
+  the favour is spent when it is voted. (Since 2026-11-27 this is so between two other houses; a favour owed to your
+  house is a vote, see "A favour owed is a vote" below.)
 - **You can ask one.** Any thing you give to the head of another house puts that house in your debt for one favour,
   spent on the next motion you bring. The panel lists who owes you and whom you owe.
 - **You are judged by your vote.** If you keep an orrery and vote for the motion, the sender thinks 5 better of you;
@@ -275,7 +276,8 @@ that owes it:
 
 - **Money:** 1,500 credits, paid into your treasury, if they have it.
 - **A match:** the family's consent to a suit between your house and theirs rises by 20.
-- Left alone, it is spent on the next motion you bring, as before.
+- Left alone, it is spent on the next motion you bring, as before. (Since 2026-11-27: on the first it would not have
+  voted for of its own accord, see "A favour owed is a vote" below.)
 
 **A favour is forgotten after eight years** if nobody calls it in: what is owed to you, and what you owe.
 
@@ -406,6 +408,32 @@ would be gone when a cousin outranked them.
   short of coin, its head does not think -40 or worse of you, the rate is one it bears, it owes no other house, and
   what it would owe is no more than two years of what it takes in. The whole sum, interest and all, is owed from the
   day, in five yearly instalments.
+
+### A favour owed is a vote (2026-11-27)
+
+The owner: "Make sure the vote promises actually work." A favour was promised as a vote ("a favour buys a vote"; "it is spent
+on the next motion you bring"), and on your motion it was only two points of lean, which a house that leaned three against
+outweighed, with the favour spent all the same and nothing said. Now (`WealthSystem.VotesFor`, read by the Senate's whip
+count, forecast, tally and count alike; docs/events/votes.md, "Promises"):
+
+- **A house that owes your house a favour votes for your motions**, whatever it leans, for as long as it owes it. The
+  favour is spent at the count of the first motion it would not have voted for of its own accord; on one it was for
+  anyway it is still owed, and you are told. You are told when it is paid ("kept its word"), and the house page counts
+  the favours a house paid with its vote.
+- **Not on a motion that strikes at it** (a censure, an embargo, a break-up, a recall or a reconquest of that house): it
+  waits for your next motion, and you are told.
+- **A favour lapses** after eight years, as before, and also at once if the two houses are at war, or either is gone,
+  with a notice that says why, for what is owed to you and what you owe.
+- **A bench does not follow its leader's owed vote**, as it does not follow a bought one: the forecast and the count agree.
+- **A favour you owe** is not called in on a motion that strikes at your house, nor between houses at war; on a motion
+  moved at your asking (asking your patron to move it) it waits for that house's own next motion; and you are reminded
+  when you come to owe a house whose motion is already before the Senate, and told when one is struck before its count.
+- **A word given on a vote in a report** (*A Vote for a Vote*) is a pledge, judged as one at the count (+3 kept, -15
+  broken, eight years remembered); struck before the count, it is void.
+- **A gift said to buy nothing, or sent back**, is read before the Senate counts the giver's motion, so the vote is not
+  judged; and an orrery is not sent to a house the giver's motion strikes at.
+- **The reports that give or ask a favour** (*A Favour Repaid*, *The Whip*, *A Friend at Another Table*, *The Debt
+  Called*) make a real favour owed, one way or the other, and are closed while a favour stands between the two houses.
 
 ### A favour you owe
 

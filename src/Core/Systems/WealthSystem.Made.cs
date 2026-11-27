@@ -1,3 +1,4 @@
+using Praetoria.Core.Data;
 using Praetoria.Core.State;
 
 namespace Praetoria.Core.Systems;
@@ -234,8 +235,7 @@ public static partial class WealthSystem
     private static void GiftsToMend(World w)
     {
         string? mine = w.Protagonist?.HouseId;
-        if (w.WorldFlags.Remove(SendBackFlag) && mine != null && w.Heirlooms.Where(h => h.Id.StartsWith("gift_", StringComparison.Ordinal) && w.Char(h.HolderId)?.HouseId == mine).OrderByDescending(h => h.Id.Length).ThenByDescending(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.House(h.FromHouseId) != null) is { } back)
-        { w.Heirlooms.Remove(back); Count(w, SentBackKey); w.WorldCounters.Remove(FavourKey(mine, back.FromHouseId)); }
+        Answered(w);
         foreach (var a in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != mine && h.Treasury.Credits >= MendAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var head = Economy.HeadOf(w, a); if (head?.Alive != true || Hash($"{a.Id}:{w.Turn}:mend") / 7 % MendOneIn != 0) continue;
@@ -256,7 +256,7 @@ public static partial class WealthSystem
     public const string Orrery = "orrery";
     public static readonly string[] CarriedOff = { "signet", "sword", Library, Standard, Regalia };
     public const int PlunderOneIn = 2, PlunderLegitimacy = 1, FavourLeanBy = 2, FavourOneIn = 10, FavourFrom = -10, FavourTo = 19, FavourCost = 18, FavourRegard = 4, FavourKept = 5, FavourBroken = 15, OrreryValue = 18;
-    public const string PlunderedKey = "heirlooms_plundered", SurrenderedKey = "signets_surrendered", FavourGiftsKey = "favour_gifts", FavoursOwedKey = "favours_owed", FavoursCalledKey = "favours_called", FavoursKeptKey = "favours_kept", FavoursBrokenKey = "favours_broken";
+    public const string PlunderedKey = "heirlooms_plundered", SurrenderedKey = "signets_surrendered", FavourGiftsKey = "favour_gifts", FavoursOwedKey = "favours_owed", FavoursCalledKey = "favours_called", FavoursKeptKey = "favours_kept", FavoursBrokenKey = "favours_broken", FavoursPaidKey = "favours_paid_with_a_vote";
     public const string PlunderedFlag = "heirloom_plundered", AsksFavourFlag = "gift_that_asks", AsksFavourChar = "asks_a_favour", DeclineFlag = "favour_declined";
     public const string FavourPrefix = "favour:";
 
@@ -312,43 +312,109 @@ public static partial class WealthSystem
 
     public static string FavourKey(string owerHouseId, string toHouseId) => $"{FavourPrefix}{owerHouseId}>{toHouseId}";
     public static bool FavourOwed(World w, string owerHouseId, string toHouseId) => w.Counter(FavourKey(owerHouseId, toHouseId)) > 0;
-    /// <summary>A house that owes the proposer a favour leans its way: the favour is what the gift was for.</summary>
-    public static int FavourLean(World w, string houseId, string proposerHouseId) => houseId != proposerHouseId && houseId != w.Protagonist?.HouseId && FavourOwed(w, houseId, proposerHouseId) ? FavourLeanBy : 0;
-    private static void Owe(World w, string owerHouseId, string toHouseId) { if (!FavourOwed(w, owerHouseId, toHouseId)) { w.WorldCounters[FavourKey(owerHouseId, toHouseId)] = Math.Max(1, w.Turn); Count(w, FavoursOwedKey); } }
+    /// <summary>A house that owes the proposer a favour leans its way: the favour is what the gift was for. Between two other
+    /// houses only: a house that owes the player's house a favour does not lean, it votes (<see cref="VotesFor"/>), and the
+    /// player's house votes as the player pleases.</summary>
+    public static int FavourLean(World w, string houseId, string proposerHouseId) => houseId != proposerHouseId && houseId != w.Protagonist?.HouseId && proposerHouseId != w.Protagonist?.HouseId && FavourOwed(w, houseId, proposerHouseId) ? FavourLeanBy : 0;
+
+    /// <summary>A motion that strikes at a house: a censure, an embargo, a break-up, a recall or a reconquest of it. No favour is
+    /// called in on one, either way: a house is not asked to vote against itself for what it owes (docs/WEALTH.md, "A favour owed is a vote").</summary>
+    public static bool StrikesAt(Motion m, string houseId, MotionDef? def = null) =>
+        houseId.Length > 0 && m.TargetId == houseId && (def == null || def.Target == "house") && (def?.Interest ?? m.Kind) is "censure" or "embargo" or "breakup" or "recall" or "reconquest";
+
+    /// <summary>A favour owed to the player's house is a vote (docs/WEALTH.md, "A favour owed is a vote"): a house that owes it one votes
+    /// for every motion the player's house moves while it owes it, whatever it leans, and the favour is spent at the count of the first
+    /// one it would not have voted for of its own accord. Not on a motion that strikes at that house (it waits for the next), nor while
+    /// the two are at war (it lapses at the year's end), nor from a house that has left the Reach and its Senate (it waits).</summary>
+    public static bool VotesFor(World w, Motion m, string houseId, MotionDef? def = null)
+    {
+        string? mine = w.Protagonist?.HouseId;
+        return mine != null && m.ProposerHouseId == mine && houseId != mine && FavourOwed(w, houseId, mine) && !World.Outsider(houseId)
+            && w.House(houseId) != null && PolitySystem.InReach(w, houseId) && !w.AtWar(houseId, mine) && !StrikesAt(m, houseId, def);
+    }
+
+    /// <summary>The motion now before the Senate at whose count a favour this house owes that one would be called in, or null: that
+    /// house's own, not one it moved at the asking of the house that owes (<see cref="Motion.MovedFor"/>), not one that strikes at it.</summary>
+    public static Motion? CalledOn(World w, string owerHouseId, string toHouseId) => w.AtWar(owerHouseId, toHouseId) ? null :
+        w.Motions.Where(m => m.Open && m.ProposerHouseId == toHouseId && m.MovedFor != owerHouseId && !StrikesAt(m, owerHouseId)).OrderBy(m => m.ProposedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).FirstOrDefault();
+
+    private static void Owe(World w, string owerHouseId, string toHouseId)
+    {
+        if (FavourOwed(w, owerHouseId, toHouseId)) return;
+        w.WorldCounters[FavourKey(owerHouseId, toHouseId)] = Math.Max(1, w.Turn); Count(w, FavoursOwedKey);
+        // the player comes to owe a house whose motion is already before the Senate: SenateSystem.Add told them nothing, so they are told now
+        if (owerHouseId == w.Protagonist?.HouseId && w.House(toHouseId) is { } to && CalledOn(w, owerHouseId, toHouseId) != null)
+            w.Tell("warn", $"You owe {to.Name} a favour, and its motion is before the Senate: the favour is called in at that count. Vote for it and the account is even, and its head thinks {FavourKept:+0;-0} of you; vote otherwise and its head thinks {-FavourBroken:+0;-0} of you.", "senate:chamber", to.Id);
+    }
     /// <summary>One house comes to owe another a favour for something done for it outside the giving of gifts (a pledge of votes kept).</summary>
     public static void OweFor(World w, string owerHouseId, string toHouseId) => Owe(w, owerHouseId, toHouseId);
     public static List<House> OweMe(World w, string houseId) => w.Houses.Values.Where(h => FavourOwed(w, h.Id, houseId)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
     public static List<House> IOwe(World w, string houseId) => w.Houses.Values.Where(h => FavourOwed(w, houseId, h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();
 
-    /// <summary>A motion is voted. Every favour owed to its proposer is spent on it. The player, who votes as they please, is
-    /// judged by how they voted: for it, the favour is kept; anything else, and it is remembered that they took the gift.</summary>
-    public static void FavoursCalled(World w, Motion m)
+    /// <summary>A motion is voted. Every favour owed to its proposer is spent on it, but one owed by a house the motion strikes at, or by
+    /// the house that asked for it to be moved, which waits, and one between houses at war, which lapses at the year's end. The player,
+    /// who votes as they please, is judged by how they voted: for it, the favour is kept; anything else, and it is remembered.
+    /// On a motion of the player's own house, a favour owed to it is a vote (<see cref="VotesFor"/>): <paramref name="votedFor"/> holds
+    /// each house that voted for it because it owed one, and whether it would have of its own accord. Only one that would not is spent.</summary>
+    public static void FavoursCalled(World w, Motion m, MotionDef? def = null, IReadOnlyDictionary<string, bool>? votedFor = null)
     {
         string? mine = w.Protagonist?.HouseId; var proposer = w.House(m.ProposerHouseId); if (proposer == null) return;
         foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith(FavourPrefix, StringComparison.Ordinal) && k.EndsWith(">" + proposer.Id, StringComparison.Ordinal)).OrderBy(k => k, StringComparer.Ordinal).ToList())
         {
-            string ower = key[FavourPrefix.Length..^(proposer.Id.Length + 1)]; w.WorldCounters.Remove(key); Count(w, FavoursCalledKey);
+            string ower = key[FavourPrefix.Length..^(proposer.Id.Length + 1)];
+            if (proposer.Id == mine) { VotePaid(w, m, def, key, ower, proposer, votedFor); continue; }
+            if (m.MovedFor == ower || StrikesAt(m, ower, def) || w.AtWar(ower, proposer.Id)) continue;   // it waits for the proposer's own next motion, or goes with the war
+            w.WorldCounters.Remove(key); Count(w, FavoursCalledKey);
             if (ower != mine) continue;
             var theirs = Economy.HeadOf(w, proposer); var me = w.Protagonist; bool kept = m.Votes.TryGetValue(mine!, out int cast) && cast > 0;
             Regard(w, theirs, me, kept ? FavourKept : -FavourBroken); Count(w, kept ? FavoursKeptKey : FavoursBrokenKey); w.WorldCounters.Remove(DealingsSystem.CalledKey(mine!, proposer.Id));
             DealingsSystem.Remember(w, kept ? DealingsSystem.FavourKeptKind : DealingsSystem.FavourBrokenKind, mine!, proposer.Id);
             w.Tell(kept ? "good" : "warn", kept ? $"{proposer.Name} called in the favour you owed it on its motion, and you voted for it. The account is even, and its head thinks {FavourKept:+0;-0} of you."
                 : $"{proposer.Name} called in the favour you owed it on its motion, and you did not vote for it. Its head thinks {-FavourBroken:+0;-0} of you.", "houses", proposer.Id);
-            w.Log(kept ? $"{proposer.Name} asked a favour with its gift, and you voted for its motion. The account is even." : $"{proposer.Name} asked a favour with its gift, and you did not vote for its motion. {theirs?.Name ?? "Its head"} will remember who kept the gift.");
+            w.Log(kept ? $"{proposer.Name} called in the favour your house owed it, and you voted for its motion. The account is even." : $"{proposer.Name} called in the favour your house owed it, and you did not vote for its motion. {theirs?.Name ?? "Its head"} will remember it.");
         }
+    }
+
+    /// <summary>A favour owed to the player's house, at the count of its motion: paid with a vote and spent, or kept because the house
+    /// was for the motion anyway, or waiting because the motion strikes at that house. The player is told which.</summary>
+    private static void VotePaid(World w, Motion m, MotionDef? def, string key, string ower, House mine, IReadOnlyDictionary<string, bool>? votedFor)
+    {
+        var owes = w.House(ower); if (owes == null) return;   // a house that is no more: the favour lapses at the year's end, and the player is told then
+        if (votedFor != null && votedFor.TryGetValue(ower, out bool ofItself))
+        {
+            if (ofItself) { w.Tell("info", $"{owes.Name} voted for your motion of its own accord, so the vote it owes your house is still owed, for a motion it would not vote for.", "houses", owes.Id); return; }
+            w.WorldCounters.Remove(key); Count(w, FavoursCalledKey); Count(w, FavoursPaidKey); DealingsSystem.Remember(w, DealingsSystem.FavourKeptKind, owes.Id, mine.Id);
+            w.Tell("good", $"{owes.Name} kept its word: it owed your house a vote, and voted for your motion, though it would not have of its own accord. The favour is spent.", "houses", owes.Id);
+            w.Log($"{owes.Name} votes for the motion of {mine.Name}, as it owed {mine.Name} a vote.");
+        }
+        else if (StrikesAt(m, ower, def))
+            w.Tell("info", $"Your motion strikes at {owes.Name}, so the vote it owes your house is not asked of it here: it waits for your next motion.", "houses", owes.Id);
     }
 
     /// <summary>A head with a motion before the Senate sometimes sends an orrery to the head of a weighty house that is not
     /// yet a friend. Kept, it is a favour owed: that house leans for the motion. Sent to the player, it asks for an answer.</summary>
-    private static void GiftsThatAsk(World w)
+    /// <summary>The answers to a gift that the reports give with a flag (a_gift_that_asks_a_favour, and the plate sent to mend a quarrel):
+    /// said it buys nothing, the favour it asked is gone; sent back, the thing and the favour both. Read when the Senate sits, before its
+    /// count (SenateSystem.Tick), so that a vote the player said was not for sale is not judged at the count of the giver's motion; and at
+    /// the year's gifts, as before.</summary>
+    public static void Answered(World w)
     {
         string? mine = w.Protagonist?.HouseId;
         if (w.WorldFlags.Remove(DeclineFlag) && mine != null) foreach (var h in IOwe(w, mine).Where(h => Economy.HeadOf(w, h) is { } hd && hd.Flags.Contains(AsksFavourChar))) w.WorldCounters.Remove(FavourKey(mine, h.Id));
+        if (w.WorldFlags.Remove(SendBackFlag) && mine != null && w.Heirlooms.Where(h => h.Id.StartsWith("gift_", StringComparison.Ordinal) && w.Char(h.HolderId)?.HouseId == mine).OrderByDescending(h => h.Id.Length).ThenByDescending(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.House(h.FromHouseId) != null) is { } back)
+        { w.Heirlooms.Remove(back); Count(w, SentBackKey); w.WorldCounters.Remove(FavourKey(mine, back.FromHouseId)); }
+    }
+
+    private static void GiftsThatAsk(World w)
+    {
+        string? mine = w.Protagonist?.HouseId;
+        Answered(w);
         foreach (var a in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != mine && h.Treasury.Credits >= MendAt).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             var head = Economy.HeadOf(w, a); if (head?.Alive != true || !w.Motions.Any(m => m.Open && m.ProposerHouseId == a.Id)) continue;
             if (Hash($"{a.Id}:{w.Turn}:favour") / 7 % FavourOneIn != 0) continue;
-            var to = w.Houses.Values.Where(b => b.Id != a.Id && !World.Outsider(b.Id) && !w.AtWar(a.Id, b.Id) && !FavourOwed(w, b.Id, a.Id)).Select(b => (b, c: Economy.HeadOf(w, b))).Where(x => x.c is { Alive: true })
+            // not to a house its motion strikes at: nobody is asked to vote for their own censure
+            var to = w.Houses.Values.Where(b => b.Id != a.Id && !World.Outsider(b.Id) && !w.AtWar(a.Id, b.Id) && !FavourOwed(w, b.Id, a.Id) && CalledOn(w, b.Id, a.Id) != null).Select(b => (b, c: Economy.HeadOf(w, b))).Where(x => x.c is { Alive: true })
                 .Where(x => (w.GetRelationship(head.Id, x.c!.Id)?.Disposition ?? 0) is >= FavourFrom and <= FavourTo).OrderByDescending(x => x.b.Legitimacy).ThenBy(x => x.b.Id, StringComparer.Ordinal).Select(x => x.c!).FirstOrDefault();
             if (to == null || w.Heirlooms.Any(h => h.Kind == Orrery && h.FromHouseId == a.Id && h.OfHouseId == to.HouseId)) continue;
             if (Refuses(w, to, head, RefuseFavourAt, mine)) continue;   // they will not be put under an obligation to this house
@@ -409,16 +475,24 @@ public static partial class WealthSystem
         else { var suit = SuitBetween(w, mine.Id, theirs.Id)!; suit.Consent = Math.Clamp(suit.Consent + FavourConsent, 0, 100); Count(w, FavoursForMatchKey); w.Log($"{me.Name} calls in what {theirs.Name} owes: the family looks more kindly on the match."); }
     }
 
-    /// <summary>A favour nobody has called in is forgotten after <see cref="FavourYears"/> years.</summary>
+    /// <summary>A favour nobody has called in is forgotten after <see cref="FavourYears"/> years; one between two houses at war is gone
+    /// with the war; one owed by or to a house that is no more is gone with it. The player is told of their own, and why.</summary>
     private static void LapseFavours(World w)
     {
         string? mine = w.Protagonist?.HouseId;
         foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith(FavourPrefix, StringComparison.Ordinal)).OrderBy(k => k, StringComparer.Ordinal).ToList())
         {
-            if (w.Turn - w.Counter(key) < FavourYears) continue; w.WorldCounters.Remove(key); Count(w, FavoursLapsedKey);
-            var parts = key[FavourPrefix.Length..].Split('>'); if (parts.Length != 2 || mine == null) continue;
-            if (parts[1] == mine && w.House(parts[0]) is { } ower) w.Log($"What {ower.Name} owed you has gone too long uncalled, and is forgotten.");
-            else if (parts[0] == mine && w.House(parts[1]) is { } owed) w.Log($"What you owed {owed.Name} for its gift is no longer spoken of.");
+            var parts = key[FavourPrefix.Length..].Split('>'); if (parts.Length != 2) continue;
+            var ower = w.House(parts[0]); var owed = w.House(parts[1]);
+            bool gone = ower == null || owed == null, war = !gone && w.AtWar(parts[0], parts[1]), old = w.Turn - w.Counter(key) >= FavourYears;
+            if (!gone && !war && !old) continue;
+            w.WorldCounters.Remove(key); w.WorldCounters.Remove(DealingsSystem.CalledKey(parts[0], parts[1])); Count(w, FavoursLapsedKey);
+            if (mine == null || (parts[0] != mine && parts[1] != mine)) continue;
+            bool toMe = parts[1] == mine; var other = toMe ? ower : owed;
+            string line = gone ? (toMe ? "A house that owed yours a favour is no more, and the favour is gone with it." : "A house your house owed a favour is no more, and the favour is gone with it.")
+                : war ? (toMe ? $"You are at war with {other!.Name}: the vote it owed your house will not be given, and the favour is gone." : $"You are at war with {other!.Name}: the favour your house owed it is gone.")
+                : toMe ? $"What {other!.Name} owed your house has gone {Counted.Years(FavourYears)} unspent, and is forgotten." : $"What your house owed {other!.Name} has gone {Counted.Years(FavourYears)} uncalled, and is no longer spoken of.";
+            w.Tell("info", line, "houses", other?.Id ?? ""); w.Log(line);
         }
     }
 }

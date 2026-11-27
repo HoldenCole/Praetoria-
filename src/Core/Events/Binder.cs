@@ -25,7 +25,9 @@ public static class Binder
     /// the subject of a secret for sale, the two guests at your feast) are here too: a relative struck from the line is still of the house.</summary>
     private static readonly HashSet<string> OutsideParts = new(StringComparer.Ordinal)
     { "buyer", "rival_house", "envoy", "intruder", "giver", "debtor", "claimant", "grandee", "pretender", "coalition_head", "envious", "friend", "sovereign",
-      "classmate", "veteran", "young", "sitter", "subject", "guest", "other_guest" };
+      "classmate", "veteran", "young", "sitter", "subject", "guest", "other_guest",
+      // a whip who comes to buy the house's vote, and the one it borrows from: a favour or a vote owed between them is between two houses (docs/events/votes.md, "Promises")
+      "whip", "lender", "creditor" };
 
     public static Binding? TryBind(EventDef def, World world, IRng rng)
     {

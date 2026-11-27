@@ -23,8 +23,16 @@ public static class VoteMarks
     /// <summary>A relative's candidacy the head has answered (one_of_yours_stands_for_office): set by the report, struck by the ladder when
     /// the candidacy is counted or withdrawn (LadderSystem), so one candidacy is one report and not one a year until the count.</summary>
     public const string StandingHeardChar = "standing_heard";
-    // a bargain struck in a report (a_vote_for_a_vote, a_bought_vote_called_in), made a favour owed at the next session (Bargains)
+    // a bargain struck in a report (a_vote_for_a_vote, a_bought_vote_called_in), made a favour owed as the choice is made (Bargains)
     public const string VoteOwedChar = "owes_you_a_vote", VotePromisedChar = "promised_your_vote";
+    /// <summary>A vote a report has someone of another house give your house for later (their house's voice, a favour named later, a vote
+    /// when the time comes): made a favour that house owes yours, which is a vote (WealthSystem.VotesFor).</summary>
+    public const string HouseOwesChar = "their_house_owes_you_a_vote";
+    /// <summary>On everyone of a house with which no new bargain is to be had: it owes the player's house a favour or is owed one (a house
+    /// owes another one favour at a time, WealthSystem.OweFor, so a second would be nothing), or the player broke their word on a vote to
+    /// it in the last <see cref="DealingsSystem.PledgeMemoryYears"/> years (it takes no word of theirs). The reports that strike a bargain
+    /// read it. Rewritten every session, and set when a report makes a bargain.</summary>
+    public const string BargainBarredChar = "no_bargain_with_you";
 
     private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar };
     private static readonly string[] SessionFlags = { AbstainedFlag, PurseOutFlag, ActAgainstFlag };
@@ -40,20 +48,34 @@ public static class VoteMarks
         foreach (var c in w.Characters.Values) foreach (var f in SessionChars) c.Flags.Remove(f);
     }
 
-    /// <summary>A bargain made in a report becomes a favour owed, which the Senate already keeps (WealthSystem, "A gift that asks"),
-    /// before this session's motions are counted. A head marked <see cref="VoteOwedChar"/> gave their word for yours: their house owes
-    /// yours a vote (it leans for your next motion, and the favour is spent at its count), and yours owes theirs one (at the count of
-    /// their motion your vote is judged: for it, kept; anything else, broken). A head marked <see cref="VotePromisedChar"/> was only
-    /// told you would vote for their motion: yours owes theirs. The marks go once they are favours.</summary>
+    /// <summary>A bargain made in a report becomes what the Senate already keeps, as the choice is made (EventEngine.Resolve; and at the
+    /// session, before the count, for a mark left from before). A head marked <see cref="VoteOwedChar"/> gave their word for yours: their
+    /// house owes yours a vote (a favour, which votes for your motions: WealthSystem.VotesFor), and your word on their motion now before
+    /// the Senate is a pledge (DealingsSystem), your vote declared for it and judged at its count. Someone marked <see cref="HouseOwesChar"/>
+    /// gave your house a vote for later: their house owes yours a favour. A head marked <see cref="VotePromisedChar"/> was told you would
+    /// vote for their motion: yours owes theirs. The house keeps its word if the one who gave it has died since. The marks go.</summary>
     public static void Bargains(World w, string? mine)
     {
-        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
-            bool both = c.Flags.Remove(VoteOwedChar); c.Flags.Remove(VotePromisedChar);
-            if (mine == null || !c.Alive || c.HouseId == mine || w.House(c.HouseId) == null || World.Outsider(c.HouseId)) continue;
-            WealthSystem.OweFor(w, mine, c.HouseId);
-            if (both) WealthSystem.OweFor(w, c.HouseId, mine);
+            bool both = c.Flags.Remove(VoteOwedChar), promised = c.Flags.Remove(VotePromisedChar), owes = c.Flags.Remove(HouseOwesChar);
+            if (mine == null || c.HouseId == mine || w.House(c.HouseId) is not { } theirs || World.Outsider(c.HouseId)) continue;
+            if (both) Word(w, mine, theirs);
+            if (promised) WealthSystem.OweFor(w, mine, theirs.Id);
+            if (both || owes) WealthSystem.OweFor(w, theirs.Id, mine);
+            foreach (var x in w.LivingCharacters().Where(x => x.HouseId == theirs.Id)) x.Flags.Add(BargainBarredChar);
         }
+    }
+
+    /// <summary>The player's word on the motion of the house that gave its own: a pledge for it, the vote declared, and the player told
+    /// what it binds them to. Nothing, if that house's motion is no longer before the Senate.</summary>
+    private static void Word(World w, string mine, House theirs)
+    {
+        var m = SenateSystem.Docket(w).FirstOrDefault(x => x.ProposerHouseId == theirs.Id); if (m == null) return;
+        if (DealingsSystem.PledgeOn(w, mine, m.Id) is { } given && given.ToHouseId == theirs.Id) return;
+        DealingsSystem.GiveWord(w, mine, theirs.Id, m, 1);
+        w.Tell("warn", $"You gave {theirs.Name} your word: your vote on its motion is declared for it. Keep it at the count and its head thinks {DealingsSystem.PledgeKeptRegard:+0;-0} of you; "
+            + $"change it and its head thinks {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you, it is written down, and {theirs.Name} takes no word of yours on a vote for {Praetoria.Core.Counted.Years(DealingsSystem.PledgeMemoryYears)}. In return {theirs.Name} owes your house a vote.", "senate:chamber", theirs.Id);
     }
 
     /// <summary>Who has a motion on the docket, who moves against the player's house, and on the player's own motion who has not
@@ -63,13 +85,17 @@ public static class VoteMarks
         w.WorldFlags.Remove(MyMotionFlag);
         foreach (var c in w.Characters.Values) foreach (var f in DocketChars) c.Flags.Remove(f);
         if (mine == null) return;
+        // who stands in a favour with the player's house, either way, or has had the player's word broken to it lately
+        var standing = w.Houses.Values.Where(h => h.Id != mine && (WealthSystem.FavourOwed(w, h.Id, mine) || WealthSystem.FavourOwed(w, mine, h.Id)
+            || DealingsSystem.Remembered(w, DealingsSystem.PledgeBrokenKind, mine, h.Id).Any(d => w.Turn - d.Turn < DealingsSystem.PledgeMemoryYears))).Select(h => h.Id).ToHashSet();
+        foreach (var c in w.Characters.Values) { if (c.Alive && standing.Contains(c.HouseId)) c.Flags.Add(BargainBarredChar); else c.Flags.Remove(BargainBarredChar); }
         foreach (var m in SenateSystem.Docket(w).ToList())
         {
             if (m.ProposerHouseId == mine)
             {
                 w.WorldFlags.Add(MyMotionFlag);
                 foreach (var h in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
-                    if (!m.Votes.ContainsKey(h.Id) && senate.Lean(w, m, h.Id) == 0 && Head(w, h.Id) is { } undecided) undecided.Flags.Add(UndecidedChar);
+                    if (!m.Votes.ContainsKey(h.Id) && !senate.Owes(w, m, h.Id) && senate.Lean(w, m, h.Id) == 0 && Head(w, h.Id) is { } undecided) undecided.Flags.Add(UndecidedChar);   // a house that owes yours a vote has made up its mind
                 continue;
             }
             if (SenateSystem.IsPetition(m) || Head(w, m.ProposerHouseId) is not { } mover) continue;

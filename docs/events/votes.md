@@ -62,8 +62,10 @@ lives a year, set where the moment happens, in a system this theme owns.
 | `LadderSystem.Hold` | `beat_yours_at_the_count` (char) | the winners of a rung one of the player's house stood for and lost | at the count | with `ladder_election_held` |
 | " | `lost_at_the_count` (char, round 1) | the one of the player's house who stood for that rung and lost to someone of another house | at the count | with `ladder_election_held`; round 2: one pair of victor and loser is live at a time, so where two of the house lose on two rungs of one count the second rung's pair replaces the first's (`VoteMarks.LadderCounted`) and no report pairs one rung's victor with the other's loser |
 | `LadderSystem.Tick` (round 2) | `standing_heard` (char, set by report 10) | a relative whose candidacy you have answered | by the report | struck when they no longer stand (counted or withdrawn), so one candidacy is one report |
-| `VoteMarks.Bargains`, at the start of `SenateSystem.Tick` (round 1) | `owes_you_a_vote` (char, set by report 1) | a head who gave their word for yours | by the report | made two favours owed (`WealthSystem.OweFor`): their house owes yours a vote, which leans it +2 for your next motion (`FavourLean`) and is spent at that count; yours owes theirs one, which the count of their motion judges (+5 regard kept, -15 broken: `FavoursCalled`). The mark goes. |
-| " | `promised_your_vote` (char, set by report 2) | a head you told you would vote for their motion | by the report | made one favour owed by your house, judged at their count. The mark goes. |
+| `VoteMarks.Bargains`, as the choice is made (`EventEngine.Resolve`) and at the start of `SenateSystem.Tick` (round 1; the promises, 2026-11-27) | `owes_you_a_vote` (char, set by report 1) | a head who gave their word for yours | by the report | their house owes yours a favour, which is a vote for your motions (`WealthSystem.VotesFor`, see "Promises"); your word on their motion is a pledge, your vote declared for it and judged at its count (+3 kept, -15 broken: `DealingsSystem.MotionCounted`). The mark goes. |
+| " | `promised_your_vote` (char, set by report 2, and by `the_debt_called`) | a head you told you would vote for their motion | by the report | made one favour owed by your house, judged at their count. The mark goes. |
+| " | `their_house_owes_you_a_vote` (char, set by `a_favour_repaid`, `the_whip`, `the_envoys_friend`) | someone who gave your house a vote for later | by the report | made a favour their house owes yours. The mark goes. |
+| `VoteMarks.Docket`, every session, and `Bargains` | `no_bargain_with_you` (char) | everyone of a house that owes yours a favour or is owed one, or to which you broke your word on a vote in the last 8 years | rewritten every session | the reports that strike a bargain are closed to them. |
 | `ElectionSystem` (round 1) | `dined_with_you` (char, set by report 15) | the Senior Consul at whose table you were seen | by the report | spent the first time they would veto a motion of yours (`RivalVetoes`), which they let stand; struck out at the next consular count |
 | " | `lost_to_yours_at_the_count` (char) | the losers of a rung one of the player's house won | at the count | with `ladder_election_held` |
 
@@ -94,15 +96,17 @@ credits 2 to 8, public trust 1 or 2, an estate 3 to 6. A credit amount is hundre
 **1. `a_vote_for_a_vote` "A Vote for a Vote"** (thread A, step 1). Situation, weight 4, repeatable.
 - Fires: a motion is on the docket (`motion_open`), turn 3 or later. Role `senator`: `moves_a_motion` and not
   `moves_against_you` (nobody trades a vote on a censure of your own house), thinks -15 or better of you, and is not already in a
-  bargain with you (`owes_you_a_vote` and `bought_your_vote` both unset).
+  bargain with you (`owes_you_a_vote`, `bought_your_vote` and `no_bargain_with_you` all unset: no favour stands between the houses,
+  and you have not broken your word to theirs in eight years).
 - What happened: the head of a house with a motion before the Senate comes to count heads, and offers its own vote on your next
   motion for yours on this one.
 - Choices:
-  - Give your word, and take theirs: their regard +6, your stress +1; arms `owes_you_a_vote` on them. At the next session, before
-    the count, `VoteMarks.Bargains` makes it two favours owed (round 1: the flag was read by nothing, so the vote the text
-    promised was never cast). Their house leans +2 your way on your next motion, which is most of a vote, and the favour is spent
-    at its count; your vote on their motion is judged at its count, +5 regard if you vote for it, -15 if not. The body and the
-    label say both. (+6: a pledge of seats at the consulship is +8, ElectionSystem.PledgeRegard; a word not yet kept is a little less.)
+  - Give your word, and take theirs: their regard +6, your stress +1; arms `owes_you_a_vote` on them, which `VoteMarks.Bargains`
+    makes good as the choice is made (round 1: the flag was read by nothing; the promises, 2026-11-27: see "Promises" below).
+    Their house votes for your next motion, whichever way it leans, unless it strikes at it; your vote on their motion is
+    declared for it, a pledge judged at its count, +3 regard if you keep it, -15 if not, written down, and no word of yours taken
+    by that house for eight years. The body and the label say both. (+6: a pledge of seats at the consulship is +8,
+    ElectionSystem.PledgeRegard; a word not yet kept is a little less.)
   - Tell them a vote costs more than a vote (not for the Honorable or the Just; needs their house to have 400 credits): +4 credits
     from their treasury to yours, legitimacy -1, their regard +2; arms `bought_your_vote`. (4: below the 5 that buying the cheapest
     house's vote costs, SenateSystem.BribeCredits; it was offered at your door. -1: a bought vote that comes out costs 3; one taken
@@ -422,3 +426,68 @@ seventeen kinds; the most fired is still `a_vote_for_a_vote` (87, 1.1%). `an_old
 test covers it); `the_vote_still_undecided`, `an_old_grudge_against_your_motion` and `your_colleague_the_consul` fired once each, now
 that each binds only where it can do what it says. The ladder's own file is back to 8.1% of all reports (7.7% after round 1, 10.0% in
 the baseline) with the count-day reports at 20; the Senate's is at 6.8% (6.9%).
+
+## Promises
+
+The owner said "Make sure the vote promises actually work" (promises-brief.md). The rule: every promise about a vote that the
+game makes is kept by the engine; only where one cannot sensibly be kept are the words changed to say what happens. Each promise
+below is proved in `tests/VotePromisesTests.cs` the way a player makes it (the report gathered by the event engine and the
+choice applied through it, or the command the window sends), then the real session and count (`SenateSystem.Tick`); each test was
+run with its hook taken out and failed.
+
+### The bargain group (2026-11-27)
+
+**The rule these rest on: a favour owed to your house is a vote** (`WealthSystem.VotesFor`, read by `SenateSystem.Owes`). A house
+that owes your house a favour votes for every motion your house moves while it owes it, whatever it leans, and the favour is spent
+at the count of the first motion it would not have voted for of its own accord. The whip count (`Stance`, shown as declared, with
+the line "votes for it: it owes your house a favour"), the forecast before a motion is moved (`Forecast`), the tally and the count
+all read the one rule, so they agree. A bench does not follow its leader's owed vote, as it does not follow a bought one
+(`LeaderStance`): that is the leader's debt, not the bench's, and without it the forecast and the count parted on the members. It
+is not asked on a motion that strikes at that house (a censure, an embargo, a break-up, a recall or a reconquest of it): the favour
+waits for your next motion, and you are told so. It lapses at the year's end, with a notice that says why, if the two houses are at
+war, if either house is gone, or after 8 years (`WealthSystem.FavourYears`, as before: no motion of yours in eight years that it
+would not have voted for anyway). The favour is the house's, so a new head keeps it. Between two other houses a favour is still the +2 lean it
+was (`FavourLean`), but not on a motion that strikes at the house that owes it, where it is not spent either; on your motion it
+is a vote. At the count you are told "X kept its word" when the favour bought the
+vote, and that it is still owed when the house was for the motion anyway; the house page counts the favours paid with a vote.
+
+Why "spent only where it changes the vote": the sweep found that a favour spent on whichever motion came next, even one the house
+would have carried anyway, was not the favour that waits until you need it that the house page and *A Favour Repaid* promise. A
+house for your motion of itself gives up nothing by voting for it, so it still owes.
+
+**The favour you owe** is judged as before at the count of that house's next motion (+5 kept, `FavourKept`; -15 broken,
+`FavourBroken`), with three repairs: you are reminded when you come to owe a house whose motion is already before the Senate
+(`WealthSystem.Owe`: the notice `SenateSystem.Add` gives never fired then); it is not called in on a motion that strikes at your
+own house, nor between houses at war; and a motion struck before its count (a consul's veto, `ElectionSystem.Veto`; withdrawn for
+foreign gold, `ForeignGoldSystem`) tells you the favour waits for that house's next motion, and voids a word given on it
+(`DealingsSystem.Struck`).
+
+| Promise | Words (where) | Outcome | What keeps it now | Tests |
+|---|---|---|---|---|
+| `a_vote_for_a_vote` | "owes your house a vote ... on the next motion your house moves" (body) | now kept, body made exact | The bargain is made as the choice is (`EventEngine.Resolve` calls `VoteMarks.Bargains`; the session's call stays as a backstop), so the whip count has it at once. Their house owes yours a favour, which is a vote. The body now says "It votes for the next motion your house moves, whichever way it leans, unless that motion strikes at it." | `AVoteForAVote_TheirHouseVotesForYourNextMotion_HoweverHardItLeansAgainst`, `..._TheirWordWaitsOnAMotionThatStrikesAtThem_AndIsPaidOnTheNext`, `..._ForAMotionTheHouseLikesAnyway_TheVoteIsStillOwed`, `..._LapsesWithAWar_WithANotice`, `..._LapsesAfterEightYearsWithNoMotionOfYours_WithANotice`, `..._ANewHeadKeepsTheHousesWord_AcrossASaveAndALoad`, `AHouseThatOwesYouAVote_LeadingABench_TheForecastAndTheCountAgreeOnItsMembers` |
+| `a_vote_for_a_vote/give_your_word` | "Vote for their motion, or they will remember it"; body "the chamber keeps count of a word given and not kept"; log "the chamber will see whether both are paid" | now kept; one body phrase reworded | Your word is a vote pledged (`DealingsSystem.GiveWord`, the pledge the house window gives): your vote on their motion is declared for it, you are told what it binds you to, and the count judges it (`MotionCounted`: kept, their head +3 and it is logged; broken, -15, written down, and that house takes no word of yours on a vote for 8 years, and no new bargain is struck with it, `VoteMarks.BargainBarredChar`). Struck before the count, the word is void and you are told. "The chamber keeps count" became "a word given and not kept is written down, and {senator.house} takes no word of yours on a vote for eight years": the chamber as a whole keeps no count in the engine, and giving a broken pledge a cost in legitimacy would be a new rule for every pledge in the game, which the house window's pledge does not promise. Both payments are now in the chronicle, so the log line is kept. | `AVoteForAVote_YourWordIsDeclared_YouAreReminded_AndKeepingItIsCounted`, `..._YourWordBroken_IsRememberedAndBarsTheNextBargain`, `..._TheirMotionVetoed_YourWordIsVoid_WithANotice` |
+| `a_favour_repaid/their_voice` | "Ask for their house's vote when you need it" | now kept | The choice marks the debtor `their_house_owes_you_a_vote` (`VoteMarks.HouseOwesChar`), made a favour their house owes yours: a vote, spent where it changes the vote. The +2 influence that stood in for it is gone. Closed while a favour stands between the houses. | `AFavourRepaid_TheirVoice_TheirHouseVotesForYourMotion` |
+| `a_gift_that_asks_a_favour` | "Keep it, and you will be expected to vote for it" | already kept | Judged at the giver's count (+5 / -15). Now also: you are reminded when it comes, since the motion was moved first; it is never sent to a house the giver's motion strikes at; the log no longer says "with its gift" of favours that came with none. | `AGiftThatAsks_KeptAndVotedFor_IsEven_KeptAndVotedAgainst_IsRemembered`, `AGiftThatAsks_IsNotSentToTheHouseItsMotionStrikesAt` |
+| `.../keep_it_and_promise_nothing` | "Keep it, and say plainly that it buys nothing" | now kept | `WealthSystem.Answered` reads the answer at the start of the Senate's session, before the count, as well as at the year's gifts. | `AGiftThatAsks_SaidToBuyNothing_YourVoteIsNotJudged_InTheSameYear` |
+| `.../send_it_back` | "Send it back unopened" | now kept | The same. | `AGiftThatAsks_SentBack_YourVoteIsNotJudged_InTheSameYear` |
+| `the_whip/name_your_price` | "No coin. A favour, to be named later." | now kept | The whip's house owes yours a favour (`HouseOwesChar`): named later for a vote, money or a match on its page, or left alone a vote for your motion. A whip is of another house (`Binder.OutsideParts`), and the choice is closed, with its reason, while a favour stands between the houses. The +2 influence is gone. The em dash is gone from the label and the log. | `TheWhip_AFavourNamedLater_IsOwedByTheWhipsHouse_AndVotesForYou_AlongsideASecondPromise`, `TheWhip_TheFavourCanBeNamedForSomethingElse_AndThenNoVoteIsOwed`, `TheWhip_IsNeverOfYourOwnHouse_AndAHouseAlreadyInAFavourWithYoursCannotBeAskedAgain` |
+| `the_envoys_friend/ask_for_a_vote` | "A vote, when the time comes." | now kept | The host's house owes yours a favour (`HouseOwesChar`). The +2 influence is gone; the host still thinks 4 worse of you for asking. | `TheWhip_AFavourNamedLater_..._AlongsideASecondPromise` (two promises at once) |
+| `the_debt_called/pay_with_favor` | "Pay in favour: your house will owe theirs a vote. Trade one debt for another." | reworded, and now kept | The creditor is marked `promised_your_vote`: your house owes theirs a favour, judged at its next motion (+5 / -15) or asked for in coin. "A posting, a door" and "never quite ends" are gone: there is no engine for a posting or a door owed, and a favour is settled once. A lender and a creditor are of another house (`Binder.OutsideParts`). | `TheDebtCalled_PaidInFavour_YourHouseOwesTheirsAVote_JudgedAtItsNextMotion_AcrossASaveAndALoad` |
+| `SenateSystem.Add` | "you owe it a favour: this is where it is called in" | reworded, and kept | Now "it is called in at this motion's count ... If the motion is struck before the count, the favour waits for the next one it moves", and a struck motion tells you so. Not given for a motion that strikes at your house, nor at war, where it is not called in. The veto cannot be undone to keep the old words. | `AFavourYouOwe_IsNotCalledInOnAMotionStruckBeforeTheCount_NorOnOneThatStrikesAtYou` |
+| `DealingsSystem.Lasting` | "It owes you a favour ... Uncalled, it is forgotten in year N" | reworded | It now says the favour votes for your motions and is spent on the first it would not have voted for, or can be called in; forgotten in year N, or at once at war. It cannot wait for a call alone without breaking the Senate window's and WEALTH.md's promise that a favour left alone buys a vote. The "you owe it" line says the favour is not called on a motion that strikes at your house. | `TheHousePage_SaysWhatAFavourOwedIs_AndTheCountDoesIt` |
+| `DealingsSystem.AskSays` | "declares its vote as yours is ... It calls it in on the next motion it moves" | already kept | As before; the words add "that does not strike at your house". | `AFavourAskedForAVote_TheirVoteIsDeclared_AndYoursIsAskedAtTheirNextMotion` |
+| `the_doorkeeper/ask_a_seated_friend` | "It cost a favour." | reworded | The report names no house, so no favour could be owed to anyone; the log now says the house spent some of its influence (the -1 it costs). Giving it a role would change who the report comes to. | `TheDoorkeeper_ASeatedFriend_PromisesNoFavourItCannotName` |
+| `AskAbove.Move` | "It is a favour owed", settled "by voting for the next motion it moves" | now kept | The motion moved at your asking is marked (`Motion.MovedFor`) and does not settle the favour; the patron's own next motion does, with the notice. | `AMotionMovedAtYourAsking_DoesNotSettleTheFavour_TheirOwnNextMotionDoes` |
+| `SenateScreen.Favours` | "Each leans +2 for the next motion you move" | reworded to the new rule | "Each votes for every motion you move while it owes it, whatever it leans, and the favour is spent at the count of the first it would not have voted for of its own accord; not on a motion that strikes at that house, and not while you are at war with it." The whip count shows the owed vote. | `AVoteForAVote_TheirHouseVotesForYourNextMotion_...`, `TheHousePage_...` |
+
+**Numbers.** None is new. A favour owed lapses after 8 years (`FavourYears`, as before), and at once with a war or a house gone (a
+favour is between two houses of the Senate; an enemy at war gives no vote). The word given in *A Vote for a Vote* is a pledge with
+the pledge's numbers, +3 kept, -15 broken, 8 years remembered (`PledgeKeptRegard`, `PledgeBrokenRegard`, `PledgeMemoryYears`):
+they were the house window's own, and the report's words name no other (round 1 had used the favour's +5 / -15). The favour you owe
+keeps +5 / -15. *A Favour Repaid*, the whip and the envoy's friend lose the +2 influence each had in place of the vote: the vote is
+what they give now, and a favour can be named for 1,500 credits, so the two together would be paid twice. The reports that strike a
+bargain are closed while a favour stands either way between the two houses, or for 8 years after a broken word: a house owes
+another one favour at a time (`WealthSystem.OweFor`), so a second would be nothing.
+
+**Not done here.** The whip's report does not bind the motion it whips for, so the vote you give in return for the favour is not
+judged (the label promises only the favour); *take_the_coin*'s "promise the vote" belongs to another group.

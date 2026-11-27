@@ -1006,13 +1006,14 @@ public class RegisterTests
         var (tc, w, me, mine, _) = Start(); Alone(w, mine, me); w.Heirlooms.Clear(); var (theirs, head) = Another(w, mine); var item = Item(w, me, mine, "sword");
         Assert.False(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.True(Do(w, new WealthCommand(me.Id, WealthCommand.Give, item.Id, head.Id)));
         Assert.True(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.Contains(theirs, WealthSystem.OweMe(w, mine.Id)); Assert.Equal(1, w.Counter(WealthSystem.FavoursOwedKey));
-        // on a motion of yours that house leans two further your way; on anyone else's, not at all
+        // on a motion of yours that house votes for it, whatever it leans (docs/WEALTH.md, "A favour owed is a vote"); it does not lean the further for it
         var kind = Content.Motions.Defs.OrderBy(d => d.Id, StringComparer.Ordinal).First(d => d.Target != "house");
         var m = new Motion { Id = "m_test", Kind = kind.Id, ProposerHouseId = mine.Id, ProposedTurn = w.Turn }; w.Motions.Add(m);
-        int with = tc.Senate.RawLean(w, m, theirs.Id); w.WorldCounters.Remove(WealthSystem.FavourKey(theirs.Id, mine.Id)); int without = tc.Senate.RawLean(w, m, theirs.Id);
-        Assert.Equal(without + WealthSystem.FavourLeanBy, with);
-        // when the motion is voted the favour is spent
-        w.WorldCounters[WealthSystem.FavourKey(theirs.Id, mine.Id)] = w.Turn; WealthSystem.FavoursCalled(w, m);
+        int with = tc.Senate.RawLean(w, m, theirs.Id); Assert.True(tc.Senate.Owes(w, m, theirs.Id)); Assert.Equal(1, tc.Senate.Stance(w, m, theirs.Id));
+        w.WorldCounters.Remove(WealthSystem.FavourKey(theirs.Id, mine.Id)); int without = tc.Senate.RawLean(w, m, theirs.Id);
+        Assert.Equal(without, with); Assert.False(tc.Senate.Owes(w, m, theirs.Id));
+        // when the motion is voted, a favour that bought the vote is spent
+        w.WorldCounters[WealthSystem.FavourKey(theirs.Id, mine.Id)] = w.Turn; WealthSystem.FavoursCalled(w, m, kind, new Dictionary<string, bool> { [theirs.Id] = false });
         Assert.False(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.Equal(1, w.Counter(WealthSystem.FavoursCalledKey));
     }
 
@@ -1062,7 +1063,7 @@ public class RegisterTests
         for (int y = 1; y < WealthSystem.FavourYears; y++) { w.Turn++; foreach (var h in w.Houses.Values) h.Treasury.Credits = 0; WealthSystem.Tick(w); }
         Assert.True(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.True(WealthSystem.FavourOwed(w, mine.Id, theirs.Id));
         w.Turn++; WealthSystem.Tick(w); Assert.False(WealthSystem.FavourOwed(w, theirs.Id, mine.Id)); Assert.False(WealthSystem.FavourOwed(w, mine.Id, theirs.Id)); Assert.Equal(2, w.Counter(WealthSystem.FavoursLapsedKey));
-        Assert.Contains(w.History, h => h.Text.Contains("gone too long uncalled"));
+        Assert.Contains(w.History, h => h.Text.Contains("unspent, and is forgotten")); Assert.Contains(w.History, h => h.Text.Contains("uncalled, and is no longer spoken of"));
     }
 
     [Fact]

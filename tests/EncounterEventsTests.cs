@@ -309,9 +309,8 @@ public class EncounterEventsTests
         Assert.True(Binds(w, "a_favour_repaid", "debtor", poor)); Assert.True(Eligible(w, "a_favour_repaid"));
         // kept owed, it stands; asked for, it is spent
         Take(w, Fire(w, "a_favour_repaid", ("debtor", poor)), "not_yet"); Assert.Contains("owes_you_a_favour", poor.Flags);
-        int influence = w.House(me.HouseId)!.Treasury.Get(Resource.Influence);
-        Take(w, Fire(w, "a_favour_repaid", ("debtor", poor)), "their_voice");
-        Assert.DoesNotContain("owes_you_a_favour", poor.Flags); Assert.Equal(influence + 2, w.House(me.HouseId)!.Treasury.Get(Resource.Influence));
+        Take(w, Fire(w, "a_favour_repaid", ("debtor", poor)), "their_voice");   // their house's vote: a favour their house owes yours, which votes for your motion (tests/VotePromisesTests.cs)
+        Assert.DoesNotContain("owes_you_a_favour", poor.Flags); Assert.True(WealthSystem.FavourOwed(w, poor.HouseId, me.HouseId));
         // taken in, they are of your house
         var (w2, me2, p2) = Landless(); Take(w2, Fire(w2, "a_house_without_lands", ("claimant", p2)), "take_them_in"); Assert.Equal(me2.HouseId, p2.HouseId);
         EveryChoice("a_house_without_lands", () => { var (x, _, p) = Landless(); return (x, Fire(x, "a_house_without_lands", ("claimant", p))); });
