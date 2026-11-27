@@ -21,10 +21,10 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
-  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.screen.window .rung, .cw-tabs .rung')].find(e => e.innerText.toLowerCase().startsWith(n.toLowerCase())); if (t) t.click(); }, name); await page.waitForTimeout(500); };
+  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.screen.window .rung, .cw-tabs .rung, .screen.window .ui-tabs .ui-tab')].find(e => e.innerText.toLowerCase().startsWith(n.toLowerCase())); if (t) t.click(); }, name); await page.waitForTimeout(500); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.profile-x') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const confirm = async () => { await page.waitForTimeout(300); const said = await page.evaluate(() => { const b = document.querySelector('[data-confirm="yes"]'); if (!b) return 'no question was asked'; const q = (b.closest('.confirm-box') || {}).innerText || ''; b.click(); return q.replace(/\s+/g, ' ').slice(0, 400); }); console.log('  asked: ' + said); await page.waitForTimeout(600); const out = await page.evaluate(() => { const o = document.querySelector('[data-outcome-ok]'); const t = o ? (o.closest('.confirm-box') || {}).innerText || '' : ''; if (o) o.click(); return t.replace(/\s+/g, ' ').slice(0, 300); }); if (out) console.log('  outcome: ' + out); await page.waitForTimeout(300); };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   let named = [];
   const succession = async label => {   // the succession screen, if one is up: what it hands down, a picture, and on
     const s = await page.evaluate(() => { const e = document.querySelector('.epilogue.succession'); if (!e) return null; const f = e.querySelector('[data-inherited-friends]'), n = e.querySelector('[data-inherited-enemies]'); return { friends: f ? f.innerText.replace(/\s+/g, ' ') : '', enemies: n ? n.innerText.replace(/\s+/g, ' ') : '', all: e.innerText.replace(/\s+/g, ' ').slice(0, 300) }; });
@@ -60,7 +60,7 @@ require('fs').mkdirSync(shots, { recursive: true });
 
   // 3. strike a grown relative from the line, on the Dynasty window
   await rail('Dynasty'); await page.waitForTimeout(900);
-  const nodes = await page.$$('.tree g.tn:not(.me):not(.dead)'); let struck = ''; const can = [];
+  const nodes = await page.$$('.tree .tn:not(.me):not(.dead)'); let struck = ''; const can = [];
   for (let k = 0; k < nodes.length; k++) {
     await nodes[k].click(); await page.waitForTimeout(350);
     const b = await page.evaluate(() => { const s = document.querySelector('[data-strike]'); return s ? { id: s.getAttribute('data-strike'), ok: !s.disabled, tip: s.title || '', label: s.innerText.trim() } : null; });
@@ -97,7 +97,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   };
   // 4. lay the house down, so the heir takes it up: what the old head's friends and enemies now think of them
   await rail('You'); await page.waitForTimeout(500); await tab('A life');
-  const laid = layDown && await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.life button')].find(e => !e.disabled && e.innerText.trim().startsWith('Lay the house down')); if (b) b.click(); return !!b; });
+  const laid = layDown && await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.life button')].find(e => !e.disabled && e.innerText.trim().startsWith('Step down')); if (b) b.click(); return !!b; });
   let handed = false;
   if (laid) { await page.waitForTimeout(400); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => !e.disabled && e.innerText.trim().startsWith('Yes, lay it down')); if (b) b.click(); }); await page.waitForTimeout(1200); handed = await succession('the house laid down'); if (handed) await profileCheck(); }
   else console.log(layDown ? 'the head may not lay the house down yet: playing on until the seat passes' : 'playing on until the seat passes');

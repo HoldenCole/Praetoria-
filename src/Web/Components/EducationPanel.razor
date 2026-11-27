@@ -6,87 +6,115 @@
     var young = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age < EducationSystem.Adult).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
     var grown = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= EducationSystem.Adult).OrderByDescending(c => c.Skills.Values.DefaultIfEmpty(0).Max()).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
     int bill = w.LivingCharacters().Where(c => c.HouseId == house.Id).Sum(c => EducationSystem.TutorCost(c.Tutor));
+    int atLessons = young.Count(c => c.Age >= EducationSystem.SchoolAge);
     string Best(Character x) => x.Skills.Count(kv => kv.Value > 0) == 0 ? "nothing yet" : string.Join(", ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(4).Select(kv => $"{kv.Key} {kv.Value}"));
 }
-<section class="panel education">
-    <h3><Icon Name="dynasty" Size="13" /> Upbringing and learning <span class="muted">@young.Count(c => c.Age >= EducationSystem.SchoolAge) at their lessons@(bill > 0 ? $" · teachers cost {Money.Show(bill)} a year" : "")</span></h3>
-    <div class="muted small">Nobody has to be managed. A child is brought up toward what they show a bent for, and a grown person studies what they choose. You can set a child a different course, and pay for a teacher for anyone.</div>
-
+@* Upbringing and learning (docs/EDUCATION.md) on the Dynasty window: each child as a face, their bent, what they learned and what they
+   learn this year, what they think of you for it, and their course and tutor as joined plates; then the grown, what they study, and
+   what you may ask of them. "panel education", its .suit and .suit-who blocks and the data-course and data-tutor plates are what
+   tools/browser reads. *@
+<div class="panel education dy-edu">
+    <p class="ui-lede dy-lede">@LawsScreen.Bold($"{(atLessons == 0 ? "No child of the house is at their lessons" : $"{atLessons} {(atLessons == 1 ? "child is" : "children are")} at their lessons")}{(bill > 0 ? $", and teachers cost the house {Money.Show(bill)} a year" : "")}. Nobody has to be managed: a child is brought up toward what they show a bent for, and a grown person studies what they choose.")</p>
+    <Section Title="The young" Count="@young.Count.ToString()" Info="@($"Lessons begin at {EducationSystem.SchoolAge}. A child is brought up toward what they show a bent for; you can set them a different course, and pay for a tutor. Set against their bent they learn a third as fast, and hold it against you a little more each year. What a child thinks of you follows how they are raised: a point a year when they are brought up as their own bent runs, a point more for a tutor, a point lost each year they are set against it; upbringing alone takes it no higher than {EducationSystem.RaisedCap}.")"
+             IsEmpty="@(young.Count == 0)" EmptyIcon="open-book" EmptyLine="There are no children in the house.">
     @foreach (var c in young)
     {
         string cid = c.Id;
-        if (c.Age < EducationSystem.SchoolAge) { <div class="suit"><b>@c.Name</b> <span class="muted">@c.Age · too young for lessons. They begin at @EducationSystem.SchoolAge.</span></div> continue; }
+        if (c.Age < EducationSystem.SchoolAge)
+        {
+            <Row Name="@c.Name" SubText="@($"{c.Age} · too young for lessons. They begin at {EducationSystem.SchoolAge}.")" Class="suit dy-young">
+                <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
+            </Row>
+            continue;
+        }
         string bent = EducationSystem.BentGroup(c); var lesson = EducationSystem.Lesson(w, c);
-        <div class="suit">
-            <div class="suit-who">
-                <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="34" />
-                <div><b>@c.Name</b> <span class="muted">@c.Age · shows a bent for @EducationSystem.GroupName(bent)@(c.Flags.Contains(HouseholdSystem.Ward) ? " · your ward" : "")</span>
-                    <div class="muted small">Has learned: @Best(c). This year: @lesson.skill, +@lesson.points point@(lesson.points == 1 ? "" : "s") toward the next step (@c.Learning.GetValueOrDefault(lesson.skill) of @EducationSystem.Need(c.Skill(lesson.skill)) so far).</div>
-                    @if (lesson.against) { <div class="small bad">Set against their bent: they learn a third as fast, and hold it against you a little more each year.</div> }
-                    @if (c.Id != pid)
-                    {
-                        var raised = EducationSystem.Raised(w, c, w.Protagonist!); int thinks = w.GetRelationship(c.Id, pid)?.Disposition ?? 0; int sum = raised.Sum(x => x.by);
-                        <div class="muted small" data-child-thinks="@thinks" title="What a child thinks of you follows how they are raised: a point a year when they are brought up as their own bent runs, a point more for a tutor, a point lost each year they are set against it. Upbringing alone takes it no higher than @EducationSystem.RaisedCap.">Thinks <b class="@(thinks >= 20 ? "good" : thinks < 0 ? "bad" : "")">@thinks.ToString("+0;-0")</b> of you. @(raised.Count == 0 ? (thinks >= EducationSystem.RaisedCap ? "An upbringing can make them think no better of you than this." : "") : "This year's upbringing: " + string.Join(", ", raised.Select(x => (x.by > 0 ? "+" : "−") + Math.Abs(x.by) + " " + x.why)) + (raised.Count > 1 ? " (" + sum.ToString("+0;-0") + " in all)" : "") + ".")</div>
-                    }
-                    @if (c.Flags.Contains(EducationSystem.ProdigyChar)) { <div class="small good">Far ahead of their years.</div> }</div>
-            </div>
-            <div class="suit-acts"><span class="muted small">Course</span>
-                <button class="opt inline tiny @(c.Upbringing.Length == 0 ? "here" : "")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, string.Empty))">their own bent</button>
-                @foreach (var g in EducationSystem.Groups) { string grp = g; <button class="opt inline tiny @(c.Upbringing == g ? "here" : "")" title="@(g == bent ? "their bent" : "against their bent")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, grp))">@EducationSystem.GroupName(g)</button> }
-                <span class="muted small">Tutor</span>
-                @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="opt inline tiny @(c.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@(no ?? TutorTip(t))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@TutorLabel(t)</button> }
+        <div class="suit dy-blk">
+            <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" />
+            <div class="dy-blk-body">
+                <div class="suit-who"><span class="dy-blk-nm">@c.Name</span> <span class="dy-blk-sub">@c.Age · shows a bent for @EducationSystem.GroupName(bent)@(c.Flags.Contains(HouseholdSystem.Ward) ? " · your ward" : "")</span>
+                    <div class="dy-blk-sub">Has learned: @Best(c). This year: @lesson.skill, <b class="ui-up">+@lesson.points</b> point@(lesson.points == 1 ? "" : "s") toward the next step (@c.Learning.GetValueOrDefault(lesson.skill) of @EducationSystem.Need(c.Skill(lesson.skill)) so far).</div>
+                </div>
+                @if (lesson.against) { <div class="dy-blk-sub ui-down">Set against their bent: they learn a third as fast, and hold it against you a little more each year.</div> }
+                @if (c.Id != pid)
+                {
+                    var raised = EducationSystem.Raised(w, c, w.Protagonist!); int thinks = w.GetRelationship(c.Id, pid)?.Disposition ?? 0; int sum = raised.Sum(x => x.by);
+                    <div class="dy-blk-sub" data-child-thinks="@thinks" title="@($"What a child thinks of you follows how they are raised: a point a year when they are brought up as their own bent runs, a point more for a tutor, a point lost each year they are set against it. Upbringing alone takes it no higher than {EducationSystem.RaisedCap}.")">Thinks <b class="@(thinks >= 20 ? "ui-up" : thinks < 0 ? "ui-down" : "")">@thinks.ToString("+0;−0")</b> of you. @(raised.Count == 0 ? (thinks >= EducationSystem.RaisedCap ? "An upbringing can make them think no better of you than this." : "") : "This year's upbringing: " + string.Join(", ", raised.Select(x => (x.by > 0 ? "+" : "−") + Math.Abs(x.by) + " " + x.why)) + (raised.Count > 1 ? " (" + sum.ToString("+0;−0") + " in all)" : "") + ".")</div>
+                }
+                @if (c.Flags.Contains(EducationSystem.ProdigyChar)) { <div class="dy-blk-sub ui-up">Far ahead of their years.</div> }
+                <div class="you-acts dy-acts suit-acts">
+                    <span class="you-lbl">Course</span>
+                    <span class="ui-seg dy-seg">
+                        <button class="@(c.Upbringing.Length == 0 ? "on" : "")" data-course="" title="Their own bent" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, string.Empty))">Their bent</button>
+                        @foreach (var g in EducationSystem.Groups) { string grp = g; <button class="@(c.Upbringing == g ? "on" : "")" data-course="@grp" title="@(g == bent ? "their bent" : "against their bent")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, grp))">@CharacterScreen.Cap(EducationSystem.GroupName(g))</button> }
+                    </span>
+                </div>
+                <div class="you-acts dy-acts">
+                    <span class="you-lbl">Tutor</span>
+                    <span class="ui-seg dy-seg">
+                    @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="@(c.Tutor == t ? "on" : "")" data-tutor="@t" disabled="@(no != null)" title="@(no != null ? LifePanel.Say(no) : TutorTip(t))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@LearningPanel.TutorLabel(t)</button> }
+                    </span>
+                </div>
             </div>
         </div>
     }
-    @if (young.Count == 0) { <div class="muted small">There are no children in the house.</div> }
+    </Section>
 
-    @if (grown.Count > 0) { <div class="hh-head"><b>The grown</b> <span class="muted small">What they study is their own choice. You may ask, and they may say no. A teacher is yours to pay for.</span></div> }
-    @foreach (var c in grown.Take(_all ? 40 : 6))
+    @if (grown.Count > 0)
     {
-        string cid = c.Id; var practice = EducationSystem.Practice(w, c);
-        <div class="suit">
-            <b>@c.Name</b> <span class="muted">@c.Age · @Best(c)</span>
-            <div class="muted small">@(c.Study.Length > 0 ? $"Studying {c.Study} ({c.Skill(c.Study)}, can reach {EducationSystem.Ceiling(c, c.Study)})" : "Has not settled on a study")@(practice.Count > 0 ? " · learning " + string.Join(", ", practice.Select(x => x.skill).Distinct()) + " by their work" : "")</div>
-            @{
+        <Section Title="The grown" Count="@grown.Count.ToString()" Info="What they study is their own choice. You may ask, and they may say no; one who would refuse may do it for a price out of your own purse, or for a word said for them. A teacher is yours to pay for, from the house treasury.">
+            <Right>@if (grown.Count > 6) { <Link Label="@(_all ? "Show fewer" : $"Show all {grown.Count}")" OnClick="() => _all = !_all" /> }</Right>
+            <ChildContent>
+            @foreach (var c in grown.Take(_all ? 40 : 6))
+            {
+                string cid = c.Id; var practice = EducationSystem.Practice(w, c);
                 var mentor = c.MentorId.Length > 0 ? w.Char(c.MentorId) : null; string under = mentor is { Alive: true } ? "Under the wing of " + mentor.Name + (mentor.HouseId == house.Id ? "" : " of " + w.House(mentor.HouseId)?.Name) + "." : "";
                 var subjects = Suggest(c); var teachers = grown.Where(t => t.Id != c.Id && new EducationCommand(pid, EducationCommand.Teach, cid, t.Id).Refusal(G.Ctx) == null).Take(2).ToList();
-            }
-            @if (under.Length > 0)
-            {
-                var noThanks = new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty).Refusal(G.Ctx); bool ofHouse = mentor is { Alive: true } && mentor.HouseId == house.Id && mentor.Id != pid;
-                <div class="muted small">@under
-                    @if (ofHouse) { string thankLabel = "Thank " + mentor!.Name.Split(' ')[0] + " · " + Money.Show(EducationSystem.ThanksCredits); <button class="opt inline tiny" disabled="@(noThanks != null)" title="@(noThanks ?? ThankTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty))">@thankLabel</button> }
+                <div class="suit dy-blk">
+                    <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" />
+                    <div class="dy-blk-body">
+                        <div class="dy-grown-hd"><span class="dy-blk-nm">@c.Name</span> <span class="dy-blk-sub">@c.Age · @Best(c)</span></div>
+                        <div class="dy-blk-sub">@(c.Study.Length > 0 ? $"Studying {c.Study} ({c.Skill(c.Study)}, can reach {EducationSystem.Ceiling(c, c.Study)})" : "Has not settled on a study")@(practice.Count > 0 ? " · learning " + string.Join(", ", practice.Select(x => x.skill).Distinct()) + " by their work" : "")</div>
+                        @if (under.Length > 0)
+                        {
+                            var noThanks = new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty).Refusal(G.Ctx); bool ofHouse = mentor is { Alive: true } && mentor.HouseId == house.Id && mentor.Id != pid;
+                            <div class="dy-blk-sub">@under
+                                @if (ofHouse) { <Plate Label="@("Thank " + First(mentor!.Name))" Small="true" CostIcon="credits" CostText="@Money.Show(EducationSystem.ThanksCredits)" Locked="@(noThanks != null)" Disabled="@(noThanks != null)" Need="@LifePanel.Say(noThanks)" ShowNeed="false" Tip="@ThankTip" OnClick="() => G.Execute(new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty))" /> }
+                            </div>
+                        }
+                        <div class="you-acts dy-acts suit-acts"><span class="you-lbl">Ask them to study</span>
+                            @foreach (var sk in subjects)
+                            {
+                                string skill = sk; var no = new EducationCommand(pid, EducationCommand.Ask, cid, skill).Refusal(G.Ctx); bool would = EducationSystem.WouldStudy(w, p, c, skill);
+                                <button class="ui-btn sm" data-ask-study="@skill" disabled="@(no != null)" title="@(no != null ? LifePanel.Say(no) : (would ? AskYes : AskNo) + " " + SkillWords.For(skill))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Ask, cid, skill))"><Icon Name="@CharacterScreen.SkillIcon(skill)" Tone="ivory" Size="14" />@CharacterScreen.Cap(skill)</button>
+                                @if (no == null && !would)
+                                {
+                                    int price = EducationSystem.StudyPrice(w, p, c, skill); var noPay = new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill).Refusal(G.Ctx);
+                                    if (price > 0)
+                                    {
+                                        int word = EducationSystem.FavourPrice(w, p, c, skill); var noWord = new EducationCommand(pid, EducationCommand.AskAndSpeak, cid, skill).Refusal(G.Ctx);
+                                        <button class="ui-btn sm" disabled="@(noPay != null)" title="@(noPay != null ? LifePanel.Say(noPay) : PayTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill))">Pay @Money.Show(price) of your own</button>
+                                        <button class="ui-btn sm" disabled="@(noWord != null)" title="@(noWord != null ? LifePanel.Say(noWord) : WordTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.AskAndSpeak, cid, skill))">A word for them<span class="ui-cost"><Icon Name="public-speaker" Tone="brass" Size="14" />@word</span></button>
+                                    }
+                                }
+                            }
+                            @foreach (var t in teachers)
+                            {
+                                string tid = t.Id; string label = "Have " + First(t.Name) + " teach them " + EducationSystem.Lesson(t, c);
+                                <button class="ui-btn sm" title="@TeachTip" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Teach, cid, tid))"><Icon Name="open-book" Tone="ivory" Size="14" />@label</button>
+                            }
+                        </div>
+                        <div class="you-acts dy-acts"><span class="you-lbl">Teacher</span>
+                            <span class="ui-seg dy-seg">
+                            @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="@(c.Tutor == t ? "on" : "")" data-tutor="@t" disabled="@(no != null)" title="@(no != null ? LifePanel.Say(no) : TutorTip(t))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@LearningPanel.TutorLabel(t)</button> }
+                            </span>
+                        </div>
+                    </div>
                 </div>
             }
-            <div class="suit-acts"><span class="muted small">Ask them to study</span>
-                @foreach (var sk in subjects)
-                {
-                    string skill = sk; var no = new EducationCommand(pid, EducationCommand.Ask, cid, skill).Refusal(G.Ctx); bool would = EducationSystem.WouldStudy(w, p, c, skill);
-                    <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? ((would ? AskYes : AskNo) + " " + SkillWords.For(skill)))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Ask, cid, skill))">@skill</button>
-                    @if (no == null && !would)
-                    {
-                        int price = EducationSystem.StudyPrice(w, p, c, skill); var noPay = new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill).Refusal(G.Ctx); string payLabel = "…for " + Money.Show(price) + " of your own";
-                        if (price > 0)
-                        {
-                            int word = EducationSystem.FavourPrice(w, p, c, skill); var noWord = new EducationCommand(pid, EducationCommand.AskAndSpeak, cid, skill).Refusal(G.Ctx); string wordLabel = "…or a word for them · " + word + " influence";
-                            <button class="opt inline tiny" disabled="@(noPay != null)" title="@(noPay ?? PayTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.AskAndPay, cid, skill))">@payLabel</button>
-                            <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? WordTip)" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.AskAndSpeak, cid, skill))">@wordLabel</button>
-                        }
-                    }
-                }
-                @foreach (var t in teachers)
-                {
-                    string tid = t.Id; string label = "Have " + t.Name.Split(' ')[0] + " teach them " + EducationSystem.Lesson(t, c);
-                    <button class="opt inline tiny" title="@TeachTip" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Teach, cid, tid))">@label</button>
-                }
-            </div>
-            <div class="suit-acts"><span class="muted small">Teacher</span>
-                @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="opt inline tiny @(c.Tutor == t ? "here" : "")" disabled="@(no != null)" title="@(no ?? TutorTip(t))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@TutorLabel(t)</button> }
-            </div>
-        </div>
+            </ChildContent>
+        </Section>
     }
-    @if (grown.Count > 6) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : $"Show all {grown.Count}")</button> }
-</section>
+</div>
 
 @code {
     private bool _all;
@@ -97,13 +125,13 @@
     private const string WordTip = "Not money: you have a word said for them in the right place. They turn to it, and think a little better of you.";
     private const string ThankTip = "A purse out of your own, to the one of the house who is bringing them on. They will think the better of you for noticing.";
     private const string TeachTip = "They take them under their wing and pass on a step every third year.";
+    private static string First(string name) => name.Split(' ')[0];
     /// <summary>Three things worth asking of them: the skills of their service and of rule that they have most room left in.</summary>
     private static List<string> Suggest(Character c)
     {
         var pool = EducationSystem.TrackSkills(c.CareerTrack).Concat(new[] { "administration", "oratory", "tactics", "economics", "diplomacy" }).Distinct();
         return pool.Where(s => s != c.Study && c.Skill(s) < EducationSystem.Ceiling(c, s)).OrderByDescending(s => EducationSystem.Ceiling(c, s) - c.Skill(s)).ThenBy(s => s, StringComparer.Ordinal).Take(3).ToList();
     }
-    private static string TutorLabel(int t) => t == 0 ? "none" : t == 1 ? $"good · {Money.Credits(EducationSystem.GoodTutorCredits)} a year" : $"the best · {Money.Credits(EducationSystem.BestTutorCredits)} a year";
     private static string TutorTip(int t) => t == 0 ? "No tutor: they learn what the year teaches them." : $"+{EducationSystem.TutorPoints(t)} point{(EducationSystem.TutorPoints(t) == 1 ? "" : "s")} a year toward the next step of what they are learning. The fee is {Money.Credits(EducationSystem.TutorCost(t))} a year from the house treasury, taken at the year's end; a tutor the treasury cannot pay leaves.";
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);
