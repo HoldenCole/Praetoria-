@@ -16,70 +16,92 @@
     void Do(BloodFeud f, string what, string champion = "") => G.Execute(new FeudCommand(pid, f.Id, what, champion));
     var champions = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= DynastySystem.AgeOfMajority && FeudSystem.TakesTheField(c)).OrderByDescending(FeudSystem.Prowess).ThenBy(c => c.Id, StringComparer.Ordinal).Take(2).ToList();
 }
+@* Blood between houses (docs/FEUD.md) on the You window: each debt of blood one entry, its arms and what it has cost, and what can be
+   done as plates; what is behind you and what runs elsewhere under them. Shown only when there is any. "panel feud" is what
+   tools/browser/feud.js reads. *@
 @if (owed.Count + owe.Count + elsewhere.Count + ended.Count > 0)
 {
-<section class="panel feud">
-    <h3><Icon Name="war" Size="13" /> Blood between houses <span class="muted">@(owed.Count > 0 ? $"{owed.Count} owed to you" : "")@(owed.Count > 0 && owe.Count > 0 ? " · " : "")@(owe.Count > 0 ? $"{owe.Count} held against you" : "")@(owed.Count + owe.Count == 0 ? "none of it yours" : "")</span></h3>
-    @foreach (var f in owed)
-    {
-        var blamed = FeudSystem.Blamed(w, f); int odds = blamed != null ? FeudSystem.DuelOdds(p, blamed) : 0;
-        string? challenge = No(f, FeudCommand.Challenge), demand = No(f, FeudCommand.Demand), lie = No(f, FeudCommand.LetLie);
-        var knife = blamed != null ? new AssassinateCommand(pid, blamed.Id, G.Content!.Friction) : null; bool canKnife = knife != null && knife.CanExecute(G.Ctx);
-        <div class="health-row">
-            <b>@f.VictimName</b>, @Years(f) · <span class="bad">@Name(f.OwingId) owes you blood</span>@(blamed != null ? $" · held against {blamed.Name}" : "")
-            <div class="muted small">@(f.Unanswered > FeudSystem.GraceYears ? $"Unanswered {f.Unanswered} years: it has cost the house {f.Shame} standing, and your near kin hold it against you. " : f.Unanswered > 0 ? $"Unanswered {Counted.Years(f.Unanswered)}. After {FeudSystem.GraceYears} it begins to cost the house standing. " : "")After @FeudSystem.LetLieYears years it is let lie whether you say so or not.@(f.Refused ? " They have refused you once: what you do now is on them." : "")</div>
-            @if (f.Asked == "offer")
-            {
-                <div class="suit-acts"><span class="small">They offer <b>@Money.Show(f.Price) credits</b> to end it.</span>
-                    <button class="opt inline" disabled="@(No(f, FeudCommand.Take) != null)" title="The money comes to the house and the debt is ended. The dead person's near kin think the less of you for it." @onclick="() => Do(f, FeudCommand.Take)">Take it</button>
-                    <button class="opt inline" title="The offer is not made twice." @onclick="() => Do(f, FeudCommand.Spurn)">Spurn it</button></div>
-            }
-            else
-            {
-                <div class="suit-acts">
-                    <button class="opt inline" disabled="@(challenge != null)" title="@(challenge ?? $"Meet them yourself, one against one. You would win about {odds} times in a hundred. The loser dies four times in ten and is otherwise wounded. However it falls, it ends there, and a death in it is nobody's to avenge. If they will not come, their house loses {FeudSystem.FieldRefusedStanding} standing.")" @onclick="() => Do(f, FeudCommand.Challenge)">Call them out@(blamed != null && challenge == null ? $" · {odds} in 100" : "")</button>
-                    @foreach (var c in champions)
-                    {
-                        var who = c; string? no = No(f, FeudCommand.Challenge, who); int o = blamed != null ? FeudSystem.DuelOdds(who, blamed) : 0;
-                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? $"{who.Name} goes in your place: about {o} in a hundred.")" @onclick="() => Do(f, FeudCommand.Challenge, who.Id)">Send @who.Name.Split(' ')[0] · @o in 100</button>
-                    }
-                    <button class="opt inline" disabled="@(demand != null)" title="@(demand ?? $"Ask {Money.Credits(f.Price)}. A house pays if it has the money twice over or you are the stronger. Taking money for the dead costs you with their near kin.")" @onclick="() => Do(f, FeudCommand.Demand)">Ask the price · @Money.Show(f.Price)</button>
-                    <button class="opt inline veto" disabled="@(!canKnife)" title="@(canKnife ? $"A hired hand for {blamed!.Name}: about {(int)(AssassinateCommand.Odds(w, p, blamed) * 100)} in a hundred, 2 agents. If the one to blame dies, the debt is paid. Anyone else of theirs is the wrong blood, and they will hold it against you in turn." : "You have not the agents, or there is nobody to reach.")" @onclick="() => G.Execute(knife!)">A knife</button>
-                    <button class="opt inline" disabled="@(lie != null)" title="@(lie ?? $"Say that it is let lie. It costs the house {Math.Max(0, FeudSystem.LetLieStanding - f.Shame)} standing, the dead person's near kin take it hard, and the other house had not expected it.")" @onclick="() => Do(f, FeudCommand.LetLie)">Let it lie</button>
+<div class="panel feud you-feud">
+    <Section Title="Blood between houses" Count="@((owed.Count + owe.Count) > 0 ? (owed.Count + owe.Count).ToString() : "")" Info="@Rule">
+        <Right><span>@(owed.Count > 0 ? $"{owed.Count} owed to you" : "")@(owed.Count > 0 && owe.Count > 0 ? " · " : "")@(owe.Count > 0 ? $"{owe.Count} held against you" : "")@(owed.Count + owe.Count == 0 ? "None of it yours" : "")</span></Right>
+        <ChildContent>
+        @foreach (var f in owed)
+        {
+            var blamed = FeudSystem.Blamed(w, f); int odds = blamed != null ? FeudSystem.DuelOdds(p, blamed) : 0; var oh = w.House(f.OwingId);
+            string? challenge = No(f, FeudCommand.Challenge), demand = No(f, FeudCommand.Demand), lie = No(f, FeudCommand.LetLie);
+            var knife = blamed != null ? new AssassinateCommand(pid, blamed.Id, G.Content!.Friction) : null; bool canKnife = knife != null && knife.CanExecute(G.Ctx);
+            <div class="you-blk owed">
+                <div class="you-blk-hd">
+                    <span class="you-blk-ic"><Icon Name="knife" Tone="ember" Size="20" /></span>
+                    <div><b>@f.VictimName</b>, @Years(f)<div class="you-blk-sub"><span class="ui-down">@Name(f.OwingId) owes you blood</span>@(blamed != null ? $" · held against {blamed.Name}" : "")</div></div>
+                    @if (oh != null) { <span class="you-arms" title="@oh.Name"><Sigil HouseId="@oh.Id" Accent="@oh.AccentColor" Size="22" /></span> }
                 </div>
-            }
-        </div>
-    }
-    @foreach (var f in owe)
-    {
-        var asker = w.Char(f.AskerId); string? offer = No(f, FeudCommand.Offer);
-        <div class="health-row">
-            <b>@f.VictimName</b> of @Name(f.WrongedId), @Years(f) · <span class="warn">held against @(FeudSystem.Blamed(w, f)?.Name ?? "your house")</span>
-            <div class="muted small">They vote against what your house moves, and nobody of theirs will marry one of yours. Sooner or later they come: with a challenge, a price, or a knife for one of your kin.</div>
-            @if (f.Asked == "price")
-            {
-                <div class="suit-acts"><span class="small">@(asker?.Name ?? "Their head") asks <b>@Money.Show(f.Price) credits</b>.</span>
-                    <button class="opt inline" disabled="@(No(f, FeudCommand.Pay) != null)" title="@(No(f, FeudCommand.Pay) ?? $"The house pays and the debt is ended. To pay is to admit it: {FeudSystem.PriceAdmits} standing.")" @onclick="() => Do(f, FeudCommand.Pay)">Pay it</button>
-                    <button class="opt inline" title="A house that is refused its price takes something else." @onclick="() => Do(f, FeudCommand.Refuse)">Refuse</button></div>
-            }
-            else if (f.Asked == "duel" && asker != null)
-            {
-                int o = 100 - FeudSystem.DuelOdds(asker, p);
-                <div class="suit-acts"><span class="small"><b>@asker.Name</b> has called you out.</span>
-                    <button class="opt inline" disabled="@(No(f, FeudCommand.Fight) != null)" title="@(No(f, FeudCommand.Fight) ?? $"You would win about {o} times in a hundred. The loser dies four times in ten. It ends there whoever falls.")" @onclick="() => Do(f, FeudCommand.Fight)">Take the field · @o in 100</button>
-                    <button class="opt inline" title="@($"Your house loses {FeudSystem.FieldRefusedStanding} standing, it is remembered of you, and what they do next is on you.")" @onclick="() => Do(f, FeudCommand.Decline)">Do not come</button></div>
-            }
-            else
-            {
-                <div class="suit-acts"><button class="opt inline" disabled="@(offer != null)" title="@(offer ?? $"Offer {Money.Credits(f.Price)} for their dead. Most heads take it. The vengeful, the cruel and the proud do not. It can be offered once.")" @onclick="() => Do(f, FeudCommand.Offer)">Offer the price · @Money.Show(f.Price)</button></div>
-            }
-        </div>
-    }
-    @if (ended.Count > 0) { <div class="muted small">Behind you: @string.Join(" · ", ended.Select(f => $"{f.VictimName}, {HowEnded(f)} in year {f.EndedTurn}"))</div> }
-    @if (elsewhere.Count > 0) { <div class="muted small">Elsewhere: @string.Join(" · ", elsewhere.Take(4).Select(f => $"{Name(f.WrongedId)} against {Name(f.OwingId)} for {f.VictimName}"))@(elsewhere.Count > 4 ? $" · and {elsewhere.Count - 4} more" : "")</div> }
-</section>
+                <p class="you-note">@(f.Unanswered > FeudSystem.GraceYears ? $"Unanswered {f.Unanswered} years: it has cost the house {f.Shame} standing, and your near kin hold it against you. " : f.Unanswered > 0 ? $"Unanswered {Counted.Years(f.Unanswered)}. After {FeudSystem.GraceYears} it begins to cost the house standing. " : "")After @FeudSystem.LetLieYears years it is let lie whether you say so or not.@(f.Refused ? " They have refused you once: what you do now is on them." : "")</p>
+                @if (f.Asked == "offer")
+                {
+                    <div class="you-acts"><span class="you-lbl">They offer <b>@Money.Credits(f.Price)</b> to end it.</span>
+                        <Plate Label="Take it" Icon="credits" Small="true" Locked="@(No(f, FeudCommand.Take) != null)" Disabled="@(No(f, FeudCommand.Take) != null)" Need="@LifePanel.Say(No(f, FeudCommand.Take))" ShowNeed="false" Tip="@TakeTip" OnClick="() => Do(f, FeudCommand.Take)" />
+                        <Plate Label="Spurn it" Small="true" Tip="The offer is not made twice." OnClick="() => Do(f, FeudCommand.Spurn)" /></div>
+                }
+                else
+                {
+                    <div class="you-acts">
+                        <Plate Label="Call them out" Icon="crossed-sabres" Small="true" CostText="@(blamed != null && challenge == null ? $"{odds} in 100" : "")" Locked="@(challenge != null)" Disabled="@(challenge != null)" Need="@LifePanel.Say(challenge)" ShowNeed="false"
+                               Tip="@CallTip(odds)" OnClick="() => Do(f, FeudCommand.Challenge)" />
+                        @foreach (var c in champions)
+                        {
+                            var who = c; string? no = No(f, FeudCommand.Challenge, who); int o = blamed != null ? FeudSystem.DuelOdds(who, blamed) : 0;
+                            <Plate Label="@("Send " + FirstName(who.Name))" Icon="crossed-sabres" Small="true" CostText="@($"{o} in 100")" Locked="@(no != null)" Disabled="@(no != null)" Need="@LifePanel.Say(no)" ShowNeed="false" Tip="@($"[crossed-sabres] Send {who.Name}\n{who.Name} goes in your place: about {o} in a hundred.")" OnClick="() => Do(f, FeudCommand.Challenge, who.Id)" />
+                        }
+                        <Plate Label="Ask the price" Icon="credits" Small="true" CostText="@Money.Show(f.Price)" Locked="@(demand != null)" Disabled="@(demand != null)" Need="@LifePanel.Say(demand)" ShowNeed="false" Tip="@($"[credits] Ask the price\nAsk {Money.Credits(f.Price)}. A house pays if it has the money twice over or you are the stronger. Taking money for the dead costs you with their near kin.")" OnClick="() => Do(f, FeudCommand.Demand)" />
+                        <Plate Label="A knife" Icon="knife" Small="true" Locked="@(!canKnife)" Disabled="@(!canKnife)" Need="You have not the agents, or there is nobody to reach." ShowNeed="false" Class="you-veto"
+                               Tip="@(canKnife ? $"[knife] A knife\nA hired hand for {blamed!.Name}: about {(int)(AssassinateCommand.Odds(w, p, blamed) * 100)} in a hundred, 2 agents. If the one to blame dies, the debt is paid. Anyone else of theirs is the wrong blood, and they will hold it against you in turn." : "[knife] A knife")" OnClick="() => G.Execute(knife!)" />
+                        <Plate Label="Let it lie" Small="true" Locked="@(lie != null)" Disabled="@(lie != null)" Need="@LifePanel.Say(lie)" ShowNeed="false" Tip="@LieTip(f)" OnClick="() => Do(f, FeudCommand.LetLie)" />
+                    </div>
+                }
+            </div>
+        }
+        @foreach (var f in owe)
+        {
+            var asker = w.Char(f.AskerId); string? offer = No(f, FeudCommand.Offer); var wh = w.House(f.WrongedId);
+            <div class="you-blk owe">
+                <div class="you-blk-hd">
+                    <span class="you-blk-ic"><Icon Name="threat" Tone="brass" Size="20" /></span>
+                    <div><b>@f.VictimName</b> of @Name(f.WrongedId), @Years(f)<div class="you-blk-sub"><span class="ui-warn-t">Held against @(FeudSystem.Blamed(w, f)?.Name ?? "your house")</span></div></div>
+                    @if (wh != null) { <span class="you-arms" title="@wh.Name"><Sigil HouseId="@wh.Id" Accent="@wh.AccentColor" Size="22" /></span> }
+                </div>
+                <p class="you-note">They vote against what your house moves, and nobody of theirs will marry one of yours. Sooner or later they come: with a challenge, a price, or a knife for one of your kin.</p>
+                @if (f.Asked == "price")
+                {
+                    <div class="you-acts"><span class="you-lbl">@(asker?.Name ?? "Their head") asks <b>@Money.Credits(f.Price)</b>.</span>
+                        <Plate Label="Pay it" Icon="credits" Small="true" Locked="@(No(f, FeudCommand.Pay) != null)" Disabled="@(No(f, FeudCommand.Pay) != null)" Need="@LifePanel.Say(No(f, FeudCommand.Pay))" ShowNeed="false" Tip="@($"[credits] Pay it\nThe house pays and the debt is ended. To pay is to admit it: {FeudSystem.PriceAdmits} standing.")" OnClick="() => Do(f, FeudCommand.Pay)" />
+                        <Plate Label="Refuse" Small="true" Tip="A house that is refused its price takes something else." OnClick="() => Do(f, FeudCommand.Refuse)" /></div>
+                }
+                else if (f.Asked == "duel" && asker != null)
+                {
+                    int o = 100 - FeudSystem.DuelOdds(asker, p);
+                    <div class="you-acts"><span class="you-lbl"><b>@asker.Name</b> has called you out.</span>
+                        <Plate Label="Take the field" Icon="crossed-sabres" Small="true" CostText="@($"{o} in 100")" Locked="@(No(f, FeudCommand.Fight) != null)" Disabled="@(No(f, FeudCommand.Fight) != null)" Need="@LifePanel.Say(No(f, FeudCommand.Fight))" ShowNeed="false" Tip="@($"[crossed-sabres] Take the field\nYou would win about {o} times in a hundred. The loser dies four times in ten. It ends there whoever falls.")" OnClick="() => Do(f, FeudCommand.Fight)" />
+                        <Plate Label="Do not come" Small="true" Tip="@($"Your house loses {FeudSystem.FieldRefusedStanding} standing, it is remembered of you, and what they do next is on you.")" OnClick="() => Do(f, FeudCommand.Decline)" /></div>
+                }
+                else
+                {
+                    <div class="you-acts"><Plate Label="Offer the price" Icon="credits" Small="true" CostText="@Money.Show(f.Price)" Locked="@(offer != null)" Disabled="@(offer != null)" Need="@LifePanel.Say(offer)" ShowNeed="false" Tip="@($"[credits] Offer the price\nOffer {Money.Credits(f.Price)} for their dead. Most heads take it. The vengeful, the cruel and the proud do not. It can be offered once.")" OnClick="() => Do(f, FeudCommand.Offer)" /></div>
+                }
+            </div>
+        }
+        @if (ended.Count > 0) { <p class="you-note"><b>Behind you:</b> @string.Join(" · ", ended.Select(f => $"{f.VictimName}, {HowEnded(f)} in year {f.EndedTurn}"))</p> }
+        @if (elsewhere.Count > 0) { <p class="you-note"><b>Elsewhere:</b> @string.Join(" · ", elsewhere.Take(4).Select(f => $"{Name(f.WrongedId)} against {Name(f.OwingId)} for {f.VictimName}"))@(elsewhere.Count > 4 ? $" · and {elsewhere.Count - 4} more" : "")</p> }
+        </ChildContent>
+    </Section>
+</div>
 }
 @code {
+    private static readonly string Rule = "A death laid at a house's door is a debt of blood. Unanswered past " + FeudSystem.GraceYears + " years it costs the house standing; after " + FeudSystem.LetLieYears + " years it is let lie whether you say so or not. A house in your debt votes against what you move and will not marry yours.";
+    private static string FirstName(string name) => name.Split(' ')[0];
+    private const string TakeTip = "[credits] Take the price\nThe money comes to the house and the debt is ended. The dead person's near kin think the less of you for it.";
+    private static string CallTip(int odds) => "[crossed-sabres] Call them out\nMeet them yourself, one against one. You would win about " + odds + " times in a hundred. The loser dies four times in ten and is otherwise wounded. However it falls, it ends there, and a death in it is nobody's to avenge. If they will not come, their house loses " + FeudSystem.FieldRefusedStanding + " standing.";
+    private static string LieTip(BloodFeud f) => "Let it lie\nSay that it is let lie. It costs the house " + Math.Max(0, FeudSystem.LetLieStanding - f.Shame) + " standing, the dead person's near kin take it hard, and the other house had not expected it.";
     protected override void OnInitialized() => G.Changed += OnChanged;
     private void OnChanged() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= OnChanged;

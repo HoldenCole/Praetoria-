@@ -5,50 +5,70 @@
     var w = G.World!; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
     var funerals = w.Funerals.OrderByDescending(f => f.Turn).ToList();
     var living = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != p.Id && c.Age >= 16).OrderBy(c => c.Health).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
+    var deaths = w.Deaths.OrderByDescending(d => d.Turn).Take(6).ToList();
+    int empty = deaths.Sum(d => d.Posts.Count);
 }
-<section class="panel funerals">
-    <h3><Icon Name="dynasty" Size="13" /> The health of the house</h3>
-    @if (living.Count == 0) { <div class="muted small">Nobody grown of the house but you.</div> }
+@* The health of the house and its dead (docs/LIFE.md) on the Dynasty window: each grown one of the house as a face with their state;
+   the dead with what they left and the posts they left empty, each with the way to fill it; and what was said over them, as quote
+   blocks. "panel funerals", its .health-row rows and .funeral entries are what tools/browser reads. *@
+<div class="panel funerals dy-fun">
+    <p class="ui-lede dy-lede">@LawsScreen.Bold(deaths.Count == 0 ? $"Nobody of the house has died in your time. {living.Count} of the grown are living{(living.Count(c => c.Health < LifeSystem.Sound) > 0 ? $", {living.Count(c => c.Health < LifeSystem.Sound)} of them ailing" : "")}." : $"{deaths.Count} of the house {(deaths.Count == 1 ? "has" : "have")} died of late{(empty > 0 ? $", and {empty} {(empty == 1 ? "post stands" : "posts stand")} empty" : "")}. {living.Count} of the grown are living.")</p>
+    <Section Title="The health of the house" Count="@living.Count.ToString()" Info="Every grown one of the house but you, the frailest first. Send your physicians to one who is ailing, from the You window."
+             IsEmpty="@(living.Count == 0)" EmptyIcon="heart-beats" EmptyLine="Nobody grown of the house but you.">
     @foreach (var c in living.Take(8))
     {
-        string epithet = LifeSystem.Epithet(c);
-        <div class="health-row" title="@($"renown {LifeSystem.Renown(c)}: {LifeSystem.RenownName(LifeSystem.Renown(c))}")">
-            <b>@c.Name</b>@(epithet.Length > 0 ? $", {epithet}" : "") <span class="muted">@c.Age</span>
-            <span class="pill small @(c.Health < LifeSystem.Frail ? "warn" : c.Health >= 80 ? "good" : "")">@LifeSystem.HealthName(c.Health)</span>
-            @if (c.Flags.Contains(LifeSystem.IllChar)) { <span class="pill small warn">ill</span> }
-            @if (c.Flags.Contains(LifeSystem.WoundedChar)) { <span class="pill small warn">wounded</span> }
-            @if (c.Flags.Contains(LifeSystem.RetiredChar)) { <span class="pill small">has laid down their work</span> }
+        string epithet = LifeSystem.Epithet(c); bool ill = c.Flags.Contains(LifeSystem.IllChar), hurt = c.Flags.Contains(LifeSystem.WoundedChar);
+        <div class="health-row dy-hrow" title="@($"Renown {LifeSystem.Renown(c)}: {LifeSystem.RenownName(LifeSystem.Renown(c))}")">
+            <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" Condition="@(ill ? "pill" : hurt ? "sticking-plaster" : "")" ConditionTip="@(ill ? "Ill" : "Wounded")" />
+            <div class="dy-hrow-who"><b>@c.Name</b>@(epithet.Length > 0 ? $", {epithet}" : "") <span>@c.Age</span></div>
+            <div class="dy-hrow-st">
+                <span class="dy-tag @(c.Health < LifeSystem.Frail ? "bad" : c.Health < LifeSystem.Sound ? "warn" : c.Health >= 80 ? "good" : "")">@LifeSystem.HealthName(c.Health)</span>
+                @if (ill) { <span class="dy-tag warn">ill</span> }
+                @if (hurt) { <span class="dy-tag warn">wounded</span> }
+                @if (c.Flags.Contains(LifeSystem.RetiredChar)) { <span class="dy-tag">has laid down their work</span> }
+            </div>
+            <Meter Value="@c.Health" Max="100" Color="@(c.Health < LifeSystem.Frail ? "#e0553f" : c.Health < LifeSystem.Sound ? "#e3a64a" : "#8cc47e")" Tip="@($"Health {c.Health} of 100")" Class="dy-hm" />
         </div>
     }
-</section>
-@if (w.Deaths.Count > 0)
-{
-    <section class="panel funerals" data-deaths>
-        <h3><Icon Name="dynasty" Size="13" /> The dead, and what they left</h3>
-        @foreach (var d in w.Deaths.OrderByDescending(d => d.Turn).Take(6))
-        {
-            <div class="funeral">
-                <b>@d.Name</b> <span class="muted">died at @d.Age in year @d.Turn@(d.How.Length > 0 ? ", " + d.How : "")</span>
-                @foreach (var post in d.Posts) { string go = post.Target; <div class="small"><span class="warnline">Left empty: @post.What.</span> <button class="opt inline tiny" @onclick="() => OnGo.InvokeAsync(go)">Fill it ▸</button></div> }
-                @foreach (var line in d.Passed) { <div class="muted small">@line</div> }
-                @if (d.Posts.Count == 0 && d.Passed.Count == 0) { <div class="muted small">They held no post of yours and left nothing that was their own.</div> }
+    </Section>
+
+    @if (deaths.Count > 0)
+    {
+        <Section Title="The dead, and what they left" Count="@deaths.Count.ToString()" Info="Who died, how, what passed to whom, and the posts they left empty, with the way to fill each.">
+            <div data-deaths>
+            @foreach (var d in deaths)
+            {
+                var dc = w.Char(d.PersonId);
+                <div class="funeral dy-death">
+                    @if (dc != null) { <Portrait Id="@dc.Id" Name="@dc.Name" Sex="@dc.Sex" Age="@dc.Age" Alive="false" Accent="@house.AccentColor" Size="46" Height="56" /> } else { <span class="dy-candle"><Icon Name="candle-light" Tone="ivory" Size="22" /></span> }
+                    <div class="dy-blk-body">
+                        <div class="dy-blk-nm">@d.Name <span class="dy-blk-sub">died at @d.Age in year @d.Turn@(d.How.Length > 0 ? ", " + d.How : "")</span></div>
+                        @foreach (var post in d.Posts) { string go = post.Target; <div class="ui-wstrip dy-strip"><Icon Name="office-chair" Tone="brass" Size="18" /><span class="ui-wstrip-t"><b>Left empty:</b> @post.What.</span><Plate Label="Fill it" Small="true" Icon="office-chair" Tip="@($"Open the window where {post.What} is filled")" OnClick="() => OnGo.InvokeAsync(go)" /></div> }
+                        @foreach (var line in d.Passed) { <div class="dy-blk-sub">@line</div> }
+                        @if (d.Posts.Count == 0 && d.Passed.Count == 0) { <div class="dy-blk-sub">They held no post of yours and left nothing that was their own.</div> }
+                    </div>
+                </div>
+            }
             </div>
-        }
-    </section>
-}
-@if (funerals.Count > 0)
-{
-    <section class="panel funerals">
-        <h3><Icon Name="dynasty" Size="13" /> What was said of the dead</h3>
-        @foreach (var f in funerals.Take(_all ? 12 : 2))
-        {
-            <div class="funeral">
-                @foreach (var (line, i) in f.Lines.Select((l, i) => (l, i))) { <div class="@(i == 0 ? "first" : "")">@line</div> }
-            </div>
-        }
-        @if (funerals.Count > 2) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : $"Show all {funerals.Count}")</button> }
-    </section>
-}
+        </Section>
+    }
+
+    @if (funerals.Count > 0)
+    {
+        <Section Title="What was said of them" Count="@funerals.Count.ToString()" Info="What was said over each of the house who was buried, the newest first.">
+            <Right>@if (funerals.Count > 2) { <Link Label="@(_all ? "Show fewer" : $"Show all {funerals.Count}")" OnClick="() => _all = !_all" /> }</Right>
+            <ChildContent>
+            @foreach (var f in funerals.Take(_all ? 12 : 2))
+            {
+                <div class="funeral dy-quote">
+                    <div class="dy-quote-hd">@f.Name@(f.Epithet.Length > 0 ? ", " + f.Epithet : "") · year @f.Turn</div>
+                    @foreach (var (line, i) in f.Lines.Select((l, i) => (l, i))) { <div class="@(i == 0 ? "first" : "")">@line</div> }
+                </div>
+            }
+            </ChildContent>
+        </Section>
+    }
+</div>
 
 @code {
     [Parameter] public EventCallback<string> OnGo { get; set; }
