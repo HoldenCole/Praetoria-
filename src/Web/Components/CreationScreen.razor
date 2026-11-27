@@ -1,186 +1,171 @@
 @inject GameClient G
 @using Praetoria.Core.Creation
+@* The title screen and the creator (docs/VISUAL_SYSTEM.md 10). The title: the key art full-bleed (img/scenes/title, the capital at dusk),
+   the logotype in Cinzel with a brass bevel, a short column of menu items in Cinzel, and the starts along the foot as framed portrait
+   plates, the protagonist's age in large numerals on each. Choosing a start opens the creator: one framed window (1080 wide where there
+   is room) built of the shared parts, the start's painting at its head with the protagonist standing in it, five figures on the plinth,
+   the character and the rules of the world as sections and rows, and the one gold plate that begins the saga at its foot. A character
+   of the player's own making opens the same window on the workshop (Workshop.razor), whose six tabs are the window's tabs. *@
+@{
+    bool open = _open || _custom;
+    var sc = _scenarios.TryGetValue(_scenario, out var s0) ? s0 : null;
+}
+<div class="title-screen fr-title @(open ? "fr-open" : "")">
+    <div class="fr-art" aria-hidden="true"><i class="fr-art-img"></i><i class="fr-art-shade"></i></div>
 
-<div class="title-screen">
-    <section class="hero">
-        <div class="hero-mark">✦</div>
-        <h1>PRAETORIA</h1>
-        <p class="tag">You don't play an empire. You play a family trying to survive one.</p>
-        <p class="ver">@PraetoriaVersion.Current · @PraetoriaVersion.Codename</p>
-        @if (HasAutosave)
-        {
-            <button class="btn primary big" data-continue="1" @onclick="OnContinue">Continue@(SaveLabel.Length > 0 ? ": " + SaveLabel : " the saved saga")</button>
-        }
-        <div class="title-acts">
+    <section class="fr-hero">
+        <h1 class="fr-logo" aria-label="Praetoria"><span class="fr-logo-t">Praetoria</span></h1>
+        <p class="fr-tag">You don't play an empire. You play a family trying to survive one.</p>
+        <nav class="fr-menu" aria-label="The title menu">
+            @if (HasAutosave)
+            {
+                <button class="fr-mi lit" data-continue="1" title="Go on with the saga saved in this browser, from the year it was saved" @onclick="OnContinue">
+                    <span class="fr-mi-t">Continue</span><small>@(SaveLabel.Length > 0 ? SaveLabel : "the saved saga")</small>
+                </button>
+            }
+            <button class="fr-mi" data-title-new="1" title="Choose a start, the character and the rules of the world, then begin" @onclick="NewSaga"><span class="fr-mi-t">New saga</span></button>
             @if (HasAutosave || KeptSaves > 0)
             {
-                <button class="btn ghost" data-title-saves="1" title="The saved sagas in this browser: the running one and the ones you kept" @onclick="OnSaves">Saved sagas@(KeptSaves > 0 ? " · " + KeptSaves + " kept" : "")</button>
-            }
-            <label class="btn ghost file">Load a save file <InputFile OnChange="OnFile" accept=".json" /></label>
-            <button class="btn ghost" data-title-settings="1" title="The size of the text, which keys act, the yearly brief" @onclick="OnSettings">Options</button>
-            <button class="btn ghost" data-title-handbook="1" title="The words the screens use, and the Academy's lectures in full" @onclick="OnHandbook">Glossary and lectures</button>
-        </div>
-    </section>
-
-    <section class="creation">
-        <div class="col">
-            <h2>The scenario</h2>
-            <div class="scenario-list">
-                <button class="scenario custom @(_custom ? "selected" : "")" @onclick="PickCustom">
-                    <div class="sc-name">A Character Of Your Own</div>
-                    <div class="sc-meta">any age, either era · every dial · a fair budget, or none</div>
-                    <div class="sc-desc">Make the person, the face, the house, what it holds and the family. Standard keeps it fair; Free lets you make anyone at all.</div>
+                <button class="fr-mi" data-title-saves="1" title="The saved sagas in this browser: the running one and the ones you kept" @onclick="OnSaves">
+                    <span class="fr-mi-t">Saved sagas</span>@if (KeptSaves > 0) { <small>@KeptSaves kept</small> }
                 </button>
-                @foreach (var id in G.ScenarioIds)
-                {
-                    var sc = _scenarios[id];
-                    <button class="scenario @(!_custom && id == _scenario ? "selected" : "")" @onclick="() => Pick(id)">
-                        <div class="sc-name">@Title(id) @if (Hardness(id) is { } hard) { <span class="pill small @hard.tone" data-hardness="@id" title="@hard.why">@hard.word</span> }</div>
-                        <div class="sc-meta">@(sc.Academy ? (sc.Era == "imperium" ? "begins at the Institute · " : "begins at the Academy · the tutorial · ") : "")@(sc.Era == "imperium" ? "the Imperium" : "the Republic") · @sc.Houses.Count houses · @sc.Characters.Count souls@(sc.Galaxy != null ? $" · {sc.Galaxy.Systems.Count} systems" : "")</div>
-                        <div class="sc-desc">@Describe(sc)</div>
-                    </button>
-                }
-            </div>
-
-            <h2>The world</h2>
-            <div class="grid2">
-                <label>Seed <input type="number" @bind="_seed" min="1" /></label>
-                <label>Mode
-                    <select @bind="_mode">
-                        <option value="ironman">Ironman — when the bloodline ends, the run ends</option>
-                        <option value="continue">Continue — a sworn house takes up the banner</option>
-                    </select>
-                </label>
-                <label>Difficulty
-                    <select @bind="_difficulty">
-                        <option value="0.5">Forgiving — rivals slow to act</option>
-                        <option value="1">Standard</option>
-                        <option value="1.5">Hard</option>
-                        <option value="2">Harsh — the galaxy hunts you</option>
-                    </select>
-                </label>
-                <label title="The Reach and every nation beyond it grow together: more systems, more houses, larger neighbours. A larger map makes for longer turns.">The size of the map
-                    <select @bind="_size" data-setting="size">
-                        @foreach (var sz in GrowthCatalog.Sizes) { <option value="@sz">@GrowthCatalog.SizeName(sz): @SizeNote(sz)</option> }
-                    </select>
-                </label>
-                <label title="How much everything that is built costs, and so what it returns, for every house. At Standard a thing returns what its kind is meant to: a market 7% a year, a mine 10%, the dear goods 15%.">Making money
-                    <select @bind="_ease" data-setting="money">
-                        @foreach (var lv in MoneySettings.Levels) { <option value="@lv">@MoneySettings.Name(lv): returns @(MoneySettings.ReturnPct(lv) == 100 ? "as priced" : "×" + (MoneySettings.ReturnPct(lv) / 100.0).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))</option> }
-                    </select>
-                    <span class="muted small" data-money-does>@MoneySettings.Does(_ease)</span>
-                </label>
-                <div class="setting-boosts" data-setting="boosts" title="For your house alone, given once when the game begins. A game begun with any of these says so in its chronicle and on the House window.">
-                    <span>Begin with <span class="muted small">(boosts: none are on unless you tick them)</span></span>
-                    @foreach (var ch in MoneySettings.Boosts)
-                    {
-                        string id = ch;
-                        <label class="boost" title="@MoneySettings.BoostDoes(ch)"><input type="checkbox" data-boost="@ch" checked="@_boosts.Contains(ch)" @onchange="e => { if (e.Value is true) _boosts.Add(id); else _boosts.Remove(id); }" /> <b>@MoneySettings.BoostName(ch)</b> <span class="muted small">@MoneySettings.BoostDoes(ch)</span></label>
-                    }
-                </div>
-                <label title="The nations that border the Reach: the Khanates, the Free Cities, the Concord, the Compact, the Crown. Each has fleets and worlds of its own on the map's rim, raids when it thinks ill of the Reach, and can be fought, bought off or subdued. This sets how strong their fleets are.">The powers beyond
-                    <select @bind="_beyond">
-                        <option value="gentle">Gentle: a fifth weaker</option>
-                        <option value="default">As written</option>
-                        <option value="harsh">Harsh: a quarter stronger</option>
-                    </select>
-                </label>
-                <label title="How readily a nation beyond the Reach goes from raiding to war: how often a great ruler rises among them, and how soon an invasion follows.">How often they attack
-                    <select @bind="_aggression">
-                        <option value="seldom">Seldom: wars from beyond are rare</option>
-                        <option value="default">As written</option>
-                        <option value="often">Often: great rulers and invasions come sooner</option>
-                    </select>
-                </label>
-                <label title="The Great Crisis is the war of the Reach with itself: as wars, over-mighty houses and seizures pile up, the houses sort into two blocs and fight for ten years or more. This sets how fast it comes. Off, it never does, and the game is the Republic's ordinary politics for as long as you play.">Crisis intensity
-                    <select @bind="_intensity">
-                        <option value="off">Off — no Great Crisis</option>
-                        <option value="low">Low — a slow-burning century</option>
-                        <option value="default">Default</option>
-                        <option value="dominant">Dominant — the war comes fast</option>
-                    </select>
-                </label>
-                <label title="How far your relatives go their own way. Deferential: they pursue nothing of their own, never stand for office unasked, never defy you and never elope. Wills of their own: they have ambitions, stand for office, marry for love if forbidden, and one who thinks ill enough of you defies you or goes over to a rival. A nest of schemers: the same, at half the provocation.">Family autonomy
-                    <select @bind="_autonomy">
-                        <option value="0">Deferential kin</option>
-                        <option value="1">Wills of their own</option>
-                        <option value="2">A nest of schemers</option>
-                    </select>
-                </label>
-            </div>
-        </div>
-
-        @if (_custom)
-        {
-        <div class="col wide">
-            <h2>A character of your own</h2>
-            <Workshop Spec="_spec" SpecChanged="s => { _spec = s; _error = null; }" />
-            @if (_error != null) { <p class="error">@_error</p> }
-            <button class="btn primary big begin" disabled="@(CharacterWorkshop.Problems(_spec, G.Content!, G.BlankWorld(_spec.Imperium)).Count > 0)" @onclick="BeginAsked">Begin the saga ▸</button>
-        </div>
-        }
-        else
-        {
-        <div class="col">
-            <h2>The character</h2>
-            <p class="hint">Leave anything blank to play the scenario's protagonist as written.</p>
-            <div class="grid2">
-                <label>Name <input @bind="_name" placeholder="@_protagonistName" /></label>
-                <label>Sex
-                    <select @bind="_sex"><option value="">as written</option><option value="male">male</option><option value="female">female</option></select>
-                </label>
-                <label>Career track
-                    <select @bind="_track"><option value="">as written</option>
-                        @foreach (var t in G.Content!.Careers.Defs) { <option value="@t.Id">@t.Name</option> }
-                    </select>
-                </label>
-                <label>Ambition
-                    <select @bind="_ambition"><option value="">as written</option>
-                        @foreach (var a in G.Content!.Traits.Ambitions) { <option value="@a.Id" title="@a.Description">@a.Name</option> }
-                    </select>
-                </label>
-            </div>
-            @if (_track != "") { <p class="hint" data-track-says>@TrackSays(_track)</p> }
-            @if (_ambition != "" && G.Content!.Traits.Ambitions.FirstOrDefault(a => a.Id == _ambition) is { } amb) { <p class="hint" data-ambition-says><b>@amb.Name.</b> @amb.Description Reports that speak to what you want come to you more often, and the You window shows how near you are.</p> }
-
-            <h3>Background</h3>
-            <div class="chips">
-                <button class="chip @(_background == "" ? "on" : "")" @onclick='() => _background = ""'>As written</button>
-                @foreach (var b in G.Content!.Backgrounds.Defs)
-                {
-                    <button class="chip @(_background == b.Id ? "on" : "")" @onclick="() => _background = b.Id" title="@b.Description">@b.Name</button>
-                }
-            </div>
-            @if (_background != "" && G.Content!.Backgrounds.ById(_background) is { } bgd)
-            {
-                <p class="bg-desc">@bgd.Description
-                    <span class="muted">@BackgroundEffects(bgd)</span></p>
             }
-
-            <h3>Nature <span class="muted">(up to @CharacterCreation.MaxPickedNature)</span></h3>
-            <div class="chips">
-                @foreach (var t in G.Content!.Traits.Nature)
-                {
-                    <button class="chip @(_nature.Contains(t.Id) ? "on" : "")" title="@t.Description" @onclick="() => Toggle(_nature, t.Id, CharacterCreation.MaxPickedNature)">@t.Name</button>
-                }
-            </div>
-            <h3>Aptitude <span class="muted">(up to @CharacterCreation.MaxPickedAptitude)</span></h3>
-            <div class="chips">
-                @foreach (var t in G.Content!.Traits.Aptitude)
-                {
-                    <button class="chip @(_aptitude.Contains(t.Id) ? "on" : "")" title="@t.Description" @onclick="() => Toggle(_aptitude, t.Id, CharacterCreation.MaxPickedAptitude)">@t.Name</button>
-                }
-            </div>
-
-            @if (_error != null) { <p class="error">@_error</p> }
-            <button class="btn primary big begin" @onclick="BeginAsked">Begin the saga ▸</button>
-        </div>
-        }
+            <label class="fr-mi file" title="Load a saga from a save file you downloaded with Export"><span class="fr-mi-t">Load a save file</span><InputFile OnChange="OnFile" accept=".json" /></label>
+            <button class="fr-mi" data-title-settings="1" title="The size of the text, which keys act, the yearly brief" @onclick="OnSettings"><span class="fr-mi-t">Options</span></button>
+            <button class="fr-mi" data-title-handbook="1" title="The words the screens use, and the Academy's lectures in full" @onclick="OnHandbook"><span class="fr-mi-t">Glossary and lectures</span></button>
+        </nav>
+        @if (_error != null && !open) { <p class="error fr-err">@_error</p> }
+        <p class="fr-ver">@PraetoriaVersion.Current <i></i> @PraetoriaVersion.Codename</p>
     </section>
 
-    <footer class="title-foot">
-        <span>Each turn: read the briefing → spend Influence, Treasury and Agents answering it → end the turn and the houses move.</span>
-    </footer>
+    @* the starts, as a strategy game's bookmarks: each a framed plate with the protagonist's face and age *@
+    <section class="fr-starts" aria-label="The starts">
+        <div class="fr-starts-head"><span class="ui-kick">Begin a saga</span><i class="fr-hr"></i></div>
+        <div class="scenario-list fr-plates">
+            @foreach (var id in G.ScenarioIds)
+            {
+                var sco = _scenarios[id]; var pro = sco.Characters.FirstOrDefault(c => c.Id == sco.ProtagonistId); var hard = Hardness(id); string? face = FaceOf(id);
+                <button class="scenario fr-plate @(!_custom && id == _scenario ? "selected" : "")" data-scenario="@id" title="@PlateTip(id, sco)" @onclick="() => Open(id)">
+                    <span class="fr-plate-pic"><i class="fr-plate-bg"></i>
+                        @if (face != null) { <img src="@face" alt="" loading="lazy" /> } else { <Icon Name="roman-toga" Tone="ivory" Size="44" /> }
+                        <i class="fr-plate-band"></i>
+                        @if (pro != null) { <span class="fr-age"><small>Age</small>@pro.Age</span> }
+                    </span>
+                    <span class="sc-name">@Title(id)</span>
+                    <span class="fr-plate-sub">@(sco.Era == "imperium" ? "The Imperium" : "The Republic")@if (hard is { } h) { <b class="fr-hard @h.tone" data-hardness="@id">@h.word</b> }</span>
+                </button>
+            }
+            <button class="scenario custom fr-plate @(_custom ? "selected" : "")" data-scenario="custom" title="Make the person, the face, the house, what it holds and the family. Standard keeps it fair; Free lets you make anyone at all.&#10;Any age, either era, every dial, a fair budget or none." @onclick="PickCustom">
+                <span class="fr-plate-pic own"><i class="fr-plate-bg"></i><Icon Name="stone-bust" Tone="ivory" Size="52" /><i class="fr-plate-band"></i><span class="fr-age any"><small>Age</small>16<i>to</i>80</span></span>
+                <span class="sc-name">A character of your own</span>
+                <span class="fr-plate-sub">Either era<b class="fr-hard">every dial</b></span>
+            </button>
+        </div>
+    </section>
+
+    @if (open)
+    {
+        <div class="fr-veil" @onclick="Close"></div>
+        <section class="ui-win fr-win creation @(_custom ? "custom" : "")" data-creator="@(_custom ? "custom" : _scenario)" role="dialog" aria-label="A new saga">
+            <div class="ui-win-body">
+                @if (_custom)
+                {
+                    var problems = CharacterWorkshop.Problems(_spec, G.Content!, G.BlankWorld(_spec.Imperium));
+                    <Workshop Spec="_spec" SpecChanged="s => { _spec = s; _error = null; }" Rules="@Rules()">
+                        <Foot>
+                            @if (_error != null) { <span class="error fr-err">@_error</span> }
+                            else if (problems.Count == 0) { @TurnLine() }
+                            <button class="ui-btn primary fr-begin begin" disabled="@(problems.Count > 0)" title="@(problems.Count > 0 ? "Mend what the line beside it asks first" : "Begin the saga with this character and these rules")" @onclick="BeginAsked">Begin the saga<Icon Name="chev" Tone="dark" Size="13" /></button>
+                        </Foot>
+                    </Workshop>
+                }
+                else if (sc != null)
+                {
+                    var p = sc.Characters.FirstOrDefault(c => c.Id == sc.ProtagonistId);
+                    var house = p != null ? sc.Houses.FirstOrDefault(h => h.Id == p.HouseId) : null;
+                    string era = sc.Era == "imperium" ? World.EraImperium : World.EraRepublic;
+                    var hard = Hardness(_scenario);
+                    <WindowHeader Scene="@SceneOf(_scenario)" Kicker="@KickerOf(sc)" Title="@Title(_scenario)" Figures="FiguresOf(sc)" Class="fr-head">
+                        <Who>
+                            @if (p != null) { <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Accent="@Palette.Player" Size="150" Height="188" Opens="false" Ancestry="@AncestryOf(_scenario)" /> }
+                        </Who>
+                        <Lede>@if (p != null) { @LedeOf(sc, p, house) }</Lede>
+                        <Facts>
+                            <span><Icon Name="@(sc.Era == "imperium" ? "throne-king" : "greek-temple")" Tone="ivory" Size="16" />@(sc.Era == "imperium" ? "The Imperium" : "The Republic")</span>
+                            @if (house != null) { <span><Icon Name="castle" Tone="ivory" Size="16" />@house.Name</span> }
+                            @if (hard is { } hh) { <span class="fr-fact-hard @hh.tone" title="@hh.why"><Icon Name="@(hh.tone == "warn" ? "threat" : "laurels")" Tone="@(hh.tone == "warn" ? "ember" : "good")" Size="16" />@Cap(hh.word)</span> }
+                        </Facts>
+                    </WindowHeader>
+                    <div class="ui-wbody fades fr-body">
+                        <p class="ui-lede fr-lede">@BodyLede(sc)</p>
+
+                        <Section Title="The character" Info="Leave anything blank to play the scenario's protagonist as written. A name, a sex, a service, an ambition, a background and the traits you pick replace what the scenario wrote.">
+                            <Right><span>as written: <b>@_protagonistName</b></span></Right>
+                            <ChildContent>
+                                <p class="fr-note">Leave anything blank to play the scenario's protagonist as written.</p>
+                                <div class="fr-fields">
+                                    <label class="fr-field"><span class="fr-fl">Name</span><input class="fr-in" @bind="_name" placeholder="@_protagonistName" /></label>
+                                    <label class="fr-field"><span class="fr-fl">Sex</span>
+                                        <select class="fr-sel" @bind="_sex"><option value="">as written</option><option value="male">male</option><option value="female">female</option></select></label>
+                                    <label class="fr-field"><span class="fr-fl">Career track</span>
+                                        <select class="fr-sel" @bind="_track"><option value="">as written</option>
+                                            @foreach (var t in G.Content!.Careers.Defs) { <option value="@t.Id">@t.Name</option> }
+                                        </select></label>
+                                    <label class="fr-field"><span class="fr-fl">Ambition</span>
+                                        <select class="fr-sel" @bind="_ambition"><option value="">as written</option>
+                                            @foreach (var a in G.Content!.Traits.Ambitions) { <option value="@a.Id" title="@a.Description">@a.Name</option> }
+                                        </select></label>
+                                </div>
+                                @if (_track != "") { <p class="fr-says" data-track-says><Icon Name="@Workshop.TrackIcon(_track)" Tone="brass" Size="18" /><span>@TrackSays(_track)</span></p> }
+                                @if (_ambition != "" && G.Content!.Traits.Ambitions.FirstOrDefault(a => a.Id == _ambition) is { } amb) { <p class="fr-says" data-ambition-says><Icon Name="@Workshop.AmbitionIcon(amb.Id)" Tone="brass" Size="18" /><span><b>@amb.Name.</b> @amb.Description Reports that speak to what you want come to you more often, and the You window shows how near you are.</span></p> }
+                            </ChildContent>
+                        </Section>
+
+                        <Section Title="Background" Count="@G.Content!.Backgrounds.Defs.Count.ToString()" Info="Where the protagonist comes from: it moves the house's standing and purse, and gives a little of what that life teaches.">
+                            <div class="fr-picks">
+                                <button class="fr-pick @(_background == "" ? "on" : "")" title="Keep the background the scenario wrote" @onclick='() => _background = ""'><Icon Name="scroll-unfurled" Tone="@(_background == "" ? "brass" : "ivory")" Size="18" />As written</button>
+                                @foreach (var b in G.Content!.Backgrounds.Defs)
+                                {
+                                    <button class="fr-pick @(_background == b.Id ? "on" : "")" @onclick="() => _background = b.Id" title="@b.Description"><Icon Name="@Workshop.BackgroundIcon(b.Id)" Tone="@(_background == b.Id ? "brass" : "ivory")" Size="18" />@b.Name</button>
+                                }
+                            </div>
+                            @if (_background != "" && G.Content!.Backgrounds.ById(_background) is { } bgd)
+                            {
+                                <p class="fr-says bg-desc"><Icon Name="@Workshop.BackgroundIcon(bgd.Id)" Tone="brass" Size="18" /><span>@bgd.Description <span class="ui-dim">@BackgroundEffects(bgd)</span></span></p>
+                            }
+                        </Section>
+
+                        <Section Title="Nature" Count="@($"{_nature.Count} of {CharacterCreation.MaxPickedNature}")" Info="How they are, and what costs them sleep. Up to two, added to what the scenario wrote.">
+                            <div class="fr-picks">
+                                @foreach (var t in G.Content!.Traits.Nature)
+                                {
+                                    bool on = _nature.Contains(t.Id); bool full = !on && _nature.Count >= CharacterCreation.MaxPickedNature;
+                                    <button class="fr-pick tn @(on ? "on" : "") @(full ? "full" : "")" title="@(full ? $"Up to {CharacterCreation.MaxPickedNature}: un-pick one first. {t.Description}" : t.Description)" @onclick="() => Toggle(_nature, t.Id, CharacterCreation.MaxPickedNature)"><Icon Name="@Workshop.TraitIcon(t.Id)" Tone="@(on ? "brass" : "ivory")" Size="18" />@t.Name</button>
+                                }
+                            </div>
+                        </Section>
+                        <Section Title="Aptitude" Count="@($"{_aptitude.Count} of {CharacterCreation.MaxPickedAptitude}")" Info="What they are good at. Up to two, added to what the scenario wrote.">
+                            <div class="fr-picks">
+                                @foreach (var t in G.Content!.Traits.Aptitude)
+                                {
+                                    bool on = _aptitude.Contains(t.Id); bool full = !on && _aptitude.Count >= CharacterCreation.MaxPickedAptitude;
+                                    <button class="fr-pick ta @(on ? "on" : "") @(full ? "full" : "")" title="@(full ? $"Up to {CharacterCreation.MaxPickedAptitude}: un-pick one first. {t.Description}" : t.Description)" @onclick="() => Toggle(_aptitude, t.Id, CharacterCreation.MaxPickedAptitude)"><Icon Name="@Workshop.TraitIcon(t.Id)" Tone="@(on ? "brass" : "ivory")" Size="18" />@t.Name</button>
+                                }
+                            </div>
+                        </Section>
+
+                        @Rules()
+                    </div>
+                    <footer class="fr-foot">
+                        @if (_error != null) { <span class="error fr-err">@_error</span> } else { @TurnLine() }
+                        <button class="ui-btn primary fr-begin begin" title="@($"Begin {Title(_scenario)} as {(_name.Trim().Length > 0 ? _name.Trim() : _protagonistName)}")" @onclick="BeginAsked">Begin the saga<Icon Name="chev" Tone="dark" Size="13" /></button>
+                    </footer>
+                }
+            </div>
+            <i class="ui-win-frame" aria-hidden="true"></i>
+            <button class="ui-round ui-close fr-x" title="Back to the title" aria-label="Back to the title" @onclick="Close"><Icon Name="close" Tone="ivory" Size="13" /></button>
+        </section>
+    }
 </div>
 
 @code {
@@ -204,6 +189,13 @@
         "the_new_man" => ("hard", "warn", "No land, no rank and no seat: one trading company and a head for figures."),
         "the_risen_officer" => ("hard", "warn", "No name and no land, only talent: almost no house wealth to fall back on."),
         _ => null
+    };
+    /// <summary>The painting a start opens on, by its subject (docs/VISUAL_SYSTEM.md 4.2).</summary>
+    private static string SceneOf(string id) => id switch
+    {
+        "the_academy" => "audience", "the_institute" => "senate", "the_old_lion" => "world", "the_circling_heir" => "feast",
+        "the_imperial_court" => "triumph", "the_fallen_house" => "dispatch", "the_new_man" => "market", "the_risen_officer" => "bridge",
+        _ => "title"
     };
     [Parameter] public bool HasAutosave { get; set; }
     /// <summary>What the saved saga is: the house, its head and the year.</summary>
@@ -234,8 +226,13 @@
     private string _name = "", _sex = "", _track = "", _ambition = "", _background = "";
     private readonly List<string> _nature = new(), _aptitude = new();
     private string? _error;
+    /// <summary>Whether the creator window is open over the title.</summary>
+    private bool _open;
     private bool _custom; private CustomCharacter _spec = new();
-    private void PickCustom() { _custom = true; _error = null; if (_spec.Name.Length == 0 && _spec.Skills.Count == 0) _spec = CharacterWorkshop.Presets(G.Content!)[0].spec.Clone(); }
+    private void PickCustom() { _custom = true; _open = true; _error = null; if (_spec.Name.Length == 0 && _spec.Skills.Count == 0) _spec = CharacterWorkshop.Presets(G.Content!)[0].spec.Clone(); }
+    private void NewSaga() { _error = null; _open = true; }
+    private void Open(string id) { Pick(id); _open = true; _error = null; }
+    private void Close() { _open = false; _custom = false; _error = null; }
 
     protected override void OnInitialized()
     {
@@ -252,6 +249,31 @@
     }
 
     private static string Title(string id) => string.Join(' ', id.Split('_').Select(w => w.Length == 0 ? w : char.ToUpperInvariant(w[0]) + w[1..]));
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+
+    /* a start's protagonist by blood, from the start as written: the same rule the game reads once the world is made, so the face on
+       the plate is the face in play */
+    private readonly Dictionary<string, string> _ancestry = new();
+    private readonly Dictionary<string, string?> _faces = new();
+    private string AncestryOf(string id)
+    {
+        if (_ancestry.TryGetValue(id, out var a)) return a;
+        var sc = _scenarios[id]; var p = sc.Characters.FirstOrDefault(c => c.Id == sc.ProtagonistId); string blood = "";
+        if (p != null && G.Content != null)
+        {
+            try { var w = new World { Houses = sc.Houses.ToDictionary(h => h.Id), Characters = sc.Characters.ToDictionary(c => c.Id) }; blood = Lineage.Of(w, G.Content.Ancestries, p); }
+            catch { blood = ""; }
+        }
+        return _ancestry[id] = blood;
+    }
+    private string? FaceOf(string id)
+    {
+        if (_faces.TryGetValue(id, out var u)) return u;
+        var sc = _scenarios[id]; var p = sc.Characters.FirstOrDefault(c => c.Id == sc.ProtagonistId);
+        string? url = p == null || G.Portraits == null ? null : Portrait.PaintedUrl(G, p.Id, p.Sex, p.Age, null, AncestryOf(id));
+        if (G.Portraits != null) _faces[id] = url;
+        return url;
+    }
 
     private string Describe(Scenario sc)
     {
@@ -263,24 +285,144 @@
         if (sc.Academy) return $"{p.Name}, sixteen, of {house?.Name ?? p.HouseId} ({title}), enters {G.Content!.Academy.Register(sc.Era == "imperium" ? "imperium" : "republic").Name}. A year of four terms apart from the world, then a commission and the first turn.";
         return $"{p.Name}, {p.Age}, {rank} of {house?.Name ?? p.HouseId} ({title}). {sc.Holdings.Count} holdings, {sc.Fleets.Count} fleets in play.";
     }
+    /// <summary>What a plate says when the pointer rests on it: the start in a sentence, how hard it is and why, and what it holds.</summary>
+    private string PlateTip(string id, Scenario sc)
+    {
+        var hard = Hardness(id);
+        return $"[{(sc.Era == "imperium" ? "throne-king" : "greek-temple")}] {Title(id)}{(hard is { } h ? " · " + h.word : "")}\n{Describe(sc)}{(hard is { } hw ? "\n" + hw.why : "")}\n"
+            + $"{(sc.Academy ? (sc.Era == "imperium" ? "Begins at the Institute · " : "Begins at the Academy · the tutorial · ") : "")}{(sc.Era == "imperium" ? "the Imperium" : "the Republic")} · {sc.Houses.Count} houses · {sc.Characters.Count} souls{(sc.Galaxy != null ? $" · {sc.Galaxy.Systems.Count} systems" : "")}";
+    }
+    /// <summary>The creator's opening line, under the header that already names the protagonist: how hard the start is and what is in play.</summary>
+    private string BodyLede(Scenario sc)
+    {
+        var hard = Hardness(_scenario);
+        if (sc.Academy) return $"{(hard is { } ha ? ha.why + " " : "")}Enters {G.Content!.Academy.Register(sc.Era == "imperium" ? "imperium" : "republic").Name}: a year of four terms apart from the world, then a commission and the first turn.";
+        return $"{(hard is { } h ? h.why + " " : "")}{sc.Holdings.Count} holdings, {sc.Fleets.Count} fleets in play.";
+    }
+    private static string KickerOf(Scenario sc) => sc.Academy ? (sc.Era == "imperium" ? "A new saga · begins at the Institute" : "A new saga · begins at the Academy") : "A new saga · " + (sc.Era == "imperium" ? "the Imperium" : "the Republic");
+    private string LedeOf(Scenario sc, Character p, House? house)
+    {
+        var rank = G.Content!.Careers.RankName(p.CareerTrack, p.CareerRank, sc.Era) ?? "";
+        string title = house != null ? G.Content!.Titles.NameOf(house.Title, sc.Era) : "";
+        return sc.Academy ? $"{p.Name}, a cadet of sixteen, of {house?.Name ?? p.HouseId}." : $"{p.Name}, {p.Age}, {(rank.Length > 0 ? rank + " of " : "of ")}{house?.Name ?? p.HouseId}{(title.Length > 0 ? ", " + title : "")}.";
+    }
+    /// <summary>The plinth: what the start holds, in five figures.</summary>
+    private IReadOnlyList<WindowHeader.Figure> FiguresOf(Scenario sc)
+    {
+        var p = sc.Characters.FirstOrDefault(c => c.Id == sc.ProtagonistId);
+        var mine = p != null ? sc.Holdings.Count(h => h.OwnerId == p.HouseId) : 0;
+        return new List<WindowHeader.Figure>
+        {
+            new("roman-toga", (p?.Age ?? 0).ToString(), "Age", "ivory", Tip: $"[roman-toga] The protagonist's age\n{p?.Name} is {p?.Age} when the saga opens."),
+            new("castle", sc.Houses.Count.ToString(), "Houses", "brass", Tip: "[castle] Houses\nThe houses of the Reach at the start, yours among them."),
+            new("three-friends", sc.Characters.Count.ToString(), "Souls", "ivory", Tip: "[three-friends] Souls\nThe people written into the start: the houses' heads, their kin and their rivals."),
+            new("ringed-planet", sc.Holdings.Count.ToString(), "Holdings", "ivory", Tip: $"[ringed-planet] Holdings\nThe worlds and stations held at the start, {mine} of them by the protagonist's house."),
+            new("fleet", sc.Fleets.Count.ToString(), "Fleets", "steel", Tip: "[fleet] Fleets\nThe fleets in play at the start, of every house and office.")
+        };
+    }
 
     private static string BackgroundEffects(BackgroundDef b)
     {
         var parts = new List<string>();
-        if (b.Legitimacy != 0) parts.Add($"legitimacy {b.Legitimacy:+#;-#;0}");
+        if (b.Legitimacy != 0) parts.Add($"legitimacy {Signed(b.Legitimacy)}");
         if (!b.Treasury.IsEmpty()) parts.Add("treasury " + CourtProjection.Bundle(b.Treasury));
         if (b.Nature.Count > 0) parts.Add("nature +" + string.Join(", ", b.Nature));
         if (b.Aptitude.Count > 0) parts.Add("aptitude +" + string.Join(", ", b.Aptitude));
-        if (b.Skills.Count > 0) parts.Add(string.Join(", ", b.Skills.Select(s => $"{s.Key} {s.Value:+#;-#;0}")));
-        if (b.Stress != 0) parts.Add($"stress {b.Stress:+#;-#;0}");
-        return parts.Count == 0 ? "" : " — " + string.Join(" · ", parts);
+        if (b.Skills.Count > 0) parts.Add(string.Join(", ", b.Skills.Select(s => $"{s.Key} {Signed(s.Value)}")));
+        if (b.Stress != 0) parts.Add($"stress {Signed(b.Stress)}");
+        return parts.Count == 0 ? "" : ": " + string.Join(" · ", parts);
     }
+    private static string Signed(int n) => (n > 0 ? "+" : "") + Counted.Figure(n);
 
     private static void Toggle(List<string> set, string id, int max)
     {
         if (set.Contains(id)) set.Remove(id);
         else if (set.Count < max) set.Add(id);
     }
+
+    /// <summary>What a turn is, in three steps, beside the plate that begins the saga.</summary>
+    private RenderFragment TurnLine() => @<span class="fr-turn" title="What every year of the saga asks of you"><b>Each year:</b> read the briefing<Icon Name="chev" Tone="brass" Size="10" />spend Influence, Treasury and Agents answering it<Icon Name="chev" Tone="brass" Size="10" />end the year, and the houses move.</span>;
+
+    /// <summary>The rules of the world: one row each, the name at the left and the choice at the right; the same for a written start and
+    /// a character of one's own (on the workshop's last tab).</summary>
+    private RenderFragment Rules() => @<div class="fr-rules-wrap">
+        <Section Title="The world" Info="The rules this saga is played by. Hover a rule for what it does. None of them can be changed once the saga begins.">
+            <div class="fr-rules">
+                <label class="fr-rule" title="The dice of the world: the same seed and the same choices make the same saga">
+                    <Icon Name="sprout" Tone="ivory" Size="20" /><span class="fr-rule-nm">Seed</span>
+                    <input class="fr-in" type="number" min="1" value="@_seed" @onchange="e => _seed = int.TryParse(e.Value?.ToString(), out var v) ? Math.Max(1, v) : 1" /></label>
+                <label class="fr-rule" title="What happens when the bloodline ends">
+                    <Icon Name="family-tree" Tone="ivory" Size="20" /><span class="fr-rule-nm">Mode</span>
+                    <select class="fr-sel" value="@_mode" @onchange="e => _mode = e.Value?.ToString() ?? _mode">
+                        <option value="ironman">Ironman: when the bloodline ends, the run ends</option>
+                        <option value="continue">Continue: a sworn house takes up the banner</option>
+                    </select></label>
+                <label class="fr-rule" title="How quickly and how hard the rival houses act">
+                    <Icon Name="crossed-sabres" Tone="ivory" Size="20" /><span class="fr-rule-nm">Difficulty</span>
+                    <select class="fr-sel" value="@_difficulty" @onchange="e => _difficulty = e.Value?.ToString() ?? _difficulty">
+                        <option value="0.5">Forgiving: rivals slow to act</option>
+                        <option value="1">Standard</option>
+                        <option value="1.5">Hard</option>
+                        <option value="2">Harsh: the galaxy hunts you</option>
+                    </select></label>
+                <label class="fr-rule" title="The Reach and every nation beyond it grow together: more systems, more houses, larger neighbours. A larger map makes for longer turns.">
+                    <Icon Name="ringed-planet" Tone="ivory" Size="20" /><span class="fr-rule-nm">The size of the map</span>
+                    <select class="fr-sel" value="@_size" data-setting="size" @onchange="e => _size = e.Value?.ToString() ?? _size">
+                        @foreach (var sz in GrowthCatalog.Sizes) { <option value="@sz">@GrowthCatalog.SizeName(sz): @SizeNote(sz)</option> }
+                    </select></label>
+                <label class="fr-rule money" title="How much everything that is built costs, and so what it returns, for every house. At Standard a thing returns what its kind is meant to: a market 7% a year, a mine 10%, the dear goods 15%.">
+                    <Icon Name="money-stack" Tone="brass" Size="20" /><span class="fr-rule-nm">Making money<small data-money-does>@MoneySettings.Does(_ease)</small></span>
+                    <select class="fr-sel" value="@_ease" data-setting="money" @onchange="e => _ease = e.Value?.ToString() ?? _ease">
+                        @foreach (var lv in MoneySettings.Levels) { <option value="@lv">@MoneySettings.Name(lv): returns @(MoneySettings.ReturnPct(lv) == 100 ? "as priced" : "×" + (MoneySettings.ReturnPct(lv) / 100.0).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))</option> }
+                    </select></label>
+                <label class="fr-rule" title="The nations that border the Reach: the Khanates, the Free Cities, the Concord, the Compact, the Crown. Each has fleets and worlds of its own on the map's rim, raids when it thinks ill of the Reach, and can be fought, bought off or subdued. This sets how strong their fleets are.">
+                    <Icon Name="spaceship" Tone="steel" Size="20" /><span class="fr-rule-nm">The powers beyond</span>
+                    <select class="fr-sel" value="@_beyond" @onchange="e => _beyond = e.Value?.ToString() ?? _beyond">
+                        <option value="gentle">Gentle: a fifth weaker</option>
+                        <option value="default">As written</option>
+                        <option value="harsh">Harsh: a quarter stronger</option>
+                    </select></label>
+                <label class="fr-rule" title="How readily a nation beyond the Reach goes from raiding to war: how often a great ruler rises among them, and how soon an invasion follows.">
+                    <Icon Name="war" Tone="ember" Size="20" /><span class="fr-rule-nm">How often they attack</span>
+                    <select class="fr-sel" value="@_aggression" @onchange="e => _aggression = e.Value?.ToString() ?? _aggression">
+                        <option value="seldom">Seldom: wars from beyond are rare</option>
+                        <option value="default">As written</option>
+                        <option value="often">Often: great rulers and invasions come sooner</option>
+                    </select></label>
+                <label class="fr-rule" title="The Great Crisis is the war of the Reach with itself: as wars, over-mighty houses and seizures pile up, the houses sort into two blocs and fight for ten years or more. This sets how fast it comes. Off, it never does, and the game is the Republic's ordinary politics for as long as you play.">
+                    <Icon Name="crisis" Tone="ember" Size="20" /><span class="fr-rule-nm">Crisis intensity</span>
+                    <select class="fr-sel" value="@_intensity" @onchange="e => _intensity = e.Value?.ToString() ?? _intensity">
+                        <option value="off">Off: no Great Crisis</option>
+                        <option value="low">Low: a slow-burning century</option>
+                        <option value="default">Default</option>
+                        <option value="dominant">Dominant: the war comes fast</option>
+                    </select></label>
+                <label class="fr-rule" title="How far your relatives go their own way. Deferential: they pursue nothing of their own, never stand for office unasked, never defy you and never elope. Wills of their own: they have ambitions, stand for office, marry for love if forbidden, and one who thinks ill enough of you defies you or goes over to a rival. A nest of schemers: the same, at half the provocation.">
+                    <Icon Name="three-friends" Tone="ivory" Size="20" /><span class="fr-rule-nm">Family autonomy</span>
+                    <select class="fr-sel" value="@_autonomy" @onchange="e => _autonomy = e.Value?.ToString() ?? _autonomy">
+                        <option value="0">Deferential kin</option>
+                        <option value="1">Wills of their own</option>
+                        <option value="2">A nest of schemers</option>
+                    </select></label>
+            </div>
+        </Section>
+        <Section Title="Begin with" Count="@($"{_boosts.Count} of {MoneySettings.Boosts.Length}")" Info="For your house alone, given once when the game begins. A game begun with any of these says so in its chronicle and on the House window.">
+            <Right><span>boosts: none are on unless you tick them</span></Right>
+            <ChildContent>
+                <div class="setting-boosts fr-boosts" data-setting="boosts" title="For your house alone, given once when the game begins. A game begun with any of these says so in its chronicle and on the House window.">
+                    @foreach (var ch in MoneySettings.Boosts)
+                    {
+                        string id = ch; bool on = _boosts.Contains(ch);
+                        <label class="ui-check boost @(on ? "on" : "")" title="@MoneySettings.BoostDoes(ch)">
+                            <input type="checkbox" data-boost="@ch" checked="@on" @onchange="e => { if (e.Value is true) _boosts.Add(id); else _boosts.Remove(id); }" />
+                            <span class="ui-check-box">@if (on) { <Icon Name="check" Size="13" Class="flat" /> }</span>
+                            <b>@MoneySettings.BoostName(ch)</b><span class="fr-boost-does">@MoneySettings.BoostDoes(ch)</span>
+                        </label>
+                    }
+                </div>
+            </ChildContent>
+        </Section>
+    </div>;
 
     private async Task OnFile(InputFileChangeEventArgs e)
     {
