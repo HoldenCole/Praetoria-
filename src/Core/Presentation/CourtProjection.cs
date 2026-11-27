@@ -182,7 +182,12 @@ public sealed record BattleLine(string Text);
 /// skill or rank gate — or "cannot afford: 2 influence").</summary>
 /// <summary>One answer to a report. <c>Stakes</c> is what it costs and gives the house in words, <c>Warn</c> what it would overdraw
 /// (docs/PLAYTHROUGH.md 8: a choice is not made blind).</summary>
-public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available, string? Reason = null, string Stakes = "", string? Warn = null);
+public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available, string? Reason = null, string Stakes = "", string? Warn = null)
+{ /// <summary>The same stakes as items, one to a chip (docs/VISUAL_SYSTEM.md 6): the year's pools it spends, then what it does to the
+  /// house and the player, each with its icon, signed figure, before and after, and the person it is about.</summary>
+  public IReadOnlyList<StakeItem> Items { get; init; } = Array.Empty<StakeItem>();
+  /// <summary>Its requirements in words and whether each holds now, for the choice's tooltip.</summary>
+  public IReadOnlyList<StakeNeed> Needs { get; init; } = Array.Empty<StakeNeed>(); }
 public sealed record BriefingCard(BriefingItem Item, string Title, string Tier, bool Setpiece, string Body, bool Resolved, IReadOnlyList<ChoiceCard> Choices)
 { /// <summary>The words of the answer that was given, once it has been.</summary>
   public string Answer { get; init; } = "";
@@ -410,9 +415,13 @@ public static class CourtProjection
                 string? reason = oc.Available ? null
                     : !tc.Engine.IsChoiceAvailable(fired, w, oc.Choice.Id) ? ChoiceStakes.Unmet(oc.Choice, ectx)
                     : "this year's " + string.Join(" and ", oc.Choice.Cost.Where(c => pools.Get(c.Key) < c.Value).Select(c => $"{c.Key} is spent ({pools.Get(c.Key)} left of the {c.Value} it takes)"));
+                // the stakes as items (docs/VISUAL_SYSTEM.md 6): what the year's pools give up first, then what the choice does
+                var items = oc.Choice.Cost.Where(c => c.Value != 0).Select(c => new StakeItem("pool:" + c.Key, ChoiceStakes.PoolIcon(c.Key), -c.Value, Counted.Figure(-c.Value),
+                    (c.Key == Pool.Treasury ? Counted.TreasuryActions(c.Value) : c.Key == Pool.Agents ? Counted.Agents(c.Value) : $"{c.Value} {c.Key}") + " this year", false, pools.Get(c.Key).ToString(), Counted.Figure(pools.Get(c.Key) - c.Value))).Concat(ChoiceStakes.Items(oc.Choice, ectx, p)).ToList();
                 return new ChoiceCard(oc.Choice.Id,
                     text != null && text.Choices.TryGetValue(oc.Choice.Id, out var ct) ? TextRenderer.Substitute(ct, ectx) : oc.Choice.Id,
-                    cost, oc.Available, reason, ChoiceStakes.Of(oc.Choice, ectx, p), ChoiceStakes.Overdraws(oc.Choice, ectx, p));
+                    cost, oc.Available, reason, ChoiceStakes.Of(oc.Choice, ectx, p), ChoiceStakes.Overdraws(oc.Choice, ectx, p))
+                    { Items = items, Needs = ChoiceStakes.Needs(oc.Choice, ectx) };
             }).ToList();
             briefing.Add(new BriefingCard(item, TextRenderer.Substitute(text?.Title ?? fired.Def.Id, ectx), fired.Def.Tier.ToString().ToUpperInvariant(),
                 fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.Body) ? "" : TextRenderer.Substitute(text!.Body, ectx), item.Resolved, choices)

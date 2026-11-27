@@ -1,0 +1,39 @@
+{
+ "room": "stewardship",
+ "image": "stewardship.webp",
+ "size": [
+  1280,
+  1056
+ ],
+ "floor": {
+  "y": [
+   0.84,
+   0.99
+  ],
+  "x": [
+   0.04,
+   0.96
+  ]
+ },
+ "desk": {
+  "x": [
+   0.17,
+   0.83
+  ],
+  "y": [
+   0.6,
+   0.68
+  ]
+ },
+ "window": {
+  "x": [
+   0.3,
+   0.7
+  ],
+  "y": [
+   0.06,
+   0.55
+  ]
+ },
+ "note": "fractions of the picture, x from the left and y from the top: floor is where visitors stand, desk the top where letters lie. Painted at the Office's shape (about 1100 x 900): show it whole. AI-generated: see tools/art/rooms.py"
+}

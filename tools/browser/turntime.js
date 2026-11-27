@@ -14,7 +14,8 @@ const base = process.env.PRAETORIA_URL || 'http://localhost:8112/';
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   const t1 = Date.now(); await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 120000 }); console.log('to the first turn: ' + (Date.now() - t1) + ' ms');
   const closeWindows = async () => { for (let i = 0; i < 10; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary') || [...document.querySelectorAll('.overlay button')].find(b => !b.disabled); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  // the year is on the date plate of the top bar (data-turn); the old "Turn N" text is kept as a fallback (as in play.js)
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const times = [];
   for (let i = 0; i < turns; i++) {
     await closeWindows(); const before = await turnNo(); const t = Date.now();

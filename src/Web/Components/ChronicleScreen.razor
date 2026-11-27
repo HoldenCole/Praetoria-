@@ -1,15 +1,21 @@
 @inject GameClient G
 @implements IDisposable
+@* The Chronicle (docs/VISUAL_SYSTEM.md 5.3: "the timeline strip, then rows"). The funeral painting while the house mourns (a death in
+   it this year or last), the dispatch otherwise; the kicker, the title, the facts (how much is written, which of the line you are) and
+   five figures. Tabs for whose record to read: this year (what the toasts said, kept), all that was written, your house, the Reach.
+   Each opens with its lede; then the years as a strip of bars, one a year, coloured by what they held (war ember, a notable year
+   brass, a quiet one steel), a star where the seat passed, a span of years chosen by clicking the strip or from the list; the kinds as
+   joined plates; then each year as a section of rows, your house's lines first and marked in brass. *@
 @{
     var w = G.World!; var house = w.House(w.Protagonist!.HouseId)!;
     var volumes = Volumes(w);
     if (_volume == null || !volumes.Any(v => v.key == _volume)) _volume = volumes.LastOrDefault().key;
     var vol = volumes.FirstOrDefault(v => v.key == _volume);
-    var turns = w.History.Where(h => vol.key != null && h.Turn >= vol.from && h.Turn <= vol.to).GroupBy(h => h.Turn).OrderByDescending(g => g.Key).ToList();
     var ticks = w.History.GroupBy(h => h.Turn).ToDictionary(g => g.Key, g => (notable: g.Any(h => h.EventId != null || Notable(h.Text)), war: g.Any(h => Martial(h.Text)), gen: g.Any(h => h.Text.Contains("succeeds")), n: g.Count()));
     int last = Math.Max(1, w.Turn); int maxN = Math.Max(1, ticks.Values.Select(t => t.n).DefaultIfEmpty(1).Max());
     string F(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
     double TX(int t) => 20 + (t - 1) * 960.0 / Math.Max(1, last);
+    string Pc(double x) => (x / 10).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%";
 
     // The picture (docs/DASHBOARDS.md): what the last year said of your house and of the Reach, and what the record adds up to.
     string surname = house.Name.StartsWith("House ") ? house.Name[6..] : house.Name;
@@ -17,61 +23,106 @@
     int lastYear = w.History.Count > 0 ? w.History.Max(h => h.Turn) : 0;
     var thisYear = w.History.Where(h => h.Turn == lastYear).ToList(); var ownThis = thisYear.Where(Own).ToList();
     int ownAll = w.History.Count(Own), standing = w.Houses.Values.Count(h => h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null);
-    int battles = w.Counter(FleetSystem.BattlesCounter), won = w.Counter(FleetSystem.BattlesWonCounter), gen = Math.Max(1, w.Counter("generation"));
+    int battles = w.Counter(FleetSystem.BattlesCounter), won = w.Counter(FleetSystem.BattlesWonCounter), gen = w.Counter("generation") + 1;
+    int wars = w.Counter(FleetSystem.WarsDeclaredCounter), motions = w.Counter("motions_passed"), fallen = w.Counter("houses_fallen");
     string story = w.History.Count == 0 ? "Nothing is written yet. The chronicle fills as the years pass: what your house did, and what the Reach did around it."
         : ownThis.Count > 0 ? $"Year {lastYear}, of your house: {ownThis[^1].Text}{(ownThis.Count > 1 ? $" And {ownThis.Count - 1} more." : "")} Of the rest of the Reach, {Counted.Things(thisYear.Count - ownThis.Count)} {Counted.Were(thisYear.Count - ownThis.Count)} written."
         : $"Year {lastYear}: nothing was written of your house. Of the Reach, {Counted.Things(thisYear.Count)}; the latest: {thisYear[^1].Text}";
-    var shown = turns.Select(g => (year: g.Key, all: g.Count(), lines: g.Where(h => (!_onlyNotable || h.EventId != null || Notable(h.Text)) && Kind(h.Text) && (_whose == "all" || (_whose == "house") == Own(h))).ToList())).Where(x => x.lines.Count > 0).ToList();
+    bool now = _whose == "now";
+    var turns = now ? w.History.Where(h => h.Turn == lastYear && lastYear > 0).GroupBy(h => h.Turn).ToList()
+        : w.History.Where(h => vol.key != null && h.Turn >= vol.from && h.Turn <= vol.to).GroupBy(h => h.Turn).OrderByDescending(g => g.Key).ToList();
+    var shown = turns.Select(g => (year: g.Key, all: g.Count(), lines: g.Where(h => (now || ((!_onlyNotable || h.EventId != null || Notable(h.Text)) && Kind(h.Text))) && (_whose is "all" or "now" || (_whose == "house") == Own(h))).ToList())).Where(x => x.lines.Count > 0).ToList();
     int every = last <= 20 ? 1 : last <= 60 ? 5 : 10;
+    // mourning: a death in the house this year or last puts the funeral painting at the head
+    bool mourning = w.History.Any(h => h.Turn >= w.Turn - 1 && Own(h) && h.Text.Contains(" dies"));
+
+    var figures = new List<WindowHeader.Figure>
+    {
+        new("scroll-quill", w.History.Count.ToString(), "Written", "ivory", Tip: $"[scroll-quill] Written\n{w.History.Count} entries over {Counted.Years(w.Turn)}, about {w.History.Count / Math.Max(1, w.Turn)} a year.\n{ownAll} of them of your house ({(w.History.Count > 0 ? 100 * ownAll / w.History.Count : 0)}%)."),
+        new("war", wars.ToString(), "Wars declared", w.Wars.Count > 0 ? "ember" : "ivory", Tip: $"[war] Wars declared\n{(w.Wars.Count == 0 ? "None being fought now." : $"{w.Wars.Count} being fought now.")}"),
+        new("crossed-sabres", battles.ToString(), "Battles", "ivory", Tip: $"[crossed-sabres] Battles\n{(battles == 0 ? "None fought yet." : $"Your house won {won} of the {battles} fought.")}"),
+        new("greek-temple", motions.ToString(), "Senate carried", "ivory", Tip: $"[greek-temple] The Senate carried\n{motions} motions, {w.Counter("acts_passed")} of them Acts. {Counted.Laws(w.Counter("laws_enacted"))} changed by houses."),
+        new("flying-flag", fallen.ToString(), "Houses fallen", fallen > 0 ? "ember" : "ivory", Tip: $"[flying-flag] Houses fallen\n{standing} still stand.")
+    };
+    var tabs = new List<Tabs.Tab>
+    {
+        new("now", "This year", "hourglass", thisYear.Count > 0 ? thisYear.Count.ToString() : "", Tip: $"What was written in year {lastYear}: the news of the year, kept"),
+        new("all", "All", "scroll-unfurled", Tip: "All that was written"),
+        new("house", "Your house", "castle", ownAll > 0 ? ownAll.ToString() : "", Tip: "What was written of your house"),
+        new("reach", "The Reach", "greek-temple", Tip: "What was written of the rest of the Reach")
+    };
 }
-<div class="dash archive" style="--accent:@house.AccentColor">
-    <header class="dash-head picture">
-        <div class="dh-title"><Icon Name="chronicle" Size="18" /> <b>The Chronicle of @house.Name</b> <span class="muted">@w.History.Count entries over @w.Turn years</span></div>
-        <p class="headline">@story</p>
-        <div class="tiles">
-            <Tile Label="Written" Value="@($"{w.History.Count} entries")" Share="@(w.History.Count > 0 ? 100 * ownAll / w.History.Count : 0)" Note="@($"{ownAll} of your house · about {w.History.Count / Math.Max(1, w.Turn)} a year")" Title="The bar is the share of the record that is about your own house." />
-            <Tile Label="Wars declared" Value="@w.Counter(FleetSystem.WarsDeclaredCounter).ToString()" Tone="@(w.Wars.Count > 0 ? "warn" : "")" Note="@(w.Wars.Count == 0 ? "none being fought now" : $"{w.Wars.Count} being fought now")" />
-            <Tile Label="Battles" Value="@battles.ToString()" Share="@(battles > 0 ? 100 * won / battles : -1)" Note="@(battles == 0 ? "none fought yet" : $"your house won {won}")" />
-            <Tile Label="The Senate carried" Value="@($"{w.Counter("motions_passed")} motions")" Note="@($"{w.Counter("acts_passed")} of them Acts · {Counted.Laws(w.Counter("laws_enacted"))} changed by houses")" />
-            <Tile Label="Houses fallen" Value="@w.Counter("houses_fallen").ToString()" Note="@($"{standing} still stand")" />
-            <Tile Label="Seats passed" Value="@w.Successions.Count.ToString()" Note="@($"you are the {Ordinal(gen)} of your line to hold it")" />
-        </div>
-    </header>
-    <div class="cw-tabs">
-        <button class="rung @(_whose == "all" ? "here" : "")" @onclick='() => _whose = "all"'>All that was written</button>
-        <button class="rung @(_whose == "house" ? "here" : "")" @onclick='() => _whose = "house"'>Of your house@(ownAll > 0 ? $" · {ownAll}" : "")</button>
-        <button class="rung @(_whose == "reach" ? "here" : "")" @onclick='() => _whose = "reach"'>Of the Reach</button>
-    </div>
-    <div class="dash-grid archive-grid">
-        <section class="panel">
-            <svg class="timeline" viewBox="0 0 1000 118" role="img" aria-label="the years">
-                <line x1="20" y1="80" x2="980" y2="80" class="base" />
-                @foreach (var v in volumes.Where(v => v.key != "recent")) { <rect x="@F(TX(v.from) - 2)" y="8" width="@F(Math.Max(4, TX(Math.Min(last, v.to) + 1) - TX(v.from)))" height="96" class="vol @(v.key == _volume ? "here" : "")" @onclick="() => _volume = v.key"><title>@v.label</title></rect> }
-                @for (int t = 1; t <= last; t++)
-                {
-                    if (t == 1 || t == last || t % every == 0) { @((MarkupString)$"<text x=\"{F(TX(t))}\" y=\"96\" class=\"tl mid\">{t}</text>") }
-                    if (!ticks.TryGetValue(t, out var tk)) { continue; }
-                    double h = 8 + 60.0 * tk.n / maxN;
-                    <rect x="@F(TX(t) - 3)" y="@F(80 - h)" width="6" height="@F(h)" class="tick @(tk.war ? "war" : tk.notable ? "notable" : "")"><title>Year @t · @tk.n entr@(tk.n == 1 ? "y" : "ies")</title></rect>
-                    @if (tk.gen) { @((MarkupString)$"<text x=\"{F(TX(t))}\" y=\"14\" class=\"gen\">★</text>") }
-                }
-                @((MarkupString)$"<text x=\"20\" y=\"112\" class=\"tl\">year</text><text x=\"980\" y=\"112\" class=\"tl end\">the fullest year: {maxN} entries</text>")
-            </svg>
-            <div class="plot-legend tl-key"><span><i class="tk war"></i> war or battle</span><span><i class="tk notable"></i> a notable year</span><span><i class="tk"></i> a quiet one</span><span><b class="gen">★</b> the seat passed</span><span class="muted">click a span of years to read it</span></div>
-            <div class="row small chron-controls">
-                <select class="sel" value="@_volume" @onchange="e => _volume = e.Value?.ToString()">@foreach (var v in volumes) { <option value="@v.key" selected="@(v.key == _volume)">@v.label</option> }</select>
-                <span class="vols">@foreach (var k in new[] { "all", "war", "dynasty", "coin", "realm", "politics" }) { <button class="rung @(_kind == k ? "here" : "")" @onclick="() => _kind = k">@if (k != "all") { <i class="kd @k"></i> }@k</button> }</span>
-                <label class="inline"><input type="checkbox" @bind="_onlyNotable" /> only the notable</label>
-            </div>
-            @if (shown.Count == 0) { <div class="muted">@(turns.Count == 0 ? "Nothing is written in these years yet." : _whose == "house" ? "Nothing of your house was written in these years." : "Nothing of that kind was written in these years. Choose another kind, or all.")</div> }
-            @foreach (var y in shown)
-            {
-                <div class="year-block">
-                    <h4>Year @y.year <span class="muted">@y.all written@(y.lines.Count != y.all ? $" · {y.lines.Count} shown" : "")</span></h4>
-                    @foreach (var h in y.lines.OrderByDescending(Own)) { <div class="yline @(Own(h) ? "own" : "") @(h.EventId != null ? "event" : "")"><i class="kd @KindOf(h.Text)" title="@KindOf(h.Text)"></i>@h.Text</div> }
-                </div>
-            }
-        </section>
+<div class="chron-win" data-chronicle="@_whose" style="--accent:@house.AccentColor">
+    <WindowHeader Scene="@(mourning ? "funeral" : "dispatch")" Kicker="@("The record of " + house.Name)" Title="The Chronicle" Glyph="scroll-unfurled" Figures="figures" Class="cr-head">
+        <Facts>
+            <span title="Every line the Reach has written since the first year"><Icon Name="scroll-quill" Tone="ivory" Size="16" /><span><b>@w.History.Count</b> entries over @Counted.Years(w.Turn)</span></span>
+            <span title="@($"The seat has passed {Counted.Times(w.Successions.Count)}")"><Icon Name="family-tree" Tone="ivory" Size="16" /><span>You are the <b>@Ordinal(gen)</b> of your line to hold the seat</span></span>
+        </Facts>
+    </WindowHeader>
+    <Tabs Items="tabs" Active="@_whose" OnPick="k => _whose = k" />
+    <div class="ui-wbody fades cr-body">
+        <p class="ui-lede cr-lede">@(now ? ThisYearLede(lastYear, thisYear.Count, ownThis.Count) : story)</p>
+        @if (!now)
+        {
+            <Section Title="The years" Count="@last.ToString()" Info="Each bar is a year, as tall as what was written in it: ember where there was war or a battle, brass for a notable year, steel for a quiet one; a star where the seat passed. Click a span of ten years to read it, or choose one from the list.">
+                <Right><span class="cr-key"><i class="k war"></i>war<i class="k notable"></i>notable<i class="k"></i>quiet<Icon Name="laurels" Tone="brass" Size="13" />the seat passed</span></Right>
+                <ChildContent>
+                    <div class="cr-strip">
+                        <svg class="timeline" viewBox="0 0 1000 100" preserveAspectRatio="none" role="img" aria-label="the years">
+                            <line x1="20" y1="92" x2="980" y2="92" class="base" />
+                            @foreach (var v in volumes.Where(v => v.key != "recent")) { <rect x="@F(TX(v.from) - 2)" y="2" width="@F(Math.Max(4, TX(Math.Min(last, v.to) + 1) - TX(v.from)))" height="96" class="vol @(v.key == _volume ? "here" : "")" @onclick="() => _volume = v.key"><title>@v.label</title></rect> }
+                            @for (int t = 1; t <= last; t++)
+                            {
+                                if (!ticks.TryGetValue(t, out var tk)) { continue; }
+                                double h = 8 + 70.0 * tk.n / maxN;
+                                <rect x="@F(TX(t) - 3)" y="@F(92 - h)" width="6" height="@F(h)" class="tick @(tk.war ? "war" : tk.notable ? "notable" : "")"><title>Year @t · @tk.n entr@(tk.n == 1 ? "y" : "ies")</title></rect>
+                            }
+                        </svg>
+                        @for (int t = 1; t <= last; t++)
+                        {
+                            if (ticks.TryGetValue(t, out var tg) && tg.gen) { <i class="cr-gen" style="left:@Pc(TX(t))" title="@($"Year {t}: the seat passed")"></i> }
+                        }
+                        <div class="cr-years" aria-hidden="true">
+                            @for (int t = 1; t <= last; t++)
+                            {
+                                if (t == 1 || t == last || t % every == 0) { <span style="left:@Pc(TX(t))">@t</span> }
+                            }
+                        </div>
+                        <div class="cr-full">the fullest year: @maxN entries</div>
+                    </div>
+                    <div class="cr-ctl chron-controls">
+                        <Select Options="@volumes.Select(v => new Select.Option(v.key, v.label)).ToList()" Value="@(_volume ?? "")" OnChange="k => _volume = k" Tip="The span of years to read" Class="cr-sel" />
+                        <Segmented Options="@Kinds" Value="@_kind" OnChange="k => _kind = k" />
+                        <Check Value="@_onlyNotable" Label="Only the notable" OnChange="v => _onlyNotable = v" Tip="Only the lines of events and of what changed the Reach: wars, deaths, births, weddings, successions, thrones" />
+                    </div>
+                </ChildContent>
+            </Section>
+        }
+        @if (shown.Count == 0)
+        {
+            <EmptyState Icon="scroll-unfurled" Text="@(now ? "Nothing is written yet this year." : turns.Count == 0 ? "Nothing is written in these years yet." : _whose == "house" ? "Nothing of your house was written in these years." : "Nothing of that kind was written in these years. Choose another kind, or all.")" />
+        }
+        @foreach (var y in shown)
+        {
+            <Section Title="@($"Year {y.year}")" Class="year-block">
+                <Right><span class="cr-n">@y.all written@(y.lines.Count != y.all ? $" · {y.lines.Count} shown" : "")</span></Right>
+                <ChildContent>
+                    <div class="cr-rows">
+                        @foreach (var h in y.lines.OrderByDescending(Own))
+                        {
+                            var k = KindOf(h.Text); var who = WhoIn(w, h.Text); var hs = who == null ? HouseIn(w, h.Text) : null;
+                            <div class="chron-line cr-row @(Own(h) ? "own" : "") @(h.EventId != null ? "event" : "")" data-kind="@k">
+                                @if (who != null) { <span class="cr-pic"><Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Alive="@who.Alive" Accent="@(w.House(who.HouseId)?.AccentColor ?? "#888")" Size="28" Height="34" /></span> }
+                                else if (hs != null) { <span class="cr-pic arms" title="@hs.Name"><Sigil HouseId="@hs.Id" Accent="@hs.AccentColor" Size="24" /></span> }
+                                else { <span class="cr-pic cr-ic" title="@KindName(k)"><Icon Name="@KindIcon(k)" Tone="@KindTone(k)" Size="17" /></span> }
+                                <span class="cr-t">@h.Text</span>
+                                <span class="cr-k" title="@KindName(k)"><Icon Name="@KindIcon(k)" Tone="@KindTone(k)" Size="14" /></span>
+                            </div>
+                        }
+                    </div>
+                </ChildContent>
+            </Section>
+        }
     </div>
 </div>
 
@@ -81,10 +132,17 @@
     protected override void OnInitialized() => G.Changed += Redraw;
     public void Dispose() => G.Changed -= Redraw;
     private string? _volume; private bool _onlyNotable; private string _kind = "all", _whose = "all";
+    private static readonly IReadOnlyList<(string key, string text, string tip)> Kinds = new[]
+    {
+        ("all", "All", "Every kind of line"), ("war", "War", "Wars, battles, raids, peace and campaigns"), ("dynasty", "Dynasty", "Births, deaths, weddings, coming of age and the seat"),
+        ("coin", "Coin", "Credits, companies, stakes, loans and the tithe"), ("realm", "Realm", "Thrones, capitals, governors, fiefs and the Senate's benches"), ("politics", "Politics", "The Senate, its Acts, petitions, offices and the estates")
+    };
+    private static string ThisYearLede(int year, int all, int own) => all == 0 ? "Nothing is written yet this year." : $"Year {year}: {Counted.Things(all)} {Counted.Were(all)} written, {own} of them of your house. The news of the year is kept here.";
     private static bool Notable(string t) =>
         t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("dies") || t.Contains("born") || t.Contains("wed") || t.Contains("takes ") ||
         t.Contains("destroyed") || t.Contains("Crisis") || t.Contains("throne", StringComparison.OrdinalIgnoreCase) || t.Contains("succeeds") || t.Contains("desert");
-    private bool Kind(string t) => _kind switch
+    private bool Kind(string t) => Is(_kind, t);
+    private static bool Is(string kind, string t) => kind switch
     {
         "war" => Martial(t) || t.Contains("declares") || t.Contains("peace") || t.Contains("Raiders") || t.Contains("raiders") || t.Contains("campaign"),
         "dynasty" => t.Contains("born") || t.Contains("dies") || t.Contains("wed") || t.Contains("comes of age") || t.Contains("succeeds") || t.Contains("banner"),
@@ -95,12 +153,35 @@
     };
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
     /// <summary>What kind of thing a line is, for the mark beside it: the first of the kinds it answers to.</summary>
-    private string KindOf(string t) { var keep = _kind; try { foreach (var k in new[] { "war", "dynasty", "politics", "coin", "realm" }) { _kind = k; if (Kind(t)) return k; } return "other"; } finally { _kind = keep; } }
+    private static string KindOf(string t) { foreach (var k in new[] { "war", "dynasty", "politics", "coin", "realm" }) if (Is(k, t)) return k; return "other"; }
+    private static string KindIcon(string k) => k switch { "war" => "crossed-sabres", "dynasty" => "family-tree", "politics" => "greek-temple", "coin" => "credits", "realm" => "flying-flag", _ => "scroll-quill" };
+    private static string KindTone(string k) => k switch { "war" => "ember", "dynasty" => "brass", "coin" => "brass", "politics" => "steel", "realm" => "ivory", _ => "ivory" };
+    private static string KindName(string k) => k switch { "war" => "War", "dynasty" => "The dynasty", "politics" => "Politics", "coin" => "Coin", "realm" => "The realm", _ => "Of the Reach" };
+    /* People are faces (docs/VISUAL_SYSTEM.md 1.6): a line about a person carries their portrait, one about a house its arms. A person
+       is found by their full name in the line, looked up by its first word so a long record stays quick to draw. */
+    private Dictionary<string, List<Character>>? _byFirst; private int _byFirstOf = -1;
+    private Character? WhoIn(World w, string text)
+    {
+        if (_byFirst == null || _byFirstOf != w.Characters.Count)
+        {
+            _byFirstOf = w.Characters.Count; _byFirst = new();
+            foreach (var c in w.Characters.Values) { int sp = c.Name.IndexOf(' '); if (sp <= 0) continue; string first = c.Name[..sp]; if (!_byFirst.TryGetValue(first, out var l)) _byFirst[first] = l = new(); l.Add(c); }
+        }
+        foreach (var word in text.Split(' ', ',', ':', ';', '.', '(', ')'))
+            if (word.Length > 1 && char.IsUpper(word[0]) && _byFirst.TryGetValue(word, out var l))
+                foreach (var c in l.OrderByDescending(c => c.Name.Length)) if (text.Contains(c.Name, StringComparison.Ordinal)) return c;
+        return null;
+    }
+    private static House? HouseIn(World w, string text)
+    {
+        int at = text.IndexOf("House ", StringComparison.Ordinal); if (at < 0) return null;
+        return w.Houses.Values.Where(h => h.Name.StartsWith("House ") && text.Contains(h.Name, StringComparison.Ordinal)).OrderBy(h => text.IndexOf(h.Name, StringComparison.Ordinal)).FirstOrDefault();
+    }
     private static bool Martial(string t) => t.Contains("war", StringComparison.OrdinalIgnoreCase) || t.Contains("battle", StringComparison.OrdinalIgnoreCase) || t.Contains("destroyed") || t.Contains("siege", StringComparison.OrdinalIgnoreCase);
     private static List<(string key, string label, int from, int to)> Volumes(World w)
     {
         var list = new List<(string, string, int, int)>(); int last = Math.Max(1, w.Turn);
-        for (int from = 1; from <= last; from += 10) { int to = from + 9; list.Add(($"v{from}", $"Years {from}–{to}", from, to)); }
+        for (int from = 1; from <= last; from += 10) { int to = from + 9; list.Add(($"v{from}", $"Years {from} to {to}", from, to)); }
         if (last > 1) list.Add(("recent", "The last five years", Math.Max(1, last - 4), last));
         return list;
     }
