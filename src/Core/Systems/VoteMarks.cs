@@ -20,6 +20,9 @@ public static class VoteMarks
     public const string ActAgainstFlag = "act_went_against_houses", ActAgainstChar = "act_went_against_them";
     // the ladder's count, cleared with the ladder's own flag (LadderSystem.Tick)
     public const string BeatYoursChar = "beat_yours_at_the_count", LostToYoursChar = "lost_to_yours_at_the_count", OursLostChar = "lost_at_the_count";
+    /// <summary>A relative's candidacy the head has answered (one_of_yours_stands_for_office): set by the report, struck by the ladder when
+    /// the candidacy is counted or withdrawn (LadderSystem), so one candidacy is one report and not one a year until the count.</summary>
+    public const string StandingHeardChar = "standing_heard";
     // a bargain struck in a report (a_vote_for_a_vote, a_bought_vote_called_in), made a favour owed at the next session (Bargains)
     public const string VoteOwedChar = "owes_you_a_vote", VotePromisedChar = "promised_your_vote";
 
@@ -105,11 +108,13 @@ public static class VoteMarks
     }
 
     /// <summary>A rung of the ladder counted: if one of the player's house stood for it and lost, those who won it; if one of the
-    /// player's house won it, those of other houses who lost it.</summary>
+    /// player's house won it, those of other houses who lost it. One pair of victor and loser is live at a time: where the house lost on
+    /// two rungs in one count, the second rung's pair replaces the first's, so a report never pairs one rung's victor with the other's loser.</summary>
     public static void LadderCounted(World w, IReadOnlyList<Character> candidates, IReadOnlyList<Character> winners, string? mine)
     {
         if (mine == null) return;
         bool oursLost = candidates.Any(c => c.HouseId == mine && !winners.Contains(c)), oursWon = winners.Any(c => c.HouseId == mine);
+        if (oursLost && winners.Any(c => c.HouseId != mine)) foreach (var c in w.Characters.Values) { c.Flags.Remove(BeatYoursChar); c.Flags.Remove(OursLostChar); }
         if (oursLost) foreach (var c in winners.Where(c => c.HouseId != mine)) c.Flags.Add(BeatYoursChar);
         if (oursLost && winners.Any(c => c.HouseId != mine)) foreach (var c in candidates.Where(c => c.HouseId == mine && !winners.Contains(c))) c.Flags.Add(OursLostChar);
         if (oursWon) foreach (var c in candidates.Where(c => c.HouseId != mine && !winners.Contains(c))) c.Flags.Add(LostToYoursChar);

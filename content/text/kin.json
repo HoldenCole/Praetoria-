@@ -16,7 +16,7 @@
       "title": "A Grandchild Is Born",
       "body": "{parent.name} has a child, {grandchild.name}. Word came this morning. The house is already speaking of the birth as the line going on, which is true, and which is not what {parent.name} wants to hear from you first.",
       "choices": {
-        "go_to_them": "Go to them yourself, today.",
+        "go_to_them": "Go to them yourself, today, and let the house's business wait (1 influence).",
         "a_gift_from_the_house": "Send a gift from the house worthy of it.",
         "send_your_blessing": "Send your blessing, and keep to your work. {parent.name} had hoped you would come."
       }
@@ -67,9 +67,9 @@
     {
       "id": "the_wedding_remembered",
       "title": "The Wedding Remembered",
-      "body": "It is another ten years since you married {spouse.name}. The house keeps count even when you do not. Somebody has asked whether there is to be anything for the day, and {spouse.name} is waiting to hear the answer as much as anyone.",
+      "body": "Your wedding day with {spouse.name} has come round again, and it is a round number of years. The house keeps count even when you do not. Somebody has asked whether there is to be anything for the day, and {spouse.name} is waiting to hear the answer as much as anyone.",
       "choices": {
-        "a_feast_for_both_families": "Give a feast for both families. {spouse.name} is glad of it.",
+        "a_feast_for_both_families": "Give a feast for both families, and let the Reach see it (800 credits). {spouse.name} is glad of it.",
         "a_gift_between_the_two_of_you": "Give {spouse.name} a gift, and keep the evening for the two of you. It does the marriage good.",
         "a_day_like_any_other": "Let the day pass like any other. {spouse.name} notices.",
         "say_what_has_gone_wrong": "Say aloud what has gone wrong between you. It is hard to hear, and it mends something."
@@ -78,7 +78,7 @@
     {
       "id": "a_spouses_ambition",
       "title": "A Spouse's Ambition",
-      "body": "{spouse.name} has been {spouse.rankName} for six years and more, and has watched younger people go past. They have not asked you for anything. They have mentioned, at dinner, who was promoted this year and who spoke for them.",
+      "body": "{spouse.name} has been {spouse.rankName} for six years and more, and has watched younger people go past. They have not asked you for anything. They have mentioned, at dinner, who was promoted this year, and who spoke for those who were.",
       "choices": {
         "speak_for_them": "Speak for {spouse.name} where it counts. They will have the step, and know who got it for them.",
         "put_your_own_name_to_it": "Put your own name to it {era:before the Senate|at court}. They will have the step, and it will be called favour.",
@@ -134,6 +134,7 @@
       "choices": {
         "lay_the_house_down": "Lay the house down to {keeper.name} from today. You stay on as its elder.",
         "name_a_day": "Name a day, but not yet.",
+        "not_yet": "Not yet, and promise nothing. {keeper.name} will be disappointed.",
         "not_while_you_live": "Tell them: not while you live. They will not forget it."
       }
     },

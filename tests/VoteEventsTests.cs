@@ -186,6 +186,14 @@ public class VoteEventsTests
         Assert.Contains(VoteMarks.LostToYoursChar, head.Flags); Assert.DoesNotContain(VoteMarks.LostToYoursChar, rival.Flags); Assert.DoesNotContain(VoteMarks.BeatYoursChar, head.Flags);
         Assert.DoesNotContain(VoteMarks.OursLostChar, kin.Flags);
         foreach (var c in w.Characters.Values) { c.Flags.Remove(VoteMarks.BeatYoursChar); c.Flags.Remove(VoteMarks.LostToYoursChar); }
+        // two of the house lose on two rungs of one count: only the second rung's pair is live, so no report pairs one rung's victor with the other's loser
+        var kin2 = new Character { Id = "kin_votes_2", Name = "Test Kin Two", HouseId = mine.Id, Age = 34, Sex = "male", CareerTrack = "law", CareerRank = 2, Health = 90, Alive = true };
+        w.Characters[kin.Id] = kin; w.Characters[kin2.Id] = kin2;
+        VoteMarks.LadderCounted(w, new[] { kin, head }, new[] { head }, mine.Id); VoteMarks.LadderCounted(w, new[] { kin2, rival }, new[] { rival }, mine.Id);
+        Assert.Contains(VoteMarks.BeatYoursChar, rival.Flags); Assert.Contains(VoteMarks.OursLostChar, kin2.Flags);
+        Assert.DoesNotContain(VoteMarks.BeatYoursChar, head.Flags); Assert.DoesNotContain(VoteMarks.OursLostChar, kin.Flags);
+        foreach (var c in new[] { kin, kin2, head, rival }) { c.Flags.Remove(VoteMarks.BeatYoursChar); c.Flags.Remove(VoteMarks.OursLostChar); }
+        w.Characters.Remove(kin2.Id);
 
         // the count itself: one of the house stands for quaestor, against a young hopeful of every other house, so that someone loses
         w.Characters[kin.Id] = kin; mine.Members.Add(kin.Id); w.Relationship(me.Id, kin.Id).Bond = BondType.Blood;
@@ -251,12 +259,20 @@ public class VoteEventsTests
     [Fact]
     public void TheVoteStillUndecided()
     {
-        EveryChoice("the_vote_still_undecided", () =>
+        World Undecided(int regard)
         {
-            var (tc, w, _, mine, theirs, head) = Start(); var m = tc.Senate.Add(w, mine.Id, "levy", ""); tc.Senate.Tick(w);
+            var (tc, w, me, mine, theirs, head) = Start(); var m = tc.Senate.Add(w, mine.Id, "levy", ""); tc.Senate.Tick(w); w.Relationship(head.Id, me.Id).Disposition = regard;
             m.Lobby[theirs.Id] = m.Lobby.GetValueOrDefault(theirs.Id) - tc.Senate.Lean(w, m, theirs.Id); VoteMarks.Docket(w, tc.Senate, mine.Id);
             Assert.Contains(VoteMarks.UndecidedChar, head.Flags); return w;
-        });
+        }
+        // a doubter the choices can tip: twenty is where what a head thinks of you moves their lean (SenateSystem.RawLean)
+        var after = EveryChoice("the_vote_still_undecided", () => Undecided(15));
+        int Now(string choice) { var (w, b) = after[choice]; return w.GetRelationship(Bound(w, b, "doubter").Id, w.ProtagonistId)!.Disposition; }
+        Assert.True(Now("have_them_to_dinner") >= 20); Assert.True(Now("make_your_case") >= 20); Assert.True(Now("speak_from_the_floor") < 20);   // from fifteen the speech is not enough
+        { var (w, b) = after["have_them_to_dinner"]; var m = w.Motions.Single(x => x.Open && x.ProposerHouseId == w.Protagonist!.HouseId);
+          Assert.Equal(1, new TurnController(w, Content).Senate.Lean(w, m, Bound(w, b, "doubter").HouseId)); }                                       // and the dinner has brought them over
+        Assert.Null(Find(Undecided(5), "the_vote_still_undecided"));                                                                                     // one too far off to tip is no report
+        Assert.Null(Find(Undecided(20), "the_vote_still_undecided"));
     }
 
     [Fact]
@@ -303,11 +319,12 @@ public class VoteEventsTests
     [Fact]
     public void AnOldGrudge_SpeaksAgainstYourOwnMotion_AndMostAnswersEndIt()
     {
-        World Grudge() { var (tc, w, me, mine, _, head) = Start(); head.Flags.Add("grudge_against_you"); w.Relationship(head.Id, me.Id).Disposition = -5; tc.Senate.Add(w, mine.Id, "levy", ""); tc.Senate.Tick(w); return w; }
-        var after = EveryChoice("an_old_grudge_against_your_motion", Grudge);
-        Assert.DoesNotContain("grudge_against_you", Bound(after["buy_them_off"].w, after["buy_them_off"].b, "rival").Flags);
-        Assert.DoesNotContain("grudge_against_you", Bound(after["answer_them_on_the_floor"].w, after["answer_them_on_the_floor"].b, "rival").Flags);
-        Assert.Contains("grudge_against_you", Bound(after["let_it_cost_you"].w, after["let_it_cost_you"].b, "rival").Flags);
+        World Grudge(int regard) { var (tc, w, me, mine, _, head) = Start(); head.Flags.Add("grudge_against_you"); w.Relationship(head.Id, me.Id).Disposition = regard; tc.Senate.Add(w, mine.Id, "levy", ""); tc.Senate.Tick(w); return w; }
+        var after = EveryChoice("an_old_grudge_against_your_motion", () => Grudge(-25));
+        Assert.All(after.Values, x => Assert.DoesNotContain("grudge_against_you", Bound(x.w, x.b, "rival").Flags));     // spent, one way or another, on this vote
+        { var (w, b) = after["let_it_cost_you"]; var m = w.Motions.Single(x => x.Open && x.ProposerHouseId == w.Protagonist!.HouseId); var why = new List<(string why, int by)>();
+          new TurnController(w, Content).Senate.RawLean(w, m, Bound(w, b, "rival").HouseId, true, why); Assert.Contains(why, x => x.why.StartsWith("what its head thinks") && x.by == -1); }   // they do lean against it
+        Assert.Null(Find(Grudge(-5), "an_old_grudge_against_your_motion"));                                                   // a grudge that does not move their vote is no report of one
         var (_, none, _, _, _, h) = Start(); h.Flags.Add("grudge_against_you"); Assert.Null(Find(none, "an_old_grudge_against_your_motion"));   // no motion of yours, no report
     }
 
@@ -351,13 +368,21 @@ public class VoteEventsTests
     [Fact]
     public void OneOfYoursStandsForOffice()
     {
-        EveryChoice("one_of_yours_stands_for_office", () =>
+        var after = EveryChoice("one_of_yours_stands_for_office", () =>
         {
             var (_, w, me, mine, _, _) = Start();
             var kin = new Character { Id = "kin_stands", Name = "Test Kin", HouseId = mine.Id, Age = 30, Sex = "female", CareerTrack = "law", CareerRank = 1, Health = 90, Alive = true };
             w.Characters[kin.Id] = kin; mine.Members.Add(kin.Id); w.Relationship(me.Id, kin.Id).Bond = BondType.Blood; kin.Flags.Add(LadderSystem.StandingChar);
+            w.Candidacies.Add(new Candidacy { RungId = LadderSystem.Quaestor, CharacterId = kin.Id });
             return w;
         });
+        // one candidacy is one report: answered, it does not come again the next year before the count; counted or withdrawn, the next one is news
+        var (w, b) = after["walk_the_wards"]; var kin = Bound(w, b, "kin"); Assert.Contains(VoteMarks.StandingHeardChar, kin.Flags);
+        Assert.False(new EventEngine(Content, WorldBuilder.RngFor(w)).GatherEligible(w).Any(e => e.def.Id == "one_of_yours_stands_for_office" && e.binding.Resolve("kin") == kin.Id));
+        LadderSystem.Tick(w, Content.Offices, Content.Policies);
+        if (w.Candidacies.Any(c => c.CharacterId == kin.Id)) Assert.Contains(VoteMarks.StandingHeardChar, kin.Flags);
+        w.Candidacies.RemoveAll(c => c.CharacterId == kin.Id); LadderSystem.Tick(w, Content.Offices, Content.Policies);
+        Assert.DoesNotContain(VoteMarks.StandingHeardChar, kin.Flags);
     }
 
     private static World AfterTheCount(Action<World, Character, Character> also)
@@ -414,9 +439,13 @@ public class VoteEventsTests
         {
             var (_, w, me, _, _, head) = Start();
             foreach (var c in w.Characters.Values) { c.Flags.Remove("office:consul_senior"); c.Flags.Remove("office:consul_junior"); }
-            me.Flags.Add("office:consul_senior"); head.Flags.Add("office:consul_junior"); return w;
+            me.Flags.Add("office:consul_senior"); head.Flags.Add("office:consul_junior"); Mark(w, "election_held"); return w;
         });
         Assert.All(after.Values, x => { Assert.Contains("met_as_colleague", Bound(x.w, x.b, "grandee").Flags); Assert.Null(Find(x.w, "your_colleague_the_consul")); });
+        { var (w, _) = after["keep_your_counsel"]; Assert.True(w.Protagonist!.Skill("intrigue") >= 5); }
+        var (_, later, me2, _, _, h2) = Start(); foreach (var c in later.Characters.Values) { c.Flags.Remove("office:consul_senior"); c.Flags.Remove("office:consul_junior"); }
+        me2.Flags.Add("office:consul_senior"); h2.Flags.Add("office:consul_junior");
+        Assert.Null(Find(later, "your_colleague_the_consul"));                                                         // a year of the term after the first: not "before the first session"
     }
 
     [Fact]

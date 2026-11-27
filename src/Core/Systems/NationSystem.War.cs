@@ -81,6 +81,7 @@ public sealed partial class NationSystem
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1; Bump(w, PrivateCounter, n);
         w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war:" + n.Id); Mark(w, houseId == w.Protagonist?.HouseId ? "private_war_by_us" : "private_war", n);
         w.Log($"{house!.Name} makes war on {d.Name} on its own account. The Senate has voted nothing: it is {house.Name}'s war, and nobody else's.");
+        FleetSystem.RefreshWarFlags(w);
     }
 
     // ---- the Senate's peace, and those who do not listen ----

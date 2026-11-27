@@ -57,7 +57,8 @@ public class EncounterEventsTests
     }
 
     private static readonly HashSet<string> OutsideParts = new(StringComparer.Ordinal)
-    { "buyer", "rival_house", "envoy", "intruder", "giver", "debtor", "claimant", "grandee", "pretender", "coalition_head", "envious", "friend", "sovereign" };
+    { "buyer", "rival_house", "envoy", "intruder", "giver", "debtor", "claimant", "grandee", "pretender", "coalition_head", "envious", "friend", "sovereign",
+      "classmate", "veteran", "young", "sitter", "subject", "guest", "other_guest" };
 
     /// <summary>Could the binder have cast these people in these parts: each living, not hidden, grown unless the part asks an age, of
     /// another house where the part is an outsider's, each holding the part's conditions with those cast before, and the event's own
@@ -91,12 +92,14 @@ public class EncounterEventsTests
         foreach (var s in new[] { "intrigue", "oratory", "economics", "diplomacy" }) me.Skills[s] = 3;
     }
 
+    private static readonly string[] Ids = { "a_classmate_in_the_city", "an_old_enemy_across_the_room", "words_at_the_feast", "the_quarrel_comes_to_a_head", "a_veteran_of_the_old_wars",
+        "a_painters_great_canvas", "a_merchant_princes_venture", "the_venture_comes_home", "the_venture_goes_down", "a_house_without_lands", "a_favour_repaid",
+        "a_secret_for_sale", "the_secret_you_hold", "a_word_off_the_record", "a_patron_wanted", "the_one_you_stood_for", "two_guests_at_odds" };
+
     [Fact]
-    public void TheFile_HasSixteenReports_EachRepeatable_WithTextAndAnUngatedChoice()
+    public void TheFile_HasSeventeenReports_EachRepeatable_WithTextAndAnUngatedChoice()
     {
-        var ids = new[] { "a_classmate_in_the_city", "an_old_enemy_across_the_room", "words_at_the_feast", "the_quarrel_comes_to_a_head", "a_veteran_of_the_old_wars",
-            "a_painters_great_canvas", "a_merchant_princes_venture", "the_venture_comes_home", "the_venture_goes_down", "a_house_without_lands", "a_favour_repaid",
-            "a_secret_for_sale", "a_word_off_the_record", "a_patron_wanted", "the_one_you_stood_for", "two_guests_at_odds" };
+        var ids = Ids;
         foreach (var id in ids)
         {
             var def = Content.Event(id); Assert.NotNull(def); Assert.True(def!.Repeatable, id); Assert.NotEqual(EventTier.Setpiece, def.Tier);
@@ -230,17 +233,17 @@ public class EncounterEventsTests
     {
         (World, Character, Character) Setup() { var (w, me, _, theirs) = Start(); var rival = Add(w, theirs, "rival", 45); Regard(w, rival, me, -20); Gifted(me); return (w, me, rival); }
         var (w, me, rival) = Setup();
-        Assert.True(Binds(w, "a_painters_great_canvas", "rival", rival)); Assert.True(Eligible(w, "a_painters_great_canvas"));
-        var friend = Add(w, w.House(rival.HouseId)!, "friendly", 45); Regard(w, friend, me, 20); Assert.False(Binds(w, "a_painters_great_canvas", "rival", friend));
-        Take(w, Fire(w, "a_painters_great_canvas", ("rival", rival)), "stand_beside_them"); Assert.Equal(-12, RegardOf(w, rival, me));
-        EveryChoice("a_painters_great_canvas", () => { var (x, _, r) = Setup(); return (x, Fire(x, "a_painters_great_canvas", ("rival", r))); });
+        Assert.True(Binds(w, "a_painters_great_canvas", "sitter", rival)); Assert.True(Eligible(w, "a_painters_great_canvas"));
+        var friend = Add(w, w.House(rival.HouseId)!, "friendly", 45); Regard(w, friend, me, 20); Assert.False(Binds(w, "a_painters_great_canvas", "sitter", friend));
+        Take(w, Fire(w, "a_painters_great_canvas", ("sitter", rival)), "stand_beside_them"); Assert.Equal(-12, RegardOf(w, rival, me));
+        EveryChoice("a_painters_great_canvas", () => { var (x, _, r) = Setup(); return (x, Fire(x, "a_painters_great_canvas", ("sitter", r))); });
     }
 
     // ---------------- 7, 8 and 9. the venture ----------------
 
     private static (World w, Character me, Character prince, House theirs) Merchant()
     {
-        var (w, me, _, theirs) = Start(); var prince = Add(w, theirs, "prince", 50); theirs.Wealth = 1_000_000; Gifted(me); return (w, me, prince, theirs);
+        var (w, me, _, theirs) = Start(); var prince = Add(w, theirs, "prince", 50); theirs.Wealth = 1_000_000; theirs.Treasury.Credits = Math.Max(20, theirs.Treasury.Credits); Gifted(me); return (w, me, prince, theirs);
     }
 
     [Fact]
@@ -254,8 +257,9 @@ public class EncounterEventsTests
         Assert.Equal(credits - 8, mine.Treasury.Credits); Assert.Contains("staked_by_you", prince.Flags);
         Assert.False(Binds(w, "a_merchant_princes_venture", "grandee", prince));
         Assert.True(Binds(w, "the_venture_comes_home", "grandee", prince)); Assert.False(Binds(w, "the_venture_goes_down", "grandee", prince));
-        Assert.False(Eligible(w, "the_venture_comes_home"));                     // it comes home in a year the Exchange is high
-        w.WorldFlags.Add("price_spike"); Assert.True(Eligible(w, "the_venture_comes_home"));
+        Exotics(w, 1.0); Assert.False(Eligible(w, "the_venture_comes_home"));                       // it comes home in a year exotics sell a tenth dearer
+        w.WorldFlags.Add("price_spike"); Assert.False(Eligible(w, "the_venture_comes_home"));       // some other good's spike is not the venture's market
+        Exotics(w, 1.12); Assert.True(Eligible(w, "the_venture_comes_home")); Assert.False(Binds(w, "the_venture_goes_down", "grandee", prince));
         Take(w, Fire(w, "the_venture_comes_home", ("grandee", prince)), "take_your_share");
         Assert.Equal(credits + 4, mine.Treasury.Credits); Assert.DoesNotContain("staked_by_you", prince.Flags);
         // their house falls out of the rich: the stake goes down instead
@@ -265,13 +269,23 @@ public class EncounterEventsTests
         var (w3, me3, p3, t3) = Merchant(); p3.Flags.Add("staked_by_you");
         new FleetSystem(Content.Fleets).DeclareWar(w3, me3.HouseId, t3.Id, me3.Id);
         Assert.False(Binds(w3, "the_venture_comes_home", "grandee", p3)); Assert.True(Binds(w3, "the_venture_goes_down", "grandee", p3));
-        // or the Exchange goes against it in a slump, however rich they are; and a house merely rich no longer pays it home
-        var (w4, _, p4, t4) = Merchant(); p4.Flags.Add("staked_by_you"); w4.WorldFlags.Add("price_slump"); Assert.True(Binds(w4, "the_venture_goes_down", "grandee", p4));
-        var (w5, _, p5, t5) = Merchant(); p5.Flags.Add("staked_by_you"); t5.Wealth = 0; w5.WorldFlags.Add("price_spike");
+        // or exotics fall a tenth on the year, however rich they are (and then it cannot come home too); and a house merely rich no longer pays it home
+        var (w4, _, p4, t4) = Merchant(); p4.Flags.Add("staked_by_you"); w4.WorldFlags.Add("price_slump"); Exotics(w4, 1.0); Assert.False(Binds(w4, "the_venture_goes_down", "grandee", p4));
+        Exotics(w4, 0.88); Assert.True(Binds(w4, "the_venture_goes_down", "grandee", p4)); Assert.False(Eligible(w4, "the_venture_comes_home"));
+        // the grandee's house pays what is pressed out of it
+        int had = t4.Treasury.Credits; Take(w4, Fire(w4, "the_venture_goes_down", ("grandee", p4)), "press_for_it"); Assert.Equal(had - 3, t4.Treasury.Credits);
+        var (w5, _, p5, t5) = Merchant(); p5.Flags.Add("staked_by_you"); t5.Wealth = 0; Exotics(w5, 1.12);
         if (Wealth.TierFor(w5, t5.Id) != "opulent") Assert.False(Binds(w5, "the_venture_comes_home", "grandee", p5));
         EveryChoice("a_merchant_princes_venture", () => { var (x, _, p, _) = Merchant(); return (x, Fire(x, "a_merchant_princes_venture", ("grandee", p))); });
-        EveryChoice("the_venture_comes_home", () => { var (x, _, p, _) = Merchant(); p.Flags.Add("staked_by_you"); x.WorldFlags.Add("price_spike"); return (x, Fire(x, "the_venture_comes_home", ("grandee", p))); });
+        EveryChoice("the_venture_comes_home", () => { var (x, _, p, _) = Merchant(); p.Flags.Add("staked_by_you"); Exotics(x, 1.12); return (x, Fire(x, "the_venture_comes_home", ("grandee", p))); });
         EveryChoice("the_venture_goes_down", () => { var (x, _, p, t) = Merchant(); p.Flags.Add("staked_by_you"); t.Wealth = -1; return (x, Fire(x, "the_venture_goes_down", ("grandee", p))); });
+    }
+
+    /// <summary>Exotics this year at this much of last year's price.</summary>
+    private static void Exotics(World w, double ratio)
+    {
+        w.Market ??= new MarketState(); if (w.Market.Good("exotics") is not { } g) { g = new GoodState(); w.Market.Goods["exotics"] = g; }
+        g.History.Clear(); g.History.Add(7.0); g.History.Add(7.0 * ratio); g.Price = 7.0 * ratio;
     }
 
     // ---------------- 10 and 11. a favour owed ----------------
@@ -307,15 +321,27 @@ public class EncounterEventsTests
     // ---------------- 12. a secret ----------------
 
     [Fact]
-    public void ASecretUsed_CostsTheirHouseStanding()
+    public void ASecretUsed_CostsTheirHouseStanding_AndASecretKept_IsHeldOverThemUntilTheyTurnOnYou()
     {
-        (World, Character, Character) Setup() { var (w, me, _, theirs) = Start(); var target = Add(w, theirs, "target", 45); Regard(w, me, target, -20); return (w, me, target); }
+        (World, Character, Character) Setup() { var (w, me, _, theirs) = Start(); var target = Add(w, theirs, "target", 45); Regard(w, me, target, -20); theirs.Treasury.Credits = Math.Max(20, theirs.Treasury.Credits); return (w, me, target); }
         var (w, me, target) = Setup();
-        Assert.True(Binds(w, "a_secret_for_sale", "target", target)); Assert.True(Eligible(w, "a_secret_for_sale"));
+        Assert.True(Binds(w, "a_secret_for_sale", "subject", target)); Assert.True(Eligible(w, "a_secret_for_sale"));
         var house = w.House(target.HouseId)!; int standing = house.Legitimacy;
-        Take(w, Fire(w, "a_secret_for_sale", ("target", target)), "buy_and_use");
+        Take(w, Fire(w, "a_secret_for_sale", ("subject", target)), "buy_and_use");
         Assert.Equal(Math.Max(0, standing - 2), house.Legitimacy); Assert.Equal(-20, RegardOf(w, target, me));
-        EveryChoice("a_secret_for_sale", () => { var (x, _, t) = Setup(); return (x, Fire(x, "a_secret_for_sale", ("target", t))); });
+        EveryChoice("a_secret_for_sale", () => { var (x, _, t) = Setup(); return (x, Fire(x, "a_secret_for_sale", ("subject", t))); });
+        // kept: no influence from nowhere, a secret held over them, and one secret about them at a time
+        var (wk, mk, tk) = Setup(); int influence = wk.House(mk.HouseId)!.Treasury.Get(Resource.Influence);
+        Take(wk, Fire(wk, "a_secret_for_sale", ("subject", tk)), "buy_and_keep");
+        Assert.Equal(influence, wk.House(mk.HouseId)!.Treasury.Get(Resource.Influence)); Assert.Contains("you_hold_their_secret", tk.Flags);
+        Assert.False(Binds(wk, "a_secret_for_sale", "subject", tk));
+        Assert.False(Binds(wk, "the_secret_you_hold", "subject", tk));                                  // not until they give you cause
+        Regard(wk, tk, mk, -35); Assert.True(Binds(wk, "the_secret_you_hold", "subject", tk)); Assert.True(Eligible(wk, "the_secret_you_hold"));
+        Regard(wk, tk, mk, 0); tk.Flags.Add(VoteMarks.MovesAgainstChar); Assert.True(Binds(wk, "the_secret_you_hold", "subject", tk));   // or move against your house
+        int theirs = wk.House(tk.HouseId)!.Treasury.Credits, ours = wk.House(mk.HouseId)!.Treasury.Credits;
+        Take(wk, Fire(wk, "the_secret_you_hold", ("subject", tk)), "sell_it_back");
+        Assert.Equal(theirs - 4, wk.House(tk.HouseId)!.Treasury.Credits); Assert.Equal(ours + 4, wk.House(mk.HouseId)!.Treasury.Credits); Assert.DoesNotContain("you_hold_their_secret", tk.Flags);
+        EveryChoice("the_secret_you_hold", () => { var (x, m, t) = Setup(); t.Flags.Add("you_hold_their_secret"); Regard(x, t, m, -35); return (x, Fire(x, "the_secret_you_hold", ("subject", t))); });
     }
 
     // ---------------- 13. off the record ----------------
@@ -378,13 +404,13 @@ public class EncounterEventsTests
     {
         var (w, me, killer, mourner) = Guests();
         Assert.Contains(FeudSystem.BlamedChar, killer.Flags); Assert.True(RegardOf(w, mourner, killer) <= -20);
-        Assert.True(Binds(w, "two_guests_at_odds", "first", killer));
-        Assert.True(Binds(w, "two_guests_at_odds", "second", mourner, new Binding(w.ProtagonistId).With("first", killer.Id)));
+        Assert.True(Binds(w, "two_guests_at_odds", "guest", killer));
+        Assert.True(Binds(w, "two_guests_at_odds", "other_guest", mourner, new Binding(w.ProtagonistId).With("guest", killer.Id)));
         Assert.True(Eligible(w, "two_guests_at_odds"));
         int between = RegardOf(w, mourner, killer);
-        Take(w, Fire(w, "two_guests_at_odds", ("first", killer), ("second", mourner)), "bring_them_together");
+        Take(w, Fire(w, "two_guests_at_odds", ("guest", killer), ("other_guest", mourner)), "bring_them_together");
         Assert.Equal(between + 10, RegardOf(w, mourner, killer)); Assert.Equal(5, RegardOf(w, killer, me));
-        EveryChoice("two_guests_at_odds", () => { var (x, _, k, m) = Guests(); return (x, Fire(x, "two_guests_at_odds", ("first", k), ("second", m))); });
+        EveryChoice("two_guests_at_odds", () => { var (x, _, k, m) = Guests(); return (x, Fire(x, "two_guests_at_odds", ("guest", k), ("other_guest", m))); });
     }
 
     [Fact]
@@ -395,14 +421,43 @@ public class EncounterEventsTests
         cousin.Flags.Add("owes_you_a_favour"); cousin.Flags.Add("quarrel_with_you"); cousin.Flags.Add("staked_by_you"); cousin.Flags.Add("your_protege");
         var young = Add(w, mine, "young_cousin", 19, "law", 0);
         cousin.Flags.Add(LifeSystem.OldEnemyChar);
-        foreach (var (id, role, who) in new[] { ("words_at_the_feast", "envious", cousin), ("a_veteran_of_the_old_wars", "veteran", cousin), ("a_painters_great_canvas", "rival", cousin), ("an_old_enemy_across_the_room", "enemy", cousin),
-                     ("a_secret_for_sale", "target", cousin), ("a_patron_wanted", "young", young) })
+        foreach (var (id, role, who) in new[] { ("words_at_the_feast", "envious", cousin), ("a_veteran_of_the_old_wars", "veteran", cousin), ("a_painters_great_canvas", "sitter", cousin), ("an_old_enemy_across_the_room", "enemy", cousin),
+                     ("a_secret_for_sale", "subject", cousin), ("a_patron_wanted", "young", young) })
             Assert.False(Binds(w, id, role, who), $"{id} binds {who.Id} of your own house");
         // the roles named for outsiders are kept out by the binder itself
-        var outside = new[] { "envious", "grandee", "claimant", "debtor", "envoy" };
-        foreach (var e in Content.Events.Where(e => e.Id is "words_at_the_feast" or "the_quarrel_comes_to_a_head" or "a_merchant_princes_venture" or "the_venture_comes_home" or "the_venture_goes_down" or "a_house_without_lands" or "a_favour_repaid" or "a_word_off_the_record"))
+        var outside = new[] { "envious", "grandee", "claimant", "debtor", "envoy", "classmate", "veteran", "young", "sitter", "subject", "guest", "other_guest" };
+        foreach (var e in Content.Events.Where(e => e.Id is "words_at_the_feast" or "the_quarrel_comes_to_a_head" or "a_merchant_princes_venture" or "the_venture_comes_home" or "the_venture_goes_down" or "a_house_without_lands" or "a_favour_repaid" or "a_word_off_the_record"
+                     or "a_classmate_in_the_city" or "a_veteran_of_the_old_wars" or "a_painters_great_canvas" or "a_secret_for_sale" or "the_secret_you_hold" or "a_patron_wanted" or "two_guests_at_odds"))
             Assert.All(e.Roles, r => Assert.Contains(r.Name, outside));
         foreach (var f in new EventEngine(Content, WorldBuilder.RngFor(w)).GatherEligible(w).Where(f => f.def.Id is "the_quarrel_comes_to_a_head" or "a_favour_repaid" or "the_venture_comes_home" or "the_venture_goes_down"))
             Assert.DoesNotContain(f.binding.All.Where(kv => kv.Key != Binding.Self), kv => w.Char(kv.Value)!.HouseId == me.HouseId);
+    }
+
+    [Fact]
+    public void ARelativeStruckFromTheLine_IsStillOfYourHouse_AndIsMetAsNoStranger()
+    {
+        // struck from the line, a relative no longer stands in it (inLine is false), and only the binder's outside parts keep them out
+        var (w, me, mine, _) = Start(); var struck = Add(w, mine, "struck", 64, "military", 5); struck.Flags.Add(DisownSystem.StruckChar);
+        Assert.False(DynastySystem.StandsInLine(w, me, struck)); Assert.True(Binds(w, "a_veteran_of_the_old_wars", "veteran", struck));   // the role's own conditions would take them
+        foreach (var c in w.Characters.Values.Where(c => c.Id != struck.Id)) c.Flags.Add(FleetSystem.AdmiralFlag);                        // nobody else could be the veteran
+        Assert.Null(Binder.TryBind(Content.Event("a_veteran_of_the_old_wars")!, w, WorldBuilder.RngFor(w)));
+        Regard(w, me, struck, -20); foreach (var c in w.Characters.Values.Where(c => c.Id != struck.Id)) c.Flags.Add("you_hold_their_secret");
+        Assert.True(Binds(w, "a_secret_for_sale", "subject", struck)); Assert.Null(Binder.TryBind(Content.Event("a_secret_for_sale")!, w, WorldBuilder.RngFor(w)));   // and the secret's loss would fall on your own house
+    }
+
+    [Fact]
+    public void ANationsPeople_AreNotMetAtYourTable()
+    {
+        var (w, me, _, theirs) = Start(); var vet = Add(w, theirs, "vet", 64, "military", 5); Add(w, theirs, "vet_elder", 90); Regard(w, vet, me, 25);
+        Assert.True(Binds(w, "a_veteran_of_the_old_wars", "veteran", vet));
+        vet.Flags.Add(NationSystem.ForeignChar); Assert.False(Binds(w, "a_veteran_of_the_old_wars", "veteran", vet));                     // a nation's commander, not in command this year
+        // a nation on the map embodies its ruler as a person of the nation's house (NationSystem.Embody): at sixty and out of command, still not met at dinner
+        NationSystem.Seed(w, Content.Nations); new NationSystem(Content.Nations, new FleetSystem(Content.Fleets, Content.Holdings, Content.ShipClasses)).Tick(w);
+        var ruler = w.Characters.Values.FirstOrDefault(c => c.Alive && c.Flags.Contains(NationSystem.RulerChar));
+        Assert.NotNull(ruler); ruler!.Age = 60; ruler.CareerRank = 5; ruler.Flags.Remove(FleetSystem.AdmiralFlag); Regard(w, ruler, me, 25);
+        Assert.False(Binds(w, "a_veteran_of_the_old_wars", "veteran", ruler));
+        ruler.Flags.Remove(NationSystem.ForeignChar); Assert.True(Binds(w, "a_veteran_of_the_old_wars", "veteran", ruler)); ruler.Flags.Add(NationSystem.ForeignChar);   // it is the mark that keeps them out
+        foreach (var e in Content.Events.Where(e => Ids.Contains(e.Id)))
+            Assert.All(e.Roles, r => Assert.Contains(r.Constraints, k => k is CharFlagCondition f && f.Flag == NationSystem.ForeignChar && !f.Value));
     }
 }

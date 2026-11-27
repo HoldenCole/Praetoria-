@@ -20,6 +20,12 @@
               "role": "classmate",
               "vsRole": "self",
               "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "classmate",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -69,27 +75,42 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put in a word for {classmate.name}, who was of the same year at the {era:Academy|Institute}. It will be remembered."
+              "text": "{self.name} put in a word for {classmate.name}, a cadet of the same year. It will be remembered."
             }
           ]
         },
         {
-          "id": "an_evening_of_old_stories",
+          "id": "gather_your_old_year",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
           "effects": [
             {
-              "type": "adjustStress",
+              "type": "adjustResource",
               "role": "self",
-              "delta": -5
+              "resource": "credits",
+              "delta": -3
             },
             {
               "type": "adjustRelationship",
               "from": "classmate",
               "to": "self",
-              "delta": 4
+              "delta": 6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
             },
             {
               "type": "log",
-              "text": "{self.name} and {classmate.name} talked of the {era:Academy|Institute} until the lamps were out."
+              "text": "{self.name} and {classmate.name} brought the cadets of their year together for a dinner, and the city noticed how many of them had risen."
             }
           ]
         },
@@ -201,6 +222,12 @@
               "type": "inLine",
               "role": "enemy",
               "vsRole": "self",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "enemy",
+              "flag": "foreign",
               "value": false
             }
           ]
@@ -385,6 +412,12 @@
               "role": "envious",
               "flag": "quarrel_with_you",
               "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "envious",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -506,6 +539,12 @@
               "role": "envious",
               "flag": "quarrel_with_you",
               "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "envious",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -705,6 +744,12 @@
               "role": "veteran",
               "vsRole": "self",
               "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "veteran",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -821,25 +866,31 @@
       "repeatable": true,
       "roles": [
         {
-          "name": "rival",
+          "name": "sitter",
           "when": [
             {
               "type": "relationship",
-              "from": "rival",
+              "from": "sitter",
               "to": "self",
               "op": "lte",
               "value": -10
             },
             {
               "type": "age",
-              "role": "rival",
+              "role": "sitter",
               "op": "gte",
               "value": 25
             },
             {
               "type": "inLine",
-              "role": "rival",
+              "role": "sitter",
               "vsRole": "self",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "sitter",
+              "flag": "foreign",
               "value": false
             }
           ]
@@ -878,13 +929,13 @@
             },
             {
               "type": "adjustRelationship",
-              "from": "rival",
+              "from": "sitter",
               "to": "self",
               "delta": -8
             },
             {
               "type": "log",
-              "text": "{self.name} stands at the centre of the great canvas in the public hall. {rival.name} of {rival.house} stands to one side."
+              "text": "{self.name} stands at the centre of the great canvas in the public hall. {sitter.name} of {sitter.house} stands to one side."
             }
           ]
         },
@@ -902,7 +953,7 @@
           "effects": [
             {
               "type": "adjustRelationship",
-              "from": "rival",
+              "from": "sitter",
               "to": "self",
               "delta": 8
             },
@@ -913,7 +964,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} and {rival.name} of {rival.house} stand side by side on the great canvas, as equals, which surprised the city."
+              "text": "{self.name} and {sitter.name} of {sitter.house} stand side by side on the great canvas, as equals, which surprised the city."
             }
           ]
         },
@@ -954,13 +1005,13 @@
             },
             {
               "type": "adjustRelationship",
-              "from": "rival",
+              "from": "sitter",
               "to": "self",
               "delta": -12
             },
             {
               "type": "log",
-              "text": "On the great canvas in the public hall, {rival.name} of {rival.house} is small, and at the back. {rival.name} knows why."
+              "text": "On the great canvas in the public hall, {sitter.name} of {sitter.house} is small, and at the back. {sitter.name} knows why."
             }
           ]
         }
@@ -988,6 +1039,12 @@
               "value": 30
             },
             {
+              "type": "age",
+              "role": "grandee",
+              "op": "lte",
+              "value": 65
+            },
+            {
               "type": "relationship",
               "from": "grandee",
               "to": "self",
@@ -998,6 +1055,12 @@
               "type": "charFlag",
               "role": "grandee",
               "flag": "staked_by_you",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "grandee",
+              "flag": "foreign",
               "value": false
             }
           ]
@@ -1062,8 +1125,23 @@
               "delta": -1
             },
             {
+              "type": "adjustResource",
+              "role": "grandee",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
               "type": "log",
               "text": "{self.name}'s name is on the charter of a venture of {grandee.house}, for a fee."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "role": "grandee",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
             }
           ]
         },
@@ -1130,15 +1208,23 @@
               "type": "atWar",
               "role": "grandee",
               "present": false
+            },
+            {
+              "type": "charFlag",
+              "role": "grandee",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
       ],
       "when": [
         {
-          "type": "worldFlag",
-          "flag": "price_spike",
-          "value": true
+          "type": "price",
+          "resource": "exotics",
+          "op": "gte",
+          "pct": 110,
+          "against": "year"
         }
       ],
       "choices": [
@@ -1253,11 +1339,19 @@
                   "present": true
                 },
                 {
-                  "type": "worldFlag",
-                  "flag": "price_slump",
-                  "value": true
+                  "type": "price",
+                  "resource": "exotics",
+                  "op": "lte",
+                  "pct": 90,
+                  "against": "year"
                 }
               ]
+            },
+            {
+              "type": "charFlag",
+              "role": "grandee",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -1312,8 +1406,23 @@
               "value": false
             },
             {
+              "type": "adjustResource",
+              "role": "grandee",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
               "type": "log",
               "text": "{self.name} pressed {grandee.name} of {grandee.house} for the money lost in their venture, and had 300 credits of it."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "role": "grandee",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
             }
           ]
         },
@@ -1326,6 +1435,13 @@
               "skill": "economics",
               "op": "gte",
               "value": 3
+            },
+            {
+              "type": "resource",
+              "role": "grandee",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
             }
           ],
           "effects": [
@@ -1346,6 +1462,12 @@
               "role": "grandee",
               "flag": "staked_by_you",
               "value": false
+            },
+            {
+              "type": "adjustResource",
+              "role": "grandee",
+              "resource": "credits",
+              "delta": -5
             },
             {
               "type": "log",
@@ -1381,6 +1503,12 @@
               "type": "charFlag",
               "role": "claimant",
               "flag": "owes_you_a_favour",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "claimant",
+              "flag": "foreign",
               "value": false
             }
           ]
@@ -1500,6 +1628,12 @@
               "role": "debtor",
               "flag": "owes_you_a_favour",
               "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "debtor",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -1613,7 +1747,7 @@
       "repeatable": true,
       "roles": [
         {
-          "name": "target",
+          "name": "subject",
           "when": [
             {
               "type": "any",
@@ -1621,13 +1755,13 @@
                 {
                   "type": "relationship",
                   "from": "self",
-                  "to": "target",
+                  "to": "subject",
                   "op": "lte",
                   "value": -10
                 },
                 {
                   "type": "relationship",
-                  "from": "target",
+                  "from": "subject",
                   "to": "self",
                   "op": "lte",
                   "value": -15
@@ -1636,14 +1770,26 @@
             },
             {
               "type": "age",
-              "role": "target",
+              "role": "subject",
               "op": "gte",
               "value": 25
             },
             {
               "type": "inLine",
-              "role": "target",
+              "role": "subject",
               "vsRole": "self",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "subject",
+              "flag": "foreign",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "subject",
+              "flag": "you_hold_their_secret",
               "value": false
             }
           ]
@@ -1676,14 +1822,14 @@
               "delta": -4
             },
             {
-              "type": "adjustResource",
-              "role": "self",
-              "resource": "influence",
-              "delta": 2
+              "type": "setCharFlag",
+              "role": "subject",
+              "flag": "you_hold_their_secret",
+              "value": true
             },
             {
               "type": "log",
-              "text": "{self.name} bought a secret about {target.name} of {target.house}, and has kept it."
+              "text": "{self.name} bought a secret about {subject.name} of {subject.house}, and has kept it, for the day it is wanted."
             }
           ]
         },
@@ -1707,18 +1853,18 @@
             },
             {
               "type": "adjustLegitimacy",
-              "role": "target",
+              "role": "subject",
               "delta": -2
             },
             {
               "type": "adjustRelationship",
-              "from": "target",
+              "from": "subject",
               "to": "self",
               "delta": -20
             },
             {
               "type": "log",
-              "text": "What {target.name} of {target.house} had done is known now, and {target.house} is the less for it. {target.name} knows who told."
+              "text": "What {subject.name} of {subject.house} had done is known now, and {subject.house} is the less for it. {subject.name} knows who told."
             }
           ]
         },
@@ -1742,13 +1888,13 @@
             },
             {
               "type": "adjustRelationship",
-              "from": "target",
+              "from": "subject",
               "to": "self",
               "delta": 15
             },
             {
               "type": "log",
-              "text": "{self.name} bought a secret about {target.name} of {target.house} and sent it to them, unread."
+              "text": "{self.name} bought a secret about {subject.name} of {subject.house} and sent it to them, unread."
             }
           ]
         },
@@ -1758,6 +1904,141 @@
             {
               "type": "log",
               "text": "{self.name} sent away someone who had a secret to sell."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_secret_you_hold",
+      "tier": "situation",
+      "weight": 15,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "subject",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "subject",
+              "flag": "you_hold_their_secret",
+              "value": true
+            },
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "relationship",
+                  "from": "subject",
+                  "to": "self",
+                  "op": "lte",
+                  "value": -30
+                },
+                {
+                  "type": "charFlag",
+                  "role": "subject",
+                  "flag": "moves_against_you",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "type": "charFlag",
+              "role": "subject",
+              "flag": "foreign",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "use_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "subject",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "subject",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "setCharFlag",
+              "role": "subject",
+              "flag": "you_hold_their_secret",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "What {subject.name} of {subject.house} had done is known now, and {subject.house} is the less for it. {subject.name} knows who told."
+            }
+          ]
+        },
+        {
+          "id": "sell_it_back",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "subject",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "role": "subject",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "subject",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "subject",
+              "flag": "you_hold_their_secret",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{subject.house} paid {self.name} 400 credits for what {self.name} knew of {subject.name}, and had the proof back."
+            }
+          ]
+        },
+        {
+          "id": "burn_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "subject",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "setCharFlag",
+              "role": "subject",
+              "flag": "you_hold_their_secret",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} burned what was known of {subject.name} of {subject.house}, and told them so."
             }
           ]
         }
@@ -1789,6 +2070,12 @@
               "type": "atWar",
               "role": "envoy",
               "present": false
+            },
+            {
+              "type": "charFlag",
+              "role": "envoy",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -1961,6 +2248,12 @@
               "role": "young",
               "flag": "your_protege",
               "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "young",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -2081,6 +2374,12 @@
               "role": "risen",
               "op": "gte",
               "value": 23
+            },
+            {
+              "type": "charFlag",
+              "role": "risen",
+              "flag": "foreign",
+              "value": false
             }
           ]
         }
@@ -2221,36 +2520,48 @@
       "repeatable": true,
       "roles": [
         {
-          "name": "first",
+          "name": "guest",
           "when": [
             {
               "type": "charFlag",
-              "role": "first",
+              "role": "guest",
               "flag": "blood_on_their_hands",
               "value": true
             },
             {
               "type": "inLine",
-              "role": "first",
+              "role": "guest",
               "vsRole": "self",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "guest",
+              "flag": "foreign",
               "value": false
             }
           ]
         },
         {
-          "name": "second",
+          "name": "other_guest",
           "when": [
             {
               "type": "relationship",
-              "from": "second",
-              "to": "first",
+              "from": "other_guest",
+              "to": "guest",
               "op": "lte",
               "value": -20
             },
             {
               "type": "inLine",
-              "role": "second",
+              "role": "other_guest",
               "vsRole": "self",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "other_guest",
+              "flag": "foreign",
               "value": false
             }
           ]
@@ -2269,19 +2580,19 @@
           "effects": [
             {
               "type": "adjustRelationship",
-              "from": "first",
+              "from": "guest",
               "to": "self",
               "delta": 8
             },
             {
               "type": "adjustRelationship",
-              "from": "second",
+              "from": "other_guest",
               "to": "self",
               "delta": -8
             },
             {
               "type": "log",
-              "text": "{self.name} gave the place of honour to {first.name} of {first.house}. {second.name} of {second.house} left early."
+              "text": "{self.name} gave the place of honour to {guest.name} of {guest.house}. {other_guest.name} of {other_guest.house} left early."
             }
           ]
         },
@@ -2290,19 +2601,19 @@
           "effects": [
             {
               "type": "adjustRelationship",
-              "from": "second",
+              "from": "other_guest",
               "to": "self",
               "delta": 8
             },
             {
               "type": "adjustRelationship",
-              "from": "first",
+              "from": "guest",
               "to": "self",
               "delta": -8
             },
             {
               "type": "log",
-              "text": "{self.name} gave the place of honour to {second.name} of {second.house}, over {first.name} of {first.house}."
+              "text": "{self.name} gave the place of honour to {other_guest.name} of {other_guest.house}, over {guest.name} of {guest.house}."
             }
           ]
         },
@@ -2311,13 +2622,13 @@
           "effects": [
             {
               "type": "adjustRelationship",
-              "from": "first",
+              "from": "guest",
               "to": "self",
               "delta": -3
             },
             {
               "type": "adjustRelationship",
-              "from": "second",
+              "from": "other_guest",
               "to": "self",
               "delta": -3
             },
@@ -2328,7 +2639,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} seated {first.name} and {second.name} at opposite ends of the table. Neither was pleased."
+              "text": "{self.name} seated {guest.name} and {other_guest.name} at opposite ends of the table. Neither was pleased."
             }
           ]
         },
@@ -2358,25 +2669,25 @@
           "effects": [
             {
               "type": "adjustRelationship",
-              "from": "first",
-              "to": "second",
+              "from": "guest",
+              "to": "other_guest",
               "delta": 10
             },
             {
               "type": "adjustRelationship",
-              "from": "second",
-              "to": "first",
+              "from": "other_guest",
+              "to": "guest",
               "delta": 10
             },
             {
               "type": "adjustRelationship",
-              "from": "first",
+              "from": "guest",
               "to": "self",
               "delta": 5
             },
             {
               "type": "adjustRelationship",
-              "from": "second",
+              "from": "other_guest",
               "to": "self",
               "delta": 5
             },
@@ -2387,7 +2698,7 @@
             },
             {
               "type": "log",
-              "text": "At {self.name}'s table, {first.name} of {first.house} and {second.name} of {second.house} spoke to each other for the first time since the death."
+              "text": "At {self.name}'s table, {guest.name} of {guest.house} and {other_guest.name} of {other_guest.house} spoke civilly to each other for the first time in years."
             }
           ]
         }

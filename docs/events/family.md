@@ -114,11 +114,12 @@ Director reads only those for the five-fold weight of fresh news.
   and a `parent` of your blood and your house, of the grandchild's blood. Once for each head (round 1: it was once a game; now
   repeatable while the head lacks `had_a_grandchild`, which every choice sets on them); weight 35.
 - **Choices.**
-  - *Go to them yourself, today*: stress -8, the parent's regard +8.
+  - *Go to them yourself, today, and let the house's business wait (1 influence)*: influence -1, stress -4, the parent's regard +8.
   - *A gift from the house worthy of it* (needs 500 credits): credits -5, legitimacy +1, the parent's regard +5.
-  - *Send your blessing, and keep to your work*: your stress -2, the parent's regard -3 (round 1: it gave influence from nowhere).
-- **Numbers.** -8 stress is *An Old Friend*'s evening; 500 credits is a gift, and +1 legitimacy is what the house is seen to gain by
-  a line that goes on.
+  - *Send your blessing, and keep to your work*: your stress -4, the parent's regard -2 (round 1: it gave influence from nowhere).
+- **Numbers.** 500 credits is a gift, and +1 legitimacy is what the house is seen to gain by a line that goes on. Round 2: the visit
+  was free and gave stress -8 and regard +8, and the blessing (stress -2, regard -3) was never the better answer. Now the visit costs
+  a day of the house's business, and staying at your work rests you as much: the choice is the parent's regard against the influence.
 - **Nearest.** None.
 
 ### 3. The Other Family Asks for the Child (`the_other_family_asks_for_the_child`)
@@ -160,8 +161,9 @@ Director reads only those for the five-fold weight of fresh news.
   - *Stand with {winner}*: the winner's regard +6, the other's -8, and the other is `slighted` (to *The Slighted Kinsman*).
   - *Something for {other}, from the house* (needs 500 credits): credits -5, the other's regard +8, the winner's -2.
   - *Tell them both to stand together*: each thinks 10 better of the other, each 2 worse of you, your stress +2; both marked
-    `stood_together`.
-  - *Leave them to it*: the other thinks 6 worse of the winner.
+    `stood_together`. The chronicle says they said they would (round 2: "and they have", which is the next report's).
+  - *Leave them to it*: the other thinks 6 worse of the winner. The chronicle says they were left "to settle it between them"
+    (round 2: "to it" had nothing to refer to in the chronicle).
   All four mark the other `heard_left_behind`, so it comes once for each of them.
 - **Numbers.** -8 and +8 as *Two of Yours Want One Thing* (10 each way, here a little less: there is no prize left to give).
 - **Nearest.** *What They Wanted* (the winner and you), *Two of Yours Want One Thing* (before the prize is won).
@@ -186,11 +188,15 @@ Director reads only those for the five-fold weight of fresh news.
   and took 1.5% of all reports in the first soak: a marriage of forty years has four of these, and few reports compete for the
   year). The choices clear the mark, so once answered it does not come again in the year after.
 - **Choices.**
-  - *A feast for both families* (needs 800 credits): credits -8, warmth +6, legitimacy +1.
+  - *A feast for both families, and let the Reach see it* (needs 800 credits): credits -8, warmth +4, legitimacy +2 (round 2: warmth
+    +6 and legitimacy +1, which the private gift beat on everything but one point of standing). The public choice now trades warmth
+    for standing; the gift stays the private, warmer one. The in-law's regard the critic suggested is left out: a role cannot be
+    optional, and binding the in-law would keep the report from every marriage with no family head to mark.
   - *A gift between the two of you* (needs 300 credits): credits -3, warmth +8, stress -4.
   - *A day like any other*: warmth -6.
   - *Say what has gone wrong between you* (only in a cold marriage): warmth +10, stress +4.
-- **Numbers.** Warmth +10 is *A Cold House*'s mending, here without its influence, because it is said aloud on the day.
+- **Numbers.** Warmth +10 is *A Cold House*'s mending, here without its influence, because it is said aloud on the day. The body
+  says the day "has come round again, and it is a round number of years" (round 2: "another ten years" was wrong the first time).
 - **Nearest.** *The Wedding* (the day itself), *A Marriage of Two Minds* (once, in a warm marriage), *The Household* (an evening).
 
 ### 8. A Spouse's Ambition (`a_spouses_ambition`)
@@ -211,13 +217,17 @@ Director reads only those for the five-fold weight of fresh news.
 - **Nearest.** *No Nearer It* and the requests of the house's own people; a spouse of another house was outside them.
 
 ### 9. A Family Divided (`between_two_families`)
-- **What happened.** Your spouse's house is at war with yours.
-- **Fires when.** A `spouse` whose house is at war with yours and who has not had this report. Repeatable, once a spouse; weight 12.
+- **What happened.** The house your spouse was born to is at war with yours.
+- **Fires when.** A `spouse` who has not had this report, and an `in_law` (round 2): the head of the spouse's family, marked
+  `in_law` by `CourtshipSystem` every year, whose house is at war with yours. Repeatable, once a spouse; weight 12. Round 2: the
+  spouse role tested the spouse's own house at war, and a spouse who came to live in your house shares your house, so the usual
+  case, the one the text is written for ("the house {spouse.name} was born to", letters home), never had the card; it came only to a
+  spouse living in their own house. `{spouse.house}` already names the house of birth for a spouse who lives in yours.
 - **Choices.**
   - *Let them write to their family*: warmth +6, legitimacy -1 (letters to the enemy are talked of).
   - *No letters while the war lasts*: warmth -10, their stress +8, legitimacy +1.
-  - *Ask them to carry an offer of peace* (only when their house would take a white peace, and 1 influence): peace, nothing
-    changing hands, warmth +6.
+  - *Ask them to carry an offer of peace* (only when the in-law's house would take a white peace, and 1 influence): peace with
+    the in-law's house, nothing changing hands, warmth +6.
   All three mark the spouse `torn_between`.
 - **Numbers.** The white peace is the one the Military window offers on the same terms; the report adds no peace that was not to be
   had, only a way to it through your spouse.
@@ -247,7 +257,7 @@ Director reads only those for the five-fold weight of fresh news.
 - **Choices.**
   - *Say you were wrong*: regard +15, your stress +4.
   - *Raise a cup to them, and say nothing of the rest*: regard +5.
-  - *Say they were lucky*: regard -10.
+  - *Say it had been luck* (the chronicle line no longer says "they had been lucky", which could be either of you): regard -10.
   All three clear `doubted_by_the_head`.
 - **Nearest.** *What They Wanted*, on the same news, is about whether you helped; this is about having said they would fail.
 
@@ -272,9 +282,12 @@ Director reads only those for the five-fold weight of fresh news.
   - *Lay the house down to {keeper}*: they have the seat from today and you stay on as the house's elder (`retired`), legitimacy +2
     (as retiring does), their regard +15.
   - *Name a day, but not yet*: their regard +4, marked `promised_the_seat`.
+  - *Not yet, and promise nothing* (round 2): their regard -8. A head who is not Proud, Ambitious or Arrogant had only two answers,
+    to lay the house down or to promise a day.
   - *Not while you live* (needs Proud, Ambitious or Arrogant): their regard -15, their stress +8, marked `slighted`.
-  All three clear `kept_the_house`.
-- **Numbers.** +2 legitimacy is what `LifeSystem.Retire` gives the house; -15 as *The Slighted Kinsman*'s -20, a little less.
+  All four clear `kept_the_house`.
+- **Numbers.** +2 legitimacy is what `LifeSystem.Retire` gives the house; -15 as *The Slighted Kinsman*'s -20, a little less; -8 for
+  a plain "not yet" is half of that, with no slight and no promise to keep.
 - **Nearest.** *The Abdication* is a set-piece about yielding to an heir by title. Here the family asks, and can be put off.
 
 ### 14. The Day You Named (`the_day_you_named`)
@@ -420,9 +433,25 @@ lose, spread thinly: no file lost more than 0.7 of a point.
   `eventFired` gate cannot keep two of them from one briefing, and the three ask different things (the ambition won, the one left
   behind, an old judgement).
 
+## Round 2 of review (2026-11-27)
+
+- *A Family Divided* binds the head of the spouse's family (`in_law`) at war with you, not the spouse's own house; its white peace
+  is made with the in-law's house, and its chronicle line is in the past tense ("while the war lasted").
+- *A Grandchild Is Born*: the visit costs 1 influence and rests you less, the blessing rests you as much and costs less regard.
+- *The Wedding Remembered*: the feast is the public choice (legitimacy +2, warmth +4); the body no longer says "another ten years".
+- *They Ask You to Stand Aside* has a plain "not yet" for any head.
+- Words: *A Spouse's Ambition* ("who spoke for those who were"), *Left Behind*'s two chronicle lines, *You Were Wrong About Them*'s.
+
 ### Measured after round 1
 
 The soak after review (22 games, 7,843 reports) passed. This file took 282 reports (3.6%), thirteen of its sixteen kinds; the most
 fired are `the_wedding_remembered` (71, 0.9%) and `the_naming_of_a_child` (64, 0.8%), and `a_life_of_their_own` is no longer among
 the thirty most fired. `kin_stand_together`, `they_ask_you_to_stand_aside` and `the_day_you_named` did not fire: second and third
 steps of threads, as in this file's own first soak, each covered by its test.
+
+### Measured after round 2
+
+The soak after round 2 (22 games, 7,996 reports) passed. This file took 305 reports (3.8%), fifteen of its sixteen kinds; the most
+fired is `the_wedding_remembered` (75, 0.9%). `between_two_families` fired once, now that it binds the house the spouse was born to;
+`kin_stand_together` twice and `they_ask_you_to_stand_aside` once. `the_day_you_named` did not fire (the third step of its thread),
+and its test covers it.

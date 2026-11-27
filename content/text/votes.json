@@ -23,11 +23,11 @@
     {
       "id": "the_vote_still_undecided",
       "title": "The Vote Still Undecided",
-      "body": "Your motion comes to the vote at the end of the session, and {doubter.name} of {doubter.house} has not said which way their house will go. They lean neither for it nor against. In a close count that is the vote that decides it, and a head who thinks well enough of you leans your way.",
+      "body": "Your motion comes to the vote at the end of the session, and {doubter.name} of {doubter.house} has not said which way their house will go. They lean neither for it nor against. In a close count that is the vote that decides it. A head who thinks well enough of you leans your way, and {doubter.name} is not far off it.",
       "choices": {
-        "make_your_case": "Go and make your case to them in person.",
-        "have_them_to_dinner": "Have them to dinner, and talk of anything but the motion.",
-        "speak_from_the_floor": "Speak for it from the floor, and let them hear it there.",
+        "make_your_case": "Go and make your case to them in person (1 influence). It may be enough to bring them over.",
+        "have_them_to_dinner": "Have them to dinner, and talk of anything but the motion (400 credits). It is the likeliest to bring them over.",
+        "speak_from_the_floor": "Speak for it from the floor, and let them hear it there. It may bring them over, if they were nearly there.",
         "leave_them_be": "Leave them to make up their own mind."
       }
     },
@@ -48,14 +48,14 @@
       "body": "Your motion carried. The houses that carried it expect to be thanked, and in the Reach that is done at a table. {ally.name} of {ally.house}, who voted with you, has asked whose table it will be.",
       "choices": {
         "your_table": "Give the dinner yourself, and seat {ally.name} at your right hand.",
-        "their_table": "Let {ally.name} give it, and go as their guest.",
-        "a_letter": "Thank them by letter."
+        "their_table": "Let {ally.name} give it, and go as their guest. The city will say it was their motion.",
+        "a_letter": "Thank them by letter, and keep your evening for yourself."
       }
     },
     {
       "id": "those_who_voted_against_you",
       "title": "The House That Voted Against You",
-      "body": "Your motion carried, and {loser.name} of {loser.house} voted against it to the end. They have lost in front of the whole chamber, and they are a house that remembers who it lost to.",
+      "body": "Your motion carried, and {loser.name} of {loser.house} voted against it to the end. They have lost in front of the whole chamber, and {loser.house} remembers who it lost to.",
       "choices": {
         "offer_them_something": "Go to them and offer them something for their trouble.",
         "let_them_lose": "Let them lose. It is what a vote is.",
@@ -75,17 +75,17 @@
     {
       "id": "an_old_grudge_against_your_motion",
       "title": "An Old Grudge Against Your Motion",
-      "body": "Your motion comes to the vote this session, and {rival.name} of {rival.house} is speaking against it in every corridor of the Senate. It is not the motion they mind. They have held a grudge against your house since the chamber last saw them come off worse against you, and this is the first chance they have had to make you pay for it. A head who thinks ill enough of you votes against what you move, and talks others into it.",
+      "body": "Your motion comes to the vote this session, and {rival.name} of {rival.house} is speaking against it in every corridor of the Senate. It is not the motion they mind. They have held a grudge against your house since the chamber last saw them come off worse against you, and this is the first chance they have had to make you pay for it. A head who thinks ill enough of you leans against what you move, and {rival.name} does.",
       "choices": {
-        "buy_them_off": "Send them something to let it go (600 credits). They will think better of you.",
-        "answer_them_on_the_floor": "Answer them on the floor, and name the old quarrel.",
-        "let_it_cost_you": "Let them talk. It may cost you the vote, and the grudge stays."
+        "buy_them_off": "Send them something to let it go (600 credits). They may think well enough of you again not to lean against it.",
+        "answer_them_on_the_floor": "Answer them on the floor, and name the old quarrel. They will still lean against it; the chamber will think the better of you.",
+        "let_it_cost_you": "Let them talk. Their house leans against your motion, and the grudge is spent on it."
       }
     },
     {
       "id": "the_senates_act_falls_on_a_friend",
       "title": "The Senate's Act Falls on a Friend",
-      "body": "The Act has carried, against the votes of {friend.house}. {friend.name} fought it to the last, and has written to you: not to complain, they say, but because a friend should hear it from them first. They would like to know what you mean to do. An Act is undone as it was made: by another Act, moved in the Senate.",
+      "body": "An Act of the Senate has carried, against the votes of {friend.house}. {friend.name} fought it to the last, and has written to you: not to complain, they say, but because a friend should hear it from them first. They would like to know what you mean to do. An Act is undone as it was made: by another Act, moved in the Senate.",
       "choices": {
         "promise_the_repeal": "Promise to move its repeal when the chamber will hear it.",
         "help_them_through": "Send them help to carry it through the year, and ask nothing.",
@@ -125,7 +125,7 @@
     {
       "id": "the_pamphlet_scandal",
       "title": "The Pamphlet Scandal",
-      "body": "Your pamphleteer and the one {accuser.name} of {accuser.house} pays have been at it all year. The squares have enjoyed it. Nobody believes either side, which is to say that both houses are now believed to have bought their counts. {accuser.name} has sent word that they will stop if you will.",
+      "body": "Your pamphleteer and the one {accuser.name} of {accuser.house} pays have been at it all year. The squares have enjoyed it. Nobody believes either side, which is to say that both houses are now believed to have bought what votes they could. {accuser.name} has sent word that they will stop if you will.",
       "choices": {
         "call_off_your_writer": "Call off your writer. The squares will say your house blinked first.",
         "before_a_praetor": "Have their pamphlets brought before a praetor.",
@@ -171,7 +171,7 @@
       "choices": {
         "divide_the_year": "Divide the year's business between you.",
         "the_senior_chair_leads": "Tell them the senior chair leads.",
-        "keep_your_counsel": "Keep your own counsel, and watch them."
+        "keep_your_counsel": "Keep your own counsel, and watch them. You will learn how they work."
       }
     }
   ]

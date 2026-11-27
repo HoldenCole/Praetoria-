@@ -667,6 +667,7 @@ public static partial class LadderSystem
             if (w.Char(m.CharacterId) is { } kin && GamesRefusal(w, offices, kin) == null && kin.Purse >= (offices.Rung(m.OfficeId)?.Games ?? 0) + 5) Games(w, offices, kin);
 
         foreach (var cd in w.Candidacies) w.Char(cd.CharacterId)?.Flags.Add(StandingChar);
+        foreach (var c in w.Characters.Values.Where(c => !c.Flags.Contains(StandingChar))) c.Flags.Remove(VoteMarks.StandingHeardChar);   // counted or withdrawn: the next candidacy is news again
         if (w.Candidacies.Any(cd => cd.CharacterId == p.Id)) w.WorldFlags.Add(StandingFlag);
         if (Seat(w, p.Id) is { } mine) { w.WorldFlags.Add(MagistrateFlag); if ((offices.Rung(mine.OfficeId)?.Games ?? 0) > 0) w.WorldFlags.Add(AedileFlag); }
     }

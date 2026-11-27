@@ -60,7 +60,8 @@ lives a year, set where the moment happens, in a system this theme owns.
 | `SenateSystem.Apply` | `act_went_against_houses` (world, marked), `act_went_against_them` (char) | the heads of the houses that voted against an Act that carried | at the count | the next session |
 | `ElectionSystem.Hold` | `mark:election_held` (counter) | (the existing `election_held` flag, so the report comes while it is news) | at the count | the flag is cleared next session |
 | `LadderSystem.Hold` | `beat_yours_at_the_count` (char) | the winners of a rung one of the player's house stood for and lost | at the count | with `ladder_election_held` |
-| " | `lost_at_the_count` (char, round 1) | the one of the player's house who stood for that rung and lost to someone of another house | at the count | with `ladder_election_held` |
+| " | `lost_at_the_count` (char, round 1) | the one of the player's house who stood for that rung and lost to someone of another house | at the count | with `ladder_election_held`; round 2: one pair of victor and loser is live at a time, so where two of the house lose on two rungs of one count the second rung's pair replaces the first's (`VoteMarks.LadderCounted`) and no report pairs one rung's victor with the other's loser |
+| `LadderSystem.Tick` (round 2) | `standing_heard` (char, set by report 10) | a relative whose candidacy you have answered | by the report | struck when they no longer stand (counted or withdrawn), so one candidacy is one report |
 | `VoteMarks.Bargains`, at the start of `SenateSystem.Tick` (round 1) | `owes_you_a_vote` (char, set by report 1) | a head who gave their word for yours | by the report | made two favours owed (`WealthSystem.OweFor`): their house owes yours a vote, which leans it +2 for your next motion (`FavourLean`) and is spent at that count; yours owes theirs one, which the count of their motion judges (+5 regard kept, -15 broken: `FavoursCalled`). The mark goes. |
 | " | `promised_your_vote` (char, set by report 2) | a head you told you would vote for their motion | by the report | made one favour owed by your house, judged at their count. The mark goes. |
 | `ElectionSystem` (round 1) | `dined_with_you` (char, set by report 15) | the Senior Consul at whose table you were seen | by the report | spent the first time they would veto a motion of yours (`RivalVetoes`), which they let stand; struck out at the next consular count |
@@ -125,16 +126,20 @@ credits 2 to 8, public trust 1 or 2, an estate 3 to 6. A credit amount is hundre
 
 **3. `the_vote_still_undecided` "The Vote Still Undecided"**. Situation, weight 10, repeatable.
 - Fires: your house has a motion before the Senate (`my_motion_open`). Role `doubter`: `undecided_on_yours`, the head of a house
-  that leans neither way on it.
-- What happened: the vote of one house is still open; its head will decide in the chamber.
+  that leans neither way on it, who thinks 12 to 19 of you (round 2).
+- What happened: the vote of one house is still open; its head will decide in the chamber, and is not far off leaning your way.
 - Choices:
   - Make your case to them in person (costs 1 of the year's influence): their regard +6, stress +1. (The same purse as a lobby;
-    a lobby moves the lean by 2 at once, this moves the head and lasts.)
-  - Have them to dinner (needs 4 credits): -4 credits, their regard +8.
+    a lobby moves the lean by 2 at once, this moves the head and lasts.) Tips a doubter at 14 or more.
+  - Have them to dinner (needs 4 credits): -4 credits, their regard +8. Tips any doubter the report binds: the label says it is the
+    likeliest.
   - Speak for it from the floor, and let them hear it there (needs oratory 3 or the Orator): their regard +4, legitimacy +1,
-    stress +2.
+    stress +2. Tips one at 16 or more.
   - Leave them to make up their own mind: stress -1.
-- Why it matters: at 20 regard a head leans one more toward what you move; an undecided house is the one that a point moves.
+- Why it matters: at 20 regard a head leans one more toward what you move (`SenateSystem.RawLean`); an undecided house is the one
+  that a point moves. Round 2: the doubter was any head with a lean of 0, so a head below 12 could not be tipped by any choice and
+  one at 20 or more was held at 0 by something else, and the player could not tell whether a choice changed the count. Now the
+  three choices differ in how sure they are, and each label says it may bring them over.
 - Weight 10: up in any year your house has a motion with a house undecided on it, which is not most years (the first soak, at 6,
   fired it 7 times in 22 games); it is the player's own motion, the vote they care about most.
 
@@ -158,8 +163,10 @@ credits 2 to 8, public trust 1 or 2, an estate 3 to 6. A credit amount is hundre
 - Fires: your motion carried (`motion_passed_mine`). Role `ally`: `voted_with_you`, thinks 0 or better of you.
 - Choices:
   - Give the dinner yourself, and seat them at your right hand (needs 6 credits): -6 credits, legitimacy +1, their regard +8.
-  - Let them give it, and go as a guest: their regard +5, stress -1.
-  - Thank them by letter: their regard -2, stress -1.
+  - Let them give it, and go as a guest: their regard +5, stress -1, legitimacy -1 (round 2: the city says it was their motion).
+  - Thank them by letter, and keep your evening: their regard -2, stress -3 (round 2: it was -1, the same as the guest's, so the
+    letter was the guest's evening with less regard and never chosen).
+- The three trade money and standing (your table), standing for regard (theirs), and regard for your own evening (the letter).
 
 **6. `those_who_voted_against_you` "The House That Voted Against You"** (retitled in round 1: it names one house) (the losers' grudge; thread B, step 1). Situation, weight 25,
 repeatable.
@@ -182,14 +189,19 @@ repeatable.
 
 **7a. `an_old_grudge_against_your_motion` "An Old Grudge Against Your Motion"** (thread B, the common second step; added in round 1).
 Situation, weight 30, repeatable.
-- Fires: your house has a motion before the Senate (`my_motion_open`). Role `rival`: `grudge_against_you`, thinks 10 or less of you.
-- What happened: the head who holds the grudge is speaking against your motion in every corridor. At -20 regard a head leans one
-  more against what you move, and the body says so.
+- Fires: your house has a motion before the Senate (`my_motion_open`). Role `rival`: `grudge_against_you`, thinks -20 or less of
+  you (round 2: it was 10 or less, and only at -20 does a head's regard lean their house against what you move, so for most
+  bindings letting them talk cost nothing at the count, and the 600 credits bought nothing there).
+- What happened: the head who holds the grudge is speaking against your motion in every corridor, and leans against it. The body
+  says "a head who thinks ill enough of you leans against what you move, and they do" (it said they "talk others into it", which
+  nothing in the engine does).
 - Choices:
-  - Send them something to let it go (600 credits): their regard +12; clears the grudge.
-  - Answer them on the floor, and name the old quarrel (oratory 2, or the Orator): legitimacy +1, their regard -4, stress +2;
-    clears it (it is out in the open).
-  - Let them talk: their regard -3, stress +1; the grudge stays.
+  - Send them something to let it go (600 credits): their regard +12, which may lift them out of leaning against it; clears the
+    grudge.
+  - Answer them on the floor, and name the old quarrel (oratory 2, or the Orator): legitimacy +1, their regard -4 (they still lean
+    against it), stress +2; clears it (it is out in the open).
+  - Let them talk: their regard -3, stress +1. The grudge is spent on this vote and cleared (round 2: it stayed, and the card came
+    back at a later motion saying "this is the first chance they have had").
 - Why: report 7 needs that same head to move a censure or embargo of your house, which in the soak never happened, so four answers
   in three reports armed a grudge that did nothing. Your own motion comes most years a Republic house is active. Weight 30, as the
   other second steps.
@@ -215,9 +227,12 @@ repeatable.
 
 ### The elections
 
-**10. `one_of_yours_stands_for_office` "One of Yours Stands for Office"** (a relative stands). Situation, weight 30, repeatable.
+**10. `one_of_yours_stands_for_office` "One of Yours Stands for Office"** (a relative stands). Situation, weight 20 (round 2: 30),
+repeatable.
 - Fires: a relative of your blood, of your house (`inLine`, round 1: the ladder's marks follow the house, so a relative of
-  another house's count never came back), has `standing_for_office` (their name is down for the coming ladder count).
+  another house's count never came back), has `standing_for_office` (their name is down for the coming ladder count) and not
+  `standing_heard` (round 2: every choice sets it, and the ladder strikes it when the candidacy is counted or withdrawn; a name goes
+  down two years before the count, and the report came twice for one count).
 - Choices:
   - Walk the wards with them, so the city sees the house behind them: their regard +8, your stress +3, their charisma +1
     (two votes at the count).
@@ -225,9 +240,9 @@ repeatable.
   - Tell them an office is won by the one who stands: their regard -4, your stress -1.
 - The body says the house's backing and a paid canvass are there as for anyone who stands (the ladder window); what the relative
   asks is what you will do yourself.
-- The suppression keeps it from coming in both years a name is down; the next count is five years on.
+- One candidacy, one report (`standing_heard`); the next count is five years on.
 
-**11. `a_smear_after_the_election` "A Smear After the Election"** (thread C, step 1). Situation, weight 30, repeatable.
+**11. `a_smear_after_the_election` "A Smear After the Election"** (thread C, step 1). Situation, weight 20 (round 2: 30), repeatable.
 - Fires: `ladder_election_held`. Role `accuser`: `lost_to_yours_at_the_count` (beaten by someone of your house), thinks 20 or
   less of you.
 - Choices:
@@ -244,7 +259,7 @@ repeatable.
   - Have their pamphlets brought before a praetor (costs 2 of the year's influence): their regard -12, legitimacy +1.
   - Let the writers write: public trust -2, legitimacy -1, stress -1, and their house's legitimacy -2: the pamphlets bite both ways.
 
-**13. `the_one_who_won_the_office` "The One Who Won the Office"** (the recount). Situation, weight 30, repeatable.
+**13. `the_one_who_won_the_office` "The One Who Won the Office"** (the recount). Situation, weight 20 (round 2: 30), repeatable.
 - Fires: `ladder_election_held`. Role `victor`: `beat_yours_at_the_count` (won a rung one of yours stood for and lost). Role `kin`
   (round 1): `lost_at_the_count`, the one of your house who lost it, who is in the room.
 - Choices:
@@ -284,12 +299,14 @@ repeatable.
   stake that comes back. The body says the veto is once a term (it said "what they like", which docs/REPUBLIC.md does not allow).
 
 **16. `your_colleague_the_consul` "Your Colleague, the Consul"** (life in office). Situation, weight 20, repeatable.
-- Fires: you hold a consul's chair (`office:consul_senior` or `office:consul_junior` on you). Role `grandee`: holds the other
-  chair, and has not yet met you as colleague (`met_as_colleague` unset; every choice sets it, so it comes once a colleague).
+- Fires: the year of the consular count (`election_held`, round 2: it came in any year of the ten-year term, though the body says
+  the colleague has asked to see you before the first session), and you hold a consul's chair (`office:consul_senior` or
+  `office:consul_junior` on you). Role `grandee`: holds the other chair, and has not yet met you as colleague (`met_as_colleague`
+  unset; every choice sets it, so it comes once a colleague).
 - Choices:
   - Divide the year's business between you: their regard +8.
   - Tell them the senior chair leads (you hold it): +2 clout, their regard -8.
-  - Keep your own counsel, and watch them: stress +2.
+  - Keep your own counsel, and watch them: your intrigue +1, stress +1 (round 2: it was stress +2 and nothing else, pure cost).
 
 ## The threads
 
@@ -371,8 +388,37 @@ draw shifted). The Senate's own reports lost least among the big ones: these sit
   and the consul's veto.
 - *A Vote for a Vote* stays at weight 4: with its second step real it is no longer a hollow card, and its share was under 0.9%.
 
+## Round 2 of review (2026-11-27)
+
+The owner has said "Make sure the vote promises actually work", and those promises have their own phase after this review
+(promises-brief.md), so there are not two designs. Left to it: *A Vote for a Vote* (the price named, and the word given, judged
+at the count), *The Empty Seat on the Bench* (the promise to vote with the bench), *The Senate's Act Falls on a Friend* (the
+promised repeal), *A Bought Vote Called In*, and *A Favour Repaid*'s "their house's voice" (docs/events/chance.md).
+
+Everything else the critics found:
+
+- *The Vote Still Undecided* binds a doubter its choices can tip (12 to 19), and the labels say how likely each is to.
+- *An Old Grudge Against Your Motion* binds a rival who really does lean against it (-20 or worse), says only that, and every answer
+  ends the grudge.
+- *A Feast for the Ayes*: the guest's evening costs a point of standing, the letter keeps your evening; no answer is dominated.
+- *Your Colleague, the Consul* comes in the year of the count, and keeping your counsel teaches you something.
+- *One of Yours Stands for Office* comes once a candidacy (`standing_heard`, struck by the ladder).
+- *The One Who Won the Office* pairs the victor and the loser of one rung (`VoteMarks.LadderCounted`).
+- Weights: the count-day reports *One of Yours Stands for Office*, *The One Who Won the Office* and *A Smear After the Election*
+  from 30 to 20, so the ladder's own count reports get back some of their share.
+- Words: *The House That Voted Against You* ("{loser.house} remembers who it lost to"), *The Senate's Act Falls on a Friend* ("An Act
+  of the Senate has carried"), *The Pamphlet Scandal* ("bought what votes they could"; the Reach "trusted its magistrates the less").
+
 ### Measured after round 1
 
 The soak after review (22 games, 7,843 reports) passed. This file took 386 reports (4.9%), sixteen of its seventeen kinds; the most
 fired is `a_vote_for_a_vote` (64, 0.8%), and `the_consul_elects_feast` is no longer among the thirty most fired. The new
 `an_old_grudge_against_your_motion` fired twice; `an_old_grudge_on_the_docket` did not, as before (its test covers it).
+
+### Measured after round 2
+
+The soak after round 2 (22 games, 7,996 reports) passed. This file took 394 reports (4.9%, as after round 1), sixteen of its
+seventeen kinds; the most fired is still `a_vote_for_a_vote` (87, 1.1%). `an_old_grudge_on_the_docket` did not fire, as before (its
+test covers it); `the_vote_still_undecided`, `an_old_grudge_against_your_motion` and `your_colleague_the_consul` fired once each, now
+that each binds only where it can do what it says. The ladder's own file is back to 8.1% of all reports (7.7% after round 1, 10.0% in
+the baseline) with the count-day reports at 20; the Senate's is at 6.8% (6.9%).

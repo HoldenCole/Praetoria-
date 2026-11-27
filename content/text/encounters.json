@@ -3,10 +3,10 @@
     {
       "id": "a_classmate_in_the_city",
       "title": "A Classmate in the City",
-      "body": "{classmate.name} of {classmate.house} was in your year at the {era:Academy|Institute}. You have hardly seen each other since you left the {era:Academy|Institute}. Tonight you are in the same room, both older, {classmate.name} with the rank of {classmate.rankName} now, and they have come over to you.",
+      "body": "{classmate.name} of {classmate.house} was a cadet of your year. You have hardly seen each other since you passed out. Tonight you are in the same room, both older, {classmate.name} with the rank of {classmate.rankName} now, and they have come over to you.",
       "choices": {
         "put_in_a_word": "Put in a word for them where it counts. They will owe you for it.",
-        "an_evening_of_old_stories": "Make an evening of the old stories.",
+        "gather_your_old_year": "Ask them to help you bring your old year together for a dinner (300 credits). The city will see how far your year has come.",
         "ask_how_their_house_stands": "Ask how their house stands, and listen closely. They will notice how closely.",
         "swear_the_old_friendship": "Swear the old friendship again: you stand by each other from now on."
       }
@@ -25,7 +25,7 @@
     {
       "id": "words_at_the_feast",
       "title": "Words at the Feast",
-      "body": "At a feast given by another house, {envious.name} of {envious.house} says something about your house to the end of the table, loudly enough to carry. It is clever, and it is meant to be repeated. Half the room heard it, and the other half will by morning. Everyone near you is waiting to see what you do.",
+      "body": "At a feast given by another house, {envious.name} of {envious.house} said something about your house to the end of the table, loudly enough to carry. It is clever, and it is meant to be repeated. Half the room heard it, and the other half will by morning. Everyone near you is waiting to see what you do.",
       "choices": {
         "laugh_it_off": "Laugh with the room, and let it pass.",
         "answer_in_kind": "Answer them in kind, before everyone. They will not forget it.",
@@ -46,7 +46,7 @@
     {
       "id": "a_veteran_of_the_old_wars",
       "title": "A Veteran of the Old Wars",
-      "body": "{veteran.name} of {veteran.house}, {veteran.rankName} of the fleet and long without a command, sits by you at dinner and talks of the wars of their youth: lines that held and lines that broke, and the people who were there, some of whose names you know. The old officer remembers them well, and is glad, for once, of someone who will listen.",
+      "body": "{veteran.name} of {veteran.house}, who rose to {veteran.rankName} and has long been without a command, sits by you at dinner and talks of the wars of their youth: lines that held and lines that broke, and the people who were there, some of whose names you know. The old officer remembers them well, and is glad, for once, of someone who will listen.",
       "choices": {
         "ask_how_it_was_done": "Ask how the old battles were won, and go over the plots with them till late.",
         "ask_them_to_speak_for_you": "Ask them to speak for you in the wardrooms (1 influence). The officers listen to them.",
@@ -57,21 +57,21 @@
     {
       "id": "a_painters_great_canvas",
       "title": "A Painter's Great Canvas",
-      "body": "A famous painter has been given the great wall of a public hall and means to put the whole Reach on it: every house of standing, its head at the front. They have come to ask where you would like to stand. They mention, as painters do, that {rival.name} of {rival.house} has already asked for the centre.",
+      "body": "A famous painter has been given the great wall of a public hall and means to put the whole Reach on it: every house of standing, its head at the front. They have come to ask where you would like to stand. They mention, as painters do, that {sitter.name} of {sitter.house} has already asked for the centre.",
       "choices": {
-        "pay_for_the_centre": "Pay for the centre.",
+        "pay_for_the_centre": "Pay for the centre (600 credits).",
         "stand_where_you_are_put": "Stand where the painter puts you.",
-        "stand_beside_them": "Ask to stand beside {rival.name}, as equals.",
-        "paint_them_small": "Pay the painter to put {rival.name} small, at the back (200 credits)."
+        "stand_beside_them": "Ask to stand beside {sitter.name}, as equals.",
+        "paint_them_small": "Pay the painter to put {sitter.name} small, at the back (200 credits)."
       }
     },
     {
       "id": "a_merchant_princes_venture",
       "title": "A Great Merchant's Venture",
-      "body": "{grandee.name} of {grandee.house}, one of the richest houses in the Reach, is raising a venture: hulls, a charter, and a market nobody else has found yet. They want partners with a name, and they have come to you. Their ventures mostly pay. Mostly is the word they use.",
+      "body": "{grandee.name} of {grandee.house}, one of the richest houses in the Reach, is raising a venture: hulls, a charter, and a trade in exotics nobody else has found yet. They want partners with a name, and they have come to you. Their ventures mostly pay: in a year when exotics sell a tenth dearer on the Exchange than the year before, if their house is still among the richest and at peace with yours. Mostly is the word they use.",
       "choices": {
-        "put_money_in": "Put 800 credits in. It comes back with half as much again in a good year on the Exchange, if their house is still among the richest and at peace with yours.",
-        "lend_your_name": "Lend your name to the charter for a fee, and not your money.",
+        "put_money_in": "Put in 800 credits. In a good year it comes back with half as much again.",
+        "lend_your_name": "Lend your name to the charter for a fee from their house, and not your money.",
         "learn_how_it_is_done": "Ask to see how it is put together.",
         "decline": "Decline."
       }
@@ -79,7 +79,7 @@
     {
       "id": "the_venture_comes_home",
       "title": "The Venture Comes Home",
-      "body": "Prices on the Exchange are high this year, and the venture of {grandee.name} of {grandee.house} has come home with its holds full and sold them well. Your share is counted out and waiting: what you put in, and half as much again.",
+      "body": "Exotics sell dear on the Exchange this year, and the venture of {grandee.name} of {grandee.house} has come home with its holds full and sold them well. Your share is counted out and waiting: what you put in, and half as much again.",
       "choices": {
         "take_your_share": "Take your share.",
         "take_it_and_dine": "Take a little less, and a place at their table.",
@@ -89,10 +89,10 @@
     {
       "id": "the_venture_goes_down",
       "title": "The Venture Goes Down",
-      "body": "The venture of {grandee.name} of {grandee.house} has come to nothing for you. Prices have gone against it, or their house is no longer rich enough to pay it, or no longer at peace with yours, and either way your 800 credits are gone unless you go after them.",
+      "body": "The venture of {grandee.name} of {grandee.house} has come to nothing for you. Exotics have fallen on the Exchange, or their house is no longer rich enough to pay you, or no longer at peace with yours. Whichever it is, your 800 credits are gone unless you go after them.",
       "choices": {
         "write_it_off": "Write it off.",
-        "press_for_it": "Press them for what is owed.",
+        "press_for_it": "Press their house for what is owed.",
         "take_it_in_kind": "Take it in kind: goods, a debt, a name on a letter."
       }
     },
@@ -121,12 +121,22 @@
     {
       "id": "a_secret_for_sale",
       "title": "A Secret for Sale",
-      "body": "A person who will not give a name has something to sell: a thing {target.name} of {target.house} has done and would not want known. There is proof, they say, and the price is 400 credits, and if you will not pay it they know who will.",
+      "body": "A person who will not give a name has something to sell: a thing {subject.name} of {subject.house} has done and would not want known. There is proof, they say, and the price is 400 credits, and if you will not pay it they know who will.",
       "choices": {
-        "buy_and_keep": "Buy it, and keep it.",
+        "buy_and_keep": "Buy it, and keep it for the day you need it.",
         "buy_and_use": "Buy it, and let it be known. Their house's standing falls, and they will know who told.",
-        "buy_and_return": "Buy it, and send it to {target.name} unread.",
+        "buy_and_return": "Buy it, and send it to {subject.name} unread.",
         "send_them_away": "Send the seller away."
+      }
+    },
+    {
+      "id": "the_secret_you_hold",
+      "title": "The Secret You Hold",
+      "body": "You bought a secret about {subject.name} of {subject.house}, and kept it. Since then they have turned against your house, and openly. What you hold would hurt their house, and it is still in your desk.",
+      "choices": {
+        "use_it": "Let it be known. Their house's standing falls, and they will know who told.",
+        "sell_it_back": "Sell it back to their house for 400 credits.",
+        "burn_it": "Burn it, and tell them you have. They will think the better of you."
       }
     },
     {
@@ -157,17 +167,17 @@
       "body": "{risen.name} of {risen.house}, whom you put your name behind when they had nothing, wears the rank of {risen.rankName} now and is doing well. They have come to tell you so themselves. They have not forgotten who wrote the first letter.",
       "choices": {
         "swear_friendship": "Swear friendship: you stand by each other from now on.",
-        "call_on_them": "Call on them now, while it is fresh.",
+        "call_on_them": "Call in what they owe you, while it is fresh.",
         "ask_nothing": "Ask nothing, and let them go their own way."
       }
     },
     {
       "id": "two_guests_at_odds",
       "title": "Two Guests at Your Feast",
-      "body": "You have given a feast, and only now does someone tell you that {first.name} of {first.house} is held to blame for a death, and that {second.name} of {second.house}, who is here as well, has not forgiven it. There is one place of honour left at your right hand, and both of them have seen it.",
+      "body": "You have given a feast, and only now does someone tell you that {guest.name} of {guest.house} is held to blame for a death, and that {other_guest.name} of {other_guest.house}, who cannot abide them, is here as well. There is one place of honour left at your right hand, and both of them have seen it.",
       "choices": {
-        "seat_first": "Give the place to {first.name}.",
-        "seat_second": "Give it to {second.name}.",
+        "seat_first": "Give the place to {guest.name}.",
+        "seat_second": "Give it to {other_guest.name}.",
         "seat_neither": "Give it to neither, and seat them far apart.",
         "bring_them_together": "Bring them together over the wine. They will think better of each other."
       }

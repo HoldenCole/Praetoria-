@@ -266,7 +266,7 @@
             {
               "type": "adjustStress",
               "role": "self",
-              "delta": -8
+              "delta": -4
             },
             {
               "type": "adjustRelationship",
@@ -281,8 +281,23 @@
               "value": true
             },
             {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
               "type": "log",
               "text": "{self.name} went to see {grandchild.name}, newly born, on the day."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
             }
           ]
         },
@@ -331,13 +346,13 @@
             {
               "type": "adjustStress",
               "role": "self",
-              "delta": -2
+              "delta": -4
             },
             {
               "type": "adjustRelationship",
               "from": "parent",
               "to": "self",
-              "delta": -3
+              "delta": -2
             },
             {
               "type": "setCharFlag",
@@ -1024,7 +1039,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {winner.name} and {other.name} to stand together, and they have."
+              "text": "{self.name} told {winner.name} and {other.name} to stand together, and they said they would."
             }
           ]
         },
@@ -1045,7 +1060,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} left {winner.name} and {other.name} to it."
+              "text": "{self.name} left {winner.name} and {other.name} to settle it between them, and {other.name} thought the worse of {winner.name}."
             }
           ]
         }
@@ -1319,12 +1334,12 @@
             {
               "type": "marriage",
               "role": "self",
-              "warmth": 6
+              "warmth": 4
             },
             {
               "type": "adjustLegitimacy",
               "role": "self",
-              "delta": 1
+              "delta": 2
             },
             {
               "type": "log",
@@ -1660,15 +1675,26 @@
               "present": true
             },
             {
-              "type": "atWar",
-              "role": "spouse",
-              "present": true
-            },
-            {
               "type": "charFlag",
               "role": "spouse",
               "flag": "torn_between",
               "value": false
+            }
+          ]
+        },
+        {
+          "name": "in_law",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "in_law",
+              "flag": "in_law",
+              "value": true
+            },
+            {
+              "type": "atWar",
+              "role": "in_law",
+              "present": true
             }
           ]
         }
@@ -1726,7 +1752,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} stopped {spouse.name}'s letters to {spouse.house} while the war lasts."
+              "text": "{self.name} stopped {spouse.name}'s letters to {spouse.house} while the war lasted."
             }
           ]
         },
@@ -1735,7 +1761,7 @@
           "requires": [
             {
               "type": "peaceTerm",
-              "role": "spouse",
+              "role": "in_law",
               "kind": "white"
             }
           ],
@@ -1751,7 +1777,7 @@
             },
             {
               "type": "peaceTerms",
-              "role": "spouse",
+              "role": "in_law",
               "kind": "white"
             },
             {
@@ -2040,7 +2066,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kid.name} they had been lucky."
+              "text": "{self.name} told {kid.name} it had been luck."
             }
           ]
         }
@@ -2370,6 +2396,27 @@
             {
               "type": "log",
               "text": "{self.name} promised {keeper.name} the seat, on a day to come."
+            }
+          ]
+        },
+        {
+          "id": "not_yet",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {keeper.name} that the house was not to be laid down yet, and promised nothing more."
             }
           ]
         },

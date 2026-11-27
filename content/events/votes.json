@@ -311,6 +311,20 @@
               "role": "doubter",
               "flag": "undecided_on_yours",
               "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "doubter",
+              "to": "self",
+              "op": "gte",
+              "value": 12
+            },
+            {
+              "type": "relationship",
+              "from": "doubter",
+              "to": "self",
+              "op": "lte",
+              "value": 19
             }
           ]
         }
@@ -654,8 +668,13 @@
               "delta": -1
             },
             {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
               "type": "log",
-              "text": "{ally.name} of {ally.house} gave the dinner for the motion that carried, and {self.name} went as a guest and let them have the evening."
+              "text": "{ally.name} of {ally.house} gave the dinner for the motion that carried, and {self.name} went as a guest and let them have the evening. The city said it had been their motion."
             }
           ]
         },
@@ -671,7 +690,7 @@
             {
               "type": "adjustStress",
               "role": "self",
-              "delta": -1
+              "delta": -3
             },
             {
               "type": "log",
@@ -955,7 +974,7 @@
               "from": "rival",
               "to": "self",
               "op": "lte",
-              "value": 10
+              "value": -20
             }
           ]
         }
@@ -1069,8 +1088,14 @@
               "delta": 1
             },
             {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "grudge_against_you",
+              "value": false
+            },
+            {
               "type": "log",
-              "text": "{self.name} let {rival.name} of {rival.house} speak against the motion in every corridor, and answered none of it."
+              "text": "{self.name} let {rival.name} of {rival.house} speak against the motion in every corridor, and answered none of it. The grudge was spent on that vote."
             }
           ]
         }
@@ -1301,7 +1326,7 @@
     {
       "id": "one_of_yours_stands_for_office",
       "tier": "situation",
-      "weight": 30,
+      "weight": 20,
       "repeatable": true,
       "roles": [
         {
@@ -1325,6 +1350,12 @@
               "role": "kin",
               "vsRole": "self",
               "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "standing_heard",
+              "value": false
             }
           ]
         }
@@ -1356,6 +1387,12 @@
               "role": "kin",
               "skill": "charisma",
               "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "standing_heard",
+              "value": true
             },
             {
               "type": "log",
@@ -1393,6 +1430,12 @@
               "delta": 1
             },
             {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "standing_heard",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} taught {kin.name} how a crowd is won and how it is lost. They will speak better at the count for it."
             }
@@ -1413,6 +1456,12 @@
               "delta": -1
             },
             {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "standing_heard",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} told {kin.name} that an office is won by the one who stands for it."
             }
@@ -1423,7 +1472,7 @@
     {
       "id": "a_smear_after_the_election",
       "tier": "situation",
-      "weight": 30,
+      "weight": 20,
       "repeatable": true,
       "roles": [
         {
@@ -1677,7 +1726,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let the pamphleteers go on until they tired of it. Neither house came out of it well, and {accuser.name}'s came out worse. The magistrates of the Reach were the poorer for it."
+              "text": "{self.name} let the pamphleteers go on until they tired of it. Neither house came out of it well, and {accuser.name}'s came out worse. The Reach trusted its magistrates the less for it."
             }
           ]
         }
@@ -1686,7 +1735,7 @@
     {
       "id": "the_one_who_won_the_office",
       "tier": "situation",
-      "weight": 30,
+      "weight": 20,
       "repeatable": true,
       "roles": [
         {
@@ -2192,6 +2241,11 @@
               "value": true
             }
           ]
+        },
+        {
+          "type": "worldFlag",
+          "flag": "election_held",
+          "value": true
         }
       ],
       "choices": [
@@ -2256,7 +2310,7 @@
             {
               "type": "adjustStress",
               "role": "self",
-              "delta": 2
+              "delta": 1
             },
             {
               "type": "setCharFlag",
@@ -2265,8 +2319,14 @@
               "value": true
             },
             {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "intrigue",
+              "delta": 1
+            },
+            {
               "type": "log",
-              "text": "{self.name} kept their own counsel with {grandee.name} of {grandee.house}, and watched."
+              "text": "{self.name} kept their own counsel with {grandee.name} of {grandee.house}, and watched, and learned a good deal about how {grandee.name} works."
             }
           ]
         }

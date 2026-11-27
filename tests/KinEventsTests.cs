@@ -270,21 +270,27 @@ public class KinEventsTests
     }
 
     [Fact]
-    public void BetweenTwoFamilies_IsASpouseWhoseHouseIsAtWarWithYours_AndCanCarryAWhitePeace()
+    public void BetweenTwoFamilies_IsASpouseWhoseFamilyIsAtWarWithYours_AndCanCarryAWhitePeace()
     {
+        // the usual case: the spouse married into your house, and the house they were born to is at war with yours; its head is the in-law
         World AtWar()
         {
-            var w = Base(); var s = w.Char(Spouse)!; w.House(Mine)!.Members.Remove(s.Id); s.HouseId = Theirs; w.House(Theirs)!.Members.Add(s.Id);
+            var w = Base(); var s = w.Char(Spouse)!; s.HouseId = Mine; s.BornHouseId = Theirs; InLaw(w);
             w.Wars.Add(new War { HouseA = Mine, HouseB = Theirs, Since = 9 });
-            foreach (var c in w.LivingCharacters().Where(c => c.HouseId == Theirs && c.Id != s.Id)) c.Flags.Add(FleetSystem.SuingForPeaceFlag);   // they would take a white peace
+            foreach (var c in w.LivingCharacters().Where(c => c.HouseId == Theirs)) c.Flags.Add(FleetSystem.SuingForPeaceFlag);   // they would take a white peace
             return w;
         }
         EveryChoice("between_two_families", AtWar, (w, b, choice) =>
         {
+            Assert.Equal(Spouse, b.Resolve("spouse")); Assert.Equal("harrow_elder", b.Resolve("in_law"));
             Assert.Contains("torn_between", Who(w, b, "spouse").Flags); Assert.False(IsEligible(w, "between_two_families"));
             Assert.Equal(choice != "ask_them_to_carry_a_peace", w.AtWar(Mine, Theirs));
         });
-        var peace = Base(); peace.Char(Spouse)!.HouseId = Theirs; Assert.False(IsEligible(peace, "between_two_families"));   // not without the war
+        // the spouse's own house is yours, so the old test of the spouse's house at war could never hold here
+        var w0 = AtWar(); Assert.False(w0.AtWar(w0.Char(Spouse)!.HouseId, Mine));
+        // and it is the war with their family that counts: courtship's mark on the head of the house they were born to
+        var synced = AtWar(); synced.Char("harrow_elder")!.Flags.Remove(CourtshipSystem.InLawChar); Assert.False(IsEligible(synced, "between_two_families"));
+        var peace = Base(); peace.Char(Spouse)!.BornHouseId = Theirs; InLaw(peace); Assert.False(IsEligible(peace, "between_two_families"));   // not without the war
     }
 
     // ---------------- illness, old age and the seat ----------------
