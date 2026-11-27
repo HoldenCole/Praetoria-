@@ -4,10 +4,11 @@
 @inject GameClient G
 @implements IDisposable
 @* Edicts (docs/EDICTS.md): what whoever holds an executive position decrees on their own authority. The Laws window's Edicts tab, as
-   rows (docs/VISUAL_SYSTEM.md 4.7): the edicts in force that touch the player's house, each with the face of who issued it, what it does,
-   until when and over what; and the edicts the player may issue now by the positions held, each a row with its term on a plate and its
-   cost on the Issue plate, whose tooltip says what it does, or why it may not be issued. An annulment is moved from the Senate, where it
-   is offered with its target. *@
+   rows of one line each (docs/VISUAL_SYSTEM.md 4.7): the edicts in force that touch the player's house, each with the face of who issued
+   it, what it does as chips (an icon and a signed figure, green or red as for an event's choices), who issued it and over what, until
+   when; and the edicts the player may issue now by the positions held, each with its own glyph, what it does at once and then while it
+   runs as chips, its term on a plate and its cost on the Issue plate. The whole sentence, and why one may not be issued, are in the
+   tooltips. An annulment is moved from the Senate, where it is offered with its target. *@
 @{
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var mine = p.HouseId;
     var inForce = w.Edicts.Where(e => EdictSystem.Touches(e, mine)).OrderBy(e => e.Until).ThenBy(e => e.Id, StringComparer.Ordinal).ToList();
@@ -26,15 +27,16 @@
         @foreach (var e in inForce)
         {
             var eid = e.Id; var wno = new WithdrawEdictCommand(pid, eid).Refusal(G.Ctx); var by = w.Char(e.IssuerId);
-            <div class="ui-row lw-ed" data-edict-in-force="@e.DefId" title="@($"[scroll-quill] {e.Name}{Named(e)}\n{Model(e)}")">
+            string says = Cap(EdictSystem.EffectsSay(e.Effects, e.Domain.Length == 0, e.Domain.Length == 0 ? "every world" : "its worlds", GoodName(e)));
+            string where = e.Domain.Length > 0 ? "on the worlds of " + (w.House(e.Domain)?.Name ?? e.Domain) : "the whole Reach";
+            <div class="ui-row lw-ed" data-edict-in-force="@e.DefId" title="@($"[{Glyph(e.DefId, e.Issuer)}] {e.Name}{Named(e)}\n{says}.\n{Who(e)}, over {where}.\n{Model(e)}")">
                 <div>
-                    @if (by != null) { <Portrait Id="@by.Id" Name="@by.Name" Sex="@by.Sex" Age="@by.Age" Alive="@by.Alive" Accent="@(w.House(by.HouseId)?.AccentColor ?? "#888")" Size="46" Height="56" /> }
-                    else { <span class="lw-edic"><Icon Name="scroll-quill" Tone="brass" Size="24" /></span> }
+                    @if (by != null) { <Portrait Id="@by.Id" Name="@by.Name" Sex="@by.Sex" Age="@by.Age" Alive="@by.Alive" Accent="@(w.House(by.HouseId)?.AccentColor ?? "#888")" Size="40" Height="48" /> }
+                    else { <span class="lw-edic"><Icon Name="@Glyph(e.DefId, e.Issuer)" Tone="brass" Size="22" /></span> }
                 </div>
                 <div style="min-width:0">
                     <div class="ui-row-nm">@e.Name<span class="lw-named">@Named(e)</span></div>
-                    <div class="ui-row-sub lw-wrap">@Cap(EdictSystem.EffectsSay(e.Effects, e.Domain.Length == 0, e.Domain.Length == 0 ? "every world" : "its worlds", GoodName(e)))</div>
-                    <div class="ui-row-sub lw-wrap lw-by">@Who(e) · @(e.Domain.Length > 0 ? "on the worlds of " + (w.House(e.Domain)?.Name ?? e.Domain) : "the whole Reach")</div>
+                    <div class="lw-fxline">@FxChips(Chips(e.Effects, false, GoodName(e)))<span class="lw-by">@Who(e) · @where</span></div>
                 </div>
                 <div class="ui-cols"><span class="lw-term" title="@($"In force until year {e.Until}, then it lapses")"><Icon Name="hourglass" Tone="brass" Size="15" />until year <b>@e.Until</b></span></div>
                 <div>
@@ -70,19 +72,24 @@
         {
             var def = d; string target = d.Target == "house" ? _target : string.Empty; var no = new IssueEdictCommand(pid, d.Id, c, target).Refusal(G.Ctx);
             <div class="ui-row lw-ed may @(no != null ? "no" : "")" data-edict-row="@d.Id">
-                <div><span class="lw-edic"><Icon Name="@(d.Issuer switch { "state" => "greek-temple", "praetor" => "scales", "aedile" => "coins-pile", "powers" => "crown", _ => "scroll-quill" })" Tone="@(no == null ? "brass" : "ivory")" Size="22" /></span></div>
-                <div style="min-width:0" title="@($"[scroll-quill] {d.Name}\n{d.Description}\nModelled on {d.Model}")">
+                <div><span class="lw-edic"><Icon Name="@Glyph(d.Id, d.Issuer)" Tone="@(no == null ? "brass" : "ivory")" Size="22" /></span></div>
+                <div style="min-width:0" title="@($"[{Glyph(d.Id, d.Issuer)}] {d.Name}\n{d.Description}\n{LawsScreen.Prose(Does(def))}{(no != null ? $"\nYou cannot issue it now. {Cap(no)}." : "")}\nModelled on {d.Model}")">
                     <div class="ui-row-nm">@d.Name</div>
-                    <div class="ui-row-sub lw-wrap @(no != null ? "lw-no" : "")">@(no != null ? Cap(no) : Cap(Short(def)))</div>
+                    @if (no != null) { <div class="ui-row-sub lw-no"><Icon Name="padlock" Tone="ivory" Size="14" /><span>@Cap(no)</span></div> }
+                    else
+                    {
+                        var now = Chips(d.Now, true, null); var then = Chips(d.Effects, false, d.Target == "good" ? Dear() : null);
+                        <div class="lw-fxline">@FxChips(now)@if (then.Count > 0 && now.Count > 0) { <span class="lw-then-g"><span class="lw-then">then</span>@FxChips(then.Take(1))</span>@FxChips(then.Skip(1)) } else { @FxChips(then) }</div>
+                    }
                 </div>
                 <div class="ui-cols"><span class="lw-term" title="@($"It runs {Counted.Years(d.Years)}, then lapses")"><Icon Name="hourglass" Tone="brass" Size="15" /><b>@d.Years</b>@(d.Years == 1 ? " year" : " years")</span></div>
                 <div>
-                    @{ string itip = no != null ? $"[padlock] {d.Name}\nYou cannot issue it now. {Cap(no)}." : $"[scroll-quill] {d.Name}\n{Does(def)}\nkey: Click to issue it; you are asked first"; }
+                    @{ string itip = no != null ? $"[padlock] {d.Name}\nYou cannot issue it now. {Cap(no)}." : $"[{Glyph(d.Id, d.Issuer)}] {d.Name}\n{LawsScreen.Prose(Does(def))}\nkey: Click to issue it; you are asked first"; }
                     <span class="lw-tipwrap" title="@itip">
                     <button class="ui-btn sm lw-issue @(no != null ? "off" : "")" data-edict="@d.Id" disabled="@(no != null)" title="@itip" @onclick="() => Ask(def, target)">
                         @if (no != null) { <Icon Name="padlock" Tone="ivory" Size="15" /> } else { <Icon Name="scroll-quill" Tone="ivory" Size="15" /> }
                         Issue
-                        <span class="ui-cost">@if (d.Influence > 0) { <Icon Name="influence" Tone="brass" Size="13" />@d.Influence }@if (d.Credits > 0) { <Icon Name="credits" Tone="brass" Size="13" />@Money.Show(d.Credits) }@if (d.Influence == 0 && d.Credits == 0) { <span>free</span> }</span>
+                        <span class="ui-cost">@if (d.Influence > 0) { <Icon Name="public-speaker" Tone="ivory" Size="14" />@d.Influence }@if (d.Credits > 0) { <Icon Name="credits" Tone="brass" Size="14" />@Money.Show(d.Credits) }@if (d.Influence == 0 && d.Credits == 0) { <span>free</span> }</span>
                     </button>
                     </span>
                 </div>
@@ -106,6 +113,55 @@
     private string? Dear() => EdictSystem.Dearest(G.World!, G.Content!.Market) is { } x ? x.good.Name.ToLowerInvariant() : null;
     private string Does(EdictDef d) => EdictSystem.Does(d, G.Content!.Policies, d.Target == "good" ? Dear() : null);
     private string Short(EdictDef d) { var now = EdictSystem.NowSays(d, EdictSystem.Where(d)); var fx = EdictSystem.EffectsSay(d, EdictSystem.Where(d), d.Target == "good" ? Dear() : null); return now.Length > 0 && fx.Length > 0 ? now + "; then " + fx : now + fx; }
+    /// <summary>An edict's glyph, on its medallion: what it does, so the column says something.</summary>
+    private static string Glyph(string id, string issuer) => id switch
+    {
+        "amnesty" => "dove", "muster" => "rally-the-troops", "forced_loan" => "coins-pile", "jubilee" => "receive-money", "sumptuary" => "swap-bag", "games" => "laurels",
+        "corn_dole" => "agri_world", "requisition" => "manpower", "moratorium" => "hourglass", "price_edict" => "trade", "close_lanes" => "spaceship", "thanksgiving" => "sun",
+        "strict_letter" => "scales", "equity" => "open-book", "market_edict" => "abacus", "proscription" => "plain-dagger", "rule_by_decree" => "throne-king", "levy_in_mass" => "eagle-emblem",
+        _ => issuer switch { "state" => "greek-temple", "praetor" => "scales", "aedile" => "coins-pile", "powers" => "crown", _ => "scroll-quill" }
+    };
+    /// <summary>One effect as a chip: a glyph, its tone, a signed figure, and whether it is good (1), bad (−1) or neither (0) for the house.</summary>
+    private sealed record Fx(string Icon, string Tone, string Text, int Good, string Say);
+    private static string S(int v) => Counted.Figure(v) is var f && v > 0 ? "+" + f : f;
+    private static string Cr(int v) => v < 0 ? "−" + Money.Show(-v) : "+" + Money.Show(v);
+    /// <summary>What an edict does as chips: at once (<paramref name="now"/>) or each year while it runs. The words are EdictSystem's, in the tooltip.</summary>
+    private static List<Fx> Chips(IReadOnlyDictionary<string, int> fx, bool now, string? good)
+    {
+        var list = new List<Fx>();
+        foreach (var (k, v) in fx)
+        {
+            Fx f = k switch
+            {
+                ("unrest" or "unrest_drift") => new("crisis", "ember", S(v), v < 0 ? 1 : -1, "unrest"),
+                ("prosperity") => new("sprout", "good", S(v), v > 0 ? 1 : -1, "prosperity"),
+                ("prosperity_drift") => new("sprout", "good", S(2 * v), v > 0 ? 1 : -1, "prosperity settles"),
+                ("lawlessness" or "lawlessness_drift") => new("knife", "steel", S(v), v < 0 ? 1 : -1, "lawlessness"),
+                ("allegiance") => new("flying-flag", "ivory", S(v), v > 0 ? 1 : -1, "allegiance to the capital"),
+                ("manpower_per_world") => new("manpower", "ivory", S(v), v > 0 ? 1 : -1, "manpower from each world"),
+                ("credits_per_world") => new("credits", "brass", Cr(v), v > 0 ? 1 : -1, "credits from each world"),
+                ("legitimacy") => new("legitimacy", "ivory", S(v), v > 0 ? 1 : -1, "legitimacy"),
+                ("trust") => new("scales", "ivory", S(v), v > 0 ? 1 : -1, "the Reach's trust in its magistrates"),
+                ("regard") => new("honor", "ivory", S(v), v > 0 ? 1 : -1, "what the other heads think of the issuer"),
+                ("requisition") => new("manpower", "ivory", "+" + v, 1, "manpower from every other house"),
+                ("confiscate") => new("credits", "brass", "+" + Money.Show(v), 1, "at most, from the house named"),
+                ("pop_growth") => new("population", "ivory", S(v), v > 0 ? 1 : -1, "people a year on each world"),
+                ("tolls_bonus") => new("trade", "brass", Cr(v), v > 0 ? 1 : -1, "credits on every toll"),
+                ("market_price_pct") => new("trade", "brass", S(v) + "%", v < 0 ? 1 : -1, "on what the exchanges cost"),
+                ("court_wage") => new("coins-pile", "brass", (v < 0 ? "−" : "+") + Math.Abs(v), v < 0 ? 1 : -1, "credits on each wage of the court"),
+                ("court_loyalty") => new("shaking-hands", "good", S(v), v > 0 ? 1 : -1, "the court's loyalty"),
+                (EdictSystem.DebtsStayed) => new("padlock", "ivory", "debts stayed", 0, "no loan falls due"),
+                (EdictSystem.CourtProof) => new("scales", "ivory", S(v) + "%", 0, "charges found proved"),
+                (EdictSystem.PriceCeiling) => new("trade", "brass", "≤" + v + "%", 0, (good ?? "the dearest good") + ", of its usual price"),
+                (EdictSystem.SenateCowed) => new("greek-temple", "ember", "motions barred", 0, "no other house may move a motion"),
+                ("motion_cost") => new("public-speaker", "ivory", S(v), 0, "influence to move a motion"),
+                _ => new("scroll-quill", "ivory", S(v), 0, k.Replace('_', ' '))
+            };
+            list.Add(f);
+        }
+        return list;
+    }
+    private static RenderFragment FxChips(IEnumerable<Fx> chips) => @<span class="lw-fx">@foreach (var f in chips) { <span class="lw-chip @(f.Good > 0 ? "good" : f.Good < 0 ? "bad" : "")" aria-label="@($"{f.Text} {f.Say}")"><Icon Name="@f.Icon" Tone="@f.Tone" Size="18" /><b>@f.Text</b></span> }</span>;
     private static string Elsewhere(int n) => n > 0 ? Counted.Of(n, "edict") + " of other houses stand on their own worlds." : string.Empty;
     private static string WithdrawSays() => "[anticlockwise-rotation] Take it back\nTake it back now. Nothing paid for it comes back, and it may not be issued again for some years.";
     private static string Cap(string s) => LawsScreen.Cap(s);

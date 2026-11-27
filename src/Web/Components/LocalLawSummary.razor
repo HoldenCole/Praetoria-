@@ -20,7 +20,7 @@
                 <div><Globe Class="@(w.Galaxy?.System(h.SystemId)?.PlanetClass ?? "terran")" Size="38" Ringed="false" /></div>
                 <div style="min-width:0">
                     <div class="ui-row-nm">@h.Name</div>
-                    <div class="ui-row-sub lw-wrap">@LawsScreen.Cap(LocalLawSystem.Summary(cat, h))</div>
+                    <div class="ui-row-sub">@LawsScreen.Cap(LocalLawSystem.Summary(cat, h))</div>
                 </div>
                 <div class="ui-cols"><span class="lw-term" title="Local laws off the custom, of what the world can carry"><b>@n</b>&nbsp;of @most</span></div>
                 <div></div>

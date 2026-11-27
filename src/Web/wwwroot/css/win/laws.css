@@ -1,25 +1,29 @@
 /* The Laws window (docs/VISUAL_SYSTEM.md 4 and 5.3): the court painting and its plinth, the estates as diverging meters, every law as
-   one row with its options as a ladder of joined plates, the edicts and local law as rows. Loaded after app.css, so a rule here wins over
-   a shared rule of the same weight. Only this window's files (LawsScreen, EdictsPanel, LocalLawBlock, LocalLawSummary) use the classes
-   below; where a shared part lacks something (a ladder that is pressed per plate, a diverging meter with a target), it is varied here. */
+   one row of a fixed height with its options as a ladder of joined plates (the one in force lit), the edicts and local law as one-line
+   rows. Loaded after app.css, so a rule here wins over a shared rule of the same weight. Only this window's files (LawsScreen,
+   EdictsPanel, LocalLawBlock, LocalLawSummary) use the classes below; where a shared part lacks something (a ladder pressed plate by
+   plate, a diverging meter with a target, an effect chip), it is varied here. */
 
-.laws-win { --lw-name: 11.6rem; --lw-gut-l: 1.8667rem; --lw-gut-r: 1.6rem; }
+.laws-win { --lw-name: 10.6667rem; --lw-ic: 2.2667rem; --lw-gut-l: 1.8667rem; --lw-gut-r: 1.6rem; }
 
 /* the old window rule for every h3 in a docked window (app.css, ".game .win-body h3") outweighs the section heading's own: put it back */
 .game .win-body .laws-win .ui-sec h3, .game .win-body .local-summary .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
 
-/* the painted header: the court, its hall and the bench at the end of it; the five figures spread along the plinth */
+/* ---- the painted header: the court, its hall and the bench at the end of it; the five figures spread along the plinth ----
+   The court is a bright hall of white columns, so the shade behind the text column is held dark further across than on a darker
+   painting, and the facts are kept to a block that ends inside it. */
 .laws-win .ui-head-art { background-position: center 42%; }
-/* the court is a bright hall of white columns: the shade behind the text column reaches a little further than on a darker painting */
 .laws-win .ui-head-shade { background:
-  linear-gradient(90deg, rgba(8,10,15,.9) 0%, rgba(8,10,15,.74) 40%, rgba(8,10,15,.3) 70%, rgba(8,10,15,.22) 100%),
+  radial-gradient(ellipse 21rem 3.4rem at 21rem 6.8rem, rgba(8,10,15,.74) 0%, rgba(8,10,15,.6) 55%, rgba(8,10,15,0) 100%),
+  linear-gradient(90deg, rgba(8,10,15,.92) 0, rgba(8,10,15,.84) 16rem, rgba(8,10,15,.7) 28rem, rgba(8,10,15,.34) 38rem, rgba(8,10,15,.2) 46rem),
   linear-gradient(180deg, rgba(8,10,15,.35) 0%, rgba(8,10,15,0) 26%, rgba(8,10,15,0) 58%, rgba(8,10,15,.9) 100%); }
 .laws-win .ui-plinth { justify-content: space-between; }
 .laws-win .ui-plinth .ui-fig + .ui-fig { margin-left: .6rem; padding-left: 1rem; }
-.laws-win .ui-facts { max-width: 33rem; }
+.laws-win .ui-facts { display: grid; grid-template-columns: repeat(2, max-content); justify-content: start; gap: .2667rem 1.0667rem; max-width: 26rem; }
+.laws-win .ui-facts > span { min-width: 0; white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9), 0 0 12px rgba(0,0,0,.6); }
 .laws-win .ui-title { white-space: nowrap; }
 @media (max-width: 1500px) {
-  .laws-win { --lw-name: 9.4rem; --lw-gut-r: 1.2rem; }
+  .laws-win { --lw-name: 9.4rem; --lw-ic: 2rem; --lw-gut-r: 1.2rem; --lw-gut-l: 1.6rem; }
   .laws-win .ui-plinth { padding: 0 1.2rem 0 1.3333rem; }
   .laws-win .ui-plinth .ui-fig { gap: .4rem; }
   .laws-win .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
@@ -34,10 +38,14 @@
 .laws-win .ui-empty { padding-left: var(--lw-gut-l); }
 
 /* ---- the estates: one row each, a medallion with the estate's glyph, a diverging meter with where the laws are taking it, a step ---- */
-.lw-key { display: inline-flex; align-items: center; gap: .4rem; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); }
+.lw-key { display: inline-flex; align-items: center; gap: .4rem; font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); cursor: help; }
+.lw-key > span { display: inline-flex; align-items: center; gap: .4rem; }
 .lw-key b { font-weight: 600; color: var(--ink); margin-right: .4rem; }
-.lw-key .k { width: .8rem; height: .5333rem; display: inline-block; box-shadow: inset 0 0 0 1px rgba(0,0,0,.6); }
-.lw-key .k.loy { background: rgba(201,162,74,.45); } .lw-key .k.hos { background: rgba(224,85,63,.45); }
+.lw-key .lw-short { display: none; } .lw-key .lw-short b { margin-right: 0; }
+/* the swatches are the meters' own bands, drawn the same way: the same wash and the same edge line */
+.lw-key .k { width: 1.0667rem; height: .5333rem; display: inline-block; background-color: #05070a; box-shadow: inset 0 1px 2px #000; }
+.lw-key .k.hos { background-image: linear-gradient(90deg, rgba(224,85,63,.34), rgba(224,85,63,.16)); box-shadow: inset -1px 0 0 rgba(236,108,76,.8), inset 0 1px 2px #000; }
+.lw-key .k.loy { background-image: linear-gradient(90deg, rgba(201,162,74,.16), rgba(201,162,74,.34)); box-shadow: inset 1px 0 0 rgba(233,205,132,.8), inset 0 1px 2px #000; }
 
 .es2-row { display: grid; grid-template-columns: 2.9333rem minmax(0, 1fr); column-gap: .9333rem; row-gap: .2667rem; align-items: center; position: relative;
   padding: .6667rem var(--lw-gut-r) .6rem var(--lw-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
@@ -53,8 +61,8 @@
 .es2-row.loyal .es2-nm { color: var(--brass-hi); }
 .es2-trk { position: relative; height: .5333rem; }
 .es2-trk .band { position: absolute; top: 0; bottom: 0; }
-.es2-trk .band.hos { left: 0; width: 35%; background: linear-gradient(90deg, rgba(224,85,63,.20), rgba(224,85,63,.09)); box-shadow: inset -1px 0 0 rgba(236,108,76,.55); }
-.es2-trk .band.loy { left: 65%; right: 0; background: linear-gradient(90deg, rgba(201,162,74,.09), rgba(201,162,74,.20)); box-shadow: inset 1px 0 0 rgba(233,205,132,.55); }
+.es2-trk .band.hos { left: 0; width: 35%; background: linear-gradient(90deg, rgba(224,85,63,.34), rgba(224,85,63,.16)); box-shadow: inset -1px 0 0 rgba(236,108,76,.8); }
+.es2-trk .band.loy { left: 65%; right: 0; background: linear-gradient(90deg, rgba(201,162,74,.16), rgba(201,162,74,.34)); box-shadow: inset 1px 0 0 rgba(233,205,132,.8); }
 .es2-trk .ui-fill { z-index: 1; } .es2-trk .ui-tick { z-index: 2; } .es2-trk .ui-mid { z-index: 2; }
 .es2-val { display: flex; align-items: baseline; justify-content: flex-end; gap: .3333rem; white-space: nowrap; font-variant-numeric: tabular-nums lining-nums; }
 .es2-val b { font: 600 1.0667rem/1 var(--f-ui); color: var(--ink); }
@@ -62,103 +70,137 @@
 .es2-val small .icon { width: .6667rem; height: .6667rem; }
 .es2-val small.up { color: var(--good); } .es2-val small.down { color: #ef8a74; }
 .es2-val small.down .icon { transform: rotate(90deg); } .es2-val small.up .icon { transform: rotate(-90deg); }
-.es2-l2 { display: flex; align-items: center; flex-wrap: wrap; gap: .3333rem .8rem; min-height: 1.8667rem; min-width: 0; }
-.es2-note { flex: 1 1 14rem; min-width: 0; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+/* the second line: the mood (cut short with its whole sentence in the tooltip) and the step, which always stays on this line */
+.es2-l2 { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: .8rem; min-height: 1.8667rem; min-width: 0; }
+.es2-note { min-width: 0; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .es2-mood { color: var(--ink); font-weight: 500; }
 .es2-pet { display: inline-flex; align-items: center; gap: .3rem; margin-left: .4rem; color: var(--warn); }
-.es2-step { flex: none; margin-left: auto; display: inline-flex; align-items: center; gap: .5333rem; font: 400 .8667rem/1 var(--f-ui); color: var(--ink-mute); }
-.es2-would b { font-weight: 600; }
+.es2-step { display: inline-flex; align-items: center; gap: .5333rem; justify-self: end; white-space: nowrap; }
+.es2-gain { font: 600 1rem/1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; cursor: help; }
+.es2-none { font: italic 400 .9333rem/1 var(--f-ui); color: var(--ink-mute); cursor: help; }
 .es2-step .ui-btn.sm { height: 1.8667rem; }
 .es2-step .ui-btn.off .ui-cost { color: var(--warn); }
 
-/* ---- a law: ONE row. Its group's glyph in a socket, its name and state, and its options as a ladder of joined plates ---- */
-.lw-pool { display: inline-flex; align-items: center; gap: .3333rem; } .lw-pool b { font-size: 1rem; }
+/* ---- a law: ONE row of 80px. Its glyph in a socket, its name (two lines at most) and one quiet line, and its options as a ladder ---- */
+.lw-pool { display: inline-flex; align-items: center; gap: .3333rem; font: 500 .9333rem/1 var(--f-ui); } .lw-pool b { font-size: 1rem; font-weight: 600; }
 .lw-pool.none b { color: var(--warn); }
-.lw-row { display: grid; grid-template-columns: 2.5333rem var(--lw-name) minmax(0, 1fr); column-gap: .8rem; align-items: center; position: relative;
-  min-height: 3.8667rem; padding: .4rem var(--lw-gut-r) .4rem var(--lw-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
+.lw-row { display: grid; grid-template-columns: var(--lw-ic) var(--lw-name) minmax(0, 1fr); column-gap: .8rem; align-items: center; position: relative;
+  height: 5.3333rem; padding: .3333rem var(--lw-gut-r) .3333rem var(--lw-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
 .lw-row:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.015)); }
 .lw-row:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
-.lw-ic { width: 2.5333rem; height: 2.5333rem; display: grid; place-items: center; border-radius: 3px;
+.lw-ic { width: var(--lw-ic); height: var(--lw-ic); display: grid; place-items: center; border-radius: 3px;
   background: radial-gradient(circle at 50% 40%, #222a3b, #0b0e15 78%); box-shadow: inset 0 1px 3px rgba(0,0,0,.9), inset 0 0 0 1px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px rgba(165,129,58,.28); }
 .lw-ic .icon { width: 1.4667rem; height: 1.4667rem; }
 .lw-row.custom .lw-ic { box-shadow: inset 0 1px 3px rgba(0,0,0,.9), inset 0 0 0 1px rgba(0,0,0,.8), 0 0 0 1px rgba(233,205,132,.7), 0 0 8px rgba(232,196,110,.18); }
 .lw-nm { min-width: 0; cursor: default; }
-.lw-nm > b { display: block; font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
-.lw-st { display: flex; align-items: center; gap: .3rem; margin-top: .2rem; font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-mute); }
-.lw-st .icon { width: .8rem; height: .8rem; flex: none; }
-.lw-st.warn { color: var(--warn); } .lw-st.cust, .lw-st.act, .lw-st .cust { color: var(--brass-ink); } .lw-st.mine { color: var(--brass-hi); }
-.lw-st.quiet { font-style: italic; font-weight: 400; color: var(--ink-mute); letter-spacing: .02em; }
+.lw-nm > b { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
+.lw-st { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin-top: .2rem; min-width: 0; font: 500 .9333rem/1.15 var(--f-ui); color: var(--ink-mute); }
+.lw-st .icon { width: .8667rem; height: .8667rem; display: inline-block; vertical-align: -.1333rem; margin-right: .3rem; }
+.lw-st.warn { color: var(--warn); } .lw-st.act, .lw-st .cust { color: var(--brass-ink); } .lw-st.mine { color: var(--brass-hi); } .lw-st.vac { color: var(--ink-dim); font-style: italic; font-weight: 400; }
+.lw-st .cust { margin-left: .2rem; }
 .lw-dia { width: .4rem; height: .4rem; flex: none; transform: rotate(45deg); box-shadow: inset 0 0 0 1px rgba(201,162,74,.7); display: inline-block; margin-right: .1333rem; }
 
-/* the ladder: plates joined with no gaps (the Segmented part's look); the one in force recessed and lit with a brass foot */
-.lw-lad { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); min-width: 0; border: 1px solid #000; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 0 1px rgba(165,129,58,.16); }
-.lw-pl { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: .3333rem; min-width: 0; min-height: 3.0667rem; margin: 0; padding: .4rem .5333rem .3333rem .6rem;
-  text-align: left; font: 600 .9rem/1.2 var(--f-ui); color: #d3ccb8; background: linear-gradient(#2b3346, #1a1f2b); border: 0; border-radius: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), inset 0 -1px 0 rgba(0,0,0,.4); cursor: pointer; opacity: 1; text-shadow: 0 1px 0 #000; }
+/* the ladder: plates joined with no gaps, each two lines of name over its marks and its cost. The plate in force is the brightest
+   thing in the row: a warm lit face, a ring of bright brass, brass text and the diamond stud. The others stand a step down. */
+.lw-lad { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); min-width: 0; border: 1px solid #000; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 0 1px rgba(165,129,58,.14); }
+.lw-pl { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: .2rem; min-width: 0; height: 4.6rem; margin: 0; padding: .3333rem .4667rem .3rem .5333rem;
+  text-align: left; font: 600 .9333rem/1.2 var(--f-ui); color: #cbc4b0; background: linear-gradient(#252c3c, #171b25); border: 0; border-radius: 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), inset 0 -1px 0 rgba(0,0,0,.4); cursor: pointer; opacity: 1; text-shadow: 0 1px 0 #000; }
 .lw-lad > * + * { border-left: 1px solid #000; }
 /* a disabled plate takes no pointer, so the cell under it (which carries the same tooltip) says why it may not be chosen */
 .lw-cell { display: flex; min-width: 0; position: relative; } .lw-cell > .lw-pl { flex: 1 1 auto; }
 button.lw-pl:disabled, .lw-tipwrap > button:disabled { pointer-events: none; }
 .lw-tipwrap { display: inline-flex; }
-.lw-pn { display: block; }
-.lw-pf { display: flex; align-items: center; gap: .4rem; min-height: 1.0667rem; }
-button.lw-pl:hover:not(:disabled):not(.on) { color: #fff6dc; background: linear-gradient(#38425c, #222a3b); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 0 0 1px var(--brass-mid), 0 0 10px rgba(232,196,110,.12); z-index: 1; }
+.lw-pn { flex: none; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; max-height: 2.4em; hyphens: manual; overflow-wrap: normal; }
+.lw-pf { display: flex; align-items: center; gap: .3333rem; height: 1.4667rem; min-width: 0; }
+button.lw-pl:hover:not(:disabled):not(.on) { color: #fff6dc; background: linear-gradient(#323b52, #1f2533); box-shadow: inset 0 1px 0 rgba(255,255,255,.12), inset 0 0 0 1px var(--brass-mid), 0 0 10px rgba(232,196,110,.12); z-index: 1; }
 button.lw-pl:active:not(:disabled):not(.on) { background: #0b0e14; box-shadow: inset 0 2px 4px #000; }
-.lw-pl.on { color: var(--brass-hi); cursor: default; background: radial-gradient(ellipse at 50% 135%, rgba(232,196,110,.30), rgba(232,196,110,.06) 60%, rgba(232,196,110,0) 80%), #0b0e14;
-  box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass), inset 0 0 0 1px rgba(0,0,0,.6); }
-.lw-pl.on::after { content: ""; position: absolute; right: .4667rem; top: .5333rem; width: .4rem; height: .4rem; transform: rotate(45deg); background: linear-gradient(135deg, #fbeab4, #c9a24a 55%, #6f5020); box-shadow: 0 0 0 1px #000, 0 0 6px rgba(246,226,160,.5); }
+.lw-pl.on { z-index: 1; color: var(--brass-hi); cursor: default;
+  background: linear-gradient(180deg, rgba(255,238,190,.16), rgba(255,238,190,.02) 42%, rgba(255,238,190,0) 60%), linear-gradient(#4a3c1e, #2a2110);
+  box-shadow: inset 0 0 0 1px rgba(246,226,160,.92), inset 0 2px 0 rgba(255,246,214,.16), inset 0 -2px 0 rgba(0,0,0,.35), 0 0 12px rgba(232,196,110,.26); text-shadow: 0 1px 0 #000, 0 0 8px rgba(246,226,160,.25); }
+.lw-pl.on::after { content: ""; position: absolute; right: .4667rem; top: .5333rem; width: .4667rem; height: .4667rem; transform: rotate(45deg); background: linear-gradient(135deg, #fffbe6, #f6e2a0 40%, #c9a24a 70%, #6f5020); box-shadow: 0 0 0 1px #000, 0 0 6px rgba(246,226,160,.7); }
 .lw-pl.on .lw-pn { padding-right: .8rem; }
 .lw-pl.on.mine { color: #fff3c8; }
-.lw-pl.off, .lw-pl:disabled { opacity: 1; cursor: not-allowed; color: #aaa497; background: linear-gradient(#1d222d, #141821); }
-.lw-pl.off .lw-mks { opacity: .6; }
-.lw-lad.ro .lw-pl:not(.on) { cursor: default; color: #b4ae9f; background: linear-gradient(#222836, #171b25); }
+.lw-pl.off, .lw-pl:disabled { opacity: 1; cursor: not-allowed; color: #a7a194; background: linear-gradient(#1c212c, #131720); }
+.lw-pl.off .lw-mks { opacity: .55; }
+/* a ladder to read, not to press (the law of the Reach, the laws beyond your gift, another house's world): flat, a hairline and dim ink;
+   the plate in force is lit as on a ladder you may press */
+.lw-lad.ro { border-color: rgba(255,255,255,.08); box-shadow: none; background: rgba(4,6,10,.28); }
+.lw-lad.ro > * + * { border-left-color: rgba(255,255,255,.07); }
+.lw-lad.ro .lw-pl:not(.on) { cursor: default; color: var(--ink-dim); font-weight: 500; background: none; box-shadow: none; text-shadow: none; }
 .lw-pc { margin-left: auto; flex: none; display: inline-flex; align-items: center; gap: .2rem; padding-left: .4rem; border-left: 1px solid rgba(255,255,255,.12); box-shadow: -1px 0 0 #000;
-  font: 600 .8333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink-dim); }
-.lw-pc .icon { width: .8667rem; height: .8667rem; }
+  font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+.lw-pc .icon { width: .9333rem; height: .9333rem; }
 .lw-pc.short { color: var(--warn); } .lw-pc.lock .icon { opacity: .8; }
 
-/* the marks: an estate's glyph, green with a notch pointing up for one who would warm to it, red with a notch pointing down for one who
-   would cool; a second notch for a strong feeling (15 or more). Shape and colour both, so the two never depend on colour alone. */
-.lw-mks { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .2667rem .3333rem; min-width: 0; }
-.lw-mk { position: relative; display: inline-grid; place-items: center; width: 1.1333rem; height: 1.1333rem; font-style: normal; }
-.lw-mk .icon { width: 1.0667rem; height: 1.0667rem; stroke-width: 30px; }
-.lw-mk::after, .lw-mk.hi::before { content: ""; position: absolute; right: -.2rem; width: 0; height: 0; border-left: .1667rem solid transparent; border-right: .1667rem solid transparent; filter: drop-shadow(0 0 1px #000); }
-.lw-mk.up::after { top: -.1333rem; border-bottom: .2667rem solid #a6df92; }
-.lw-mk.down::after { bottom: -.1333rem; border-top: .2667rem solid #f07a60; }
-.lw-mk.up.hi::before { top: .2rem; border-bottom: .2667rem solid #a6df92; }
-.lw-mk.down.hi::before { bottom: .2rem; border-top: .2667rem solid #f07a60; }
+/* the marks: each estate that would warm or cool to an option, its glyph in ivory on a dark round chip. The rim is green for warm and
+   ember for cool, and a chevron at the chip's corner points up or down (two for 15 or more): shape and colour both, never colour alone. */
+.lw-mks { display: inline-flex; align-items: center; flex-wrap: nowrap; gap: .3333rem; min-width: 0; }
+.lw-mk { position: relative; flex: none; display: grid; place-items: center; width: 1.4667rem; height: 1.4667rem; border-radius: 50%; font-style: normal;
+  background: radial-gradient(circle at 50% 32%, #2b3344, #0a0d13 74%); box-shadow: inset 0 0 0 1.5px var(--rim), 0 0 0 1px #000, 0 1px 2px rgba(0,0,0,.7); }
+.lw-mk.up { --rim: #8cc47e; } .lw-mk.down { --rim: #e0553f; }
+.lw-mk .icon { width: 1.0667rem; height: 1.0667rem; stroke-width: 34px; }
+.lw-mk::after { content: ""; position: absolute; right: -.2667rem; width: .6rem; height: .5rem; background: center / 100% 100% no-repeat; pointer-events: none; }
+.lw-mk.up::after { top: -.2667rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1.8 8.2 6 3.6l4.2 4.6' fill='none' stroke='%23000' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.8 8.2 6 3.6l4.2 4.6' fill='none' stroke='%23b4ec9e' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.lw-mk.down::after { bottom: -.2667rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1.8 1.8 6 6.4l4.2-4.6' fill='none' stroke='%23000' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.8 1.8 6 6.4l4.2-4.6' fill='none' stroke='%23ff8a6c' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.lw-mk.up.hi::after { height: .8rem; top: -.4rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 16'%3E%3Cpath d='M1.8 7.4 6 2.8l4.2 4.6M1.8 13.2 6 8.6l4.2 4.6' fill='none' stroke='%23000' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.8 7.4 6 2.8l4.2 4.6M1.8 13.2 6 8.6l4.2 4.6' fill='none' stroke='%23b4ec9e' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.lw-mk.down.hi::after { height: .8rem; bottom: -.4rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 16'%3E%3Cpath d='M1.8 2.8 6 7.4l4.2-4.6M1.8 8.6 6 13.2l4.2-4.6' fill='none' stroke='%23000' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.8 2.8 6 7.4l4.2-4.6M1.8 8.6 6 13.2l4.2-4.6' fill='none' stroke='%23ff8a6c' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 
 /* the law of the Reach: the categories hold their rows; a link to the Senate at the section's right */
 .lw-grp + .lw-grp .lw-row:first-child { box-shadow: inset 0 1px 0 rgba(201,162,74,.10); }
 .lw-row.mine .lw-nm > b { color: var(--brass-hi); }
 .lw-senate { font-size: .9333rem; }
+/* the laws of positions of the Reach the house does not hold are listed once, on The Reach: one line here says so */
+.lw-more { display: flex; align-items: center; gap: .5333rem; padding: .7333rem var(--lw-gut-r) .7333rem var(--lw-gut-l); font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); border-bottom: 1px solid rgba(255,255,255,.05); cursor: default; }
+.lw-more > span { min-width: 0; }
+.lw-more .ui-link { margin-left: auto; flex: none; }
 
 @media (max-width: 1500px) {
-  .lw-pl { font-size: .8667rem; padding: .3333rem .4rem .3rem .4667rem; }
+  .lw-pl { padding: .3333rem .4rem .3rem .4667rem; }
   .lw-row { column-gap: .6rem; }
-  .lw-ic { width: 2.2667rem; height: 2.2667rem; } .lw-row { grid-template-columns: 2.2667rem var(--lw-name) minmax(0, 1fr); }
+  .lw-ic .icon { width: 1.3333rem; height: 1.3333rem; }
+  .lw-pf { gap: .2667rem; height: 1.3333rem; } .lw-mks { gap: .2667rem; } .lw-lad.ro .lw-mks { gap: .2rem; }
+  .lw-mk { width: 1.3333rem; height: 1.3333rem; } .lw-mk .icon { width: .9333rem; height: .9333rem; }
+  .lw-pc { padding-left: .3333rem; }
   .es2-l1 { grid-template-columns: 7.6rem minmax(0, 1fr) 4.5333rem; column-gap: .6667rem; }
   .es2-nm { font-size: .9333rem; }
-  .lw-key { display: none; }
+  .lw-key .lw-long { display: none; } .lw-key .lw-short { display: inline-flex; }
 }
 
-/* ---- edicts: rows with the issuer's face, what it does, the term on a plate and the cost on the Issue plate ---- */
+/* ---- edicts: rows of one line under the name, 58px each. The picture, the name, what it does as chips (an icon and a signed figure,
+   green or red as for an event's choices; "then" before what it does each year while it runs), the term on a plate and the cost on the
+   Issue plate. Chips that do not fit drop whole to a hidden second line; the tooltip has every word. ---- */
 .lw-edicts .ui-row { padding-left: var(--lw-gut-l); padding-right: var(--lw-gut-r); }
+.lw-edicts .ui-row.lw-ed { height: 3.8667rem; min-height: 0; padding-top: 0; padding-bottom: 0; grid-template-columns: 3.6rem minmax(0, 1fr) auto 10.9333rem; }
+.lw-edicts .ui-row.lw-ed > :last-child { justify-self: end; }
+.lw-ed .ui-row-nm { line-height: 1.25; }
 .lw-edic { width: 2.6667rem; height: 2.6667rem; border-radius: 50%; display: grid; place-items: center; margin: 0 auto;
   background: radial-gradient(circle at 50% 38%, #232b3b, #07090d 76%) padding-box, linear-gradient(160deg, #a5813a, #4a3510 50%, #8a6a2a) border-box; border: 2px solid transparent; box-shadow: 0 0 0 1px #000, inset 0 1px 4px #000; }
 .lw-edic .icon { width: 1.4667rem; height: 1.4667rem; }
+.lw-ed .portrait { margin: 0 auto; }
 .lw-ed.no .lw-edic { filter: saturate(.4) brightness(.85); }
-.laws-win .ui-row-sub.lw-wrap, .local-summary .ui-row-sub.lw-wrap { white-space: normal; overflow: visible; text-overflow: clip; }
-.lw-no { color: var(--warn); }
-.lw-by { font-size: .8667rem; color: var(--ink-mute); }
+.lw-fxline { display: flex; flex-wrap: wrap; align-items: center; gap: .3333rem; height: 1.6rem; margin-top: .2rem; overflow: hidden; min-width: 0; }
+.lw-fxline .lw-fx { display: contents; }
+.lw-chip { flex: none; display: inline-flex; align-items: center; gap: .2667rem; height: 1.6rem; padding: 0 .4667rem 0 .3333rem; border-radius: 2px; background: #07090e;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.85), inset 0 0 0 1px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.05); font: 600 .9667rem/1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; }
+.lw-chip .icon { width: 1.2rem; height: 1.2rem; }
+.lw-chip b { font-weight: 600; color: var(--ink); }
+.lw-chip.good b { color: var(--good); } .lw-chip.bad b { color: #ef8a74; }
+.lw-then-g { flex: none; display: inline-flex; align-items: center; gap: .3333rem; }
+.lw-then { font: italic 400 .9333rem/1 var(--f-ui); color: var(--ink-mute); margin: 0 .0667rem 0 .2rem; }
+.lw-ed .lw-by { flex: 1 1 7rem; min-width: 7rem; margin-left: .2667rem; font: 400 .9333rem/1.6rem var(--f-ui); color: var(--ink-mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lw-ed .lw-no { display: flex; align-items: center; gap: .3333rem; color: var(--warn); }
+.lw-ed .lw-no .icon { width: .9333rem; height: .9333rem; flex: none; }
+.lw-ed .lw-no > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lw-named { font-weight: 500; color: var(--ink-dim); }
-.lw-term { display: inline-flex; align-items: center; justify-content: center; gap: .3333rem; min-width: 5.8667rem; height: 1.8667rem; padding: 0 .6rem; white-space: nowrap; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim);
+.lw-term { display: inline-flex; align-items: center; justify-content: center; gap: .3333rem; min-width: 5.8667rem; height: 1.8667rem; padding: 0 .6rem; white-space: nowrap; font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim);
   background: #07090e; border-radius: 2px; box-shadow: var(--sh-inset); }
 .lw-term b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
 .lw-term .icon { width: .9333rem; height: .9333rem; }
 .lw-issue .ui-cost { gap: .2rem; } .lw-issue .ui-cost .icon + span, .lw-issue .ui-cost .icon ~ .icon { margin-left: .2rem; }
 .lw-issue.off { color: #b9b4a8; }
-.lw-quiet { display: inline-flex; align-items: center; gap: .3333rem; font: italic 400 .8667rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; cursor: help; }
-.lw-as { font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); }
+.lw-quiet { display: inline-flex; align-items: center; gap: .3333rem; font: italic 400 .9333rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; cursor: help; }
+.lw-as { font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); }
 .lw-target { display: flex; align-items: center; gap: .8rem; padding: .6667rem var(--lw-gut-r) .6667rem var(--lw-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
 .lw-selwrap { position: relative; display: inline-flex; align-items: center; }
 .lw-selwrap > .icon { position: absolute; right: .6667rem; width: .8rem; height: .8rem; transform: rotate(90deg); pointer-events: none; }
@@ -166,6 +208,10 @@ select.lw-sel { -webkit-appearance: none; appearance: none; min-width: 15rem; he
   background: linear-gradient(#262e40, #161b27); border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-plate), 0 0 0 1px var(--brass-mid); }
 select.lw-sel:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 select.lw-sel option { background: #12161f; color: var(--ink); }
+@media (max-width: 1500px) {
+  .lw-term { min-width: 0; padding: 0 .4667rem; }
+  .lw-ed .lw-by { flex-basis: 5rem; min-width: 5rem; }
+}
 
 /* ---- local law on the Laws window: a row for each world under a decree ---- */
 .local-summary .ui-row { padding-left: var(--lw-gut-l, 1.8667rem); padding-right: var(--lw-gut-r, 1.6rem); }
@@ -174,15 +220,14 @@ select.lw-sel option { background: #12161f; color: var(--ink); }
 /* ---- local law on a world (the Worlds window's card, the system panel): each law a row with its ladder ---- */
 .local-laws.lw-local { margin: .6rem 0; padding: .5333rem .6667rem .6667rem; border: 0; border-radius: 0; font-size: .9333rem;
   background: linear-gradient(180deg, rgba(201,162,74,.06), rgba(5,7,10,.35) 2.4rem), rgba(5,7,10,.35); box-shadow: inset 0 1px 0 rgba(201,162,74,.45), inset 0 0 0 1px rgba(0,0,0,.5); }
-.local-laws.lw-local .ll-head { display: flex; align-items: center; flex-wrap: wrap; gap: .3333rem .5333rem; margin: 0 0 .4667rem; font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); }
+.local-laws.lw-local .ll-head { display: flex; align-items: center; flex-wrap: wrap; gap: .3333rem .5333rem; margin: 0 0 .4667rem; font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); }
 .local-laws.lw-local .ll-head > b { font: 600 .8667rem/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
 .local-laws.lw-local .ll-head .icon { width: 1rem; height: 1rem; }
 .local-laws.lw-local .ll-count b { color: var(--ink); font-weight: 600; }
 .local-laws.lw-local .ll-rule { display: inline-flex; align-items: center; gap: .3rem; color: var(--ink-mute); }
 .local-laws.lw-local .ll-rule .icon { width: .8667rem; height: .8667rem; }
-.local-laws.lw-local .ll-row { display: grid; grid-template-columns: 8.8rem minmax(0, 1fr); align-items: center; column-gap: .6667rem; padding: .2rem 0; border-top: 0; }
+.local-laws.lw-local .ll-row { display: grid; grid-template-columns: 8.8rem minmax(0, 1fr); align-items: center; column-gap: .6667rem; padding: .2667rem 0; border-top: 0; }
 .local-laws.lw-local .ll-row + .ll-row { border-top: 1px solid rgba(255,255,255,.04); }
 .local-laws.lw-local .ll-name { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); opacity: 1; }
 .local-laws.lw-local .ll-row.custom .ll-name { color: var(--brass-hi); }
-.local-laws.lw-local .ll-row.custom .ll-now { color: var(--brass-hi); }
-.local-laws.lw-local .lw-pl { min-height: 2.6667rem; font-size: .8667rem; padding: .3333rem .4rem .2667rem .4667rem; }
+.local-laws.lw-local .lw-pl { height: 4.2667rem; padding: .3333rem .4rem .3rem .4667rem; }

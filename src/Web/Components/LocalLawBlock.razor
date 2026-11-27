@@ -18,14 +18,14 @@
     {
         var now = LocalLawSystem.Option(cat, h, law.Id)!; int left = mine ? LocalLawSystem.CooldownLeft(w, h, law.Id) : 0;
         <div class='ll-row @(now.Default ? string.Empty : "custom")' data-local-law="@law.Id">
-            <span class="ll-name" title="@($"[scales] {law.Name}\n{law.Description}")">@law.Name@if (left > 0) { <small class="lw-st warn"><Icon Name="hourglass" Tone="brass" Size="11" />settled for @Counted.MoreYears(left)</small> }</span>
+            <span class="ll-name" title="@($"[scales] {law.Name}\n{law.Description}")">@law.Name@if (left > 0) { <small class="lw-st warn"><Icon Name="hourglass" Tone="brass" Size="13" />settled for @Counted.MoreYears(left)</small> }</span>
             <span class="lw-lad @(mine ? "" : "ro")" style="--n:@law.Options.Count">
             @foreach (var o in law.Options)
             {
                 var fx = o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => (kv.Key, kv.Value));
                 if (o.Id == now.Id || !mine)
                 {
-                    <span class='lw-pl @(o.Id == now.Id ? "on ll-now" : "")' title="@ReadTip(law, o, o.Id == now.Id)"><span class="lw-pn">@o.Name</span><span class="lw-pf">@LawsScreen.MarksOf(fx)</span></span>
+                    <span class='lw-pl @(o.Id == now.Id ? "on ll-now" : "")' title="@ReadTip(law, o, o.Id == now.Id)"><span class="lw-pn">@LawsScreen.PlateName(o.Name)</span><span class="lw-pf">@LawsScreen.MarksOf(fx)</span></span>
                 }
                 else
                 {
@@ -33,8 +33,8 @@
                     string tip = no != null ? $"[padlock] {o.Name}\nYou cannot decree it now. {Cap(no)}.\n{Minds(o)}" : Title(ld, od);
                     <span class="lw-cell" title="@tip">
                     <button class='lw-pl @(no != null ? "off" : "")' data-local-option="@Key(law.Id, o.Id)" disabled="@(no != null)" title="@tip" @onclick="() => Ask(ld, od, cmd)">
-                        <span class="lw-pn">@o.Name</span>
-                        <span class="lw-pf">@LawsScreen.MarksOf(fx)@if (left > 0) { <span class="lw-pc lock"><Icon Name="padlock" Tone="ivory" Size="12" /></span> } else { <span class="lw-pc"><Icon Name="influence" Tone="brass" Size="12" />@law.Cost</span> }</span>
+                        <span class="lw-pn">@LawsScreen.PlateName(o.Name)</span>
+                        <span class="lw-pf">@LawsScreen.MarksOf(fx)@if (left > 0) { <span class="lw-pc lock"><Icon Name="padlock" Tone="ivory" Size="13" /></span> } else { <span class="lw-pc"><Icon Name="public-speaker" Tone="ivory" Size="13" />@law.Cost</span> }</span>
                     </button>
                     </span>
                 }
