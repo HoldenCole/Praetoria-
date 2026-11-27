@@ -1,5 +1,90 @@
-/* The succession window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
-   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
-.succ-cast { display: flex; align-items: center; justify-content: center; gap: 1.4rem; margin: .8rem 0 1rem; } .succ-arrow { font-size: 2rem; color: var(--brass2); }
-.succ-grid { display: grid; gap: .5rem; text-align: left; margin: .4rem 0 .8rem; } .succ-grid > div { display: flex; flex-direction: column; gap: .15rem; border-left: 2px solid var(--accent, var(--brass3)); padding-left: .6rem; } .succ-grid .warn b { color: var(--bad); }
-.succ-lines { text-align: left; border-top: 1px dashed var(--line); padding-top: .5rem; margin-bottom: .6rem; }
+/* The seat passes (docs/VISUAL_SYSTEM.md 10, "Succession"). Loaded after app.css, so a rule here wins over a shared rule of the same
+   weight. Only SuccessionInterstitial.razor uses the classes below (succ-*); the old names the scripts know stay on it (.overlay,
+   .epilogue.succession, the gold .btn.primary, the data-* attributes of its rows) and their old looks are put aside here.
+
+   The funeral painting is full-bleed, darkened toward the middle where the type stands; the stage is one column centred on it, its
+   heir's plate sized by the height of the screen so the whole of it, the gold plate included, stands on a 1366 by 768 screen. */
+.overlay.succ-veil { z-index: 45; display: block; overflow-y: auto; padding: 0; background: #05070a; scrollbar-width: thin; scrollbar-color: #c9a24a #05070a; }
+.succ-art { position: fixed; inset: 0; background: center 40% / cover no-repeat; filter: brightness(1.05) contrast(1.06) saturate(.95); }
+.succ-art::after { content: ""; position: absolute; inset: 0; background:
+  radial-gradient(ellipse 56% 64% at 50% 50%, rgba(5,7,10,.78), rgba(5,7,10,.5) 62%, rgba(5,7,10,.28)),
+  linear-gradient(180deg, rgba(5,7,10,.55), rgba(5,7,10,0) 28%, rgba(5,7,10,0) 62%, rgba(5,7,10,.85)); }
+
+/* the stage: no card, the painting is the ground; only the frame-less column of type and plates */
+.overlay.succ-veil .epilogue.succession { position: relative; max-width: 74rem; width: calc(100% - 2rem); margin: 0 auto; padding: clamp(1rem, 3.4vh, 2.4rem) 1rem 1.6rem; min-height: 100%;
+  display: flex; flex-direction: column; align-items: center; background: none; border: 0; border-radius: 0; box-shadow: none; text-align: center; animation: rise .3s ease-out both;
+  --heir: clamp(170px, 30vh, 274px); }
+
+.succ-kick { display: flex; justify-content: center; align-items: center; gap: .6667rem; font: 600 .8667rem/1 var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--brass-ink); text-shadow: 0 1px 3px #000; }
+.succ-kick .ln { width: 3.2rem; height: 1px; background: linear-gradient(90deg, transparent, var(--brass)); } .succ-kick .ln.r { transform: scaleX(-1); }
+.succ-kick .succ-ls { width: .9333rem; height: 1.8667rem; stroke-width: 26px; } .succ-kick .succ-ls.flip { transform: scaleX(-1); }
+.epilogue.succession .succ-title { margin: .6rem 0 0; font: 600 2.6667rem/1.08 var(--f-display); letter-spacing: .1em; color: #f8eccd; text-transform: none;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.8), 0 1px 0 rgba(255,225,150,.16), 0 3px 14px #000, 0 0 30px rgba(0,0,0,.8); }
+.epilogue.succession .succ-title.long { font-size: 2.1333rem; letter-spacing: .06em; }
+.succ-rule { position: relative; width: min(28rem, 90%); height: 1px; margin: 1rem auto 0; background: var(--gilt-rule); }
+.succ-rule::after { content: ""; position: absolute; left: 50%; top: -.2667rem; width: .5333rem; height: .5333rem; transform: translateX(-50%) rotate(45deg); background: linear-gradient(135deg, #f3dfa6, #b8923f 50%, #5e4318); box-shadow: 0 0 0 1px #000; }
+
+/* the middle: the cast at the left (the old head at 140, the heir at 220 in the window frame, their names under them), what passes
+   and what does not at the right */
+.succ-main { display: grid; grid-template-columns: auto minmax(0, 36rem); align-items: center; justify-content: center; gap: 1.6rem 2.4rem; width: 100%; margin-top: clamp(.8rem, 2.6vh, 1.8rem); }
+.succ-side, .succ-left { min-width: 0; } .succ-left { display: flex; flex-direction: column; align-items: center; }
+.succ-cast { display: flex; align-items: flex-end; justify-content: center; gap: .8rem; }
+.succ-who { display: flex; flex-direction: column; align-items: center; width: 12.6667rem; }
+.succ-who.heir { width: 18rem; }
+.succ-who b { white-space: nowrap; }
+.succ-who .portrait { filter: drop-shadow(0 10px 18px rgba(0,0,0,.7)); }
+.succ-who.old .portrait { width: calc(var(--heir) * .5106) !important; height: calc(var(--heir) * .635) !important; }
+.succ-who.heir .portrait { width: calc(var(--heir) * .803) !important; height: var(--heir) !important; }
+.succ-who b { display: block; margin-top: .6667rem; font: 600 1.2rem/1.15 var(--f-display); letter-spacing: .03em; color: #f3e6c4; text-shadow: 0 1px 4px #000, 0 0 10px rgba(0,0,0,.8); }
+.succ-who.heir b { font-size: 1.4667rem; color: #f8eccd; }
+.succ-who span { display: block; margin-top: .3rem; font: 500 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); text-shadow: 0 1px 3px #000; }
+.succ-who.heir span { color: var(--brass-hi); }
+.succ-arrow { align-self: center; display: flex; margin-bottom: 3.6rem; opacity: .9; } .succ-arrow .icon { width: 1.4667rem; height: 1.4667rem; margin-left: -.5333rem; filter: drop-shadow(0 1px 2px #000); }
+
+/* what passes with the name: an icon row on a gilt rule, numbers in Plex */
+.succ-pass { margin-top: clamp(.8rem, 2.4vh, 1.6rem); width: 100%; }
+.succ-sub { font: 600 .8rem/1 var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--brass-ink); text-shadow: 0 1px 3px #000; }
+.succ-plinth { position: relative; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; row-gap: .6667rem; margin-top: .7333rem; padding: .7333rem 1rem .6667rem;
+  background: linear-gradient(90deg, rgba(8,10,15,0), rgba(8,10,15,.72) 18%, rgba(8,10,15,.72) 82%, rgba(8,10,15,0)); }
+.succ-plinth::before, .succ-plinth::after { content: ""; position: absolute; left: 6%; right: 6%; height: 1px; background: var(--gilt-rule); opacity: .7; } .succ-plinth::before { top: 0; } .succ-plinth::after { bottom: 0; }
+.succ-fig { position: relative; display: flex; align-items: center; gap: .6rem; padding: 0 1.2rem; text-align: left; }
+.succ-fig:not(:first-child)::before { content: ""; position: absolute; left: -.1667rem; top: 50%; width: .3333rem; height: .3333rem; transform: translateY(-50%) rotate(45deg); background: var(--brass-mid); box-shadow: 0 0 0 1px #000; }
+.succ-fig > .icon { width: 1.6rem; height: 1.6rem; flex: none; }
+.succ-fig > span { display: flex; flex-direction: column; gap: .2rem; }
+.succ-fig b { font: 600 1.3333rem/1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; color: var(--ink); white-space: nowrap; } .succ-fig b.txt { font: 600 1.1333rem/1 var(--f-display); letter-spacing: .03em; color: #f3e6c4; }
+.succ-fig small { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); }
+
+/* what does not pass, and the rest: rows, the label in small capitals at the left */
+.succ-grid { width: 100%; text-align: left; background: linear-gradient(180deg, rgba(8,10,15,.66), rgba(8,10,15,.5)); }
+.succ-row { display: grid; grid-template-columns: 10.6667rem minmax(0, 1fr); column-gap: 1.2rem; padding: .5333rem 1rem; border-top: 1px solid rgba(255,255,255,.06); }
+.succ-row:first-child { border-top: 1px solid rgba(201,162,74,.4); }
+.succ-row .k { font: 600 .8rem/1.4 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); padding-top: .1333rem; }
+.succ-row .v { font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink); }
+.succ-row.warn { box-shadow: inset 2px 0 0 var(--warn); background: linear-gradient(90deg, rgba(227,166,74,.08), transparent 60%); } .succ-row.warn .k { color: var(--warn); }
+.succ-row.good { box-shadow: inset 2px 0 0 var(--good); } .succ-row.good .k { color: var(--good); }
+/* what was written of it */
+.succ-lines { width: 100%; margin-top: .6667rem; padding: .6rem 1rem .6667rem; text-align: left; font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink-dim);
+  background: linear-gradient(90deg, rgba(0,0,0,.5), rgba(0,0,0,.28)); box-shadow: inset 2px 0 0 var(--brass); }
+.succ-lines .qh { font: 600 .8rem/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); margin-bottom: .4rem; }
+.succ-lines .ln + .ln { margin-top: .2rem; }
+/* one gold plate */
+/* the gold plate stays on the screen when the rest must scroll */
+.succ-foot.row { position: sticky; bottom: 0; z-index: 2; justify-content: center; width: 100%; margin-top: clamp(.6rem, 2vh, 1.2rem); padding: .6rem 0 1rem;
+  background: linear-gradient(180deg, rgba(5,7,10,0), rgba(5,7,10,.75) 45%); }
+.succ-go.btn.primary.ui-btn { height: 2.6667rem; padding: 0 1.6rem; gap: .6rem; font: 600 1.0667rem/1 var(--f-display); letter-spacing: .06em; border: 1px solid #000; border-radius: 2px;
+  color: var(--ink-dark); text-shadow: 0 1px 0 rgba(255,240,200,.45); background: linear-gradient(#f6e2a0, #d2ad58 45%, #a07a30); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.25), 0 2px 8px rgba(0,0,0,.8); }
+.succ-go.btn.primary.ui-btn:hover { filter: none; background: linear-gradient(#fbe9b0, #dcb862 45%, #ab8436); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.25), 0 0 16px rgba(232,196,110,.4); }
+.succ-go .icon { width: 1.2rem; height: 1.2rem; }
+
+/* a short screen (1366 by 768): the type closes up so the gold plate stands with the rest */
+@media (max-height: 820px) {
+  .epilogue.succession .succ-title { font-size: 2.1333rem; margin-top: .4rem; } .succ-rule { margin-top: .6667rem; }
+  .succ-row { padding: .3333rem 1rem; } .succ-row .v { line-height: 1.38; } .succ-lines { line-height: 1.38; padding: .4667rem 1rem .5333rem; }
+  .succ-who b { margin-top: .4rem; }
+}
+@media (max-width: 1100px) { .succ-main { grid-template-columns: 1fr; justify-items: center; } .succ-side { width: min(40rem, 100%); } }
+@media (max-width: 720px) {
+  .succ-row { grid-template-columns: 1fr; } .succ-plinth { flex-wrap: wrap; row-gap: .6rem; } .succ-who { width: auto; }
+  .overlay.succ-veil .epilogue.succession { --heir: 180px; }
+}
+@media (prefers-reduced-motion: reduce) { .overlay.succ-veil .epilogue.succession { animation: none; } }

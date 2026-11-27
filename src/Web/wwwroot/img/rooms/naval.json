@@ -1,0 +1,39 @@
+{
+ "room": "naval",
+ "image": "naval.webp",
+ "size": [
+  1280,
+  1056
+ ],
+ "floor": {
+  "y": [
+   0.82,
+   0.99
+  ],
+  "x": [
+   0.05,
+   0.95
+  ]
+ },
+ "desk": {
+  "x": [
+   0.31,
+   0.69
+  ],
+  "y": [
+   0.6,
+   0.68
+  ]
+ },
+ "window": {
+  "x": [
+   0.26,
+   0.74
+  ],
+  "y": [
+   0.11,
+   0.52
+  ]
+ },
+ "note": "fractions of the picture, x from the left and y from the top: floor is where visitors stand, desk the top where letters lie. Painted at the Office's shape (about 1100 x 900): show it whole. AI-generated: see tools/art/rooms.py"
+}

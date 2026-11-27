@@ -1,16 +1,64 @@
-/* The chronicle window's own rules, moved out of app.css (docs/VISUAL_SYSTEM.md, build plan). Loaded after app.css, so a rule
-   here wins over a shared rule of the same weight. Only this window's files use the classes below. */
-/* archive (Chronicle) */
-.archive-grid { grid-template-columns: minmax(0, 1fr); }
-.timeline { width: 100%; height: auto; display: block; background: #080b12; border: 1px solid var(--line); border-radius: 4px; }
-.timeline .base { stroke: #3a4866; } .timeline .vol { fill: rgba(255,255,255,.02); stroke: rgba(255,255,255,.08); cursor: pointer; } .timeline .vol.here { fill: rgba(201,162,74,.08); stroke: var(--brass3); } .timeline .vol:hover { fill: rgba(201,162,74,.06); }
-.timeline .tick { fill: #55617a; } .timeline .tick.notable { fill: #c9a24a; } .timeline .tick.war { fill: #d8705a; } .timeline .gen { fill: #f1d78e; font-size: .8rem; text-anchor: middle; } .timeline .tl { fill: #7d8699; font-size: .667rem; } .timeline .tl.end { text-anchor: end; }
-.entries { columns: 2 28rem; column-gap: 1.2rem; margin-top: .5rem; }
-.timeline .tl.mid { text-anchor: middle; } .tl-key .tk { display: inline-block; width: .4rem; height: .8rem; background: #55617a; } .tl-key .tk.war { background: #d8705a; } .tl-key .tk.notable { background: #c9a24a; } .tl-key .gen { color: #f1d78e; font-weight: 400; }
-.chron-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem 1.2rem; margin: .6rem 0 .2rem; } .chron-controls .vols { margin-bottom: 0; }
-.year-block { margin-top: .7rem; } .year-block h4 { margin: 0 0 .3rem; padding-bottom: .2rem; border-bottom: 1px solid var(--line2); } .year-block h4 .muted { font-family: var(--sans); font-size: .72rem; letter-spacing: 0; text-transform: none; margin-left: .5rem; }
-.kd { display: inline-block; width: .4667rem; height: .4667rem; border-radius: 50%; margin-right: .4rem; background: #5d6880; vertical-align: middle; } .kd.war { background: #d8705a; } .kd.dynasty { background: #c9a24a; } .kd.politics { background: #6f9be0; } .kd.coin { background: #6fbf8a; } .kd.realm { background: #a78bda; }
-.yline { font-size: .86rem; padding: .2rem 0 .2rem .6rem; border-bottom: 1px dotted var(--line); border-left: 2px solid transparent; line-height: 1.4; }
-.yline.own { border-left-color: var(--accent, var(--brass3)); color: var(--ink); background: linear-gradient(90deg, rgba(255,255,255,.035), transparent 60%); }
-.yline.event { font-family: var(--serif); font-size: .95rem; }
-.chron-controls .sel { max-width: 12rem; }
+/* The Chronicle (docs/VISUAL_SYSTEM.md 5.3: "the timeline strip, then rows"). Loaded after app.css, so a rule here wins over a shared
+   rule of the same weight. Only ChronicleScreen.razor uses the classes below (cr-*, and .chron-line, .chron-controls, .year-block and
+   .timeline, which the scripts and the old rules know). Built on the shared parts: WindowHeader, Tabs, Section, Select, Segmented,
+   Check, EmptyState. */
+.chron-win { container: cr / inline-size; }
+
+/* the old window rule for every h3 in a docked window (app.css, ".game .win-body h3") outweighs the section heading's own: put it back */
+.game .win-body .chron-win .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
+.game .win-body .chron-win .ui-sec h3::before, .game .win-body .chron-win .ui-sec h3::after { display: none; }
+
+/* the painted header: the dispatch (or the funeral while the house mourns); the facts held to the dark side of the shade */
+.chron-win .ui-head-art { background-position: center 45%; }
+.chron-win .ui-facts { flex-direction: column; align-items: flex-start; gap: .3333rem; }
+.chron-win .ui-facts > span { text-shadow: 0 1px 2px #000, 0 0 8px rgba(0,0,0,.9); }
+.chron-win .ui-plinth { justify-content: space-between; }
+.chron-win .ui-plinth .ui-fig + .ui-fig { margin-left: .4rem; padding-left: .9rem; }
+
+.cr-lede { margin-bottom: .4rem; }
+
+/* ---- the strip of years: a recessed well, one bar a year, the span being read lit in brass; the years under it in Plex ---- */
+.cr-key { display: inline-flex; align-items: center; gap: .3333rem; font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
+.cr-key .k { display: inline-block; width: .4rem; height: .8rem; margin-left: .5333rem; background: #6a7890; box-shadow: 0 0 0 1px #000; } .cr-key .k:first-child { margin-left: 0; }
+.cr-key .k.war { background: #d8705a; } .cr-key .k.notable { background: #c9a24a; }
+.cr-key .icon { width: .8667rem; height: .8667rem; margin-left: .5333rem; }
+@container cr (max-width: 40rem) { .cr-key { display: none; } }
+.cr-strip { position: relative; margin: .8rem 1.4667rem 0 1.8667rem; padding-bottom: 1.4rem; }
+.cr-strip .timeline { display: block; width: 100%; height: 4.8rem; background: linear-gradient(#05070a, #090c12); border: 0; border-radius: 0; box-shadow: var(--sh-inset); }
+.cr-strip .timeline .base { stroke: rgba(201,162,74,.35); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.cr-strip .timeline .vol { fill: rgba(255,255,255,.015); stroke: rgba(255,255,255,.07); vector-effect: non-scaling-stroke; cursor: pointer; }
+.cr-strip .timeline .vol:hover { fill: rgba(201,162,74,.06); }
+.cr-strip .timeline .vol.here { fill: rgba(201,162,74,.1); stroke: rgba(201,162,74,.6); }
+.cr-strip .timeline .tick { fill: #6a7890; pointer-events: none; } .cr-strip .timeline .tick.notable { fill: #c9a24a; } .cr-strip .timeline .tick.war { fill: #d8705a; }
+.cr-gen { position: absolute; top: -.4rem; width: .5333rem; height: .5333rem; transform: translateX(-50%) rotate(45deg); background: linear-gradient(135deg, #fbeab4, #c9a24a 55%, #6f5020); box-shadow: 0 0 0 1px #000, 0 0 6px rgba(246,226,160,.5); }
+.cr-years { position: absolute; left: 0; right: 0; bottom: 0; height: 1.2rem; }
+.cr-years span { position: absolute; top: .2rem; transform: translateX(-50%); font: 500 .8rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink-mute); }
+.cr-full { position: absolute; right: 0; top: -1.2rem; font: 500 .8rem/1 var(--f-ui); color: var(--ink-mute); display: none; }
+
+/* the controls: the span of years, the kinds as joined plates, only the notable */
+.cr-ctl.chron-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .6667rem 1.0667rem; margin: .9333rem 1.4667rem .2rem 1.8667rem; }
+.cr-ctl .cr-sel .ui-select-btn { min-width: 12.6667rem; }
+.cr-ctl .ui-seg button { padding: 0 .6rem; }
+
+/* ---- a year: its section band, then its lines as rows; your house's lines first, with a brass bar and full ink ---- */
+.cr-n { font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
+.cr-rows { padding: .2667rem 1.4667rem .4rem 1.8667rem; }
+.cr-row.chron-line { position: relative; display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; column-gap: .8rem; align-items: center; min-height: 2.9333rem; padding: .3333rem .5333rem .3333rem .6667rem;
+  border-bottom: 1px solid rgba(255,255,255,.05); }
+.cr-row .cr-pic { display: grid; place-items: center; width: 2rem; min-height: 1.6rem; }
+.cr-row .cr-pic .portrait { width: 1.8667rem !important; height: 2.2667rem !important; }
+.cr-row .cr-ic .icon { width: 1.1333rem; height: 1.1333rem; opacity: .85; }
+.cr-row .cr-k { display: grid; place-items: center; opacity: .55; } .cr-row .cr-k .icon { width: .9333rem; height: .9333rem; }
+.cr-row:hover .cr-k { opacity: .9; }
+.cr-row .cr-t { font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink-dim); }
+.cr-row.own { background: linear-gradient(90deg, rgba(201,162,74,.09), rgba(201,162,74,.02) 60%, transparent); box-shadow: inset 2px 0 0 var(--brass); }
+.cr-row.own .cr-t { color: var(--ink); }
+.cr-row.event .cr-t { font: 400 1.0667rem/1.4 var(--f-prose); color: #e8dfc8; }
+.cr-row:hover { background: linear-gradient(90deg, rgba(201,162,74,.12), transparent 70%); }
+.cr-row:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass-hi); }
+
+/* at 1366 by 768 (the window at 620px) the header keeps its figures to one line */
+@container cr (max-width: 44rem) {
+  .chron-win .ui-plinth { padding: 0 1rem 0 1.2rem; } .chron-win .ui-plinth .ui-fig { gap: .4rem; } .chron-win .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
+  .chron-win .ui-fig-v { font-size: 1.1333rem; } .chron-win .ui-plinth .ui-fig + .ui-fig { padding-left: .7rem; margin-left: .2rem; }
+}
