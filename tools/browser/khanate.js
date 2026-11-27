@@ -20,7 +20,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { const el = [...document.querySelectorAll('.rail-btn')].find(e => /^galaxy$/i.test(e.innerText.trim())); if (el) el.click(); }); await page.waitForTimeout(2500);
   await page.evaluate(() => { const b = document.querySelector('button[title="Fit the whole Reach"]'); if (b) b.click(); }); await page.waitForTimeout(3000);
   await page.screenshot({ path: shots + "/khanate-map.png", timeout: 240000 });
-  const labels = await page.evaluate(() => document.body.innerText.match(/Vashti Steppe|Thessaran Shore|Ardent Concord|Outer Compact|Hollow Crown/g) || []);
+  const labels = await page.evaluate(() => (document.body.innerText.match(/Vashti Steppe|Thessaran Shore|Ardent Concord|Outer Compact|Hollow Crown/gi) || []).map(x => x.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())));   // the map writes region names in capitals
   console.log('named on the map screen: ' + [...new Set(labels)].join(', '));
   await page.evaluate(() => { const el = [...document.querySelectorAll('.rail-btn')].find(e => /^military$/i.test(e.innerText.trim())); if (el) el.click(); }); await page.waitForTimeout(500);
   await page.evaluate(() => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => /beyond the reach/i.test(e.innerText)); if (t) t.click(); }); await page.waitForTimeout(600);

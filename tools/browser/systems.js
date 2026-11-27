@@ -29,7 +29,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   check(bodies.length >= 5, bodies.length + ' bodies listed, the sun among them'); bodies.forEach(b => console.log('       ' + b));
   check(bodies.some(b => b.includes('the sun') && b.includes('slots 0 +site')), 'the sun has no building slot, and a site for a great work');
   check(bodies.some(b => b.includes('Open space')), 'open space is a place to build, tied to no world'); check(bodies.some(b => b.includes('*')), 'a body has a feature no other system need have');
-  check(bodies.some(b => b.includes("the system's world") && !b.includes('slots 0')), "the system's own world shows its holding's slots");
+  check(bodies.some(b => b.includes('the home world') && !b.includes('slots 0')), "the system's own world (the home world) shows its holding's slots");
   await page.screenshot({ path: shots + '/system-seat.png' });
   // open each body until one offers something that can be built now, and build it
   const n = bodies.length; let builtName = null;
@@ -46,7 +46,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   check(standing.some(x => builtName && x.startsWith(builtName)), 'it shows on its body: ' + standing.join(', '));
   await page.screenshot({ path: shots + '/system-built.png' });
   // infrastructure: the system's own, a level at a time
-  await page.evaluate(() => { const t = [...document.querySelectorAll('.sys-tabs .rung')].find(x => x.innerText.trim().toLowerCase().startsWith('infrastructure')); if (t) t.click(); }); await page.waitForTimeout(700);
+  await page.evaluate(() => { const t = [...document.querySelectorAll('.sys-tabs .rung, .sys-tabs .ui-tab')].find(x => x.innerText.trim().toLowerCase().startsWith('infrastructure')); if (t) t.click(); }); await page.waitForTimeout(700);
   const tracks = await page.evaluate(() => [...document.querySelectorAll('.sysp-work.infra')].map(x => x.querySelector('.sw-head b').innerText + ' ' + x.querySelectorAll('.lv i.on').length + '/' + x.querySelectorAll('.lv i').length));
   check(tracks.length >= 4, 'infrastructure tracks: ' + tracks.join(', '));
   const laidOk = await page.evaluate(() => { const b = [...document.querySelectorAll('.sysp-work.infra button.opt')].find(x => !x.disabled); if (b) { b.click(); return true; } return false; }); await page.waitForTimeout(1000);

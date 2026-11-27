@@ -1,18 +1,46 @@
-// Praetoria — the rendered galaxy (docs/ART_DIRECTION.md §1). Three.js over WebGL: a shader nebula, bloomed stars, suns with
-// flares, a hyperlane web, territory as a soft influence field with lit borders, lit planets, fleet glyphs; picking back to
+// Praetoria: the rendered galaxy (docs/VISUAL_SYSTEM.md 7, docs/ART_DIRECTION.md §1). Three.js over WebGL: a shader nebula, the
+// territory of the Reach drawn by one shader from data rasterised only when the holdings change, stars by class in their own glow
+// pass, lanes as screen-space hairlines, and the names, fleets and marks as crisp screen-space elements over it; picking back to
 // Blazor. The model is plain JSON handed over by GalaxyMap.razor after every render.
+//
+// The territory (7.2), as the mock's tools/terr.py draws it: the outer edge of the land is the threshold of a smooth field (a sum of
+// Gaussians over every system), so it is one curve with no scallops; inside, every point belongs to its nearest system. Per texel the
+// CPU keeps the four nearest systems and the field's signed distance; the fragment shader finds the exact nearest system among them
+// and the exact distance to the edge of its holder, its realm and its region, and measures each in screen pixels along the edge's own
+// normal, so every line is 1 to 2px at every zoom and does not alias under the tilted camera. Three drawings of the same cells are
+// cross-faded by distance: the realms from far off, the houses in the middle distance, the systems close to. The territory, the
+// lanes and the nebula are drawn in one pass; only the stars go through the bloom, and are added over it.
 import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
-const MAX_SYS = 64, MAX_HOUSES = 32;
-
 function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
 function rnd(seed) { let t = seed >>> 0; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
+const rgb01 = h => { let c = String(h || '#8fa8d8').replace('#', ''); if (c.length === 3) c = c.split('').map(x => x + x).join(''); return [parseInt(c.slice(0, 2), 16) / 255, parseInt(c.slice(2, 4), 16) / 255, parseInt(c.slice(4, 6), 16) / 255]; };
+/** A colour toned as the spec tones a house colour for anything larger than a mark: saturation and value scaled (2.2). */
+function tone(c, sat, val) {
+  const [r, g, b] = c, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0;
+  if (d) { if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; h /= 6; if (h < 0) h += 1; }
+  const s = (mx ? d / mx : 0) * sat, v = Math.min(1, mx * val), i = Math.floor(h * 6), f = h * 6 - i, p = v * (1 - s), q = v * (1 - f * s), t = v * (1 - (1 - f) * s);
+  return [[v, t, p], [q, v, p], [p, v, t], [p, q, v], [t, p, v], [v, p, q]][i % 6];
+}
+const css = c => `rgb(${Math.round(c[0] * 255)},${Math.round(c[1] * 255)},${Math.round(c[2] * 255)})`;
+const ico = (name, toneName, cls = '') => `<svg class="icon ico ${toneName} ${cls}" viewBox="0 0 512 512" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+// stars by class (7.3): B, F, G, K, M
+const STAR = [[169, 196, 255], [244, 240, 255], [255, 225, 160], [255, 185, 120], [255, 148, 120]].map(c => c.map(v => v / 255));
+const starClass = id => [0, 1, 1, 2, 2, 2, 3, 3, 4][hash(id) % 9];
+const DEPOSIT = { helium3: ['helium3', 'steel'], rare_earths: ['rare_earths', 'ivory'], isotopes: ['isotopes', 'ember'] };
+// lit globes for the tooltip, the ramps of Components/Ui/Globe.razor
+const GLOBE = { forge: ['#ffd8a8', '#d86a33', '#8a2f1c', '#3d140d', 'rgba(255,120,70,.45)'], arid: ['#fbe3b4', '#d9a35c', '#8a5a26', '#3f2510', 'rgba(255,200,130,.35)'], barren: ['#fbe3b4', '#d9a35c', '#8a5a26', '#3f2510', 'rgba(255,200,130,.35)'],
+  ocean: ['#d6ecff', '#4f8fd6', '#1d4f8f', '#0b2346', 'rgba(120,180,255,.45)'], frozen: ['#ffffff', '#cfe3f2', '#7fa2c0', '#2a3d52', 'rgba(200,230,255,.4)'], gas: ['#fff0cf', '#e2b87a', '#a0703a', '#3d2a14', 'rgba(255,220,160,.35)'],
+  belt: ['#e6e0d4', '#a89f90', '#6a6256', '#26231f', 'rgba(220,210,190,.25)'], terran: ['#d6efcf', '#6aa36a', '#2f6b56', '#1d4a7a', 'rgba(110,190,255,.45)'] };
+const globe = (cls, px) => { const g = GLOBE[cls] || GLOBE.terran; return `<span class="ui-globe sm" style="width:${px / 15}rem;height:${px / 15}rem;--g0:${g[0]};--g1:${g[1]};--g2:${g[2]};--g3:${g[3]};--atm:${g[4]}"></span>`; };
+const sentence = s => { s = String(s || ''); return s ? s[0].toUpperCase() + s.slice(1).toLowerCase() : s; };
 
-// ---- textures drawn once ----
+// ---- textures drawn once (the close map of a system uses them) ----
 function radialTexture(size, stops) {
   const c = document.createElement('canvas'); c.width = c.height = size; const ctx = c.getContext('2d');
   const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
@@ -32,7 +60,6 @@ function textures() {
   // a hull seen from above: a long bow, two engine pods and a notch at the stern
   TEX.hull = glyphTexture(ctx => { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(32, 2); ctx.lineTo(41, 26); ctx.lineTo(54, 40); ctx.lineTo(54, 58); ctx.lineTo(44, 58); ctx.lineTo(41, 48); ctx.lineTo(36, 54); ctx.lineTo(28, 54); ctx.lineTo(23, 48); ctx.lineTo(20, 58); ctx.lineTo(10, 58); ctx.lineTo(10, 40); ctx.lineTo(23, 26); ctx.closePath(); ctx.fill(); });
   TEX.ship = glyphTexture(ctx => { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(32, 4); ctx.lineTo(56, 56); ctx.lineTo(32, 44); ctx.lineTo(8, 56); ctx.closePath(); ctx.fill(); });
-  TEX.lane = (() => { const c = document.createElement('canvas'); c.width = 4; c.height = 32; const ctx = c.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 0, 32); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,1)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 4, 32); const t = new THREE.CanvasTexture(c); return t; })();
   TEX.flare = (() => { const c = document.createElement('canvas'); c.width = 256; c.height = 16; const ctx = c.getContext('2d'); const g = ctx.createLinearGradient(0, 0, 256, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,.9)'); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 16); const t = new THREE.CanvasTexture(c); return t; })();
   TEX.skull = glyphTexture(ctx => { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(32, 26, 16, 0, 6.283); ctx.fill(); ctx.fillRect(22, 36, 20, 12); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(25, 26, 4.5, 0, 6.283); ctx.arc(39, 26, 4.5, 0, 6.283); ctx.fill(); ctx.fillRect(28, 40, 2, 8); ctx.fillRect(34, 40, 2, 8); ctx.fillStyle = '#fff'; ctx.save(); ctx.translate(32, 50); ctx.rotate(.6); ctx.fillRect(-18, -2, 36, 4); ctx.rotate(-1.2); ctx.fillRect(-18, -2, 36, 4); ctx.restore(); });
   TEX.station = glyphTexture(ctx => { ctx.strokeStyle = '#fff'; ctx.lineWidth = 6; ctx.beginPath(); ctx.rect(14, 14, 36, 36); ctx.stroke(); ctx.beginPath(); ctx.arc(32, 32, 8, 0, 6.283); ctx.fill(); });
@@ -54,66 +81,193 @@ void main(){
   float cloud = smoothstep(-0.15, 0.75, n1) * smoothstep(-0.3, 0.6, n3);
   float wisps = pow(max(0.0, n2), 2.2) * 0.9;
   vec3 col = uA * cloud * 0.95 + uB * wisps * 1.1 + uC * pow(cloud, 3.0) * 1.2;
-  // a brighter core band and scattered bright knots, like a real emission cloud
   float knots = pow(max(0.0, fbm(p*3.3 + 21.0)), 5.0) * cloud * 2.5; col += vec3(0.9, 0.75, 0.6) * knots;
-  // faint dust lanes
   float dust = smoothstep(0.2, 0.5, fbm(p*2.5 + 40.0)) * 0.35;
   col *= (1.0 - dust);
   float vign = smoothstep(1.2, 0.2, length(vUv - 0.5) * 1.6);
-  gl_FragColor = vec4(col * vign, 1.0);
+  gl_FragColor = vec4(col * vign * 2.4, 1.0);   // no bloom lifts it now (it is drawn in the main pass): a little brighter
 }`;
 
-// ---- territory influence field ----
-const TERR_FS = `precision highp float; varying vec2 vUv; uniform vec2 uSize; uniform int uCount; uniform vec3 uPos[${MAX_SYS}]; uniform int uOwner[${MAX_SYS}]; uniform vec3 uHouseColor[${MAX_HOUSES}]; uniform float uRadius; uniform int uPlayer;
+// ---- the territory (7.2) ----
+const TERR_VS = `varying vec2 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xy; gl_Position = projectionMatrix * viewMatrix * w; }`;
+const TERR_FS = `
+uniform sampler2D uCand; uniform sampler2D uField; uniform sampler2D uSites; uniform sampler2D uPal;
+uniform vec4 uBox; uniform vec3 uTier; uniform float uDpr;
+varying vec2 vW;
+const vec3 IVORY = vec3(0.890, 0.827, 0.643);   // the Reach's outer edge, #E3D3A4
+const vec3 OWN = vec3(0.914, 0.725, 0.286);     // your land, #E9B949
+const vec3 OWNLINE = vec3(0.941, 0.776, 0.380); // its border, #F0C661
+const vec3 WASH = vec3(0.93, 0.85, 0.66);
+const vec3 SLATE = vec3(0.62, 0.67, 0.78);
+void over(inout vec4 d, vec3 c, float a){ a = clamp(a, 0.0, 1.0); d.rgb = c * a + d.rgb * (1.0 - a); d.a = a + d.a * (1.0 - a); }
+float band(float e, float a, float b){ return clamp(min(e - a, b - e) + 0.5, 0.0, 1.0); }
+float candOf(vec4 c, int k){ return k == 0 ? c.r : k == 1 ? c.g : k == 2 ? c.b : c.a; }
+// a realm's edge: the Reach's in ivory with a short glow inward (the only line that glows), a nation's or a state's in its own toned
+// colour, the edge of nobody's space beyond the rim a faint slate
+void realmEdge(inout vec4 d, bool reach, bool outer, vec3 lineCol, float er, bool inside){
+  if (!inside) return;
+  if (reach) { over(d, IVORY, exp(-max(er, 0.0) / 5.0) * 0.10); over(d, vec3(0.0), clamp(1.0 - abs(er), 0.0, 1.0) * 0.5); over(d, IVORY, band(er, 0.6, 2.1) * 0.82); }
+  else if (outer) over(d, SLATE, band(er, 0.4, 1.4) * 0.22);
+  else { over(d, vec3(0.0), clamp(1.0 - abs(er), 0.0, 1.0) * 0.4); over(d, lineCol, band(er, 0.4, 1.9) * 0.7); }
+}
+// your own land: a 2px gold border (over the Reach's edge where the two meet) and an ivory hairline 4px inside it
+void ownEdge(inout vec4 d, bool mine, float pOwn, float er, bool inside, float k){
+  if (!mine || !inside) return;
+  if (er <= pOwn + 0.01) over(d, OWNLINE, band(er, 0.6, 2.6) * 0.92 * k);
+  over(d, vec3(1.0, 0.96, 0.86), band(min(pOwn, er), 4.2, 5.2) * 0.38 * k);
+}
 void main(){
-  vec2 p = vUv * uSize;
-  float hw[${MAX_HOUSES}]; for (int h = 0; h < ${MAX_HOUSES}; h++) hw[h] = 0.0;
-  float total = 0.0;
-  for (int i = 0; i < ${MAX_SYS}; i++) { if (i >= uCount) break; int o = uOwner[i]; if (o < 0) continue; float d = distance(p, uPos[i].xy); float w = exp(-(d*d) / (uRadius*uRadius)) * uPos[i].z * 0.55; hw[o] += w; total += w; }
-  int best = -1; float bw = 0.0, second = 0.0;
-  for (int h = 0; h < ${MAX_HOUSES}; h++) { if (hw[h] > bw) { second = bw; bw = hw[h]; best = h; } else if (hw[h] > second) second = hw[h]; }
-  if (best < 0) discard;
-  vec3 col = uHouseColor[best];
-  float field = bw;
-  float inside = smoothstep(0.2, 0.5, field);
-  float edge = smoothstep(0.205, 0.222, field) * (1.0 - smoothstep(0.222, 0.245, field));   // a thin lit border
-  float seam = 1.0 - smoothstep(0.0, 0.05, bw - second);                                     // where two houses meet
-  float alpha = inside * 0.05 + edge * 0.36;
-  alpha *= (1.0 - seam * 0.75);
-  vec3 c = mix(col * 0.7, col * 1.8, edge);
-  if (best == uPlayer) alpha *= 1.4;
-  gl_FragColor = vec4(c, alpha);
+  vec2 uv = (vW - uBox.xy) / uBox.zw;
+  // world units per CSS pixel along x and y of the screen
+  vec2 jx = dFdx(vW) * uDpr, jy = dFdy(vW) * uDpr;
+  vec4 cand = texture(uCand, uv), fld = texture(uField, uv);
+  // the nearest system, exactly, among the four the texel keeps
+  float ida = -1.0, best = 1e20; vec4 a0 = vec4(0.0), a1 = vec4(0.0);
+  for (int k = 0; k < 4; k++) {
+    float id = candOf(cand, k); if (id < 0.0) continue;
+    vec4 s0 = texelFetch(uSites, ivec2(int(id + 0.5), 0), 0); vec2 q = vW - s0.xy; float dd = dot(q, q);
+    if (dd < best) { best = dd; ida = id; a0 = s0; a1 = texelFetch(uSites, ivec2(int(id + 0.5), 1), 0); }
+  }
+  // how far to the nearest edge of a cell, of a holder, of a realm and of a region: the bisector with the nearest system across it
+  float eAny = 1e5, eOwn = 1e5, eRl = 1e5, eReg = 1e5; vec2 nAny = vec2(1.0, 0.0), nOwn = nAny, nRl = nAny, nReg = nAny;
+  for (int k = 0; k < 4; k++) {
+    float id = candOf(cand, k); if (id < 0.0 || abs(id - ida) < 0.5) continue;
+    vec4 s0 = texelFetch(uSites, ivec2(int(id + 0.5), 0), 0), s1 = texelFetch(uSites, ivec2(int(id + 0.5), 1), 0);
+    vec2 ab = s0.xy - a0.xy; float L = length(ab); if (L < 1e-3) continue;
+    vec2 q = vW - s0.xy; float bis = (dot(q, q) - best) / (2.0 * L); vec2 n = ab / L;
+    if (bis < eAny) { eAny = bis; nAny = n; }
+    if (abs(s0.z - a0.z) > 0.5 && bis < eOwn) { eOwn = bis; nOwn = n; }
+    if (abs(s0.w - a0.w) > 0.5 && bis < eRl) { eRl = bis; nRl = n; }
+    if (abs(s1.x - a1.x) > 0.5 && bis < eReg) { eReg = bis; nReg = n; }
+  }
+  vec2 nf = dot(fld.gb, fld.gb) > 1e-8 ? normalize(fld.gb) : vec2(1.0, 0.0);
+  #define PX(e, n) ((e) / max(1e-6, length(vec2(dot(n, jx), dot(n, jy)))))
+  float pAny = PX(eAny, nAny), pOwn = PX(eOwn, nOwn), pRl = PX(eRl, nRl), pReg = PX(eReg, nReg), pOut = PX(fld.r, nf);
+  if (ida < 0.0) discard;
+  vec4 hf = texelFetch(uPal, ivec2(int(a0.z + 0.5), 0), 0), hl = texelFetch(uPal, ivec2(int(a0.z + 0.5), 1), 0);
+  vec4 rl = texelFetch(uPal, ivec2(int(a0.w + 0.5), 2), 0), rf = texelFetch(uPal, ivec2(int(a0.w + 0.5), 3), 0);
+  bool none = hf.a < 0.5, mine = abs(hf.a - 2.0) < 0.5, nation = abs(hf.a - 3.0) < 0.5;
+  bool reach = rl.a < 0.5, foreign = abs(rl.a - 1.0) < 0.5, outer = rl.a > 2.5;
+  float cover = clamp(pOut + 0.5, 0.0, 1.0); bool inside = pOut > -1.0;
+  float hatch = mod(floor(gl_FragCoord.x) + floor(gl_FragCoord.y), floor(10.0 * uDpr + 0.5)) < uDpr ? 1.0 : 0.0;
+  float ein = min(min(pOwn, pRl), pOut), bnd = exp(-max(ein, 0.0) / 16.0), er = min(pRl, pOut);
+  bool seam = pOwn < pRl - 0.01 && pOwn < pOut - 0.01;
+  vec4 outc = vec4(0.0);
+  if (uTier.x > 0.001) {   // far: the realms only
+    vec4 d = vec4(0.0); float bandR = exp(-max(er, 0.0) / 22.0);
+    if (reach) over(d, WASH, (0.05 + 0.06 * bandR) * cover);
+    else if (!outer) over(d, rf.rgb, (0.07 + 0.15 * bandR + (foreign ? 0.09 * hatch : 0.0)) * cover);
+    if (mine) over(d, OWN, 0.16 * cover);
+    if (pRl < pOut - 0.01) over(d, vec3(0.0), clamp(1.0 - pRl, 0.0, 1.0) * 0.45);
+    realmEdge(d, reach, outer, rl.rgb, er, inside);
+    outc += d * uTier.x;
+  }
+  if (uTier.y > 0.001) {   // the middle distance: the houses
+    vec4 d = vec4(0.0);
+    if (reach) over(d, WASH, 0.045 * cover);
+    if (!none) over(d, hf.rgb, (nation ? 0.05 + 0.14 * bnd + 0.09 * hatch : mine ? 0.15 + 0.25 * bnd : 0.06 + 0.16 * bnd) * cover);
+    if (reach && inside && pReg < pOwn - 0.01) over(d, vec3(0.95, 0.9, 0.78), clamp(1.0 - abs(pReg - 0.5), 0.0, 1.0) * 0.13);
+    if (seam) { over(d, vec3(0.0), clamp(1.0 - pOwn, 0.0, 1.0) * 0.5); if (!none) over(d, hl.rgb, band(pOwn, 0.6, mine ? 2.6 : 1.9) * (mine ? 0.92 : 0.56)); }
+    realmEdge(d, reach, outer, rl.rgb, er, inside);
+    ownEdge(d, mine, pOwn, er, inside, 1.0);
+    outc += d * uTier.y;
+  }
+  if (uTier.z > 0.001) {   // close to: the systems, a faint tint and a fine line round each cell
+    vec4 d = vec4(0.0);
+    if (reach) over(d, WASH, 0.03 * cover);
+    if (!none) over(d, hf.rgb, (mine ? 0.10 + 0.12 * bnd : 0.035 + 0.06 * bnd) * cover);
+    if (inside) { over(d, vec3(0.0), clamp(1.0 - pAny, 0.0, 1.0) * 0.3); over(d, none ? SLATE : hl.rgb, band(pAny, 0.5, 1.5) * (none ? 0.2 : 0.4)); }
+    if (seam && !none) over(d, hl.rgb, band(pOwn, 0.5, mine ? 2.2 : 1.5) * (mine ? 0.8 : 0.5));
+    realmEdge(d, reach, outer, rl.rgb, er, inside);
+    ownEdge(d, mine, pOwn, er, inside, 0.9);
+    outc += d * uTier.z;
+  }
+  gl_FragColor = outc;
 }`;
+
+// ---- the lanes (7.3): screen-space hairlines that stop short of each star ----
+const LANE_VS = `
+attribute vec3 pb; attribute vec2 corner; attribute vec4 col; attribute float wpx;
+uniform vec2 uRes; uniform float uDpr;
+varying vec4 vCol; varying float vSide; varying float vAlong; varying float vLen; varying float vWd;
+void main(){
+  vec4 ca = projectionMatrix * modelViewMatrix * vec4(position, 1.0), cb = projectionMatrix * modelViewMatrix * vec4(pb, 1.0);
+  vec2 sa = (ca.xy / ca.w * 0.5 + 0.5) * uRes, sb = (cb.xy / cb.w * 0.5 + 0.5) * uRes;
+  vec2 dv = sb - sa; float L = max(length(dv), 1e-3); vec2 dir = dv / L, nrm = vec2(-dir.y, dir.x);
+  float hw = (wpx * 0.5 + 1.0) * uDpr;
+  vec2 sp = mix(sa, sb, corner.x) + nrm * corner.y * hw; vec4 c = corner.x < 0.5 ? ca : cb;
+  gl_Position = vec4((sp / uRes * 2.0 - 1.0) * c.w, c.z, c.w);
+  vCol = col; vSide = corner.y * hw; vAlong = corner.x * L; vLen = L; vWd = wpx * uDpr;
+}`;
+const LANE_FS = `
+uniform float uDpr; uniform float uGap;
+varying vec4 vCol; varying float vSide; varying float vAlong; varying float vLen; varying float vWd;
+void main(){
+  float gap = uGap * uDpr; float cap = clamp(min(vAlong - gap, vLen - gap - vAlong) / uDpr + 0.5, 0.0, 1.0);
+  float a = clamp((max(vWd, uDpr) * 0.5 - abs(vSide)) / uDpr + 0.5, 0.0, 1.0) * min(1.0, vWd / uDpr);
+  float al = vCol.a * a * cap; if (al <= 0.003) discard;
+  gl_FragColor = vec4(vCol.rgb * al, al);
+}`;
+
+// ---- the stars (7.3): a core and a soft halo by class, constant in pixels; drawn into the glow pass ----
+const STAR_VS = `
+attribute vec3 color; attribute vec2 sz; uniform float uDpr; uniform float uGrow;
+varying vec3 vC; varying float vK;
+void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = sz.y * uGrow * uDpr; vK = sz.x / sz.y; }`;
+const STAR_FS = `
+varying vec3 vC; varying float vK;
+void main(){
+  vec2 q = gl_PointCoord * 2.0 - 1.0; float r = length(q); if (r > 1.0) discard;
+  float halo = pow(1.0 - r, 2.4) * 0.62 + exp(-r * r / (vK * vK * 3.0)) * 0.35;
+  float core = 1.0 - smoothstep(vK * 0.5, vK, r);
+  gl_FragColor = vec4(vC * halo + mix(vC, vec3(1.0), 0.72) * core * 1.15, 1.0);
+}`;
+// the last pass: the scene, and the stars' light added over it
+const COMPOSITE = {
+  uniforms: { tDiffuse: { value: null }, tGlow: { value: null }, uGlow: { value: 1 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `uniform sampler2D tDiffuse; uniform sampler2D tGlow; uniform float uGlow; varying vec2 vUv; void main(){ vec4 b = texture2D(tDiffuse, vUv); vec3 g = texture2D(tGlow, vUv).rgb * uGlow; gl_FragColor = vec4(b.rgb + g, 1.0); }`
+};
+const ss = (a, b, v) => { const q = Math.max(0, Math.min(1, (v - a) / (b - a))); return q * q * (3 - 2 * q); };
+const HOME_D = 1650;   // the opening distance (7.1): 15 to 22 systems on a 1600 by 1000 screen
+const MAX_EMPTY = 0.2; // the empty space past the Reach's edge stays under a fifth of the free map (7.1)
+let lastCover = null;  // the interface's rectangles, as js/shell.js last told them
 
 export class Galaxy {
   constructor(container, dotnet) {
-    this.container = container; this.dotnet = dotnet; this.model = null; this.objects = new THREE.Group(); this.labels = [];
-    this.hoverId = null; this.selected = { systemId: null, fleetId: null }; this.dirty = true; this.disposed = false;
+    this.container = container; this.dotnet = dotnet; this.model = null; this.objects = new THREE.Group(); this.glowObjects = new THREE.Group(); this.labels = [];
+    this.selected = { systemId: null, fleetId: null }; this.dirty = true; this.disposed = false; this.cover = lastCover;
     // the close map of one system (docs/SYSTEMS.md, "The close map"): its own group, its own labels and its own things to click
     this.sys = null; this.sysGroup = null; this.sysLabels = []; this.sysHits = []; this.sysBodies = {}; this.galCam = null;
-    const w = container.clientWidth || 800, h = container.clientHeight || 500;
+    const w = container.clientWidth || 800, h = container.clientHeight || 500; this.vw = w; this.vh = h;
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5)); this.renderer.setSize(w, h); this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.1;
     this.renderer.domElement.className = 'gl'; container.appendChild(this.renderer.domElement);
-    // A browser may take the graphics context away (a sleeping laptop, a driver restart, too many tabs). The map used to stay black
-    // after that. Now: nothing is drawn while it is gone; when the browser gives it back the map is sized and drawn again; and if it
-    // is not given back in a few seconds the whole map is built afresh on a new canvas (praetoriaSpace.rebuild).
+    // A browser may take the graphics context away (a sleeping laptop, a driver restart, too many tabs). Nothing is drawn while it is
+    // gone; when it is given back the map is sized and drawn again; if not, the map is built afresh on a new canvas (rebuild below).
     this.lost = false; this.lostAt = 0; this.onGiveUp = null;
     this.renderer.domElement.addEventListener('webglcontextlost', e => { e.preventDefault(); this.lost = true; this.lostAt = performance.now(); });
-    this.renderer.domElement.addEventListener('webglcontextrestored', () => { this.lost = false; this.resize(); this.dirty = true; });
-    const shade = document.createElement('div'); shade.className = 'gl-vignette'; container.appendChild(shade);   // the corners fall away into the dark, so the eye stays on the middle of the chart
-    this.labelRenderer = new CSS2DRenderer(); this.labelRenderer.setSize(w, h); this.labelRenderer.domElement.className = 'gl-labels'; container.appendChild(this.labelRenderer.domElement);
+    this.renderer.domElement.addEventListener('webglcontextrestored', () => { this.lost = false; this.resize(); this.dirty = true; this.terrKey = null; if (this.model) this.setModel(this.model); });
+    const shade = document.createElement('div'); shade.className = 'gl-vignette'; container.appendChild(shade);
+    this.labelRenderer = new CSS2DRenderer(); this.labelRenderer.setSize(w, h); this.labelRenderer.domElement.className = 'gl-labels tier-mid'; container.appendChild(this.labelRenderer.domElement);
+    this.tipEl = document.createElement('div'); this.tipEl.className = 'gtip map-gtip'; this.tipEl.style.display = 'none'; document.body.appendChild(this.tipEl);
     this.scene = new THREE.Scene(); this.scene.background = new THREE.Color(0x02030a);
-    this.camera = new THREE.PerspectiveCamera(42, w / h, 1, 20000);
-    this.target = new THREE.Vector3(600, -350, 0); this.distance = 1000; this.tilt = 0.42;
-    // the composer's own target is multisampled: without it every lane, orbit and border is drawn with stepped edges, because the
-    // renderer's antialiasing does not reach what is drawn off-screen for the bloom
-    const pr = this.renderer.getPixelRatio(); const smooth = this.renderer.capabilities.isWebGL2 ? new THREE.WebGLRenderTarget(Math.round(w * pr), Math.round(h * pr), { samples: 4, type: THREE.HalfFloatType }) : undefined;
-    this.composer = new EffectComposer(this.renderer, smooth); this.composer.addPass(new RenderPass(this.scene, this.camera));
-    this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.9, 0.55, 0.3); this.composer.addPass(this.bloom);
-    this.raycaster = new THREE.Raycaster(); this.mouse = new THREE.Vector2(); this.hitTargets = [];
-    this.buildBackdrop(); this.scene.add(this.objects);
-    this.bindInput(); this.updateCamera();
+    this.glowScene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(42, w / h, 1, 20000); this.probe = new THREE.PerspectiveCamera(42, w / h, 1, 20000);
+    this.target = new THREE.Vector3(600, -350, 0); this.distance = HOME_D; this.tilt = 0.42; this.vo = null;
+    // the main pass draws into a multisampled target, so the hairlines are smooth; the stars are drawn and bloomed on their own and
+    // added over it, so no border, lane or name is ever caught in the bloom (7.2)
+    const pr = this.renderer.getPixelRatio(), webgl2 = this.renderer.capabilities.isWebGL2;
+    const main = webgl2 ? new THREE.WebGLRenderTarget(Math.round(w * pr), Math.round(h * pr), { samples: 4, type: THREE.HalfFloatType }) : undefined;
+    this.composer = new EffectComposer(this.renderer, main); this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.9, 0.55, 0.3); this.bloom.enabled = false; this.composer.addPass(this.bloom);   // inside a system: the old bloom over everything
+    const glowRT = new THREE.WebGLRenderTarget(Math.round(w * pr), Math.round(h * pr), { type: THREE.HalfFloatType });
+    this.glowComposer = new EffectComposer(this.renderer, glowRT); this.glowComposer.renderToScreen = false; this.glowComposer.addPass(new RenderPass(this.glowScene, this.camera));
+    this.glowBloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.75, 0.42, 0.12); this.glowComposer.addPass(this.glowBloom);
+    this.final = new ShaderPass(COMPOSITE); this.composer.addPass(this.final);
+    this.raycaster = new THREE.Raycaster(); this.mouse = new THREE.Vector2();
+    this.buildBackdrop(); this.scene.add(this.objects); this.glowScene.add(this.glowObjects);
+    this.bindInput(); this.updateCamera(true);
     this.resizeObserver = new ResizeObserver(() => this.resize()); this.resizeObserver.observe(container);
     this.clock = new THREE.Clock(); this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
   }
@@ -136,174 +290,240 @@ export class Galaxy {
     this.sun = new THREE.DirectionalLight(0xfff0d8, 1.6); this.sun.position.set(-400, 300, 700); this.scene.add(this.sun);
   }
 
+  // ---------------- the model ----------------
   setModel(model) {
-    function convexHull(points) { const p = points.slice().sort((a, b) => a.x - b.x || a.y - b.y); const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x); const lower = []; for (const q of p) { while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], q) <= 0) lower.pop(); lower.push(q); } const upper = []; for (const q of p.slice().reverse()) { while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], q) <= 0) upper.pop(); upper.push(q); } return lower.slice(0, -1).concat(upper.slice(0, -1)); }
-    function smoothClosed(pts, seg) { const out = []; const n = pts.length; for (let i = 0; i < n; i++) { const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n]; for (let k = 0; k < seg; k++) { const t = k / seg, t2 = t * t, t3 = t2 * t; out.push(new THREE.Vector2(.5 * ((2 * p1.x) + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3), .5 * ((2 * p1.y) + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3))); } } return out; }
     this.model = model;
-    // clear
-    for (const l of this.labels) l.element.remove(); this.labels = [];
-    while (this.objects.children.length) { const o = this.objects.children[0]; this.objects.remove(o); o.traverse?.(c => { c.geometry?.dispose?.(); if (c.material && !c.material.__shared) c.material.dispose?.(); }); }
-    this.hitTargets = [];
-    if (this.tip) { this.tip.element.remove(); this.tip = null; }
+    for (const l of this.labels) l.element.remove(); this.labels = []; this.pins = []; this.tokens = []; this.regionPins = []; this.realmPins = [];
+    for (const grp of [this.objects, this.glowObjects]) while (grp.children.length) { const o = grp.children[0]; grp.remove(o); o.traverse?.(c => { if (c === this.terrMesh) return; c.geometry?.dispose?.(); if (c.material && !c.material.__shared) c.material.dispose?.(); }); }
+    this.details = []; this.hideTip();
     if (!model) return;
-    const tipEl = document.createElement('div'); tipEl.className = 'map-tip'; tipEl.style.display = 'none'; this.tip = new CSS2DObject(tipEl); this.tip.visible = false; this.tip.position.set(0, 0, 20); this.objects.add(this.tip); this.labels.push(this.tip);
-    const T = textures();
-    const byId = {}; for (const s of model.systems) byId[s.id] = s;
-    // bounds → home camera
+    const byId = {}; for (const s of model.systems) byId[s.id] = s; this.byId = byId;
     const xs = model.systems.map(s => s.x), ys = model.systems.map(s => -s.y);
-    this.fitView = { t: new THREE.Vector3((Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, 0), d: Math.max((Math.max(...xs) - Math.min(...xs)) * 1.22, (Math.max(...ys) - Math.min(...ys)) * 1.7) + 240 };   // room at the edges for the outermost names
     this.bounds = { minX: Math.min(...xs), maxX: Math.max(...xs), minY: Math.min(...ys), maxY: Math.max(...ys) };
+    // the backdrop is laid under the whole map, however large
+    const bw = this.bounds.maxX - this.bounds.minX, bh = this.bounds.maxY - this.bounds.minY, bcx = (this.bounds.minX + this.bounds.maxX) / 2, bcy = (this.bounds.minY + this.bounds.maxY) / 2;
+    this.nebula.position.set(bcx, bcy, -900); this.nebula.scale.set(Math.max(1, (bw + 3000) / 6000), Math.max(1, (bh + 3000) / 4000), 1);
+    this.stars.position.set(bcx - 1200, bcy + 600, 0); this.stars.scale.set(Math.max(1, (bw + 2400) / 4200), Math.max(1, (bh + 2400) / 3700), 1);
+    this.buildTerritory(model);
+    this.buildLanes(model, byId);
+    this.buildStars(model);
+    this.buildPins(model, byId);
+    this.buildFleets(model, byId);
+    this.buildNames(model);
+    // the route a selected fleet would take to the selected system, lane by lane; and the voyages under way
+    if (model.route && model.route.length > 1) { const pts = model.route.map(id => byId[id]).filter(Boolean).map(s => new THREE.Vector3(s.x, -s.y, 1)); const rl = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0xf6e2a0, dashSize: 10, gapSize: 7, transparent: true, opacity: .9, depthTest: false })); rl.computeLineDistances(); rl.renderOrder = 3; this.objects.add(rl); }
+    for (const f of model.fleets) if (f.moving && byId[f.destId] && byId[f.systemId]) { const a = byId[f.systemId], d = byId[f.destId]; const lg = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a.x, -a.y, 1), new THREE.Vector3(d.x, -d.y, 1)]), new THREE.LineDashedMaterial({ color: f.isPlayer ? 0xe6c77a : 0xa9b6d0, dashSize: 8, gapSize: 6, transparent: true, opacity: f.isPlayer ? .8 : .45, depthTest: false })); lg.computeLineDistances(); lg.renderOrder = 3; this.objects.add(lg); }
+    this.buildDetails(model);
     if (!this.homeSet) {
-      // the view opens on your own seat with the Reach running off the edges (ART_DIRECTION: you see a corner, not the galaxy)
-      const seat = model.systems.find(s => s.isPlayer) || model.systems[0];
-      this.target.set(seat.x, -seat.y, 0); this.distance = Math.min(this.fitView.d, 1050);
-      this.seat = { t: this.target.clone(), d: this.distance }; this.homeSet = true; this.updateCamera(true);   // not this.home: that is the method below, and a value of that name hid it, so the seat button did nothing
+      // the view opens on your own seat, at the opening distance, with the empty space past the Reach's edge kept small (7.1)
+      const seat = byId[model.seat] || model.systems.find(s => s.isPlayer) || model.systems[0];
+      this.seatAt = { x: seat.x, y: -seat.y }; let d = HOME_D;
+      try { const kept = parseFloat(localStorage.getItem('praetoria.map.zoom.' + (model.key || ''))); if (kept > 150 && kept < 7000) d = kept; } catch { /* no storage: the opening distance */ }
+      this.distance = Math.min(d, this.fitDistance()); this.vo = null;
+      const t = this.clampTarget(this.seatAt.x, this.seatAt.y, this.distance); this.target.set(t.x, t.y, 0); this.homeSet = true; this.updateCamera(true);
     }
+    this.applyMode(); this.dirty = true; this.relabel = true;
+  }
+  setSelection(sel) { this.selected = sel || { systemId: null, fleetId: null }; }
 
-    // Territory by zoom, as Crusader Kings III does it (the owner: "the ck3 method that shows specific highlighting on certain
-    // levels depending on zoom"). Three drawings of the same cells, cross-faded by how far off the camera is:
-    //   from far off, the realms: the Reach as one, each nation beyond it as one, a state that has left it as one, and their names;
-    //   in the middle distance, the houses: each holder's worlds run together in its colour, a thin line where two holders meet,
-    //   a hairline at a region's edge, and the regions' names;
-    //   close to, the systems: a faint tint and a fine line round each cell, so the stars and the worlds are what is looked at.
-    // Lines are thin and fills are light: the map is the picture and the colour a wash over it. A system nobody holds is a pale
-    // ring. Rasterised when the holding changes, not on every model.
-    const PADR = 300, rx0 = this.bounds.minX - PADR, ry0 = this.bounds.minY - PADR, rw = (this.bounds.maxX - this.bounds.minX) + 2 * PADR, rh = (this.bounds.maxY - this.bounds.minY) + 2 * PADR;
-    // as fine on a large map as on the small one (docs/GALAXY_SIZE.md): about 2.6 map units to a pixel, within what a texture will hold
-    const RW = Math.max(1536, Math.min(2560, Math.round(rw / 2.6))), RH = Math.max(64, Math.round(RW * rh / rw));
-    const regIndex = {}; (model.regions || []).forEach((r, i) => regIndex[r.id] = i);
-    const rgb = h => { const c = new THREE.Color(h || '#8fa8d8'); return [c.r * 255, c.g * 255, c.b * 255]; };
-    const myRealm = model.playerRealm || 'reach';
-    const sites = model.systems.map(s => ({ x: s.x, y: -s.y, r: regIndex[s.regionId] ?? -1, own: s.ownerId || '', col: rgb(s.accent), mine: !!s.isPlayer, pol: s.realm ?? (s.ownerId ? (s.polity || s.ownerId) : ''), pcol: rgb(s.realmColor || s.polityColor || s.accent) }));
-    const sig = [RW, RH, rx0 | 0, ry0 | 0, myRealm].join(',') + '|' + sites.map(t => [t.x | 0, t.y | 0, t.r, t.own, t.col.map(v => v | 0).join('.'), t.mine ? 1 : 0, t.pol, t.pcol.map(v => v | 0).join('.')].join(',')).join(';');
-    let layers;
-    if (this.terrCache && this.terrCache.sig === sig) { layers = this.terrCache.layers; this.regionCentres = this.terrCache.centres; }
-    else {
-      const mk = () => { const cv = document.createElement('canvas'); cv.width = RW; cv.height = RH; const ctx = cv.getContext('2d'); const img = ctx.createImageData(RW, RH); return { cv, ctx, img, px: img.data }; };
-      const F = mk(), M = mk(), N = mk(); const nReg = (model.regions || []).length; const cx = new Float64Array(nReg), cy = new Float64Array(nReg), cn = new Float64Array(nReg);
-      const D0 = 5, D1 = 7, D2 = 12;   // the dark of a line between two holders
-      // Each pixel's cell (its nearest system), and how far off the nearest system is that is another system's, another holder's and
-      // another realm's: so a border is drawn where the holder or the realm changes, however many cells of the same one lie between.
-      // A system reaches only so far, so each is walked over its own patch of the picture and not over all of it.
-      const NP = RW * RH, REACH = 244, FAR = 345, upx = rw / RW, upy = rh / RH;
-      const near1 = new Int16Array(NP).fill(-1), dist1 = new Float32Array(NP).fill(1e9), dAny = new Float32Array(NP).fill(1e9), dOwn = new Float32Array(NP).fill(1e9), dPol = new Float32Array(NP).fill(1e9), nextReg = new Int16Array(NP).fill(-2);
-      const patch = (t, R, fn) => {
-        const x0 = Math.max(0, Math.floor((t.x - R - rx0) / upx)), x1 = Math.min(RW - 1, Math.ceil((t.x + R - rx0) / upx));
-        const y0 = Math.max(0, Math.floor(RH - (t.y + R - ry0) / upy)), y1 = Math.min(RH - 1, Math.ceil(RH - (t.y - R - ry0) / upy));
-        for (let y = y0; y <= y1; y++) { const wy = ry0 + (RH - .5 - y) * upy, dy = t.y - wy; for (let x = x0; x <= x1; x++) { const dx = t.x - (rx0 + (x + .5) * upx); fn(y * RW + x, Math.sqrt(dx * dx + dy * dy)); } }
-      };
-      sites.forEach((t, i) => patch(t, REACH, (p, d) => { if (d < dist1[p]) { dist1[p] = d; near1[p] = i; } }));
-      sites.forEach((t, i) => patch(t, FAR, (p, d) => {
-        const b = near1[p]; if (b < 0 || b === i) return; const o = sites[b];
-        if (d < dAny[p]) { dAny[p] = d; nextReg[p] = t.r; }
-        if (t.own !== o.own && d < dOwn[p]) dOwn[p] = d;
-        if (t.pol !== o.pol && d < dPol[p]) dPol[p] = d;
-      }));
-      const GOLD = [255, 222, 150];
-      // a line between two distances in from an edge, soft at both sides by a pixel so it does not stair-step when looked at close to
-      const band = (e, a, b) => Math.max(0, Math.min(1, (e - a) / upx + .5)) * Math.max(0, Math.min(1, (b - e) / upx + .5));
-      for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
-        const p = y * RW + x, b1 = near1[p]; if (b1 < 0) continue;
-        const wx = rx0 + (x + .5) * upx, wy = ry0 + (RH - .5 - y) * upy, dist = dist1[p], t = sites[b1];
-        const fade = dist < 236 ? 1 : dist > 244 ? 0 : 1 - (dist - 236) / 8; if (t.r >= 0 && dist < 240) { cx[t.r] += wx; cy[t.r] += wy; cn[t.r]++; }
-        if (fade <= 0) continue;
-        const o = p * 4, edge = 236 - dist;   // edge: how far inside the open rim of its cell this point lies
-        const eAny = Math.min((dAny[p] - dist) / 2, 1e6), eOwn = Math.min((dOwn[p] - dist) / 2, edge), ePol = Math.min((dPol[p] - dist) / 2, edge);   // how far inside its cell, its holder's land and its realm
-        const open = dist > 229 ? Math.max(0, 1 - Math.abs(dist - 234) / 4) : 0;   // the open edge of a cell: a fine line
-        // the realm's border: a strong line in its colour, a glow inside it, and for a realm that is not the player's a hatching over its land
-        const home = t.pol === myRealm, lineCol = home ? [0, 1, 2].map(i => t.pcol[i] + (GOLD[i] - t.pcol[i]) * .55) : t.pcol;
-        const hatch = !home && t.pol ? (((wx - wy) % 34 + 34) % 34 < 9 ? 1 : 0) : 0;
-        if (t.pol) {   // the realms
-          const line = band(ePol, 2.2, 8.2), glow = ePol < 58 ? Math.pow(1 - Math.max(0, ePol - 7.5) / 50.5, 2) : 0, held = t.own ? 1 : .45;
-          const k = (home ? .52 : .6) + .12 * hatch + .4 * glow, base = (home ? 54 : 62) * held + 34 * hatch * held + 110 * glow;
-          let r = Math.min(255, t.pcol[0] * k), g = Math.min(255, t.pcol[1] * k), bl = Math.min(255, t.pcol[2] * k), a = base;
-          if (ePol < 2.2) { const dk = 1 - band(ePol, 2.2, 99); r += (D0 - r) * dk; g += (D1 - g) * dk; bl += (D2 - bl) * dk; a += (150 - a) * dk; }   // a dark hair between two realms' lines
-          if (line > 0) { r += (Math.min(255, lineCol[0] * 1.12) - r) * line; g += (Math.min(255, lineCol[1] * 1.12) - g) * line; bl += (Math.min(255, lineCol[2] * 1.12) - bl) * line; a += (238 - a) * line; }
-          F.px[o] = r; F.px[o + 1] = g; F.px[o + 2] = bl; F.px[o + 3] = a * fade;
-        }
-        const realmLine = t.pol ? band(ePol, 1.6, 5.6) : 0, realmGlow = t.pol && ePol < 30 ? Math.pow(1 - Math.max(0, ePol - 5.4) / 24.6, 2) : 0;
-        if (t.own) {   // the houses, and the systems
-          const glass = eOwn <= 2.2 ? 0 : Math.min(1, (eOwn - 2.2) / 2.2), rim = Math.max(eOwn > 2.2 && eOwn < 6.6 ? 1 - (eOwn - 2.2) / 4.4 : 0, open), k = 0.48 + 0.42 * rim;
-          let r = D0 + (Math.min(255, t.col[0] * k) - D0) * glass, g = D1 + (Math.min(255, t.col[1] * k) - D1) * glass, b = D2 + (Math.min(255, t.col[2] * k) - D2) * glass, a = 100 + ((t.mine ? 54 : 40) + 66 * rim + 16 * hatch - 100) * glass;
-          if (nextReg[p] >= -1 && nextReg[p] !== t.r && eAny < 2.2) { const w = (1 - eAny / 2.2) * .5; r += (226 - r) * w; g += (214 - g) * w; b += (186 - b) * w; a = Math.max(a, 74 * (1 - eAny / 2.2)); }   // a region's edge: a hairline
-          if (realmGlow > 0) { const w = realmGlow * .55; r += (lineCol[0] - r) * w; g += (lineCol[1] - g) * w; b += (lineCol[2] - b) * w; a = Math.max(a, a + 70 * realmGlow); }
-          if (realmLine > 0) { r += (Math.min(255, lineCol[0] * 1.08) - r) * realmLine; g += (Math.min(255, lineCol[1] * 1.08) - g) * realmLine; b += (Math.min(255, lineCol[2] * 1.08) - b) * realmLine; a += (226 - a) * realmLine; }
-          M.px[o] = r; M.px[o + 1] = g; M.px[o + 2] = b; M.px[o + 3] = Math.min(255, a) * fade;
-          const line = Math.max(eAny < 1e5 ? Math.max(0, 1 - eAny / 1.7) : 0, open);
-          let nr = Math.min(255, t.col[0] * .95), ng = Math.min(255, t.col[1] * .95), nb = Math.min(255, t.col[2] * .95), na = 11 + 92 * line + 6 * hatch;
-          if (realmLine > 0) { nr += (lineCol[0] - nr) * realmLine; ng += (lineCol[1] - ng) * realmLine; nb += (lineCol[2] - nb) * realmLine; na += (190 - na) * realmLine; }   // the realm's border is there at every distance
-          N.px[o] = nr; N.px[o + 1] = ng; N.px[o + 2] = nb; N.px[o + 3] = na * fade;
-        } else {   // nobody's: a pale ring round the star, and the realm's border where its space ends
-          const ring = dist < 54 && dist > 44 ? Math.max(0, 1 - Math.abs(dist - 49) / 3) : 0, disc = dist < 47 ? 12 : 0;
-          let r = 150, g = 162, b = 190, a = disc + ring * 76;
-          if (realmGlow > 0 && a < 60 * realmGlow) { r = lineCol[0]; g = lineCol[1]; b = lineCol[2]; a = 60 * realmGlow; }
-          if (realmLine > 0) { r += (lineCol[0] - r) * realmLine; g += (lineCol[1] - g) * realmLine; b += (lineCol[2] - b) * realmLine; a += (215 - a) * realmLine; }
-          if (a > 0) for (const L of [M, N]) { L.px[o] = r; L.px[o + 1] = g; L.px[o + 2] = b; L.px[o + 3] = a * fade; }
-        }
-      }
-      for (const L of [F, M, N]) L.ctx.putImageData(L.img, 0, 0);
-      layers = { far: F.cv, mid: M.cv, near: N.cv };
-      this.regionCentres = {}; (model.regions || []).forEach((rg, i) => { this.regionCentres[rg.id] = cn[i] > 0 ? { x: cx[i] / cn[i], y: cy[i] / cn[i] } : { x: rg.cx, y: -rg.cy }; });
-      this.terrCache = { sig, layers, centres: this.regionCentres };
+  /** The territory's data, rasterised when the holdings change and never per frame. */
+  buildTerritory(model) {
+    const S = model.systems, N = S.length; if (!N) return;
+    const holderOf = s => (s.realm || '').startsWith('nation:') ? s.realm : (s.ownerId || '');
+    const realmOf = s => s.realm || 'none';
+    const key = N + '|' + model.playerHouse + '|' + S.map(s => [s.x | 0, s.y | 0, holderOf(s), realmOf(s), s.regionId, s.accent, s.realmColor].join(',')).join(';');
+    if (this.terrKey === key && this.terr) { this.objects.add(this.terrMesh); return; }
+    this.terrKey = key;
+    // labels: holders (0 is nobody), realms (0 is the Reach), regions
+    const holders = { '': 0 }, hk = ['']; const realms = { reach: 0 }, rk = ['reach']; const regions = {}; let nreg = 0;
+    for (const s of S) { const h = holderOf(s); if (!(h in holders)) { holders[h] = hk.length; hk.push(h); } const r = realmOf(s); if (!(r in realms)) { realms[r] = rk.length; rk.push(r); } if (!(s.regionId in regions)) regions[s.regionId] = nreg++; }
+    const sx = new Float64Array(N), sy = new Float64Array(N), sh = new Int32Array(N), sr = new Int32Array(N), sg = new Int32Array(N);
+    S.forEach((s, i) => { sx[i] = s.x; sy[i] = -s.y; sh[i] = holders[holderOf(s)]; sr[i] = realms[realmOf(s)]; sg[i] = regions[s.regionId]; });
+    // the field's reach follows how far apart the systems stand, so the small and the extra-large maps are drawn alike (R 205 at 205)
+    let nn = 0; for (let i = 0; i < N; i++) { let b = 1e12; for (let j = 0; j < N; j++) if (j !== i) b = Math.min(b, (sx[i] - sx[j]) ** 2 + (sy[i] - sy[j]) ** 2); nn += Math.sqrt(b); }
+    nn = N > 1 ? nn / N : 205; const R = Math.max(140, Math.min(340, nn)), T = 0.33, R2 = R * R;
+    const pad = R * 2.2, x0 = this.bounds.minX - pad, y0 = this.bounds.minY - pad, spanX = this.bounds.maxX - this.bounds.minX + 2 * pad, spanY = this.bounds.maxY - this.bounds.minY + 2 * pad;
+    const cell = Math.max(6, Math.max(spanX, spanY) / 1400), GW = Math.ceil(spanX / cell), GH = Math.ceil(spanY / cell), NP = GW * GH;
+    const F = new Float32Array(NP), GX = new Float32Array(NP), GY = new Float32Array(NP);
+    const cd = new Float32Array(NP * 4).fill(1e30), ci = new Float32Array(NP * 4).fill(-1);
+    const patch = (i, rad, fn) => {
+      const i0 = Math.max(0, Math.floor((sx[i] - rad - x0) / cell)), i1 = Math.min(GW - 1, Math.ceil((sx[i] + rad - x0) / cell));
+      const j0 = Math.max(0, Math.floor((sy[i] - rad - y0) / cell)), j1 = Math.min(GH - 1, Math.ceil((sy[i] + rad - y0) / cell));
+      for (let j = j0; j <= j1; j++) { const wy = y0 + (j + .5) * cell, dy = wy - sy[i]; for (let x = i0; x <= i1; x++) { const dx = x0 + (x + .5) * cell - sx[i]; fn(j * GW + x, dx, dy, dx * dx + dy * dy); } }
+    };
+    for (let i = 0; i < N; i++) patch(i, R * 3, (p, dx, dy, dd) => { const e = Math.exp(-dd / R2); F[p] += e; GX[p] += e * dx; GY[p] += e * dy; });
+    const RC = Math.max(R * 2.6, nn * 2.6);
+    for (let i = 0; i < N; i++) patch(i, RC, (p, dx, dy, dd) => {
+      const o = p * 4; if (dd >= cd[o + 3]) return; let k = 3; while (k > 0 && cd[o + k - 1] > dd) { cd[o + k] = cd[o + k - 1]; ci[o + k] = ci[o + k - 1]; k--; } cd[o + k] = dd; ci[o + k] = i;
+    });
+    // the field's signed distance to its threshold, in world units, and its inward normal
+    const E = new Float32Array(NP), fieldData = new Uint16Array(NP * 4), h16 = THREE.DataUtils.toHalfFloat;
+    const regSum = new Float64Array(nreg * 3), realmSum = new Float64Array(rk.length * 3), landSum = [0, 0, 0];
+    for (let p = 0; p < NP; p++) {
+      const gx = -2 / R2 * GX[p], gy = -2 / R2 * GY[p], gl = Math.hypot(gx, gy); let e = (F[p] - T) / Math.max(gl, 1e-9); e = Math.max(-400, Math.min(400, e)); E[p] = e;
+      fieldData[p * 4] = h16(e); fieldData[p * 4 + 1] = h16(gl > 1e-12 ? gx / gl : 0); fieldData[p * 4 + 2] = h16(gl > 1e-12 ? gy / gl : 0); fieldData[p * 4 + 3] = h16(1);
+      if (e > 0 && ci[p * 4] >= 0) { const s = ci[p * 4], wx = x0 + (p % GW + .5) * cell, wy = y0 + (Math.floor(p / GW) + .5) * cell; const g = sg[s] * 3, r = sr[s] * 3; regSum[g] += wx; regSum[g + 1] += wy; regSum[g + 2]++; realmSum[r] += wx; realmSum[r + 1] += wy; realmSum[r + 2]++; landSum[0] += wx; landSum[1] += wy; landSum[2]++; }
     }
-    this.regionRaster = { canvas: layers.mid, x0: rx0, y0: ry0, w: rw, h: rh };
-    this.terrLayers = {};
-    for (const [name, z] of [['far', -3], ['mid', -2.9], ['near', -2.8]]) {
-      const tex = new THREE.CanvasTexture(layers[name]); tex.colorSpace = THREE.SRGBColorSpace; tex.minFilter = THREE.LinearFilter;
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(rw, rh), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, opacity: name === 'mid' ? 1 : 0 })); mesh.position.set(rx0 + rw / 2, ry0 + rh / 2, z); this.objects.add(mesh); this.terrLayers[name] = mesh;
-    }
-    // the realms' names, for the far view: one over each realm, larger for a larger realm
-    this.polities = {}; for (const st of model.systems) { if (!st.ownerId) continue; const key = st.polity || st.ownerId; const pz = this.polities[key] ||= { name: st.polityName || st.ownerName || '', color: st.polityColor || st.accent, x: 0, y: 0, n: 0 }; pz.x += st.x; pz.y += -st.y; pz.n++; }
+    const mkTex = (data, type, filter) => { const t = new THREE.DataTexture(data, GW, GH, THREE.RGBAFormat, type); t.minFilter = t.magFilter = filter; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.generateMipmaps = false; t.needsUpdate = true; return t; };
+    const candTex = mkTex(ci, THREE.FloatType, THREE.NearestFilter), fieldTex = mkTex(fieldData, THREE.HalfFloatType, THREE.LinearFilter);
+    const sites = new Float32Array(N * 2 * 4); S.forEach((s, i) => { sites.set([sx[i], sy[i], sh[i], sr[i]], i * 4); sites.set([sg[i], s.isPlayer ? 1 : 0, 0, 0], (N + i) * 4); });
+    const siteTex = new THREE.DataTexture(sites, N, 2, THREE.RGBAFormat, THREE.FloatType); siteTex.minFilter = siteTex.magFilter = THREE.NearestFilter; siteTex.needsUpdate = true;
+    // the palette: a holder's fill and line by kind (0 nobody, 1 a house, 2 yours, 3 a nation), a realm's line and fill by kind (0 the Reach, 1 a nation, 2 a state, 3 nobody's)
+    const PW = Math.max(hk.length, rk.length), pal = new Float32Array(PW * 4 * 4); this.holderCol = {};
+    const any = k => S.find(s => holderOf(s) === k), anyR = k => S.find(s => realmOf(s) === k);
+    hk.forEach((k, i) => {
+      let kind = 0, fill = [0, 0, 0], line = [0, 0, 0];
+      if (k) { const s = any(k); const col = rgb01(k.startsWith('nation:') ? s.realmColor : s.accent);
+        if (k.startsWith('nation:')) { kind = 3; fill = tone(col, .55, .62); line = tone(col, .6, .85); }
+        else if (k === model.playerHouse) { kind = 2; fill = rgb01('#E9B949'); line = rgb01('#F0C661'); }
+        else { kind = 1; fill = tone(col, .8, .88); line = tone(col, .8, .9); } }
+      this.holderCol[k] = { fill, line, kind };
+      pal.set([...fill, kind], (0 * PW + i) * 4); pal.set([...line, 1], (1 * PW + i) * 4);
+    });
+    rk.forEach((k, i) => {
+      let kind = k === 'reach' ? 0 : k.startsWith('nation:') ? 1 : k.startsWith('state:') ? 2 : 3; const s = anyR(k); const col = rgb01(s ? s.realmColor : '#c3cde2');
+      const line = kind === 0 ? rgb01('#E3D3A4') : kind === 1 ? tone(col, .6, .85) : tone(col, .8, .9), fill = kind === 1 ? tone(col, .55, .62) : tone(col, .8, .88);
+      pal.set([...line, kind], (2 * PW + i) * 4); pal.set([...fill, 1], (3 * PW + i) * 4);
+    });
+    const palTex = new THREE.DataTexture(pal, PW, 4, THREE.RGBAFormat, THREE.FloatType); palTex.minFilter = palTex.magFilter = THREE.NearestFilter; palTex.needsUpdate = true;
+    if (this.terrMesh) { this.terrMesh.geometry.dispose(); for (const u of ['uCand', 'uField', 'uSites', 'uPal']) this.terrMesh.material.uniforms[u].value?.dispose?.(); this.terrMesh.material.dispose(); }
+    const mat = new THREE.ShaderMaterial({ vertexShader: TERR_VS, fragmentShader: TERR_FS, transparent: true, premultipliedAlpha: true, depthWrite: false, depthTest: false,
+      uniforms: { uCand: { value: candTex }, uField: { value: fieldTex }, uSites: { value: siteTex }, uPal: { value: palTex }, uBox: { value: new THREE.Vector4(x0, y0, GW * cell, GH * cell) }, uTier: { value: new THREE.Vector3(0, 1, 0) }, uDpr: { value: this.renderer.getPixelRatio() } } });
+    mat.__shared = true;
+    this.terrMesh = new THREE.Mesh(new THREE.PlaneGeometry(GW * cell, GH * cell), mat); this.terrMesh.position.set(x0 + GW * cell / 2, y0 + GH * cell / 2, 0); this.terrMesh.renderOrder = 1; this.terrMesh.frustumCulled = false;
+    this.objects.add(this.terrMesh);
+    const centre = (sum, i) => sum[i * 3 + 2] > 0 ? { x: sum[i * 3] / sum[i * 3 + 2], y: sum[i * 3 + 1] / sum[i * 3 + 2] } : null;
+    this.terr = { x0, y0, cell, GW, GH, E, ci, sx, sy, sh, sr, sg, hk, rk, R, nn,
+      regionAt: Object.fromEntries(Object.keys(regions).map(id => [id, centre(regSum, regions[id])])), realmAt: Object.fromEntries(rk.map((k, i) => [k, centre(realmSum, i)])),
+      land: landSum[2] > 0 ? { x: landSum[0] / landSum[2], y: landSum[1] / landSum[2] } : { x: (this.bounds.minX + this.bounds.maxX) / 2, y: (this.bounds.minY + this.bounds.maxY) / 2 } };
+    this.miniBase = null;
+  }
+  /** The field's signed distance at a point of the map (inside the land when positive). */
+  eoutAt(x, y) {
+    const t = this.terr; if (!t) return 1; const fx = (x - t.x0) / t.cell - .5, fy = (y - t.y0) / t.cell - .5; if (fx < 0 || fy < 0 || fx >= t.GW - 1 || fy >= t.GH - 1) return -100;
+    const i = Math.floor(fx), j = Math.floor(fy), u = fx - i, v = fy - j, p = j * t.GW + i;
+    return (t.E[p] * (1 - u) + t.E[p + 1] * u) * (1 - v) + (t.E[p + t.GW] * (1 - u) + t.E[p + t.GW + 1] * u) * v;
+  }
+  /** The nearest system to a point of the map, from the texel's candidates. */
+  siteAt(x, y) {
+    const t = this.terr; if (!t) return -1; const i = Math.max(0, Math.min(t.GW - 1, Math.floor((x - t.x0) / t.cell))), j = Math.max(0, Math.min(t.GH - 1, Math.floor((y - t.y0) / t.cell))), o = (j * t.GW + i) * 4;
+    let best = -1, bd = Infinity; for (let k = 0; k < 4; k++) { const s = t.ci[o + k]; if (s < 0) continue; const d = (t.sx[s] - x) ** 2 + (t.sy[s] - y) ** 2; if (d < bd) { bd = d; best = s; } } return best;
+  }
 
-    // lanes
-    const laneGeo = new THREE.BufferGeometry(); const lp = [], lc = [];
-    // a lane stops short of the star at each end, so no line is drawn through a sun; one that runs between two systems of the same
-    // holder takes some of that holder's colour, so a holding reads as a web and its edge as where the web changes colour
-    const GAP = 20, tint = new THREE.Color();
+  buildLanes(model, byId) {
+    const pa = [], pb = [], corner = [], col = [], wpx = [], idx = []; let v = 0;
     for (const l of model.lanes) {
-      const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; let c = l.front ? [0.9, 0.3, 0.2] : l.reach ? [0.9, 0.75, 0.4] : [0.55, 0.62, 0.78];
-      if (!l.front && !l.reach && a.ownerId && a.ownerId === b.ownerId && a.accent) { tint.set(a.accent); c = [c[0] * .45 + tint.r * .75, c[1] * .45 + tint.g * .75, c[2] * .45 + tint.b * .75]; }
-      const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1, g2 = Math.min(GAP, len * .3), ux = dx / len * g2, uy = dy / len * g2;
-      lp.push(a.x + ux, -(a.y + uy), 0, b.x - ux, -(b.y - uy), 0); lc.push(...c, ...c);
+      const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue;
+      // hairlines (7.3); a lane that touches your systems in gold, a front in ember, the lanes out of a picked fleet's system in brass
+      const mine = a.isPlayer || b.isPlayer; let c = [168 / 255, 188 / 255, 222 / 255, .28], wd = 1;
+      if (l.front) { c = [224 / 255, 85 / 255, 63 / 255, .72]; wd = 1.5; } else if (l.reach) { c = [246 / 255, 226 / 255, 160 / 255, .62]; wd = 1.3; } else if (mine) { c = [233 / 255, 185 / 255, 73 / 255, .6]; wd = 1.3; }
+      for (const [cx, cy] of [[0, -1], [0, 1], [1, -1], [1, 1]]) { pa.push(a.x, -a.y, 0); pb.push(b.x, -b.y, 0); corner.push(cx, cy); col.push(...c); wpx.push(wd); }
+      idx.push(v, v + 1, v + 2, v + 2, v + 1, v + 3); v += 4;
     }
-    laneGeo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3)); laneGeo.setAttribute('color', new THREE.Float32BufferAttribute(lc, 3));
-    this.objects.add(new THREE.LineSegments(laneGeo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.36 })));
-    // glow: tubes of light under the hairlines
-    for (const l of model.lanes) { if (!l.front && !l.reach) continue; const a = byId[l.a], b = byId[l.b]; if (!a || !b) continue; const dx = b.x - a.x, dy = -(b.y - a.y); const len = Math.hypot(dx, dy); const tube = new THREE.Mesh(new THREE.PlaneGeometry(len, l.front ? 7 : 4.5), new THREE.MeshBasicMaterial({ map: T.lane, color: l.front ? 0xff5a3c : l.reach ? 0xe6c77a : 0x6f8ad0, transparent: true, opacity: l.front ? .5 : l.reach ? .6 : .22, blending: THREE.AdditiveBlending, depthWrite: false })); tube.position.set((a.x + b.x) / 2, -(a.y + b.y) / 2, -1); tube.rotation.z = Math.atan2(dy, dx); this.objects.add(tube); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pa, 3)); g.setAttribute('pb', new THREE.Float32BufferAttribute(pb, 3)); g.setAttribute('corner', new THREE.Float32BufferAttribute(corner, 2)); g.setAttribute('col', new THREE.Float32BufferAttribute(col, 4)); g.setAttribute('wpx', new THREE.Float32BufferAttribute(wpx, 1)); g.setIndex(idx);
+    const pr = this.renderer.getPixelRatio();
+    this.laneMat = new THREE.ShaderMaterial({ vertexShader: LANE_VS, fragmentShader: LANE_FS, transparent: true, premultipliedAlpha: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,
+      uniforms: { uRes: { value: new THREE.Vector2(this.vw * pr, this.vh * pr) }, uDpr: { value: pr }, uGap: { value: 8 } } });
+    const m = new THREE.Mesh(g, this.laneMat); m.frustumCulled = false; m.renderOrder = 2; this.objects.add(m);
+  }
 
-    // systems
-    const sunMat = (color) => new THREE.SpriteMaterial({ map: T.sun, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
-    const ringGeo = new THREE.RingGeometry(1, 1.08, 64); this.suns = []; this.details = []; this.lod = null;
+  buildStars(model) {
+    const n = model.systems.length, pos = new Float32Array(n * 3), col = new Float32Array(n * 3), sz = new Float32Array(n * 2);
+    model.systems.forEach((s, i) => {
+      const h = hash(s.id), c = STAR[starClass(s.id)], big = Math.min(1, (s.pop || 0) / 40);
+      pos.set([s.x, -s.y, 0], i * 3); col.set(c, i * 3);
+      sz.set([8 + (h >> 4) % 3 + big * 2 + (s.isPlayer ? 1 : 0), 24 + (h >> 7) % 9 + big * 6], i * 2);   // an 8 to 12px core, a 24 to 38px halo
+    });
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('sz', new THREE.BufferAttribute(sz, 2));
+    this.starMat = new THREE.ShaderMaterial({ vertexShader: STAR_VS, fragmentShader: STAR_FS, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, uniforms: { uDpr: { value: this.renderer.getPixelRatio() }, uGrow: { value: 1 } } });
+    const pts = new THREE.Points(g, this.starMat); pts.frustumCulled = false; this.glowObjects.add(pts);
+  }
+
+  /** What stands at each star, drawn in screen space so it is crisp at every zoom: the name, the marks, the crown, your seat. */
+  buildPins(model, byId) {
     for (const s of model.systems) {
-      const g = new THREE.Group(); g.position.set(s.x, -s.y, 0);
-      const h = hash(s.id); const cls = [[0xfff4e0, 1.0], [0xffe2a8, 0.9], [0xffb070, 0.8], [0xbfd4ff, 1.15], [0xffffff, 1.05], [0xffd0a0, 0.85]][h % 6];
-      const sun = new THREE.Sprite(sunMat(cls[0])); const sz = (17 + Math.min(9, (s.pop || 0) / 6)) * cls[1]; sun.scale.set(sz, sz, 1); g.add(sun);
-      const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(7 * cls[1], 7 * cls[1], 1); g.add(core);
-      const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: cls[0], transparent: true, opacity: .3, blending: THREE.AdditiveBlending, depthWrite: false })); flare.scale.set(sz * 2.6, sz * .16, 1); g.add(flare);
-      if (s.sunWorks) { const halo = new THREE.Mesh(new THREE.RingGeometry(sz * .46, sz * .5, 48), new THREE.MeshBasicMaterial({ color: 0xffd36a, transparent: true, opacity: .8, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); halo.userData.spinZ = -0.25; g.add(halo); }   // something is built round the sun itself
-      for (let k = 0; k < (s.deepWorks || 0); k++) { const st = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.station, color: 0xffd9a0, transparent: true, depthWrite: false })); st.scale.set(4.4, 4.4, 1); const da = ((h >> 5) % 628) / 100 + k * 1.9; st.position.set(Math.cos(da) * (sz * 1.5 + 30), Math.sin(da) * (sz * 1.5 + 30) * .78, 3); g.add(st); }   // what is built in open space, tied to no world
-      if (s.isPlayer) { const home = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffe8a3, transparent: true, opacity: .35, blending: THREE.AdditiveBlending, depthWrite: false })); home.scale.set(sz * 2.2, sz * 2.2, 1); home.userData.pulse = true; g.add(home); }
-      // from far off a system is its star and no more: the star is drawn larger as the chart draws back, and what goes round it
-      // (orbits, worlds, moons, the lights of what is built) is put away until there is room to see it
-      this.suns.push({ parts: [[sun, sz, sz], [core, 7 * cls[1], 7 * cls[1]], [flare, sz * 2.6, sz * .16]] }); const firstBody = g.children.length;
-      // the system, not one planet (GDD §19): every body on its own orbit, the primary a lit sphere, the rest sprites
+      const el = document.createElement('div'); const hc = this.holderCol?.[(s.realm || '').startsWith('nation:') ? s.realm : (s.ownerId || '')];
+      el.className = 'sys-pin' + (s.isPlayer ? ' mine' : '') + (s.capital ? ' capital' : '') + ((s.realm || '').startsWith('nation:') ? ' foreign' : '');
+      const under = !s.ownerId && !(s.realm || '').startsWith('nation:') ? '' : s.isPlayer ? '#e9b949' : hc ? css((s.realm || '').startsWith('nation:') ? hc.line : rgb01(s.accent)) : s.accent;
+      const deps = (s.dep || []).map(d => DEPOSIT[d] ? ico(DEPOSIT[d][0], DEPOSIT[d][1], 'dep') : '').join('');
+      let marks = '';
+      if (s.id === model.seat) marks += '<i class="mk seat"></i><i class="mk streak"></i>';
+      if (s.sunWorks) marks += '<i class="mk works"></i>';
+      if (s.bloc) marks += `<i class="mk bloc ${s.bloc}"></i>`;
+      if (s.chokepoint) marks += '<i class="mk ck"></i>';
+      if (s.contested) marks += '<i class="mk cont"></i>';
+      if (s.rebel) marks += '<i class="mk rebel"></i>';
+      if (s.siege != null) marks += `<i class="mk siege" style="--p:${Math.max(.03, s.siege) * 360}deg"></i>`;
+      if (s.conquered) marks += `<i class="mk conq ${s.conquered}" style="--hc:${esc(s.accent)}"></i>`;
+      if (s.target) marks += `<i class="mk tgt ${s.target === 1 ? 'next' : ''}"></i><b class="jumps" title="">${s.target}</b>`;
+      if (s.id === this.selected.systemId) marks += '<i class="mk sel"></i>';
+      const stn = (s.stations || 0) + (s.deepWorks || 0); if (stn) marks += `<span class="stn">${'<i></i>'.repeat(Math.min(4, s.stations || 0))}${'<i class="w"></i>'.repeat(Math.min(3, s.deepWorks || 0))}</span>`;
+      el.innerHTML = marks + (s.capital ? `<span class="cap">${ico('crown', 'brass')}</span>` : '')
+        + `<div class="sys-label${s.isPlayer ? ' mine' : ''}"><span class="nm" style="--hc:${under || 'transparent'}">${esc(s.name)}</span>${deps}</div>`;
+      const lab = new CSS2DObject(el); lab.position.set(s.x, -s.y, 0); this.objects.add(lab); this.labels.push(lab);
+      this.pins.push({ s, el, lab, name: el.querySelector('.sys-label') });
+    }
+  }
+
+  /** Fleets (7.3): a chevron in the owner's colour with a dark outline and a light facet, and a number plate; a fleet only reported is hollow, with "?". */
+  buildFleets(model, byId) {
+    const at = {}; for (const f of model.fleets) (at[f.systemId] ||= []).push(f);
+    const spots = [[13, -33], [-45, -33], [13, -58], [-45, -58], [22, 6], [-54, 6]];
+    for (const [sid, list] of Object.entries(at)) {
+      const s = byId[sid]; if (!s) continue;
+      list.sort((a, b) => (b.isPlayer ? 1 : 0) - (a.isPlayer ? 1 : 0) || b.strength - a.strength);
+      const el = document.createElement('div'); el.className = 'fleet-pin';
+      list.slice(0, spots.length).forEach((f, k) => {
+        const pirate = f.ownerId === 'pirates', known = f.isPlayer || (f.confidence || 0) >= 100;
+        const t = document.createElement('div'); t.className = 'fl-tok' + (f.isPlayer ? ' mine' : '') + (known ? '' : ' reported') + (pirate ? ' raid' : '') + (f.moving ? ' moving' : '') + (f.id === this.selected.fleetId ? ' sel' : '');
+        t.style.left = spots[k][0] + 'px'; t.style.top = spots[k][1] + 'px'; t.style.setProperty('--fc', f.isPlayer ? '#e9b949' : pirate ? '#a3324a' : f.accent);
+        t.innerHTML = `<svg viewBox="0 0 22 22" aria-hidden="true"><path class="b" d="M11 2.2 L20 19 L11 14.6 L2 19 Z"/><path class="f" d="M11 2.2 L11 14.6 L2 19 Z"/></svg><b>${f.strength}${known ? '' : '?'}</b>`;
+        el.appendChild(t); this.tokens.push({ f, el: t, sx: s.x, sy: -s.y, dx: spots[k][0], dy: spots[k][1] });
+      });
+      const lab = new CSS2DObject(el); lab.position.set(s.x, -s.y, 0); this.objects.add(lab); this.labels.push(lab);
+    }
+  }
+
+  /** The names of the regions (the middle distance) and of the realms (from far off), placed later by a search round their centres. */
+  buildNames(model) {
+    const t = this.terr; if (!t) return;
+    for (const r of model.regions || []) {
+      const c = t.regionAt[r.id] || { x: r.cx, y: -r.cy };
+      const el = document.createElement('div'); el.className = 'region-pin'; el.innerHTML = `<div class="region-label${r.ring === 'beyond' ? ' beyond' : ''}${r.free || r.state ? ' free' : ''}">${esc(r.name)}${r.state ? `<span class="rs state">${esc(r.state)}${r.stateWar ? ', at war for it' : ', no longer of the Reach'}</span>` : ''}</div>`;
+      const lab = new CSS2DObject(el); lab.position.set(c.x, c.y, 0); this.objects.add(lab); this.labels.push(lab); this.regionPins.push(this.keepPlace({ el, inner: el.firstChild, lab, x: c.x, y: c.y, key: 'r:' + r.id }));
+    }
+    const realms = {}; for (const s of model.systems) { const k = s.realm || ''; if (!k || k === 'none') continue; const z = realms[k] ||= { name: k === 'reach' ? (model.galaxyName || 'The Reach') : (s.polityName || s.ownerName || ''), color: s.realmColor, lands: new Set(), n: 0 }; z.n++; const rg = (model.regions || []).find(r => r.id === s.regionId); if (rg) z.lands.add(rg.name); }
+    for (const [k, z] of Object.entries(realms)) {
+      const c = t.realmAt[k]; if (!c || !z.name) continue;
+      const lands = [...z.lands].filter(n => n.toLowerCase() !== z.name.toLowerCase()); const sub = k === 'reach' ? '' : lands.slice(0, 2).join(' · ');
+      const words = z.name.split(/\s+/), shown = words.length > 4 && /^the$/i.test(words[0]) ? words.slice(1).join(' ') : z.name;   // never more than four words in spaced capitals
+      const el = document.createElement('div'); el.className = 'realm-pin'; el.innerHTML = `<div class="realm-label${k === 'reach' ? ' reach' : ''}" style="--rc:${esc(z.color || '#c3cde2')}" title="${esc(z.name)}"><span class="rn">${esc(shown)}</span>${sub ? `<span class="rs">${esc(sub)}</span>` : ''}</div>`;
+      const lab = new CSS2DObject(el); lab.position.set(c.x, c.y, 0); this.objects.add(lab); this.labels.push(lab); this.realmPins.push(this.keepPlace({ el, inner: el.firstChild, lab, x: c.x, y: c.y, big: z.n, key: 'm:' + k }));
+    }
+  }
+
+  /** A region's or a realm's name is hidden until the search has placed it; across a new model it keeps where it was. */
+  keepPlace(pin) { const k = (this.places ||= {})[pin.key]; if (k) { pin.inner.style.setProperty('--dx', k.dx + 'px'); pin.inner.style.setProperty('--dy', k.dy + 'px'); } else pin.inner.style.visibility = 'hidden'; return pin; }
+  /** Close to, a system is its worlds on their orbits: put away until the systems are what is looked at. */
+  buildDetails(model) {
+    this.details = [];
+    for (const s of model.systems) {
+      const g = new THREE.Group(); g.position.set(s.x, -s.y, 0); g.visible = false; const h = hash(s.id);
       const bodies = (s.bodies && s.bodies.length) ? s.bodies : [{ name: s.name, cls: s.planetClass, size: 3, primary: true }];
-      const orbitMat = new THREE.LineBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: .09 });
+      const orbitMat = new THREE.LineBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: .1 });
       let planet = null; const pr = 5.5 + Math.min(4, (s.pop || 0) / 15);
-      // what goes round the sun has an orbit of its own; a moon sits beside its world (docs/SYSTEMS.md). A body with something built on it carries a small gold light.
-      const at = {}; let lane = 0; bodies.forEach((b, bi) => { if (b.orbits == null || b.orbits < 0) { const orb = 14 + lane * 10.5, ang = b.ang != null ? b.ang : ((h >> (lane * 3)) % 628) / 100 + lane * 1.7; at[bi] = { orb, x: Math.cos(ang) * orb, y: Math.sin(ang) * orb * .78 }; lane++; } });
-      const orbiting = Math.max(1, lane); const moonsOf = {};
-      const built = (x, y, z) => { const lamp = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffd36a, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false })); lamp.scale.set(3.4, 3.4, 1); lamp.position.set(x, y, z); g.add(lamp); };
+      const at = {}; let lane = 0; bodies.forEach((b, bi) => { if (b.orbits == null || b.orbits < 0) { const orb = 16 + lane * 10.5, ang = b.ang != null ? b.ang : ((h >> (lane * 3)) % 628) / 100 + lane * 1.7; at[bi] = { orb, x: Math.cos(ang) * orb, y: Math.sin(ang) * orb * .78 }; lane++; } });
+      const moonsOf = {};
+      const built = (x, y, z) => { const lamp = new THREE.Sprite(new THREE.SpriteMaterial({ map: TEX.glow, color: 0xffd36a, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false })); lamp.scale.set(3.4, 3.4, 1); lamp.position.set(x, y, z); g.add(lamp); };
       bodies.forEach((b, bi) => {
-        if (b.orbits != null && b.orbits >= 0 && at[b.orbits]) {   // a moon: close in beside its world, no ring of its own
+        if (b.orbits != null && b.orbits >= 0 && at[b.orbits]) {
           const k = moonsOf[b.orbits] = (moonsOf[b.orbits] || 0) + 1, pa = at[b.orbits], ma = ((h >> (bi + 2)) % 628) / 100 + k * 2.3, mr = 5.2 + k * 2.4, mx = pa.x + Math.cos(ma) * mr, my = pa.y + Math.sin(ma) * mr * .78;
           const mtex = window.praetoriaFx ? new THREE.TextureLoader().load(window.praetoriaFx.planet('moon', s.id + b.name, 48)) : null; if (mtex) mtex.colorSpace = THREE.SRGBColorSpace;
           const ms = new THREE.Sprite(new THREE.SpriteMaterial({ map: mtex, color: mtex ? 0xffffff : 0xb0b0ba, transparent: true, depthWrite: false })); ms.scale.set(2.4, 2.4, 1); ms.position.set(mx, my, 4.5); g.add(ms);
-          if (b.works) built(mx + 1.6, my + 1.6, 6);
-          return;
+          if (b.works) built(mx + 1.6, my + 1.6, 6); return;
         }
-        const here = at[bi] || { orb: 14, x: 14, y: 0 }; const orb = here.orb, bx = here.x, by = here.y;
-        const ring = new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 65 }, (_, i) => { const a = i / 64 * Math.PI * 2; return new THREE.Vector3(Math.cos(a) * orb, Math.sin(a) * orb * .78, 1); })), orbitMat); g.add(ring);
+        const here = at[bi] || { orb: 16, x: 16, y: 0 }; const orb = here.orb, bx = here.x, by = here.y;
+        g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(Array.from({ length: 65 }, (_, i) => { const a = i / 64 * Math.PI * 2; return new THREE.Vector3(Math.cos(a) * orb, Math.sin(a) * orb * .78, 1); })), orbitMat));
         if (b.works) built(bx + (b.primary ? pr * .8 : 3), by + (b.primary ? pr * .8 : 3), 7);
         if (b.primary) {
           const ptex = window.praetoriaFx ? new THREE.TextureLoader().load(window.praetoriaFx.planet(b.cls, s.id, 128)) : null; if (ptex) ptex.colorSpace = THREE.SRGBColorSpace;
@@ -317,63 +537,89 @@ export class Galaxy {
           const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: tex ? 0xffffff : planetColor(b.cls), transparent: true, depthWrite: false })); const bs = b.cls === 'comet' ? 2.6 : b.size === 3 ? 7.5 : b.size === 2 ? 5 : 3.2; sp.scale.set(bs, bs, 1); sp.position.set(bx, by, 4); g.add(sp);
         }
       });
-      if (!planet) { planet = new THREE.Mesh(new THREE.SphereGeometry(pr, 16, 12), new THREE.MeshStandardMaterial({ color: planetColor(s.planetClass) })); planet.position.set(15, -10, 5); g.add(planet); }
-      if (s.planetClass === 'gas') { const ring = new THREE.Mesh(new THREE.RingGeometry(pr * 1.35, pr * 1.9, 48), new THREE.MeshBasicMaterial({ color: 0xf0d0a0, transparent: true, opacity: 0.5, side: THREE.DoubleSide })); ring.position.copy(planet.position); ring.rotation.x = 1.2; g.add(ring); }
-      // atmosphere rim
-      const atm = new THREE.Mesh(new THREE.SphereGeometry(pr * 1.12, 24, 18), new THREE.MeshBasicMaterial({ color: planetGlow(s.planetClass), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false })); atm.position.copy(planet.position); g.add(atm);
-      { const detail = new THREE.Group(); for (const child of g.children.slice(firstBody)) detail.add(child); g.add(detail); this.details.push(detail); }
-      if (s.ownerId) { const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: s.accent, transparent: true, opacity: s.isPlayer ? 0.95 : 0.55, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })); ring.scale.set(sz * 0.62, sz * 0.62, 1); g.add(ring); }
-      // a world that has changed sides across the rim: a broken ring in the holder's colour, outside the plain one
-      if (s.conquered) { for (let k = 0; k < 8; k++) { const seg = new THREE.Mesh(new THREE.RingGeometry(sz * 0.86, sz * 0.94, 10, 1, k * Math.PI / 4, Math.PI / 7), new THREE.MeshBasicMaterial({ color: s.accent, transparent: true, opacity: s.conquered === 'ceded' ? 0.7 : 1, side: THREE.DoubleSide })); g.add(seg); } }
-      if (s.bloc) { const bl = new THREE.Mesh(new THREE.RingGeometry(sz * 0.78, sz * 0.8, 64), new THREE.MeshBasicMaterial({ color: s.bloc === 'hegemon' ? 0xe6c77a : 0x7aa2ff, transparent: true, opacity: 0.6, side: THREE.DoubleSide })); g.add(bl); }
-      if (s.siege != null) { const arc = new THREE.Mesh(new THREE.RingGeometry(sz * 0.7, sz * 0.76, 48, 1, Math.PI / 2, -Math.PI * 2 * Math.max(0.02, s.siege)), new THREE.MeshBasicMaterial({ color: 0xff5a3c, transparent: true, opacity: 0.95, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); g.add(arc); }
-      if (s.contested) { const c = new THREE.Mesh(new THREE.RingGeometry(sz * 0.5, sz * 0.52, 48), new THREE.MeshBasicMaterial({ color: 0xff6a4a, transparent: true, opacity: 0.8, side: THREE.DoubleSide })); g.add(c); }
-      if (s.rebel) { const rb = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xff4a2a, transparent: true, opacity: .6, blending: THREE.AdditiveBlending, depthWrite: false })); rb.scale.set(sz * 1.6, sz * 1.6, 1); rb.userData.pulse = true; g.add(rb); }
-      if (s.chokepoint) { const ck = new THREE.Mesh(new THREE.RingGeometry(sz * 1.3, sz * 1.34, 4), new THREE.MeshBasicMaterial({ color: 0xe6c77a, transparent: true, opacity: 0.55, side: THREE.DoubleSide })); ck.rotation.z = Math.PI / 4; g.add(ck); }
-      if (s.capital) { const cap = new THREE.Mesh(new THREE.RingGeometry(sz * 1.0, sz * 1.04, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.7, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); g.add(cap); const cap2 = new THREE.Mesh(new THREE.RingGeometry(sz * 1.1, sz * 1.115, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.35, side: THREE.DoubleSide })); g.add(cap2); }
-      if (s.target) { const tr = new THREE.Mesh(new THREE.RingGeometry(sz * 0.9, sz * 0.93, 64), new THREE.MeshBasicMaterial({ color: 0xc9a24a, transparent: true, opacity: s.target === 1 ? 0.95 : 0.4, side: THREE.DoubleSide })); tr.userData.pulse = true; g.add(tr); }
-      if (s.id === this.selected.systemId) { const sel = new THREE.Mesh(new THREE.RingGeometry(sz * 0.56, sz * 0.6, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.95, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); sel.userData.spinZ = 0.6; g.add(sel); const sel2 = new THREE.Mesh(new THREE.RingGeometry(sz * 0.66, sz * 0.67, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.5, side: THREE.DoubleSide })); g.add(sel2); }
-      for (let k = 0; k < (s.stations || 0); k++) { const st = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.station, color: 0xc9bca8, transparent: true, depthWrite: false })); st.scale.set(5, 5, 1); st.position.set(-12 - k * 6, 10, 3); g.add(st); }
-      const hit = new THREE.Mesh(new THREE.SphereGeometry(Math.max(sz * 0.55, 14 + orbiting * 10.5), 8, 8), new THREE.MeshBasicMaterial({ visible: false })); hit.userData = { kind: 'system', id: s.id }; g.add(hit); this.hitTargets.push(hit);
-      // label
-      const el = document.createElement('div'); el.className = 'sys-label' + (s.isPlayer ? ' mine' : ''); el.innerHTML = `<span class="n">${s.capital ? '♛ ' : ''}${esc(s.name)}</span>${s.ownerName ? `<span class="o" style="color:${s.accent}">${esc(s.ownerName)}</span>` : ''}${s.target ? `<span class="j">${s.target}j</span>` : ''}${s.deposits ? `<span class="d">${esc(s.deposits)}</span>` : ''}`;
-      const lab = new CSS2DObject(el); lab.position.set(0, -(14 + orbiting * 10.5) * .78 - 8, 0); g.add(lab); this.labels.push(lab);
-      this.objects.add(g);
+      if (planet && s.planetClass === 'gas') { const ring = new THREE.Mesh(new THREE.RingGeometry(pr * 1.35, pr * 1.9, 48), new THREE.MeshBasicMaterial({ color: 0xf0d0a0, transparent: true, opacity: 0.5, side: THREE.DoubleSide })); ring.position.copy(planet.position); ring.rotation.x = 1.2; g.add(ring); }
+      if (planet) { const atm = new THREE.Mesh(new THREE.SphereGeometry(pr * 1.12, 24, 18), new THREE.MeshBasicMaterial({ color: planetGlow(s.planetClass), transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, side: THREE.BackSide, depthWrite: false })); atm.position.copy(planet.position); g.add(atm); }
+      g.renderOrder = 4; this.objects.add(g); this.details.push(g);
     }
-    for (const key of Object.keys(this.polities)) { const pz = this.polities[key]; if (!pz.name) continue; const el = document.createElement('div'); el.className = 'polity-label'; el.textContent = pz.name; el.style.color = pz.color; el.style.fontSize = Math.round(Math.min(30, 14 + pz.n * 0.4)) + 'px'; const lab = new CSS2DObject(el); lab.position.set(pz.x / pz.n, pz.y / pz.n, 6); this.objects.add(lab); this.labels.push(lab); }
-    for (const r of model.regions || []) { const el = document.createElement('div'); el.className = 'region-label ring-' + (r.ring || 'middle') + (r.free || r.state ? ' free' : ''); el.innerHTML = `<span class="rn">${esc(r.name)}</span>${r.state ? `<span class="rs state">${esc(r.state)}${r.stateWar ? ' · at war for it' : ' · no longer of the Reach'}</span>` : ''}<span class="rs">${esc(r.ring || '')}${r.free ? ' · free march' : ''} · ${esc(r.dominant || 'no one')} · ⚜ ${r.allegiance} · ☠ ${r.lawlessness}</span>`; const lab = new CSS2DObject(el); const rc = this.regionCentres[r.id] || { x: r.cx, y: -r.cy }; lab.position.set(rc.x, rc.y, 0); this.objects.add(lab); this.labels.push(lab); }
-    // the route a selected fleet would take to the selected system, lane by lane
-    if (model.route && model.route.length > 1) { const pts = model.route.map(id => byId[id]).filter(Boolean).map(s => new THREE.Vector3(s.x, -s.y, 6)); const rg = new THREE.BufferGeometry().setFromPoints(pts); const rl = new THREE.Line(rg, new THREE.LineDashedMaterial({ color: 0xffe8a3, dashSize: 10, gapSize: 7, transparent: true, opacity: .9 })); rl.computeLineDistances(); this.objects.add(rl); }
-    // fleets
-    const groups = {}; for (const f of model.fleets) (groups[f.systemId] ||= []).push(f);
-    for (const [sid, list] of Object.entries(groups)) {
-      const s = byId[sid]; if (!s) continue; let i = 0; const n = list.length;
-      for (const f of list) { const ang = -Math.PI / 2 - 0.6 + i * (Math.PI * 2 / Math.max(4, n)); i++; const fx = s.x + Math.cos(ang) * 30, fy = -s.y - Math.sin(ang) * 30;
-        const pirate = f.ownerId === 'pirates'; const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: pirate ? T.skull : T.ship, color: pirate ? 0xff4a3a : f.accent, transparent: true, opacity: f.isPlayer ? 1 : pirate ? .95 : 0.35 + 0.65 * (f.confidence || 0) / 100, depthWrite: false })); const sc = f.isPlayer ? 13 : pirate ? 12 : 10; spr.scale.set(sc, sc, 1); spr.position.set(fx, fy, 6); this.objects.add(spr);
-        const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: f.accent, transparent: true, opacity: f.isPlayer ? 0.7 : 0.3, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(sc * 2.2, sc * 2.2, 1); glow.position.set(fx, fy, 5); glow.userData.pulse = true; this.objects.add(glow);
-        if (f.id === this.selected.fleetId) { const sel = new THREE.Mesh(new THREE.RingGeometry(sc * 0.9, sc * 1.0, 48), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: 0.95, side: THREE.DoubleSide })); sel.position.set(fx, fy, 5.5); this.objects.add(sel); }
-        if (f.moving) { const trail = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: f.accent, transparent: true, opacity: .7, blending: THREE.AdditiveBlending, depthWrite: false })); trail.scale.set(sc * 2.4, sc * .25, 1); trail.position.set(fx - sc * .9, fy - sc * .3, 5.5); this.objects.add(trail); }
-        if (f.moving && byId[f.destId]) { const d = byId[f.destId]; const lg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(fx, fy, 5), new THREE.Vector3(d.x, -d.y, 5)]); this.objects.add(new THREE.Line(lg, new THREE.LineDashedMaterial({ color: 0xe6c77a, dashSize: 8, gapSize: 6, transparent: true, opacity: 0.8 }))); this.objects.children[this.objects.children.length - 1].computeLineDistances(); }
-        const hit = new THREE.Mesh(new THREE.SphereGeometry(sc * 0.8, 8, 8), new THREE.MeshBasicMaterial({ visible: false })); hit.position.set(fx, fy, 6); hit.userData = { kind: 'fleet', id: f.id, systemId: sid }; this.objects.add(hit); this.hitTargets.push(hit);
-        const el = document.createElement('div'); el.className = 'fleet-label'; el.style.color = f.accent; el.textContent = `${f.strength}${f.isPlayer ? '' : '?'}`; const lab = new CSS2DObject(el); lab.position.set(fx + sc * 0.9, fy + 2, 6); this.objects.add(lab); this.labels.push(lab);
-      }
-    }
-    this.applyMode(); this.dirty = true;
   }
 
-  setSelection(sel) { this.selected = sel || { systemId: null, fleetId: null }; }
-
-  // ---- camera ----
+  // ---------------- the camera (7.1) ----------------
+  /** The free map, in the canvas's pixels: between the rail (or the open window) and the outliner, under the top bar. */
+  freeRect() {
+    const host = this.renderer.domElement.getBoundingClientRect(), W = host.width || this.vw || 800, H = host.height || this.vh || 500;
+    let c = this.cover; if (!c) { try { c = window.praetoriaShell?.covered?.(); } catch { c = null; } }
+    let x0 = 0, x1 = W, y0 = 0; const y1 = H; const ok = r => r && r.w > 0 && r.h > 0;
+    if (c) {
+      if (ok(c.rail)) x0 = Math.max(x0, c.rail.x + c.rail.w - host.left);
+      if (ok(c.window)) x0 = Math.max(x0, c.window.x + c.window.w - host.left);
+      if (ok(c.outliner)) x1 = Math.min(x1, c.outliner.x - host.left - 8); else if (ok(c.console)) x1 = Math.min(x1, c.console.x - host.left - 8);
+      if (ok(c.topbar)) y0 = Math.max(y0, c.topbar.y + c.topbar.h - host.top);
+    }
+    if (x1 - x0 < 160) { x0 = Math.max(0, x1 - 160); }
+    return { x0, x1, y0, y1, W, H };
+  }
+  placeCam(cam, x, y, d, vo) {
+    const tilt = this.tilt * (0.5 + 0.5 * Math.min(1, d / 1200));
+    cam.aspect = this.vw / this.vh; cam.position.set(x, y - d * Math.sin(tilt), d * Math.cos(tilt)); cam.lookAt(x, y, 0);
+    cam.setViewOffset(this.vw, this.vh, this.vw / 2 - vo.x, this.vh / 2 - vo.y, this.vw, this.vh); cam.updateMatrixWorld();
+  }
+  /** Where the look-at point stands on the screen: the middle of the free map. */
+  principal() { const f = this.freeRect(); return { x: (f.x0 + f.x1) / 2, y: (f.y0 + f.y1) / 2 }; }
   updateCamera(immediate) {
-    if (this.tip) { this.tip.visible = false; this.tip.element.style.display = 'none'; }   // a note on a star belongs to the view it was asked in: when the chart moves it goes
-    if (immediate || !this.cur) { this.cur = { x: this.target.x, y: this.target.y, d: this.distance }; }
-    this.applyCamera();
+    this.hideTip();
+    if (immediate || !this.cur) { this.cur = { x: this.target.x, y: this.target.y, d: this.distance }; this.vo = this.principal(); }
+    this.applyCamera(0);
   }
-  applyCamera() {
-    const c = this.cur || (this.cur = { x: this.target.x, y: this.target.y, d: this.distance });
-    c.x += (this.target.x - c.x) * 0.18; c.y += (this.target.y - c.y) * 0.18; c.d += (this.distance - c.d) * 0.18;
-    const tilt = this.tilt * (0.5 + 0.5 * Math.min(1, c.d / 1200));   // level out as you close in
-    this.camera.position.set(c.x, c.y - c.d * Math.sin(tilt), c.d * Math.cos(tilt)); this.camera.lookAt(c.x, c.y, 0); this.camera.updateProjectionMatrix(); this.dirty = true;
+  /** The camera a step of k toward where it is going (the loop steps it by the time that has passed, so a slow machine is not slow to settle). */
+  applyCamera(k = 0) {
+    const c = this.cur || (this.cur = { x: this.target.x, y: this.target.y, d: this.distance }), p = this.principal(); if (!this.vo) this.vo = { ...p };
+    const ease = (a, b, snap) => { const v = a + (b - a) * k; return Math.abs(b - v) < snap ? b : v; };
+    const was = c.x + ',' + c.y + ',' + c.d + ',' + this.vo.x + ',' + this.vo.y;
+    c.x = ease(c.x, this.target.x, .4); c.y = ease(c.y, this.target.y, .4); c.d = ease(c.d, this.distance, .4); this.vo.x = ease(this.vo.x, p.x, .3); this.vo.y = ease(this.vo.y, p.y, .3);
+    this.placeCam(this.camera, c.x, c.y, c.d, this.vo); if (k === 0 || was !== c.x + ',' + c.y + ',' + c.d + ',' + this.vo.x + ',' + this.vo.y) this.dirty = true;
+  }
+  settled() { const c = this.cur, p = this.principal(); return c && c.x === this.target.x && c.y === this.target.y && c.d === this.distance && this.vo && this.vo.x === p.x && this.vo.y === p.y; }
+  /** How much of the free map would be empty space past the edge of the land, with the camera at a target and distance. */
+  emptyAt(x, y, d) {
+    if (!this.terr) return 0;
+    const f = this.freeRect(); this.placeCam(this.probe, x, y, d, { x: (f.x0 + f.x1) / 2, y: (f.y0 + f.y1) / 2 });
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), pt = new THREE.Vector3(); let n = 0, empty = 0;
+    const top = f.y0 + 56;   // the strip under the bar holds the alert badges (7.1): it is meant to be open space
+    for (let i = 0; i < 24; i++) for (let j = 0; j < 16; j++) {
+      const sx = f.x0 + (i + .5) / 24 * (f.x1 - f.x0), sy = top + (j + .5) / 16 * (f.y1 - top);
+      this.mouse.set(sx / f.W * 2 - 1, -(sy / f.H) * 2 + 1); this.raycaster.setFromCamera(this.mouse, this.probe);
+      if (!this.raycaster.ray.intersectPlane(plane, pt)) { empty++; n++; continue; }
+      n++; if (this.eoutAt(pt.x, pt.y) <= 0) empty++;
+    }
+    return n ? empty / n : 0;
+  }
+  /** A target moved, if it must be, the least way toward the land so the empty space stays under a fifth of the free map; from far off, only kept over the map. */
+  clampTarget(x, y, d, limit = MAX_EMPTY) {
+    const b = this.bounds; if (!b || !this.terr || this.sys) return { x, y };
+    const inBounds = (px, py) => ({ x: Math.max(b.minX, Math.min(b.maxX, px)), y: Math.max(b.minY, Math.min(b.maxY, py)) });
+    if (d > 1750) return inBounds(x, y);
+    if (this.emptyAt(x, y, d) <= limit) return { x, y };
+    const c = this.terr.land, best = { x, y, e: this.emptyAt(x, y, d), m: Infinity };
+    for (const [tx, ty] of [[x, c.y], [c.x, y], [c.x, c.y]]) {
+      if (this.emptyAt(tx, ty, d) > limit) { for (let k = 1; k <= 6; k++) { const m = k / 6, px = x + (tx - x) * m, py = y + (ty - y) * m, e = this.emptyAt(px, py, d); if (e < best.e - 1e-6 && best.m === Infinity) { best.x = px; best.y = py; best.e = e; } } continue; }
+      let lo = 0, hi = 1; for (let i = 0; i < 9; i++) { const m = (lo + hi) / 2; if (this.emptyAt(x + (tx - x) * m, y + (ty - y) * m, d) <= limit) hi = m; else lo = m; }
+      const px = x + (tx - x) * hi, py = y + (ty - y) * hi, m = Math.hypot(px - x, py - y); if (m < best.m) { best.x = px; best.y = py; best.m = m; best.e = limit; }
+    }
+    return inBounds(best.x, best.y);
+  }
+  /** A pan, held back where it would open more empty space than is allowed. */
+  panTo(nx, ny) {
+    if (this.sys || !this.terr) { this.target.x = nx; this.target.y = ny; this.updateCamera(true); return; }
+    const d = this.distance, b = this.bounds;
+    if (d > 1750) { const t = this.clampTarget(nx, ny, d); this.target.x = t.x; this.target.y = t.y; this.updateCamera(true); return; }
+    const limit = Math.max(MAX_EMPTY, this.emptyAt(this.target.x, this.target.y, d)) + 0.003;
+    for (const [px, py] of [[nx, ny], [nx, this.target.y], [this.target.x, ny]]) { if (px < b.minX - 400 || px > b.maxX + 400 || py < b.minY - 400 || py > b.maxY + 400) continue; if (this.emptyAt(px, py, d) <= limit) { this.target.x = px; this.target.y = py; break; } }
+    this.updateCamera(true);
+  }
+  fitDistance() {
+    const b = this.bounds; if (!b) return 4000; const f = this.freeRect(), tanH = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2));
+    const w = Math.max(240, f.x1 - f.x0), h = Math.max(240, f.y1 - f.y0), H = f.H;
+    return Math.max((b.maxX - b.minX + 360) * H / (w * 2 * tanH), (b.maxY - b.minY + 360) * 1.25 * H / (h * 2 * tanH));
   }
   zoom(f, px, py) {
     const before = px != null ? this.planePoint(px, py) : null;
@@ -384,72 +630,32 @@ export class Galaxy {
     } else {
       // pushing in past the nearest the Reach is looked at from goes into the system in front of the eye
       if (f < 1 && this.distance <= 161 && this.model) { const near = this.model.systems.map(s => ({ s, d: Math.hypot(s.x - this.target.x, -s.y - this.target.y) })).sort((a, b) => a.d - b.d)[0]; if (near && near.d < 110) { this.dotnet?.invokeMethodAsync('OnPick', 'enter', near.s.id); return; } }
-      this.distance = Math.max(160, Math.min(6000, this.distance * f)); this.updateCamera();
+      this.distance = Math.max(160, Math.min(Math.max(2400, this.fitDistance() * 1.3), this.distance * f)); this.updateCamera();
     }
-    if (before) { const after = this.planePoint(px, py); if (after) { this.target.x += before.x - after.x; this.target.y += before.y - after.y; this.updateCamera(); } }
+    if (before) { const after = this.planePoint(px, py); if (after) { this.target.x += before.x - after.x; this.target.y += before.y - after.y; } }
+    if (!this.sys) { const t = this.clampTarget(this.target.x, this.target.y, this.distance); this.target.x = t.x; this.target.y = t.y; }
+    this.updateCamera(); this.keepZoom = performance.now();
   }
-  home() { if (this.sys) { this.fit(); return; } if (this.seat) { this.target.copy(this.seat.t); this.distance = this.seat.d; this.updateCamera(); } }
-  // the whole map, whatever the shape of the panel: a narrow panel stands further back so the outermost systems (the nations beyond the rim) are in it
-  fit() { if (this.sys) { this.focused = null; this.sysFitD = this.sysFit(); return; } if (!this.fitView) return; const b = this.bounds, a = this.camera.aspect || 1.3; this.target.copy(this.fitView.t); this.distance = b ? Math.max((b.maxX - b.minX) * 1.22 * Math.max(1, 1.3 / a), (b.maxY - b.minY) * 1.7) + 240 : this.fitView.d; this.updateCamera(); }
-  // the minimap: the whole Reach in a corner, the viewport drawn on it, click to travel
-  setMinimap(canvas) { this.mini = canvas; if (!canvas) return; canvas.addEventListener('pointerdown', e => { if (!this.bounds) return; const r = canvas.getBoundingClientRect(); const m = this.miniMap(); const x = (e.clientX - r.left) / r.width * canvas.width, y = (e.clientY - r.top) / r.height * canvas.height; this.target.set(m.minX + (x - m.ox) / m.k, m.maxY - (y - m.oy) / m.k, 0); this.updateCamera(); }); }
-  miniMap() { const b = this.bounds, pad = 70; const w = this.mini.width, h = this.mini.height; const kx = (w - 12) / (b.maxX - b.minX + pad * 2), ky = (h - 12) / (b.maxY - b.minY + pad * 2); const k = Math.min(kx, ky); const ox = (w - (b.maxX - b.minX + pad * 2) * k) / 2 + pad * k, oy = (h - (b.maxY - b.minY + pad * 2) * k) / 2 + pad * k; return { k, ox, oy, minX: b.minX, maxY: b.maxY }; }
-  declutter() {
-    // Nothing on the map is written over anything else (the owner: "overlapping words and things on the map"). A name that would
-    // sit on another name, or under the bar, the window, the outliner, the legend or the minimap, is not shown. Seen from far off
-    // the regions' names are placed first and the systems' fit round them; close to, the systems' names come first, your own before
-    // others'. A region's name looks for room near its centre and is left out if there is none.
-    const els = this.labels.map(l => l.element); const live = e => e.style.display !== 'none' && getComputedStyle(e).display !== 'none';
-    const rect = (e, dx = 0, dy = 0) => { const r = e.getBoundingClientRect(); return { x: r.left - dx, y: r.top - dy, w: r.width, h: r.height }; };
-    const hits = (a, b, pad) => a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
-    const hud = [...document.querySelectorAll('.topbar, .rail, .outliner, .legend, .minimap, .map-tools, .endturn-dock, .screen.window, .map-side')].map(e => rect(e)).filter(b => b.w > 0 && b.h > 0);
-    const view = this.renderer.domElement.getBoundingClientRect(); const far = this.labelRenderer.domElement.classList.contains('far');
-    const off = b => b.x < view.left + 4 || b.y < view.top + 4 || b.x + b.w > view.right - 4 || b.y + b.h > view.bottom - 4;
-    const placed = [];
-    // where the stars themselves are drawn: a region's name keeps off them too, if it can (a name sits just under its star)
-    const g = far ? 12 : this.labelRenderer.domElement.classList.contains('near') ? 46 : 28;
-    const stars = els.filter(e => e.classList.contains('sys-label') && live(e)).map(e => rect(e)).filter(b => b.w > 0).map(b => ({ x: b.x + b.w / 2 - g, y: b.y - 2 * g - 4, w: 2 * g, h: 2 * g + 4 }));
-    const points = () => {   // the names of systems and fleets: shown where they stand, or not at all
-      const pts = els.filter(e => e.classList.contains('sys-label') || e.classList.contains('fleet-label'));
-      pts.sort((a, b) => (b.classList.contains('mine') ? 2 : 0) + (b.classList.contains('sys-label') ? 1 : 0) - (a.classList.contains('mine') ? 2 : 0) - (a.classList.contains('sys-label') ? 1 : 0));
-      for (const e of pts) { if (!live(e)) continue; const b = rect(e); const bad = b.w === 0 || hud.some(h => hits(b, h, 6)) || placed.some(q => hits(b, q, 3)); e.style.visibility = bad ? 'hidden' : ''; if (!bad) placed.push(b); }
-    };
-    const regions = () => {   // a region's name: the nearest free place to its centre, or not at all
-      const step = 18, cands = [[0, 0]]; for (let k = 1; k <= 5; k++) { cands.push([0, -k * step], [0, k * step]); if (k <= 3) cands.push([-k * 70, 0], [k * 70, 0], [-k * 70, -k * step], [k * 70, -k * step], [-k * 70, k * step], [k * 70, k * step]); }
-      cands.sort((a, b) => Math.abs(a[0]) + Math.abs(a[1]) * 1.5 - Math.abs(b[0]) - Math.abs(b[1]) * 1.5);
-      const regs = els.filter(e => (e.classList.contains('region-label') || e.classList.contains('polity-label')) && live(e)).map(e => ({ e, b: rect(e, parseFloat(e.style.marginLeft) || 0, parseFloat(e.style.marginTop) || 0) })).filter(o => o.b.w > 0).sort((a, b) => a.b.y - b.b.y);
-      for (const r of regs) {
-        let at = null; const big = r.e.classList.contains('polity-label');   // a realm's name wants air round it, and may lie over stars
-        for (const strict of [true, false]) {   // first somewhere clear of the stars as well; failing that, clear of every other name
-          for (const [dx, dy] of cands) { const b = { x: r.b.x + dx, y: r.b.y + dy, w: r.b.w, h: r.b.h }; if (off(b) || hud.some(h => hits(b, h, 8)) || placed.some(q => hits(b, q, big ? 26 : 5)) || (strict && !big && stars.some(q => hits(b, q, 0)))) continue; at = { dx, dy, b }; break; }
-          if (at) break;
-        }
-        if (at) { placed.push(at.b); r.e.style.marginLeft = at.dx ? at.dx + 'px' : ''; r.e.style.marginTop = at.dy ? at.dy + 'px' : ''; r.e.style.visibility = ''; } else r.e.style.visibility = 'hidden';
-      }
-    };
-    if (far) { regions(); points(); } else { points(); regions(); }
-  }
-  drawMinimap() {
-    const c = this.mini; if (!c || !this.model || !this.bounds) return; const ctx = c.getContext('2d'); const m = this.miniMap(); const P = (x, y) => [m.ox + (x - m.minX) * m.k, m.oy + (m.maxY - y) * m.k];
-    ctx.clearRect(0, 0, c.width, c.height);
-    if (this.regionRaster) { const rr = this.regionRaster; const [ax, ay] = P(rr.x0, rr.y0 + rr.h); ctx.globalAlpha = .9; ctx.drawImage(rr.canvas, ax, ay, rr.w * m.k, rr.h * m.k); ctx.globalAlpha = 1; }
-    for (const l of this.model.lanes) { const a = this.model.systems.find(s => s.id === l.a), b = this.model.systems.find(s => s.id === l.b); if (!a || !b) continue; const [ax, ay] = P(a.x, -a.y), [bx, by] = P(b.x, -b.y); ctx.strokeStyle = l.front ? 'rgba(255,90,60,.6)' : 'rgba(160,180,220,.16)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke(); }
-    for (const s of this.model.systems) { const [x, y] = P(s.x, -s.y); ctx.fillStyle = s.isPlayer ? '#ffe8a3' : s.ownerId ? s.accent : '#6a7384'; ctx.beginPath(); ctx.arc(x, y, s.isPlayer ? 2.6 : 1.8, 0, Math.PI * 2); ctx.fill(); if (s.capital) { ctx.strokeStyle = '#ffe8a3'; ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.stroke(); } }
-    // the viewport: sample the map plane on a grid and frame whatever the camera can see (robust to the tilt at any distance)
-    const b = this.bounds, pad = 140; let vx0 = Infinity, vy0 = Infinity, vx1 = -Infinity, vy1 = -Infinity; const v = new THREE.Vector3();
-    for (let i = 0; i <= 40; i++) for (let j = 0; j <= 24; j++) { const x = b.minX - pad + (b.maxX - b.minX + pad * 2) * i / 40, y = b.minY - pad + (b.maxY - b.minY + pad * 2) * j / 24; v.set(x, y, 0).project(this.camera); if (v.z < 1 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1) { vx0 = Math.min(vx0, x); vx1 = Math.max(vx1, x); vy0 = Math.min(vy0, y); vy1 = Math.max(vy1, y); } }
-    if (vx0 < vx1) { const [ax, ay] = P(vx0, vy1), [bx, by] = P(vx1, vy0); ctx.strokeStyle = 'rgba(201,162,74,.9)'; ctx.lineWidth = 1; ctx.strokeRect(ax, ay, bx - ax, by - ay); }
-  }
-  focus(x, y) { this.target.set(x, -y, 0); this.distance = Math.min(this.distance, 900); this.updateCamera(); }
+  /** Your seat, at the opening distance. */
+  home() { if (this.sys) { this.fit(); return; } if (!this.seatAt) return; this.distance = Math.min(HOME_D, this.fitDistance()); const t = this.clampTarget(this.seatAt.x, this.seatAt.y, this.distance); this.target.set(t.x, t.y, 0); this.updateCamera(); this.keepZoom = performance.now(); }
+  /** The whole map in the free part of the screen. */
+  fit() { if (this.sys) { this.focused = null; this.sysFitD = this.sysFit(); return; } const b = this.bounds; if (!b) return; this.target.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, 0); this.distance = this.fitDistance(); this.updateCamera(); }
+  focus(x, y) { this.distance = Math.min(this.distance, 1200); const t = this.clampTarget(x, -y, this.distance, 0.32); this.target.set(t.x, t.y, 0); this.updateCamera(); }
+  /** The interface's rectangles (js/shell.js): the map re-offsets to the free part of the screen and keeps its names out from under them. */
+  setCover(c) { const was = JSON.stringify([this.cover?.window, this.cover?.outliner, this.cover?.rail, this.cover?.topbar]); this.cover = c; this.relabel = true; this.hideTip(); if (this.model && !this.sys && was !== JSON.stringify([c?.window, c?.outliner, c?.rail, c?.topbar])) { const t = this.clampTarget(this.target.x, this.target.y, this.distance); this.target.x = t.x; this.target.y = t.y; } }
   planePoint(px, py) {
     const rect = this.renderer.domElement.getBoundingClientRect(); this.mouse.set(((px - rect.left) / rect.width) * 2 - 1, -((py - rect.top) / rect.height) * 2 + 1);
     this.raycaster.setFromCamera(this.mouse, this.camera); const pt = new THREE.Vector3(); return this.raycaster.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 0, 1), 0), pt) ? pt : null;
   }
+  /** A point of the map on the screen, in client pixels. */
+  screenOf(x, y) { const r = this.renderer.domElement.getBoundingClientRect(), v = new THREE.Vector3(x, y, 0).project(this.camera); return { x: r.left + (v.x + 1) / 2 * r.width, y: r.top + (1 - v.y) / 2 * r.height, z: v.z }; }
+
+  // ---------------- input ----------------
   bindInput() {
     const el = this.renderer.domElement; let down = null, moved = false;
     el.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, pt: this.planePoint(e.clientX, e.clientY) }; moved = false; el.setPointerCapture(e.pointerId); });
     el.addEventListener('pointermove', e => {
-      if (down) { const pt = this.planePoint(e.clientX, e.clientY); if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 3) moved = true; if (pt && down.pt && moved) { this.target.x -= pt.x - down.pt.x; this.target.y -= pt.y - down.pt.y; this.updateCamera(); } el.style.cursor = 'grabbing'; return; }
+      if (down) { if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 3) moved = true; const pt = this.planePoint(e.clientX, e.clientY); if (pt && down.pt && moved) { this.panTo(this.target.x - (pt.x - down.pt.x), this.target.y - (pt.y - down.pt.y)); } el.style.cursor = 'grabbing'; return; }
       const hit = this.pick(e.clientX, e.clientY); el.style.cursor = hit ? 'pointer' : 'grab'; this.showTip(hit);
     });
     el.addEventListener('pointerleave', () => { if (!down) this.showTip(null); });   // onto a window, the bar or the list: the note does not stay behind
@@ -458,64 +664,223 @@ export class Galaxy {
     // twice on a system goes into it; twice on a world, once inside, goes to the world
     el.addEventListener('dblclick', e => { const hit = this.pick(e.clientX, e.clientY); if (!hit) return; if (!this.sys && hit.kind === 'system') this.dotnet?.invokeMethodAsync('OnPick', 'enter', hit.id); else if (this.sys && hit.kind === 'body') this.dotnet?.invokeMethodAsync('OnPick', 'world', hit.id); });
   }
-  showTip(hit) {
-    // the label renderer shows whatever is visible on every frame, so a note is put away by its own flag and not by its style
-    if (this.sys) { const t = this.sysTip; if (!t) return; if (!hit || !hit.tip) { t.visible = false; t.element.style.display = 'none'; return; } t.visible = true; t.element.innerHTML = hit.tip; t.position.set(hit.at[0], hit.at[1] + (hit.up || 16), 20); return; }
-    if (!this.tip || !this.model) return;
-    if (!hit) { this.tip.visible = false; this.tip.element.style.display = 'none'; return; }
-    const el = this.tip.element; this.tip.visible = true;
-    if (hit.kind === 'system') { const s = this.model.systems.find(x => x.id === hit.id); if (!s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(s.name)}</b><div>${esc(s.planetClass)} world · ${esc(s.ownerName || 'unclaimed')}${s.governor ? ` · gov. ${esc(s.governor)}` : ''}</div>${s.pop ? `<div>${esc(s.citizens || ('scale ' + s.pop))} citizens · loyalty ${100 - s.unrest}</div>` : ''}${s.industry ? `<div>${esc(s.industry)}</div>` : ''}${s.great ? `<div>★ ${esc(s.great)}</div>` : ''}`; }
-    else { const f = this.model.fleets.find(x => x.id === hit.id); const s = f && this.model.systems.find(x => x.id === f.systemId); if (!f || !s) return; this.tip.position.set(s.x, -s.y - 30, 20); el.innerHTML = `<b>${esc(f.name)}</b><div>${esc(f.ownerName || '')} · ${f.strength} hulls${f.isPlayer ? ` · readiness ${f.readiness}` : ` · intel ${f.confidence}%`}</div>`; }
-  }
+  /** What is under the pointer: inside a system by its shapes; on the map of the Reach in screen space, a fleet's token first, then the nearest star within reach. */
   pick(px, py) {
-    const rect = this.renderer.domElement.getBoundingClientRect(); this.mouse.set(((px - rect.left) / rect.width) * 2 - 1, -((py - rect.top) / rect.height) * 2 + 1);
-    this.raycaster.setFromCamera(this.mouse, this.camera); const hits = this.raycaster.intersectObjects(this.sys ? this.sysHits : this.hitTargets, false); return hits.length ? hits[0].object.userData : null;
+    if (this.sys) { const rect = this.renderer.domElement.getBoundingClientRect(); this.mouse.set(((px - rect.left) / rect.width) * 2 - 1, -((py - rect.top) / rect.height) * 2 + 1); this.raycaster.setFromCamera(this.mouse, this.camera); const hits = this.raycaster.intersectObjects(this.sysHits, false); return hits.length ? hits[0].object.userData : null; }
+    if (!this.model) return null; const far = this.tier === 'far';
+    for (const t of this.tokens || []) { if (far && !t.f.isPlayer) continue; const p = this.screenOf(t.sx, t.sy); const x = p.x + t.dx, y = p.y + t.dy; if (px >= x - 2 && px <= x + 40 && py >= y - 2 && py <= y + 24) return { kind: 'fleet', id: t.f.id, systemId: t.f.systemId }; }
+    let best = null, bd = 18 * 18;
+    for (const s of this.model.systems) { const p = this.screenOf(s.x, -s.y); const d = (p.x - px) ** 2 + (p.y - py) ** 2; if (d < bd) { bd = d; best = s; } }
+    return best ? { kind: 'system', id: best.id } : null;
   }
-  resize() { const w = this.container.clientWidth, h = this.container.clientHeight; if (!w || !h) return; this.renderer.setSize(w, h); this.labelRenderer.setSize(w, h); this.composer.setSize(w, h); this.camera.aspect = w / h; this.camera.updateProjectionMatrix(); this.dirty = true; }
+  hideTip() { if (this.tipEl) this.tipEl.style.display = 'none'; if (this.sysTip) { this.sysTip.visible = false; this.sysTip.element.style.display = 'none'; } }
+  /** The note on what is under the pointer (7.4): a system's globe, name, kind and region, who holds it and what is in it; a fleet's strength. */
+  showTip(hit) {
+    // inside a system, the close map's own note
+    if (this.sys) { const t = this.sysTip; if (!t) return; if (!hit || !hit.tip) { t.visible = false; t.element.style.display = 'none'; return; } t.visible = true; t.element.innerHTML = hit.tip; t.position.set(hit.at[0], hit.at[1] + (hit.up || 16), 20); return; }
+    const el = this.tipEl; if (!el || !this.model) return;
+    if (!hit) { el.style.display = 'none'; this.tipFor = null; return; }
+    const key = hit.kind + ':' + hit.id; let ax, ay;
+    if (hit.kind === 'system') {
+      const s = this.byId[hit.id]; if (!s) return; const p = this.screenOf(s.x, -s.y); ax = p.x; ay = p.y;
+      if (this.tipFor !== key) {
+        const hc = this.holderCol?.[(s.realm || '').startsWith('nation:') ? s.realm : (s.ownerId || '')]; const sw = s.isPlayer ? '#e9b949' : hc && hc.kind ? css(hc.line) : 'transparent';
+        const kind = [sentence(s.industry || (s.planetClass + ' world')), s.regionName].filter(Boolean).join(' · ') + (s.capital ? ' · the capital' : '');
+        const row = (icon, t, k, v) => `${ico(icon, t)}<span class="k">${k}</span><span class="v">${v}</span>`;
+        let kv = row('flying-flag', 'ivory', 'Held by', s.ownerName ? `<i class="own" style="background:${sw}"></i><b>${esc(s.ownerName)}</b>` : 'No one');
+        if (s.governor) kv += row('office-chair', 'ivory', 'Governor', esc(s.governor));
+        if (s.citizens) kv += row('population', 'ivory', 'Citizens', `<b>${esc(s.citizens)}</b>`);
+        if (s.pop) kv += row('loyalty', 'good', 'Loyalty', `<b>${100 - (s.unrest || 0)}</b>`);
+        if (s.depNames && s.depNames.length) kv += row(DEPOSIT[s.dep[0]]?.[0] || 'rare_earths', DEPOSIT[s.dep[0]]?.[1] || 'steel', 'Deposits', esc(s.depNames.join(', ')));
+        const nb = s.bodyCount || (s.bodies || []).length; if (nb) kv += row('ringed-planet', 'ivory', 'Bodies', `${nb}${s.greatCity ? `, with the great city of ${esc(s.greatCity)}` : ''}`);
+        else if (s.greatCity) kv += row('crown', 'brass', 'Great city', esc(s.greatCity));
+        if (s.target) kv += row('fleet', 'brass', 'From your fleet', `${s.target} ${s.target === 1 ? 'jump' : 'jumps'}`);
+        el.innerHTML = `<div class="hd">${globe(s.planetClass, 30)}<div><div class="nm">${esc(s.name)}</div><div class="sb">${esc(kind)}</div></div></div><div class="kv">${kv}</div><div class="foot">Click to open the system · twice to go into it</div><i class="arr"></i>`;
+      }
+    } else {
+      const f = this.model.fleets.find(x => x.id === hit.id), s = f && this.byId[f.systemId]; if (!f || !s) return; const tk = this.tokens.find(t => t.f.id === f.id); const p = this.screenOf(s.x, -s.y); ax = p.x + (tk ? tk.dx + 11 : 0); ay = p.y + (tk ? tk.dy + 11 : 0);
+      if (this.tipFor !== key) {
+        const row = (icon, t, k, v) => `${ico(icon, t)}<span class="k">${k}</span><span class="v">${v}</span>`; const dest = f.moving && this.byId[f.destId] ? this.byId[f.destId].name : '';
+        let kv = row('flying-flag', 'ivory', 'Of', `<i class="own" style="background:${f.isPlayer ? '#e9b949' : esc(f.accent)}"></i><b>${esc(f.ownerName || '')}</b>`) + row('fleet', 'ivory', 'Hulls', `<b>${f.strength}</b>`);
+        kv += f.isPlayer ? row('rally-the-troops', 'ivory', 'Readiness', `<b>${f.readiness}</b>`) : row('spyglass', 'steel', 'Intelligence', `${f.confidence}% sure`);
+        if (dest) kv += row('compass', 'ivory', 'Bound for', `${esc(dest)}${f.eta ? `, ${f.eta} ${f.eta === 1 ? 'year' : 'years'} off` : ''}`);
+        el.innerHTML = `<div class="hd"><span class="chev" style="--fc:${f.isPlayer ? '#e9b949' : esc(f.accent)}"><svg viewBox="0 0 22 22"><path d="M11 2.2 L20 19 L11 14.6 L2 19 Z"/></svg></span><div><div class="nm">${esc(f.name)}</div><div class="sb">${f.isPlayer ? 'Your fleet' : 'Reported'} · at ${esc(s.name)}</div></div></div><div class="kv">${kv}</div><div class="foot">${f.isPlayer ? 'Click to pick it, then a world to see the way there' : 'Click to see the system it is in'}</div><i class="arr"></i>`;
+      }
+    }
+    this.tipFor = key; el.style.display = 'block'; el.classList.add('on');
+    // beside the star, on the side with room, within the free map
+    const host = this.renderer.domElement.getBoundingClientRect(), f = this.freeRect(), L = host.left + f.x0 + 8, R = host.left + f.x1 - 8, T = host.top + f.y0 + 8, B = host.top + f.y1 - 8;
+    const w = el.offsetWidth, h = el.offsetHeight; let side = 'right', x = ax + 26; if (x + w > R) { side = 'left'; x = ax - 26 - w; } if (x < L) x = Math.max(L, Math.min(R - w, x));
+    const y = Math.max(T, Math.min(B - h, ay - h * 0.32)); el.dataset.side = side; el.style.left = x + 'px'; el.style.top = y + 'px';
+    const arr = el.querySelector('.arr'); if (arr) arr.style.top = Math.max(10, Math.min(h - 22, ay - y - 6)) + 'px';
+  }
+  resize() {
+    const w = this.container.clientWidth, h = this.container.clientHeight; if (!w || !h) return; this.vw = w; this.vh = h;
+    this.renderer.setSize(w, h); this.labelRenderer.setSize(w, h); this.composer.setSize(w, h); this.glowComposer.setSize(w, h); this.camera.aspect = w / h;
+    const pr = this.renderer.getPixelRatio(); if (this.laneMat) this.laneMat.uniforms.uRes.value.set(w * pr, h * pr);
+    this.applyCamera(); this.dirty = true; this.relabel = true; this.miniBase = null;
+  }
+
+  // ---------------- names that are never written over anything (rule 5, 7.3) ----------------
+  /** The rectangles no name may sit under: the interface (js/shell.js tells them) and the map's own furniture. */
+  obstacles() {
+    const out = []; const add = r => { if (r && r.w > 0 && r.h > 0) out.push({ x: r.x, y: r.y, w: r.w, h: r.h }); };
+    const c = this.cover || window.praetoriaShell?.covered?.(); if (c) for (const k of Object.keys(c)) add(c[k]);
+    for (const e of document.querySelectorAll('.gs-shell.game .endturn-dock, .galaxy .order-bar, .galaxy .crumbs, .galaxy .world-strip, .galaxy .legend, .galaxy .map-side:not(.idle)')) { if (getComputedStyle(e).display === 'none') continue; const r = e.getBoundingClientRect(); add({ x: r.left, y: r.top, w: r.width, h: r.height }); }
+    return out;
+  }
+  declutter() {
+    if (!this.model || this.sys) return;
+    const hits = (a, b, pad) => a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
+    const host = this.renderer.domElement.getBoundingClientRect(), f = this.freeRect(), view = { x: host.left + f.x0, y: host.top + f.y0, w: f.x1 - f.x0, h: f.y1 - f.y0 };
+    const inView = (b, m = 2) => b.x >= view.x + m && b.y >= view.y + m && b.x + b.w <= view.x + view.w - m && b.y + b.h <= view.y + view.h - m;
+    const ui = this.obstacles(), tier = this.tier;
+    const rect = e => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
+    // where the stars are on the screen
+    const stars = []; for (const p of this.pins) { const q = this.screenOf(p.s.x, -p.s.y); p.at = q; if (q.z < 1 && q.x > host.left - 20 && q.x < host.right + 20 && q.y > host.top - 20 && q.y < host.bottom + 20) { stars.push({ x: q.x - 12, y: q.y - 12, w: 24, h: 24, s: p.s }); if (p.s.capital) stars.push({ x: q.x - 9, y: q.y - 32, w: 18, h: 20, s: p.s }); } }
+    const placed = [];
+    // fleets first: they stand beside their stars
+    for (const t of this.tokens) { const b = rect(t.el); const show = b.w > 0 && inView(b) && !ui.some(u => hits(b, u, 4)); t.el.style.visibility = show ? '' : 'hidden'; if (show) placed.push(b); }
+    // the names of systems: yours first, the capital, then the most peopled
+    const order = this.pins.slice().sort((a, b) => (b.s.isPlayer ? 4 : 0) + (b.s.capital ? 2 : 0) - (a.s.isPlayer ? 4 : 0) - (a.s.capital ? 2 : 0) || (b.s.pop || 0) - (a.s.pop || 0));
+    for (const p of order) {
+      const e = p.name; let why = 'none', b = null;
+      // under its star first; failing that, over it (clear of its crown and its fleets)
+      for (const up of [false, true]) {
+        p.el.classList.toggle('up', up); const b0 = rect(e); if (!b0.w) { why = 'none'; break; }
+        b = { x: b0.x + 5, y: b0.y + 1, w: b0.w - 10, h: b0.h - 3 };   // the name itself, without the soft backing round it
+        why = !inView(b) ? 'off' : ui.find(u => hits(b, u, 4)) ? 'ui' : placed.find(q => hits(b, q, 2)) ? 'name' : stars.find(st => (st.s !== p.s || up) && hits(b, { x: st.x + 4, y: st.y + 4, w: st.w - 8, h: st.h - 8 }, 0))?.s.name || '';
+        if (!why) break;
+      }
+      if (why) p.el.classList.remove('up'); const bad = !!why;
+      if (window.__mapWhy) window.__mapWhy[p.s.name] = why ? why + ' ' + JSON.stringify(b) : 'shown';
+      e.style.visibility = bad ? 'hidden' : ''; if (!bad) placed.push(b);
+      for (const m of p.el.querySelectorAll('.cap, .mk, .jumps, .stn')) { const mb = rect(m); m.style.visibility = mb.w && (!inView(mb, -20) || ui.some(u => hits(mb, u, 0))) ? 'hidden' : ''; }
+    }
+    // the lanes as segments on the screen, which a name may cross at a cost
+    const segs = []; for (const l of this.model.lanes) { const a = this.byId[l.a], b = this.byId[l.b]; if (!a || !b) continue; const pa = this.screenOf(a.x, -a.y), pb = this.screenOf(b.x, -b.y); segs.push([pa.x, pa.y, pb.x, pb.y]); }
+    const crosses = r => { let n = 0; for (const [x1, y1, x2, y2] of segs) { if (Math.max(x1, x2) < r.x || Math.min(x1, x2) > r.x + r.w || Math.max(y1, y2) < r.y || Math.min(y1, y2) > r.y + r.h) continue; const dx = x2 - x1, dy = y2 - y1; let t0 = 0, t1 = 1; for (const [p, q] of [[-dx, x1 - r.x], [dx, r.x + r.w - x1], [-dy, y1 - r.y], [dy, r.y + r.h - y1]]) { if (p === 0) { if (q < 0) { t0 = 2; break; } } else { const t = q / p; if (p < 0) t0 = Math.max(t0, t); else t1 = Math.min(t1, t); } } if (t0 <= t1) n++; } return n; };
+    // a region's or a realm's name: the clearest place near its centre, or not at all
+    const place = (list, big) => {
+      for (const r of list) {
+        const e = r.inner; e.style.setProperty('--dx', '0px'); e.style.setProperty('--dy', '0px'); const b0 = rect(e); if (!b0.w || this.screenOf(r.x, r.y).z >= 1) { e.style.visibility = 'hidden'; continue; }
+        let best = null;
+        for (let dy = -100; dy <= 100; dy += 10) for (let dx = -180; dx <= 180; dx += 15) {
+          const b = { x: b0.x + dx, y: b0.y + dy, w: b0.w, h: b0.h };
+          // a region's name keeps off the stars and crosses a lane only at a cost; a realm's, from far off, may lie over the stars
+          if (!inView(b, 6) || ui.some(u => hits(b, u, 8)) || placed.some(q => hits(b, q, big ? 14 : 6)) || (!big && stars.some(st => hits(b, st, 2)))) continue;
+          const pen = Math.hypot(dx, dy * 1.6) * 0.05 + (big ? stars.filter(st => hits(b, st, 0)).length * 3 : crosses(b) * 6); if (!best || pen < best.pen) best = { pen, dx, dy, b };
+        }
+        if (!best) { e.style.visibility = 'hidden'; this.places[r.key] = null; continue; }
+        e.style.visibility = ''; e.style.setProperty('--dx', best.dx + 'px'); e.style.setProperty('--dy', best.dy + 'px'); placed.push(best.b); this.places[r.key] = { dx: best.dx, dy: best.dy };
+      }
+    };
+    this.places ||= {};
+    if (tier === 'far') { place(this.realmPins.slice().sort((a, b) => b.big - a.big), true); for (const r of this.regionPins) { r.inner.style.visibility = 'hidden'; this.places[r.key] = null; } }
+    else { place(this.regionPins, false); for (const r of this.realmPins) { r.inner.style.visibility = 'hidden'; this.places[r.key] = null; } }
+  }
+
+  /** Inside a system: its names never over one another either. The world looked at and the system's own world first, then the gates,
+      the worlds, the belt and the fleets; a comet's or a moon's name gives way. */
+  declutterSystem() {
+    const rank = e => e.classList.contains('looked') ? 0 : e.classList.contains('primary') ? 1 : e.classList.contains('sysv-prov') ? 1 : e.classList.contains('sysv-exit') ? 2 : e.classList.contains('moon') ? 6 : e.classList.contains('comet') ? 5 : e.classList.contains('sysv-fleet') ? 4 : 3;
+    const els = this.sysLabels.filter(l => l !== this.sysTip && l.element.style.display !== 'none').map(l => l.element).filter(e => e.firstChild).sort((a, b) => rank(a) - rank(b));
+    const ui = this.obstacles(), placed = [], hits = (a, b, p) => a.x < b.x + b.w + p && b.x < a.x + a.w + p && a.y < b.y + b.h + p && b.y < a.y + a.h + p;
+    for (const e of els) { const r = e.firstChild.getBoundingClientRect(); if (!r.width) continue; const b = { x: r.left, y: r.top, w: r.width, h: r.height }; const bad = ui.some(u => hits(b, u, 4)) || placed.some(q => hits(b, q, 2)); e.firstChild.style.visibility = bad ? 'hidden' : ''; if (!bad) placed.push(b); }
+  }
+
+  // ---------------- the minimap (7.5) ----------------
+  setMinimap(canvas) {
+    this.mini = canvas; this.miniBase = null; if (!canvas || canvas.__map) return; canvas.__map = true;
+    canvas.addEventListener('pointerdown', e => {
+      const g = [...(window.praetoriaSpace?.galaxies?.values() || [])].find(x => x.mini === canvas); if (!g || !g.bounds || g.sys) return;
+      const r = canvas.getBoundingClientRect(), m = g.miniMap(); const x = (e.clientX - r.left) / r.width * m.W, y = (e.clientY - r.top) / r.height * m.H;
+      const t = g.clampTarget(m.minX + (x - m.ox) / m.k, m.maxY - (y - m.oy) / m.k, g.distance); g.target.set(t.x, t.y, 0); g.updateCamera();
+    });
+  }
+  miniMap() {
+    const c = this.mini, b = this.bounds, pad = 150, W = c.width, H = c.height;
+    const k = Math.min((W - 8) / (b.maxX - b.minX + pad * 2), (H - 8) / (b.maxY - b.minY + pad * 2));
+    return { k, W, H, ox: (W - (b.maxX - b.minX + pad * 2) * k) / 2 + pad * k, oy: (H - (b.maxY - b.minY + pad * 2) * k) / 2 + pad * k, minX: b.minX, maxY: b.maxY };
+  }
+  /** The same territory toned to 38%, dark lines between owners, the Reach's edge in ivory: drawn once for the holdings. */
+  drawMiniBase() {
+    const c = this.mini, t = this.terr; if (!c || !t) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1), cw = Math.round((c.clientWidth || 278) * dpr), ch = Math.round((c.clientHeight || 146) * dpr); if (cw > 0 && ch > 0 && (c.width !== cw || c.height !== ch)) { c.width = cw; c.height = ch; }
+    const m = this.miniMap(), W = c.width, H = c.height, base = document.createElement('canvas'); base.width = W; base.height = H; const ctx = base.getContext('2d'), img = ctx.createImageData(W, H), px = img.data;
+    const own = new Int32Array(W * H).fill(-2), realm = new Int32Array(W * H).fill(-2);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const wx = m.minX + (x + .5 - m.ox) / m.k, wy = m.maxY - (y + .5 - m.oy) / m.k; if (this.eoutAt(wx, wy) <= 0) continue; const s = this.siteAt(wx, wy); if (s < 0) continue; own[y * W + x] = t.sh[s]; realm[y * W + x] = t.sr[s]; }
+    const ivory = rgb01('#E3D3A4');
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y * W + x, o = i * 4, h = own[i]; if (h === -2) continue;
+      const hc = this.holderCol[t.hk[h]] || { kind: 0 }; let c3 = hc.kind ? hc.fill : [.55, .6, .7], a = hc.kind === 2 ? .62 : hc.kind ? .38 : .12;
+      const nb = [x > 0 ? i - 1 : -1, x < W - 1 ? i + 1 : -1, y > 0 ? i - W : -1, y < H - 1 ? i + W : -1];
+      const edge = nb.some(j => j < 0 || own[j] === -2), seam = nb.some(j => j >= 0 && own[j] !== -2 && own[j] !== h), rseam = nb.some(j => j >= 0 && realm[j] !== -2 && realm[j] !== realm[i]);
+      if (edge && t.rk[realm[i]] === 'reach') { c3 = ivory; a = .9; } else if (edge) { c3 = hc.kind ? hc.line : [.6, .65, .75]; a = .6; } else if (rseam) { c3 = [0, 0, 0]; a = .85; } else if (seam) { c3 = c3.map(v => v * .35); a = Math.max(a, .55); }
+      px[o] = c3[0] * 255; px[o + 1] = c3[1] * 255; px[o + 2] = c3[2] * 255; px[o + 3] = a * 255;
+    }
+    ctx.putImageData(img, 0, 0); this.miniBase = base;
+  }
+  drawMinimap() {
+    const c = this.mini; if (!c || !this.model || !this.bounds) return; if (!this.miniBase) this.drawMiniBase(); const ctx = c.getContext('2d'), m = this.miniMap();
+    ctx.clearRect(0, 0, c.width, c.height); if (this.miniBase) ctx.drawImage(this.miniBase, 0, 0);
+    if (this.sys) return;
+    // the viewport: the free map's four corners on the plane, in brass, with a dot at each corner
+    const host = this.renderer.domElement.getBoundingClientRect(), f = this.freeRect(), P = (x, y) => [m.ox + (x - m.minX) * m.k, m.oy + (m.maxY - y) * m.k];
+    const corners = [[f.x0, f.y0], [f.x1, f.y0], [f.x1, f.y1], [f.x0, f.y1]].map(([x, y]) => this.planePoint(host.left + x, host.top + y)).filter(Boolean).map(p => P(p.x, p.y));
+    if (corners.length === 4) {
+      const dpr = c.width / (c.clientWidth || c.width); ctx.save(); ctx.strokeStyle = 'rgba(232,200,120,.95)'; ctx.lineWidth = dpr; ctx.beginPath(); corners.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.stroke();
+      ctx.fillStyle = '#f6e2a0'; for (const [x, y] of corners) { ctx.beginPath(); ctx.arc(x, y, 1.6 * dpr, 0, 7); ctx.fill(); } ctx.restore();
+    }
+  }
+
+  // ---------------- the frame ----------------
   loop() {
     if (this.disposed) return;
-    // a frame budget: about 20 fps, nothing while the tab is hidden — the map is a chart, not a shooter
+    // a frame budget: about 20 fps, nothing while the tab is hidden: the map is a chart, not a shooter
     setTimeout(() => requestAnimationFrame(this.loop), 50);
     if (document.hidden) return;
     if (this.lost) { if (performance.now() - this.lostAt > 2500 && this.onGiveUp) { const again = this.onGiveUp; this.onGiveUp = null; again(); } return; }
-    const t = this.clock.getElapsedTime(); this.nebula.material.uniforms.uTime.value = t; this.stars.material.uniforms.uTime.value = t; this.applyCamera();
-    if (this.sys) { this.tickSystem(t); this.composer.render(); this.labelRenderer.render(this.scene, this.camera); return; }
-    this.objects.traverse(o => { if (o.userData.spin) o.rotation.y = t * o.userData.spin; if (o.userData.spinZ) o.rotation.z = t * o.userData.spinZ; });
-    this.objects.traverse(o => { if (o.userData.pulse) { const s = 1 + 0.08 * Math.sin(t * 3 + o.position.x * 0.01); o.scale.setScalar ? (o.isSprite ? null : o.scale.set(s, s, 1)) : null; if (o.material?.opacity != null && o.isSprite) o.material.opacity = 0.45 + 0.25 * Math.sin(t * 2.5); } });
-    // what a system shows changes with distance: its star alone, larger, from far off; its worlds and orbits from the middle distance in
-    { const d = this.cur ? this.cur.d : this.distance, show = d < 2050, grow = Math.round(Math.max(1, Math.min(2.3, d / 1500)) * 20) / 20, key = (show ? 'a' : 'b') + grow;
-      if (key !== this.lod && this.suns) { this.lod = key; for (const dg of this.details) dg.visible = show; for (const sn of this.suns) for (const [sp, sx, sy] of sn.parts) sp.scale.set(sx * grow, sy * grow, 1); } }
-    // labels fade with distance
-    const lr = this.labelRenderer.domElement; lr.classList.toggle('near', this.distance < 700); lr.classList.toggle('far', this.distance > 1700); lr.classList.toggle('veryfar', this.distance > 3200); lr.classList.toggle('realm', this.distance > 2200);
-    // which drawing of the territory shows: the systems close to, the houses in the middle distance, the realms from far off
-    if (this.terrLayers && this.terrLayers.mid) { const ss = (a, b, v) => { const q = Math.max(0, Math.min(1, (v - a) / (b - a))); return q * q * (3 - 2 * q); }; const far = ss(1900, 2500, this.distance), near = 1 - ss(620, 900, this.distance);
-      this.terrLayers.far.material.opacity = far; this.terrLayers.near.material.opacity = near; this.terrLayers.mid.material.opacity = Math.max(0, 1 - far - near); }
+    const t = this.clock.getElapsedTime(); this.nebula.material.uniforms.uTime.value = t; this.stars.material.uniforms.uTime.value = t; const wasSettled = this.settled();
+    const now = performance.now(), dt = Math.min(0.3, (now - (this.lastT || now)) / 1000); this.lastT = now; this.applyCamera(1 - Math.exp(-dt / 0.11));
+    const pr = this.renderer.getPixelRatio();
+    if (this.sys) { this.tickSystem(t); this.final.uniforms.uGlow.value = 0; this.composer.render(); this.labelRenderer.render(this.scene, this.camera); if ((this.miniTick = (this.miniTick || 0) + 1) % 6 === 0) { this.drawMinimap(); this.declutterSystem(); } return; }
+    // which drawing of the territory shows (7.2), and what the names and the systems show: far, the realms; the middle, the houses; close, the systems
+    const d = this.cur ? this.cur.d : this.distance, far = ss(1750, 2300, d), near = 1 - ss(560, 780, d), mid = Math.max(0, 1 - far - near);
+    if (this.terrMesh) { this.terrMesh.material.uniforms.uTier.value.set(far, mid, near); this.terrMesh.material.uniforms.uDpr.value = pr; }
+    if (this.starMat) { this.starMat.uniforms.uDpr.value = pr; this.starMat.uniforms.uGrow.value = d < 700 ? 1.25 : d > 2600 ? 0.8 : 1; }
+    if (this.laneMat) this.laneMat.uniforms.uDpr.value = pr;
+    const tier = d > 2000 ? 'far' : d < 680 ? 'near' : 'mid'; if (tier !== this.tier) { this.tier = tier; const lr = this.labelRenderer.domElement; lr.classList.toggle('tier-far', tier === 'far'); lr.classList.toggle('tier-mid', tier === 'mid'); lr.classList.toggle('tier-near', tier === 'near'); this.relabel = true; this.tierChanged = true; }
+    const show = d < 650; if (show !== this.detailsOn) { this.detailsOn = show; for (const g of this.details) g.visible = show; }
+    if (show) { this.objects.traverse(o => { if (o.userData.spin) o.rotation.y = t * o.userData.spin; }); this.dirty = true; }
+    // a map that is still is drawn a few times a second (the nebula drifts slowly), not twenty: the rest of the page keeps the machine
+    if (!this.dirty && !this.relabel && !this.tierChanged && wasSettled && now - (this.lastRender || 0) < 250) return;
+    this.dirty = false; this.lastRender = now;
+    this.glowComposer.render(); this.final.uniforms.tGlow.value = this.glowComposer.readBuffer.texture; this.final.uniforms.uGlow.value = 1;
     this.composer.render(); this.labelRenderer.render(this.scene, this.camera);
-    if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0) { this.drawMinimap(); this.declutter(); }
+    // the names are placed when the camera stops, and again when the interface moves
+    const settled = this.settled(); if (!settled) this.moving = true;
+    if ((settled && (this.moving || this.relabel)) || this.tierChanged || (!settled && now - (this.lastDeclutter || 0) > 700)) { if (settled) { this.moving = false; this.relabel = false; } this.tierChanged = false; this.lastDeclutter = now; this.declutter(); }
+    if (settled && this.keepZoom && performance.now() - this.keepZoom > 800) { this.keepZoom = 0; try { localStorage.setItem('praetoria.map.zoom.' + (this.model?.key || ''), String(Math.round(this.distance))); } catch { /* the zoom is not kept */ } }
+    if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0 || !wasSettled) this.drawMinimap();
   }
   // ---------------- the close map of one solar system (docs/SYSTEMS.md, "The close map") ----------------
   // The Reach is hidden and the system is drawn where it lies, large: its sun, each thing on its own orbit where it is this year,
   // the belt, the gates where its lanes leave toward the neighbours they lead to, and who is in it. The chart comes from the game
   // (SystemCharts.For); nothing about where a thing is is decided here.
   applyMode() {
-    const inside = !!this.sys; this.objects.visible = !inside; for (const l of this.labels) l.visible = !inside; if (inside && this.tip) this.tip.visible = false;
-    if (this.sysGroup) this.sysGroup.visible = inside;
-    this.labelRenderer.domElement.classList.toggle('in-system', inside);
+    const inside = !!this.sys; this.objects.visible = !inside; for (const l of this.labels) l.visible = !inside; if (inside) this.hideTip();
+    if (this.sysGroup) this.sysGroup.visible = inside; this.bloom.enabled = inside;
+    this.labelRenderer.domElement.classList.toggle('in-system', inside); this.miniBase = null;
   }
-  // how much of the map lies under the window at the left, the list at the right and the bar on top: what is looked at is put in the middle of the rest
-  insets() {
-    const host = this.renderer.domElement.getBoundingClientRect(); let L = 0, R = 0, T = 0;
-    const shown = e => e && getComputedStyle(e).display !== 'none' && e.getBoundingClientRect().width > 0;
-    const side = document.querySelector('.map-side:not(.idle)'), rail = document.querySelector('.rail'), out = document.querySelector('.outliner'), bar = document.querySelector('.topbar');
-    if (shown(side)) L = side.getBoundingClientRect().right - host.left; else if (shown(rail)) L = rail.getBoundingClientRect().right - host.left;
-    if (shown(out)) R = host.right - out.getBoundingClientRect().left; if (shown(bar)) T = bar.getBoundingClientRect().bottom - host.top;
-    return { L: Math.max(0, L), R: Math.max(0, R), T: Math.max(0, T), W: host.width || 800, H: host.height || 500 };
-  }
+  // how much of the map lies under the window at the left, the list at the right and the bar on top (the free map, as js/shell.js tells it)
+  insets() { const f = this.freeRect(); return { L: f.x0, R: f.W - f.x1, T: f.y0, W: f.W, H: f.H }; }
   // put a circle of the map (its centre and its radius) in the middle of what can be seen, as large as will fit
   frame(cx, cy, radius) {
     const i = this.insets(), tanH = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)), visW = Math.max(240, i.W - i.L - i.R), visH = Math.max(240, i.H - i.T);
-    const d = Math.max(radius * i.H / (visW * tanH), radius * i.H / (visH * tanH) * 1.16), wpp = 2 * d * tanH / i.H;
-    this.frameOff = { x: -(i.L - i.R) / 2 * wpp, y: i.T / 2 * wpp }; this.target.set(cx + this.frameOff.x, cy + this.frameOff.y, 0); this.distance = d; this.updateCamera(); return d;
+    const d = Math.max(radius * i.H / (visW * tanH), radius * i.H / (visH * tanH) * 1.16);
+    // the camera's view offset already puts the look-at point in the middle of the free map, so the circle's centre is the target
+    this.frameOff = { x: 0, y: 0 }; this.target.set(cx, cy, 0); this.distance = d; this.updateCamera(); return d;
   }
   sysFit() { return this.frame(this.sysAt.x, this.sysAt.y, this.sys.edge * 1.34); }   // the gates' names stand outside the edge, and are to be read
   clearSystem() {
@@ -684,7 +1049,7 @@ export class Galaxy {
     const lr = this.labelRenderer.domElement, fitD = this.sysFitD || this.sys.edge * 3; lr.classList.toggle('sys-far', this.distance > fitD * 1.15); lr.classList.toggle('sys-near', this.distance < fitD * 0.55); lr.classList.toggle('sys-world', this.focused != null);
   }
 
-  dispose() { this.disposed = true; this.resizeObserver.disconnect(); try { this.clearSystem(); this.setModel(null); this.renderer.dispose(); } catch { /* a renderer whose context is gone may not tidy up cleanly */ } this.renderer.domElement.remove(); this.labelRenderer.domElement.remove(); }
+  dispose() { this.disposed = true; this.resizeObserver.disconnect(); try { this.clearSystem(); this.setModel(null); this.renderer.dispose(); } catch { /* a renderer whose context is gone may not tidy up cleanly */ } this.renderer.domElement.remove(); this.labelRenderer.domElement.remove(); this.tipEl?.remove(); }
 }
 
 function esc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -700,7 +1065,7 @@ window.praetoriaSpace = {
     const { container, dotnet, model, mini, selected } = old; const target = old.target.clone(), distance = old.distance, tilt = old.tilt, tries = (old.rebuilt || 0) + 1;
     const keep = { sys: old.sys, galCam: old.galCam }; old.dispose(); old.sys = keep.sys; old.galCam = keep.galCam; this.galaxies.delete(id);
     let g; try { g = new Galaxy(container, dotnet); } catch { return false; }   // the browser will give no context at all: the screens still work without the map
-    g.rebuilt = tries; if (tries < 4) g.onGiveUp = () => this.rebuild(id); this.galaxies.set(id, g);
+    g.rebuilt = tries; if (tries < 4) g.onGiveUp = () => this.rebuild(id); this.galaxies.set(id, g); g.homeSet = true;
     if (model) { g.setSelection(selected); g.setModel(model); }
     if (old.sys) { g.setSystem(old.sys); g.galCam = old.galCam; }
     g.target.copy(target); g.distance = distance; g.tilt = tilt; g.updateCamera(true); if (mini) g.setMinimap(mini);
@@ -711,6 +1076,8 @@ window.praetoriaSpace = {
   setSystem(id, json) { const g = this.galaxies.get(id); if (!g) return false; g.setSystem(json ? JSON.parse(json) : null); return true; },
   zoom(id, f) { this.galaxies.get(id)?.zoom(f); }, home(id) { this.galaxies.get(id)?.home(); }, fit(id) { this.galaxies.get(id)?.fit(); }, focus(id, x, y) { this.galaxies.get(id)?.focus(x, y); },
   minimap(id, canvas) { this.galaxies.get(id)?.setMinimap(canvas); },
+  /** js/shell.js: the rectangles of the screen the interface covers (the docked window, the bar, the rail, the outliner, the console, the alerts, the toasts). */
+  cover(c) { lastCover = c; for (const g of this.galaxies.values()) g.setCover(c); },
   // pick a system as a click on it would, and look at it close to: for the keyboard, and for the scripts in tools/browser (the first map when no id is given)
   select(systemId, id) { const g = id ? this.galaxies.get(id) : [...this.galaxies.values()][0]; if (!g || !g.model) return false; const s = g.model.systems.find(x => x.id === systemId || x.name === systemId); if (!s) return false; g.dotnet?.invokeMethodAsync('OnPick', 'system', s.id); g.focus(s.x, s.y); return s.id; },
   destroy(id) { const g = this.galaxies.get(id); if (g) { g.dispose(); this.galaxies.delete(id); } }
