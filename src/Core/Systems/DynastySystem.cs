@@ -22,6 +22,15 @@ public sealed class DynastySystem
     public const string RegentFlag = "regent";          // the adult ruling in a child head's name
     public const string ParvenuFlag = "parvenu";        // the old blood looks down on this house
     public const string ComeOfAgeFlag = "came_of_age";  // set the turn a child turns 16 (content clears)
+    /// <summary>Marks of a year, for the player's house only (docs/events/family.md): a child is born to the house or to one of it, a
+    /// child of the house is six and the schoolroom begins, one of the house is sixteen. Raised as the year turns and cleared the year
+    /// after, like every other mark; the persons are found by their age.</summary>
+    public const string BornFlag = "born_to_the_house", SchoolingFlag = "schooling_begins", KinOfAgeFlag = "kin_came_of_age";
+    /// <summary>A child born to a child of the head (born or adopted), for as long as the birth is news: a sibling of the head bound by
+    /// blood in a scenario is not a child of the head, and the parents' ids say which is which where a bond cannot.</summary>
+    public const string GrandchildChar = "grandchild_of_the_head";
+    private static readonly string[] DeedFlags = { BornFlag, SchoolingFlag, KinOfAgeFlag };
+    private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     public const int ElderAge = 60;                     // from here the body forgets: every fifth year the sharpest skill dulls
 
     public const int MortalityAge = 50;   // below this, natural death isn't rolled (no RNG drawn)
@@ -46,11 +55,15 @@ public sealed class DynastySystem
     /// Call once per turn. RNG is drawn only where a life actually turns (deaths, births).</summary>
     public void Tick(World world, IRng rng)
     {
+        foreach (var f in DeedFlags) if (world.WorldFlags.Contains(f) && world.Counter("mark:" + f) < world.Turn - 1) { world.WorldFlags.Remove(f); world.WorldCounters.Remove("mark:" + f); }
+        if (!world.WorldFlags.Contains(BornFlag)) foreach (var c in world.Characters.Values) c.Flags.Remove(GrandchildChar);
+        string ours = world.Protagonist?.HouseId ?? "";
         foreach (var c in world.Characters.Values.OrderBy(c => c.Id, StringComparer.Ordinal))
         {
             if (!c.Alive) continue;
             c.Age++;
-            if (c.Age == AgeOfMajority) ComeOfAge(world, c, rng);
+            if (c.Age == AgeOfMajority) { ComeOfAge(world, c, rng); if (c.HouseId == ours && c.Id != world.ProtagonistId) Mark(world, KinOfAgeFlag); }
+            if (c.Age == EducationSystem.SchoolAge && c.HouseId == ours && c.Id != world.ProtagonistId) Mark(world, SchoolingFlag);
             if (c.Age >= ElderAge && c.Age % 5 == 0) Decline(world, c);
             TickStress(world, c);
         }
@@ -334,6 +347,7 @@ public sealed class DynastySystem
         var lineParent = motherKeeps ? mother : father;
         var house = world.House(lineParent.HouseId);
         if (lineParent.HouseId == world.Protagonist?.HouseId) world.WorldCounters["dynasty_births"] = world.Counter("dynasty_births") + 1;   // the saga's own count
+        if (world.Protagonist is { } mine && (lineParent.HouseId == mine.HouseId || mother.HouseId == mine.HouseId || father.HouseId == mine.HouseId)) Mark(world, BornFlag);   // a grandchild born under another name is news too
         string sex = rng.NextDouble() < 0.5 ? "male" : "female";
         // someone taken into a house keeps their own name, and so do their children
         string surname = HouseholdSystem.IsFound(lineParent) && lineParent.Name.Contains(' ') ? lineParent.Name[(lineParent.Name.LastIndexOf(' ') + 1)..] : (house?.Name ?? lineParent.HouseId).Replace("House ", "");
@@ -361,6 +375,7 @@ public sealed class DynastySystem
             BornHouseId = HouseholdSystem.IsFound(lineParent) ? lineParent.BornHouseId : ""   // born into the household, not into the blood
         };
         world.Characters[child.Id] = child; CourtSystem.Born(world, child);
+        if (world.Protagonist is { } grand && new[] { mother, father }.Any(x => x.Id != grand.Id && (x.MotherId == grand.Id || x.FatherId == grand.Id || x.AdoptedById == grand.Id))) child.Flags.Add(GrandchildChar);
         house?.Members.Add(child.Id);
 
         foreach (var parent in new[] { mother.Id, father.Id })
