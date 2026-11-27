@@ -46,7 +46,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   check(standing.some(x => builtName && x.startsWith(builtName)), 'it shows on its body: ' + standing.join(', '));
   await page.screenshot({ path: shots + '/system-built.png' });
   // infrastructure: the system's own, a level at a time
-  await page.evaluate(() => { const t = [...document.querySelectorAll('.sys-tabs .rung')].find(x => x.innerText.trim().toLowerCase().startsWith('infrastructure')); if (t) t.click(); }); await page.waitForTimeout(700);
+  await page.evaluate(() => { const t = [...document.querySelectorAll('.sys-tabs .rung, .sys-tabs .ui-tab')].find(x => x.innerText.trim().toLowerCase().startsWith('infrastructure')); if (t) t.click(); }); await page.waitForTimeout(700);
   const tracks = await page.evaluate(() => [...document.querySelectorAll('.sysp-work.infra')].map(x => x.querySelector('.sw-head b').innerText + ' ' + x.querySelectorAll('.lv i.on').length + '/' + x.querySelectorAll('.lv i').length));
   check(tracks.length >= 4, 'infrastructure tracks: ' + tracks.join(', '));
   const laidOk = await page.evaluate(() => { const b = [...document.querySelectorAll('.sysp-work.infra button.opt')].find(x => !x.disabled); if (b) { b.click(); return true; } return false; }); await page.waitForTimeout(1000);
