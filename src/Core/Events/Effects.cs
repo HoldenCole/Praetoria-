@@ -420,7 +420,10 @@ public sealed class TakeInEffect : IEffect
     {
         var w = ctx.World; var p = w.Protagonist; var c = ctx.Actor(Role); if (p == null || c is not { Alive: true } || c.HouseId == p.HouseId) return;
         string kind = c.Age < Systems.DynastySystem.AgeOfMajority ? Systems.HouseholdSystem.Ward : As == Systems.HouseholdSystem.Ward ? Systems.HouseholdSystem.Companion : As;
-        if (w.House(p.HouseId) is { } h && Systems.HouseholdSystem.Found(w, h.Id).Count < Systems.HouseholdSystem.Room(h) && !w.AtWar(h.Id, c.HouseId)) Systems.HouseholdSystem.TakeIn(w, p, c, kind);
+        // the head of another house, or one married into it, does not leave it for a place in yours; nor anyone into a full household
+        // or from a house at war with yours. The chronicle says they did not come, so the asking is not read as a taking
+        if (Systems.HouseholdSystem.HardRefusal(w, p, c) != null) { w.Log($"{c.Name} thanked {p.Name} for the offer of a place in the household, and stayed with {w.House(c.HouseId)?.Name ?? "their own house"}."); return; }
+        Systems.HouseholdSystem.TakeIn(w, p, c, kind);
     }
 }
 

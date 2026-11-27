@@ -51,7 +51,7 @@ public sealed class FamilySystem
     {
         var posted = w.Fleets.Values.Select(f => f.AdmiralId).Concat(w.Holdings.Values.Select(h => h.GovernorId)).Where(id => id.Length > 0).ToHashSet();
         List<Character> Willing() => w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != p.Id && c.Age >= DynastySystem.CareerStartAge && !posted.Contains(c.Id)
-            && !c.Flags.Contains(DynastySystem.HiddenFlag) && !c.Flags.Contains(DefiantFlag) && (w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) >= DefyBelow).ToList();
+            && !c.Flags.Contains(DynastySystem.HiddenFlag) && !c.Flags.Contains(DefiantFlag) && !FleetSystem.Captive(c) && (w.GetRelationship(c.Id, p.Id)?.Disposition ?? 0) >= DefyBelow).ToList();   // a prisoner of war takes up no post
         bool Waited(string key, bool vacant)
         {
             key = "vacant:" + key;

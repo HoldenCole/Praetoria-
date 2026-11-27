@@ -22,6 +22,9 @@ public sealed class DynastySystem
     public const string RegentFlag = "regent";          // the adult ruling in a child head's name
     public const string ParvenuFlag = "parvenu";        // the old blood looks down on this house
     public const string ComeOfAgeFlag = "came_of_age";  // set the turn a child turns 16 (content clears)
+    /// <summary>One who comes of age bound for a service that neither parent was in: they chose their own road (a_life_of_their_own,
+    /// docs/events/family.md). For the year they come of age; the next, they are of age like anyone.</summary>
+    public const string OwnRoadChar = "chose_own_road";
     /// <summary>Marks of a year, for the player's house only (docs/events/family.md): a child is born to the house or to one of it, a
     /// child of the house is six and the schoolroom begins, one of the house is sixteen. Raised as the year turns and cleared the year
     /// after, like every other mark; the persons are found by their age.</summary>
@@ -62,6 +65,7 @@ public sealed class DynastySystem
         {
             if (!c.Alive) continue;
             c.Age++;
+            if (c.Age > AgeOfMajority) c.Flags.Remove(OwnRoadChar);
             if (c.Age == AgeOfMajority) { ComeOfAge(world, c, rng); if (c.HouseId == ours && c.Id != world.ProtagonistId) Mark(world, KinOfAgeFlag); }
             if (c.Age == EducationSystem.SchoolAge && c.HouseId == ours && c.Id != world.ProtagonistId) Mark(world, SchoolingFlag);
             if (c.Age >= ElderAge && c.Age % 5 == 0) Decline(world, c);
@@ -180,6 +184,7 @@ public sealed class DynastySystem
         }
         bool wasHidden = c.Flags.Remove(HiddenFlag);
         c.Flags.Add(ComeOfAgeFlag);
+        if (c.CareerTrack.Length > 0 && parents.Any(p => p.CareerTrack.Length > 0) && parents.All(p => p.CareerTrack != c.CareerTrack)) c.Flags.Add(OwnRoadChar);
         world.Log($"{c.Name} comes of age{(wasHidden ? ", home from fostering" : "")} — {string.Join("/", c.NatureTraits)}{(c.AptitudeTraits.Count > 0 ? $" ({string.Join("/", c.AptitudeTraits)})" : "")}, bound for {Content?.Careers.ById(c.CareerTrack)?.Name ?? c.CareerTrack}.");
     }
 

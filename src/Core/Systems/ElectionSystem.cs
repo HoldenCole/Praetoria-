@@ -162,6 +162,7 @@ public static class ElectionSystem
     {
         var consuls = ConsulOffices(offices).ToList(); if (consuls.Count == 0) return;
         var mine = w.Protagonist?.HouseId; w.WorldCounters.Remove(OwedKey);
+        foreach (var c in w.Characters.Values) c.Flags.Remove(DinedChar);   // a new term: who sat at the last consul's table is old news
         var nominees = Nominees(w, offices, weight); var tally = Tally(w, offices, weight, nominees);
         var winners = tally.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(consuls.Count).ToList();
         foreach (var d in consuls) if (OfficeSystem.Holding(w, d.Id) is { } old) { if (old.HouseId == mine) w.WorldFlags.Add("consul_lost"); OfficeSystem.Strip(w, d, "the term ends", false); }
@@ -183,6 +184,10 @@ public static class ElectionSystem
         w.WorldCounters["elections"] = w.Counter("elections") + 1; w.WorldFlags.Add("election_held"); w.WorldCounters["mark:election_held"] = w.Turn;   // marked, so the year's reports of it come in its year (docs/events/votes.md)
         w.Log($"The Senate elects its consuls: {string.Join(", ", winners.Select((kv, i) => $"{w.House(kv.Key)?.Name ?? kv.Key} ({kv.Value}) as {consuls[Math.Min(i, consuls.Count - 1)].Name}"))}.{(nominees.Count > winners.Count ? " Also standing: " + string.Join(", ", tally.Where(kv => winners.All(x => x.Key != kv.Key)).OrderByDescending(kv => kv.Value).Select(kv => $"{w.House(kv.Key)?.Name ?? kv.Key} ({kv.Value})")) + "." : "")}");
     }
+
+    /// <summary>A consul at whose table the player was seen at the start of the term (the_consul_elects_feast): once in the term they
+    /// let a motion of the player's house stand that they would have struck with the veto.</summary>
+    public const string DinedChar = "dined_with_you";
 
     /// <summary>A consul's veto: the motion is struck before the vote. Once a term.</summary>
     public static bool MayVeto(World w, OfficeCatalog offices, string houseId) => EmergencySystem.MayVeto(w, houseId) ??
@@ -211,6 +216,8 @@ public static class ElectionSystem
                 bool against = def.Target == "house" && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0) && (m.TargetId == h.HouseId || (party != null && m.TargetId == party.LeaderHouseId));
                 bool undoes = def.Law && party != null && party.Laws.TryGetValue(m.LawId, out var line) && line != m.LawOption && senate.Policies.Law(m.LawId) is { } ld && (PolicySystem.ReachOption(w, senate.Policies, ld) ?? ld.DefaultOption).Id == line;
                 if (!against && !undoes) continue;
+                if (m.ProposerHouseId == mine && w.House(h.HouseId) is { } ch && Economy.HeadOf(w, ch) is { } guest && guest.Flags.Remove(DinedChar))
+                { w.Log($"{guest.Name}, as {d.Name}, lets {w.House(mine!)?.Name ?? "your house"}'s motion stand unstruck. They remember who came to their table."); continue; }
                 Veto(w, offices, h.HouseId, m);
                 w.Log($"{w.House(h.HouseId)?.Name ?? h.HouseId}, as {d.Name}, vetoes: {senate.Describe(w, m)}");
                 break;

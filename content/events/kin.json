@@ -36,8 +36,8 @@
             {
               "type": "age",
               "role": "child",
-              "op": "lte",
-              "value": 1
+              "op": "eq",
+              "value": 0
             },
             {
               "type": "bond",
@@ -190,7 +190,7 @@
       "id": "a_grandchild_is_born",
       "tier": "situation",
       "weight": 35,
-      "repeatable": false,
+      "repeatable": true,
       "roles": [
         {
           "name": "grandchild",
@@ -251,6 +251,12 @@
           "type": "worldFlag",
           "flag": "born_to_the_house",
           "value": true
+        },
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "had_a_grandchild",
+          "value": false
         }
       ],
       "choices": [
@@ -269,8 +275,14 @@
               "delta": 8
             },
             {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "had_a_grandchild",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "{self.name} went to see {grandchild.name}, the first grandchild, on the day."
+              "text": "{self.name} went to see {grandchild.name}, newly born, on the day."
             }
           ]
         },
@@ -302,8 +314,14 @@
               "delta": 5
             },
             {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "had_a_grandchild",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "{self.name} sent a gift from the house for {grandchild.name}, the first grandchild."
+              "text": "{self.name} sent a gift from the house for {grandchild.name}, newly born."
             }
           ]
         },
@@ -311,15 +329,21 @@
           "id": "send_your_blessing",
           "effects": [
             {
-              "type": "adjustResource",
-              "resource": "influence",
-              "delta": 1
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
             },
             {
               "type": "adjustRelationship",
               "from": "parent",
               "to": "self",
               "delta": -3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "had_a_grandchild",
+              "value": true
             },
             {
               "type": "log",
@@ -501,7 +525,7 @@
             },
             {
               "type": "log",
-              "text": "{in_law.name}'s tutor has come to teach {child.name} in your house."
+              "text": "{in_law.name}'s tutor has come to {self.house} to teach {child.name}."
             }
           ]
         },
@@ -1107,6 +1131,13 @@
               "role": "helper",
               "op": "gte",
               "value": 16
+            },
+            {
+              "type": "relationship",
+              "from": "helper",
+              "to": "fallen",
+              "op": "gte",
+              "value": 5
             }
           ]
         }
@@ -1576,7 +1607,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {spouse.name} it was for their own house to speak for them."
+              "text": "{self.name} told {spouse.name} it was for their own family to speak for them."
             }
           ]
         },
@@ -1780,6 +1811,12 @@
               "role": "kid",
               "flag": "fostered",
               "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "kid",
+              "flag": "chose_own_road",
+              "value": true
             }
           ]
         }
@@ -1961,7 +1998,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kid.name} they had been wrong about them."
+              "text": "{self.name} told {kid.name}, in so many words, that {self.name} had been wrong about them."
             }
           ]
         },
@@ -2602,12 +2639,12 @@
             {
               "type": "setCharFlag",
               "role": "keeper",
-              "flag": "defiant",
+              "flag": "slighted",
               "value": true
             },
             {
               "type": "log",
-              "text": "{self.name} broke the promise of the seat to {keeper.name}, who will not wait quietly."
+              "text": "{self.name} broke the promise of the seat to {keeper.name}, who will not forget it."
             }
           ]
         }
@@ -2630,7 +2667,7 @@
             {
               "type": "charFlag",
               "role": "sibling",
-              "flag": "passed_over",
+              "flag": "passed_over_at_the_will",
               "value": true
             },
             {
@@ -2725,7 +2762,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave {sibling.name} a seat at the house's counsel."
+              "text": "{self.name} kept {sibling.name} close after the reading, and asked their advice."
             }
           ]
         },
@@ -2842,7 +2879,7 @@
               "type": "resource",
               "resource": "credits",
               "op": "gte",
-              "value": 4
+              "value": 5
             }
           ],
           "effects": [
@@ -2855,7 +2892,7 @@
             {
               "type": "adjustResource",
               "resource": "credits",
-              "delta": -4
+              "delta": -5
             },
             {
               "type": "adjustRelationship",

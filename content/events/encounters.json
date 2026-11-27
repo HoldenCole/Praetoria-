@@ -97,9 +97,9 @@
           "id": "ask_how_their_house_stands",
           "effects": [
             {
-              "type": "adjustResource",
+              "type": "adjustSkill",
               "role": "self",
-              "resource": "influence",
+              "skill": "intrigue",
               "delta": 1
             },
             {
@@ -196,6 +196,12 @@
               "role": "enemy",
               "flag": "old_enemy",
               "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "enemy",
+              "vsRole": "self",
+              "value": false
             }
           ]
         }
@@ -230,7 +236,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} crossed the room and offered {enemy.name} a hand. After eight years, {enemy.name} took it."
+              "text": "{self.name} crossed the room and offered {enemy.name} a hand. After all those years, {enemy.name} took it."
             }
           ]
         },
@@ -300,10 +306,10 @@
           ],
           "effects": [
             {
-              "type": "adjustResource",
+              "type": "adjustSkill",
               "role": "self",
-              "resource": "influence",
-              "delta": 2
+              "skill": "intrigue",
+              "delta": 1
             },
             {
               "type": "adjustRelationship",
@@ -727,6 +733,11 @@
               "delta": 4
             },
             {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
               "type": "log",
               "text": "{veteran.name} of {veteran.house} told {self.name} how the old battles were won, and {self.name} listened."
             }
@@ -753,7 +764,10 @@
               "type": "log",
               "text": "{veteran.name} of {veteran.house} speaks well of {self.name} in the wardrooms now, and the wardrooms listen."
             }
-          ]
+          ],
+          "cost": {
+            "influence": 1
+          }
         },
         {
           "id": "ask_them_to_join_the_household",
@@ -785,6 +799,12 @@
               "type": "adjustStress",
               "role": "self",
               "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "veteran",
+              "to": "self",
+              "delta": 2
             },
             {
               "type": "log",
@@ -999,7 +1019,7 @@
               "role": "self",
               "resource": "credits",
               "op": "gte",
-              "value": 10
+              "value": 8
             }
           ],
           "effects": [
@@ -1088,7 +1108,7 @@
     {
       "id": "the_venture_comes_home",
       "tier": "situation",
-      "weight": 12,
+      "weight": 35,
       "repeatable": true,
       "roles": [
         {
@@ -1104,7 +1124,7 @@
               "type": "wealth",
               "role": "grandee",
               "op": "gte",
-              "tier": "rich"
+              "tier": "opulent"
             },
             {
               "type": "atWar",
@@ -1114,7 +1134,13 @@
           ]
         }
       ],
-      "when": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "price_spike",
+          "value": true
+        }
+      ],
       "choices": [
         {
           "id": "take_your_share",
@@ -1200,7 +1226,7 @@
     {
       "id": "the_venture_goes_down",
       "tier": "situation",
-      "weight": 15,
+      "weight": 35,
       "repeatable": true,
       "roles": [
         {
@@ -1219,12 +1245,17 @@
                   "type": "wealth",
                   "role": "grandee",
                   "op": "lte",
-                  "tier": "comfortable"
+                  "tier": "rich"
                 },
                 {
                   "type": "atWar",
                   "role": "grandee",
                   "present": true
+                },
+                {
+                  "type": "worldFlag",
+                  "flag": "price_slump",
+                  "value": true
                 }
               ]
             }
@@ -1506,6 +1537,12 @@
               "delta": 4
             },
             {
+              "type": "adjustResource",
+              "role": "debtor",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
               "type": "adjustRelationship",
               "from": "debtor",
               "to": "self",
@@ -1520,6 +1557,15 @@
             {
               "type": "log",
               "text": "{debtor.name} of {debtor.house} paid {self.name} 400 credits, and the favour was settled."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "role": "debtor",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
             }
           ]
         },
@@ -1801,14 +1847,29 @@
               "delta": 3
             },
             {
+              "type": "adjustResource",
+              "role": "envoy",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
               "type": "adjustRelationship",
               "from": "envoy",
               "to": "self",
-              "delta": 5
+              "delta": -3
             },
             {
               "type": "log",
-              "text": "{envoy.house} paid {self.name} 300 credits to mend things between the houses."
+              "text": "{envoy.house} paid {self.name} 300 credits to mend things between the houses, and did not like paying it."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "role": "envoy",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
             }
           ]
         },

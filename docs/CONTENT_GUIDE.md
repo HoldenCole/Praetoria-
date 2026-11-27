@@ -220,7 +220,7 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `addBond` | `from`, `to`, `bond: blood\|sworn\|marriage`, `strength`(default 50) | forge/upgrade a bond (strength 0..100; one bond per directed edge) |
 | `adjustSkill` | `role`, `skill`, `delta` | change a skill level |
 | `adjustStress` | `role`, `delta` | change stress (clamped 0..100) |
-| `adjustCounter` | `key`, `delta` | change a world counter (gate accumulator / clock) |
+| `adjustCounter` | `key`, `delta` | change a world counter (gate accumulator / clock). The choice's chips show it only for `estate_offset:<estate>` ("the Commons +4") and `public_trust` ("trust in the magistrates +1"); any other counter the player does not see, so say it in the choice's text |
 | `addTrait` | `role`, `trait`, `kind: nature\|aptitude`(default aptitude) | grant a trait |
 | `advanceCareer` | `role` | +1 career rank, capped at the top rung of the track's ladder in `/content/careers` |
 | `adjustResource` | `role`(default `self`), `resource`, `delta` | move a house-treasury resource (Credits may go negative; others clamp ≥0) |
@@ -234,10 +234,10 @@ Used in a choice's `effects` array. Applied in order when the choice is taken.
 | `courtship` | `role`(optional), `favour`, `consent`, `rival` | move a suit of the protagonist's house: the one for the person bound to `role`, or every suit the protagonist presses (docs/MARRIAGE.md) |
 | `marriage` | `role`(default `self`), `warmth` | warm or cool that character's marriage |
 | `beginCourtship` | `suitor`(default `self`), `target`, `favour` | begin a courtship if nothing bars it, with a head start in favour |
-| `takeIn` | `role`, `as`(ward, protege, companion) | bring that character into the protagonist's household (docs/HOUSEHOLD.md); a child always comes as a ward |
+| `takeIn` | `role`, `as`(ward, protege, companion) | bring that character into the protagonist's household (docs/HOUSEHOLD.md); a child always comes as a ward. Nobody comes who is the head of their own house, married into another, of a house at war with yours, or into a full household (`HouseholdSystem.HardRefusal`); the chronicle then says they stayed |
 | `setUpbringing` | `role`, `course`(arms, forum, counting, or empty) | set the course a child of the house is brought up on (docs/EDUCATION.md) |
 | `setTitle` | `role`(default `self`), `title` | set the house's title outright — grant / usurp / abdicate (GDD §13) |
-| `kill` | `role` | kill a character — assassination / duel / Bloody Event; if it's the protagonist, succession fires (GDD §14) |
+| `kill` | `role` | kill a character — assassination / duel / Bloody Event; if it's the protagonist, succession fires (GDD §14). The choice's chips say "{name} is killed" |
 | `log` | `text` | write a chronicle line (supports `{role.field}` tokens) |
 
 **The flag/counter levers are how unscripted storylines chain.** A choice in event A arms a flag/raises

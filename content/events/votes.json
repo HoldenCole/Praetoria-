@@ -1,5 +1,5 @@
 {
-  "//": "VOTES (docs/events/votes.md): the Senate's votes and the elections, before, during and after. Of the Republic only (era imperium absent). They read the marks VoteMarks writes: moves_a_motion, moves_against_you and undecided_on_yours on the docket, my_motion_open; voted_with_you and voted_against_you at the count of the player's motion; abstention_noticed with noticed_your_abstention; bribe_out with took_your_purse; act_went_against_houses with act_went_against_them; beat_yours_at_the_count and lost_to_yours_at_the_count at the ladder's count; and the engine's own motion_open, motion_passed_mine, motion_against_me, election_held, consul_elected, ladder_election_held, standing_for_office, office:consul_*, trust_is_low, public_trust. Threads: owes_you_a_vote and bought_your_vote (a_vote_for_a_vote, then a_bought_vote_called_in); grudge_against_you (those_who_voted_against_you, then an_old_grudge_on_the_docket); pamphlet_war (a_smear_after_the_election, then the_pamphlet_scandal); met_as_colleague (your_colleague_the_consul, once a colleague).",
+  "//": "VOTES (docs/events/votes.md): the Senate's votes and the elections, before, during and after. The ladder's and the consuls' reports are of the Republic only (era imperium absent); the reports of the Senate's floor come in either era, since the chamber sits under the Imperium too. They read the marks VoteMarks writes: moves_a_motion, moves_against_you and undecided_on_yours on the docket, my_motion_open; voted_with_you and voted_against_you at the count of the player's motion; abstention_noticed with noticed_your_abstention; bribe_out with took_your_purse; act_went_against_houses with act_went_against_them; beat_yours_at_the_count and lost_to_yours_at_the_count at the ladder's count; and the engine's own motion_open, motion_passed_mine, motion_against_me, election_held, consul_elected, ladder_election_held, standing_for_office, office:consul_*, trust_is_low, public_trust. Threads: owes_you_a_vote, made a favour owed each way at the next session by VoteMarks.Bargains, and promised_your_vote, made one owed by your house (a_vote_for_a_vote, a_bought_vote_called_in); bought_your_vote (a_vote_for_a_vote, then a_bought_vote_called_in); grudge_against_you (those_who_voted_against_you, then an_old_grudge_against_your_motion or an_old_grudge_on_the_docket); lost_at_the_count (the one of yours who lost, for the_one_who_won_the_office); dined_with_you (the_consul_elects_feast: the consul once lets a motion of yours stand that they would veto); pamphlet_war (a_smear_after_the_election, then the_pamphlet_scandal); met_as_colleague (your_colleague_the_consul, once a colleague).",
   "events": [
     {
       "id": "a_vote_for_a_vote",
@@ -15,6 +15,12 @@
               "role": "senator",
               "flag": "moves_a_motion",
               "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "senator",
+              "flag": "moves_against_you",
+              "value": false
             },
             {
               "type": "relationship",
@@ -45,11 +51,6 @@
           "value": true
         },
         {
-          "type": "era",
-          "era": "imperium",
-          "present": false
-        },
-        {
           "type": "turn",
           "op": "gte",
           "value": 3
@@ -78,7 +79,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave {senator.name} of {senator.house} a vote for a vote. Each house has the other's word."
+              "text": "{self.name} gave {senator.name} of {senator.house} a vote for a vote. Each house owes the other one now, and the chamber will see whether both are paid."
             }
           ]
         },
@@ -98,6 +99,13 @@
               "trait": "Just",
               "kind": "nature",
               "present": false
+            },
+            {
+              "type": "resource",
+              "role": "senator",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
             }
           ],
           "effects": [
@@ -105,6 +113,12 @@
               "type": "adjustResource",
               "resource": "credits",
               "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "role": "senator",
+              "resource": "credits",
+              "delta": -4
             },
             {
               "type": "adjustLegitimacy",
@@ -175,11 +189,6 @@
           "type": "worldFlag",
           "flag": "motion_open",
           "value": true
-        },
-        {
-          "type": "era",
-          "era": "imperium",
-          "present": false
         }
       ],
       "choices": [
@@ -204,8 +213,14 @@
               "value": false
             },
             {
+              "type": "setCharFlag",
+              "role": "buyer",
+              "flag": "promised_your_vote",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "{self.name} agreed to vote with {buyer.name} of {buyer.house} again, unpaid this time. The chamber has begun to count the house among theirs."
+              "text": "{self.name} told {buyer.name} of {buyer.house} the house would vote with them again, unpaid this time. They will be watching the count."
             }
           ]
         },
@@ -305,11 +320,6 @@
           "type": "worldFlag",
           "flag": "my_motion_open",
           "value": true
-        },
-        {
-          "type": "era",
-          "era": "imperium",
-          "present": false
         }
       ],
       "choices": [
@@ -449,11 +459,6 @@
           "type": "worldFlag",
           "flag": "abstention_noticed",
           "value": true
-        },
-        {
-          "type": "era",
-          "era": "imperium",
-          "present": false
         }
       ],
       "choices": [
@@ -598,11 +603,6 @@
           "type": "worldFlag",
           "flag": "motion_passed_mine",
           "value": true
-        },
-        {
-          "type": "era",
-          "era": "imperium",
-          "present": false
         }
       ],
       "choices": [
@@ -717,11 +717,6 @@
           "type": "worldFlag",
           "flag": "motion_passed_mine",
           "value": true
-        },
-        {
-          "type": "era",
-          "era": "imperium",
-          "present": false
         }
       ],
       "choices": [
@@ -847,11 +842,6 @@
           "type": "worldFlag",
           "flag": "motion_against_me",
           "value": true
-        },
-        {
-          "type": "era",
-          "era": "imperium",
-          "present": false
         }
       ],
       "choices": [
@@ -946,6 +936,147 @@
       ]
     },
     {
+      "id": "an_old_grudge_against_your_motion",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "grudge_against_you",
+              "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "rival",
+              "to": "self",
+              "op": "lte",
+              "value": 10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "my_motion_open",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "buy_them_off",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "grudge_against_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {rival.name} of {rival.house} six hundred credits' worth of reasons to let the old quarrel go before the vote. They took them."
+            }
+          ]
+        },
+        {
+          "id": "answer_them_on_the_floor",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "oratory",
+                  "op": "gte",
+                  "value": 2
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Orator",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "rival",
+              "flag": "grudge_against_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose before the vote and said what {rival.name} of {rival.house} was really voting on: an old quarrel, not the motion. The chamber heard it, and the quarrel is out in the open now."
+            }
+          ]
+        },
+        {
+          "id": "let_it_cost_you",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {rival.name} of {rival.house} speak against the motion in every corridor, and answered none of it."
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "the_senates_act_falls_on_a_friend",
       "tier": "situation",
       "weight": 30,
@@ -982,11 +1113,6 @@
           "type": "worldFlag",
           "flag": "act_went_against_houses",
           "value": true
-        },
-        {
-          "type": "era",
-          "era": "imperium",
-          "present": false
         }
       ],
       "choices": [
@@ -1083,11 +1209,6 @@
           "type": "worldFlag",
           "flag": "bribe_out",
           "value": true
-        },
-        {
-          "type": "era",
-          "era": "imperium",
-          "present": false
         }
       ],
       "choices": [
@@ -1198,6 +1319,12 @@
               "to": "kin",
               "bond": "blood",
               "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "kin",
+              "vsRole": "self",
+              "value": true
             }
           ]
         }
@@ -1480,6 +1607,11 @@
               "value": false
             },
             {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
               "type": "log",
               "text": "{self.name} called off the house's pamphleteer, and {accuser.name} of {accuser.house} called off theirs. The squares found something else to read."
             }
@@ -1539,8 +1671,13 @@
               "value": false
             },
             {
+              "type": "adjustLegitimacy",
+              "role": "accuser",
+              "delta": -2
+            },
+            {
               "type": "log",
-              "text": "{self.name} let the pamphleteers go on until they tired of it. The magistrates of the Reach were the poorer for it."
+              "text": "{self.name} let the pamphleteers go on until they tired of it. Neither house came out of it well, and {accuser.name}'s came out worse. The magistrates of the Reach were the poorer for it."
             }
           ]
         }
@@ -1559,6 +1696,23 @@
               "type": "charFlag",
               "role": "victor",
               "flag": "beat_yours_at_the_count",
+              "value": true
+            }
+          ]
+        },
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "lost_at_the_count",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "kin",
+              "vsRole": "self",
               "value": true
             }
           ]
@@ -1597,8 +1751,14 @@
               "delta": 2
             },
             {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -4
+            },
+            {
               "type": "log",
-              "text": "{self.name} went to congratulate {victor.name} of {victor.house} on the Senate steps, where the city could see it done."
+              "text": "{self.name} went to congratulate {victor.name} of {victor.house} on the Senate steps, where the city could see it done. {kin.name} saw it done too."
             }
           ]
         },
@@ -1625,8 +1785,24 @@
               "delta": -2
             },
             {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "victor",
+              "delta": -1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "public_trust",
+              "delta": -1
+            },
+            {
               "type": "log",
-              "text": "{self.name} had the count read again. It stood, as counts do. The house was seen to fight for its own, and {victor.name} of {victor.house} was seen to be doubted."
+              "text": "{self.name} had the count read again for {kin.name}. It stood, as counts do. The house was seen to fight for its own, and {victor.name} of {victor.house} was seen to be doubted."
             }
           ]
         },
@@ -1637,6 +1813,12 @@
               "type": "adjustStress",
               "role": "self",
               "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
             },
             {
               "type": "log",
@@ -1811,7 +1993,7 @@
     {
       "id": "the_consul_elects_feast",
       "tier": "situation",
-      "weight": 30,
+      "weight": 10,
       "repeatable": true,
       "roles": [
         {
@@ -1859,6 +2041,12 @@
               "delta": 1
             },
             {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "dined_with_you",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} dined with the Senate at the table of {grandee.name} of {grandee.house}, Senior Consul, and was seen there."
             }
@@ -1887,6 +2075,12 @@
               "delta": 10
             },
             {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "dined_with_you",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} sent a gift ahead to the table of {grandee.name} of {grandee.house}, and the table talked about it."
             }
@@ -1911,7 +2105,7 @@
               "type": "adjustRelationship",
               "from": "grandee",
               "to": "self",
-              "delta": -3
+              "delta": -8
             },
             {
               "type": "log",

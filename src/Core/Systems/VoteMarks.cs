@@ -19,7 +19,9 @@ public static class VoteMarks
     public const string PurseOutFlag = "bribe_out", PurseOutChar = "took_your_purse";
     public const string ActAgainstFlag = "act_went_against_houses", ActAgainstChar = "act_went_against_them";
     // the ladder's count, cleared with the ladder's own flag (LadderSystem.Tick)
-    public const string BeatYoursChar = "beat_yours_at_the_count", LostToYoursChar = "lost_to_yours_at_the_count";
+    public const string BeatYoursChar = "beat_yours_at_the_count", LostToYoursChar = "lost_to_yours_at_the_count", OursLostChar = "lost_at_the_count";
+    // a bargain struck in a report (a_vote_for_a_vote, a_bought_vote_called_in), made a favour owed at the next session (Bargains)
+    public const string VoteOwedChar = "owes_you_a_vote", VotePromisedChar = "promised_your_vote";
 
     private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar };
     private static readonly string[] SessionFlags = { AbstainedFlag, PurseOutFlag, ActAgainstFlag };
@@ -33,6 +35,22 @@ public static class VoteMarks
     {
         foreach (var f in SessionFlags) w.WorldFlags.Remove(f);
         foreach (var c in w.Characters.Values) foreach (var f in SessionChars) c.Flags.Remove(f);
+    }
+
+    /// <summary>A bargain made in a report becomes a favour owed, which the Senate already keeps (WealthSystem, "A gift that asks"),
+    /// before this session's motions are counted. A head marked <see cref="VoteOwedChar"/> gave their word for yours: their house owes
+    /// yours a vote (it leans for your next motion, and the favour is spent at its count), and yours owes theirs one (at the count of
+    /// their motion your vote is judged: for it, kept; anything else, broken). A head marked <see cref="VotePromisedChar"/> was only
+    /// told you would vote for their motion: yours owes theirs. The marks go once they are favours.</summary>
+    public static void Bargains(World w, string? mine)
+    {
+        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        {
+            bool both = c.Flags.Remove(VoteOwedChar); c.Flags.Remove(VotePromisedChar);
+            if (mine == null || !c.Alive || c.HouseId == mine || w.House(c.HouseId) == null || World.Outsider(c.HouseId)) continue;
+            WealthSystem.OweFor(w, mine, c.HouseId);
+            if (both) WealthSystem.OweFor(w, c.HouseId, mine);
+        }
     }
 
     /// <summary>Who has a motion on the docket, who moves against the player's house, and on the player's own motion who has not
@@ -93,6 +111,7 @@ public static class VoteMarks
         if (mine == null) return;
         bool oursLost = candidates.Any(c => c.HouseId == mine && !winners.Contains(c)), oursWon = winners.Any(c => c.HouseId == mine);
         if (oursLost) foreach (var c in winners.Where(c => c.HouseId != mine)) c.Flags.Add(BeatYoursChar);
+        if (oursLost && winners.Any(c => c.HouseId != mine)) foreach (var c in candidates.Where(c => c.HouseId == mine && !winners.Contains(c))) c.Flags.Add(OursLostChar);
         if (oursWon) foreach (var c in candidates.Where(c => c.HouseId != mine && !winners.Contains(c))) c.Flags.Add(LostToYoursChar);
     }
 
@@ -100,6 +119,6 @@ public static class VoteMarks
     public static void ClearLadder(World w)
     {
         if (w.HasFlag(LadderSystem.HeldFlag)) return;
-        foreach (var c in w.Characters.Values) { c.Flags.Remove(BeatYoursChar); c.Flags.Remove(LostToYoursChar); }
+        foreach (var c in w.Characters.Values) { c.Flags.Remove(BeatYoursChar); c.Flags.Remove(LostToYoursChar); c.Flags.Remove(OursLostChar); }
     }
 }

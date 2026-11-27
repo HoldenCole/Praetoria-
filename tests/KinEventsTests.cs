@@ -78,7 +78,7 @@ public class KinEventsTests
     // ---------------- births and children ----------------
 
     [Fact]
-    public void TheNamingOfAChild_IsTheFirstChildOfTheMarriage_AndComesOncePerSpouse()
+    public void TheNamingOfAChild_IsAChildOfTheMarriage_AndComesOncePerSpouse()
     {
         World Born() { var w = Base(); Child(w, "babe", 0); w.WorldFlags.Add(DynastySystem.BornFlag); return w; }
         EveryChoice("the_naming_of_a_child", Born, (w, b, choice) =>
@@ -100,7 +100,11 @@ public class KinEventsTests
             var babe = Add(w, Mine, "grandbabe", 0); babe.FatherId = son.Id; Blood(w, son.Id, babe.Id); babe.Flags.Add(DynastySystem.GrandchildChar);
             w.WorldFlags.Add(DynastySystem.BornFlag); return w;
         }
-        EveryChoice("a_grandchild_is_born", Born, (w, b, _) => { Assert.Equal("son", b.Resolve("parent")); Assert.Equal("grandbabe", b.Resolve("grandchild")); Assert.False(IsEligible(w, "a_grandchild_is_born")); });
+        EveryChoice("a_grandchild_is_born", Born, (w, b, _) =>
+        {
+            Assert.Equal("son", b.Resolve("parent")); Assert.Equal("grandbabe", b.Resolve("grandchild")); Assert.False(IsEligible(w, "a_grandchild_is_born"));   // once for each head
+            w.Protagonist!.Flags.Remove("had_a_grandchild"); Assert.True(IsEligible(w, "a_grandchild_is_born"));          // a new head, who has not had one, has theirs
+        });
         // the sister's child is blood of one bound to the head by blood, and no grandchild
         var w2 = Base(50); var niece = Add(w2, Mine, "niece", 0); niece.MotherId = Sister; Blood(w2, Sister, niece.Id); w2.WorldFlags.Add(DynastySystem.BornFlag);
         Assert.False(IsEligible(w2, "a_grandchild_is_born"));
@@ -157,7 +161,10 @@ public class KinEventsTests
     [Fact]
     public void ALifeOfTheirOwn_IsTheYearTheyTurnSixteen_AndTheDoubtComesBackWhenTheyHaveWhatTheyWanted()
     {
-        World Sixteen() { var w = Base(); var c = Child(w, "kid", 16); c.Flags.Add(DynastySystem.ComeOfAgeFlag); w.WorldFlags.Add(DynastySystem.KinOfAgeFlag); return w; }
+        World Sixteen() { var w = Base(); var c = Child(w, "kid", 16); c.Flags.Add(DynastySystem.ComeOfAgeFlag); c.Flags.Add(DynastySystem.OwnRoadChar); w.WorldFlags.Add(DynastySystem.KinOfAgeFlag); return w; }
+        Assert.False(IsEligible(Sixteen(), "the_coming_of_age"));                                                   // one coming-of-age card for one child of sixteen
+        var parentsRoad = Sixteen(); parentsRoad.Char("kid")!.Flags.Remove(DynastySystem.OwnRoadChar);
+        Assert.False(IsEligible(parentsRoad, "a_life_of_their_own")); Assert.True(IsEligible(parentsRoad, "the_coming_of_age"));   // their parents' road is the old card's
         EveryChoice("a_life_of_their_own", Sixteen, (w, b, choice) =>
         {
             var kid = Who(w, b, "kid"); Assert.Equal("kid", kid.Id); Assert.DoesNotContain(DynastySystem.ComeOfAgeFlag, kid.Flags);
@@ -194,7 +201,7 @@ public class KinEventsTests
         World Failed()
         {
             var w = Base(45); var a = Child(w, "fallen", 24); a.Flags.Add(AmbitionSystem.FailedChar); a.Flags.Add("stood_together"); Child(w, "helper", 21).Flags.Add("stood_together");
-            w.WorldFlags.Add(AmbitionSystem.FailedFlag); return w;
+            w.Relationship("helper", "fallen").Disposition = 10; w.WorldFlags.Add(AmbitionSystem.FailedFlag); return w;
         }
         EveryChoice("kin_stand_together", Failed, (w, b, _) =>
         {
@@ -206,6 +213,7 @@ public class KinEventsTests
         thwarted.WorldFlags.Remove(AmbitionSystem.FailedFlag); thwarted.WorldFlags.Add(AmbitionSystem.ThwartedFlag); Assert.True(IsEligible(thwarted, "kin_stand_together"));
         var stale = Failed(); stale.WorldFlags.Remove(AmbitionSystem.FailedFlag); Assert.False(IsEligible(stale, "kin_stand_together"));
         var alone = Failed(); alone.Char("helper")!.Flags.Remove("stood_together"); Assert.False(IsEligible(alone, "kin_stand_together"));
+        var cold = Failed(); cold.Relationship("helper", "fallen").Disposition = -5; Assert.False(IsEligible(cold, "kin_stand_together"));   // one who does not think well of them is not the one who came
     }
 
     // ---------------- the spouse and the in-laws ----------------
@@ -319,14 +327,17 @@ public class KinEventsTests
     }
 
     [Fact]
-    public void TheDayYouNamed_KeepsTheWordOrMakesTheKeeperDefiant()
+    public void TheDayYouNamed_KeepsTheWordOrLeavesTheKeeperSlighted_ThroughTheYearsTurn()
     {
         EveryChoice("the_day_you_named", () => Ill(61, "promised_the_seat"), (w, b, choice) =>
         {
             var keeper = Who(w, b, "keeper");
             Assert.Equal(choice == "keep_your_word", w.ProtagonistId == keeper.Id);
             Assert.Equal(choice == "one_more_year", keeper.Flags.Contains("promised_the_seat"));
-            Assert.Equal(choice == "break_it", keeper.Flags.Contains(FamilySystem.DefiantFlag));
+            Assert.Equal(choice == "break_it", keeper.Flags.Contains("slighted"));
+            if (choice != "break_it") return;
+            // the family's own turn strikes out a defiance a regard of nought or more does not hold; a slight it leaves for the_slighted_kinsman
+            w.FamilyAutonomy = 1; new FamilySystem().Tick(w); Assert.Contains("slighted", keeper.Flags); Assert.True(IsEligible(w, "the_slighted_kinsman"));
         });
         var hale = Ill(61, "promised_the_seat"); hale.WorldFlags.Remove(LifeSystem.IllFlag); Assert.False(IsEligible(hale, "the_day_you_named"));
         var aged = Ill(68, "promised_the_seat"); aged.WorldFlags.Remove(LifeSystem.IllFlag); Assert.True(IsEligible(aged, "the_day_you_named"));
@@ -337,10 +348,35 @@ public class KinEventsTests
     [Fact]
     public void TheReadingOfTheWill_IsForThosePassedOver_OnceEach()
     {
-        World Read() { var w = Base(30); var s = w.Char(Sister)!; s.Flags.Add("passed_over"); w.Relationship(Sister, Me).Disposition = -5; w.WorldFlags.Add(WealthSystem.WillReadFlag); return w; }
+        World Read() { var w = Base(30); var s = w.Char(Sister)!; s.Flags.Add(WealthSystem.PassedOverAtWillChar); w.Relationship(Sister, Me).Disposition = -5; w.WorldFlags.Add(WealthSystem.WillReadFlag); return w; }
+        var older = Read(); var aunt = older.Char(Sister)!; aunt.Flags.Remove(WealthSystem.PassedOverAtWillChar); aunt.Flags.Add("passed_over");
+        Assert.False(IsEligible(older, "the_reading_of_the_will"));                                              // passed over at some older succession is not this reading
         EveryChoice("the_reading_of_the_will", Read, (w, b, _) => { Assert.Equal(Sister, b.Resolve("sibling")); Assert.False(IsEligible(w, "the_reading_of_the_will")); });
         var fond = Read(); fond.Relationship(Sister, Me).Disposition = 40; Assert.False(IsEligible(fond, "the_reading_of_the_will"));   // one who thinks well of you does not need it
         var unread = Read(); unread.WorldFlags.Remove(WealthSystem.WillReadFlag); Assert.False(IsEligible(unread, "the_reading_of_the_will"));
+    }
+
+    [Fact]
+    public void TheWill_MarksTheGrownChildrenItPassedOver_ForAsLongAsItIsNews()
+    {
+        var w = Base(60); var me = w.Protagonist!; var heir = Child(w, "heir", 30); var other = Child(w, "other", 27); var small = Child(w, "small", 10);
+        WealthSystem.Inherit(w, me, heir);
+        Assert.True(w.HasFlag(WealthSystem.WillReadFlag));
+        Assert.Contains(WealthSystem.PassedOverAtWillChar, other.Flags); Assert.DoesNotContain(WealthSystem.PassedOverAtWillChar, heir.Flags); Assert.DoesNotContain(WealthSystem.PassedOverAtWillChar, small.Flags);
+        Assert.DoesNotContain(WealthSystem.PassedOverAtWillChar, w.Char(Sister)!.Flags);                         // the dead head's sister was not passed over by this will
+        w.Turn += 2; WealthSystem.Tick(w); Assert.False(w.HasFlag(WealthSystem.WillReadFlag)); Assert.DoesNotContain(WealthSystem.PassedOverAtWillChar, other.Flags);
+    }
+
+    [Fact]
+    public void OneWhoComesOfAge_BoundForAServiceNeitherParentWasIn_ChoseTheirOwnRoad_ForTheYear()
+    {
+        var w = Base(); w.Protagonist!.CareerTrack = "law"; w.Char(Spouse)!.CareerTrack = "law";
+        var own = Child(w, "own", 15); own.CareerTrack = ""; own.Skills["tactics"] = 3;            // brought up to arms, in a house of the law
+        var follows = Child(w, "follows", 15); follows.CareerTrack = "";
+        new DynastySystem { Content = Content }.Tick(w, new Fixed(0.9999));
+        Assert.Equal("military", own.CareerTrack); Assert.Contains(DynastySystem.OwnRoadChar, own.Flags);
+        Assert.Equal("law", follows.CareerTrack); Assert.DoesNotContain(DynastySystem.OwnRoadChar, follows.Flags);
+        w.Turn++; new DynastySystem { Content = Content }.Tick(w, new Fixed(0.9999)); Assert.DoesNotContain(DynastySystem.OwnRoadChar, own.Flags);   // of age a year, like anyone
     }
 
     [Fact]

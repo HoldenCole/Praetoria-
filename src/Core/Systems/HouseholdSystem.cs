@@ -95,6 +95,22 @@ public sealed partial class HouseholdSystem
         return (v, why);
     }
 
+    /// <summary>Why someone cannot be brought into the household at all, whatever they think of it, or null: the head of a house does
+    /// not leave it, one married into another house goes with that marriage, and nobody comes from a house at war with yours or into a
+    /// household with no room. A report that offers a place (the takeIn effect) is bound by these; the asking, by <see cref="TakeInRefusal"/>.</summary>
+    public static string? HardRefusal(World w, Character? head, Character? person)
+    {
+        if (head?.Alive != true || person?.Alive != true) return "no such person";
+        var ours = w.House(head.HouseId); if (ours == null) return "no house";
+        if (person.HouseId == ours.Id) return "already of your house";
+        if (World.Outsider(person.HouseId)) return "not from among the raiders";
+        if (w.House(person.HouseId) is { } theirs && Economy.HeadOf(w, theirs)?.Id == person.Id) return "the head of a house does not leave it";
+        if (DynastySystem.Spouse(w, person) is { } sp && sp.HouseId != ours.Id) return "they are married into another house";
+        if (w.AtWar(ours.Id, person.HouseId)) return "not while your houses are at war";
+        if (Found(w, ours.Id).Count >= Room(ours)) return $"the house cannot keep more than {Room(ours)} who are not of its blood";
+        return null;
+    }
+
     public static string? TakeInRefusal(World w, Character? head, Character? person, string kind)
     {
         if (head?.Alive != true || person?.Alive != true) return "no such person";

@@ -95,7 +95,8 @@ nobody of your house but one struck from it).
   - *Put in a word for them where it counts* (needs 1 influence): influence -1, their regard +12, and they owe you a favour
     (`owes_you_a_favour`, thread 2).
   - *Make an evening of the old stories*: stress -5, their regard +4.
-  - *Ask how their house stands*: influence +1, their regard -3 (they notice what you came for).
+  - *Ask how their house stands*: your intrigue +1, their regard -3 (they notice what you came for). Round 1: it gave influence
+    from nowhere; listening closely is a skill learned.
   - *Swear the old friendship again* (needs their regard 30 or more, and no sworn or blood bond between you either way): a sworn
     bond of 40 each way, their regard +6.
 - **Numbers.** 1 influence for a word, as *A Child with Nowhere to Go* charges to find a place. +12 is under *The Ranks That Won*
@@ -106,18 +107,22 @@ nobody of your house but one struck from it).
   again and again, and it feeds two threads.
 
 ### 2. An Old Enemy Across the Room (`an_old_enemy_across_the_room`)
-- **What happened.** Someone who has thought ill of you for eight years or more is at the same gathering.
+- **What happened.** Someone who has thought ill of you for years (eight at the least, `LifeSystem.OldTieYears`) is at the same
+  gathering. The text says "years", not "eight years": the enmity can be twenty years old.
 - **When it fires.** `has_old_enemy` is up (the engine raises it each year an old enemy lives) and the old enemy is bound by their
   mark. Situation, weight 0.85, repeatable. It is eligible every year one lives, so it is kept low.
-- **Roles.** `enemy`: char flag `old_enemy` (the engine's own mark, cleared and set again each year).
+- **Roles.** `enemy`: char flag `old_enemy` (the engine's own mark, cleared and set again each year), and not of your house
+  (`inLine` false, round 1: the engine marks old enemies inside the house too, and "across the room at another house's evening"
+  is not a relative).
 - **Choices.**
   - *Cross the room and offer your hand*: their regard +12, yours to them +8, stress +4 (it costs you something to do it).
   - *Hold their eye until they look away*: legitimacy +1, their regard -5, stress -2.
   - *Leave before it comes to words*: nothing changes.
-  - *Have someone stand near them all evening* (needs intrigue 3, or Schemer or Paranoid): influence +2, their regard -3.
+  - *Have someone stand near them all evening* (needs intrigue 3, or Schemer or Paranoid): your intrigue +1, their regard -3
+    (round 1: it gave 2 influence from nowhere).
 - **Numbers.** An old enemy is one at -40 or worse; they stop being one above -25. +12 is half the way back: two such evenings, or
-  one and time, end it. Legitimacy +1, the smallest step, for being seen unbowed. Influence +2 for what is overheard, like *Ask What
-  They Are Hearing* (+1) from a friend, doubled because an enemy says more.
+  one and time, end it. Legitimacy +1, the smallest step, for being seen unbowed. What is overheard teaches the trade (intrigue +1)
+  rather than paying in influence.
 - **How it differs.** *The Enemy Is Dead* is the death of one. This is one still alive, and the only report that can make an old
   enemy less of one.
 
@@ -144,7 +149,8 @@ nobody of your house but one struck from it).
 - **Choices.**
   - *Send a gift, and an end to it* (needs 400 credits): credits -4, their regard +15.
   - *Meet them with blades, to first blood* (Duelist only): legitimacy +2, their regard +5 (a fair fight is respected), stress +4.
-  - *Have it ended for good* (Ruthless or Cruel only): they die by your hand (`kill`, `by: self`), legitimacy -2, stress +6. Their
+  - *Have {envious} killed* (Ruthless or Cruel only; round 1: the label said "have it ended for good", and the chips did not
+    show a death; now it says the killing and the chips show "{name} is killed"): they die by your hand (`kill`, `by: self`), legitimacy -2, stress +6. Their
     house now holds blood against yours, and the feud reports take it from there (*A Death Counted Against Us*, the price, the
     challenge).
   - *Let them talk until they tire of it*: their regard -6, legitimacy -1.
@@ -160,10 +166,13 @@ nobody of your house but one struck from it).
 - **Roles.** `veteran`: on the navy's track, Captain or higher (rank 4), 58 or older, not commanding a fleet now (no `admiral`
   mark), `inLine` false against you.
 - **Choices.**
-  - *Ask how the old battles were won*: tactics +1, their regard +4.
-  - *Ask them to speak for you in the wardrooms* (needs their regard 10 or more): the officers' estate +4.
-  - *Ask them to join your household* (needs their regard 20 or more): they come as a companion if the household has room (`takeIn`).
-  - *Listen, and go home*: stress -3.
+  - *Ask how the old battles were won, and go over the plots with them till late*: tactics +1, their regard +4, your stress +2.
+  - *Ask them to speak for you in the wardrooms* (needs their regard 10 or more; 1 influence): the officers' estate +4.
+  - *Ask them to join your household* (needs their regard 20 or more): they come as a companion if the household has room and they
+    are free to come (`takeIn`, which now refuses the head of a house and one married into another), and the house keeps them.
+  - *Listen, and go home*: stress -3, their regard +2.
+  Round 1: every answer had been a gift with nothing given up. The lesson costs a late night, the word in the wardrooms costs the
+  year's influence, and the companion is a mouth the household feeds.
 - **Numbers.** A skill by 1, as *Inspect It* (*The Review of the Fleet*, also ambient). The officers +4 is under *Promise Hulls*
   (+5 for 500 credits): a word, not money. The household rules give the companion's regard and bond.
 - **The name.** Not "The Old Admiral": the veteran may be a Captain, and "officer" in a title opens the event on the Senate's painting
@@ -172,7 +181,7 @@ nobody of your house but one struck from it).
   wardrooms. It is the only report that brings a grown officer of another house into yours.
 
 ### 6. A Painter's Great Canvas (`a_painters_great_canvas`)
-- **What happened.** A painter of name has a public hall's great wall to fill with the houses of the Reach, and a rival of yours has
+- **What happened.** A famous painter has a public hall's great wall to fill with the houses of the Reach, and a rival of yours has
   already asked for the centre.
 - **When it fires.** Fourth year or later. Ambient, weight 0.3, repeatable.
 - **Roles.** `rival`: thinks -10 or worse of you, 25 or older, `inLine` false against you.
@@ -180,30 +189,34 @@ nobody of your house but one struck from it).
   - *Pay for the centre* (needs 600 credits): credits -6, legitimacy +2, their regard -8.
   - *Stand where the painter puts you*: nothing changes.
   - *Ask to stand beside them, as equals*: their regard +8, stress +2.
-  - *A purse for the painter, and they end up small at the back* (Schemer, or intrigue 3): credits -2, legitimacy +1, their regard -12.
+  - *Pay the painter to put them small, at the back* (Schemer, or intrigue 3; 200 credits): credits -2, legitimacy +1, their regard -12.
 - **Numbers.** 600 credits and +2 against *The Portrait*'s 400 and +1: a public wall is seen by more than a hall. The rival's -8 and
   -12: being moved aside in public stings; being made small stings more.
 - **How it differs.** *The Portrait* is once and private; this is public, repeatable, and about a rival.
 
-### 7. A Merchant Prince's Venture (`a_merchant_princes_venture`) (thread 3, step 1)
+### 7. A Great Merchant's Venture (`a_merchant_princes_venture`) (thread 3, step 1; retitled in round 1: the Republic has no princes)
 - **What happened.** Someone of one of the richest houses is raising a venture and wants partners with a name.
 - **When it fires.** Third year or later. Situation, weight 0.45, repeatable.
 - **Roles.** `grandee` (outside your house): of a house in the top sixth by wealth (`wealth` opulent), 30 or older, thinks no worse
   than -10 of you, not already holding your money.
 - **Choices.**
-  - *Put money in* (needs 1,000 credits): credits -8, their regard +6, and your stake is with them (`staked_by_you`).
+  - *Put money in* (800 credits): credits -8, their regard +6, and your stake is with them (`staked_by_you`). Round 1: it asked
+    for 1,000 in the treasury to put 800 in, so a player holding 900 saw an 800 stake refused.
   - *Lend your name to the charter, not your money*: credits +3, legitimacy -1.
   - *Ask to see how it is put together*: economics +1, their regard +2.
   - *Decline*: their regard -2.
 - **Numbers.** 800 credits in, 1,200 back (step 2): half as much again over the years it takes, against *Lend It on Terms*, where 1,500
-  lent to the in-laws buys 2 influence. +300 credits for a name, -1 legitimacy for selling it. The 1,000 credits asked of the treasury before 800 is put in
-  keeps the stake from emptying a poor house.
+  lent to the in-laws buys 2 influence. +300 credits for a name, -1 legitimacy for selling it.
 - **How it differs.** The existing money reports are your own house's troubles or an estate's gift. This is a bet on another
   house's fortune.
 
 ### 8. The Venture Comes Home (`the_venture_comes_home`) (thread 3, step 2a)
-- **When it fires.** Someone holds `staked_by_you`, their house is still rich or better (`wealth` rich), and not at war with yours.
-  Situation, weight 12, repeatable (each choice clears the mark).
+- **When it fires.** In a year of high prices on the Exchange (`price_spike`: some good at half again its base price), someone holds
+  `staked_by_you`, their house is still among the richest (`wealth` opulent), and not at war with yours. Situation, weight 35, as the
+  other second steps, repeatable (each choice clears the mark).
+- **Round 1.** It had weight 12 on no moment, and the house had only to stay rich, so the return came years late or never (in the
+  soak neither ending fired though the stake was taken) and, when it came, was nearly sure. Now it comes in a good market year, and
+  only while the house is still opulent: a real bet on the house and on the market.
 - **Choices.**
   - *Take your share*: credits +12.
   - *Take your share, and a place at their table*: credits +10, their regard +10.
@@ -213,8 +226,9 @@ nobody of your house but one struck from it).
   +5 for 300 credits, a little dearer because the city's poor are not the commons' feast.
 
 ### 9. The Venture Goes Down (`the_venture_goes_down`) (thread 3, step 2b)
-- **When it fires.** Someone holds `staked_by_you`, and either their house is no longer among the rich (comfortable or worse) or it
-  is at war with yours. Situation, weight 15, repeatable (each choice clears the mark). Weightier than 8 because it is news.
+- **When it fires.** Someone holds `staked_by_you`, and either their house has fallen from the richest (rich or worse), or it is at
+  war with yours, or it is a year of slumping prices (`price_slump`). Situation, weight 35, repeatable (each choice clears the mark).
+  A year with both a spike and a slump makes both endings eligible, and the Director draws one.
 - **Choices.**
   - *Write it off*: stress +2, their regard +10 (they will remember you did not press them).
   - *Press for what is owed*: credits +3, their regard -15.
@@ -227,10 +241,12 @@ nobody of your house but one struck from it).
 - **Roles.** `claimant` (outside your house): of a house with no world (`holding` of kind planet, none), 25 or older, not already
   owing you a favour.
 - **Choices.**
-  - *Lend them coin* (needs 300 credits): credits -3, their regard +12, the old blood +2, and they owe you a favour (thread 2).
-  - *Take them into your household*: they come as a companion if there is room (`takeIn`).
-  - *A kind word, and nothing more*: their regard +3.
+  - *Lend them 300 credits* (needs 300 credits): credits -3, their regard +12, the old blood +2, and they owe you a favour (thread 2).
+  - *Ask them to join your household*: they come as a companion if there is room and they are free to come (`takeIn`: a landless
+    claimant of 25 or more is often the head of what is left of their house, and the head of a house does not leave it).
+  - *Give them a kind word, and nothing more*: their regard +3.
   - *Turn them away*: their regard -8, the old blood -2.
+  Round 1: each label is an action, and the two that move the old blood say so.
 - **Numbers.** 300 credits: enough to keep up appearances for a season. The old blood ±2, the smallest estate step in the existing
   reports, for how the old names see a name helped or shut out.
 - **How it differs.** *The Empty Hall* (`situations.json`) is once, when a whole house has fallen and its people need a roof. This is
@@ -241,7 +257,9 @@ nobody of your house but one struck from it).
 - **Roles.** `debtor` (outside your house): char flag `owes_you_a_favour`.
 - **Choices.**
   - *Ask for their house's voice when you need it*: influence +2.
-  - *Ask for the coin back, and a little over*: credits +4, their regard -2.
+  - *Ask for 400 credits, and call it settled* (needs their house to have 400 credits): 400 credits from their treasury to yours,
+    their regard -2. Round 1: the label asked for "the coin back", though a classmate's favour lent no coin; and the money came from
+    nowhere.
   - *Ask nothing: it was never a debt*: their regard +12, legitimacy +1.
   - *Not yet. Keep it owed*: nothing; it can come again in a few years.
 - **Numbers.** Each answer gives back a little more than the first step spent: influence 2 for 1, 400 credits for 300.
@@ -252,7 +270,8 @@ nobody of your house but one struck from it).
 - **Roles.** `target`: you think -10 or worse of them, or they think -15 or worse of you; 25 or older; `inLine` false against you.
 - **Choices.**
   - *Buy it, and keep it* (needs 400 credits): credits -4, influence +2.
-  - *Buy it, and let it be known* (needs 400 credits): credits -4, their house's legitimacy -2, their regard -20.
+  - *Buy it, and let it be known* (needs 400 credits): credits -4, their house's legitimacy -2, their regard -20. The label says
+    their house's standing falls, with no number (round 1).
   - *Buy it, and send it to them unread* (needs 400 credits): credits -4, their regard +15.
   - *Send the seller away*: nothing.
 - **Numbers.** 400 credits, what *Double the Watch* costs in *A Death Counted Against Us*. -2 to another house's standing is the
@@ -267,10 +286,11 @@ nobody of your house but one struck from it).
 - **Roles.** `envoy` (outside your house): thinks -15 or worse of you, 30 or older, their house not at war with yours.
 - **Choices.**
   - *Come to an understanding, and give a little ground* (needs 1 influence): influence -1, their regard +15, yours to them +5.
-  - *Ask what their house will give to mend it*: credits +3, their regard +5.
+  - *Ask what their house will give to mend it* (needs their house to have 300 credits): 300 credits from their treasury to yours,
+    their regard -3: they paid, and resent it. Round 1: it was +5 regard and money from nowhere, better than every other answer.
   - *Let it be known that they came to you*: legitimacy +1, their regard -15.
   - *Hear them out, and promise nothing*: their regard -3.
-- **Numbers.** +15 for a concession, as a gift ends a quarrel. 300 credits for a peace they buy, the smallest money here. Legitimacy
+- **Numbers.** +15 for a concession, as a gift ends a quarrel. 300 credits for a peace they buy, the smallest money here, paid by them. Legitimacy
   +1 and -15 for making their asking public: you look strong and they look small.
 - **How it differs.** Not a war (*The Enemy's Envoy* is), and not your own envoy (the council's). A house that is not yet an enemy
   trying to keep it so.
@@ -287,7 +307,7 @@ nobody of your house but one struck from it).
   - *Say you have no time for it*: their regard -5.
 - **Numbers.** 1 influence for patronage, the word put in for a classmate.
 
-### 15. The One You Stood For (`the_one_you_stood_for`) (thread 4, step 2)
+### 15. The One You Backed (`the_one_you_stood_for`) (thread 4, step 2; retitled in round 1: "stood for" is the ladder's word)
 - **When it fires.** Someone holds `your_protege`, has reached their first rung (rank 1 or more) and is 23 or older. Situation,
   weight 12, repeatable (each choice clears the mark). Rivals climb a rung every nine years or so (`DynastySystem`), so it comes a
   few years after the first step.
@@ -301,8 +321,11 @@ nobody of your house but one struck from it).
 - **Numbers.** A bond of 50 is what a companion taken into the house gets, and more than the classmate's 40: this one was earned.
   Influence 2 back for 1 spent, as in the favour thread.
 
-### 16. Two Guests at Odds (`two_guests_at_odds`)
-- **What happened.** At your own dinner, two guests whose houses have blood between them, and one place of honour left.
+### 16. Two Guests at Your Feast (`two_guests_at_odds`)
+- **What happened.** At your own feast, one guest is held to blame for a death, and another who has not forgiven it is there too,
+  and one place of honour is left. Round 1: the text said the death was in the second guest's house, which the role does not check
+  (any guest who thinks -20 or worse of the first will do); it now says only that they have not forgiven it. The title opens the
+  card on the feast painting.
 - **When it fires.** Second year or later. Situation, weight 2, repeatable. It needs a person held to blame for a death between two
   other houses (`blood_on_their_hands`, the feud system's mark) and someone of the dead person's house who thinks -20 or worse of
   them. The binder fills roles in order and does not look ahead, so the rare one is bound first.
@@ -332,7 +355,7 @@ Read as a critic would, before building:
 - **The quarrel** first ended in a duel with a roll, which events cannot make. It ends in first blood only for a Duelist; the rest
   choose a gift, a killing, or letting it harden.
 
-## What the engine already marks (no Core change)
+## What the engine already marks
 
 - `has_old_enemy` (world flag) and `old_enemy` (char flag) are set each year by `LifeSystem.Tick` for anyone who has thought -40 or
   worse of you for eight years (`OldTieYears`); both are cleared and set again each year, so the person is always marked while the
@@ -342,8 +365,9 @@ Read as a critic would, before building:
   house is set 30 worse against them (`KinRegard`), so *Two Guests at Odds* always has a second guest when it has a first.
 - A `kill` with `by: self` opens a blood debt (`FeudSystem.Blood`), which is how *The Quarrel Comes to a Head* feeds the feud.
 - `wealth` is a house's rank among all houses by wealth (`Wealth.TierFor`): opulent is the top sixth, rich the top four in ten.
-- `takeIn` follows the household rules: nothing happens if the household is full or the houses are at war, and the household's own
-  line in the chronicle says who came.
+- `takeIn` follows the household rules (round 1: `HouseholdSystem.HardRefusal`): nobody comes into a full household, from a house at
+  war with yours, as the head of their own house, or married into another; the chronicle says who came, or who thanked you and
+  stayed. This is the one Core change this file needed: the take-in choices could pull another house's head into yours.
 
 ## Measured: the soak
 
@@ -390,3 +414,21 @@ token.
 act as the head they began with. Any new report that binds a person changes the year's draws, and with this file the old head dies
 at 70 in that seed, so the tests acted as a dead man ("no one to ask", "no house"). They now act as whoever holds the seat, which is
 what they meant. Nothing else outside the four files changed.
+
+## Round 1 of review (2026-11-27)
+
+- The test file's `EveryChoice` now asks, for each choice, that the report is one the engine gathers in that world and that the
+  people the test chose are ones the binder could cast (alive, found, grown, of another house for an outsider's part, holding each
+  part's conditions and the event's): the binding the test builds by hand is checked against the binder's own filters.
+- Money paid by another house now leaves that house's treasury (the favour's 400, the word off the record's 300).
+- Influence from nowhere is gone: the classmate and the old enemy teach intrigue instead.
+- The venture settles in a year the market makes news, at the weight of a second step, and its stake asks only what it takes.
+- The take-in choices obey the household's hard refusals.
+- Words: the classmate's "passed out", the old enemy's "eight years", the veteran's "of your house", the painter, the merchant, the
+  house without lands, the favour, the secret, the one you backed, the two guests.
+
+### Measured after round 1
+
+The soak after review (22 games, 7,843 reports) passed. This file took 190 reports (2.4%), fifteen of its sixteen kinds. The stake
+was taken this time and `the_venture_goes_down` fired twice; `the_venture_comes_home` did not (it needs a stake, then a year of high
+prices while the house is still opulent), and its test covers it.

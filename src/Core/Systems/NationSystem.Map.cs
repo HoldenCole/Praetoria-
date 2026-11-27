@@ -32,7 +32,10 @@ public sealed partial class NationSystem
     }
     private static void ClearMarks(World w)
     {
-        foreach (var f in w.WorldFlags.Where(f => MapFlags.Contains(f.Contains(':') ? f[..f.IndexOf(':')] : f) && w.Counter("mark:" + f) < w.Turn).ToList()) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
+        // the end of a war is news for a year longer: a war that ends after the year's briefing (a peace the player makes, a vote of the
+        // Senate) is read at the next one, not struck out before it (docs/events/war.md)
+        static string Base(string f) => f.Contains(':') ? f[..f.IndexOf(':')] : f;
+        foreach (var f in w.WorldFlags.Where(f => MapFlags.Contains(Base(f)) && w.Counter("mark:" + f) < w.Turn - (Base(f) == WarOverFlag ? 1 : 0)).ToList()) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         if (!w.HasFlag("world_sacked")) foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(SackerChar))) c.Flags.Remove(SackerChar);
     }
     /// <summary>Count something once for the Reach and once for the nation it concerns ("key:nation"), so each nation on the map can be measured.</summary>

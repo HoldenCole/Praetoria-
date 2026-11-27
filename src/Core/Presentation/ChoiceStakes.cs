@@ -11,6 +11,7 @@ namespace Praetoria.Core.Presentation;
 public static class ChoiceStakes
 {
     private static string Signed(int n) => (n > 0 ? "+" : "−") + Math.Abs(n);
+    private const string EstatePrefix = "estate_offset:";
     private static string Op(CompareOp op) => op.ToString().ToLowerInvariant() switch { "gte" or "ge" => "at least", "gt" => "more than", "lte" or "le" => "at most", "lt" => "less than", "eq" => "exactly", "neq" or "ne" => "not", _ => "at least" };
 
     /// <summary>What the choice does to the player's house and person, as far as its effects say: "−5 materials · −200 credits · legitimacy +2".</summary>
@@ -47,6 +48,15 @@ public static class ChoiceStakes
                     break;
                 }
                 case GrantClaimEffect g when Mine(g.Role): parts.Add("a claim to a higher rank"); break;
+                // what an estate thinks of the player's house, and the Reach's trust in its magistrates: counters, but ones the player
+                // watches on the Laws screen and the ladder's panel, so a choice that moves them says so (docs/events/war.md and votes.md)
+                case AdjustCounterEffect cnt when cnt.Delta != 0 && cnt.Key.StartsWith(EstatePrefix, StringComparison.Ordinal):
+                {
+                    string id = cnt.Key[EstatePrefix.Length..]; string name = ctx.Content?.Policies.Estates.FirstOrDefault(x => x.Id == id)?.Name ?? id.Replace('_', ' ');
+                    parts.Add((name.StartsWith("The ", StringComparison.Ordinal) ? "the " + name[4..] : name) + " " + Signed(cnt.Delta)); break;
+                }
+                case AdjustCounterEffect trust when trust.Delta != 0 && trust.Key == Systems.LadderSystem.TrustKey: parts.Add("trust in the magistrates " + Signed(trust.Delta)); break;
+                case KillEffect kill when ctx.Actor(kill.Role) is { } dead && dead.Id != player.Id: parts.Add(dead.Name + " is killed"); break;
             }
         var money = Resource.All.Where(k => sums.GetValueOrDefault(k) != 0).Select(k => (sums[k] > 0 ? "+" : "−") + Money.Of(k, Math.Abs(sums[k])) + " " + Resource.Label(k)).ToList();
         if (sums.GetValueOrDefault(Resource.Coin) is var coin && coin != 0) money.Add((coin > 0 ? "+" : "−") + Money.Coin(Math.Abs(coin)));   // single credits (docs/MONEY.md): not one of Resource.All

@@ -589,7 +589,7 @@ public static class ProvinceSystem
             if (p.Levied || p.LevyLost || rules.LevySquadron <= 0 || sender == null || Dues(w, cat, planet, i).IsEmpty()) continue;
             if (w.Fleets.ContainsKey(id)) { p.Levied = true; continue; }
             if (enemies.Any(e => LeanUnder(w, senderId, e) > 0 || e == senderId)) continue;   // it sends no ships against a house it also holds a province under
-            var officer = w.Characters.Values.Where(c => c.HouseId == senderId && c.Alive && c.Age >= 18 && c.Id != Economy.HeadOf(w, sender)?.Id && !w.Fleets.Values.Any(f => f.AdmiralId == c.Id) && !CaesarSystem.Barred(w, c))   // not one in exile, or barred from command
+            var officer = w.Characters.Values.Where(c => c.HouseId == senderId && c.Alive && c.Age >= 18 && c.Id != Economy.HeadOf(w, sender)?.Id && !w.Fleets.Values.Any(f => f.AdmiralId == c.Id) && !CaesarSystem.Barred(w, c) && !FleetSystem.Captive(c))   // not one in exile, barred from command, or a prisoner of war
                 .OrderByDescending(c => c.Skill("tactics") + c.Skill("leadership")).ThenBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
             string of = sender.Name.StartsWith("House ", StringComparison.Ordinal) ? sender.Name[6..] : sender.Name;
             w.Fleets[id] = new Fleet { Id = id, Name = "The " + of + " Levy", OwnerId = planet.OwnerId, LevyOf = senderId, AdmiralId = officer?.Id ?? "", SystemId = planet.SystemId, HomeSystemId = planet.SystemId,

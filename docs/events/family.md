@@ -1,8 +1,8 @@
 # Family: the events of births, children, the spouse, illness, old age and the will
 
 The owner asked for "some events for family events". These sixteen reports are about the people of your own family as people with
-minds of their own: the first child of a marriage and what it is called, a first grandchild, a child of six whom the other family
-asks to raise, a child of sixteen who has chosen a road, two of your blood when one has what the other wanted, a marriage marked
+minds of their own: a child of a marriage and what it is called, a grandchild, a child of six whom the other family
+asks to raise, a child of sixteen who has chosen a road neither parent took, two of your blood when one has what the other wanted, a marriage marked
 every tenth year, a spouse passed over in their own service, a spouse whose family is at war with yours, the one who kept the
 house while you were ill and who then asks you to stand aside, those passed over at the reading of a will, and someone who left
 the household unpaid and says why.
@@ -19,15 +19,16 @@ wrong, and you cannot change it. The one who kept the house asks you to stand as
 Read before writing: `life.json`, `household.json`, `found_family.json`, `courtship.json`, `matches.json`, `succession.json`,
 `ambitions.json`, `education.json`, `wealth.json`, `feud.json`, `echoes.json`, `court.json`.
 
-- Births. Nothing reads a birth. *The Nurse at the Cradle* (`court.json`) needs a nurse in the house and is about her. Here the
-  first child of a marriage is named, and the first grandchild is born.
+- Births. Nothing reads a birth. *The Nurse at the Cradle* (`court.json`) needs a nurse in the house and is about her. Here a
+  child of a marriage is named, once a marriage, and a grandchild is born, once for each head.
 - Children. *Not Made For It* and *Far Ahead of Their Years* (`education.json`) read how a child takes to lessons; *A Child with
   Nowhere to Go* (`found_family.json`, 2.2% of all reports in the baseline) takes in somebody else's child. Here it is the mirror:
   the other family asks for yours, and the engine's fostering (`hidden`, which only *The Defiant Kin* used, for a grown relative)
   is used for a child, who comes home at sixteen.
 - Coming of age. *Coming of Age* (`household.json`) offers the Academy, home or a command, to anyone who has ever come of age.
-  *A Life of Their Own* comes the year a child of yours turns sixteen, says which service they have chosen, and replaces it for that
-  child (it clears `came_of_age`).
+  *A Life of Their Own* comes the year a child of yours turns sixteen bound for a service neither parent was in
+  (`chose_own_road`, round 1), and only for them; *Coming of Age* no longer binds that child in that year, so one child of sixteen
+  has one coming-of-age card. The rest, who follow a parent's road, are *Coming of Age*'s, as before these reports.
 - Siblings. *Two of Yours Want One Thing* (`ambitions.json`) is the quarrel over a prize before it is won. *Left Behind* is after:
   one has it and another of your blood has not. *What They Wanted* is about the one who has it and you; nothing was about the
   other.
@@ -39,7 +40,8 @@ Read before writing: `life.json`, `household.json`, `found_family.json`, `courts
 - Old age. *The Physicians' Verdict* (frail, once), *The Abdication* (a set-piece by title), *The Elder at the Table* (after you
   retire). Here the family itself asks, after holding the house while you were ill, and a promise to stand aside comes back.
 - The will. *The Will Is Read* (`wealth.json`) is for one the will left half the purse or more. *The Reading of the Will* is for
-  those the law passed over at the same reading (the engine marks them `passed_over` and turns them against the new head).
+  those the law passed over at the same reading (round 1: the engine marks them `passed_over_at_the_will` for as long as the reading
+  is news; the older `passed_over` lay on anyone ever passed over, at any succession or for a career).
 - The household. *The Household Goes Unpaid* is the year the house cannot pay. *A Household Scandal* is the one who left over it
   and what they say in the city.
 
@@ -48,14 +50,16 @@ Read before writing: `life.json`, `household.json`, `found_family.json`, `courts
 1. **The fostered child** (two steps). *The Other Family Asks for the Child* (at six) may send a child of yours to be raised by
    your spouse's family (`hidden`, `fostered`). The year they turn sixteen and come home, *The Fostered Child Comes Home*.
 2. **The one who was left behind** (two steps, and one into existing content). *Left Behind* may tell two of your blood to stand
-   together (`stood_together` on both); when one of them fails or is thwarted, *Blood Stands by Blood* comes. Or it takes the side
+   together (`stood_together` on both); when one of them fails or is thwarted, *Blood Stands by Blood* comes, with the other as
+   the helper only if they think 5 or better of the fallen one (round 1: any two marked would do). Or it takes the side
    of the one who has it, and the other is `slighted`, which *The Slighted Kinsman* (`succession.json`) already answers.
 3. **The road they chose** (two steps). *A Life of Their Own* may say it is the wrong road (`doubted_by_the_head`). When that child
    has what they wanted, *You Were Wrong About Them*.
 4. **The one who kept the house** (three steps, and two into existing content). *While You Were Ill* may leave the house's work with
    one of your people (`kept_the_house`). When you are old and failing, *They Ask You to Stand Aside*: you may lay the house down
    to them, promise a day (`promised_the_seat`), or refuse (`slighted`, to *The Slighted Kinsman*). A promise comes back as *The
-   Day You Named*, where breaking it makes them `defiant` (to *A Will of Their Own*, `household.json`).
+   Day You Named*, where breaking it leaves them `slighted` (to *The Slighted Kinsman*). It made them `defiant`, which the family's
+   own turn strikes out that same year from anyone whose regard is 0 or more, so the thread almost never reached a report (round 1).
 
 Nine of the sixteen are in a thread; seven stand alone.
 
@@ -88,9 +92,11 @@ Director reads only those for the five-fold weight of fresh news.
 ## The events
 
 ### 1. The Naming of a Child (`the_naming_of_a_child`)
-- **What happened.** A child is born to you and your spouse, the first of the marriage to be named before the house.
+- **What happened.** A child is born to you and your spouse, and is to be named before the house. The text makes no claim to the
+  first child (round 1: nothing checked it, and a couple that start a game as parents had their next child called their first).
 - **Fires when.** `born_to_the_house` (Core, a year), a `spouse` (married to you) who is not yet marked `named_a_child`, and a
-  `child` of one year or less of your blood and theirs and of your house (`inLine`). Repeatable, once a marriage; weight 30.
+  newborn `child` (age 0; round 1: it was one year or less, so a cousin's birth could bring the card for last year's child) of your
+  blood and theirs and of your house (`inLine`). Repeatable, once a marriage; weight 30.
 - **Choices.**
   - *A naming feast the city hears of* (needs 800 credits): credits -8, legitimacy +2, warmth +3.
   - *A name from {spouse}'s family*: warmth +8, the spouse's regard +6.
@@ -102,14 +108,15 @@ Director reads only those for the five-fold weight of fresh news.
 - **Nearest.** *The Nurse at the Cradle* is about the nurse; nothing else reads a birth.
 
 ### 2. A Grandchild Is Born (`a_grandchild_is_born`)
-- **What happened.** Your first grandchild is born.
+- **What happened.** A grandchild is born. The text makes no claim to the first (round 1).
 - **Fires when.** `born_to_the_house`, a `grandchild` of one year or less marked `grandchild_of_the_head` (Core: born to a child of
   yours, by the parents' ids, so that a brother or sister bound to you by blood in a scenario does not make a niece a grandchild),
-  and a `parent` of your blood and your house, of the grandchild's blood. Once a game; weight 35.
+  and a `parent` of your blood and your house, of the grandchild's blood. Once for each head (round 1: it was once a game; now
+  repeatable while the head lacks `had_a_grandchild`, which every choice sets on them); weight 35.
 - **Choices.**
   - *Go to them yourself, today*: stress -8, the parent's regard +8.
   - *A gift from the house worthy of it* (needs 500 credits): credits -5, legitimacy +1, the parent's regard +5.
-  - *Send your blessing, and keep to your work*: influence +1, the parent's regard -3.
+  - *Send your blessing, and keep to your work*: your stress -2, the parent's regard -3 (round 1: it gave influence from nowhere).
 - **Numbers.** -8 stress is *An Old Friend*'s evening; 500 credits is a gift, and +1 legitimacy is what the house is seen to gain by
   a line that goes on.
 - **Nearest.** None.
@@ -219,8 +226,9 @@ Director reads only those for the five-fold weight of fresh news.
 ### 10. A Life of Their Own (`a_life_of_their_own`)
 - **What happened.** A child of your blood is sixteen and has put their name down for a service (the report names the first rank:
   a Cadet, a Clerk, an Aspirant).
-- **Fires when.** `kin_came_of_age`, and a `kid` of exactly sixteen of your blood and house, with `came_of_age`, not `fostered`.
-  Repeatable; weight 30.
+- **Fires when.** `kin_came_of_age`, and a `kid` of exactly sixteen of your blood and house, with `came_of_age` and `chose_own_road`
+  (Core, round 1: bound for a service neither parent was in), not `fostered`. Repeatable; weight 30, kept: it now comes for a few
+  children of sixteen, not all of them, so the old card has the rest back.
 - **Choices.**
   - *Give them your blessing before the house*: regard +10.
   - *Write to someone you know in that service* (1 influence): a step in rank for them, regard +6.
@@ -228,7 +236,10 @@ Director reads only those for the five-fold weight of fresh news.
   - *Say it is the wrong road for them*: regard -10, their stress +8, marked `doubted_by_the_head`.
   All four clear `came_of_age`.
 - **Numbers.** +10 and -10 as *Coming of Age* (+15) and *Their Study Is Their Own* (+4 / -2), between the two.
-- **Nearest.** *Coming of Age*, which this replaces in the year the child turns sixteen.
+- **Nearest.** *Coming of Age*, which does not bind this child in this year; a child of sixteen on a parent's road has that card.
+- **Round 1.** The play critic offered two answers: cut this and fold *the wrong road* into *Coming of Age*, or narrow it to the
+  child who chose a road of their own. It is narrowed: the wrong road belongs to the child who did not follow you, and the thread to
+  *You Were Wrong About Them* stays whole.
 
 ### 11. You Were Wrong About Them (`you_were_wrong_about_them`)
 - **What happened.** The child you said had taken the wrong road has what they wanted.
@@ -274,7 +285,9 @@ Director reads only those for the five-fold weight of fresh news.
 - **Choices.**
   - *Keep your word*: as laying the house down above.
   - *Ask for one more year*: their regard -6; the promise stands, and the report comes back more slowly, as reports read lately do.
-  - *Break it*: their regard -25, legitimacy -1, and they are `defiant` (to *A Will of Their Own*).
+  - *Break it*: their regard -25, legitimacy -1, and they are `slighted` (to *The Slighted Kinsman*). Round 1: it set `defiant`,
+    which `FamilySystem.Tick` strikes out at the end of the same year from anyone Loyal or whose regard is 0 or more, and this
+    keeper's regard is usually still above 0 after the -25.
   Keeping or breaking clears `promised_the_seat`.
 - **Numbers.** -25 is the hardest cut in the set, for the seat promised and refused; a broken promise in the house costs 1
   legitimacy, as a broken betrothal costs the house 3 with another house.
@@ -283,14 +296,16 @@ Director reads only those for the five-fold weight of fresh news.
 ### 15. The Reading of the Will (`the_reading_of_the_will`)
 - **What happened.** The old head is dead and you have the house. At the reading, those the law passed over for you are in the
   room.
-- **Fires when.** `will_read` (engine, at the reading), and a `sibling` of your house aged 16 or more with `passed_over` (the engine
-  marks the grown children of the dead head) who does not think better than 20 of you and has not had this report. Repeatable;
+- **Fires when.** `will_read` (engine, at the reading), and a `sibling` of your house aged 16 or more with `passed_over_at_the_will`
+  (Core, round 1: the grown children of the dead head who are not the heir, at this reading) who does not think better than 20 of
+  you and has not had this report. Repeatable;
   weight 35.
 - **Choices.**
   - *A portion for them from the treasury* (needs 800 credits): credits -8, their regard +15.
-  - *A seat at your counsel*: their regard +8, legitimacy -1 (the house sees two voices).
+  - *Keep them close, and ask their advice*: their regard +8, legitimacy -1 (the house sees two voices). It said "a seat at your
+    counsel", a misspelt council that the choice does not give.
   - *Speak to them alone, before the reading* (needs Diplomat or charisma 3): their regard +12, your stress -2.
-  - *The house is one, and it is yours*: their regard -8, legitimacy +2.
+  - *Tell them the house is one, and it is yours*: their regard -8, legitimacy +2.
   All four mark them `heard_at_the_will`.
 - **Numbers.** The engine takes 20 off their regard for the new head; +15 makes most of that good, and costs what a portion of an
   estate shared out would.
@@ -301,7 +316,8 @@ Director reads only those for the five-fold weight of fresh news.
   saying why to anyone who asks.
 - **Fires when.** `household_left_unpaid` (engine, a year) and a `leaver` marked `left_unpaid` (Core). Repeatable; weight 35.
 - **Choices.**
-  - *Pay what was owed, and more* (needs 400 credits): credits -4, their regard +15.
+  - *Pay what was owed, and more* (500 credits): credits -5, their regard +15. Round 1: it was 400, exactly what a steward or a grown
+    person of standing who left after two unpaid years was owed, so there was no "more".
   - *Go to them yourself*: their regard +8, legitimacy -1, your stress +3.
   - *Have it said they were let go for cause* (needs Schemer or intrigue 2): their regard -15, corruption +1.
   - *Let them talk*: legitimacy -2.
@@ -337,7 +353,15 @@ All in systems this theme owns; each with a test in `tests/KinEventsTests.cs`.
   live in yours), set each year with the other courtship flags; and `wedding_remembered`, a mark in every tenth year of the player's
   marriage.
 - `HouseholdSystem`: `left_unpaid`, a char flag on whoever left the household unpaid, or laid its work down, cleared with
-  `household_left_unpaid`.
+  `household_left_unpaid`. Round 1: `HardRefusal`, the refusals that hold whatever a person thinks of you (the head of a house does
+  not leave it, one married into another house goes with the marriage, no house at war, no household without room), which
+  `TakeInRefusal` now begins with and the `takeIn` effect (`Events/Effects.cs`) obeys. A report could take in the head of another
+  house, purse, offices and marriage, and leave it headless. A refused offer is said in the chronicle.
+- `DynastySystem` (round 1): `chose_own_road`, a char flag on one who comes of age bound for a service neither parent was in, struck
+  out the year after.
+- `WealthSystem.Inherit` (round 1; the wealth theme's system, one line): `passed_over_at_the_will` on the grown children of the dead
+  head, of the house, who are not the heir, struck out with `will_read`.
+- `household.json`'s *Coming of Age* (one condition): its heir is not one marked `chose_own_road`.
 
 ## The soak (11 starts, 2 seeds, 60 years, and the three scripted players)
 
@@ -379,3 +403,26 @@ to 3.5%, `senate` 8.1% to 7.6%, `echoes` 3.9% to 3.5%, `life` 3.9% to 3.5%, `cou
 5.1%, `nations` 7.9% to 7.6%, and 0.1 to 0.2 each from a dozen smaller files; `ambitions` rose 3.0% to 3.6% (*What They Wanted* and
 *No Nearer It* came more often in this run). The briefing still takes three reports a year, so what this file gains the others
 lose, spread thinly: no file lost more than 0.7 of a point.
+
+## Round 1 of review (2026-11-27)
+
+- The naming and the grandchild claim no "first"; the grandchild comes once for each head, and a blessing gives no influence.
+- *A Life of Their Own* is for the child who chose their own road; *Coming of Age* is for the rest, and never for the same child in
+  the same year. No new family report was added in its place: the card was narrowed, not cut, and the family set was already the
+  second largest of the four.
+- *The Day You Named* leads, when broken, to a flag the engine keeps (`slighted`).
+- *The Reading of the Will* binds the one this reading passed over.
+- *Blood Stands by Blood* binds a helper who thinks 5 or better of the fallen one (telling them to stand together gave each +10 of
+  the other), and says only what is known.
+- Labels that were not actions: the wedding remembered, a family divided, stand aside, the will, a spouse's ambition (which now
+  says "their own family"), the tutor brought here; chronicle lines in the third person.
+- `kin_left_behind` and `you_were_wrong_about_them` beside `what_they_wanted`: not changed. A briefing is drawn all at once, so an
+  `eventFired` gate cannot keep two of them from one briefing, and the three ask different things (the ambition won, the one left
+  behind, an old judgement).
+
+### Measured after round 1
+
+The soak after review (22 games, 7,843 reports) passed. This file took 282 reports (3.6%), thirteen of its sixteen kinds; the most
+fired are `the_wedding_remembered` (71, 0.9%) and `the_naming_of_a_child` (64, 0.8%), and `a_life_of_their_own` is no longer among
+the thirty most fired. `kin_stand_together`, `they_ask_you_to_stand_aside` and `the_day_you_named` did not fire: second and third
+steps of threads, as in this file's own first soak, each covered by its test.

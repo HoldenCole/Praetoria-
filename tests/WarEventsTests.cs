@@ -72,9 +72,10 @@ public class WarEventsTests
     [Fact]
     public void OutOfTheLine_NamesTheOfficerWhoBrokeIt_AndEachAnswerLeavesThemOwedOrWronged()
     {
-        Assert.False(IsEligible(Officer("battle_lost", FleetSystem.InTheBattleChar), "out_of_the_line"));
+        Assert.False(IsEligible(Officer("battle_lost", FleetSystem.InTheBattleChar, FleetSystem.InALostBattleChar), "out_of_the_line"));
         Assert.False(IsEligible(Officer("battle_won"), "out_of_the_line"));                                  // nobody of the house was in the line
-        EveryChoice("out_of_the_line", () => Officer("battle_won", FleetSystem.InTheBattleChar), after: (w, b, choice) =>
+        Assert.False(IsEligible(Officer("battle_won", FleetSystem.InTheBattleChar, FleetSystem.InALostBattleChar), "out_of_the_line"));   // they stood in the year's other battle, the one lost
+        EveryChoice("out_of_the_line", () => Officer("battle_won", FleetSystem.InTheBattleChar, FleetSystem.InAWonBattleChar), after: (w, b, choice) =>
         {
             var o = w.Char(b.Resolve("officer"))!; Assert.Equal("voss_officer", o.Id);
             Assert.Contains(choice is "name_them" or "promote_them" ? "officer_owed" : "officer_wronged", o.Flags);
@@ -85,7 +86,8 @@ public class WarEventsTests
     [Fact]
     public void TheOfficerWhoRan_IsALostBattle_AndAskingWhyEndsTheThread()
     {
-        EveryChoice("ran_from_the_battle", () => Officer("battle_lost", FleetSystem.InTheBattleChar), after: (w, b, choice) =>
+        Assert.False(IsEligible(Officer("battle_lost", FleetSystem.InTheBattleChar, FleetSystem.InAWonBattleChar), "ran_from_the_battle"));   // they stood in the battle won
+        EveryChoice("ran_from_the_battle", () => Officer("battle_lost", FleetSystem.InTheBattleChar, FleetSystem.InALostBattleChar), after: (w, b, choice) =>
         {
             var o = w.Char(b.Resolve("officer"))!;
             if (choice == "ask_them_why") { Assert.DoesNotContain("officer_owed", o.Flags); Assert.DoesNotContain("officer_wronged", o.Flags); }
@@ -105,6 +107,11 @@ public class WarEventsTests
         EveryChoice("the_other_dispatch", () => Officer(FleetSystem.OurPeaceFlag, "officer_wronged"), after: (w, b, _) => Assert.DoesNotContain("officer_wronged", w.Char(b.Resolve("officer"))!.Flags));
         var warm = Officer(FleetSystem.OurPeaceFlag, "officer_wronged"); warm.Relationship("voss_officer", warm.ProtagonistId).Disposition = 40;
         Assert.False(IsEligible(warm, "the_other_dispatch"));                                               // a grudge they have let go writes nothing
+        var mended = Officer(FleetSystem.OurPeaceFlag, "officer_wronged"); mended.Relationship("voss_officer", mended.ProtagonistId).Disposition = 15;
+        Assert.True(IsEligible(mended, "the_other_dispatch"));                                              // a little mended since, they still publish
+        // a war with a nation ends without a peace of the house's own: its officers are answered at that end too
+        Assert.True(IsEligible(Officer(NationSystem.WarOverFlag, "officer_owed"), "a_laurel_at_the_peace"));
+        Assert.True(IsEligible(Officer(NationSystem.WarOverFlag, "officer_wronged"), "the_other_dispatch"));
     }
 
     [Fact]
@@ -119,12 +126,52 @@ public class WarEventsTests
         var peace = Base(); Assert.False(IsEligible(peace, "a_place_in_the_fleet"));                       // not in peace time
 
         World Blooded() { var w = Base(); Add(w, Mine, "voss_cadet", age: 18, rank: 1).Flags.Add("at_the_front"); w.WorldFlags.Add("battle_lost"); return w; }
+        var old = Blooded(); old.Char("voss_cadet")!.Age = 34; Assert.False(IsEligible(old, "blooded_in_battle"));   // not "their first battle" at thirty-four
         EveryChoice("blooded_in_battle", Blooded, after: (w, b, choice) =>
         {
             var kin = w.Char(b.Resolve("kin"))!; Assert.DoesNotContain("at_the_front", kin.Flags);
             if (choice == "a_step_up") Assert.Equal(2, kin.CareerRank);
             if (choice == "bring_them_home") Assert.Contains("kept_from_war", kin.Flags);
         });
+    }
+
+    [Fact]
+    public void TheYoungOne_ComesHomeAtThePeace_AndEveryAnswerEndsTheThread()
+    {
+        World Home() { var w = Base(); Add(w, Mine, "voss_cadet", age: 19, rank: 1).Flags.Add("at_the_front"); w.WorldFlags.Add(FleetSystem.OurPeaceFlag); return w; }
+        EveryChoice("kin_home_from_the_war", Home, after: (w, b, choice) =>
+        {
+            var kin = w.Char(b.Resolve("kin"))!; Assert.Equal("voss_cadet", kin.Id); Assert.DoesNotContain("at_the_front", kin.Flags);
+            if (choice == "a_place_in_the_service") Assert.Equal(2, kin.CareerRank);
+        });
+        var war = Home(); war.WorldFlags.Remove(FleetSystem.OurPeaceFlag); Assert.False(IsEligible(war, "kin_home_from_the_war"));   // not while the war lasts
+        var nation = Home(); nation.WorldFlags.Remove(FleetSystem.OurPeaceFlag); nation.WorldFlags.Add(NationSystem.WarOverFlag); Assert.True(IsEligible(nation, "kin_home_from_the_war"));
+    }
+
+    [Fact]
+    public void DesertersFromTheFleet_AreAnsweredOneOfFourWays()
+    {
+        World Deserted() { var w = Base(); w.WorldFlags.Add("fleet_deserts"); me(w).NatureTraits.Add("Ruthless"); return w; }
+        static Character me(World w) => w.Protagonist!;
+        EveryChoice("deserters_from_the_fleet", Deserted);
+        Assert.False(IsEligible(Base(), "deserters_from_the_fleet"));
+    }
+
+    [Fact]
+    public void AChoicesChips_SayWhatItDoesToTheEstatesTheMagistratesAndWhoIsKilled()
+    {
+        var w = Base(); w.WorldFlags.Add(FleetSystem.OurPeaceFlag); w.House(Mine)!.Treasury.Credits = 6;
+        var (d, b) = Find(w, "who_pays_for_the_war"); var ctx = new EvalContext(w, b, WorldBuilder.RngFor(w), Content);
+        string tax = Praetoria.Core.Presentation.ChoiceStakes.Of(d.Choices.Single(c => c.Id == "a_war_tax"), ctx, w.Protagonist!);
+        Assert.Contains("the Commons −4", tax); Assert.Contains("+600 credits", tax);
+        string levy = Praetoria.Core.Presentation.ChoiceStakes.Of(d.Choices.Single(c => c.Id == "a_levy_on_cargoes"), ctx, w.Protagonist!);
+        Assert.Contains("the Merchants −4", levy);
+        var trust = new Choice { Id = "t", Effects = new IEffect[] { new AdjustCounterEffect(LadderSystem.TrustKey, -2), new AdjustCounterEffect("goodwill", 3) } };
+        string said = Praetoria.Core.Presentation.ChoiceStakes.Of(trust, ctx, w.Protagonist!);
+        Assert.Contains("trust in the magistrates −2", said); Assert.DoesNotContain("goodwill", said);   // a counter the player does not watch says nothing
+        var kill = new Choice { Id = "k", Effects = new IEffect[] { new KillEffect("rival", "self") } };
+        var kctx = new EvalContext(w, new Binding(w.ProtagonistId).With("rival", "harrow_drusus"), WorldBuilder.RngFor(w), Content);
+        Assert.Contains(w.Char("harrow_drusus")!.Name + " is killed", Praetoria.Core.Presentation.ChoiceStakes.Of(kill, kctx, w.Protagonist!));
     }
 
     [Fact]
@@ -153,31 +200,32 @@ public class WarEventsTests
     }
 
     [Fact]
-    public void AParleyBeforeBattle_CanEndTheWar_WhenTheWarsScoreAllowsAWhitePeace()
+    public void AParleyBeforeTheGuns_CanEndTheWar_WhenTheWarsScoreAllowsAWhitePeace()
     {
         World Parley() { var w = Base(); War(w); w.Char("harrow_drusus")!.Flags.Add(FleetSystem.BearsDownChar); w.WorldFlags.Add(FleetSystem.BearsDownFlag); return w; }
-        EveryChoice("a_parley_before_battle", Parley, after: (w, _, choice) =>
+        EveryChoice("a_parley_before_the_guns", Parley, after: (w, _, choice) =>
         {
             Assert.Equal(choice != "offer_a_white_peace", w.AtWar(Mine, Theirs));
+            Assert.Equal(choice == "count_their_ships", w.Char("harrow_drusus")!.Flags.Contains(FleetSystem.ShipsCountedChar));
             if (choice == "offer_a_white_peace") Assert.True(w.HasFlag(FleetSystem.OurPeaceFlag));      // and the peace is news, for the reports of it
         });
         var strong = Parley(); strong.Fleets["fleet_harrow_main"].Strength = 60;                             // they smell victory: no white peace on offer
-        var (d, b) = Find(strong, "a_parley_before_battle");
+        var (d, b) = Find(strong, "a_parley_before_the_guns");
         Assert.False(new EventEngine(Content, WorldBuilder.RngFor(strong)).IsChoiceAvailable(new FiredEvent(d, b), strong, "offer_a_white_peace"));
     }
 
     [Fact]
-    public void TheSpoilsOfASack_CanBuyAStakeInAnotherHousesRaids_ThatComesBackAtTheNextPeaceBeyondTheRim()
+    public void PlunderOnTheExchange_CanBuyAStakeInAnotherHousesRaids_ThatComesBackAtTheNextPeaceBeyondTheRim()
     {
         World Spoils() { var w = Base(); w.Char("harrow_drusus")!.Flags.Add(NationSystem.SackerChar); w.WorldFlags.Add("world_sacked"); return w; }
-        EveryChoice("the_spoils_of_a_sack", Spoils, after: (w, b, choice) =>
+        EveryChoice("plunder_on_the_exchange", Spoils, after: (w, b, choice) =>
         {
             var s = w.Char(b.Resolve("sacker"))!; Assert.DoesNotContain(NationSystem.SackerChar, s.Flags);
             Assert.Equal(choice == "put_money_into_the_next_raid", s.Flags.Contains("war_partner"));
         });
         World Scandal() { var w = Base(); w.Char("harrow_drusus")!.Flags.Add("war_partner"); w.WorldFlags.Add(NationSystem.WarOverFlag); return w; }
         EveryChoice("a_scandal_in_the_accounts", Scandal, after: (w, b, _) => Assert.DoesNotContain("war_partner", w.Char(b.Resolve("partner"))!.Flags));
-        var atWar = Spoils(); War(atWar); Assert.False(IsEligible(atWar, "the_spoils_of_a_sack"));         // not from a house you are at war with
+        var atWar = Spoils(); War(atWar); Assert.False(IsEligible(atWar, "plunder_on_the_exchange"));         // not from a house you are at war with
     }
 
     [Fact]
@@ -198,8 +246,9 @@ public class WarEventsTests
     public void EveryWarReport_HasAnUngatedChoice_AndALineForTheChronicle()
     {
         var mine = Content.Events.Where(e => new[] { "out_of_the_line", "ran_from_the_battle", "a_laurel_at_the_peace", "the_other_dispatch", "a_place_in_the_fleet", "blooded_in_battle",
-            "taken_in_battle", "the_parole_broken", "a_parley_before_battle", "the_spoils_of_a_sack", "a_scandal_in_the_accounts", "the_fleet_paid_off", "who_pays_for_the_war" }.Contains(e.Id)).ToList();
-        Assert.Equal(13, mine.Count);
+            "kin_home_from_the_war", "taken_in_battle", "the_parole_broken", "deserters_from_the_fleet", "a_parley_before_the_guns", "plunder_on_the_exchange", "a_scandal_in_the_accounts",
+            "the_fleet_paid_off", "who_pays_for_the_war" }.Contains(e.Id)).ToList();
+        Assert.Equal(15, mine.Count);
         foreach (var e in mine)
         {
             Assert.Contains(e.Choices, c => c.Requirements.Count == 0);
@@ -228,6 +277,7 @@ public class WarEventsTests
         var r = Assert.Single(fs.LastBattles); Assert.Equal(Mine, r.Winner);
         var officer = w.Char("voss_officer")!; var captain = w.Char("harrow_captain")!; var head = w.Char("harrow_drusus")!;
         Assert.Contains(FleetSystem.InTheBattleChar, officer.Flags); Assert.DoesNotContain(FleetSystem.InTheBattleChar, w.Protagonist!.Flags);
+        Assert.Contains(FleetSystem.InAWonBattleChar, officer.Flags); Assert.DoesNotContain(FleetSystem.InALostBattleChar, officer.Flags);
         Assert.DoesNotContain(FleetSystem.InTheBattleChar, captain.Flags);       // only the house's own are marked
         Assert.True(FleetSystem.Captive(captain)); Assert.False(FleetSystem.Captive(head));   // a captain, and never the head of the house
         Assert.DoesNotContain(w.Fleets.Values, f => f.CaptainId == captain.Id);
@@ -243,8 +293,9 @@ public class WarEventsTests
         Assert.True(w.HasFlag(FleetSystem.OurPeaceFlag)); Assert.Equal(w.Turn, w.Counter("mark:" + FleetSystem.OurPeaceFlag));
         fs.Tick(w);                                                              // the war is over: the prisoner goes home, and says so
         Assert.False(FleetSystem.Captive(captain)); Assert.Contains(w.History, h => h.Text.Contains("goes home to") && h.Text.Contains(captain.Name));
-        Assert.True(w.HasFlag(FleetSystem.OurPeaceFlag));                        // the peace is news for the year and the next
-        w.Turn += 2; fs.Tick(w);
+        Assert.True(w.HasFlag(FleetSystem.OurPeaceFlag));                        // the peace is news for the year it is made and two more briefings
+        w.Turn += 2; fs.Tick(w); Assert.True(w.HasFlag(FleetSystem.OurPeaceFlag));   // a peace made after a briefing is still read at the next one
+        w.Turn += 1; fs.Tick(w);
         Assert.False(w.HasFlag(FleetSystem.OurPeaceFlag));
     }
 
@@ -255,6 +306,7 @@ public class WarEventsTests
         fs.ResolveBattles(w, new Fixed(0.3));                                    // the attacker carries the day, and the beaten admiral lives (the death roll is under 0.12)
         Assert.Equal(Theirs, Assert.Single(fs.LastBattles).Winner);
         Assert.Contains(FleetSystem.InTheBattleChar, w.Char("voss_officer")!.Flags);
+        Assert.Contains(FleetSystem.InALostBattleChar, w.Char("voss_officer")!.Flags); Assert.DoesNotContain(FleetSystem.InAWonBattleChar, w.Char("voss_officer")!.Flags);
         Assert.DoesNotContain(w.Characters.Values, c => FleetSystem.Captive(c));
         Assert.Equal("harrow_captain", w.Fleets.Values.First(f => f.OwnerId == Theirs).CaptainId);
     }
@@ -275,6 +327,45 @@ public class WarEventsTests
     }
 
     [Fact]
+    public void ABattleLost_MayWoundARelativeAtTheFront_AndABattleWonDoesNot()
+    {
+        (World w, FleetSystem fs, List<Character> kin) Front(int theirStrength)
+        {
+            var (w, fs) = BattleAtGreywater(); w.Fleets["fleet_harrow_main"].Strength = theirStrength; var kin = new List<Character>();
+            for (int i = 0; i < 12; i++) { var k = Add(w, Mine, "voss_front_" + i, age: 19, rank: 1); k.Flags.Add(FleetSystem.AtTheFrontChar); kin.Add(k); }
+            return (w, fs, kin);
+        }
+        var (lost, lfs, lk) = Front(14); lfs.ResolveBattles(lost, new Fixed(0.3)); Assert.Equal(Theirs, Assert.Single(lfs.LastBattles).Winner);
+        int hurt = lk.Count(k => k.Flags.Contains(LifeSystem.WoundedChar));
+        Assert.InRange(hurt, 1, 11);                                             // one in three, by hash: some, and not all
+        var (won, wfs, wk) = Front(6); wfs.ResolveBattles(won, new Fixed(0.99)); Assert.Equal(Mine, Assert.Single(wfs.LastBattles).Winner);
+        Assert.DoesNotContain(wk, k => k.Flags.Contains(LifeSystem.WoundedChar));
+    }
+
+    [Fact]
+    public void TheWarsPeople_AreStruckOut_OnceTheHouseIsAtPeaceAndThePeaceIsOldNews()
+    {
+        var (w, fs) = BattleAtGreywater(); var o = w.Char("voss_officer")!; o.Flags.Add("officer_owed");
+        var cadet = Add(w, Mine, "voss_cadet", age: 19, rank: 1); cadet.Flags.Add(FleetSystem.AtTheFrontChar);
+        fs.Tick(w); Assert.Contains("officer_owed", o.Flags); Assert.Contains(FleetSystem.AtTheFrontChar, cadet.Flags);   // the war goes on
+        fs.MakePeace(w, Mine, Theirs);
+        for (int y = 0; y < 3; y++) { fs.Tick(w); Assert.Contains("officer_owed", o.Flags); Assert.Contains(FleetSystem.AtTheFrontChar, cadet.Flags); w.Turn++; }   // the peace's reports have their years
+        fs.Tick(w); Assert.False(w.HasFlag(FleetSystem.OurPeaceFlag));
+        Assert.DoesNotContain("officer_owed", o.Flags); Assert.DoesNotContain(FleetSystem.AtTheFrontChar, cadet.Flags);
+    }
+
+    [Fact]
+    public void ShipsCountedAtAParley_FightTheWorse_TheYearTheyArrive()
+    {
+        var (w, fs) = BattleAtGreywater(); var drusus = w.Char("harrow_drusus")!; var theirs = w.Fleets["fleet_harrow_main"];
+        drusus.Flags.Add(FleetSystem.ShipsCountedChar);
+        fs.Tick(w); Assert.Contains(FleetSystem.ShipsKnownChar, drusus.Flags); Assert.DoesNotContain(FleetSystem.ShipsCountedChar, drusus.Flags);
+        double known = fs.DepthFactor(w, theirs); drusus.Flags.Remove(FleetSystem.ShipsKnownChar); double plain = fs.DepthFactor(w, theirs); drusus.Flags.Add(FleetSystem.ShipsKnownChar);
+        Assert.Equal(plain * FleetSystem.CountedPower, known, 6);
+        w.Turn++; fs.Tick(w); Assert.DoesNotContain(FleetSystem.ShipsKnownChar, drusus.Flags);   // the year after, their order of battle has changed
+    }
+
+    [Fact]
     public void AParole_IsStruckOutWithTheWar()
     {
         var (w, fs) = BattleAtGreywater(); var p = Add(w, Theirs, "harrow_paroled"); p.Flags.Add(FleetSystem.ParoleChar);
@@ -290,7 +381,7 @@ public class WarEventsTests
         fs.Tick(w);
         Assert.True(w.HasFlag(FleetSystem.BearsDownFlag)); Assert.Equal(w.Turn, w.Counter("mark:" + FleetSystem.BearsDownFlag));
         Assert.Contains(FleetSystem.BearsDownChar, w.Char("harrow_drusus")!.Flags);
-        Assert.True(IsEligible(w, "a_parley_before_battle"));
+        Assert.True(IsEligible(w, "a_parley_before_the_guns"));
         w.Turn++; fs.Tick(w);                                                    // it has arrived: no longer coming, and the battle is the fleets' business
         Assert.False(w.HasFlag(FleetSystem.BearsDownFlag)); Assert.DoesNotContain(FleetSystem.BearsDownChar, w.Char("harrow_drusus")!.Flags);
         // a fleet of a house at peace with yours bears down on nobody
@@ -327,7 +418,35 @@ public class WarEventsTests
         var n = w.Nation("vashti")!; NationSystem.DeclareWar(w, Content.Nations, "vashti", w.Protagonist!.HouseId);
         for (int y = 0; y < 40 && n.AtWar; y++) { w.Turn++; ns.Tick(w); Assert.Equal(!n.AtWar, w.HasFlag(NationSystem.WarOverFlag)); }   // a war nobody fights gutters out
         Assert.False(n.AtWar); Assert.True(w.HasFlag(NationSystem.WarOverFlag + ":vashti"));
+        w.Turn++; ns.Tick(w); Assert.True(w.HasFlag(NationSystem.WarOverFlag));    // still news at the next briefing: a war that ends after one is read at the next
         w.Turn++; ns.Tick(w); Assert.False(w.HasFlag(NationSystem.WarOverFlag));
+    }
+
+    [Fact]
+    public void APrisonerOfWar_StepsUpToNoPostOfTheirHouse()
+    {
+        string Steps(bool prisoner)
+        {
+            var w = Base(); w.FamilyAutonomy = 1; var f = w.Fleets["fleet_voss_home"]; f.AdmiralId = "";
+            var best = Add(w, Mine, "voss_best", rank: 5); best.Skills["tactics"] = 9; best.Skills["gunnery"] = 9; best.Skills["leadership"] = 9;
+            if (prisoner) best.Flags.Add(FleetSystem.PrisonerChar);
+            var fam = new FamilySystem(); fam.Tick(w); w.Turn++; fam.Tick(w); return f.AdmiralId;
+        }
+        Assert.NotEqual("voss_best", Steps(prisoner: true));
+        Assert.Equal("voss_best", Steps(prisoner: false));                       // free, the best of the house takes up the empty command
+    }
+
+    [Fact]
+    public void APrisonerOfWar_LeadsNoLevy()
+    {
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(ContentLocator.FindContentDir(), "the_old_lion"), 7UL); _ = new TurnController(w, Content);
+        var house = w.House(w.Protagonist!.HouseId)!; w.Wars.Clear(); foreach (var n in w.Nations) n.AtWar = false;
+        var seat = w.HoldingsOf(house.Id).First(h => h.IsPlanet); var sender = w.House(ProvinceSystem.HolderOf(seat, 1))!; string id = ProvinceSystem.LevyPrefix + ProvinceSystem.Target(seat.Id, 1);
+        var foe = w.Houses.Values.First(h => !World.Outsider(h.Id) && h.Id != house.Id && h.Id != sender.Id && h.Id != ProvinceSystem.HolderOf(seat, 2) && ProvinceSystem.LeanUnder(w, sender.Id, h.Id) == 0);
+        var best = Add(w, sender.Id, "levyman"); best.Skills["tactics"] = 20; best.Skills["leadership"] = 20; best.Flags.Add(FleetSystem.PrisonerChar);   // the one it would send, held by an enemy
+        w.Wars.Add(new War { HouseA = house.Id, HouseB = foe.Id, Since = w.Turn }); ProvinceSystem.Tick(w, Content.Holdings);
+        Assert.True(w.Fleets.ContainsKey(id)); var sent = w.Fleets.Values.Where(x => x.LevyOf == sender.Id).ToList(); Assert.NotEmpty(sent);
+        Assert.All(sent, x => Assert.NotEqual(best.Id, x.AdmiralId));
     }
 
     [Fact]
@@ -349,20 +468,22 @@ public class WarEventsTests
     {
         void Take(World w, string id, string choice) { var (d, b) = Find(w, id); new EventEngine(Content, WorldBuilder.RngFor(w)).Resolve(new FiredEvent(d, b), w, choice); }
         // the officer: named in the dispatch, honoured at the peace
-        var w = Officer("battle_won", FleetSystem.InTheBattleChar); Take(w, "out_of_the_line", "name_them");
+        var w = Officer("battle_won", FleetSystem.InTheBattleChar, FleetSystem.InAWonBattleChar); Take(w, "out_of_the_line", "name_them");
         w.WorldFlags.Remove("battle_won"); w.WorldFlags.Add(FleetSystem.OurPeaceFlag); Assert.True(IsEligible(w, "a_laurel_at_the_peace")); Assert.False(IsEligible(w, "the_other_dispatch"));
         // ...or robbed of the credit, and writes their own account
-        w = Officer("battle_won", FleetSystem.InTheBattleChar); Take(w, "out_of_the_line", "take_the_credit");
+        w = Officer("battle_won", FleetSystem.InTheBattleChar, FleetSystem.InAWonBattleChar); Take(w, "out_of_the_line", "take_the_credit");
         w.WorldFlags.Remove("battle_won"); w.WorldFlags.Add(FleetSystem.OurPeaceFlag); Assert.True(IsEligible(w, "the_other_dispatch")); Assert.False(IsEligible(w, "a_laurel_at_the_peace"));
         // the young one: sent, and blooded
         w = Base(); w.WorldFlags.Add("at_war_any"); Take(w, "a_place_in_the_fleet", "send_them");
         w.WorldFlags.Add("battle_won"); Assert.True(IsEligible(w, "blooded_in_battle"));
+        w.WorldFlags.Remove("battle_won"); w.WorldFlags.Add(FleetSystem.OurPeaceFlag); Assert.False(IsEligible(w, "kin_home_from_the_war"));   // not while another war lasts
+        w.WorldFlags.Remove("at_war_any"); Assert.True(IsEligible(w, "kin_home_from_the_war"));                                        // and home at the peace
         // the prisoner: paroled, and the parole broken when their house gives them a fleet
         w = Base(); War(w); var p = Add(w, Theirs, "harrow_captain", rank: 2); p.Flags.Add(FleetSystem.PrisonerChar); w.WorldFlags.Add("battle_won");
         Take(w, "taken_in_battle", "parole_them"); Assert.False(IsEligible(w, "the_parole_broken"));
         w.Fleets["fleet_harrow_main"].AdmiralId = p.Id; FleetSystem.RefreshAdmiralFlags(w); Assert.True(IsEligible(w, "the_parole_broken"));
         // the spoils: a stake, and the scandal at the peace beyond the rim
-        w = Base(); w.Char("harrow_drusus")!.Flags.Add(NationSystem.SackerChar); w.WorldFlags.Add("world_sacked"); Take(w, "the_spoils_of_a_sack", "put_money_into_the_next_raid");
+        w = Base(); w.Char("harrow_drusus")!.Flags.Add(NationSystem.SackerChar); w.WorldFlags.Add("world_sacked"); Take(w, "plunder_on_the_exchange", "put_money_into_the_next_raid");
         Assert.False(IsEligible(w, "a_scandal_in_the_accounts")); w.WorldFlags.Add(NationSystem.WarOverFlag); Assert.True(IsEligible(w, "a_scandal_in_the_accounts"));
     }
 }
