@@ -1,0 +1,2336 @@
+{
+  "//": "CHANCE: THE PEOPLE OF THE REACH CROSSING YOUR PATH (docs/events/chance.md). Meetings bound by who a person is (a classmate by cohort, an old enemy by the engine's old_enemy mark, a rich house by wealth, a house with no world by holding, a young one of a lesser house by age, rank and wealth, a veteran by track, rank and age, two guests by the feud's blood_on_their_hands and the regard of the dead person's house). Threads: words_at_the_feast marks a guest quarrel_with_you, read by the_quarrel_comes_to_a_head (whose killing opens a blood debt, docs/FEUD.md); a_classmate_in_the_city or a_house_without_lands marks someone owes_you_a_favour, read by a_favour_repaid; a_merchant_princes_venture marks the merchant staked_by_you, read by the_venture_comes_home or the_venture_goes_down; a_patron_wanted marks a young person your_protege, read by the_one_you_stood_for. Every second step clears its mark. No Core marks: all the hooks are the engine's own.",
+  "events": [
+    {
+      "id": "a_classmate_in_the_city",
+      "tier": "ambient",
+      "weight": 2,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "classmate",
+          "when": [
+            {
+              "type": "cohort",
+              "role": "classmate",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "classmate",
+              "vsRole": "self",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "academy_graduated",
+          "value": true
+        },
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "put_in_a_word",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "classmate",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "setCharFlag",
+              "role": "classmate",
+              "flag": "owes_you_a_favour",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put in a word for {classmate.name}, who was of the same year at the {era:Academy|Institute}. It will be remembered."
+            }
+          ]
+        },
+        {
+          "id": "an_evening_of_old_stories",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "classmate",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {classmate.name} talked of the {era:Academy|Institute} until the lamps were out."
+            }
+          ]
+        },
+        {
+          "id": "ask_how_their_house_stands",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "classmate",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} heard a good deal about {classmate.house} from {classmate.name}, who noticed how closely {self.name} listened."
+            }
+          ]
+        },
+        {
+          "id": "swear_the_old_friendship",
+          "requires": [
+            {
+              "type": "relationship",
+              "from": "classmate",
+              "to": "self",
+              "op": "gte",
+              "value": 30
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "classmate",
+              "bond": "sworn",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "classmate",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "classmate",
+              "to": "self",
+              "bond": "sworn",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "classmate",
+              "to": "self",
+              "bond": "blood",
+              "present": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "classmate",
+              "bond": "sworn",
+              "strength": 40
+            },
+            {
+              "type": "addBond",
+              "from": "classmate",
+              "to": "self",
+              "bond": "sworn",
+              "strength": 40
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "classmate",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {classmate.name} swore the friendship of their year again, and meant it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "an_old_enemy_across_the_room",
+      "tier": "situation",
+      "weight": 0.85,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "enemy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "enemy",
+              "flag": "old_enemy",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "has_old_enemy",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "cross_the_room",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "enemy",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "enemy",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} crossed the room and offered {enemy.name} a hand. After eight years, {enemy.name} took it."
+            }
+          ]
+        },
+        {
+          "id": "hold_their_eye",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "enemy",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} held {enemy.name}'s eye across the room until {enemy.name} looked away."
+            }
+          ]
+        },
+        {
+          "id": "leave_before_words",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} left early, before {enemy.name} could make anything of the evening."
+            }
+          ]
+        },
+        {
+          "id": "have_them_watched",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "intrigue",
+                  "op": "gte",
+                  "value": 3
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Paranoid",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "enemy",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had someone stand near {enemy.name} all evening, and heard most of what was said."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "words_at_the_feast",
+      "tier": "situation",
+      "weight": 0.7,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "envious",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "envious",
+              "to": "self",
+              "op": "lte",
+              "value": -15
+            },
+            {
+              "type": "age",
+              "role": "envious",
+              "op": "gte",
+              "value": 20
+            },
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "envious",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "envious",
+                  "trait": "Arrogant",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "envious",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "envious",
+                  "trait": "Vengeful",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            },
+            {
+              "type": "charFlag",
+              "role": "envious",
+              "flag": "quarrel_with_you",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "laugh_it_off",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{envious.name} of {envious.house} made a joke of {self.name}'s house at a feast, and {self.name} laughed with the room."
+            }
+          ]
+        },
+        {
+          "id": "answer_in_kind",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "oratory",
+                  "op": "gte",
+                  "value": 2
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Orator",
+                  "kind": "aptitude",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": -12
+            },
+            {
+              "type": "setCharFlag",
+              "role": "envious",
+              "flag": "quarrel_with_you",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{envious.name} of {envious.house} made a joke of {self.name}'s house at a feast. {self.name}'s answer was the one the room repeated."
+            }
+          ]
+        },
+        {
+          "id": "take_it_up_in_the_morning",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "envious",
+              "flag": "quarrel_with_you",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent to {envious.name} of {envious.house} the morning after the feast. It was not an apology that came back."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_quarrel_comes_to_a_head",
+      "tier": "situation",
+      "weight": 15,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "envious",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "envious",
+              "flag": "quarrel_with_you",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "send_a_gift",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "setCharFlag",
+              "role": "envious",
+              "flag": "quarrel_with_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {envious.name} of {envious.house} a gift and a letter, and the quarrel between them was let go."
+            }
+          ]
+        },
+        {
+          "id": "first_blood",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Duelist",
+              "kind": "aptitude",
+              "present": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "setCharFlag",
+              "role": "envious",
+              "flag": "quarrel_with_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} met {envious.name} of {envious.house} with blades before witnesses, and drew first blood. The quarrel ended there."
+            }
+          ]
+        },
+        {
+          "id": "end_it_for_good",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envious",
+              "flag": "quarrel_with_you",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 6
+            },
+            {
+              "type": "kill",
+              "role": "envious",
+              "by": "self"
+            },
+            {
+              "type": "log",
+              "text": "{envious.name} of {envious.house} is dead, and nobody in the Reach doubts on whose word."
+            }
+          ]
+        },
+        {
+          "id": "let_them_talk",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "envious",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "envious",
+              "flag": "quarrel_with_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {envious.name} of {envious.house} talk. The talk went on, and so did the bad feeling."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_veteran_of_the_old_wars",
+      "tier": "ambient",
+      "weight": 0.8,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "veteran",
+          "when": [
+            {
+              "type": "track",
+              "role": "veteran",
+              "track": "military",
+              "present": true
+            },
+            {
+              "type": "rank",
+              "role": "veteran",
+              "op": "gte",
+              "value": 4
+            },
+            {
+              "type": "age",
+              "role": "veteran",
+              "op": "gte",
+              "value": 58
+            },
+            {
+              "type": "charFlag",
+              "role": "veteran",
+              "flag": "admiral",
+              "value": false
+            },
+            {
+              "type": "inLine",
+              "role": "veteran",
+              "vsRole": "self",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "ask_how_it_was_done",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "veteran",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{veteran.name} of {veteran.house} told {self.name} how the old battles were won, and {self.name} listened."
+            }
+          ]
+        },
+        {
+          "id": "ask_them_to_speak_for_you",
+          "requires": [
+            {
+              "type": "relationship",
+              "from": "veteran",
+              "to": "self",
+              "op": "gte",
+              "value": 10
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{veteran.name} of {veteran.house} speaks well of {self.name} in the wardrooms now, and the wardrooms listen."
+            }
+          ]
+        },
+        {
+          "id": "ask_them_to_join_the_household",
+          "requires": [
+            {
+              "type": "relationship",
+              "from": "veteran",
+              "to": "self",
+              "op": "gte",
+              "value": 20
+            }
+          ],
+          "effects": [
+            {
+              "type": "takeIn",
+              "role": "veteran",
+              "as": "companion"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {veteran.name} of {veteran.house} to join the household."
+            }
+          ]
+        },
+        {
+          "id": "listen_and_go_home",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spent a long evening with {veteran.name}, and went home the better for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_painters_great_canvas",
+      "tier": "ambient",
+      "weight": 0.3,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "rival",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "rival",
+              "to": "self",
+              "op": "lte",
+              "value": -10
+            },
+            {
+              "type": "age",
+              "role": "rival",
+              "op": "gte",
+              "value": 25
+            },
+            {
+              "type": "inLine",
+              "role": "rival",
+              "vsRole": "self",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_for_the_centre",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stands at the centre of the great canvas in the public hall. {rival.name} of {rival.house} stands to one side."
+            }
+          ]
+        },
+        {
+          "id": "stand_where_you_are_put",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} stands on the great canvas where the painter put them, among the rest."
+            }
+          ]
+        },
+        {
+          "id": "stand_beside_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {rival.name} of {rival.house} stand side by side on the great canvas, as equals, which surprised the city."
+            }
+          ]
+        },
+        {
+          "id": "paint_them_small",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "intrigue",
+                  "op": "gte",
+                  "value": 3
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "rival",
+              "to": "self",
+              "delta": -12
+            },
+            {
+              "type": "log",
+              "text": "On the great canvas in the public hall, {rival.name} of {rival.house} is small, and at the back. {rival.name} knows why."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_merchant_princes_venture",
+      "tier": "situation",
+      "weight": 0.45,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "grandee",
+          "when": [
+            {
+              "type": "wealth",
+              "role": "grandee",
+              "op": "gte",
+              "tier": "opulent"
+            },
+            {
+              "type": "age",
+              "role": "grandee",
+              "op": "gte",
+              "value": 30
+            },
+            {
+              "type": "relationship",
+              "from": "grandee",
+              "to": "self",
+              "op": "gte",
+              "value": -10
+            },
+            {
+              "type": "charFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "put_money_in",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 10
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put 800 credits into a venture of {grandee.name} of {grandee.house}."
+            }
+          ]
+        },
+        {
+          "id": "lend_your_name",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s name is on the charter of a venture of {grandee.house}, for a fee."
+            }
+          ]
+        },
+        {
+          "id": "learn_how_it_is_done",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "economics",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{grandee.name} of {grandee.house} showed {self.name} how a venture is put together."
+            }
+          ]
+        },
+        {
+          "id": "decline",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} declined a share in a venture of {grandee.name} of {grandee.house}."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_venture_comes_home",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "grandee",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": true
+            },
+            {
+              "type": "wealth",
+              "role": "grandee",
+              "op": "gte",
+              "tier": "rich"
+            },
+            {
+              "type": "atWar",
+              "role": "grandee",
+              "present": false
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "take_your_share",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 12
+            },
+            {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "The venture of {grandee.name} of {grandee.house} came home, and {self.name} took 1,200 credits from it."
+            }
+          ]
+        },
+        {
+          "id": "take_it_and_dine",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "The venture of {grandee.name} of {grandee.house} came home. {self.name} took a share and a place at their table."
+            }
+          ]
+        },
+        {
+          "id": "give_the_profit_away",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took back what was put into the venture of {grandee.house}, and gave the profit to the city's poor."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_venture_goes_down",
+      "tier": "situation",
+      "weight": 15,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "grandee",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": true
+            },
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "wealth",
+                  "role": "grandee",
+                  "op": "lte",
+                  "tier": "comfortable"
+                },
+                {
+                  "type": "atWar",
+                  "role": "grandee",
+                  "present": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "write_it_off",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote off the 800 credits put into the venture of {grandee.name} of {grandee.house}, and did not press them."
+            }
+          ]
+        },
+        {
+          "id": "press_for_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} pressed {grandee.name} of {grandee.house} for the money lost in their venture, and had 300 credits of it."
+            }
+          ]
+        },
+        {
+          "id": "take_it_in_kind",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "economics",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "grandee",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "staked_by_you",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took what was owed by {grandee.house} in goods and paper, and had 500 credits of it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_house_without_lands",
+      "tier": "situation",
+      "weight": 0.5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "claimant",
+          "when": [
+            {
+              "type": "holding",
+              "role": "claimant",
+              "kind": "planet",
+              "op": "eq",
+              "value": 0
+            },
+            {
+              "type": "age",
+              "role": "claimant",
+              "op": "gte",
+              "value": 25
+            },
+            {
+              "type": "charFlag",
+              "role": "claimant",
+              "flag": "owes_you_a_favour",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "lend_them_coin",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "claimant",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "claimant",
+              "flag": "owes_you_a_favour",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} lent {claimant.name} of {claimant.house} 300 credits, and asked for nothing back yet."
+            }
+          ]
+        },
+        {
+          "id": "take_them_in",
+          "effects": [
+            {
+              "type": "takeIn",
+              "role": "claimant",
+              "as": "companion"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {claimant.name} of {claimant.house} to join the household."
+            }
+          ]
+        },
+        {
+          "id": "a_kind_word",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "claimant",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had a kind word for {claimant.name} of {claimant.house}, and nothing more."
+            }
+          ]
+        },
+        {
+          "id": "turn_them_away",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "claimant",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} turned {claimant.name} of {claimant.house} away at the door."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_favour_repaid",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "debtor",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "debtor",
+              "flag": "owes_you_a_favour",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "their_voice",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "debtor",
+              "flag": "owes_you_a_favour",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{debtor.name} of {debtor.house} paid what they owed {self.name} with their house's voice."
+            }
+          ]
+        },
+        {
+          "id": "the_coin",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "debtor",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "debtor",
+              "flag": "owes_you_a_favour",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{debtor.name} of {debtor.house} paid {self.name} 400 credits, and the favour was settled."
+            }
+          ]
+        },
+        {
+          "id": "ask_nothing",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "debtor",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "debtor",
+              "flag": "owes_you_a_favour",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {debtor.name} of {debtor.house} that it had never been a debt."
+            }
+          ]
+        },
+        {
+          "id": "not_yet",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} told {debtor.name} of {debtor.house} to keep the favour for another day."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_secret_for_sale",
+      "tier": "situation",
+      "weight": 0.4,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "target",
+          "when": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "relationship",
+                  "from": "self",
+                  "to": "target",
+                  "op": "lte",
+                  "value": -10
+                },
+                {
+                  "type": "relationship",
+                  "from": "target",
+                  "to": "self",
+                  "op": "lte",
+                  "value": -15
+                }
+              ]
+            },
+            {
+              "type": "age",
+              "role": "target",
+              "op": "gte",
+              "value": 25
+            },
+            {
+              "type": "inLine",
+              "role": "target",
+              "vsRole": "self",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "buy_and_keep",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought a secret about {target.name} of {target.house}, and has kept it."
+            }
+          ]
+        },
+        {
+          "id": "buy_and_use",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "target",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "target",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "log",
+              "text": "What {target.name} of {target.house} had done is known now, and {target.house} is the less for it. {target.name} knows who told."
+            }
+          ]
+        },
+        {
+          "id": "buy_and_return",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "target",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought a secret about {target.name} of {target.house} and sent it to them, unread."
+            }
+          ]
+        },
+        {
+          "id": "send_them_away",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} sent away someone who had a secret to sell."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_word_off_the_record",
+      "tier": "situation",
+      "weight": 0.5,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "envoy",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "envoy",
+              "to": "self",
+              "op": "lte",
+              "value": -15
+            },
+            {
+              "type": "age",
+              "role": "envoy",
+              "op": "gte",
+              "value": 30
+            },
+            {
+              "type": "atWar",
+              "role": "envoy",
+              "present": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "come_to_an_understanding",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "self",
+              "to": "envoy",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {envoy.name} of {envoy.house} came to an understanding, with nothing written down."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_offer",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{envoy.house} paid {self.name} 300 credits to mend things between the houses."
+            }
+          ]
+        },
+        {
+          "id": "make_it_known",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that {envoy.name} of {envoy.house} had come asking."
+            }
+          ]
+        },
+        {
+          "id": "promise_nothing",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} heard {envoy.name} of {envoy.house} out, and promised nothing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_patron_wanted",
+      "tier": "ambient",
+      "weight": 0.6,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "young",
+          "when": [
+            {
+              "type": "age",
+              "role": "young",
+              "op": "gte",
+              "value": 17
+            },
+            {
+              "type": "age",
+              "role": "young",
+              "op": "lte",
+              "value": 26
+            },
+            {
+              "type": "rank",
+              "role": "young",
+              "op": "eq",
+              "value": 0
+            },
+            {
+              "type": "wealth",
+              "role": "young",
+              "op": "lte",
+              "tier": "comfortable"
+            },
+            {
+              "type": "relationship",
+              "from": "young",
+              "to": "self",
+              "op": "gte",
+              "value": -10
+            },
+            {
+              "type": "inLine",
+              "role": "young",
+              "vsRole": "self",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "young",
+              "flag": "your_protege",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 3
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_their_patron",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "young",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "setCharFlag",
+              "role": "young",
+              "flag": "your_protege",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put their name behind {young.name} of {young.house}, who had nothing else to start with."
+            }
+          ]
+        },
+        {
+          "id": "take_them_in",
+          "effects": [
+            {
+              "type": "takeIn",
+              "role": "young",
+              "as": "protege"
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {young.name} of {young.house} to join the household as a protégé."
+            }
+          ]
+        },
+        {
+          "id": "a_letter",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "young",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote a letter for {young.name} of {young.house}."
+            }
+          ]
+        },
+        {
+          "id": "no_time",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "young",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had no time for {young.name} of {young.house}."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_one_you_stood_for",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "risen",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "risen",
+              "flag": "your_protege",
+              "value": true
+            },
+            {
+              "type": "rank",
+              "role": "risen",
+              "op": "gte",
+              "value": 1
+            },
+            {
+              "type": "age",
+              "role": "risen",
+              "op": "gte",
+              "value": 23
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "swear_friendship",
+          "requires": [
+            {
+              "type": "relationship",
+              "from": "risen",
+              "to": "self",
+              "op": "gte",
+              "value": 15
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "risen",
+              "bond": "sworn",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "risen",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "risen",
+              "to": "self",
+              "bond": "sworn",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "risen",
+              "to": "self",
+              "bond": "blood",
+              "present": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "addBond",
+              "from": "self",
+              "to": "risen",
+              "bond": "sworn",
+              "strength": 50
+            },
+            {
+              "type": "addBond",
+              "from": "risen",
+              "to": "self",
+              "bond": "sworn",
+              "strength": 50
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "risen",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "setCharFlag",
+              "role": "risen",
+              "flag": "your_protege",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {risen.name} of {risen.house} swore friendship. They stand by each other now."
+            }
+          ]
+        },
+        {
+          "id": "call_on_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "risen",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "setCharFlag",
+              "role": "risen",
+              "flag": "your_protege",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called on {risen.name} of {risen.house} for what was owed, and had it."
+            }
+          ]
+        },
+        {
+          "id": "ask_nothing",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "risen",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "risen",
+              "flag": "your_protege",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked nothing of {risen.name} of {risen.house}, and the city said so."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "two_guests_at_odds",
+      "tier": "situation",
+      "weight": 2,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "first",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "first",
+              "flag": "blood_on_their_hands",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "first",
+              "vsRole": "self",
+              "value": false
+            }
+          ]
+        },
+        {
+          "name": "second",
+          "when": [
+            {
+              "type": "relationship",
+              "from": "second",
+              "to": "first",
+              "op": "lte",
+              "value": -20
+            },
+            {
+              "type": "inLine",
+              "role": "second",
+              "vsRole": "self",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 2
+        }
+      ],
+      "choices": [
+        {
+          "id": "seat_first",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the place of honour to {first.name} of {first.house}. {second.name} of {second.house} left early."
+            }
+          ]
+        },
+        {
+          "id": "seat_second",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the place of honour to {second.name} of {second.house}, over {first.name} of {first.house}."
+            }
+          ]
+        },
+        {
+          "id": "seat_neither",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} seated {first.name} and {second.name} at opposite ends of the table. Neither was pleased."
+            }
+          ]
+        },
+        {
+          "id": "bring_them_together",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Diplomat",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "diplomacy",
+                  "op": "gte",
+                  "value": 3
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "second",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "first",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "first",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "second",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "At {self.name}'s table, {first.name} of {first.house} and {second.name} of {second.house} spoke to each other for the first time since the death."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

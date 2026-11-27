@@ -265,8 +265,8 @@ public class EarnedTitlesTests
                 foreach (var m in SenateSystem.Docket(w).Where(m => m.Kind == ProgressionSystem.PetitionKind && m.ProposerHouseId != house.Id))
                 {
                     if (!seen.Contains(m)) seen.Add(m);
-                    // the player may vote on a rival's petition the year it is voted
-                    if (!voted) { var vote = new VoteCommand(me.Id, m.Id, -1); Assert.Null(vote.Refusal(new CommandContext(w, WorldBuilder.RngFor(w)))); voted = tc.Executor.TryExecute(vote, new CommandContext(w, WorldBuilder.RngFor(w))); Assert.Equal(-1, m.Votes[house.Id]); }
+                    // the player may vote on a rival's petition the year it is voted (whoever holds the seat that year: the old head may have died)
+                    if (!voted) { var vote = new VoteCommand(w.Protagonist!.Id, m.Id, -1); Assert.Null(vote.Refusal(new CommandContext(w, WorldBuilder.RngFor(w)))); voted = tc.Executor.TryExecute(vote, new CommandContext(w, WorldBuilder.RngFor(w))); Assert.Equal(-1, m.Votes[house.Id]); }
                 }
                 Assert.True(SenateSystem.Docket(w).Count(m => m.Kind == ProgressionSystem.PetitionKind && m.ProposerHouseId != house.Id) <= 1);
                 tc.EndTurn();
@@ -396,7 +396,7 @@ public class EarnedTitlesTests
     public void The_record_and_a_petition_before_the_Senate_are_kept_in_a_save()
     {
         var (tc, w, house, me, ctx) = Start(); var prog = tc.Progression!;
-        Year(tc); Year(tc); tc.BeginTurn();
+        Year(tc); Year(tc); tc.BeginTurn(); me = w.Protagonist!;   // whoever holds the seat now: the old head may have died in the two years
         LegitimacyBook.Move(w, house, -4, LegitimacyBook.Scandal, "A bought vote came out on the floor"); LegitimacyBook.Move(w, house, 2, LegitimacyBook.Works, "A work finished: The Orrery");
         house.Title = Title.Baron; house.Legitimacy = Math.Max(house.Legitimacy, 50); ctx.PoolsOf(me.Id).Influence = 6; foreach (var open in w.Motions.Where(x => x.Open).ToList()) w.Motions.Remove(open);
         Assert.True(tc.Executor.TryExecute(new PetitionTitleCommand(me.Id, prog), ctx), new PetitionTitleCommand(me.Id, prog).Refusal(ctx));
