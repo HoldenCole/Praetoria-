@@ -29,6 +29,8 @@ public static class TriumphSystem
     // for a year after the deed (the player's house)
     public const string DeclinedFlag = "triumph_declined", KinDeclinedFlag = "kin_declined_triumph", TakenUpFlag = "command_taken_up";
     public const string HomeChar = "home_for_a_triumph";
+    /// <summary>Why a year at home, or a triumph not yet answered, ended before its time (<see cref="Forgo"/>).</summary>
+    public const string WentAbroad = "went into exile", CourtOrder = "a court had them lay the command down";
     // counters
     public const string HadKey = "triumphs_had", DeclinedKey = "triumphs_declined", LapsedKey = "triumphs_lapsed", TakenUpKey = "commands_taken_up", NotTakenUpKey = "commands_not_taken_up",
         LeaveMovedKey = "absence_moved", LeaveGrantedKey = "absence_granted", LeaveRefusedKey = "absence_refused", LeaveVetoedKey = "absence_vetoed",
@@ -54,7 +56,19 @@ public static class TriumphSystem
     /// <summary>The triumph a fleet is held for: its general is home for it, still living and of the house, and nobody else has been given the
     /// fleet meanwhile. One who dies or leaves the house while home has nothing waiting for them, and the fleet is the house's to fill.</summary>
     public static TriumphVote? HeldBy(World w, Fleet f) => w.TriumphVotes.Count == 0 || f.AdmiralId.Length > 0 ? null
-        : w.TriumphVotes.FirstOrDefault(t => !t.Done && t.Choice is Home or Stand && t.FleetIds.Contains(f.Id) && w.Char(t.CharacterId) is { Alive: true } g && g.HouseId == t.HouseId);
+        : w.TriumphVotes.FirstOrDefault(t => !t.Done && t.Choice is Home or Stand && t.FleetIds.Contains(f.Id) && w.Char(t.CharacterId) is { Alive: true } g && g.HouseId == t.HouseId && !ChargeSystem.Abroad(w, g));
+    /// <summary>Those of a house home for a triumph, as the gate shows them: still living, of the house, and not abroad (the year at home of
+    /// one who has died or left has nothing waiting in it).</summary>
+    public static List<TriumphVote> HomeFor(World w, string houseId) => w.TriumphVotes.Where(t => !t.Done && t.Choice == Home && t.HouseId == houseId && w.Char(t.CharacterId) is { Alive: true } g && g.HouseId == houseId && !ChargeSystem.Abroad(w, g)).ToList();
+    /// <summary>What the gate says of one home for a triumph: until when, what waits for them, and that it is taken up again.</summary>
+    public static string HomeLine(World w, TriumphVote t)
+    {
+        bool me = t.CharacterId == w.ProtagonistId;
+        var waiting = t.FleetIds.Select(id => w.Fleets.GetValueOrDefault(id)).Where(f => f != null).Select(f => f!.AdmiralId.Length > 0 ? f.Name + " has been given to " + (w.Char(f.AdmiralId)?.Name ?? "another")
+            : f.Name + " waits " + (FleetSystem.CaptainOf(w, f) is { } cap ? "under its captain, " + cap.Name : "with nobody in command")).ToList();
+        return (me ? "You are" : t.Name + " is") + " home for the triumph until the end of year " + t.HomeUntil + ", and " + (me ? "hold" : "holds") + " no command until then. " + (waiting.Count == 0 ? "No fleet waits." : string.Join("; ", waiting) + ".")
+            + " The crews' regard does not fade meanwhile, and the command is taken up again when the year is out if it is still " + (me ? "yours" : "theirs") + ".";
+    }
     /// <summary>Is the fleet held for a general home for a triumph? Then nobody is given it unasked, and its crews' devotion does not fade.</summary>
     public static bool Held(World w, Fleet f) => HeldBy(w, f) != null;
     public static bool HeldFor(World w, Fleet f, string characterId) => HeldBy(w, f)?.CharacterId == characterId;
@@ -81,8 +95,9 @@ public static class TriumphSystem
     public static string HomeSays(World w, Character g)
     {
         var fleets = w.Fleets.Values.Where(f => f.AdmiralId == g.Id).OrderBy(f => f.Id, StringComparer.Ordinal).ToList();
-        string laid = fleets.Count == 0 ? "You command nothing now, so nothing is laid down." : string.Join("; ", fleets.Select(f => $"{f.Name} waits {(FleetSystem.CaptainOf(w, f) is { } cap ? "under its captain, " + cap.Name : "with nobody in command")}")) + ".";
-        return $"The house gains 6 legitimacy and glory, the crews march behind you and think the more of you for it, and it counts toward the first rank. You lay the command down until the end of year {w.Turn + HomeYears}: {laid} The crews' regard for you does not fade meanwhile, and you take the command up again when the year is out if it is still yours. Home, you may stand for office in person.";
+        string laid = fleets.Count == 0 ? "You command nothing now, so nothing is laid down."
+            : $"You lay the command down until the end of year {w.Turn + HomeYears}: " + string.Join("; ", fleets.Select(f => $"{f.Name} waits {(FleetSystem.CaptainOf(w, f) is { } cap ? "under its captain, " + cap.Name : "with nobody in command")}")) + ". The crews' regard for you does not fade meanwhile, and you take the command up again when the year is out if it is still yours.";
+        return $"The house gains 6 legitimacy and glory, the crews march behind you and think the more of you for it, and it counts toward the first rank. {laid} Home, you may stand for office in person.";
     }
     public static string KeepSays => "You keep the fleet, and nothing is given: no triumph is counted, and the victories that earned it have had their answer. It is your own choice, and the Senate takes no offence.";
 
@@ -90,6 +105,7 @@ public static class TriumphSystem
     {
         if (who is not { Alive: true }) return "no one to answer";
         if (choice is not (Home or Keep)) return "come home for it, or keep the fleet";
+        if (ChargeSystem.AbroadSays(w, who, who.Id == w.ProtagonistId) is { } away) return away;   // a triumph is had at the gate of the Reach
         if (Waiting(w, who.Id) == null) return "the Senate has voted you no triumph to answer";
         return choice == Home && UnderRecall(w, who.Id) ? "the Senate has since recalled you, and one under recall comes home at its order, not to a triumph" : null;
     }
@@ -139,6 +155,24 @@ public static class TriumphSystem
             w.Tell("info", $"{t.Name} declines the triumph the Senate voted, and keeps the fleet{(why.Length > 0 ? ": " + why : "")}.", "military", t.CharacterId);
     }
 
+    /// <summary>One home for a triumph, or home to stand, has gone abroad or been made by a court to lay the command down: the year at home is
+    /// over, nothing is held for them, and the crews' devotion to them goes (as at any command laid down). With <paramref name="waiting"/>
+    /// (an exile), a triumph not yet answered is void too: it is had at the gate of the Reach.</summary>
+    public static void Forgo(World w, Character g, string why, bool waiting = false)
+    {
+        if (w.TriumphVotes.Count == 0) return;
+        foreach (var t in w.TriumphVotes.Where(t => !t.Done && t.CharacterId == g.Id).ToList())
+        {
+            if (t.Choice.Length == 0) { if (waiting) { t.Choice = Void; t.Why = why; t.Done = true; } continue; }
+            if (t.Choice is not (Home or Stand)) continue;
+            t.Done = true; t.Ended = why; g.Flags.Remove(HomeChar);
+            string bar = CaesarSystem.BarredKey(g.Id); if (w.Counter(bar) == t.HomeUntil + 1) w.WorldCounters.Remove(bar);   // the year at home's own bar; a longer one stands
+            foreach (var f in t.FleetIds.Select(id => w.Fleets.GetValueOrDefault(id)).Where(f => f != null && f.AdmiralId.Length == 0 && f.DevotedTo == g.Id))
+            { if (f!.Devotion >= CaesarSystem.DevotedAt) f.Loyalty = Math.Max(0, f.Loyalty - 5); f.DevotedTo = ""; f.Devotion = 0; }
+            Count(w, t.Choice == Stand ? StoodNotTakenUpKey : NotTakenUpKey);
+        }
+    }
+
     /// <summary>The general voted a triumph has been recalled before answering it: the triumph is void, and the recall is answered as any other
     /// (the general comes home at the Senate's order and may hold no command for five years). Coming home for the triumph is no way out of it.</summary>
     private static void VoidUnderRecall(World w, TriumphVote t, Character g)
@@ -174,10 +208,10 @@ public static class TriumphSystem
     {
         var g = w.Char(t.CharacterId); var mine = w.Protagonist?.HouseId; t.Done = true;
         if (g != null) { g.Flags.Remove(HomeChar); string bar = CaesarSystem.BarredKey(g.Id); if (w.Counter(bar) == t.HomeUntil + 1) w.WorldCounters.Remove(bar); }
-        var back = new List<string>(); var not = new List<string>();
+        var back = new List<string>(); var not = new List<string>(); var told = new List<string>();
         foreach (var id in t.FleetIds)
         {
-            if (NotTheirs(w, g, t, id) is { } no) { not.Add(no); continue; }
+            if (NotTheirs(w, g, t, id) is { } no) { not.Add(no); if (g?.Id == w.ProtagonistId && NotTheirs(w, g, t, id, you: true) is { } toYou) told.Add(toYou); continue; }
             w.Fleets[id].AdmiralId = g!.Id; back.Add(w.Fleets[id].Name);
         }
         FleetSystem.RefreshAdmiralFlags(w);
@@ -190,13 +224,13 @@ public static class TriumphSystem
         {
             if (back.Count > 0) Mark(w, TakenUpFlag);
             w.Tell(back.Count > 0 ? "good" : "info", back.Count > 0 ? $"{(g.Id == w.ProtagonistId ? "You take" : g.Name + " takes")} up the command of {string.Join(" and ", back)} again, the year at home being out."
-                : $"The year at home is out, and {(g.Id == w.ProtagonistId ? "you have" : g.Name + " has")} no command to take up: {t.Ended}.", "military", g.Id);
+                : $"The year at home is out, and {(g.Id == w.ProtagonistId ? "you have" : g.Name + " has")} no command to take up: {told.FirstOrDefault() ?? t.Ended}.", "military", g.Id);
         }
     }
 
     /// <summary>Why the general may not take this fleet up again when the year at home is out, or null. A command by service lapses by its own
-    /// rules meanwhile; a fleet given to somebody else is theirs now.</summary>
-    public static string? NotTheirs(World w, Character? g, TriumphVote t, string fleetId)
+    /// rules meanwhile; a fleet given to somebody else is theirs now. <paramref name="you"/>: said to the player about themselves.</summary>
+    public static string? NotTheirs(World w, Character? g, TriumphVote t, string fleetId, bool you = false)
     {
         if (g is not { Alive: true }) return $"{t.Name} is dead";
         if (!w.Fleets.TryGetValue(fleetId, out var f) || f.Strength <= 0) return "the fleet is no more";
@@ -204,7 +238,8 @@ public static class TriumphSystem
         if (g.HouseId != t.HouseId) return $"{g.Name} is no longer of {Nm(w, t.HouseId)}";
         if (g.Flags.Contains(LifeSystem.FrailChar)) return $"{g.Name} is too frail for the sea";
         if (g.Flags.Contains(LifeSystem.RetiredChar)) return $"{g.Name} has laid their work down";
-        if (CaesarSystem.Barred(w, g)) return "the Senate had them lay a command down";
+        if (ChargeSystem.NoCommandSays(w, g, you) is { } court) return court;   // in exile, or a court's order: said as itself, not as the Senate's
+        if (CaesarSystem.Barred(w, g)) return $"the Senate had {(you ? "you" : "them")} lay a command down";
         bool own = f.OwnerId == g.HouseId, served = w.Service.Any(s => s.CommanderId == g.Id && s.FleetId == f.Id);
         if (!own && !served) return t.HouseId == f.OwnerId ? $"{f.Name} has passed to {Nm(w, f.OwnerId)}" : "the command by service has lapsed meanwhile";
         return f.LaidUp ? $"{f.Name} is laid up" : null;
@@ -262,9 +297,11 @@ public static class TriumphSystem
     }
 
     /// <summary>The generals' business, a triumph and leave to stand in absence, may be moved by anyone who has held a magistracy,
-    /// whatever door their house sits by (docs/GAPS.md Q15).</summary>
+    /// whatever door their house sits by (docs/GAPS.md Q15). Not an exile, nor anyone of a house whose head is in exile: that house moves
+    /// nothing but its own exile's return (docs/LADDER.md, "Exile").</summary>
     public static bool MayMove(World w, Character? mover, MotionDef? def) =>
-        mover is { Alive: true } && def != null && def.Interest is TriumphKind or LeaveKind && !w.IsImperium && PolitySystem.InReach(w, mover.HouseId) && HeldMagistracy(w, mover);
+        mover is { Alive: true } && def != null && def.Interest is TriumphKind or LeaveKind && !w.IsImperium && PolitySystem.InReach(w, mover.HouseId) && HeldMagistracy(w, mover)
+        && !ChargeSystem.Abroad(w, mover) && !ChargeSystem.HeadAbroad(w, w.House(mover.HouseId));
     public static bool HeldMagistracy(World w, Character c) => c.Cursus.Count > 0 || LadderSystem.Seat(w, c.Id) != null;
     /// <summary>The refusal for a house with no voice that would move the generals' business when the mover has held no magistracy, or null:
     /// for any other motion, for one who has held one (the door is shut to them for another reason, said by the caller), and under a throne,
@@ -401,6 +438,7 @@ public static class TriumphSystem
             var g = w.Char(t.CharacterId);
             if (g is not { Alive: true } || w.House(t.HouseId) == null || w.IsImperium) { t.Choice = Void; t.Done = true; continue; }
             if (UnderRecall(w, g.Id)) { VoidUnderRecall(w, t, g); continue; }   // recalled at the same year's end: the recall is answered, and no triumph is had
+            if (ChargeSystem.Abroad(w, g)) { t.Choice = Void; t.Why = WentAbroad; t.Done = true; continue; }   // a triumph is had at the gate of the Reach
             if (g.Id == pid) { if (w.Turn > t.Turn) Decline(w, t, Lapsed); continue; }   // the player is asked, and has the year to answer
             var why = Weigh(w, offices, g); bool keep = why.Sum(x => x.by) > 0;
             string because = string.Join(", ", why.Where(x => keep ? x.by > 0 : x.by < 0).Select(x => x.why));

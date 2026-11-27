@@ -162,7 +162,7 @@
         @foreach (var d in ours)
         {
             var who = w.Char(d.CharacterId)!; bool sits = !LadderSystem.ChargedAtOnce(d) && LadderSystem.Seat(w, who.Id)?.OfficeId == d.RungId;
-            <div class="suit court-ours"><b>@who.Name</b> <span class="muted">@LadderSystem.DeedSays(w, offices, d) · @(sits ? "still sits, and cannot be touched" : "can be charged") · forgotten in year @(d.Turn + LadderSystem.RecordYears + 1)</span></div>
+            <div class="suit court-ours"><b>@who.Name</b> <span class="muted">@LadderSystem.DeedSays(w, offices, d) · @(sits ? "still sits, and cannot be touched" : "can be charged") · @ChargeSystem.ForgottenSays(w, d)</span></div>
         }
     }
 

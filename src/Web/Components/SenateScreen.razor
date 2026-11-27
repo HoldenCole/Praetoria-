@@ -56,7 +56,7 @@
                   Note="@(myBench == null ? "you vote alone; a bench votes together" : benchSeats >= majority ? $"{benchSeats} seats: a majority of the chamber" : $"{benchSeats} seats{(largest ? ", the largest bench" : "")} · {majority - benchSeats} short of a majority")"
                   Title="The bar is your bench's share of the whole chamber." />
             <Tile Label="Before the chamber" Value="@(motions == 0 ? "nothing" : motions == 1 ? "1 motion" : motions + " motions")" Tone="@(againstMe != null ? "bad" : "")"
-                  Note="@(sen == null ? "" : motions == 0 ? (sen.MayPropose ? "you may move one" : "and you may not move one") : againstMe != null ? "one of them against you" : $"{carry} to carry, {motions - carry} to fail, as it stands")"
+                  Note="@(sen == null ? "" : motions == 0 ? (sen.MayPropose ? "you may move one" : sen.HeadAbroad != null ? "and you may move only a return from exile" : "and you may not move one") : againstMe != null ? "one of them against you" : $"{carry} to carry, {motions - carry} to fail, as it stands")"
                   Title="Motions are voted at the year's end, by weight of seats." />
             @if (ThroneSystem.Emperor(w) is { } sits)
             {
@@ -305,7 +305,7 @@
                         @if (iOwe.Count > 0) { <span><b>You owe a favour to:</b> @string.Join(", ", iOwe.Select(h => $"{h.Name} ({FavourLeft(w, house.Id, h.Id)})")). Vote for that house's next motion and the account is even; vote otherwise and its head remembers who kept the gift.</span> }
                     </div>
                 }
-                <div class="propose @(sen.MayPropose || _showForms ? "" : "cannot")">@if (!sen.MayPropose) { <div class="muted" data-cannot-move="1">Your house may not move a motion yet: @NoSeatLine(w).TrimStart('·', ' ').@(!w.IsImperium && TriumphSystem.HeldMagistracy(w, w.Protagonist!) ? MayMoveGenerals : string.Empty) <button class="opt inline tiny" @onclick="() => _showForms = !_showForms">@(_showForms ? "Hide the motions" : "Show what could be moved, " + sen.Proposals.Count + " kinds")</button></div> }
+                <div class="propose @(sen.MayPropose || _showForms ? "" : "cannot")">@if (!sen.MayPropose) { <div class="muted" data-cannot-move="1">@if (sen.HeadAbroad is { } abroad) { <text>@(char.ToUpperInvariant(abroad[0]) + abroad[1..]).</text> } else { <text>Your house may not move a motion yet: @NoSeatLine(w).TrimStart('·', ' ').@(!w.IsImperium && TriumphSystem.HeldMagistracy(w, w.Protagonist!) ? MayMoveGenerals : string.Empty)</text> } <button class="opt inline tiny" @onclick="() => _showForms = !_showForms">@(_showForms ? "Hide the motions" : "Show what could be moved, " + sen.Proposals.Count + " kinds")</button></div> }
                     @foreach (var pr in sen.Proposals)
                     {
                         <div class="proposal">

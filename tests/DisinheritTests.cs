@@ -275,6 +275,29 @@ public class DisinheritTests
     }
 
     [Fact]
+    public void An_exile_brings_no_suit_of_the_undutiful_will_and_is_sent_to_answer_none()
+    {
+        // struck out with no cause, and abroad when the head dies: an exile brings no suit
+        var (w, h, head, eldest, _, _, ctx) = Small(); head.Purse = 40;
+        Do(ctx, head.Id, DisownCommand.Strike, eldest.Id); eldest.Flags.Add(ChargeSystem.ExiledChar);
+        DynastySystem.Die(w, head.Id, "of age");
+        Assert.Empty(w.WillSuits); Assert.Contains(w.History, e => e.Text.Contains(eldest.Name) && e.Text.Contains("in exile"));
+        // brought at home, and the one who brought it goes abroad before it is heard: it lapses, and pays nobody
+        var (w2, h2, heir2, child2, s2) = Will(); child2.Flags.Add(ChargeSystem.ExiledChar);
+        int purse = heir2.Purse; NextYear(w2);
+        Assert.Equal(DisownSystem.Lapsed, s2.Outcome); Assert.Contains("exile", s2.How); Assert.Equal(purse, heir2.Purse); Assert.Equal(0, child2.Purse); Assert.True(DisownSystem.IsStruck(child2));
+        // nobody abroad answers for the house: not one sent, nor the advocate, nor the head
+        var (w3, h3, heir3, child3, s3) = Will(""); var ctx3 = new CommandContext(w3, TestContent.Rng()); w3.PoolsFor(heir3.Id).Influence = 5;
+        var third = w3.Char("third")!; third.Flags.Add(ChargeSystem.ExiledChar);
+        Assert.StartsWith(third.Name + " is in exile", DisownSystem.PleadRefusal(w3, heir3, s3, third));
+        Assert.StartsWith(third.Name + " is in exile", new WillSuitCommand(heir3.Id, WillSuitCommand.Plead, s3.Id, third.Id).Refusal(ctx3));
+        third.Flags.Remove(ChargeSystem.ExiledChar); var plead = new WillSuitCommand(heir3.Id, WillSuitCommand.Plead, s3.Id, third.Id); Assert.Null(plead.Refusal(ctx3)); plead.Execute(ctx3);
+        third.Flags.Add(ChargeSystem.ExiledChar); Assert.Equal(heir3.Id, DisownSystem.AnswersFor(w3, s3)?.Id);                         // one sent who then goes abroad is not heard
+        var cousin = Add(w3, h3, "cousin", "Gaius Varro", 40); heir3.Flags.Add(ChargeSystem.ExiledChar);
+        Assert.Equal(cousin.Id, DisownSystem.AnswersFor(w3, s3)?.Id);                                                                 // a head abroad is not heard either: one of the house at home is
+    }
+
+    [Fact]
     public void A_praetor_bought_by_the_house_or_its_friend_lets_the_will_stand_and_the_rest_go_by_who_pleads()
     {
         var (w, h, heir, child, s) = Will("Ruthless"); var judge = w.Char("judge")!;

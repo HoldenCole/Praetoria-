@@ -6,7 +6,7 @@
 @if (G.World is { } w && w.Protagonist is { } p && G.Turn is { } turn)
 {
     var asked = TriumphSystem.Waiting(w, p.Id);
-    var home = w.TriumphVotes.Where(t => !t.Done && t.Choice == TriumphSystem.Home && t.HouseId == p.HouseId).ToList();
+    var home = TriumphSystem.HomeFor(w, p.HouseId);   /* still living, of the house, and not abroad */
     if (asked != null)
     {
         var goHome = new TriumphCommand(p.Id, TriumphSystem.Home, turn.Caesar); var keep = new TriumphCommand(p.Id, TriumphSystem.Keep, turn.Caesar);
@@ -23,20 +23,12 @@
     }
     foreach (var t in home)
     {
-        <div class="ac-fact" data-triumph-home="@t.CharacterId"><span>At the gate</span><p>@HomeLine(w, t)</p></div>
+        <div class="ac-fact" data-triumph-home="@t.CharacterId"><span>At the gate</span><p>@TriumphSystem.HomeLine(w, t)</p></div>
     }
 }
 
 @code {
     private const string HomeTip = "The honours now; the command laid down until the end of next year, then taken up again if it is still yours.";
-    private static string HomeLine(World w, TriumphVote t)
-    {
-        bool me = t.CharacterId == w.ProtagonistId; string who = me ? "You are" : t.Name + " is";
-        var waiting = t.FleetIds.Select(id => w.Fleets.GetValueOrDefault(id)).Where(f => f != null).Select(f => f!.AdmiralId.Length > 0 ? f.Name + " has been given to " + (w.Char(f.AdmiralId)?.Name ?? "another")
-            : f.Name + " waits " + (FleetSystem.CaptainOf(w, f) is { } cap ? "under its captain, " + cap.Name : "with nobody in command")).ToList();
-        return who + " home for the triumph until the end of year " + t.HomeUntil + ", and holds no command until then. " + (waiting.Count == 0 ? "No fleet waits." : string.Join("; ", waiting) + ".")
-            + " The crews' regard does not fade meanwhile, and the command is taken up again when the year is out if it is still " + (me ? "yours" : "theirs") + ".";
-    }
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= Redraw;

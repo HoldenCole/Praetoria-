@@ -48,7 +48,7 @@
     };
     private static string Does(string answer, GoldOffer o) => answer switch
     {
-        ForeignGoldSystem.Take => $"{Money.Credits(o.Sum)} into your own purse. {(o.Ask == ForeignGoldSystem.Withdraw ? "Your motion is withdrawn at once." : o.Ask == ForeignGoldSystem.Against ? "Your house is declared against the war." : "Your house is declared to stay away.")} It goes on the record: any house may charge you with it before a praetor, at once and for {Counted.Years(LadderSystem.RecordYears)}. Vote for the war after all and they send your house nothing for {Counted.Years(ForeignGoldSystem.BrokenYears)}.",
+        ForeignGoldSystem.Take => ForeignGoldSystem.TakeSays(o),
         ForeignGoldSystem.Refuse => "The factor goes away with what they brought. Nothing is lost, and nobody hears of it.",
         _ => $"The Reach's trust rises by {ForeignGoldSystem.ExposeTrust} and your house's legitimacy by {ForeignGoldSystem.ExposeLegitimacy}. The chamber is angry: every house leans a point more for the war. {Cap(o.NationName)} think {ForeignGoldSystem.ExposeRegard} the worse of the Reach."
     };

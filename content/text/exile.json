@@ -14,7 +14,7 @@
     {
       "id": "called_home",
       "title": "Called Home",
-      "body": "The Senate has voted, and the exile of the house may come home. The motion was read out to a chamber that had spent two years forgetting the name, and remembered it in an afternoon.",
+      "body": "The Senate has voted, and the exile of the house may come home. The motion was read out to a chamber that had spent years forgetting the name, and remembered it in an afternoon.",
       "choices": {
         "come_home_quietly": "Come home at night, and quietly.",
         "come_home_in_state": "Come home in state.",

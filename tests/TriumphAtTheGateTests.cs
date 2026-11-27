@@ -474,6 +474,85 @@ public class TriumphAtTheGateTests
         g.HouseId = mine.Id; Assert.False(TriumphSystem.Held(w, f));   // married out, or cast out: the same
     }
 
+    // ---------------- mended after the three Imperator ideas met ----------------
+
+    [Fact]
+    public void One_who_goes_into_exile_has_no_triumph_at_the_gate()
+    {
+        var (tc, w, me, mine, ctx) = Start(); Legion(w, mine, me); w.WorldCounters[CaesarSystem.LaurelKey(me.Id)] = 3; tc.Caesar.TriumphVoted(w, mine, null, passed: true);
+        var t = TriumphSystem.Waiting(w, me.Id)!; int legit = mine.Legitimacy;
+        tc.Charges.Exile(w, me, null);
+        Assert.Null(TriumphSystem.Waiting(w, me.Id)); Assert.Equal(TriumphSystem.Void, t.Choice); Assert.True(t.Done); Assert.Equal("went into exile", t.Why);
+        Assert.StartsWith("you are in exile", new TriumphCommand(me.Id, TriumphSystem.Home, tc.Caesar).Refusal(ctx));
+        Assert.StartsWith("you are in exile", new TriumphCommand(me.Id, TriumphSystem.Keep, tc.Caesar).Refusal(ctx));
+        Assert.Equal(0, CaesarSystem.Triumphs(w, me)); Assert.False(w.HasFlag(CaesarSystem.TriumphFlag));
+        // one voted a triumph while abroad has it void at the year's end, another house's general as the player
+        var rival = Rival(w, mine); var g = Officer(w, rival, "abroad_general"); g.NatureTraits.Add("Loyal"); Legion(w, rival, g);
+        tc.Charges.Exile(w, g, null); TriumphSystem.Voted(w, rival, g, null); TriumphSystem.Voted(w, mine, me, null);
+        Assert.StartsWith("you are in exile", new TriumphCommand(me.Id, TriumphSystem.Home, tc.Caesar).Refusal(ctx));
+        TriumphSystem.Tick(w, tc.Senate, tc.Caesar);
+        Assert.All(w.TriumphVotes, x => Assert.Equal(TriumphSystem.Void, x.Choice)); Assert.Equal(0, CaesarSystem.Triumphs(w, g)); Assert.Equal(0, CaesarSystem.Triumphs(w, me));
+    }
+
+    [Fact]
+    public void A_house_whose_head_is_in_exile_moves_neither_a_triumph_nor_leave()
+    {
+        // a house with no voice whose head has held a magistracy, and a general of laurels of its own who is not the head
+        (TurnController tc, World w, House rival, Character rh) Setup()
+        {
+            var (tc, w, _, mine, _) = Start(); var rival = Rival(w, mine); var rh = Economy.HeadOf(w, rival)!;
+            foreach (var x in w.Fleets.Values.Where(x => x.OwnerId == rival.Id || x.AdmiralId == rh.Id)) x.AdmiralId = "";
+            rival.Title = "citizen"; rh.CareerTrack = "military"; rival.Enrolled = false; rival.Orders.Clear(); rh.Cursus.Clear(); rh.Cursus.Add(LadderSystem.Quaestor); w.Magistrates.RemoveAll(x => x.CharacterId == rh.Id);
+            var g = Officer(w, rival, "laurelled"); Legion(w, rival, g);
+            foreach (var c in w.LivingCharacters()) w.WorldCounters[CaesarSystem.LaurelKey(c.Id)] = 0;
+            w.WorldCounters[CaesarSystem.LaurelKey(g.Id)] = 3; w.Motions.Clear();
+            foreach (var o in w.Houses.Values.Where(o => o.Id != rival.Id && Economy.HeadOf(w, o) != null)) w.Relationship(Economy.HeadOf(w, o)!.Id, rh.Id).Disposition = 0;
+            return (tc, w, rival, rh);
+        }
+        var (tc, w, rival, rh) = Setup();
+        Assert.True(TriumphSystem.MayMove(w, rh, tc.Senate.Motions.Def(TriumphSystem.TriumphKind)));
+        w.Turn++; tc.Senate.Tick(w); Assert.Contains(w.Motions, m => m.Kind == TriumphSystem.TriumphKind && m.ProposerHouseId == rival.Id);   // at home, the head moves it
+        var (tc2, w2, rival2, rh2) = Setup();
+        tc2.Charges.Exile(w2, rh2, null); Assert.True(ChargeSystem.HeadAbroad(w2, rival2));
+        Assert.False(TriumphSystem.MayMove(w2, rh2, tc2.Senate.Motions.Def(TriumphSystem.TriumphKind))); Assert.False(TriumphSystem.MayMove(w2, rh2, tc2.Senate.Motions.Def(TriumphSystem.LeaveKind)));
+        var kin = Officer(w2, rival2, "former_quaestor"); kin.Cursus.Add(LadderSystem.Quaestor);
+        Assert.False(TriumphSystem.MayMove(w2, kin, tc2.Senate.Motions.Def(TriumphSystem.TriumphKind)));                              // nor anyone of it: the house moves nothing but its exile's return
+        w2.Turn++; tc2.Senate.Tick(w2); Assert.DoesNotContain(w2.Motions, m => m.ProposerHouseId == rival2.Id && m.Kind != ChargeSystem.HomeKind);
+    }
+
+    [Fact]
+    public void The_gate_lists_only_those_still_home_and_says_hold_to_you()
+    {
+        var (tc, w, me, mine, ctx) = Start();
+        foreach (var x in w.Fleets.Values.Where(x => x.OwnerId == mine.Id || x.AdmiralId == me.Id)) x.AdmiralId = "";
+        var kin = Officer(w, mine, "home_kin"); kin.NatureTraits.Add("Loyal"); Legion(w, mine, kin);
+        TriumphSystem.Voted(w, mine, kin, null); TriumphSystem.Tick(w, tc.Senate, tc.Caesar);
+        var t = Assert.Single(TriumphSystem.HomeFor(w, mine.Id));
+        Assert.StartsWith($"{kin.Name} is home for the triumph until the end of year {t.HomeUntil}, and holds no command until then.", TriumphSystem.HomeLine(w, t));
+        kin.Alive = false; Assert.Empty(TriumphSystem.HomeFor(w, mine.Id));                                                           // dead: nobody is home
+        kin.Alive = true; kin.HouseId = Rival(w, mine).Id; Assert.Empty(TriumphSystem.HomeFor(w, mine.Id));                           // married out, or cast out: the same
+        kin.HouseId = mine.Id;
+        // the player home: "you are", and "hold"
+        var f = Legion(w, mine, me); TriumphSystem.Voted(w, mine, me, null); Assert.True(tc.Executor.TryExecute(new TriumphCommand(me.Id, TriumphSystem.Home, tc.Caesar), ctx));
+        var mt = TriumphSystem.HomeFor(w, mine.Id).Single(x => x.CharacterId == me.Id);
+        Assert.StartsWith($"You are home for the triumph until the end of year {mt.HomeUntil}, and hold no command until then.", TriumphSystem.HomeLine(w, mt));
+        // the gate and the Military panel read the same list
+        string Razor(string name) => File.ReadAllText(Path.Combine(ContentLocator.FindContentDir(), "..", "src", "Web", "Components", name));
+        Assert.Contains("TriumphSystem.HomeFor(w, p.HouseId)", Razor("TriumphGate.razor")); Assert.Contains("TriumphSystem.HomeLine(w, t)", Razor("TriumphGate.razor"));
+        Assert.Contains("TriumphSystem.HomeFor(w, house.Id).Count > 0", Razor("CaesarPanel.razor"));
+    }
+
+    [Fact]
+    public void The_gate_says_you_hold_no_command_and_says_nothing_of_laying_down_what_you_do_not_command()
+    {
+        var (tc, w, me, mine, ctx) = Start();
+        foreach (var x in w.Fleets.Values.Where(x => x.AdmiralId == me.Id)) x.AdmiralId = "";
+        TriumphSystem.Voted(w, mine, me, null);
+        string says = TriumphSystem.HomeSays(w, me);
+        Assert.Contains("You command nothing now, so nothing is laid down.", says); Assert.DoesNotContain("You lay the command down until", says); Assert.DoesNotContain(": You", says);
+        Legion(w, mine, me); Assert.Contains($"You lay the command down until the end of year {w.Turn + TriumphSystem.HomeYears}: The Tenth waits", TriumphSystem.HomeSays(w, me));
+    }
+
     [Fact]
     public void Standing_for_consul_says_the_bar_that_holds_when_another_holds_besides_the_command_away()
     {

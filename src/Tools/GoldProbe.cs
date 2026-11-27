@@ -49,7 +49,7 @@ internal static class GoldProbe
                             + (Environment.GetEnvironmentVariable("GOLD_WHY") != null ? ": " + string.Join(" ", m.Votes.OrderBy(v => v.Key, StringComparer.Ordinal).Select(v => $"{v.Key}{(v.Value > 0 ? "+" : v.Value < 0 ? "-" : "0")}{tc.Senate.Weight(w, v.Key)}")) : "")); }
                     }
                     foreach (var d in w.OfficeRecord.Where(d => d.What == ForeignGoldSystem.Deed && d.Answered)) if (charged.Add(d.Id)) { chargesOnGold++; if (w.Counter(LadderSystem.BarredKey(d.CharacterId)) > w.Turn) convictedOnGold++; }
-                    chargedPlayer += w.Indictments.Count(x => x.DeedId.StartsWith("deed_gold_", StringComparison.Ordinal) && x.Turn == w.Turn);
+                    chargedPlayer += w.Indictments.Count(x => x.DeedId.StartsWith("deed_gold_", StringComparison.Ordinal) && x.Turn == w.Turn && x.HouseId == w.Protagonist?.HouseId);   // a charge against the powerful of any house is held as an indictment too
                 }
                 warsVoted += w.Counter("foreign_wars");
                 foreach (var key in new[] { ForeignGoldSystem.MotionsKey, ForeignGoldSystem.OffersKey, ForeignGoldSystem.TakenKey, ForeignGoldSystem.RefusedKey, ForeignGoldSystem.ExposedKey, ForeignGoldSystem.LapsedKey, ForeignGoldSystem.TurnedKey, ForeignGoldSystem.WithdrawOffersKey, ForeignGoldSystem.BoughtOffKey, ForeignGoldSystem.BrokenKey, ForeignGoldSystem.SpentKey })

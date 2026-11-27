@@ -46,9 +46,7 @@
 
 @foreach (var t in threats)
 {
-    var g = w.Char(t.AccusedId); bool byUs = t.AccuserId == house.Id; string gName = g?.Name ?? "the general";
-    string line = byUs ? (t.LaidDownTurn > 0 ? gName + " has laid the command down. Bring the charge by the end of year " + (t.LaidDownTurn + ChargeSystem.ThreatGraceYears) + ", from the record below, or your house loses " + ChargeSystem.ThreatEmptyLegitimacy + " legitimacy." : "You have let it be known that " + gName + " will be charged the day the command is laid down. If the charge is never brought, your house loses " + ChargeSystem.ThreatEmptyLegitimacy + " legitimacy.")
-        : (w.House(t.AccuserId)?.Name ?? "A house") + " has let it be known that " + (t.AccusedId == pid ? "you" : gName) + " will be charged the day the command is laid down. While it stands it is a cause to cross the line.";
+    bool byUs = t.AccuserId == house.Id; string line = ChargeSystem.ThreatSays(w, t, house.Id);
     <div class="suit court-quarrel @(byUs ? string.Empty : Warn)" data-charge-threat="@t.Id" data-threat-standing="1"><span class="small">@line</span></div>
 }
 @if (generals.Count > 0)

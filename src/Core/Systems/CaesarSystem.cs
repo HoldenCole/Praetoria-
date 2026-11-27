@@ -294,6 +294,10 @@ public sealed class CaesarSystem
         : Within(w, CensuredKey(house.Id), GrievanceYears) ? "the Senate censured the house"
         : Within(w, ReachWonKey(house.Id), GrievanceYears) ? "the War of the Reach left the Reach in the house's hands" : ChargeSystem.Cause(w, house);
 
+    /// <summary>A refusal about the general, said to the player who is that general ("2 hulls would follow you", "you have not the name for
+    /// it"), as the Caesar panel says it.</summary>
+    public static string? ToYou(string? text, Character g) => text?.Replace(g.Name + " has not", "you have not").Replace(g.Name + " has", "you have").Replace(g.Name + " is", "you are").Replace("follow " + g.Name, "follow you");
+
     public string? CrossRefusal(World w, House? house)
     {
         if (house == null || !Real(house)) return "no such house";

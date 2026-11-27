@@ -365,6 +365,9 @@ by the house, a friend of it, for sale, or by the pleading.
 - The decided suit is kept on the docket a while, in words of what was done ("Quintus Bench, praetor, went by the record,
   which showed no cause, and found the will undutiful").
 - No praetor of another house sitting: the suit is not brought, or lapses. So none is brought under a throne.
+- **Exile** (docs/LADDER.md, "Exile"): an exile brings no suit. A child abroad when the head dies has none, and one who
+  goes abroad before it is heard has it lapse, and is paid nothing. Nobody abroad answers one for the house either: one
+  sent who then goes abroad is not heard, and if the head is abroad, the best pleader of the house at home answers it.
 
 ### Other houses
 
@@ -443,7 +446,8 @@ Every number here is mine, and a first guess:
   left to them, however small, answers it; that winning sets a striking aside but not a casting out; that a loyal child fond of the new head (30) does not sue;
   that the will sued over is that of any parent who died with them still out; the praetor's rules, mirrored on the
   charges' (55, 6 and 4; the friend at 30); −2 legitimacy and the 10s of regard.
-- That the defence is whoever was sent, else the council's advocate, else the head.
+- That the defence is whoever was sent, else the council's advocate, else the head; nobody in exile, and with the head
+  abroad, the house's best pleader at home. That an exile's suit lapses rather than waits for them to come home.
 - Other houses: the three plain causes, two years, one in two, once a year, and who casts out rather than strikes.
 - That a command by service ends the day its commander is cast out or taken back, and is kept, by right, only by one cast
   out into the house whose fleet it is; and that one taken back lays down what they held of the house they leave.
@@ -489,4 +493,4 @@ Every number here is mine, and a first guess:
   the title, and a question before it is done; the line of succession marks those struck out and lists them and those
   cast out, who can be picked to take them back. The suit is on the Senate window's docket (`data-undutiful-will`), with
   terms and a pleader to send, and stays there a little while once decided.
-- `tests/DisinheritTests.cs` (29), and the probe `src/Tools/DisownProbe.cs`.
+- `tests/DisinheritTests.cs` (30), and the probe `src/Tools/DisownProbe.cs`.

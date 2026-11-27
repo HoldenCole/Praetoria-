@@ -912,7 +912,8 @@ large and the Cities' purse finite."
     the record, where any house may charge you with it before a praetor at once, for eight years, with its facts:
     "took 3,800 credits from the Free Cities of Thessar to vote against the war on the Hollow Crown in year 34". If you
     then vote for the war after all, the Cities think five the worse of the Reach and send your house nothing for ten
-    years; the gold is still on the record.
+    years; the gold is still on the record. A sum to withdraw the war you moved leaves no vote to break it at, and the
+    button's title says nothing of one.
   - **Refuse it.** Nothing is lost, and nobody hears of it.
   - **Tell the Senate.** The Reach's trust rises by two and your house's legitimacy by three. The chamber is angry:
     every house leans a point more for the war on that motion. The Cities think ten the worse of the Reach.
@@ -1029,6 +1030,8 @@ in the twelve games of the Republic (a war bought off is withdrawn before it is 
 - **Another house that took it always votes as paid**, unless it had already given its word. Your telling the chamber
   of the sum sent to you does not change that.
 - **Nothing under a throne.** The Senate sits under a throne and votes wars, but the Cities send it nothing there.
+- **The scripted players** (`src/Tools/Scripted.cs`) do not answer gold. The random player of the soak takes, refuses or
+  tells of it at low rates (`Qa.ServiceAndLine`), and the soak's report counts each answer.
 
 ## What is yours to decide
 

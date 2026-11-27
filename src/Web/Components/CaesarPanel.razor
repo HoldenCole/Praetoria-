@@ -7,7 +7,7 @@
     int sway = general != null ? CaesarSystem.Sway(w, general) : 0; int laurels = general != null ? CaesarSystem.Laurels(w, general) : 0;
     int hulls = general != null ? CaesarSystem.DevotedHulls(w, general) : 0; int triumphs = general != null ? CaesarSystem.Triumphs(w, general) : 0;
     var recall = w.Recalls.FirstOrDefault(r => r.HouseId == house.Id); var cw = w.CivilWar;
-    bool atTheGate = w.TriumphVotes.Any(t => !t.Done && t.Choice == TriumphSystem.Home && t.HouseId == house.Id);   /* one of the house is home for a triumph (docs/CAESAR.md) */
+    bool atTheGate = TriumphSystem.HomeFor(w, house.Id).Count > 0;   /* one of the house is home for a triumph (docs/CAESAR.md) */
     var fleets = w.Fleets.Values.Where(f => (f.OwnerId == house.Id && !f.Office || ServiceSystem.CommandedBy(w, f, house.Id)) && f.AdmiralId.Length > 0).OrderByDescending(f => f.Devotion).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();   /* and those one of the house commands by service (docs/MILITARY.md) */
     var watched = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && CaesarSystem.Sway(w, x.g) >= 30)
         .OrderByDescending(x => CaesarSystem.Sway(w, x.g!)).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(3).ToList();
