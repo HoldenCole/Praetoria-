@@ -1,6 +1,8 @@
 @inject GameClient G
-@* Buying another house's venture: at what it asks, or by an offer below it (docs/PLAYTHROUGH.md, Medium, Money).
-   Used wherever a venture of another house is shown: the Exchange's list, and the house's own page. *@
+@* Buying another house's venture: at what it asks, or by an offer below it (docs/PLAYTHROUGH.md, Medium, Money). One line of
+   plates (docs/VISUAL_SYSTEM.md 4.11): Buy with the asking price on it, then an offer typed in credits and its Offer plate; what
+   each does and why it is refused is in its tooltip. Used wherever a venture of another house is shown: the Exchange's list, and a
+   house's page under Houses. Its rules are in exchange.css (vbuy). *@
 @{
     var w = G.World!; var pid = w.ProtagonistId; var vs = G.Turn!.Ventures; var b = w.Business(BusinessId); var mine = w.Protagonist!.HouseId;
 }
@@ -12,19 +14,21 @@
     int offer = Math.Clamp(_offer > 0 ? _offer : Math.Max(1, ask * 9 / 10), 1, Math.Max(1, ask - 1));
     var cmd = new OfferForVentureCommand(pid, bid, offer, vs); var offerNo = cmd.Refusal(G.Ctx);
     <div class="vbuy" data-venture-buy="@bid">
-        <button class="opt inline tiny" data-buy="@bid" disabled="@(buyNo != null)" title="@(buyNo ?? "The holder of the world it works may match the price and take it first; you then keep your coin.")" @onclick="() => G.Execute(new BuyVentureCommand(pid, bid, vs))">@(askNo == null ? $"Buy for {Money.Show(ask)}" : "Not for sale")@(askNo != null ? $": {askNo}" : "")</button>
+        <Plate Label="@(askNo == null ? "Buy" : "Not for sale")" Small="true" CostIcon="@(askNo == null ? "credits" : "")" CostText="@(askNo == null ? Money.Show(ask) : "")" data-buy="@bid"
+               Locked="@(buyNo != null)" Disabled="@(buyNo != null)" ShowNeed="@(askNo != null)" Need="@(buyNo ?? "")" Tip="@($"Buy it for {Money.Show(ask)}. The holder of the world it works may match the price and take it first; you then keep your coin.")"
+               OnClick="() => G.Execute(new BuyVentureCommand(pid, bid, vs))" />
         @if (askNo == null && last > 0)
         {
-            <span class="muted small" data-last-word="@last">They have answered your offer this year: @Money.Show(last) is the price until the year turns.</span>
+            <span class="vbuy-word" data-last-word="@last">They have answered your offer this year: @Money.Show(last) is the price until the year turns.</span>
         }
         else if (askNo == null && ask > 1)
         {
-            <span class="muted small">or offer</span>
-            <input class="qty" type="number" min="@Money.PerUnit" step="@Money.PerUnit" max="@((ask - 1) * Money.PerUnit)" value="@(offer * Money.PerUnit)" style="width:6rem" title="In credits. The books are in hundreds, so an offer is a whole number of hundreds." @onchange="e => _offer = int.TryParse(e.Value?.ToString(), out var v) ? v / Money.PerUnit : 0" />
-            <button class="opt inline tiny" data-offer="@bid" disabled="@(offerNo != null)"
-                    title="@(offerNo ?? $"{owner?.Name} asks {Money.Show(ask)} and would take less; how much less follows what its head thinks of you and whether it is short of coin, and you are not told. One offer a year. An offer they like is taken at your price. One they do not is answered with a price between yours and theirs, and that is their last word until the year turns. Under {Money.Show(insult)} (half the asking) is an insult: no answer, and its head thinks {VentureSystem.InsultRegard} the worse of you.")"
-                    @onclick="() => G.Execute(cmd)">Offer @Money.Show(offer)</button>
-            @if (offer < insult) { <span class="small warn">an insult</span> }
+            <span class="vbuy-l">or offer</span>
+            <input class="hs-num vbuy-in" type="number" min="@Money.PerUnit" step="@Money.PerUnit" max="@((ask - 1) * Money.PerUnit)" value="@(offer * Money.PerUnit)" aria-label="Your offer, in credits" title="In credits. The books are in hundreds, so an offer is a whole number of hundreds." @onchange="e => _offer = int.TryParse(e.Value?.ToString(), out var v) ? v / Money.PerUnit : 0" />
+            <Plate Label="@($"Offer {Money.Show(offer)}")" Small="true" data-offer="@bid" Locked="@(offerNo != null)" Disabled="@(offerNo != null)" ShowNeed="false" Need="@(offerNo ?? "")"
+                   Tip="@($"{owner?.Name} asks {Money.Show(ask)} and would take less; how much less follows what its head thinks of you and whether it is short of coin, and you are not told. One offer a year. An offer they like is taken at your price. One they do not is answered with a price between yours and theirs, and that is their last word until the year turns. Under {Money.Show(insult)} (half the asking) is an insult: no answer, and its head thinks {VentureSystem.InsultRegard} the worse of you.")"
+                   OnClick="() => G.Execute(cmd)" />
+            @if (offer < insult) { <span class="vbuy-warn ui-warn-t">an insult</span> }
         }
     </div>
 }

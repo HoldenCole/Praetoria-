@@ -18,22 +18,22 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   // find the screen each panel lives on
-  const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; const tabs = await page.evaluate(() => document.querySelectorAll('.ex-tabs .rung').length); for (let i = 1; i < tabs; i++) { await page.evaluate(k => document.querySelectorAll('.ex-tabs .rung')[k].click(), i); await page.waitForTimeout(300); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } } return ''; };
-  const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s + ' button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.trim() : ''; }, [sel, text]);
+  const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; const tabs = await page.evaluate(() => document.querySelectorAll('.screen.window .ex-tabs .rung, .screen.window .cw-tabs .rung, .screen.window .ui-tab').length); for (let i = 1; i < tabs; i++) { await page.evaluate(k => document.querySelectorAll('.screen.window .ex-tabs .rung, .screen.window .cw-tabs .rung, .screen.window .ui-tab')[k].click(), i); await page.waitForTimeout(300); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } } return ''; };
+  const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s + ' button')].find(e => !e.disabled && e.innerText.trim().toLowerCase().startsWith(t.toLowerCase())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : ''; }, [sel, text]);
   const text = sel => page.evaluate(s => { const el = document.querySelector(s); return el ? el.innerText.replace(/\s+/g, ' ') : 'NO PANEL'; }, sel);
-  const shot = async (sel, name) => { const box = await page.evaluate(s => { const el = document.querySelector(s); if (!el) return null; el.scrollIntoView({ block: 'start' }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1300) }; }, sel); if (box) await page.screenshot({ path: shots + '/' + name + '.png', clip: box }); };
+  const shot = async (sel, name) => { const box = await page.evaluate(s => { const el = document.querySelector(s); if (!el) return null; el.scrollIntoView({ block: 'start' }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1300) }; }, sel); if (box) await page.screenshot({ path: shots + '/' + name + '.png', clip: box, timeout: 180000 }); };
 
   await closeWindows();
   const bad = t => /NaN|undefined|Exception|@\(/.test(t) ? 'SUSPICIOUS TEXT' : 'ok';
   const wealthOn = await find('.panel.wealth'); console.log('wealth panel on: ' + (wealthOn || 'NOT FOUND'));
   let t = await text('.panel.wealth'); console.log('wealth: ' + bad(t));
-  console.log('header: ' + (t.match(/your own purse[^.]*?a year[^A-Z]*/) || ['?'])[0].trim());
+  console.log('header: ' + (t.match(/your own purse[^.]*?a year[^A-Z]*/i) || ['?'])[0].trim());
   console.log('heirloom lines: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 170)).join(' || ')));
   console.log('take from the treasury: ' + (await press('.panel.wealth', 'take 20') || await press('.panel.wealth', 'take 5') || 'nothing pressed')); await page.waitForTimeout(300);
-  console.log('lend at interest: ' + (await press('.panel.wealth .purse-row', 'Lend 10 at interest') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
+  console.log('lend at interest: ' + (await press('.panel.wealth .purse-row', 'Lend 1,000 at interest') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('borrow buttons: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .purse-row button')].filter(b => /^Borrow/.test(b.innerText.trim())).map(b => b.innerText.trim() + (b.disabled ? ' (' + (b.title || 'cannot') + ')' : '')).slice(0, 6).join(' | ')));
   console.log('borrow: ' + (await press('.panel.wealth .purse-row', 'Borrow') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('pills: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .pill')].map(e => e.innerText).filter(x => /owe/.test(x)).join(' | ')));
@@ -54,7 +54,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await shot('.panel.education', 'register-education');
 
   const hhOn = await find('.panel.household'); console.log('household panel on: ' + (hhOn || 'NOT FOUND'));
-  t = await text('.panel.household'); console.log('household: ' + bad(t) + ' · ' + (t.match(/Found family and duties[^.]*?handed on[^A-Z]*/) || ['?'])[0].trim());
+  t = await text('.panel.household'); console.log('household: ' + bad(t) + ' · ' + await page.evaluate(() => { const e = document.querySelector('.panel.household [data-household-sum]'); return e ? e.dataset.householdSum : '?'; }));
   const lifeOn = await find('.panel.life'); console.log('life panel on: ' + (lifeOn || 'NOT FOUND'));
   t = await text('.panel.life'); console.log('life: ' + bad(t) + ' · ties: ' + (t.match(/Old (friends|enemies)[^.]*\./) || ['no old ties yet'])[0]);
 

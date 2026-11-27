@@ -1,173 +1,209 @@
 @inject GameClient G
 @using Praetoria.Core.Presentation
+@* The Exchange's Shares tab (docs/ECONOMY_MARKET.md stages C and D). The companies as one table (docs/VISUAL_SYSTEM.md 4.13): the
+   chosen company's order docks in the order bar at the foot, a lot and Buy and Sell with what they come to, and its holders and what
+   it owns in a line under it. Then the boards you sit on, what moved the market, war bonds, the Treasurer's and the throne's hands,
+   and listing a venture. How a share is priced is the section's "i". *@
 @{
     var m = Model; var w = G.World!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!; var cs = G.Turn!.Companies; var ex = m.Exchange;
     var loose = (m.Businesses ?? new List<BusinessCard>()).Where(b => b.CompanyName == null).ToList();
     var directed = ex?.Companies.Where(c => c.Directed).ToList() ?? new List<CompanyLine>();
+    var sel = ex?.Companies.FirstOrDefault(c => c.Id == _sel) ?? ex?.Companies.FirstOrDefault(c => c.Held > 0) ?? ex?.Companies.FirstOrDefault();
 }
 @if (ex == null || cs == null)
 {
-    <div class="dash-grid exchange-grid"><section class="panel"><h3><Icon Name="credits" Size="13" /> Shares</h3><div class="muted">No exchange sits in this age.</div></section></div>
+    <EmptyState Icon="coins-pile" Text="No exchange sits in this age." />
 }
 else
 {
-<div class="dash-grid exchange-grid">
-    <section class="panel">
-        <h3><Icon Name="credits" Size="13" /> The Exchange <span class="muted">credits a share · the line is the last twelve years</span></h3>
-        <div class="ex-index">
-            <div class="stat"><span>Index</span><b>@ex.Index.ToString("0") <i class="@(ex.IndexChangePct >= 0 ? "good" : "warn")">@(ex.IndexChangePct > 0 ? "+" : "")@ex.IndexChangePct% in five years</i></b></div>
-            <div>@((MarkupString)Spark(ex.IndexHistory, ex.IndexChangePct >= 0))</div>
-            <div class="stat @(ex.ConfidencePct < 85 ? "warn" : "")"><span>Confidence in the Reach</span><b>@ex.ConfidencePct</b></div>
-            <div class="stat"><span>Your paper</span><b>@Money.Show(ex.PaperValue) <i class="muted">· @Money.Show(ex.DividendsDue) in dividends next year</i></b></div>
-            @if (ex.LevyPct > 0) { <div class="stat warn"><span>Exchange levy</span><b>@ex.LevyPct% <i class="muted">to the chair</i></b></div> }
-        </div>
-        <table class="standings goods shares">
-            <thead><tr><th>Company</th><th>Price</th><th>Twelve years</th><th>Earns · pays</th><th>Float</th><th>You hold</th><th>Order</th></tr></thead>
-            <tbody>
+<p class="ui-lede ex-lede">@HouseScreen.Bold($"The index stands at {ex.Index:0}, {(ex.IndexChangePct >= 0 ? "+" : "−")}{Math.Abs(ex.IndexChangePct)}% in five years, and confidence in the Reach at {ex.ConfidencePct}. Your paper is worth {Money.Show(ex.PaperValue)}, with {Money.Show(ex.DividendsDue)} in dividends next year.")</p>
+@if (ex.LevyPct > 0) { <WarnStrip Icon="scales" Lead="@($"Exchange levy {ex.LevyPct}%.")" Class="ex-strip">Every purchase of shares pays it, to the chair.</WarnStrip> }
+<Section Title="The companies" Count="@ex.Companies.Count.ToString()" Info="@SharePriced">
+    <Right><span title="The index over the last twelve years"><Spark Values="ex.IndexHistory" Color="@(ex.IndexChangePct >= 0 ? "#8cc47e" : "#e0553f")" /> Confidence <b class="@(ex.ConfidencePct < 85 ? "ui-warn-t" : "")">@ex.ConfidencePct</b></span></Right>
+    <ChildContent>
+    <div class="ex-shares" data-shares-table>
+        <DataTable Class="ex-table">
+            <Head><th>Company</th><th>Price</th><th title="The last twelve years">12 years</th><th title="What it earned last year, and the dividend it declared as a share of its price">Pays</th><th title="Shares on the float, of all its shares">Float</th><th>You hold</th></Head>
+            <ChildContent>
             @foreach (var c in ex.Companies)
             {
-                int qty = Qty(c.Id); var co = w.Company(c.Id);
-                var buy = cs.QuoteBuy(w, house.Id, co, qty); var sell = cs.QuoteSell(w, house.Id, co, qty);
-                bool wouldControl = !c.Chartered && !c.Directed && (c.Held + qty) * 2 > c.Shares;
-                <tr class="@(c.Directed ? "mine" : "")">
-                    <td class="hn"><b>@c.Name</b>
-                        <div class="muted small">@c.SectorName@(c.OutlookPct != 0 ? $" ({(c.OutlookPct > 0 ? "+" : "")}{c.OutlookPct}% outlook)" : "") · @(c.Directed ? "you direct it" : $"directed by {c.ControllerName}")@(c.MonopolyName.Length > 0 ? $" · monopoly of {c.MonopolyName}" : "")</div></td>
-                    <td><b>@Money.Show(c.Price)</b> <span class="small @(c.ChangePct >= 10 ? "good" : c.ChangePct <= -10 ? "warn" : "muted")" title="in five years">@(c.ChangePct > 0 ? "+" : "")@c.ChangePct%</span></td>
-                    <td>@((MarkupString)Spark(c.History, c.ChangePct >= 0))</td>
-                    <td title="what it earned last year, and the dividend it declared (as a share of its price)">@Money.Show(c.Earnings) · @Money.Show(c.Dividend) <span class="muted small">@c.YieldPct%</span></td>
-                    <td>@c.Float<span class="muted small">/@c.Shares</span></td>
-                    <td title="@(c.Held > 0 ? $"worth {Money.Credits(c.HeldValue)}" : "")">@if (c.Held > 0) { <b>@c.Held</b> <span class="muted small">@(c.Held * 100 / Math.Max(1, c.Shares))%</span> } else { <span class="muted">—</span> }</td>
-                    <td class="order">
-                        <label class="lot" title="How many shares to buy or sell at once. Change it: the buttons show the lot and what it comes to."><small class="muted">lot</small> <input type="number" min="1" max="999" value="@qty" @oninput="e => SetQty(c.Id, e)" /></label>
-                        <button class="opt inline tiny" disabled="@(buy.Refusal != null)" title="@(buy.Refusal ?? BuyTip(buy, c, wouldControl))" @onclick="() => G.Execute(new BuySharesCommand(pid, c.Id, qty, cs))">Buy @qty · @(buy.Credits > 0 ? Money.Show(buy.Credits) + " cr" : "—")</button>
-                        @if (c.Held > 0) { <button class="opt inline tiny" disabled="@(sell.Refusal != null)" title="@(sell.Refusal ?? $"{Money.Show(sell.UnitPrice)} a share with your order's weight")" @onclick="() => G.Execute(new SellSharesCommand(pid, c.Id, qty, cs))">Sell @qty · @(sell.Refusal == null ? Money.Show(sell.Credits) + " cr" : "—")</button> }
-                    </td>
+                string cid = c.Id; bool on = sel?.Id == c.Id;
+                <tr class="@(on ? "on" : "") @(c.Directed ? "mine" : "")" title="@($"{c.Name}: {c.SectorName}{(c.OutlookPct != 0 ? $" ({(c.OutlookPct > 0 ? "+" : "−")}{Math.Abs(c.OutlookPct)}% outlook)" : "")}, {(c.Directed ? "you direct it" : $"directed by {c.ControllerName}")}{(c.MonopolyName.Length > 0 ? $", monopoly of {c.MonopolyName}" : "")}\n{Cap(c.Cause)}\nkey: Click to put it in the order bar")" data-company="@c.Id" @onclick="() => _sel = cid">
+                    <td><span class="ex-co-mark" style="background:@c.ControllerAccent" title="@($"Directed by {c.ControllerName}")"></span>@c.Name@if (c.Directed) { <span class="ex-chip gold">yours</span> }</td>
+                    <td>@Money.Show(c.Price) <small class="@(c.ChangePct >= 10 ? "ui-up" : c.ChangePct <= -10 ? "ui-down" : "ui-mute")" title="In five years">@Signed(c.ChangePct)%</small></td>
+                    <td><Spark Values="c.History" Color="@(c.ChangePct >= 0 ? "#8cc47e" : "#e0553f")" /></td>
+                    <td title="@($"Earned {Money.Show(c.Earnings)} last year and declared {Money.Show(c.Dividend)}")">@Money.Show(c.Dividend) <small class="ui-mute">@c.YieldPct%</small></td>
+                    <td>@c.Float<small class="ui-mute">/@c.Shares</small></td>
+                    <td title="@(c.Held > 0 ? $"worth {Money.Credits(c.HeldValue)}" : "")">@if (c.Held > 0) { <b>@c.Held</b> <small class="ui-mute">@(c.Held * 100 / Math.Max(1, c.Shares))%</small> } else { <span class="ui-mute">none</span> }</td>
                 </tr>
-                <tr class="cause"><td colspan="7"><span class="muted small">@Cap(c.Cause)@(c.Stakes.Count > 0 ? " · held by " + string.Join(", ", c.Stakes.Select(s => $"{s.HouseName} {s.Pct}%")) : "")@(c.Description.Length > 0 ? " · " + c.Description : "")@(c.Ventures.Count > 0 ? " · owns " + string.Join(", ", c.Ventures) : "")@(wouldControl && c.GoldenShare ? " · its founder may refuse a takeover once" : "")</span></td></tr>
             }
-            </tbody>
-        </table>
-        <div class="muted small">Shares are bought from the float and sold onto it. An order moves the price against itself; no house may buy more than a fifth of a company in a year. More than half of the shares directs the company.</div>
-
-        @foreach (var c in directed)
+            </ChildContent>
+            <OrderBar>
+            @if (sel != null)
+            {
+                int qty = Qty(sel.Id); string sid = sel.Id; var co = w.Company(sel.Id);
+                var buy = cs.QuoteBuy(w, house.Id, co, qty); var sell = cs.QuoteSell(w, house.Id, co, qty);
+                bool wouldControl = !sel.Chartered && !sel.Directed && (sel.Held + qty) * 2 > sel.Shares;
+                <span class="ui-order-nm"><Icon Name="coins-pile" Tone="brass" Size="18" />@sel.Name</span>
+                <span class="ex-quote">@Money.Show(sel.Price) a share</span>
+                <span class="ui-order-sp"></span>
+                <span class="ui-seg-l" title="How many shares to buy or sell at once. Change it: the plates show the lot and what it comes to.">Lot</span>
+                <span class="ui-step ex-step">
+                    <button aria-label="Fewer" disabled="@(qty <= 1)" @onclick="() => _qty[sid] = Math.Max(1, qty - 1)"><Icon Name="minus" Tone="ivory" Size="12" /></button>
+                    <input type="number" min="1" max="999" value="@qty" aria-label="Shares in the lot" @oninput="e => SetQty(sid, e)" />
+                    <button aria-label="More" disabled="@(qty >= 999)" @onclick="() => _qty[sid] = Math.Min(999, qty + 1)"><Icon Name="plus" Tone="ivory" Size="12" /></button>
+                </span>
+                <Plate Label="@($"Buy {qty}")" CostIcon="credits" CostText="@(buy.Credits > 0 ? Money.Show(buy.Credits) : "nothing")" Locked="@(buy.Refusal != null)" Disabled="@(buy.Refusal != null)" ShowNeed="false" Need="@(buy.Refusal ?? "")" Tip="@BuyTip(buy, sel, wouldControl)" OnClick="() => G.Execute(new BuySharesCommand(pid, sid, qty, cs))" />
+                @if (sel.Held > 0) { <Plate Label="@($"Sell {qty}")" CostIcon="credits" CostText="@(sell.Refusal == null ? Money.Show(sell.Credits) : "nothing")" Locked="@(sell.Refusal != null)" Disabled="@(sell.Refusal != null)" ShowNeed="false" Need="@(sell.Refusal ?? "")" Tip="@($"{Money.Show(sell.UnitPrice)} a share with your order's weight")" OnClick="() => G.Execute(new SellSharesCommand(pid, sid, qty, cs))" /> }
+            }
+            </OrderBar>
+        </DataTable>
+        @if (sel != null)
         {
-            int n = Qty("board:" + c.Id);
-            var fl = cs.FloatRefusal(w, house.Id, w.Company(c.Id), n); var bb = cs.BuybackRefusal(w, house.Id, w.Company(c.Id), n);
-            var sp = cs.SpecialRefusal(w, house.Id, w.Company(c.Id)); var pv = cs.PrivateRefusal(w, house.Id, w.Company(c.Id));
-            <div class="vcard">
-                <div class="vc-head"><b>@c.Name</b> <span class="muted small">the board · you hold @(c.Held * 100 / Math.Max(1, c.Shares))% · @Money.Show(c.Cash) credits in hand · pays out @c.PayoutPct% of what it earns</span></div>
-                <div class="row small">
-                    <span class="muted">Dividend</span>
-                    @foreach (var pct in Payouts) { int v = pct; <button class="opt inline tiny @(c.PayoutPct == v ? "here" : "")" disabled="@(c.PayoutPct == v)" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Payout, v, cs))">@(v == 0 ? "keep it all" : v == 100 ? "pay it all" : v + "%")</button> }
+            bool wc = !sel.Chartered && !sel.Directed && (sel.Held + Qty(sel.Id)) * 2 > sel.Shares;
+            <p class="ex-cause" data-company-cause="@sel.Id"><b>@sel.Name:</b> @sel.SectorName@(sel.OutlookPct != 0 ? $" ({(sel.OutlookPct > 0 ? "+" : "−")}{Math.Abs(sel.OutlookPct)}% outlook)" : "") · @(sel.Directed ? "you direct it" : $"directed by {sel.ControllerName}")@(sel.MonopolyName.Length > 0 ? $" · monopoly of {sel.MonopolyName}" : ""). @Cap(sel.Cause)@(sel.Stakes.Count > 0 ? " · held by " + string.Join(", ", sel.Stakes.Select(s => $"{s.HouseName} {s.Pct}%")) : "")@(sel.Description.Length > 0 ? " · " + sel.Description : "")@(sel.Ventures.Count > 0 ? " · owns " + string.Join(", ", sel.Ventures) : "")@(wc && sel.GoldenShare ? " · its founder may refuse a takeover once" : "")</p>
+        }
+    </div>
+    </ChildContent>
+</Section>
+
+@if (directed.Count > 0)
+{
+    <Section Title="Your boards" Count="@directed.Count.ToString()" Info="A company you direct: more than half of its shares are the house's. You set its dividend, float new shares, buy its own back, pay in coin, pay out its cash, or wind it up. Enlarge its ventures on the Ventures tab: the company pays from its own cash.">
+    @foreach (var c in directed)
+    {
+        int n = Qty("board:" + c.Id); string cid = c.Id; var co = w.Company(c.Id);
+        var fl = cs.FloatRefusal(w, house.Id, co, n); var bb = cs.BuybackRefusal(w, house.Id, co, n);
+        var sp = cs.SpecialRefusal(w, house.Id, co); var pv = cs.PrivateRefusal(w, house.Id, co);
+        string? pin = new BoardCommand(pid, c.Id, BoardCommand.PayIn, n, cs).Refusal(G.Ctx);
+        <div class="vcard ex-board" data-board="@c.Id">
+            <Row Name="@c.Name" SubText="@($"you hold {c.Held * 100 / Math.Max(1, c.Shares)}% · {Money.Show(c.Cash)} credits in hand · pays out {c.PayoutPct}% of what it earns")">
+                <Picture><span class="ui-medal hs-medal lit"><Icon Name="coins-pile" Tone="brass" Size="22" /></span></Picture>
+                <Cells><Cell Icon="credits" Value="@Money.Show(c.Cash)" Tip="Cash in hand" /></Cells>
+            </Row>
+            <div class="ex-under">
+                <div class="hs-line">
+                    <span class="hs-lbl">Dividend</span>
+                    <span class="ui-seg hs-seg">@foreach (var pct in Payouts) { int v = pct; <button class="@(c.PayoutPct == v ? "on" : "")" disabled="@(c.PayoutPct == v)" @onclick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.Payout, v, cs))">@(v == 0 ? "keep it all" : v == 100 ? "pay it all" : v + "%")</button> }</span>
                 </div>
-                <div class="row small">
-                    <input type="number" min="1" max="99" value="@n" @onchange="e => SetQty(BoardKey(c.Id), e)" />
-                    <button class="opt inline tiny" disabled="@(fl != null)" title="@(fl ?? "new shares sold to the public at a tenth under the price; the coin goes into the company, and your share of it shrinks")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Float, n, cs))">Float @n new shares · raises @(fl == null ? Money.Show(cs.FloatProceeds(w.Company(c.Id)!, n)) : "—")</button>
-                    <button class="opt inline tiny" disabled="@(bb != null)" title="@(bb ?? "the company buys its own shares off the float with its cash and cancels them")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Buyback, n, cs))">Buy back @n</button>
-                    @{ string? pin = new BoardCommand(pid, c.Id, BoardCommand.PayIn, n, cs).Refusal(G.Ctx); }
-                    <button class="opt inline tiny" data-payin="@c.Id" disabled="@(pin != null)" title="@(pin ?? $"{Money.Credits(n)} of the house's own go into the company's chest, for no new shares: your share of it stays what it is, and every other holder is the richer by theirs. It is how a company you direct is given the coin to enlarge a venture without cutting the dividend or floating shares.")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.PayIn, n, cs))">Pay in @Money.Show(n) credits</button>
-                    <button class="opt inline tiny" disabled="@(sp != null)" title="@(sp ?? "the cash in hand is paid to every holder by their shares, now")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Special, 0, cs))">Pay out the cash</button>
-                    <button class="opt inline tiny" disabled="@(pv != null)" title="@(pv ?? "the ventures and the cash are the house's again")" @onclick="() => G.Execute(new BoardCommand(pid, c.Id, BoardCommand.Private, 0, cs))">Wind it up</button>
+                <div class="hs-line">
+                    <span class="hs-lbl">How many</span>
+                    <span class="ui-step ex-step">
+                        <button aria-label="Fewer" disabled="@(n <= 1)" @onclick='() => _qty["board:" + cid] = Math.Max(1, n - 1)'><Icon Name="minus" Tone="ivory" Size="12" /></button>
+                        <input type="number" min="1" max="99" value="@n" aria-label="Shares, or hundreds of credits to pay in" @onchange="e => SetQty(BoardKey(cid), e)" />
+                        <button aria-label="More" disabled="@(n >= 99)" @onclick='() => _qty["board:" + cid] = Math.Min(99, n + 1)'><Icon Name="plus" Tone="ivory" Size="12" /></button>
+                    </span>
+                    <Plate Label="@($"Float {n} new")" Small="true" CostText="@(fl == null ? "raises " + Money.Show(cs.FloatProceeds(co!, n)) : "")" Locked="@(fl != null)" Disabled="@(fl != null)" ShowNeed="false" Need="@(fl ?? "")" Tip="New shares sold to the public at a tenth under the price; the coin goes into the company, and your share of it shrinks" OnClick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.Float, n, cs))" />
+                    <Plate Label="@($"Buy back {n}")" Small="true" Locked="@(bb != null)" Disabled="@(bb != null)" ShowNeed="false" Need="@(bb ?? "")" Tip="The company buys its own shares off the float with its cash and cancels them" OnClick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.Buyback, n, cs))" />
+                    <Plate Label="@($"Pay in {Money.Show(n)}")" Small="true" data-payin="@c.Id" Locked="@(pin != null)" Disabled="@(pin != null)" ShowNeed="false" Need="@(pin ?? "")" Tip="@($"{Money.Credits(n)} of the house's own go into the company's chest, for no new shares: your share of it stays what it is, and every other holder is the richer by theirs. It is how a company you direct is given the coin to enlarge a venture without cutting the dividend or floating shares.")" OnClick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.PayIn, n, cs))" />
                 </div>
-                <div class="muted small">Enlarge its ventures on the Ventures tab: the company pays from its own cash.</div>
+                <div class="hs-line">
+                    <Plate Label="Pay out the cash" Small="true" Locked="@(sp != null)" Disabled="@(sp != null)" ShowNeed="false" Need="@(sp ?? "")" Tip="The cash in hand is paid to every holder by their shares, now" OnClick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.Special, 0, cs))" />
+                    <Plate Label="Wind it up" Small="true" Locked="@(pv != null)" Disabled="@(pv != null)" ShowNeed="false" Need="@(pv ?? "")" Tip="The ventures and the cash are the house's again" OnClick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.Private, 0, cs))" />
+                </div>
+            </div>
+        </div>
+    }
+    </Section>
+}
+
+<Section Title="What moved the market" Count="@ex.Movers.Count.ToString()" Info="The year's news on the Exchange: what lifted or sank a company's price."
+         IsEmpty="@(ex.Movers.Count == 0)" EmptyLine="A quiet year." EmptyIcon="report">
+    @foreach (var line in ex.Movers) { <p class="ex-mover"><Icon Name="report" Tone="ivory" Size="15" />@line</p> }
+</Section>
+
+@if (ex.BondOffer != null || ex.Bonds.Count > 0)
+{
+    <Section Title="War bonds" Count="@ex.Bonds.Count.ToString()" Info="Lent to the chair for the war abroad. A bond pays its yield a year while the war lasts, and is repaid when the war ends: a tenth over if the nation is subdued, fifteen in the hundred short if not; if the chair's treasury cannot find the whole sum, only what it can. There is no selling a bond before then.">
+        <Right>@if (ex.BondOffer is { } bo0) { <span>You hold <b>@bo0.Held</b> of @bo0.Cap</span> }</Right>
+        <ChildContent>
+        @if (ex.BondOffer is { } bo)
+        {
+            <Row Name="@($"The war with {bo.NationName}")" SubText="@($"The Reach borrows for the war: {Money.Show(bo.Face)} credits a bond at {bo.YieldPct}% a year, repaid when the war ends.")">
+                <Picture><span class="ui-medal hs-medal"><Icon Name="war" Tone="ember" Size="22" /></span></Picture>
+                <Action><Plate Label="Buy a bond" Small="true" CostIcon="credits" CostText="@Money.Show(bo.Face)" Locked="@(bo.Refusal != null)" Disabled="@(bo.Refusal != null)" ShowNeed="false" Need="@(bo.Refusal ?? "")" Tip="@($"{Money.Credits(bo.Face)} lent to the chair now. It pays {bo.YieldPct}% a year while the war lasts. When the war ends it is repaid: {Money.Show(bo.Face * 110 / 100)} if {bo.NationName} was subdued, {Money.Show(bo.Face * 85 / 100)} if not; and if the chair's treasury cannot find the whole sum, only what it can. There is no selling a bond before then.")" OnClick="() => G.Execute(new BuyBondCommand(pid, cs))" /></Action>
+            </Row>
+        }
+        @foreach (var b in ex.Bonds)
+        {
+            <Row Name="@Money.Show(b.Face)" SubText="@($"at {b.YieldPct}% · the war with {b.NationName} · bought in year {b.Bought}")">
+                <Picture><span class="ui-medal hs-medal"><Icon Name="scroll-quill" Tone="brass" Size="20" /></span></Picture>
+            </Row>
+        }
+        </ChildContent>
+    </Section>
+}
+
+@if (ex.IsTreasurer)
+{
+    <Section Title="The Treasurer's hand" Info="@($"Once a term the Treasurer may open the Reach's purse under a falling market: the chair pays {Money.Show(cs.Rules.SteadyCost)} credits, companies in the red are made whole, and confidence is held up for two years.")">
+        <div class="hs-line"><Plate Label="Steady the market" Icon="checked-shield" Small="true" CostIcon="credits" CostText="@Money.Show(cs.Rules.SteadyCost)" Locked="@(ex.SteadyRefusal != null)" Disabled="@(ex.SteadyRefusal != null)" ShowNeed="@(ex.SteadyRefusal != null)" Need="@(ex.SteadyRefusal ?? "")" Tip="The chair pays, companies in the red are made whole, and confidence is held up for two years" OnClick="() => G.Execute(new SteadyMarketCommand(pid, cs))" /></div>
+    </Section>
+}
+@if (ex.IsEmperor)
+{
+    var houses = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != "pirates").OrderBy(h => h.Name, StringComparer.Ordinal).ToList();
+    var grantee = houses.FirstOrDefault(h => h.Id == _grantee) ?? houses.FirstOrDefault();
+    <Section Title="The throne's hand" Info="A great company's monopoly may be granted to a house: it directs the company and takes a fifth of what it earns. With the Imperial Edict at proscriptions, a house's shares may be declared forfeit to the crown.">
+        <div class="hs-line">
+            <span class="hs-lbl">To</span>
+            <Select Value="@(grantee?.Id ?? "")" Options="@houses.Select(h => new Select.Option(h.Id, h.Name)).ToList()" Tip="The house to grant or to proscribe" OnChange="v => _grantee = v" />
+        </div>
+        @if (grantee != null)
+        {
+            <div class="hs-line">
+                @foreach (var c in ex.Companies.Where(c => c.Chartered))
+                {
+                    var gr = cs.GrantRefusal(w, house.Id, w.Company(c.Id), grantee.Id); string cid = c.Id; string gid = grantee.Id;
+                    <Plate Label="@($"Grant {c.Name}")" Small="true" Locked="@(gr != null)" Disabled="@(gr != null)" ShowNeed="false" Need="@(gr ?? "")" Tip="@($"{grantee.Name} directs {c.Name} and takes a fifth of what it earns")" OnClick="() => G.Execute(new ThroneExchangeCommand(pid, ThroneExchangeCommand.GrantAct, cid, gid, cs, G.Content!.Policies))" />
+                }
+                @{ var sz = cs.SeizeRefusal(w, house.Id, grantee.Id, G.Content!.Policies); string sgid = grantee.Id; }
+                <Plate Label="Declare its shares forfeit" Small="true" Class="hs-danger" Locked="@(sz != null)" Disabled="@(sz != null)" ShowNeed="false" Need="@(sz ?? "")" Tip="@($"{grantee.Name}'s shares go to the crown")" OnClick="() => G.Execute(new ThroneExchangeCommand(pid, ThroneExchangeCommand.SeizeAct, string.Empty, sgid, cs, G.Content!.Policies))" />
             </div>
         }
-    </section>
+    </Section>
+}
 
-    <aside class="dash-side">
-        <section class="panel">
-            <h3><Icon Name="report" Size="13" /> What moved the market</h3>
-            @if (ex.Movers.Count == 0) { <div class="muted">A quiet year.</div> }
-            @foreach (var line in ex.Movers) { <div class="line small">@line</div> }
-        </section>
-        @if (ex.BondOffer != null || ex.Bonds.Count > 0)
-        {
-            <section class="panel">
-                <h3><Icon Name="credits" Size="13" /> War bonds <span class="muted">lent to the chair for the war abroad</span></h3>
-                @if (ex.BondOffer is { } bo)
-                {
-                    <div class="muted small">The Reach borrows for the war with @bo.NationName: @Money.Show(bo.Face) credits a bond at @bo.YieldPct% a year, repaid when the war ends (a tenth over if the nation is subdued, fifteen in the hundred short if not). You hold @bo.Held of @bo.Cap.</div>
-                    <button class="opt" disabled="@(bo.Refusal != null)" title="@(bo.Refusal ?? $"{Money.Credits(bo.Face)} lent to the chair now. It pays {bo.YieldPct}% a year while the war lasts. When the war ends it is repaid: {Money.Show(bo.Face * 110 / 100)} if {bo.NationName} was subdued, {Money.Show(bo.Face * 85 / 100)} if not; and if the chair's treasury cannot find the whole sum, only what it can. There is no selling a bond before then.")" @onclick="() => G.Execute(new BuyBondCommand(pid, cs))">Buy a bond · @Money.Show(bo.Face) credits at @bo.YieldPct% · repaid when the war ends</button>
-                }
-                @foreach (var b in ex.Bonds) { <div class="line small"><b>@Money.Show(b.Face)</b> at @b.YieldPct% <span class="muted">· the war with @b.NationName · bought in year @b.Bought</span></div> }
-            </section>
-        }
-        @if (ex.IsTreasurer)
-        {
-            <section class="panel">
-                <h3><Icon Name="influence" Size="13" /> The Treasurer's hand</h3>
-                <div class="muted small">Once a term the Treasurer may open the Reach's purse under a falling market: the chair pays @Money.Show(cs.Rules.SteadyCost) credits, companies in the red are made whole, and confidence is held up for two years.</div>
-                <button class="opt" disabled="@(ex.SteadyRefusal != null)" title="@ex.SteadyRefusal" @onclick="() => G.Execute(new SteadyMarketCommand(pid, cs))">Steady the market</button>
-            </section>
-        }
-        @if (ex.IsEmperor)
-        {
-            var houses = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != "pirates").OrderBy(h => h.Name, StringComparer.Ordinal).ToList();
-            var grantee = houses.FirstOrDefault(h => h.Id == _grantee) ?? houses.FirstOrDefault();
-            <section class="panel">
-                <h3><Icon Name="houses" Size="13" /> The throne's hand</h3>
-                <div class="muted small">A great company's monopoly may be granted to a house: it directs the company and takes a fifth of what it earns. With the Imperial Edict at proscriptions, a house's shares may be declared forfeit to the crown.</div>
-                <select @onchange="e => _grantee = e.Value?.ToString() ?? string.Empty">
-                    @foreach (var h in houses) { <option value="@h.Id" selected="@(grantee?.Id == h.Id)">@h.Name</option> }
-                </select>
-                @if (grantee != null)
-                {
-                    @foreach (var c in ex.Companies.Where(c => c.Chartered))
-                    {
-                        var gr = cs.GrantRefusal(w, house.Id, w.Company(c.Id), grantee.Id);
-                        <button class="opt inline tiny" disabled="@(gr != null)" title="@gr" @onclick="() => G.Execute(new ThroneExchangeCommand(pid, ThroneExchangeCommand.GrantAct, c.Id, grantee.Id, cs, G.Content!.Policies))">Grant @c.Name</button>
-                    }
-                    var sz = cs.SeizeRefusal(w, house.Id, grantee.Id, G.Content!.Policies);
-                    <button class="opt inline tiny" disabled="@(sz != null)" title="@sz" @onclick="() => G.Execute(new ThroneExchangeCommand(pid, ThroneExchangeCommand.SeizeAct, string.Empty, grantee.Id, cs, G.Content!.Policies))">Declare its shares forfeit</button>
-                }
-            </section>
-        }
-        <section class="panel">
-            @if (loose.Count == 0) { <div class="empty-line">To list a venture as a company the house must own one outright. Found or buy one on the Ventures tab.</div> }
-            else { <h3><Icon Name="trade_hub" Size="13" /> List a venture <span class="muted">@cs.Rules.IncorporateInfluence influence for the charter</span></h3> }
-            @foreach (var b in loose)
-            {
-                var refusal = cs.IncorporateRefusal(w, house.Id, w.Businesses.GetValueOrDefault(b.Id), string.Empty);
-                <div class="line small"><b>@b.Name</b> <span class="muted">earns @Money.Show(b.Earnings) · worth @Money.Show(b.Value)</span>
-                    <button class="opt inline tiny" disabled="@(refusal != null)" title="@(refusal ?? "a hundred shares, all yours; sell some for coin, or float new ones to build")" @onclick='() => G.AskDo("Incorporate " + b.Name + "?", "It is listed on the Exchange as a company of a hundred shares, all yours to begin with. Its profit is then paid as dividends to whoever holds the shares, and others may buy in. It cannot be made a private venture again.", "Incorporate", new IncorporateCommand(pid, b.Id, string.Empty, cs))'>Incorporate</button>
-                    @foreach (var c in directed) { string? foldNo = new IncorporateCommand(pid, b.Id, c.Id, cs).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(foldNo != null)" title="@(foldNo ?? "new shares are issued to you for what it is worth")" @onclick="() => G.Execute(new IncorporateCommand(pid, b.Id, c.Id, cs))">Fold into @c.Name</button> }
-                </div>
-            }
-        </section>
-        <section class="panel">
-            <h3><Icon Name="report" Size="13" /> How a share is priced</h3>
-            <div class="ac-fact"><span>Earnings</span><p>What the company makes at this year's goods prices, eight years of it, plus its cash, shared among its shares.</p></div>
-            <div class="ac-fact"><span>Its trade</span><p>War fills the arms houses' books and empties the banks'. Raiders hurt whatever travels. Dear goods lift whoever digs them.</p></div>
-            <div class="ac-fact"><span>Confidence</span><p>One number for the Reach: down with wars, the crisis and houses in debt; up with years of peace.</p></div>
-            <div class="ac-fact"><span>Flow</span><p>Heavy buying lifts a price for a year or two, heavy selling sinks it. A house in the red sells.</p></div>
-            <div class="ac-fact"><span>Dividends</span><p>Declared each year from earnings and paid the next, to whoever holds the shares then.</p></div>
-            <div class="ac-fact"><span>Control</span><p>More than half directs the company, whoever founded it. A founder may refuse a takeover once, at a cost in influence.</p></div>
-        </section>
-    </aside>
-</div>
+<Section Title="List a venture" Count="@loose.Count.ToString()" Info="@($"A venture the house owns outright may be listed on the Exchange as a company: a hundred shares, all yours; sell some for coin, or float new ones to build. The charter costs {cs.Rules.IncorporateInfluence} influence. A venture can also be folded into a company you direct, for new shares of what it is worth.")"
+         IsEmpty="@(loose.Count == 0)" EmptyLine="To list a venture as a company the house must own one outright. Found or buy one on the Ventures tab." EmptyIcon="factory">
+    <Right><span>@cs.Rules.IncorporateInfluence influence for the charter</span></Right>
+    <ChildContent>
+    @foreach (var b in loose)
+    {
+        var refusal = cs.IncorporateRefusal(w, house.Id, w.Businesses.GetValueOrDefault(b.Id), string.Empty); string bid = b.Id;
+        <Row Name="@b.Name" SubText="@($"earns {Money.Show(b.Earnings)} · worth {Money.Show(b.Value)}")">
+            <Picture><span class="ui-thumb hs-thumb-none"><Icon Name="factory" Tone="brass" Size="20" /></span></Picture>
+            <Action><span class="hs-acts">
+                <Plate Label="Incorporate" Icon="coins-pile" Small="true" CostIcon="public-speaker" CostText="@cs.Rules.IncorporateInfluence.ToString()" Locked="@(refusal != null)" Disabled="@(refusal != null)" ShowNeed="false" Need="@(refusal ?? "")" Tip="A hundred shares, all yours; sell some for coin, or float new ones to build" OnClick='() => G.AskDo("Incorporate " + b.Name + "?", "It is listed on the Exchange as a company of a hundred shares, all yours to begin with. Its profit is then paid as dividends to whoever holds the shares, and others may buy in. It cannot be made a private venture again.", "Incorporate", new IncorporateCommand(pid, bid, string.Empty, cs))' />
+                @foreach (var c in directed) { string? foldNo = new IncorporateCommand(pid, b.Id, c.Id, cs).Refusal(G.Ctx); string ccid = c.Id; <Plate Label="@($"Fold into {c.Name}")" Small="true" Locked="@(foldNo != null)" Disabled="@(foldNo != null)" ShowNeed="false" Need="@(foldNo ?? "")" Tip="New shares are issued to you for what it is worth" OnClick="() => G.Execute(new IncorporateCommand(pid, bid, ccid, cs))" /> }
+            </span></Action>
+        </Row>
+    }
+    </ChildContent>
+</Section>
 }
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private static readonly int[] Payouts = { 0, 25, 50, 75, 100 };
-    private string _grantee = string.Empty;
+    private string _grantee = string.Empty; private string? _sel;
     private readonly Dictionary<string, int> _qty = new();
     private int Qty(string key) => _qty.TryGetValue(key, out var q) ? q : 5;
     private void SetQty(string key, ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var q)) _qty[key] = Math.Clamp(q, 1, 999); }
     private static string BoardKey(string id) => "board:" + id;
-    private static string F2(double v) => v.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
-    private static string F1(double v) => v.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture);
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
     private static string BuyTip(ShareQuote q, CompanyLine c, bool wouldControl) =>
         Money.Show(q.UnitPrice) + " a share with your order's weight" + (q.Levy > 0 ? ", " + Money.Show(q.Levy) + " of it the levy" : "") + (wouldControl ? "; this would give you more than half" + (c.GoldenShare ? ", and its founder may refuse it once" : "") : "");
-    /// <summary>A twelve-year line, 120 by 26.</summary>
-    private static string Spark(IReadOnlyList<double> h, bool up)
+    private static readonly string SharePriced = string.Join("\n", new[]
     {
-        if (h.Count == 0) return "";
-        double lo = h.Min() * 0.9, hi = h.Max() * 1.1; if (hi - lo < 0.01) hi = lo + 0.01;
-        double Y(double v) => 24 - (v - lo) / (hi - lo) * 22; double X(int i) => h.Count == 1 ? 118 : 2 + i * 116.0 / (h.Count - 1);
-        string pts = string.Join(" ", h.Select((v, i) => F1(X(i)) + "," + F1(Y(v))));
-        string colour = up ? "#2EC27E" : "#E63946";
-        return "<svg class=\"spark\" viewBox=\"0 0 120 26\" width=\"120\" height=\"26\" role=\"img\" aria-label=\"price history\"><polyline points=\"" + pts + "\" fill=\"none\" stroke=\"" + colour + "\" stroke-width=\"1.8\" stroke-linejoin=\"round\"/><circle cx=\"" + F1(X(h.Count - 1)) + "\" cy=\"" + F1(Y(h[^1])) + "\" r=\"2.4\" fill=\"" + colour + "\"/></svg>";
-    }
+        "[coins-pile] How a share is priced",
+        "Earnings: what the company makes at this year's goods prices, eight years of it, plus its cash, shared among its shares.",
+        "Its trade: war fills the arms houses' books and empties the banks'. Raiders hurt whatever travels. Dear goods lift whoever digs them.",
+        "Confidence: one number for the Reach, down with wars, the crisis and houses in debt; up with years of peace.",
+        "Flow: heavy buying lifts a price for a year or two, heavy selling sinks it. A house in the red sells.",
+        "Dividends: declared each year from earnings and paid the next, to whoever holds the shares then.",
+        "Control: more than half directs the company, whoever founded it. A founder may refuse a takeover once, at a cost in influence.",
+        "Orders: shares are bought from the float and sold onto it. An order moves the price against itself; no house may buy more than a fifth of a company in a year."
+    });
 }
