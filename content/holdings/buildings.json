@@ -1,9 +1,8 @@
 {
-  // Buildings the player slots into a holding (GDD §17 — "boost energy / navy capacity"). A one-time
+  // Buildings the player slots into a holding (GDD §17"boost energy / navy capacity"). A one-time
   // cost from the house treasury buys an ongoing per-turn yield (minus upkeep). "requires" pins a
   // building to one specialization (a mine only on a forge-world); omit it for any holding. The
-  // §17 production pipeline (mining → forge → Materials → shipyard → fleet) lives here as data —
-  // shipyards/fortifications arrive with the Military layer in a later milestone.
+  // §17 production pipeline (mining → forge → Materials → shipyard → fleet) lives here as data, // shipyards/fortifications arrive with the Military layer in a later milestone.
   "buildings": [
     {
       "id": "power_plant", "name": "Power Plant",

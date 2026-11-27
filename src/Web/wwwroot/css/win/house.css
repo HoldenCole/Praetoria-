@@ -111,7 +111,7 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 .hs-succ .ui-seg button { text-transform: none; }
 
 /* rows: the shared grid, with the portraits of people at 46 by 56 */
-.hs-win .ui-row .portrait { display: block; }
+.hs-win .ui-row .portrait:not(.pf-empty) { display: block; }
 .hs-win .ui-row-sub { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .hs-win .ui-row-nm .hs-tag { font-weight: 600; }
 .hs-win .ui-cell small { color: var(--ink-mute); font-weight: 500; }
@@ -159,7 +159,7 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 .hs-pick-nm { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hs-pick-nm small { color: var(--ink-mute); font-weight: 500; font-size: .8667rem; }
 .hs-pick-sub { font: 400 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hs-pick .portrait { display: block; }
+.hs-pick .portrait:not(.pf-empty) { display: block; }
 /* provinces held under others: the dues as a loss at the right */
 .hs-dues { display: inline-flex; gap: .6667rem; }
 @container hs (max-width: 45rem) {
@@ -169,7 +169,7 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 }
 
 /* ---- the signed ledger (4.10): losses in ember left of a centre line, gains in brass right of it ---- */
-.hs-led { padding: .6667rem var(--hs-gut-r) .2667rem var(--hs-gut-l); display: grid; grid-template-columns: minmax(0, 14.6667rem) 1fr 1fr 5.4667rem; row-gap: .5333rem; align-items: center; }
+.hs-led { padding: .6667rem var(--hs-gut-r) .2667rem var(--hs-gut-l); display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) 5.4667rem; row-gap: .5333rem; align-items: center; }
 .hs-led-src { display: flex; align-items: center; gap: .5333rem; min-width: 0; font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: .6667rem; cursor: help; }
 .hs-led-src .icon { flex: none; width: 1rem; height: 1rem; }
 .hs-led-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -183,7 +183,7 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 .hs-led-amt.net { font-size: 1rem; }
 .hs-led > .net { padding-top: .4rem; border-top: 1px solid rgba(201,162,74,.3); }
 .hs-led > .hs-led-neg:nth-last-child(3), .hs-led > .hs-led-pos:nth-last-child(2) { margin-top: .4rem; }
-@container hs (max-width: 45rem) { .hs-led { grid-template-columns: minmax(0, 1.7fr) 1fr 1fr 5.2rem; } }
+@container hs (max-width: 45rem) { .hs-led { grid-template-columns: minmax(0, 2.4fr) minmax(0, .8fr) minmax(0, .8fr) 5.2rem; } }
 
 /* ---- Ledger: lenders, the stores, the wealth of the houses ---- */
 .hs-debt .ui-row-nm { color: #ffb4a3; }
@@ -285,3 +285,29 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 .lm-change { grid-template-columns: 4.4rem minmax(0, 1fr) auto; }
 .lm-yr { color: var(--ink-mute); font-variant-numeric: tabular-nums; }
 .lm-note { margin: .4rem 0; font: italic 400 1rem/1.4 var(--f-prose); color: var(--ink-dim); }
+
+/* ---- the Purse rebuilt on the row grid (docs/VISUAL_SYSTEM.md 4.7, 4.12): one row a person with one action; the sum on a joined
+   stepper; the ways of a row (give, lend, borrow; entail, sell, leave) under it only when its plate is pressed ---- */
+.hs-order { display: flex; flex-wrap: wrap; align-items: center; gap: .5333rem; margin: .2667rem var(--hs-gut-r) .6667rem calc(var(--hs-gut-l) + 3.6rem + .9333rem); }
+.purse-row .hs-drawer, .purse-item .hs-drawer { display: none; }
+.purse-row.open .hs-drawer, .purse-item.open .hs-drawer { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; margin: -.1333rem var(--hs-gut-r) .6667rem calc(var(--hs-gut-l) + 3.6rem + .9333rem);
+  padding: .5333rem .6667rem; background: rgba(5,7,10,.55); box-shadow: inset 0 1px 3px rgba(0,0,0,.8), inset 2px 0 0 var(--brass-mid); }
+.purse-item.open .hs-drawer.col { flex-direction: column; align-items: flex-start; }
+.purse-item .hs-drawer .suit-acts { margin: 0; justify-content: flex-start; }
+.purse-row .ui-row-sub .hs-tag, .purse-item .ui-row-sub .hs-tag { margin-left: .4667rem; }
+.hs-buy .hs-subhead, .hs-subhead { margin: .6667rem var(--hs-gut-r) .1333rem var(--hs-gut-l); font: 600 .8rem/1.2 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.hs-buy { display: block; margin: 0; }
+.hs-will .ui-row .ui-select-btn { min-width: 11rem; justify-content: space-between; }
+.hs-need { color: var(--warn); font-weight: 600; } .hs-need .icon { margin-right: .4rem; }
+/* the seat: three rows, not a ladder of prose */
+.hs-ladder { padding: 0; display: block; }
+.hs-ladder .hs-rung { display: block; padding: 0; cursor: default; font: inherit; color: inherit; }
+.hs-ladder .hs-rung.next .ui-row { box-shadow: inset 2px 0 0 rgba(232,196,110,.55); }
+.hs-ladder .hs-rung:not(.done):not(.next) .ui-row-nm { color: var(--ink-dim); }
+/* the council's and the court's posts: one row each, the one action an Appoint select whose options carry faces */
+.hs-appoint .ui-select-btn { min-width: 8.5333rem; justify-content: space-between; }
+.hs-appoint .ui-menu { right: 0; left: auto; min-width: 22rem; max-width: 30rem; }
+.hs-appoint .ui-menu button small { white-space: normal; }
+/* the strategic goods bought at once from their own row: "Buy 3", the good's icon, the cost after the hairline */
+.hs-stores .ui-table td.hs-buy { width: 1%; white-space: nowrap; text-align: right; padding-top: .2rem; padding-bottom: .2rem; }
+@media (max-width: 1500px) { .hs-head .ui-facts .hs-culture { display: none; } }   /* the least useful fact steps out, so the facts keep to one line */

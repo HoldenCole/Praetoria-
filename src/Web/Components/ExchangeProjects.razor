@@ -22,7 +22,7 @@
         var raw = w.Projects.FirstOrDefault(x => x.Id == p.Id); string pidr = p.Id;
         <div class="vcard ex-project @(p.Stalled ? "distress" : "")" data-project="@p.Id">
             <Row Name="@Cap(p.Name)" SubText="@($"{kind}{(p.CompanyName != null ? $" · paid by {p.CompanyName}" : "")}")">
-                <Picture>@if (raw != null && G.WorkPicture(raw.DefId) is { } art) { <span class="ui-thumb"><img src="@art" alt="" loading="lazy" /></span> } else { <span class="ui-thumb hs-thumb-none"><Icon Name="@(p.Great ? "greek-temple" : "build")" Tone="brass" Size="20" /></span> }</Picture>
+                <Picture>@if (raw != null && G.WorkPicture(raw.DefId) is { } art) { <span class="ui-thumb"><img src="@art" alt="" loading="eager" decoding="async" /></span> } else { <span class="ui-thumb hs-thumb-none"><Icon Name="@(p.Great ? "greek-temple" : "build")" Tone="brass" Size="20" /></span> }</Picture>
                 <NameExtra>@if (p.Paused) { <span class="hs-tag">paused</span> } else if (p.Stalled) { <span class="hs-tag bad" title="The instalment was not met">stalled</span> } else { <span class="hs-tag gold">@Counted.Years(p.TurnsLeft) left</span> }</NameExtra>
                 <Cells>
                     <span class="ui-cell" title="What is paid so far">@p.Paid<small>&nbsp;paid</small></span>

@@ -52,8 +52,8 @@
     {
         <div class="sn-intro">
             @if (TriumphSystem.HasLeave(w, house.Id)) { <p class="sn-say ui-up" data-absence-leave="1">The Senate has given your house leave to stand in absence: at the next election those of the house who command away from the capital may stand without coming home.</p> }
-            <div class="sn-trust"><Meter Label="Trust in office" Value="@trust" Max="100" Color="@(trust < LadderSystem.TrustLow ? "#b8452f" : trust < 50 ? "#e3a64a" : "#8cc47e")" Tip="@TrustTip" /><span class="sn-say">The magistrates of the Reach are <span class="@trustClass" title="@TrustTip">@trustWord (@trust)</span> @trustDoes</span></div>
-            @if (LadderSystem.TrustApartSays(w) is { Length: > 0 } apart) { <p class="sn-say ui-dim" title="An office's own name is what a scandal costs at the count for that office. A region that does not believe the magistrates holds a little less closely to the Reach each year.">@apart</p> }
+            @{ string apartSays = LadderSystem.TrustApartSays(w) is { Length: > 0 } apart ? "\n" + apart : ""; }
+            <div class="sn-trust" title="@(TrustTip + "\n" + trustDoes + apartSays)"><Meter Label="Trust in office" Value="@trust" Max="100" Color="@(trust < LadderSystem.TrustLow ? "#b8452f" : trust < 50 ? "#e3a64a" : "#8cc47e")" Text="@trust.ToString()" Tip="@TrustTip" /><span class="sn-say">The magistrates are <span class="@trustClass">@trustWord</span> <Icon Name="info" Tone="ivory" Size="12" /></span></div>
             @if (taintLine.Length > 0) { <div class="ui-wstrip bad sn-strip"><Icon Name="alert" Tone="ember" Size="18" /><span class="ui-wstrip-t">@taintLine</span></div> }
         </div>
         @if (work != null)
@@ -91,18 +91,18 @@
         {
             string rid = rung.Id; var holders = LadderSystem.Holders(w, rung.Id); var ours = w.Candidacies.Where(x => x.RungId == rung.Id).ToList();
             var stand = new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices).Refusal(G.Ctx); bool sitsHere = mySeat?.OfficeId == rung.Id;
-            <div class="sn-ent rung-row @(sitsHere ? "mine" : "")" data-rung-office="@rid">
-                <span class="sn-ic @(sitsHere ? "mine" : "")"><Icon Name="@RungIcon(rid)" Tone="@(sitsHere ? "brass" : "ivory")" Size="22" /></span>
+            bool heldIt = p.Cursus.Contains(rid);
+            <div class="sn-ent rung-row lad @(sitsHere ? "mine now" : heldIt ? "held" : "open")" data-rung-office="@rid">
+                <span class="sn-ic lad-node @(sitsHere ? "mine" : "")" title="@(sitsHere ? "You sit in this office" : heldIt ? "You have held this office" : "Not yet held")"><Icon Name="@RungIcon(rid)" Tone="@(sitsHere ? "dark" : heldIt ? "brass" : "ivory")" Size="20" /></span>
                 <div class="sn-ent-main">
-                    <div class="sn-hd"><b class="sn-nm">@rung.Name</b><span class="sn-sub">@Counted.Seats(rung.Seats) · from @SenateActs.AgeFor(w, rung.MinAge)@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {Money.Show(rung.Stipend)} a year" : "")</span>
+                    <div class="sn-hd"><b class="sn-nm" title="@rung.Description">@rung.Name</b><span class="sn-sub">@Counted.Seats(rung.Seats) · from @SenateActs.AgeFor(w, rung.MinAge)@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {Money.Show(rung.Stipend)} a year" : "")</span>
                         @if (sitsHere) { <span class="sn-tag mine">you sit</span> }</div>
-                    <div class="sn-tx ui-dim">@rung.Description</div>
                     <div class="sn-sitting"><span class="sn-lbl">Sitting:</span>
                         @if (holders.Count == 0) { <i class="ui-mute">nobody</i> }
                         @foreach (var h in holders)
                         {
                             var x = w.Char(h.CharacterId); if (x == null) continue;
-                            <span class="sn-who @(x.HouseId == house.Id ? "mine" : "")"><Portrait Id="@x.Id" Name="@x.Name" Sex="@x.Sex" Age="@x.Age" Accent="@(w.House(x.HouseId)?.AccentColor ?? "#888")" Size="20" />@(x.HouseId == house.Id ? $"{x.Name} (yours)" : $"{x.Name} of {w.House(x.HouseId)?.Name}")</span>
+                            <span class="sn-who @(x.HouseId == house.Id ? "mine" : "")" title="@(x.HouseId == house.Id ? $"{x.Name}, of your house" : $"{x.Name} of {w.House(x.HouseId)?.Name}")"><Portrait Id="@x.Id" Name="@x.Name" Sex="@x.Sex" Age="@x.Age" Accent="@(w.House(x.HouseId)?.AccentColor ?? "#888")" Size="30" Height="36" />@x.Name</span>
                         }
                     </div>
                     @foreach (var cd in ours)
@@ -161,8 +161,8 @@
         }
         @if (consul != null)
         {
-            <div class="sn-ent rung-row" data-rung-office="consul">
-                <span class="sn-ic"><Icon Name="podium" Tone="ivory" Size="22" /></span>
+            <div class="sn-ent rung-row lad open top" data-rung-office="consul">
+                <span class="sn-ic lad-node" title="The top of the ladder"><Icon Name="podium" Tone="ivory" Size="20" /></span>
                 <div class="sn-ent-main">
                     <div class="sn-hd"><b class="sn-nm">Consul</b><span class="sn-sub">2 seats · from @SenateActs.AgeFor(w, consul.MinAge) · must have been @(offices.Rung(consul.Requires)?.Name.ToLowerInvariant() ?? "praetor") · elected every tenth year</span></div>
                     <div class="sn-tx">@(consulMan != null ? $"{(consulMan.Id == pid ? "You are" : consulMan.Name + " is")} of an age and a record to stand for the house." : consulAway != null ? "Nobody of the house may stand for consul who is in the capital." : $"Nobody of the house is yet {SenateActs.AgeFor(w, consul.MinAge)} and has been praetor. The house cannot stand for consul.")</div>

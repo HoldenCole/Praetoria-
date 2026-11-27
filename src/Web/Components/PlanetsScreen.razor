@@ -45,7 +45,7 @@
     };
 }
 <div class="wl-win" data-worlds="@_tab" style="--accent:@house.AccentColor">
-    <WindowHeader Scene="world" Kicker="The worlds" Title="@w.Galaxy!.Name" Glyph="ringed-planet" Figures="figures" Class="wl-head">
+    <WindowHeader Scene="world" Kicker="Worlds · the Reach" Title="@w.Galaxy!.Name" Glyph="ringed-planet" Figures="figures" Class="wl-head">
         <Facts>
             <span title="The regions of the Reach and beyond it"><Icon Name="region" Tone="ivory" Size="16" />@Counted.Regions(regions.Count)</span>
             <span title="Every system on the map"><Icon Name="world" Tone="ivory" Size="16" />@Counted.Systems(nodes.Count)</span>
@@ -68,13 +68,14 @@
                     int mineHere = r.SystemIds.Count(id => nodes[id].IsPlayerTerritory); string rid = r.Id;
                     int rt = w.Counter(LadderSystem.RegionTrustKey(r.Id)) != 0 ? LadderSystem.RegionTrust(w, r.Id) : -1;
                     <div class="wl-region @(r.FreeMarch || r.StateName != null ? "free" : "")" style="--rc:@r.AccentColor" data-region="@r.Id" title="@($"[region] {r.Name}\n{r.Description}\nClick for its worlds")" @onclick='() => { _region = rid; _tab = "worlds"; }'>
-                        <span class="wr-sw" aria-hidden="true"></span>
+                        <span class="wr-sw" aria-hidden="true"><Icon Name="region" Tone="brass" Size="18" /></span>
                         <div class="wr-id">
-                            <div class="wr-nm"><b>@r.Name</b>@if (r.FreeMarch) { <span class="wl-st warn">free march</span> }@if (r.StateName != null) { <span class="wl-st warn">@r.StateName@(r.StateAtWar ? ", fighting for it" : "")</span> }</div>
-                            <div class="wr-sub">@Cap(r.Culture) · @Counted.Systems(r.SystemIds.Count) · @(r.DominantHouseName != null ? r.DominantHouseName + " dominates" : "no house dominates")@(mineHere > 0 ? $" · {mineHere} yours" : "")</div>
+                            <div class="wr-nm"><b>@r.Name</b>@if (mineHere > 0) { <span class="wl-st mine" title="Worlds of yours in it">@mineHere yours</span> }@if (r.FreeMarch) { <span class="wl-st warn">free march</span> }@if (r.StateName != null) { <span class="wl-st warn">@r.StateName@(r.StateAtWar ? ", fighting for it" : "")</span> }</div>
+                            <div class="wr-sub">@Cap(r.Culture) · @Counted.Systems(r.SystemIds.Count) · @(r.DominantHouseName != null ? r.DominantHouseName + " dominates" : "no house dominates")</div>
                         </div>
                         <div class="wr-meters">
-                            <Meter Label="Unrest" Value="@r.Unrest" Text="@r.Unrest.ToString()" Color="@(r.Unrest >= 50 ? "#c4472f" : "#c9a24a")" ValueClass="@(r.Unrest >= 50 ? "ui-down" : "")" Tip="[threat] Regional unrest, 0 to 100" />
+                            @if (r.Unrest > 0) { <Meter Label="Unrest" Value="@r.Unrest" Text="@r.Unrest.ToString()" Color="@(r.Unrest >= 50 ? "#c4472f" : "#c9a24a")" ValueClass="@(r.Unrest >= 50 ? "ui-down" : "")" Tip="[threat] Regional unrest, 0 to 100" /> }
+                            else { <span class="wr-calm" title="[threat] Regional unrest, 0 to 100"><Icon Name="threat" Tone="ivory" Size="14" />No unrest</span> }
                             @if (rt >= 0) { <Meter Label="Magistrates" Value="@rt" Target="@LadderSystem.TrustLow" Text="@rt.ToString()" Color="@(rt < LadderSystem.TrustLow ? "#c4472f" : "#8cc47e")" Tip="@($"[scales] What this region thinks of the magistrates\nAgainst the Reach's {LadderSystem.Trust(w)}. Under {LadderSystem.TrustLow} (the tick) it holds a little less closely to the Reach each year; at {LadderSystem.TrustHigh} or more, a little closer.")" /> }
                         </div>
                         <Icon Name="chev" Size="12" Class="flat wr-chev" />
@@ -94,12 +95,13 @@
                     string gdoes = CitySystem.Says(gk); string gonly = gb == null ? "" : " Only here: " + gb.Name + (gstands ? " (it stands)." : " (not yet raised).");
                     string gcls = nodes.TryGetValue(gsys, out var gn) ? gn.PlanetClass : "terran";
                     <div class="wl-city @(gholder?.Id == house.Id ? "mine" : "")" title="@($"[crown] {gw.Provinces[gi].City}, {gk.Name}\nClick and the map goes to it")" @onclick="() => OnFocus.InvokeAsync(gsys)">
-                        <span class="wl-pic"><Globe Class="@gcls" Size="40" Ringed="@(gholder?.Id == house.Id)" /><i class="wl-crown"><Icon Name="crown" Tone="brass" Size="16" /></i></span>
-                        <div class="wc-t">
-                            <div class="wc-nm"><b>@gw.Provinces[gi].City</b><span class="wl-st">@gk.Name</span></div>
-                            <div class="wc-sub">on @gw.Name · @Census.Say(CitySystem.Citizens(w, c.Holdings, gw, gi)) citizens · held by @if (gholder != null) { <Sigil HouseId="@gholder.Id" Accent="@gholder.AccentColor" Size="14" /> }<span class="@(gholder?.Id == house.Id ? "wl-own" : "")">@(gholder?.Id == house.Id ? "your house" : gholder?.Name ?? "nobody")</span></div>
-                            <div class="wc-does">@MilitaryScreen.Minus(gk.What + " " + (gdoes.Length > 0 ? gdoes + "." : "") + gonly)</div>
+                        @if (gb != null && G.WorkPicture(gb.Id) is { } gpic) { <span class="wl-pic wc-art" style="background-image:url('@gpic')"></span> }
+                        else { <span class="wl-pic"><Globe Class="@gcls" Size="40" Ringed="@(gholder?.Id == house.Id)" /></span> }
+                        <div class="wc-t" title="@MilitaryScreen.Minus(gk.What + " " + (gdoes.Length > 0 ? gdoes + "." : "") + gonly)">
+                            <div class="wc-nm"><b>@gw.Provinces[gi].City</b><span class="wl-st">@gk.Name</span>@if (gb != null) { <span class="wl-st @(gstands ? "good" : "")" title="@(gb.Name + (gstands ? ": it stands" : ": not yet raised"))">@(gstands ? "work stands" : "work unraised")</span> }</div>
+                            <div class="wc-sub">on @gw.Name · @Census.Short(CitySystem.Citizens(w, c.Holdings, gw, gi)) · @if (gholder != null) { <Sigil HouseId="@gholder.Id" Accent="@gholder.AccentColor" Size="14" /> }<span class="@(gholder?.Id == house.Id ? "wl-own" : "")">@(gholder?.Id == house.Id ? "your house" : gholder?.Name ?? "nobody")</span></div>
                         </div>
+                        <div class="wc-figs">@foreach (var (ic, tone, val, tip) in CityFigures(gk).Take(3)) { <span class="ui-cell" title="@tip"><Icon Name="@ic" Tone="@tone" Size="15" />@val</span> }</div>
                         <Icon Name="chev" Size="12" Class="flat wr-chev" />
                     </div>
                 }
@@ -206,6 +208,15 @@
 </div>
 
 @code {
+    /// <summary>What a great city gives, as up to three icon-and-number figures (the sentence is the row's tooltip).</summary>
+    private static IEnumerable<(string icon, string tone, string value, string tip)> CityFigures(CityKind k)
+    {
+        foreach (var r in Resource.All.Where(r => k.Yield.Get(r) != 0)) yield return (r, r == Resource.Credits ? "brass" : "ivory", "+" + Money.Of(r, k.Yield.Get(r)), $"+{Money.Of(r, k.Yield.Get(r))} {Resource.Label(r)} a year");
+        if (k.Prosperity != 0) yield return ("sprout", "good", (k.Prosperity > 0 ? "+" : "−") + Math.Abs(k.Prosperity), "The world's prosperity");
+        if (k.Unrest != 0) yield return ("threat", k.Unrest < 0 ? "good" : "ember", (k.Unrest > 0 ? "+" : "−") + Math.Abs(k.Unrest), "Unrest a year");
+        if (k.Defense > 0) yield return ("checked-shield", "steel", "+" + k.Defense.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture), "Defence");
+        if (k.Muster > 0) yield return ("manpower", "ivory", "+" + k.Muster, "More manpower the holder can keep");
+    }
     [Parameter] public EventCallback<string> OnFocus { get; set; }
     private string? _focus, _region;
     private const string Apos = "'";

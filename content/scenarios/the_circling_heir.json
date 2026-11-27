@@ -1,5 +1,5 @@
 {
-  "//": "SCENARIO 2 of 3 — THE CIRCLING HEIR (inheritance path). Fantasy: born to power, but the wealth makes you a target — relatives and vassals already maneuvering. Treasury rich (the OPPOSITE economic game from the fallen house: influence-heavy, the intrigue economy). VOCAB FLAGGED (§8 strawman): nature Ambitious/Proud/Cruel/Loyal; aptitudes Schemer/Orator/Paranoid/Diplomat; skills charisma/oratory/intrigue/tactics; ambitions 'seize_the_throne'/'master_the_senate'/'outshine_all_rivals'. era 'fractured_stars'. Confirm/swap at §8 lock.",
+  "//": "SCENARIO 2 of 3, THE CIRCLING HEIR (inheritance path). Fantasy: born to power, but the wealth makes you a target, relatives and vassals already maneuvering. Treasury rich (the OPPOSITE economic game from the fallen house: influence-heavy, the intrigue economy). VOCAB FLAGGED (§8 strawman): nature Ambitious/Proud/Cruel/Loyal; aptitudes Schemer/Orator/Paranoid/Diplomat; skills charisma/oratory/intrigue/tactics; ambitions 'seize_the_throne'/'master_the_senate'/'outshine_all_rivals'. era 'fractured_stars'. Confirm/swap at §8 lock.",
   "id": "the_circling_heir",
   "protagonist": "lucia_serval",
   "era": "fractured_stars",
@@ -16,7 +16,7 @@
         "influence": 12,
         "exotics": 1
       },
-      "//": "Influence-RICH, materials-thin: the intrigue house economy (pairs with 'the_influence_broker', senatorial_seat). A different game from Voss entirely — your power is people and favor, not forges. TITLE: Born to power: a secure County (needs 40). The intrigue heir starts legitimate — the danger is inside the walls, not above them.",
+      "//": "Influence-RICH, materials-thin: the intrigue house economy (pairs with 'the_influence_broker', senatorial_seat). A different game from Voss entirely, your power is people and favor, not forges. TITLE: Born to power: a secure County (needs 40). The intrigue heir starts legitimate, the danger is inside the walls, not above them.",
       "title": "count",
       "legitimacy": 48
     },
@@ -33,7 +33,7 @@
         "influence": 6,
         "exotics": 1
       },
-      "//": "ADDED (QA): the circling heir needs a Reach to circle in. Thalen is the neighbouring County — a match for Lucia or Castor, a rival for Highmarch, and the house Castor would run to."
+      "//": "ADDED (QA): the circling heir needs a Reach to circle in. Thalen is the neighbouring County, a match for Lucia or Castor, a rival for Highmarch, and the house Castor would run to."
     }
   ],
   "characters": [
@@ -59,7 +59,7 @@
         "law": 1
       },
       "ambition": "master_the_senate",
-      "//": "Heir on the law/intrigue track — starts at rank 2 (privilege of birth), so the contested-promotion/great-trial events are immediately in range. Ambitious+Schemer = plays the long game.",
+      "//": "Heir on the law/intrigue track, starts at rank 2 (privilege of birth), so the contested-promotion/great-trial events are immediately in range. Ambitious+Schemer = plays the long game.",
       "sex": "female"
     },
     {
@@ -82,7 +82,7 @@
         "charisma": 1
       },
       "ambition": "seize_the_throne",
-      "//": "The elder cousin who believes HE should have been heir — same rank as Lucia, blood bond but hostile disposition. The knife in the family (brief §3 'a cousin who'd poison you'). Pre-armed for feud/succession tension.",
+      "//": "The elder cousin who believes HE should have been heir, same rank as Lucia, blood bond but hostile disposition. The knife in the family (brief §3 'a cousin who'd poison you'). Pre-armed for feud/succession tension.",
       "sex": "male"
     },
     {
@@ -104,7 +104,7 @@
         "charisma": 2
       },
       "ambition": "restore_house_fortunes",
-      "//": "The loyal aunt-regent who actually runs things — outranks Lucia, can bind to mentor/superior roles. Loyal+Diplomat = the steadying hand, and the advisor whose framing the player trusts (maybe too much).",
+      "//": "The loyal aunt-regent who actually runs things, outranks Lucia, can bind to mentor/superior roles. Loyal+Diplomat = the steadying hand, and the advisor whose framing the player trusts (maybe too much).",
       "sex": "female"
     },
     {
@@ -126,7 +126,7 @@
         "charisma": 1
       },
       "ambition": "win_a_great_love",
-      "//": "Lowborn-raised sworn man, no house name of his own (uses house tag for engine but is 'Oren' only) — the chosen-bond foil to Castor's blood-betrayal. The friend who'd die for you vs. the cousin who'd poison you, both in one family.",
+      "//": "Lowborn-raised sworn man, no house name of his own (uses house tag for engine but is 'Oren' only), the chosen-bond foil to Castor's blood-betrayal. The friend who'd die for you vs. the cousin who'd poison you, both in one family.",
       "sex": "male"
     },
     {
@@ -184,7 +184,7 @@
       "disposition": -20,
       "bond": "blood",
       "strength": 30,
-      "//": "Blood bond, low disposition — family that maneuvers against you. The succession fault-line."
+      "//": "Blood bond, low disposition, family that maneuvers against you. The succession fault-line."
     },
     {
       "from": "serval_castor",
@@ -192,7 +192,7 @@
       "disposition": -45,
       "bond": "blood",
       "strength": 30,
-      "//": "Castor resents harder than Lucia suspects — asymmetric, a betrayal waiting to bind."
+      "//": "Castor resents harder than Lucia suspects, asymmetric, a betrayal waiting to bind."
     },
     {
       "from": "lucia_serval",
@@ -214,7 +214,7 @@
       "disposition": 45,
       "bond": "sworn",
       "strength": 65,
-      "//": "The sworn bond — fiercer than the blood ones around her. The brief's 'sworn can be fiercer than blood' made literal."
+      "//": "The sworn bond, fiercer than the blood ones around her. The brief's 'sworn can be fiercer than blood' made literal."
     },
     {
       "from": "serval_oren",
@@ -278,7 +278,7 @@
       "buildings": [
         "market"
       ],
-      "//": "A wealthy populated seat — the prize everyone's circling. trade_hub + market = the credit/influence flow that makes Serval worth scheming over."
+      "//": "A wealthy populated seat, the prize everyone's circling. trade_hub + market = the credit/influence flow that makes Serval worth scheming over."
     },
     {
       "id": "serval_seat_minor",
@@ -289,7 +289,7 @@
       "population": 8,
       "unrest": 0,
       "buildings": [],
-      "//": "A second, prestige holding — research_station signals an old, established house with resources to spare on knowledge."
+      "//": "A second, prestige holding, research_station signals an old, established house with resources to spare on knowledge."
     },
     {
       "id": "thalen_seat",

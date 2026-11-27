@@ -399,7 +399,7 @@ public static class CourtProjection
             bool refuses = !tc.Fleets.WouldAcceptPeace(w, enemy, house.Id);
             bool suing = w.LivingCharacters().Any(c => c.HouseId == enemy && c.Flags.Contains(FleetSystem.SuingForPeaceFlag));
             wars.Add(new WarLine(enemy, w.House(enemy)?.Name ?? enemy, war.Since, FleetSystem.StrengthOf(w, enemy), can,
-                can ? "" : refuses ? "They smell victory — their hulls far outnumber yours." : "No Influence left this turn.", suing)
+                can ? "" : refuses ? "They smell victory: their hulls far outnumber yours." : "No Influence left this turn.", suing)
                 { Terms = HousePeace.Terms(w, tc.Fleets, content.Fleets, house.Id, enemy), Lead = war.Lead(house.Id), CanPay = pools.Get(Pool.Influence) >= content.Fleets.PeaceCost });
         }
 
@@ -462,7 +462,7 @@ public static class CourtProjection
             .Select(c =>
             {
                 var acts = new List<Option>();
-                if (c.Flags.Contains(FamilySystem.DefiantFlag)) acts.Add(new Option("defiant", $"{c.Name} is defiant — answer it in the briefing", "informational"));
+                if (c.Flags.Contains(FamilySystem.DefiantFlag)) acts.Add(new Option("defiant", $"{c.Name} is defiant; answer it in the briefing", "informational"));
                 if (c.Age < DynastySystem.AgeOfMajority)
                     acts.Add(c.Flags.Contains(DynastySystem.HiddenFlag)
                         ? new Option("recall", $"Recall {c.Name} {(w.IsImperium ? "to court" : "home")}", new RecallCommand(p.Id, c.Id).CanExecute(ctx) ? null : "")

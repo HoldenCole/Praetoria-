@@ -59,8 +59,8 @@
 .fr-plate-pic img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; clip-path: var(--chamfer); filter: contrast(1.04) saturate(.92) sepia(.06) brightness(.96); transition: filter .15s; }
 .fr-plate-pic::before { content: ""; position: absolute; inset: 0; z-index: 1; clip-path: var(--chamfer); background: linear-gradient(180deg, rgba(5,7,11,0) 48%, rgba(5,7,11,.55) 70%, rgba(5,7,11,.92) 100%); box-shadow: inset 0 0 18px rgba(0,0,0,.7); }
 .fr-plate-pic::after { content: ""; position: absolute; inset: 0; z-index: 3; border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; pointer-events: none; }
-.fr-plate-pic.own .fr-plate-bg { background: repeating-linear-gradient(135deg, rgba(201,162,74,.07) 0 6px, transparent 6px 12px), radial-gradient(circle at 50% 35%, #1a1f2b, #06080c 80%); }
-.fr-plate-pic.own > .icon { position: relative; z-index: 2; width: 3.4667rem; height: 3.4667rem; opacity: .55; margin-top: -1.6rem; }
+.fr-plate-pic.own .fr-plate-bg { background: radial-gradient(circle at 50% 35%, #1a1f2b, #06080c 80%); }
+.fr-plate-pic.own img { object-position: 50% 30%; filter: contrast(1.06) saturate(.9) sepia(.12) brightness(1.08); }
 .fr-plate-band { position: absolute; left: 0; right: 0; bottom: 0; height: .2667rem; z-index: 2; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 0); background: var(--house); box-shadow: 0 -1px 0 #000; }
 .fr-age { position: absolute; z-index: 4; left: .8667rem; bottom: .6rem; display: flex; flex-direction: column; font: 600 2.6667rem/.9 var(--f-display); letter-spacing: .02em; font-variant-numeric: lining-nums;
   background: linear-gradient(180deg, #fff3cc 0%, #efd187 35%, #b8893a 62%, #e9c879 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -150,7 +150,7 @@
     linear-gradient(#2a3244, #171c28); box-shadow: var(--sh-plate), 0 0 0 1px rgba(201,162,74,.5); }
 .fr-sel:hover:not(:disabled) { box-shadow: var(--sh-plate), 0 0 0 1px var(--brass), 0 0 10px rgba(232,196,110,.18); }
 .fr-in:focus, .fr-sel:focus { outline: 2px solid var(--brass); outline-offset: 1px; }
-.fr-in:disabled, .fr-sel:disabled { opacity: .5; cursor: not-allowed; }
+.fr-in:disabled, .fr-sel:disabled { opacity: 1; color: var(--ink-dim); cursor: not-allowed; box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px rgba(236,108,76,.45); }
 .fr-sel option { background: #10141c; color: var(--ink); }
 
 /* picks: plates that toggle; the one chosen is pressed in and lit in brass. A trait carries its group's band at its foot */
@@ -165,6 +165,9 @@
 .fr-pick.tn.on, .fr-win .chip.tn.on { box-shadow: inset 0 1px 3px #000, inset 0 0 0 1px rgba(201,162,74,.65), inset 0 -3px 0 #7fa8d6, 0 0 10px rgba(232,196,110,.16); }
 .fr-pick.ta.on, .fr-win .chip.ta.on { box-shadow: inset 0 1px 3px #000, inset 0 0 0 1px rgba(201,162,74,.65), inset 0 -3px 0 #8cc47e, 0 0 10px rgba(232,196,110,.16); }
 .fr-pick:disabled, .fr-pick.full, .fr-win .chip:disabled { opacity: .42; cursor: not-allowed; }
+/* a choice that cannot be made is the Locked plate (4.11): dark, its label at full ink, a padlock, the reason in the tooltip; never faded */
+.fr-pick:disabled, .fr-win .chip:disabled { opacity: 1; color: var(--ink); background: linear-gradient(#141821, #0f121a); box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 0 0 1px #000; }
+.fr-pick:disabled::after, .fr-win .chip:disabled::after { content: ""; width: .8rem; height: .8rem; margin-left: .2rem; flex: none; background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='3' y='7' width='10' height='8' rx='1' fill='%23ec6c4c' stroke='%23000'/%3E%3Cpath d='M5 7V5a3 3 0 0 1 6 0v2' fill='none' stroke='%23ec6c4c' stroke-width='1.8'/%3E%3C/svg%3E"); }
 .fr-win .chip.tiny { height: 1.7333rem; padding: 0 .5333rem; font-size: .8667rem; }
 .fr-win .chip.file { position: relative; overflow: hidden; } .fr-win .chip.file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 /* a chip in a segmented row or a stepper keeps the shared part's look */
@@ -325,3 +328,49 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
   .fr-win { left: .8rem; right: .8rem; width: auto; top: .8rem; bottom: .8rem; }
 }
 @media (max-width: 620px) { .fr-plates { grid-template-columns: repeat(3, minmax(0, 1fr)); } .fr-logo-t { font-size: 2.6rem; } }
+
+/* ---- the creator on the shared parts (docs/VISUAL_SYSTEM.md 4.12, 4.18): the name an editable title, the choices plates, selects and
+   joined steppers, the treasury as stocks, each relative a row ---- */
+.ws-namerow { display: flex; align-items: baseline; gap: .6667rem; margin: .5333rem var(--fr-gut-r, 1.6rem) .4rem var(--fr-gut-l, 1.8667rem); }
+.ws-title-pre { font: 600 1.4667rem/1 var(--f-display); color: var(--ink-dim); letter-spacing: .04em; }
+.fr-in.ws-title-in { flex: 1; min-width: 0; height: auto; padding: .1333rem .2667rem; border: 0; border-bottom: 1px solid rgba(201,162,74,.35); background: transparent; box-shadow: none;
+  font: 600 1.6rem/1.2 var(--f-display); letter-spacing: .04em; color: #f5e9c9; }
+.fr-in.ws-title-in:focus { outline: 0; border-bottom-color: var(--brass-hi); background: rgba(5,7,10,.4); }
+.fr-in.ws-title-in::placeholder { color: var(--ink-mute); font-style: normal; }
+.ws-grid { display: grid; grid-template-columns: 9.3333rem minmax(0, 1fr); align-items: center; gap: .5333rem .8rem; margin: .2667rem var(--fr-gut-r, 1.6rem) .6667rem var(--fr-gut-l, 1.8667rem); }
+.ws-grid .ws-k { font: 600 .8rem/1.2 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.ws-grid .ws-v { font: 600 1rem/1 var(--f-ui); color: var(--ink); }
+.ws-grid > .ui-select, .ws-grid > .ui-seg-wrap, .ws-grid > .ui-step-wrap { justify-self: start; }
+.ws-tracks { margin: 0; }
+.ws-ladder { display: flex; align-items: center; flex-wrap: wrap; gap: .2rem; }
+.ws-rung { display: inline-flex; align-items: center; gap: .4rem; height: 1.8667rem; padding: 0 .3333rem; border: 0; background: none; color: var(--ink); cursor: pointer; font: 600 .9333rem/1 var(--f-display); letter-spacing: .03em; }
+.ws-rung i { width: .6667rem; height: .6667rem; transform: rotate(45deg); background: #0a0c11; box-shadow: inset 0 0 0 1px rgba(201,162,74,.6); }
+.ws-rung.past i { background: linear-gradient(135deg, #f6e2a0, #c9a24a 55%, #8a6a2a); box-shadow: 0 0 0 1px #000; }
+.ws-rung.on i { width: 1rem; height: 1rem; background: radial-gradient(circle, #fff0bc, #c9a24a 70%); box-shadow: 0 0 0 1px #000, 0 0 8px rgba(246,226,160,.6); }
+.ws-rung.on span { color: var(--brass-hi); }
+.ws-rung:hover:not(:disabled) i { box-shadow: inset 0 0 0 1px var(--brass-hi), 0 0 6px rgba(246,226,160,.4); }
+.ws-ladder.off { opacity: .7; }
+.ws-legit { display: flex; align-items: center; gap: .8rem; } .ws-legit .ui-meter { flex: 1; max-width: 18rem; }
+.ws-stocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem 1.6rem; }
+.ws-stock { display: grid; grid-template-columns: 1.4667rem minmax(0, 1fr) auto; align-items: center; gap: .5333rem; padding: .2667rem 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.ws-stock .fr-good-nm { font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink); }
+.ws-kin .ws-kin-row .ui-row-sub { margin-top: .2rem; }
+.fr-in.ws-kin-nm { height: 1.8667rem; width: 13rem; max-width: 100%; font: 500 .9333rem/1 var(--f-ui); }
+.ws-kin .ui-menu { right: 0; left: auto; min-width: 18rem; max-height: 22rem; overflow-y: auto; }
+.ws-kin .ws-kin-sel .ui-select-btn { min-width: 7rem; }
+.face-pick .face { position: relative; } .face-pick .face .face-nm { position: absolute; left: 0; right: 0; bottom: 0; padding: .1333rem; font: 600 .8rem/1.1 var(--f-ui); color: #fff8e8; text-align: center; background: linear-gradient(transparent, rgba(0,0,0,.85)); }
+.face-pick .face.on { box-shadow: 0 0 0 2px var(--brass-hi), 0 0 10px rgba(246,226,160,.4); }
+/* the points meter: the rating, a gap, the track, the budget (4.10) */
+.ws-power { display: inline-flex; align-items: center; gap: .5333rem; }
+.ws-power .ws-bar { flex: none; width: 8rem; margin: 0 .1333rem 0 .4rem; }
+
+/* the world picker in the map's look, full width, the account of a world under it; the list below flows in the body */
+.ws-map-lede { margin: .4rem 1.6rem 0 1.8667rem; }
+.ws-map-wrap { grid-template-columns: minmax(0, 1fr) !important; }
+.ws-map { background: radial-gradient(ellipse at 30% 40%, rgba(74,47,110,.55), transparent 55%), radial-gradient(ellipse at 70% 60%, rgba(29,44,102,.7), transparent 60%),
+  radial-gradient(ellipse at 50% 45%, rgba(31,106,122,.18), transparent 70%), #04060b !important; }
+.ws-map .ws-lane { stroke: rgba(168,188,222,.28); stroke-width: 1; }
+.ws-site .dot { stroke-width: 1.6; } .ws-site.no .dot, .ws-site.no .halo { opacity: .4; }
+.ws-site .ring { stroke: var(--own-line, #f0c661); }
+.ws-site-card .ws-site-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.6rem; }
+.ws-worlds { max-height: none !important; overflow: visible !important; }

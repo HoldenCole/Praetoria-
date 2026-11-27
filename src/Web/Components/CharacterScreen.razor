@@ -59,7 +59,7 @@
         new("family", "Family", "family-tree", livingKin > 0 ? livingKin.ToString() : "", Tip: "Your spouse and your children"),
         new("ties", "Relations", "shaking-hands", ties.Count > 0 ? ties.Count.ToString() : "", Tip: "Those outside your blood who feel strongly about you, for or against"),
         new("learning", "Learning", "open-book", Tip: "Your skills, what feeds them this year, and what you study"),
-        new("record", "Record", "scroll-unfurled", Tip: "What the chronicle has written of you")
+        new("record", "Record", "scroll-unfurled", mine.Count > 0 ? mine.Count.ToString() : "", Hidden: mine.Count == 0 && _tab != "record", Tip: "What the chronicle has written of you")
     };
 }
 @* The You window (docs/VISUAL_SYSTEM.md 5.2, FINAL/you.png): a person's window, laid out as Crusader Kings III lays its own. The
@@ -69,7 +69,7 @@
    passed, a 64px strip (your face, your name) stays at the top with the tabs under it. *@
 <div class="you-win" style="--accent:@house.AccentColor" data-you="@_tab">
     <div class="ui-wbody fades you-scroll">
-        <WindowHeader StripKicker="@house.Name" Scene="@scene" Kicker="@($"{house.Name} · {c.Ancestries.Name(Lineage.Of(w, c.Ancestries, p))}{(epithet.Length > 0 ? " · " + epithet : "")}")" Title="@p.Name" Figures="figs" Class="you-head">
+        <WindowHeader StripKicker="@house.Name" Scene="@scene" Kicker="@($"You · {house.Name} · {c.Ancestries.Name(Lineage.Of(w, c.Ancestries, p))}{(epithet.Length > 0 ? " · " + epithet : "")}")" Title="@p.Name" Figures="figs" Class="you-head">
             <Strip><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="40" Height="48" Opens="false" /></Strip>
             <Who>
                 <div class="you-por">

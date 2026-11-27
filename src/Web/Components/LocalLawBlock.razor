@@ -13,7 +13,9 @@
     int n = LocalLawSystem.Count(cat, h), most = LocalLawSystem.Limit(w, h); var ctx = G.Ctx;
 }
 <div class='local-laws lw-local @(mine ? "mine" : string.Empty)' data-local-laws="@h.Id">
-    <div class="ll-head"><Icon Name="scales" Tone="brass" Size="15" /><b>Local law</b> <span class="ll-count" data-local-count="@n" title="@Cap(LocalLawSystem.LimitWhy(w, h))"><b>@n</b> of @most off the custom</span>@if (mine) { <span class="ll-rule" title="[scales] Local law\nA decree costs influence, and settles the law on this world for some years. It falls on this world alone, and what the estates think of it weighs on the house by the share of its worlds."><Icon Name="info" Tone="ivory" Size="15" /></span> }</div>
+    <Section Title="Local law" Class="ll-sec" Info="A decree costs influence, and settles the law on this world for some years. It falls on this world alone, and what the estates think of it weighs on the house by the share of its worlds.">
+        <Right><span class="ll-count" data-local-count="@n" title="@Cap(LocalLawSystem.LimitWhy(w, h))"><b>@n</b> of @most off the custom</span></Right>
+    </Section>
     @foreach (var law in cat.Local.Laws)
     {
         var now = LocalLawSystem.Option(cat, h, law.Id)!; int left = mine ? LocalLawSystem.CooldownLeft(w, h, law.Id) : 0;
@@ -29,7 +31,7 @@
                 if (o.Id == now.Id || !mine)
                 {
                     bool on = o.Id == now.Id;
-                    <span class='lw-pl @(on ? "on ll-now" : "")' title="@ReadTip(law, o, on, left)">@if (on) { <i class="lw-stud" aria-hidden="true"></i> }<span class="lw-pn">@LawsScreen.PlateName(o.Name)</span>@LawsScreen.MarksOf(fx)@if (on) { if (left > 0) { <span class="lw-in yrs"><Icon Name="hourglass" Tone="dark" Size="13" />@left yr</span> } else { <span class="lw-in">In force</span> } }</span>
+                    <span class='lw-pl @(on ? "on ll-now" : "")' title="@ReadTip(law, o, on, left)">@if (on) { <i class="lw-stud" aria-hidden="true"></i> }<span class="lw-pn">@LawsScreen.PlateName(o.Name)</span>@LawsScreen.MarksOf(fx)@if (on && left > 0) { <span class="lw-in yrs"><Icon Name="hourglass" Tone="dark" Size="13" />@left yr</span> }</span>
                 }
                 else
                 {

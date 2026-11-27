@@ -1,5 +1,5 @@
 {
-  "//": "THE INSTITUTE — the Imperium's opening (docs/ACADEMY.md). You are Cassian Thorne, sixteen, the orphaned heir of a knightly house, sent to the Institute: a year of war between the Standards before the Imperial court ever sees you. The world is the Imperial Court's, ten years earlier in Cassian's life: unmarried, untried, bottom of every ladder.",
+  "//": "THE INSTITUTE, the Imperium's opening (docs/ACADEMY.md). You are Cassian Thorne, sixteen, the orphaned heir of a knightly house, sent to the Institute: a year of war between the Standards before the Imperial court ever sees you. The world is the Imperial Court's, ten years earlier in Cassian's life: unmarried, untried, bottom of every ladder.",
   "id": "the_institute",
   "protagonist": "cassian_thorne",
   "era": "imperium",
@@ -18,7 +18,7 @@
         "influence": 4,
         "exotics": 0
       },
-      "//": "A knightly house holding one fief at the Emperor's sufferance. Legitimate for its rung (Knight needs 10) but nothing above it — every climb must be granted, bought, or married."
+      "//": "A knightly house holding one fief at the Emperor's sufferance. Legitimate for its rung (Knight needs 10) but nothing above it, every climb must be granted, bought, or married."
     },
     {
       "id": "aurelian",
@@ -98,7 +98,7 @@
         "oratory": 2
       },
       "ambition": "master_the_senate",
-      "//": "The Emperor: old, just, proud, and at mortality age — his death is the succession that will reshape the court. Binds to sovereign roles (title emperor, outranks everyone)."
+      "//": "The Emperor: old, just, proud, and at mortality age, his death is the succession that will reshape the court. Binds to sovereign roles (title emperor, outranks everyone)."
     },
     {
       "id": "livia_aurelian",
@@ -145,7 +145,7 @@
         "charisma": 1
       },
       "ambition": "amass_a_fortune",
-      "//": "The Imperial Minister — a Duke's power and a miser's soul. The contempt-for-the-risen antagonist; binds to superior/rival_minister/collector roles."
+      "//": "The Imperial Minister, a Duke's power and a miser's soul. The contempt-for-the-risen antagonist; binds to superior/rival_minister/collector roles."
     }
   ],
   "relationships": [

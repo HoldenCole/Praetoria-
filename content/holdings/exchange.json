@@ -14,7 +14,7 @@
 
   // TAX POLICY (GDD §17 Steward decisions as a standing posture, not just events). creditsBonus is added to each
   // holding's net credits a turn; unrestDrift is applied to each populated holding a turn, on top of the solvent decay
-  // of −3 — so the harsh tithe nets +2 unrest a turn even on a calm world, and the lenient one calms twice as fast.
+  // of −3, so the harsh tithe nets +2 unrest a turn even on a calm world, and the lenient one calms twice as fast.
   "taxPolicies": [
     { "id": "lenient", "name": "Lenient tithe", "creditsBonus": -1, "unrestDrift": -2, "legitimacyPerTurn": 0 },
     { "id": "normal",  "name": "Customary tithe", "creditsBonus": 0,  "unrestDrift": 0,  "legitimacyPerTurn": 0 },
@@ -22,6 +22,6 @@
   ],
 
   // TERRITORY (GDD §19 "territory matters"): each holding earns `contiguityBonus` credits a turn per neighbouring
-  // system the same house holds — a compact realm is richer than a scattered one.
+  // system the same house holds, a compact realm is richer than a scattered one.
   "contiguityBonus": 1
 }

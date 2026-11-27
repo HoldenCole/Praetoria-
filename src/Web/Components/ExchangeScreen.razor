@@ -61,7 +61,7 @@
     var sel = goods.FirstOrDefault(g => g.Id == _sel) ?? lacking ?? goods.FirstOrDefault();
 }
 <div class="ex-win" data-exchange="@_tab" style="--accent:@m.HouseAccent">
-    <WindowHeader Scene="market" Kicker="The markets of the Reach" Title="The Exchange" Glyph="trade" Figures="figures" Class="ex-head">
+    <WindowHeader Scene="market" Kicker="Exchange · the markets of the Reach" Title="The Exchange" Glyph="trade" Figures="figures" Class="ex-head">
         <Facts>
             @if (mk != null) { <span title="@(mk.OwnMarket ? "Your own market narrows the spread" : $"You have no market of your own and do not hold the capital: the caravaneers carry your orders at a {mk.SpreadPct}% spread. A market, a free port or a patronage office narrows it to {c.Market.Rules.SpreadPct}%.")"><Icon Name="trade" Tone="ivory" Size="16" />@(mk.Embargoed ? "Embargoed" : mk.OwnMarket ? "Your own market" : "The caravaneers")</span> }
             <span title="@(wars > 0 ? "Each war lifts fuel, isotopes, crews and materials" : "Peace: yards and magazines are not buying ahead")"><Icon Name="war" Tone="@(wars > 0 ? "ember" : "ivory")" Size="16" />@(wars == 0 ? "The Reach at peace" : wars == 1 ? "One war in the Reach" : $"{wars} wars in the Reach")</span>
@@ -127,11 +127,12 @@
             </Section>
 
             <div data-holders-fold>
+            @if (!_holders) { <div class="ex-holders-link"><Link data-holders-toggle="1" OnClick="() => _holders = !_holders" Label="Who holds what: show what a corner would take" Tip="@FromStores()" /></div> }
+            else
+            {
             <Section Title="Who holds what" Count="@goods.Count(g => g.Holders.Count > 0).ToString()" Info="@FromStores()">
-                <Right><Link data-holders-toggle="1" OnClick="() => _holders = !_holders" Label='@(_holders ? "Hide" : "Show what a corner would take")' /></Right>
+                <Right><Link data-holders-toggle="1" OnClick="() => _holders = !_holders" Label="Hide" /></Right>
                 <ChildContent>
-                @if (_holders)
-                {
                     <p class="hs-note" data-holders-trade>@FromStores()</p>
                     @foreach (var g in goods)
                     {
@@ -145,9 +146,9 @@
                             <span class="ex-hold-word" data-corner-word="@g.Id">@CornerWord(g)</span>
                         </div>
                     }
-                }
                 </ChildContent>
             </Section>
+            }
             </div>
         }
         @if (m.Standing is { } s && s.ExchangeOptions.Count > 0)
@@ -155,8 +156,16 @@
             <div class="favours-row">
             <Section Title="Favours for coin" Count="@s.ExchangeOptions.Count.ToString()" Info="Clout (the house's political capital in store) is not a good and has no market. It is bought and sold in private, at a fixed and poor rate. A house with no exchange of its own gets half.">
                 <div class="hs-line">
-                    @foreach (var o in s.ExchangeOptions) { var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); <Plate Label="@Cap(o.Label)" Icon="laurels" Small="true" Locked="@(o.Refusal != null)" Disabled="@(o.Refusal != null)" ShowNeed="false" Need="@(o.Refusal ?? "")" Tip="@o.Label" OnClick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))" /> }
+                    @foreach (var o in s.ExchangeOptions)
+                    {
+                        var rate = c.Holdings.Rates.First(r => $"{r.Give}>{r.Get}" == o.Id); int got = ExchangeCommand.Received(w, w.Protagonist!.HouseId, rate, c.Holdings, 1);
+                        bool buys = rate.Give == Resource.Credits; string what = Resource.Label(buys ? rate.Get : rate.Give);
+                        string coin = buys ? Money.Show(rate.GiveAmount) : Money.Of(rate.Get, got); string verb = buys ? $"Buy {what}" : $"Sell {what}";
+                        <Plate Label="@verb" Icon="laurels" Small="true" CostIcon="@(buys ? "credits" : rate.Get)" CostText="@(buys ? coin : "+" + coin)" Locked="@(o.Refusal != null)" Disabled="@(o.Refusal != null)" ShowNeed="true" Need="@(o.Refusal ?? "")"
+                               Tip="@(buys ? $"Buy {Money.Of(rate.Get, got)} {what} for {Money.Credits(rate.GiveAmount)}" : $"Sell {Money.Of(rate.Give, rate.GiveAmount)} {what} for {coin} {Resource.Label(rate.Get)}")" data-exchange="@o.Id" OnClick="() => G.Execute(new ExchangeCommand(pid, rate, c.Holdings))" />
+                    }
                 </div>
+                @if (!ExchangeCommand.HasExchange(w, w.Protagonist!.HouseId, c.Holdings)) { <p class="hs-note ui-warn-t">At half the rate: the house has no exchange of its own.</p> }
             </Section>
             </div>
         }

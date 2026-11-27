@@ -167,7 +167,7 @@ public sealed class DynastySystem
         }
         bool wasHidden = c.Flags.Remove(HiddenFlag);
         c.Flags.Add(ComeOfAgeFlag);
-        world.Log($"{c.Name} comes of age{(wasHidden ? ", home from fostering" : "")} — {string.Join("/", c.NatureTraits)}{(c.AptitudeTraits.Count > 0 ? $" ({string.Join("/", c.AptitudeTraits)})" : "")}, bound for {Content?.Careers.ById(c.CareerTrack)?.Name ?? c.CareerTrack}.");
+        world.Log($"{c.Name} comes of age{(wasHidden ? ", home from fostering" : "")}: {string.Join("/", c.NatureTraits)}{(c.AptitudeTraits.Count > 0 ? $" ({string.Join("/", c.AptitudeTraits)})" : "")}, bound for {Content?.Careers.ById(c.CareerTrack)?.Name ?? c.CareerTrack}.");
     }
 
     /// <summary>Age takes the edge off: the highest skill loses a point (never below 1). The old lion is still a lion.</summary>
@@ -453,7 +453,7 @@ public sealed class DynastySystem
         }
 
         world.WorldFlags.Add(World.DynastyDeadFlag);
-        world.Log($"{houseName} ends — no heir remains.");
+        world.Log($"{houseName} ends: no heir remains.");
     }
 
     /// <summary>Raised when continue mode handed the game to a sworn house (GDD §14 "adopt a surviving sworn cadet/vassal house").</summary>

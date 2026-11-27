@@ -26,7 +26,9 @@ require('fs').mkdirSync(shots, { recursive: true });
   await closeWindows(); await rail('You'); await wtab('Learning'); await page.waitForTimeout(700);
   let text = await page.evaluate(() => (document.querySelector('.panel.learning') || {}).innerText || 'NO PANEL');
   console.log('learning panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + await skills());
-  console.log('chose to study: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.learning [data-study]')].find(e => e.dataset.study && !e.classList.contains('on')); if (b) b.click(); return b ? b.innerText.trim() : 'nothing to choose'; }));
+  // the study is a Select on its row (docs/VISUAL_SYSTEM.md 4.12): open it and choose the first skill not already studied
+  await page.evaluate(() => { const b = document.querySelector('.panel.learning .you-study .ui-select:not(.you-tutor) .ui-select-btn'); if (b) b.click(); }); await page.waitForTimeout(300);
+  console.log('chose to study: ' + await page.evaluate(() => { const m = document.querySelector('.panel.learning .you-study .ui-menu'); const b = m ? [...m.querySelectorAll('button')].find(e => !e.classList.contains('on') && !/^Nothing/.test(e.innerText.trim())) : null; if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : 'nothing to choose'; }));
   await page.waitForTimeout(300); console.log('studied hard: ' + (await press('.panel.learning button', 'Study') || 'not offered'));
   await page.waitForTimeout(300); await page.screenshot({ path: shots + '/education-you.png' });
   await rail('Dynasty'); await wtab('Upbringing'); await page.waitForTimeout(700);

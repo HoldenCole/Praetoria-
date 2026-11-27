@@ -47,7 +47,7 @@
                 var sco = _scenarios[id]; var pro = sco.Characters.FirstOrDefault(c => c.Id == sco.ProtagonistId); var hard = Hardness(id); string? face = FaceOf(id);
                 <button class="scenario fr-plate @(!_custom && id == _scenario ? "selected" : "")" data-scenario="@id" title="@PlateTip(id, sco)" @onclick="() => Open(id)">
                     <span class="fr-plate-pic"><i class="fr-plate-bg"></i>
-                        @if (face != null) { <img src="@face" alt="" loading="lazy" /> } else { <Icon Name="roman-toga" Tone="ivory" Size="44" /> }
+                        @if (face != null) { <img src="@face" alt="" loading="eager" decoding="async" /> } else { <Icon Name="roman-toga" Tone="ivory" Size="44" /> }
                         <i class="fr-plate-band"></i>
                         @if (pro != null) { <span class="fr-age"><small>Age</small>@pro.Age</span> }
                     </span>
@@ -56,7 +56,7 @@
                 </button>
             }
             <button class="scenario custom fr-plate @(_custom ? "selected" : "")" data-scenario="custom" title="Make the person, the face, the house, what it holds and the family. Standard keeps it fair; Free lets you make anyone at all.&#10;Any age, either era, every dial, a fair budget or none." @onclick="PickCustom">
-                <span class="fr-plate-pic own"><i class="fr-plate-bg"></i><Icon Name="stone-bust" Tone="ivory" Size="52" /><i class="fr-plate-band"></i><span class="fr-age any"><small>Age</small>16<i>to</i>80</span></span>
+                <span class="fr-plate-pic own"><i class="fr-plate-bg"></i><img src="img/scenes/own.webp" alt="" loading="eager" decoding="async" /><i class="fr-plate-band"></i><span class="fr-age any"><small>Age</small>16<i>to</i>80</span></span>
                 <span class="sc-name">A character of your own</span>
                 <span class="fr-plate-sub">Either era<b class="fr-hard">every dial</b></span>
             </button>
@@ -286,7 +286,7 @@
     private string PlateTip(string id, Scenario sc)
     {
         var hard = Hardness(id);
-        return $"[{(sc.Era == "imperium" ? "throne-king" : "greek-temple")}] {Title(id)}{(hard is { } h ? " · " + h.word : "")}\n{Describe(sc)}{(hard is { } hw ? "\n" + hw.why : "")}\n"
+        return $"[{(sc.Era == "imperium" ? "throne-king" : "greek-temple")}] {Title(id)}\n{(hard is { } h ? Cap(h.word) + ". " : "")}{Describe(sc)}{(hard is { } hw ? "\n" + hw.why : "")}\n"
             + $"{(sc.Academy ? (sc.Era == "imperium" ? "Begins at the Institute · " : "Begins at the Academy · the tutorial · ") : "")}{(sc.Era == "imperium" ? "the Imperium" : "the Republic")} · {sc.Houses.Count} houses · {sc.Characters.Count} souls{(sc.Galaxy != null ? $" · {sc.Galaxy.Systems.Count} systems" : "")}";
     }
     /// <summary>The creator's opening line, under the header that already names the protagonist: how hard the start is and what is in play.</summary>

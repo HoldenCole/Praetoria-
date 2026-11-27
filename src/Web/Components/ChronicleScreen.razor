@@ -53,7 +53,7 @@
     };
 }
 <div class="chron-win" data-chronicle="@_whose" style="--accent:@house.AccentColor">
-    <WindowHeader Scene="@(mourning ? "funeral" : "dispatch")" Kicker="@("The record of " + house.Name)" Title="The Chronicle" Glyph="scroll-unfurled" Figures="figures" Class="cr-head">
+    <WindowHeader Scene="@(mourning ? "funeral" : "dispatch")" Kicker="@("Chronicle · the record of " + house.Name)" Title="The Chronicle" Glyph="scroll-unfurled" Figures="figures" Class="cr-head">
         <Facts>
             <span title="Every line the Reach has written since the first year"><Icon Name="scroll-quill" Tone="ivory" Size="16" /><b>@w.History.Count</b> entries over @Counted.Years(w.Turn)</span>
             <span title="@($"The seat has passed {Counted.Times(w.Successions.Count)}")"><Icon Name="family-tree" Tone="ivory" Size="16" />You are the <b>@Ordinal(gen)</b> of your line to hold the seat</span>
@@ -61,9 +61,20 @@
     </WindowHeader>
     <Tabs Items="tabs" Active="@_whose" OnPick="k => _whose = k" />
     <div class="ui-wbody fades cr-body">
-        <p class="ui-lede cr-lede">@(now ? ThisYearLede(lastYear, thisYear.Count, ownThis.Count) : story)</p>
+        <p class="ui-lede cr-lede">@(now ? ThisYearLede(lastYear, thisYear.Count, ownThis.Count) : _whose == "house" ? HouseLede : _whose == "reach" ? ReachLede : story)</p>
         @if (!now)
         {
+            @if (last < 8)
+            {
+                /* a strip of fewer than eight years says nothing: the filters alone, on one line */
+                <div class="cr-ctl chron-controls">
+                    <Select Options="@volumes.Select(v => new Select.Option(v.key, v.label)).ToList()" Value="@(_volume ?? "")" OnChange="k => _volume = k" Tip="The span of years to read" Class="cr-sel" />
+                    <Segmented Options="@Kinds" Value="@_kind" OnChange="k => _kind = k" />
+                    <Segmented Options="@Notables" Value="@(_onlyNotable ? "notable" : "all")" OnChange='k => _onlyNotable = k == "notable"' Class="cr-notable" />
+                </div>
+            }
+            else
+            {
             <Section Title="The years" Count="@last.ToString()" Info="Each bar is a year, as tall as what was written in it: ember where there was war or a battle, brass for a notable year, steel for a quiet one; a star where the seat passed. Click a span of ten years to read it, or choose one from the list.">
                 <Right><span class="cr-key"><i class="k war"></i>war<i class="k notable"></i>notable<i class="k"></i>quiet<Icon Name="laurels" Tone="brass" Size="13" />the seat passed</span></Right>
                 <ChildContent>
@@ -93,10 +104,11 @@
                     <div class="cr-ctl chron-controls">
                         <Select Options="@volumes.Select(v => new Select.Option(v.key, v.label)).ToList()" Value="@(_volume ?? "")" OnChange="k => _volume = k" Tip="The span of years to read" Class="cr-sel" />
                         <Segmented Options="@Kinds" Value="@_kind" OnChange="k => _kind = k" />
-                        <Check Value="@_onlyNotable" Label="Only the notable" OnChange="v => _onlyNotable = v" Tip="Only the lines of events and of what changed the Reach: wars, deaths, births, weddings, successions, thrones" />
+                        <Segmented Options="@Notables" Value="@(_onlyNotable ? "notable" : "all")" OnChange='k => _onlyNotable = k == "notable"' Class="cr-notable" />
                     </div>
                 </ChildContent>
             </Section>
+            }
         }
         @if (shown.Count == 0)
         {
@@ -112,11 +124,10 @@
                         {
                             var k = KindOf(h.Text); var who = WhoIn(w, h.Text); var hs = who == null ? HouseIn(w, h.Text) : null;
                             <div class="chron-line cr-row @(Own(h) ? "own" : "") @(h.EventId != null ? "event" : "")" data-kind="@k">
-                                @if (who != null) { <span class="cr-pic"><Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Alive="@who.Alive" Accent="@(w.House(who.HouseId)?.AccentColor ?? "#888")" Size="28" Height="34" /></span> }
+                                @if (who != null) { <span class="cr-pic chip" title="@KindName(k)"><Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Alive="@who.Alive" Accent="@(w.House(who.HouseId)?.AccentColor ?? "#888")" Size="30" Height="30" /></span> }
                                 else if (hs != null) { <span class="cr-pic arms" title="@hs.Name"><Sigil HouseId="@hs.Id" Accent="@hs.AccentColor" Size="24" /></span> }
-                                else { <span class="cr-pic cr-ic" title="@KindName(k)"><Icon Name="@KindIcon(k)" Tone="@KindTone(k)" Size="17" /></span> }
+                                else { <span class="cr-pic cr-ic" title="@KindName(k)"><Icon Name="@KindIcon(k)" Tone="@(KindTone(k) == "steel" ? "ivory" : KindTone(k))" Size="17" /></span> }
                                 <span class="cr-t">@h.Text</span>
-                                <span class="cr-k" title="@KindName(k)"><Icon Name="@KindIcon(k)" Tone="@KindTone(k)" Size="14" /></span>
                             </div>
                         }
                     </div>
@@ -132,6 +143,17 @@
     protected override void OnInitialized() => G.Changed += Redraw;
     public void Dispose() => G.Changed -= Redraw;
     private string? _volume; private bool _onlyNotable; private string _kind = "all", _whose = "all";
+    private static readonly IReadOnlyList<(string key, string text, string tip)> Notables = new[]
+    {
+        ("all", "All", "Every line"),
+        ("notable", "Notable", "Only the lines of events and of what changed the Reach: wars, deaths, births, weddings, successions, thrones")
+    };
+    /// <summary>The lede of Your house: how much was written of it, this year and in all.</summary>
+    private string HouseLede { get { var w = G.World!; var h = w.House(w.Protagonist!.HouseId)!; string sn = h.Name.StartsWith("House ") ? h.Name[6..] : h.Name; int last = w.History.Count > 0 ? w.History.Max(x => x.Turn) : 0; var mine = w.History.Where(x => x.Text.Contains(sn, StringComparison.Ordinal)).ToList(); int now = mine.Count(x => x.Turn == last);
+        return mine.Count == 0 ? "Nothing is written of your house yet." : $"Of your house, {Counted.Things(mine.Count)} {Counted.Were(mine.Count)} written in all, {now} of them in year {last}{(now > 0 ? ": " + mine.Last(x => x.Turn == last).Text : ".")}"; } }
+    /// <summary>The lede of The Reach: how much was written of the rest of it this year, and the latest.</summary>
+    private string ReachLede { get { var w = G.World!; var h = w.House(w.Protagonist!.HouseId)!; string sn = h.Name.StartsWith("House ") ? h.Name[6..] : h.Name; int last = w.History.Count > 0 ? w.History.Max(x => x.Turn) : 0; var rest = w.History.Where(x => x.Turn == last && !x.Text.Contains(sn, StringComparison.Ordinal)).ToList();
+        return rest.Count == 0 ? $"Of the rest of the Reach, nothing was written in year {last}." : $"Of the rest of the Reach, {Counted.Things(rest.Count)} {Counted.Were(rest.Count)} written in year {last}. The latest: {rest[^1].Text}"; } }
     private static readonly IReadOnlyList<(string key, string text, string tip)> Kinds = new[]
     {
         ("all", "All", "Every kind of line"), ("war", "War", "Wars, battles, raids, peace and campaigns"), ("dynasty", "Dynasty", "Births, deaths, weddings, coming of age and the seat"),

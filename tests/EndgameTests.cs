@@ -50,7 +50,7 @@ public class EndgameTests
     {
         var (content, w) = Fresh("the_imperial_court");
         var ctx = new CommandContext(w, TestContent.Rng());
-        Assert.Equal("a throne already stands — it must be seized", new ProclaimImperiumCommand(w.ProtagonistId, content.Titles).Refusal(ctx));
+        Assert.Equal("a throne already stands; it must be seized", new ProclaimImperiumCommand(w.ProtagonistId, content.Titles).Refusal(ctx));
     }
 
     [Fact]

@@ -29,7 +29,7 @@
                 <Cells>
                     @if (r != null)
                     {
-                        <span class="ui-cell" title="How good they are at it, of five. It is what the position is worth where it acts. One of the commons grows a point better every six years in the place.">@Pips(skill)</span>
+                        <span class="ui-cell" title="How good they are at it, of five. It is what the position is worth where it acts. One of the commons grows a point better every six years in the place.">@skill<small>&nbsp;of @CourtSystem.MaxSkill</small></span>
                         @if (r.KinId.Length == 0)
                         {
                             <Cell Icon="credits" Value="@Math.Max(0, r.Wage + lawWage).ToString()" Tip="Their wage a year, in single credits" />
@@ -37,7 +37,19 @@
                         }
                     }
                 </Cells>
-                <Action>@if (r != null) { <Plate Label="@(r.KinId.Length > 0 ? "Take it back" : "Let them go")" Small="true" data-dismiss="@role" Tip="@(r.KinId.Length > 0 ? "Take the place back from them." : "Let them go. Somebody who has served eight years or more is not turned out without the rest of the household seeing it.")" OnClick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Dismiss, rl, string.Empty, names))" /> }</Action>
+                <Action>@if (r != null) { <Plate Label="@(r.KinId.Length > 0 ? "Take it back" : "Let them go")" Small="true" data-dismiss="@role" Tip="@(r.KinId.Length > 0 ? "Take the place back from them." : "Let them go. Somebody who has served eight years or more is not turned out without the rest of the household seeing it.")" OnClick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Dismiss, rl, string.Empty, names))" /> }
+                    else
+                    {
+                        @* one Appoint select (docs/VISUAL_SYSTEM.md 4.12): the commons who offer this year, with their skill of five and their wage, and the
+                           family who could, for nothing; one who may not is kept with the reason as its note, the whole line of each in the tooltip *@
+                        var offers = CourtSystem.Offers(w, names, house, role).ToList();
+                        var could = kin.Where(k => CourtSystem.AppointRefusal(w, p, role, k) == null).OrderByDescending(k => CourtSystem.KinFit(k, role)).ThenBy(k => k.Id, StringComparer.Ordinal).Take(4).ToList();
+                        var opts = offers.Select(o => { var no = CourtSystem.HireRefusal(w, names, p, role, o.Id); return new Select.Option(no == null ? "hire:" + o.Id : "x:" + o.Id, $"{o.Name}, {o.Age} · skill {o.Skill} of {CourtSystem.MaxSkill}", no != null ? "cannot: " + LawsScreen.Say(no) : $"a wage of {Math.Max(0, o.Wage + lawWage)} a year · {Sentence(o.From)}", o.Id, o.Sex, o.Age, house.AccentColor); })
+                            .Concat(could.Select(k => new Select.Option("kin:" + k.Id, $"{k.Name} · skill {CourtSystem.KinFit(k, role)} of {CourtSystem.MaxSkill}", "of the family, for nothing", k.Id, k.Sex, k.Age, house.AccentColor))).ToList();
+                        if (opts.Count > 0) { <span data-offers="@role" data-kin-for="@role"><Select Value="" Placeholder="Appoint" Class="hs-appoint" Tip="Swear one of the commons to the house for a wage, or give the place to one of the family for nothing" Options="@opts" OnChange="v => Fill(rl, v)" /></span> }
+                        else { <span class="hs-mute-s" data-offers="@role">Nobody offers this year</span> }
+                    }
+                </Action>
             </Row>
             <div class="hs-post-body">
             @if (r != null)
@@ -45,28 +57,6 @@
                 @if (r.UnpaidYears > 0) { <WarnStrip Icon="credits" Lead="Unpaid." Bad="true">They have gone unpaid for @Counted.Years(r.UnpaidYears).</WarnStrip> }
                 <p class="hs-says"><Icon Name="sprout" Tone="good" Size="15" />@Worth(role, skill)</p>
                 @if (r.From.Length > 0) { <p class="hs-note">@Sentence(r.From)</p> }
-            }
-            else
-            {
-                var offers = CourtSystem.Offers(w, names, house, role).ToList();
-                <div class="court-offers" data-offers="@role">
-                    @if (offers.Count == 0) { <p class="hs-note">Nobody of the commons offers this year.</p> } else { <div class="hs-sub-hd">Of the commons, these would take it this year</div> }
-                    @foreach (var o in offers)
-                    {
-                        string oid = o.Id; var no = CourtSystem.HireRefusal(w, names, p, role, o.Id);
-                        <div class="hs-pick court-offer">
-                            <Portrait Id="@o.Id" Name="@o.Name" Sex="@o.Sex" Age="@o.Age" Accent="@house.AccentColor" Size="24" Height="28" Opens="false" />
-                            <span class="hs-pick-tt"><span class="hs-pick-nm">@o.Name <small>@o.Age</small> @Pips(o.Skill)</span><span class="hs-pick-sub" title="@Sentence(o.From)">@Sentence(o.From)</span></span>
-                            <Plate Label="Take on" Small="true" CostIcon="credits" CostText="@($"{Math.Max(0, o.Wage + lawWage)} a year")" data-hire="@role" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="Swear them to the house. The wage is paid each year from the treasury, in single credits." OnClick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Hire, rl, oid, names))" />
-                        </div>
-                    }
-                </div>
-                <div class="hs-line" data-kin-for="@role">
-                    <span class="hs-lbl" title="One of the family holds a place for nothing, and is the better disposed to you for being given it. They are as good at it as their own training makes them.">Or one of the family</span>
-                    @{ var could = kin.Where(k => CourtSystem.AppointRefusal(w, p, role, k) == null).OrderByDescending(k => CourtSystem.KinFit(k, role)).ThenBy(k => k.Id, StringComparer.Ordinal).Take(4).ToList(); }
-                    @if (could.Count == 0) { <span class="hs-mute-s">nobody free and willing</span> }
-                    @foreach (var k in could) { string kid = k.Id; <Plate Label="@($"{First(k.Name)} · skill {CourtSystem.KinFit(k, role)}")" Small="true" data-appoint="@role" Tip="@($"{k.Name} holds it for nothing, and thinks the better of you for it")" OnClick="() => G.Execute(new RetainerCommand(pid, RetainerCommand.Appoint, rl, kid, names))" /> }
-                </div>
             }
             </div>
         </div>
@@ -81,6 +71,12 @@
     private void Redraw() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= Redraw;
     private static string First(string name) => name.Split(' ')[0];
+    private void Fill(string role, string v)
+    {
+        var w = G.World!; var pid = w.ProtagonistId; var names = G.Content!.Names; int at = v.IndexOf(':'); if (at < 0) return; string kind = v[..at], id = v[(at + 1)..];
+        if (kind == "hire") G.Execute(new RetainerCommand(pid, RetainerCommand.Hire, role, id, names));
+        else if (kind == "kin") G.Execute(new RetainerCommand(pid, RetainerCommand.Appoint, role, id, names));
+    }
     private static string Sentence(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..] + ".";
     private static string Years(int n) => n <= 0 ? "this year" : n == 1 ? "a year" : $"{n} years";
     /// <summary>Skill as five drawn pips, the held ones lit (the Unicode dots are gone: docs/VISUAL_SYSTEM.md 8.1).</summary>

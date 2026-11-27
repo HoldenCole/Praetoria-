@@ -87,7 +87,7 @@
         "oratory": 2
       },
       "ambition": "master_the_senate",
-      "//": "The Emperor: old, just, proud, and at mortality age — his death is the succession that will reshape the court. Binds to sovereign roles (title emperor, outranks everyone)."
+      "//": "The Emperor: old, just, proud, and at mortality age, his death is the succession that will reshape the court. Binds to sovereign roles (title emperor, outranks everyone)."
     },
     {
       "id": "livia_aurelian",
@@ -134,7 +134,7 @@
         "charisma": 1
       },
       "ambition": "amass_a_fortune",
-      "//": "The Imperial Minister — a Duke's power and a miser's soul. The contempt-for-the-risen antagonist; binds to superior/rival_minister/collector roles."
+      "//": "The Imperial Minister, a Duke's power and a miser's soul. The contempt-for-the-risen antagonist; binds to superior/rival_minister/collector roles."
     }
   ],
   "relationships": [

@@ -66,8 +66,10 @@
         @if (noStir == null && great.Count > 0)
         {
             <div class="sn-acts sn-pad suit-acts">
-                <span class="sn-lbl">Or set them against one house:</span>
-                @foreach (var g in great) { string gid = g.Id; <Plate Label="@g.Name" Small="true" Tip="@StirAgainstTip" OnClick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, gid, string.Empty, ps))" /> }
+                <span class="sn-lbl">Or set them against one house</span>
+                @{ var against = great.FirstOrDefault(x => x.Id == _against) ?? great[0]; string gid = against.Id; }
+                <Select Value="@gid" Options="@great.Select(x => new Select.Option(x.Id, x.Name)).ToList()" OnChange="v => _against = v" Class="sn-pledge-sel" />
+                <Plate Label="Stir against them" Small="true" Icon="cowled" Tip="@StirAgainstTip" OnClick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, gid, string.Empty, ps))" data-stir-against="@gid" />
             </div>
         }
     }
@@ -133,7 +135,7 @@
                     @if (alone.tests.Count > 0)
                     {
                         <div class="sn-tests">
-                            @foreach (var t in alone.tests) { <div class="gate-row sn-test @(t.ok ? "met" : "warn")"><span class="pill small @(t.ok ? GoodPill : "bad")"><Icon Name="@(t.ok ? "check" : "close")" Tone="@(t.ok ? "good" : "ember")" Size="12" />@(t.ok ? Yes : No)</span><b>@t.name</b><span class="sn-test-says">@t.says</span></div> }
+                            @foreach (var t in alone.tests) { <div class="gate-row sn-test pip @(t.ok ? "met" : "warn")" title="@($"{(t.ok ? Yes : No)}: {t.name}. {Cap(t.says)}")"><span class="pill small @(t.ok ? GoodPill : "bad")"><Icon Name="@(t.ok ? "check" : "close")" Tone="@(t.ok ? "good" : "ember")" Size="12" /></span><b>@t.name</b><span class="sn-test-says">@t.says</span></div> }
                         </div>
                     }
                     @foreach (var h in here)
@@ -208,6 +210,8 @@
 </section>
 
 @code {
+    /// <summary>The great house the camps would be set against, as chosen in the select.</summary>
+    private string? _against;
     private string _form = PolitySystem.Republic, _confirm = "";
     private const string RejoinKey = "@rejoin", LeaveKey = "@leave";
     private const string LeaveTip = "Your house goes back to the Reach with its worlds and takes its seat in the Senate again. The state's ruler will not forgive it; the capital will be glad of it.";

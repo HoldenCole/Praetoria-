@@ -8,7 +8,7 @@
    client's own (what was taken back, what could not be done, a save, an export) stands as a toast without a timer while it holds. *@
 @if (Notes.Count + _shown.Count > 0)
 {
-    <div class="toasts" aria-live="polite">
+    <div class="toasts" aria-live="polite" style="@(Hidden ? "display:none" : null)">
         @foreach (var n in Notes)
         {
             <div class="toast note"><Icon Name="@n.Icon" Tone="brass" Size="22" Class="tic" /><div class="tx"><div class="t">@n.Kicker</div><p class="notice" data-export-note="@(n.Export ? "1" : null)">@n.Text</p></div></div>
@@ -16,7 +16,7 @@
         @foreach (var t in _shown)
         {
             var c = t.Person.Length > 0 ? G.World?.Char(t.Person) : null; var ch = c != null ? G.World!.House(c.HouseId) : null; string go = t.Go;
-            <button class="toast news @(t.Started != null && !Paused ? "run" : "")" data-toast="@t.Seq" title="Open the place this can be seen" @onclick="() => Open(go)">
+            <button class="toast news @(t.Started != null && !Paused ? "run" : "")" data-toast="@t.Seq" title="@(t.Kicker + " · " + t.Text + "\nClick to open the place this can be seen. The line is kept in the Chronicle under This year.")" @onclick="() => Open(go)">
                 @if (c != null) { <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@(ch?.AccentColor ?? "#888")" Size="52" Height="62" Opens="false" /> }
                 else { <span class="crop"><img src="img/scenes/@(t.Scene).webp" alt="" /></span> }
                 <span class="tx"><span class="t">@t.Kicker</span><span class="p">@t.Text</span></span>
@@ -32,6 +32,8 @@
     [Parameter] public IReadOnlyList<Note> Notes { get; set; } = Array.Empty<Note>();
     /// <summary>Something stands in front of the map (the year in brief, a report, the seat passing): the six seconds wait for it.</summary>
     [Parameter] public bool Paused { get; set; }
+    /// <summary>The year in brief stands in front: the toasts wait out of sight, so the same news is not told twice at once, and show when it closes.</summary>
+    [Parameter] public bool Hidden { get; set; }
     [Parameter] public EventCallback<string> OnGo { get; set; }
     /// <summary>How many news toasts stand at once.</summary>
     [Parameter] public int Most { get; set; } = 2;
@@ -86,7 +88,9 @@
         string kicker = c != null && c.HouseId == mine || t.StartsWith("dynasty") || t.StartsWith("you") ? "Of your house"
             : t.StartsWith("senate:ladder") ? "In the courts" : t.StartsWith("senate") ? "In the Senate" : t.StartsWith("exchange") ? "On the Exchange"
             : t.StartsWith("military") ? "Of the fleets" : t.StartsWith("laws") ? "Of the estates" : t.StartsWith("houses") ? "Among the houses" : "News of the Reach";
-        return new Shown { Seq = n.Seq, Text = a.Text, Kicker = kicker, Person = c != null ? c.Id : "", Scene = SceneArt.For(t, n.Text), Go = a.Go };
+        // the picture by subject: the Senate's chamber for the Senate, the court for the estates and the courts, the bridge for the fleets
+        string scene = kicker switch { "In the Senate" => "senate", "Of the estates" or "In the courts" => "court", "Of the fleets" => "bridge", "On the Exchange" => "market", "Among the houses" => "audience", _ => SceneArt.For(t, n.Text) };
+        return new Shown { Seq = n.Seq, Text = a.Text, Kicker = kicker, Person = c != null ? c.Id : "", Scene = scene, Go = a.Go };
     }
     public void Dispose() => _disposed = true;
 }

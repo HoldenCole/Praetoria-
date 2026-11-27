@@ -64,8 +64,8 @@
 .lw-key .lw-short { display: none; } .lw-key .lw-short b { margin-right: 0; }
 /* the swatches are the meters' own bands, drawn the same way: the same wash and the same edge line */
 .lw-key .k { width: 1.0667rem; height: .5333rem; display: inline-block; background-color: #05070a; box-shadow: inset 0 1px 2px #000; }
-.lw-key .k.hos { background-image: linear-gradient(90deg, rgba(224,85,63,.34), rgba(224,85,63,.16)); box-shadow: inset -1px 0 0 rgba(236,108,76,.8), inset 0 1px 2px #000; }
-.lw-key .k.loy { background-image: linear-gradient(90deg, rgba(201,162,74,.16), rgba(201,162,74,.34)); box-shadow: inset 1px 0 0 rgba(233,205,132,.8), inset 0 1px 2px #000; }
+.lw-key .k.hos { width: 2px; height: .8rem; background: rgba(236,108,76,.9); box-shadow: 0 0 0 1px #000; }
+.lw-key .k.loy { width: 2px; height: .8rem; background: rgba(140,196,126,.9); box-shadow: 0 0 0 1px #000; }
 
 .es2-row { display: grid; grid-template-columns: 2.9333rem minmax(0, 1fr); column-gap: .9333rem; row-gap: .2667rem; align-items: center; position: relative;
   padding: .6667rem var(--lw-gut-r) .6rem var(--lw-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
@@ -81,8 +81,12 @@
 .es2-row.loyal .es2-nm { color: var(--brass-hi); }
 .es2-trk { position: relative; height: .5333rem; }
 .es2-trk .band { position: absolute; top: 0; bottom: 0; }
-.es2-trk .band.hos { left: 0; width: 35%; background: linear-gradient(90deg, rgba(224,85,63,.34), rgba(224,85,63,.16)); box-shadow: inset -1px 0 0 rgba(236,108,76,.8); }
-.es2-trk .band.loy { left: 65%; right: 0; background: linear-gradient(90deg, rgba(201,162,74,.16), rgba(201,162,74,.34)); box-shadow: inset 1px 0 0 rgba(233,205,132,.8); }
+/* the diverging meter (4.10): a dark track, a centre hairline and the fill from the middle only; the loyal and hostile thresholds are
+   2px ticks, not shaded zones, so a row at 0 reads as an empty track and not as a full bar */
+.es2-trk .band { width: 2px; margin-left: -1px; top: -.1333rem; bottom: -.1333rem; background: none; }
+.es2-trk .band.hos { left: 35%; width: 2px; background: rgba(236,108,76,.9); box-shadow: 0 0 0 1px #000; }
+.es2-trk .band.loy { left: 65%; right: auto; width: 2px; background: rgba(140,196,126,.9); box-shadow: 0 0 0 1px #000; }
+
 .es2-trk .ui-fill { z-index: 1; } .es2-trk .ui-tick { z-index: 2; } .es2-trk .ui-mid { z-index: 2; }
 .es2-val { display: flex; align-items: baseline; justify-content: flex-end; gap: .3333rem; white-space: nowrap; font-variant-numeric: tabular-nums lining-nums; }
 .es2-val b { font: 600 1.0667rem/1 var(--f-ui); color: var(--ink); }
@@ -163,10 +167,10 @@ button.lw-pl:disabled, .lw-tipwrap > button:disabled { pointer-events: none; }
 .lw-pl.on.mine { background: linear-gradient(180deg, #c8a75e 0%, #9c7a34 45%, #765722 100%); }
 .lw-stud { flex: none; width: .4667rem; height: .4667rem; transform: rotate(45deg); background: linear-gradient(135deg, #fffbe6, #f6e2a0 45%, #c9a24a); box-shadow: 0 0 0 1px #2b1e09, 0 0 6px rgba(255,240,190,.75); }
 .lw-in { flex: none; display: inline-flex; align-items: center; gap: .2rem; margin-left: auto; padding-left: .5333rem; border-left: 1px solid rgba(43,30,9,.55); box-shadow: -1px 0 0 rgba(255,240,200,.18);
-  font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: rgba(255,240,204,.82); }
+  font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: #fff5d6; }
 .lw-in.yrs { letter-spacing: 0; text-transform: none; font-size: .9333rem; font-variant-numeric: tabular-nums; color: #fff5d6; }
 .lw-in .icon { width: .8667rem; height: .8667rem; }
-.lw-in.cust { font-style: italic; font-weight: 500; letter-spacing: .02em; text-transform: none; font-size: .8667rem; color: rgba(255,240,204,.72); }
+.lw-in.cust { font-style: italic; font-weight: 500; letter-spacing: .02em; text-transform: none; font-size: .8667rem; color: #fff5d6; }
 /* a ladder to read, not to press (the law of the Reach, the laws beyond your gift, another house's world): no hover, the plates flat */
 .lw-lad.ro { background: linear-gradient(#06080c, #0a0d13); }
 .lw-lad.ro > .lw-pl:not(.on) { cursor: default; color: var(--ink-dim); font-weight: 500; }
@@ -183,17 +187,16 @@ button.lw-pl:disabled, .lw-tipwrap > button:disabled { pointer-events: none; }
    At most three, then a "+N"; they keep to their own box, which ends before the cost's slot. */
 .lw-mks { flex: 0 1 auto; display: inline-flex; align-items: center; gap: .3333rem; min-width: 0; padding: 0 .2rem; }
 .lw-mks:empty { display: none; }
-.lw-mk { position: relative; flex: none; display: grid; place-items: center; width: 1.2667rem; height: 1.2667rem; border-radius: 50%; font-style: normal;
-  background: radial-gradient(circle at 50% 32%, #2b3344, #0a0d13 74%); box-shadow: inset 0 0 0 1.5px var(--rim), 0 0 0 1px #000, 0 1px 2px rgba(0,0,0,.7); }
+.lw-mk { position: relative; flex: none; display: grid; place-items: center; width: 1.2rem; height: 1.2rem; border-radius: 50%; font-style: normal;
+  background: radial-gradient(circle at 40% 35%, #262c3a, #0b0e14); box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--rim); }
 .lw-mk.up { --rim: #8cc47e; } .lw-mk.down { --rim: #e0553f; }
-.lw-mk .icon { width: .8667rem; height: .8667rem; stroke-width: 34px; }
-.lw-mk::after { content: ""; position: absolute; right: -.2333rem; width: .5333rem; height: .4667rem; background: center / 100% 100% no-repeat; pointer-events: none; }
-.lw-mk.up::after { top: -.2333rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1.8 8.2 6 3.6l4.2 4.6' fill='none' stroke='%23000' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.8 8.2 6 3.6l4.2 4.6' fill='none' stroke='%23b4ec9e' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-.lw-mk.down::after { bottom: -.2333rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1.8 1.8 6 6.4l4.2-4.6' fill='none' stroke='%23000' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.8 1.8 6 6.4l4.2-4.6' fill='none' stroke='%23ff8a6c' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-.lw-mk.up.hi::after { height: .7333rem; top: -.3667rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 16'%3E%3Cpath d='M1.8 7.4 6 2.8l4.2 4.6M1.8 13.2 6 8.6l4.2 4.6' fill='none' stroke='%23000' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.8 7.4 6 2.8l4.2 4.6M1.8 13.2 6 8.6l4.2 4.6' fill='none' stroke='%23b4ec9e' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-.lw-mk.down.hi::after { height: .7333rem; bottom: -.3667rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 16'%3E%3Cpath d='M1.8 2.8 6 7.4l4.2-4.6M1.8 8.6 6 13.2l4.2-4.6' fill='none' stroke='%23000' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M1.8 2.8 6 7.4l4.2-4.6M1.8 8.6 6 13.2l4.2-4.6' fill='none' stroke='%23ff8a6c' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-/* "+N": the rest, counted (the plate's tooltip names them). Only one of the two shows: three marks and "+N" where there is room,
-   two and "+N" where the window is narrow */
+.lw-mk .icon { width: .9333rem; height: .9333rem; stroke-width: 30px; }
+/* the direction as a solid wedge badge on the ring's corner, 8px wide; two stacked for a strong feeling (15 or more) */
+.lw-mk::after { content: ""; position: absolute; right: -.3333rem; width: .5333rem; height: .4667rem; background: center / 100% 100% no-repeat; pointer-events: none; }
+.lw-mk.up::after { top: -.3rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M6 1 11 9H1z' fill='%2393d77e' stroke='%23000' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.lw-mk.down::after { bottom: -.3rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M6 9 11 1H1z' fill='%23ff7a5c' stroke='%23000' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.lw-mk.up.hi::after { height: .7333rem; top: -.4333rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 16'%3E%3Cpath d='M6 1 11 8H1zM6 8 11 15H1z' fill='%2393d77e' stroke='%23000' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.lw-mk.down.hi::after { height: .7333rem; bottom: -.4333rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 16'%3E%3Cpath d='M6 8 11 1H1zM6 15 11 8H1z' fill='%23ff7a5c' stroke='%23000' stroke-width='1.4' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 .lw-mk.more { width: auto; min-width: 1.2667rem; padding: 0 .2667rem; border-radius: .6333rem; font: 600 .8rem/1 var(--f-ui); color: var(--ink-dim); --rim: rgba(255,255,255,.22); }
 .lw-mk.more::after { display: none; }
 .lw-mk.more.k2, .lw-mk.more.k1 { display: none; }
@@ -336,3 +339,10 @@ select.lw-sel option { background: #12161f; color: var(--ink); }
   .lw-step { flex-basis: .4667rem; }
   .lw-st { display: none; }
 }
+/* local law in a window that is narrower than its ladder (the system window at 620 to 740px): the ladder wraps onto a second line
+   rather than run into the frame, and the cost of an option is in its tooltip, not on the plate */
+.local-laws.lw-local .lw-lad { flex-wrap: wrap; height: auto; min-height: 2rem; row-gap: 3px; padding: 2px; }
+.local-laws.lw-local .ll-row.lw-row { grid-template-rows: auto auto; }
+.local-laws.lw-local .lw-cell, .local-laws.lw-local .lw-pl { min-width: 0; }
+.local-laws.lw-local .lw-pc:not(.lock) { display: none; }
+@container llb (max-width: 46rem) { .local-laws.lw-local .lw-step { display: none; } }

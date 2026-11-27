@@ -20,14 +20,10 @@
         string epithet = LifeSystem.Epithet(c); bool ill = c.Flags.Contains(LifeSystem.IllChar), hurt = c.Flags.Contains(LifeSystem.WoundedChar);
         <div class="health-row dy-hrow" title="@($"Renown {LifeSystem.Renown(c)}: {LifeSystem.RenownName(LifeSystem.Renown(c))}")">
             <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" Condition="@(ill ? "pill" : hurt ? "sticking-plaster" : "")" ConditionTip="@(ill ? "Ill" : "Wounded")" />
-            <div class="dy-hrow-who"><b>@c.Name</b>@(epithet.Length > 0 ? $", {epithet}" : "") <span>@c.Age</span></div>
-            <div class="dy-hrow-st">
-                <span class="dy-tag @(c.Health < LifeSystem.Frail ? "bad" : c.Health < LifeSystem.Sound ? "warn" : c.Health >= 80 ? "good" : "")">@LifeSystem.HealthName(c.Health)</span>
-                @if (ill) { <span class="dy-tag warn">ill</span> }
-                @if (hurt) { <span class="dy-tag warn">wounded</span> }
-                @if (c.Flags.Contains(LifeSystem.RetiredChar)) { <span class="dy-tag">has laid down their work</span> }
-            </div>
-            <Meter Value="@c.Health" Max="100" Color="@(c.Health < LifeSystem.Frail ? "#e0553f" : c.Health < LifeSystem.Sound ? "#e3a64a" : "#8cc47e")" Tip="@($"Health {c.Health} of 100")" Class="dy-hm" />
+            @{ string hTone = c.Health < LifeSystem.Frail ? "ui-down" : c.Health < LifeSystem.Sound ? "ui-warn-t" : c.Health >= 80 ? "ui-up" : ""; }
+            <div class="dy-hrow-who"><b>@c.Name</b>@(epithet.Length > 0 ? $", {epithet}" : "") <span>@c.Age · <em class="@hTone">@LifeSystem.HealthName(c.Health)</em>@if (ill) { <em class="ui-warn-t"> · ill</em> }@if (hurt) { <em class="ui-warn-t"> · wounded</em> }@if (c.Flags.Contains(LifeSystem.RetiredChar)) { <text> · has laid down their work</text> }</span></div>
+            <div class="dy-hrow-st"></div>
+            <Meter Value="@c.Health" Max="100" Text="@c.Health.ToString()" ValueClass="@hTone" Color="@(c.Health < LifeSystem.Frail ? "#e0553f" : c.Health < LifeSystem.Sound ? "#e3a64a" : "#8cc47e")" Tip="@($"Health {c.Health} of 100: {LifeSystem.HealthName(c.Health)}")" Class="dy-hm" />
         </div>
     }
     </Section>

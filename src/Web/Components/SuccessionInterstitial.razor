@@ -60,16 +60,16 @@
             </div>
             <div class="succ-side">
                 <div class="succ-grid">
-                    <div class="succ-row"><span class="k">What does not</span><span class="v">@(oldRank.Length > 0 ? $"The {oldRank}'s career. " : "")The heir begins again@(heirRank.Length > 0 ? $" as {heirRank}" : "")@(heir?.CareerTrack is { Length: > 0 } t ? $" on the {t} track" : "").</span></div>
+                    <div class="succ-row"><span class="pic"><Icon Name="scroll-unfurled" Tone="ivory" Size="20" /></span><span class="tx"><span class="k">Lost</span><span class="v">@(oldRank.Length > 0 ? $"The {oldRank}'s career. " : "")The heir begins again@(heirRank.Length > 0 ? $" as {heirRank}" : "")@(heir?.CareerTrack is { Length: > 0 } t ? $" on the {t} track" : "").</span></span></div>
                     @if (heir != null && G.World!.Pools.TryGetValue(heir.Id, out var hp))
                     {
-                        <div class="succ-row" data-pools-after="1"><span class="k">What you can do in a year</span><span class="v">@hp.InfluenceRegen influence, @Counted.TreasuryActions(hp.TreasuryRegen) and @Counted.Agents(hp.AgentsRegen) @Counted.Come(hp.AgentsRegen) back each year, as for every new head. The last head's reach was their own, and does not pass with the name.</span></div>
+                        <div class="succ-row" data-pools-after="1" title="The last head's reach was their own, and does not pass with the name."><span class="pic"><Icon Name="hourglass" Tone="brass" Size="20" /></span><span class="tx"><span class="k">Each year</span><span class="v">@hp.InfluenceRegen influence, @Counted.TreasuryActions(hp.TreasuryRegen) and @Counted.Agents(hp.AgentsRegen) @Counted.Come(hp.AgentsRegen) back each year, as for every new head.</span></span></div>
                     }
-                    @if (heir != null && (heir.NatureTraits.Count > 0 || heir.Ambition.Length > 0)) { <div class="succ-row"><span class="k">Who they are</span><span class="v">@string.Join(" · ", heir.NatureTraits.Concat(heir.AptitudeTraits))@(heir.Ambition.Length > 0 ? $" · wants to {heir.Ambition.Replace('_', ' ')}" : "")</span></div> }
-                    <div class="succ-row"><span class="k">What changes on your screen</span><span class="v">@RoleTheme.Describe(heir?.CareerTrack ?? "")</span></div>
-                    @if (regent != null) { <div class="succ-row warn"><span class="k">A minority</span><span class="v">@regent.Name rules as regent until @heir!.Name comes of age at @DynastySystem.AgeOfMajority.</span></div> }
-                    @if (handed.Friends.Length > 0) { <div class="succ-row good" data-inherited-friends="@friendsN"><span class="k">@handed.FriendsTitle</span><span class="v">@handed.Friends</span></div> }
-                    @if (handed.Enemies.Length > 0) { <div class="succ-row warn" data-inherited-enemies="@enemiesN"><span class="k">@handed.EnemiesTitle</span><span class="v">@handed.Enemies</span></div> }
+                    @if (heir != null && (heir.NatureTraits.Count > 0 || heir.Ambition.Length > 0)) { <div class="succ-row"><span class="pic face"><Portrait Id="@heir.Id" Name="@heir.Name" Sex="@heir.Sex" Age="@heir.Age" Accent="@accent" Size="30" Height="36" Opens="false" /></span><span class="tx"><span class="k">The heir</span><span class="v">@string.Join(" · ", heir.NatureTraits.Concat(heir.AptitudeTraits))@(heir.Ambition.Length > 0 ? $" · wants to {heir.Ambition.Replace('_', ' ')}" : "")</span></span></div> }
+                    <div class="succ-row"><span class="pic"><Icon Name="spyglass" Tone="ivory" Size="20" /></span><span class="tx"><span class="k">Your screen</span><span class="v">@RoleTheme.Describe(heir?.CareerTrack ?? "")</span></span></div>
+                    @if (regent != null) { <div class="succ-row warn"><span class="pic face"><Portrait Id="@regent.Id" Name="@regent.Name" Sex="@regent.Sex" Age="@regent.Age" Accent="@accent" Size="30" Height="36" Opens="false" /></span><span class="tx"><span class="k">A regent</span><span class="v">@regent.Name rules as regent until @heir!.Name comes of age at @DynastySystem.AgeOfMajority.</span></span></div> }
+                    @if (handed.Friends.Length > 0) { <div class="succ-row good" data-inherited-friends="@friendsN" title="@handed.FriendsTitle"><span class="pic faces">@Faces(ties.Where(t => t.Kind is InheritedRegard.Friend or InheritedRegard.Unseen))</span><span class="tx"><span class="k">Friends</span><span class="v">@handed.Friends</span></span></div> }
+                    @if (handed.Enemies.Length > 0) { <div class="succ-row warn" data-inherited-enemies="@enemiesN" title="@handed.EnemiesTitle"><span class="pic faces">@Faces(ties.Where(t => t.Kind is InheritedRegard.Enemy or InheritedRegard.Vengeful or InheritedRegard.LetGo))</span><span class="tx"><span class="k">Enemies</span><span class="v">@handed.Enemies</span></span></div> }
                 </div>
                 @if (lines.Count > 0)
                 {
@@ -83,6 +83,14 @@
 @code {
     [Parameter, EditorRequired] public SuccessionRecord Record { get; set; } = default!;
     [Parameter] public EventCallback OnClose { get; set; }
+    /// <summary>Up to three faces of those a tie came down from, overlapped as one picture.</summary>
+    private RenderFragment Faces(IEnumerable<InheritedTie> ts) => __builder =>
+    {
+        foreach (var p in ts.Select(t => G.World!.Char(t.FromId)).Where(p => p != null).DistinctBy(p => p!.Id).Take(3))
+        {
+            <Portrait Id="@p!.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@(G.World!.House(p.HouseId)?.AccentColor ?? "#888")" Size="30" Height="36" Opens="false" />
+        }
+    };
     /// <summary>Half of Lorc's laurels, the spray each side of the kicker.</summary>
     private static RenderFragment Laurel(bool flip) => __builder =>
     {

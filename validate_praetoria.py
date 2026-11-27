@@ -389,8 +389,21 @@ def validate_businesses(allspecs):
         if fin and fin.get("loanRepay",26)<=fin.get("loanPrincipal",20): errors.append("finance: loanRepay must exceed loanPrincipal")
     return n
 
+def validate_no_em_dash():
+    """The owner's style: no em dashes in anything a player reads (docs/VISUAL_SYSTEM.md, rule 9). Every string of the content is read."""
+    if BUNDLE: return
+    root=os.path.join(os.path.dirname(os.path.abspath(__file__)),"content")
+    for dp,_,fs in os.walk(root):
+        for f in fs:
+            if not f.endswith(".json"): continue
+            p=os.path.join(dp,f)
+            with open(p,encoding="utf-8") as fh:
+                for i,line in enumerate(fh,1):
+                    if "\u2014" in line: errors.append(f"{os.path.relpath(p,root)}:{i} has an em dash: use a comma, colon or full stop")
+
 def main():
     ev,tx,sp,bd,sc=load_corpus()
+    validate_no_em_dash()
     validate_events(ev,tx)
     if not BUNDLE: validate_creation()
     specs,builds=validate_holdings(sp,bd)

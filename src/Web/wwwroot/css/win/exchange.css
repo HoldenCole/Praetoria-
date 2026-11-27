@@ -119,3 +119,4 @@
 .vbuy-word { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
 .vbuy-in { width: 6.6667rem; }
 .vbuy-warn { font: 600 .9333rem/1 var(--f-ui); }
+.ex-holders-link { padding: .4rem 1.4667rem .2rem 1.8667rem; }

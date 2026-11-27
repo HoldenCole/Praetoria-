@@ -1,5 +1,5 @@
 {
-  "//": "THE STRATEGIC THREE (GDD §17 'not every world has everything; decisions gated behind wealth and resources'). Helium-3 fuels the fleet, rare earths build the clever things, isotopes arm the heavy hulls. These events read the engine's deposit:<res>, strategic:<res> and fuel_short flags, the wealth tier, and the resource stocks — so a rich house without a deposit buys its way in, a poor house with one sells, and a dry navy is a decision.",
+  "//": "THE STRATEGIC THREE (GDD §17 'not every world has everything; decisions gated behind wealth and resources'). Helium-3 fuels the fleet, rare earths build the clever things, isotopes arm the heavy hulls. These events read the engine's deposit:<res>, strategic:<res> and fuel_short flags, the wealth tier, and the resource stocks, so a rich house without a deposit buys its way in, a poor house with one sells, and a dry navy is a decision.",
   "events": [
     {
       "id": "dry_tanks", "tier": "situation", "weight": 10, "repeatable": true,

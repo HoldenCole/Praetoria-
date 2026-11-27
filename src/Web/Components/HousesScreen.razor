@@ -53,7 +53,7 @@
    house's own page is the second tab: its name and arms, how it stands with you, the dealings, the trade, its standing, its people as
    faces, its children, its domain, and war or peace. *@
 <div class="hu-win" style="--accent:@mine.AccentColor" data-houses="@_tab">
-    <WindowHeader Scene="audience" Glyph="flying-flag" Kicker="@(w.IsImperium ? "The houses of the Imperium" : "The houses of the Reach")" Title="@(w.IsImperium ? "The Great Houses" : "The Houses")" Figures="figures" Class="hu-head">
+    <WindowHeader Scene="audience" Glyph="flying-flag" Kicker="@(w.IsImperium ? "Houses · of the Imperium" : "Houses · of the Reach")" Title="@(w.IsImperium ? "The Great Houses" : "The Houses")" Figures="figures" Class="hu-head">
         <Facts>@for (int i = 0; i < 3; i++) { var (icon, text, tip) = facts[i]; <span class="@(i >= 2 ? "hu-fx2" : "")" title="@tip"><Icon Name="@icon" Tone="ivory" Size="16" />@text</span> }</Facts>
     </WindowHeader>
     <Tabs Items="tabs" Active="@_tab" OnPick="Pick" />
@@ -72,10 +72,10 @@
                     <th class="sortable @(_sort == "worlds" ? "here" : "")" title="Worlds held. Sort by it." @onclick='() => _sort = "worlds"'>Worlds</th>
                     <th class="sortable @(_sort == "hulls" ? "here" : "")" title="Hulls in its fleets. Sort by it." @onclick='() => _sort = "hulls"'>Hulls</th>
                     <th class="sortable @(_sort == "seats" ? "here" : "")" title="Its weight in the Senate. Sort by it." @onclick='() => _sort = "seats"'>Seats</th>
-                    <th class="sortable @(_sort == "wealth" ? "here" : "")" title="What the house would fetch sold up, in credits: its treasury, its stores at two-thirds of the market, its worlds and what is built on them, its ventures and shares, less what it owes. Ranked among the houses of the Reach: the top sixth opulent, the next quarter rich, the bottom quarter poor. Sort by it." @onclick='() => _sort = "wealth"'>Wealth</th>
-                    <th class="sortable hu-ord @(_sort == "senate" ? "here" : "")" title="Its standing in the Senate, one of the three orders: a bright letter is great or dominant, a dim one notable, an outline of no account. Sort by it." @onclick='() => _sort = "senate"'>S</th>
-                    <th class="sortable hu-ord @(_sort == "arms" ? "here" : "")" title="Its standing in arms, one of the three orders. Sort by it." @onclick='() => _sort = "arms"'>A</th>
-                    <th class="sortable hu-ord @(_sort == "commerce" ? "here" : "")" title="Its standing in commerce, one of the three orders. Sort by it." @onclick='() => _sort = "commerce"'>C</th>
+                    <th class="sortable @(_sort == "wealth" ? "here" : "")" title="What the house would fetch sold up, in credits: its treasury, its stores at two-thirds of the market, its worlds and what is built on them, its ventures and shares, less what it owes. Ranked among the houses of the Reach: the top sixth opulent, the next quarter rich, the bottom quarter poor. A nation beyond the Reach is a dash: it is not ranked. Sort by it." @onclick='() => _sort = "wealth"'>Wealth</th>
+                    <th class="sortable hu-ord @(_sort == "senate" ? "here" : "")" title="[greek-temple] The Senate\nIts standing in the Senate, one of the three orders: the glyph lit in brass where the house is great or dominant, plain where it is notable, dim where it is of no account; ringed where it is the house's calling. Sort by it." @onclick='() => _sort = "senate"'><Icon Name="greek-temple" Tone="ivory" Size="16" /></th>
+                    <th class="sortable hu-ord @(_sort == "arms" ? "here" : "")" title="[eagle-emblem] Arms\nIts standing in arms, one of the three orders. Sort by it." @onclick='() => _sort = "arms"'><Icon Name="eagle-emblem" Tone="ivory" Size="16" /></th>
+                    <th class="sortable hu-ord @(_sort == "commerce" ? "here" : "")" title="[trade] Commerce\nIts standing in commerce, one of the three orders. Sort by it." @onclick='() => _sort = "commerce"'><Icon Name="trade" Tone="ivory" Size="16" /></th>
                     <th class="sortable @(_sort == "disposition" ? "here" : "")" title="What its people think of you, on average, from −100 to +100. Sort by it." @onclick='() => _sort = "disposition"'>Toward you</th>
                     <th class="hu-bench">Bench</th>
                 </tr></thead>
@@ -93,8 +93,8 @@
                         <td><span class="hu-bar"><i style="width:@(100 * worlds / maxWorlds)%"></i></span>@worlds</td>
                         <td><span class="hu-bar"><i style="width:@(100 * hulls / maxHulls)%"></i></span>@hulls</td>
                         <td><span class="hu-bar"><i style="width:@(100 * seats / maxSeats)%"></i></span>@seats</td>
-                        <td>@if (w.Foreign(h.Id)) { <span class="hu-dim" title="A nation beyond the Reach: its wealth is its own treasury and trade, and is not ranked among the houses.">A nation</span> } else { <span class="hu-tier @Wealth.TierFor(w, h.Id)" title="wealth @Money.Show(h.Wealth): ranked among the houses of the Reach (the top sixth opulent, the next quarter rich, the bottom quarter poor)">@CharacterScreen.Cap(Wealth.TierFor(w, h.Id))</span> }</td>
-                        @foreach (var o in OrderSystem.All) { <td class="ord hu-ord" title="@($"{OrderSystem.CallingName(h.Calling)}: {OrderSystem.Name(o)} {h.Order(o)}, {OrderSystem.TierName(OrderSystem.Tier(h, o))}")"><span class="ordpip t@(OrderSystem.Tier(h, o)) @(h.Calling == o ? "calling" : "")">@(o == OrderSystem.Senate ? "S" : o == OrderSystem.Arms ? "A" : "C")</span></td> }
+                        <td>@if (w.Foreign(h.Id)) { <span class="hu-dim" title="A nation beyond the Reach: its wealth is its own treasury and trade, and is not ranked among the houses.">–</span> } else { <span class="hu-tier @Wealth.TierFor(w, h.Id)" title="wealth @Money.Show(h.Wealth): ranked among the houses of the Reach (the top sixth opulent, the next quarter rich, the bottom quarter poor)">@CharacterScreen.Cap(Wealth.TierFor(w, h.Id))</span> }</td>
+                        @foreach (var o in OrderSystem.All) { int tier = OrderSystem.Tier(h, o); <td class="ord hu-ord" title="@($"{OrderSystem.CallingName(h.Calling)}: {OrderSystem.Name(o)} {h.Order(o)}, {OrderSystem.TierName(tier)}")"><span class="ordglyph t@(tier) @(h.Calling == o ? "calling" : "")"><Icon Name="@(o == OrderSystem.Senate ? "greek-temple" : o == OrderSystem.Arms ? "eagle-emblem" : "trade")" Tone="@(tier >= 2 ? "brass" : "ivory")" Size="16" /></span></td> }
                         <td>@if (h.Id != mine.Id) { <span class="hu-disp @(atWar || disp < -20 ? "ui-down" : disp > 20 ? "ui-up" : "")">@if (atWar) { <Icon Name="crossed-sabres" Tone="ember" Size="14" /> }@Signed(disp)</span> } else { <span class="hu-dim">–</span> }</td>
                         <td class="hu-bench hu-dim">@(bench?.Name ?? "")</td>
                     </tr>
@@ -113,6 +113,8 @@
         var offDefault = c.Policies.Laws.Where(l => PolicySystem.HoldsScope(w, fh.Id, l.Scope) && PolicySystem.OptionId(w, c.Policies, fh.Id, l.Id) != l.DefaultOption.Id).Select(l => c.Policies.Law(l.Id)!.Option(PolicySystem.OptionId(w, c.Policies, fh.Id, l.Id))?.Name.ToLowerInvariant()).Where(x => x != null).ToList();
         var moods = c.Policies.Estates.Select(e => (e, a: PolicySystem.Approval(w, fh.Id, e.Id))).Where(x => x.a <= PolicySystem.Hostile || x.a >= PolicySystem.Loyal).ToList();
         <div class="focus-house hu-page" style="--hc:@fh.AccentColor" data-house-page="@fh.Id">
+            @{ var fb0 = FactionSystem.Of(w, fh.Id); int seats0 = senate.Weight(w, fh.Id); string thinks = disp > 20 ? "thinks well of you" : disp < -20 ? "thinks ill of you" : "thinks nothing of you"; }
+            <p class="ui-lede hu-lede">@LawsScreen.Bold($"{fh.Name}, {c.Titles.NameOf(fh.Title, w.Era)}, {(fh.Id == mine.Id ? "is your own house" : atWar ? "is at war with you" : thinks)}; it {(fb0 == null ? "sits with no bench" : fb0.LeaderHouseId == fh.Id ? $"leads the {fb0.Name}" : $"sits with the {fb0.Name}")} with {Counted.Seats(seats0)}.")</p>
             <div class="hu-id">
                 <Sigil HouseId="@fh.Id" Accent="@fh.AccentColor" Size="58" Mode="seal" />
                 <div class="hu-id-who">
@@ -209,28 +211,43 @@
                     <Right><span data-trade="@did">At the market's price</span></Right>
                     <ChildContent>
                     @if (noTrade != null) { <WarnStrip Icon="trade" Lead="Closed." Class="dy-strip"><span data-trade-closed="@did">@Capital(noTrade).</span></WarnStrip> }
-                    <div class="hu-line" data-trade-terms="@did">
-                        <span class="you-lbl">A lot of</span>
-                        <span class="ui-seg">@foreach (int size in HouseTradeSystem.Lots) { int n = size; <button class="@Here(_lot == n)" data-trade-lot="@n" title="How many units a purchase or a sale is for, and how many a year a standing deal sends." @onclick="() => _lot = n">@n</button> }</span>
-                        <span class="you-lbl">a standing deal for</span>
-                        <span class="ui-seg">@foreach (int span in HouseTradeSystem.Terms) { int y = span; <button class="@Here(_term == y)" data-trade-term="@y" title="@HouseTradeSystem.RulesSay" @onclick="() => _term = y">@y years</button> }</span>
-                    </div>
-                    @foreach (var gd in tr.Goods)
+                    @{ var goods = tr.Goods.ToList(); string sel = _tradeGood != null && goods.Any(g => g.Id == _tradeGood) ? _tradeGood : goods.FirstOrDefault()?.Id ?? ""; }
+                    <div class="ui-table-wrap hu-trade">
+                    <table class="ui-table hu-trade-t">
+                        <thead><tr><th>Good</th><th class="num" title="What it holds in store, and whether it would spare some or wants more">It holds</th><th class="num" title="What it asks a unit, when you buy of it">It asks</th><th class="num" title="What it pays a unit, when you sell to it">It pays</th><th class="num">You hold</th></tr></thead>
+                        <tbody>
+                        @foreach (var gd in goods)
+                        {
+                            string gid = gd.Id; int spare = tr.Spare(w, fh, gid), wants = tr.Wants(w, fh, gid);
+                            <tr class="trade-good hu-good @(gid == sel ? "on" : "")" data-trade-good="@gid" title="@TradeLine(tr, fh, mine, gid)" @onclick="() => _tradeGood = gid">
+                                <td class="hn"><span class="hu-gd"><Icon Name="@GoodIcon(gid)" Tone="@GoodTone(gid)" Size="16" /><b>@gd.Name</b></span></td>
+                                <td class="num">@fh.Treasury.Get(gid)<small class="@(spare > 0 ? "ui-up" : wants > 0 ? "ui-warn-t" : "hu-dim")">@(spare > 0 ? $" spares {spare}" : wants > 0 ? $" wants {wants}" : "")</small></td>
+                                <td class="num">@Money.Show(tr.Asks(w, fh, mine, gid))</td>
+                                <td class="num">@Money.Show(tr.Pays(w, fh, mine, gid))</td>
+                                <td class="num">@mine.Treasury.Get(gid)</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                    @if (sel.Length > 0)
                     {
-                        string gid = gd.Id; int lot = _lot, term = _term;
+                        string gid = sel; int lot = _lot, term = _term; var gname = goods.First(g => g.Id == sel).Name;
                         var buy = Trade(HouseTradeCommand.Buy, did, gid, lot); var sell = Trade(HouseTradeCommand.Sell, did, gid, lot); var bq = buy.Quote(w); var sq = sell.Quote(w);
                         var dealIn = Trade(HouseTradeCommand.DealBuy, did, gid, lot, term); var dealOut = Trade(HouseTradeCommand.DealSell, did, gid, lot, term); var noIn = dealIn.Refusal(G.Ctx); var noOut = dealOut.Refusal(G.Ctx);
-                        <div class="trade-good hu-good" data-trade-good="@gid">
-                            <div class="hu-good-nm"><b>@gd.Name</b><span>@TradeLine(tr, fh, mine, gid)</span></div>
-                            <div class="trade-row hu-good-acts">
-                                <button class="opt inline tiny" data-trade-buy="@gid" disabled="@(bq.Refusal != null)" title="@(bq.Refusal ?? tr.BuySays(w, mine, fh, gid, lot))" @onclick="() => G.Execute(buy)">Buy @lot@if (bq.Credits > 0) { <span class="ui-cost"><Icon Name="credits" Tone="brass" Size="14" />@Money.Show(bq.Credits)</span> }</button>
-                                <button class="opt inline tiny" data-trade-sell="@gid" disabled="@(sq.Refusal != null)" title="@(sq.Refusal ?? tr.SellSays(w, mine, fh, gid, lot))" @onclick="() => G.Execute(sell)">Sell @lot@if (sq.Credits > 0) { <span class="ui-cost"><Icon Name="credits" Tone="brass" Size="14" />@Money.Show(sq.Credits)</span> }</button>
-                                @{ int inYear = noIn == null ? HouseTradeSystem.YearCost(tr.DealUnitCredits(w, mine, fh, gid, false), lot) : 0, outYear = noOut == null ? HouseTradeSystem.YearCost(tr.DealUnitCredits(w, mine, fh, gid, true), lot) : 0; }
-                                <button class="opt inline tiny" data-trade-deal="@gid" disabled="@(noIn != null)" title="@(noIn ?? tr.DealSays(w, mine, fh, gid, lot, term, false))" @onclick="() => G.Execute(dealIn)">It sends @lot a year @if (inYear > 0) { <span class="ui-cost"><Icon Name="credits" Tone="brass" Size="14" />@Money.Show(inYear)</span> }</button>
-                                <button class="opt inline tiny" data-trade-deal-sell="@gid" disabled="@(noOut != null)" title="@(noOut ?? tr.DealSays(w, mine, fh, gid, lot, term, true))" @onclick="() => G.Execute(dealOut)">You send @lot a year @if (outYear > 0) { <span class="ui-cost"><Icon Name="credits" Tone="brass" Size="14" />@Money.Show(outYear)</span> }</button>
-                            </div>
+                        int inYear = noIn == null ? HouseTradeSystem.YearCost(tr.DealUnitCredits(w, mine, fh, gid, false), lot) : 0, outYear = noOut == null ? HouseTradeSystem.YearCost(tr.DealUnitCredits(w, mine, fh, gid, true), lot) : 0;
+                        @* the order bar at the table's foot (4.13): the good picked, the lot, Buy and Sell with their sums, a standing deal either way *@
+                        <div class="ui-orderbar hu-orderbar" data-trade-terms="@did">
+                            <span class="hu-ob-nm"><Icon Name="@GoodIcon(gid)" Tone="@GoodTone(gid)" Size="16" />@gname</span>
+                            <Segmented Label="Lot" Value="@lot.ToString()" Options="@HouseTradeSystem.Lots.Select(n => (n.ToString(), n.ToString(), "How many units a purchase or a sale is for, and how many a year a standing deal sends.")).ToList()" OnChange="v => _lot = int.Parse(v)" />
+                            <Plate Label="Buy" Small="true" CostIcon="credits" CostText="@(bq.Credits > 0 ? Money.Show(bq.Credits) : "")" data-trade-buy="@gid" Locked="@(bq.Refusal != null)" Disabled="@(bq.Refusal != null)" ShowNeed="false" Need="@(bq.Refusal ?? "")" Tip="@(bq.Refusal ?? tr.BuySays(w, mine, fh, gid, lot))" OnClick="() => G.Execute(buy)" />
+                            <Plate Label="Sell" Small="true" CostIcon="credits" CostText="@(sq.Credits > 0 ? Money.Show(sq.Credits) : "")" data-trade-sell="@gid" Locked="@(sq.Refusal != null)" Disabled="@(sq.Refusal != null)" ShowNeed="false" Need="@(sq.Refusal ?? "")" Tip="@(sq.Refusal ?? tr.SellSays(w, mine, fh, gid, lot))" OnClick="() => G.Execute(sell)" />
+                            <span class="hu-ob-sep" aria-hidden="true"></span>
+                            <Segmented Label="Deal for" Value="@term.ToString()" Options="@HouseTradeSystem.Terms.Select(y => (y.ToString(), y + " yrs", HouseTradeSystem.RulesSay)).ToList()" OnChange="v => _term = int.Parse(v)" />
+                            <Plate Label="It sends" Small="true" CostIcon="credits" CostText="@(inYear > 0 ? Money.Show(inYear) + " a yr" : "")" data-trade-deal="@gid" Locked="@(noIn != null)" Disabled="@(noIn != null)" ShowNeed="false" Need="@(noIn ?? "")" Tip="@(noIn ?? tr.DealSays(w, mine, fh, gid, lot, term, false))" OnClick="() => G.Execute(dealIn)" />
+                            <Plate Label="You send" Small="true" CostIcon="credits" CostText="@(outYear > 0 ? Money.Show(outYear) + " a yr" : "")" data-trade-deal-sell="@gid" Locked="@(noOut != null)" Disabled="@(noOut != null)" ShowNeed="false" Need="@(noOut ?? "")" Tip="@(noOut ?? tr.DealSays(w, mine, fh, gid, lot, term, true))" OnClick="() => G.Execute(dealOut)" />
                         </div>
                     }
+                    </div>
                     <div class="hu-lasting" data-trade-standing="@did">
                         @foreach (var td in standing)
                         {
@@ -243,12 +260,15 @@
                 </Section>
             }
             <Section Title="Its standing" Info="Its legitimacy and what it is made of, its domain, navy, wealth, place in the Senate, the law it keeps and how its estates stand to it.">
-                <div class="you-kv hu-kv"><span class="k">Legitimacy</span><span class="v"><b>@fh.Legitimacy</b></span><span></span></div>
-                <details class="hu-details" data-legitimacy-of="@fh.Id"><summary>What it is made of</summary><LegitimacyMade Card="@Praetoria.Core.Presentation.LegitimacyProjection.Of(w, fh)" /></details>
-                <div class="you-kv hu-kv"><span class="k">Domain</span><span class="v">@CharacterScreen.Cap(Counted.Worlds(worlds.Count)) · @Counted.Stations(stations.Count)</span><span></span></div>
-                <div class="you-kv hu-kv"><span class="k">Navy</span><span class="v">@CharacterScreen.Cap(Counted.Hulls(FleetSystem.StrengthOf(w, fh.Id)))@(FleetSystem.CampaignTarget(w, fh.Id) is { } ct ? $" · campaigning on {w.Galaxy?.System(ct)?.Name ?? ct}" : "")</span><span></span></div>
-                <div class="you-kv hu-kv"><span class="k">Wealth</span><span class="v">@Money.Show(fh.Wealth) · @if (w.Foreign(fh.Id)) { <span class="hu-dim">a nation: not ranked among the houses</span> } else { <span class="hu-tier @Wealth.TierFor(w, fh.Id)">@Wealth.TierFor(w, fh.Id)</span> }@(fh.Debt > 0 ? " · in debt" : "")</span><span></span></div>
-                <div class="you-kv hu-kv"><span class="k">In the Senate</span><span class="v">@CharacterScreen.Cap(Counted.Seats(senate.Weight(w, fh.Id)))@(FactionSystem.Of(w, fh.Id) is { } fb ? $" · {fb.Name}{(fb.LeaderHouseId == fh.Id ? " (leads)" : "")}" : "")@(w.Counter("motions_passed:" + fh.Id) > 0 ? $" · {Counted.Motions(w.Counter("motions_passed:" + fh.Id))} carried" : "")@(SenateSystem.Embargoed(w, fh.Id) ? " · under embargo" : "")</span><span></span></div>
+                @{ int hullsN = FleetSystem.StrengthOf(w, fh.Id), seatsN = senate.Weight(w, fh.Id); }
+                <div class="hu-figs" data-legitimacy-of="@fh.Id">
+                    <button class="hu-fig" title="@($"[legitimacy] Legitimacy {fh.Legitimacy}\nClick for what it is made of")" @onclick="() => _made = !_made"><Icon Name="legitimacy" Tone="ivory" Size="22" /><b>@fh.Legitimacy</b><span>Legitimacy<Icon Name="chev" Tone="brass" Size="10" Class="@(_made ? "hu-chev open" : "hu-chev")" /></span></button>
+                    <span class="hu-fig" title="@($"{CharacterScreen.Cap(Counted.Worlds(worlds.Count))} and {Counted.Stations(stations.Count)}")"><Icon Name="ringed-planet" Tone="ivory" Size="22" /><b>@worlds.Count<small>/@stations.Count</small></b><span>Worlds, stations</span></span>
+                    <span class="hu-fig" title="@($"{CharacterScreen.Cap(Counted.Hulls(hullsN))}{(FleetSystem.CampaignTarget(w, fh.Id) is { } ct0 ? $", campaigning on {w.Galaxy?.System(ct0)?.Name ?? ct0}" : "")}")"><Icon Name="fleet" Tone="steel" Size="22" /><b>@hullsN</b><span>Hulls</span></span>
+                    <span class="hu-fig" title="@($"{Money.Show(fh.Wealth)}{(w.Foreign(fh.Id) ? ": a nation, not ranked among the houses" : ", " + Wealth.TierFor(w, fh.Id))}{(fh.Debt > 0 ? ", in debt" : "")}")"><Icon Name="money-stack" Tone="brass" Size="22" /><b>@Money.Show(fh.Wealth)</b><span>Wealth</span></span>
+                    <span class="hu-fig" title="@($"{CharacterScreen.Cap(Counted.Seats(seatsN))}{(FactionSystem.Of(w, fh.Id) is { } fb1 ? $", {fb1.Name}{(fb1.LeaderHouseId == fh.Id ? " (leads)" : "")}" : "")}{(w.Counter("motions_passed:" + fh.Id) > 0 ? $", {Counted.Motions(w.Counter("motions_passed:" + fh.Id))} carried" : "")}{(SenateSystem.Embargoed(w, fh.Id) ? ", under embargo" : "")}")"><Icon Name="greek-temple" Tone="ivory" Size="22" /><b>@seatsN</b><span>Seats</span></span>
+                </div>
+                @if (_made) { <div class="hu-made"><LegitimacyMade Card="@Praetoria.Core.Presentation.LegitimacyProjection.Of(w, fh)" /></div> }
                 @if (offDefault.Count > 0 || moods.Count > 0) { <div class="you-kv hu-kv"><span class="k">Law</span><span class="v">@(offDefault.Count > 0 ? CharacterScreen.Cap(string.Join(", ", offDefault)) : "The customary law")@(moods.Count > 0 ? " · " + string.Join(", ", moods.Select(x => $"{x.e.Name.Replace("The ", "").ToLowerInvariant()} {(x.a >= PolicySystem.Loyal ? "loyal" : "hostile")}")) : "")</span><span></span></div> }
                 @if (m.Capital is { } cap && cap.HolderId == fh.Id) { <div class="you-kv hu-kv"><span class="k">The capital</span><span class="v">Holds @cap.SystemName: @(w.IsImperium ? "the court" : "the capital"), the Senate's chair, and a target</span><span></span></div> }
                 @if (fh.Bloc == RegionSystem.FreeholdsBloc) { <div class="you-kv hu-kv"><span class="k">Standing</span><span class="v ui-warn-t">A free hold, sworn to no one</span><span></span></div> }
@@ -282,25 +302,21 @@
             @foreach (var ch in members.Take(6))
             {
                 conns.TryGetValue(ch.Id, out var cn); var rel = w.GetRelationship(ch.Id, pid); int d = rel?.Disposition ?? 0; string? crn = c.Careers.RankName(ch.CareerTrack, ch.CareerRank, G.World!.Era);
-                <div class="person dy-blk hu-person">
-                    <Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Accent="@fh.AccentColor" Size="46" Height="56" />
-                    <div class="dy-blk-body">
-                        <div class="hu-person-hd">
-                            <span class="dy-blk-nm">@ch.Name</span>
-                            <span class="dy-blk-sub">@(crn != null ? crn + " · " : "")@ch.Age@(ch == head ? " · head" : "")@(ch.Flags.Contains(FleetSystem.AchillesFlag) ? " · Achilles" : "")</span>
-                            @if (ch.Id != pid) { <span class="ui-cell @(d < -20 ? "ui-down" : d > 20 ? "ui-up" : "")" title="What they think of you">@Signed(d)@(rel?.Bond is { } b && b != BondType.None ? " · " + b.ToString().ToLowerInvariant() : "")</span> }
-                        </div>
-                        @if (cn != null && cn.Flags.Count > 0) { <div class="you-marks hu-marks">@foreach (var f in cn.Flags.Take(3)) { <em title="@Marks.Tip(f)">@Marks.Label(f)</em> }</div> }
-                        @if (cn != null)
-                        {
-                            /* a match by treaty: every one of yours the family would take today, or the first with why not */
-                            var matches = cn.Actions.Where(o => o.Id.StartsWith("marry:")).ToList(); var willing = matches.Where(o => o.Refusal == null).Take(3).ToList();
-                            <div class="you-acts dy-acts">
-                            @foreach (var o in willing.Count > 0 ? willing : matches.Take(1)) { var oo = o; string cnid = cn.Id; <button class="opt inline tiny" data-treaty="@o.Id" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? "The family would agree today, on custom's terms.")" @onclick="() => AskConn(oo.Id, oo.Label, cnid)">@o.Label</button> }
-                            @foreach (var o in cn.Actions.Where(o => !o.Id.StartsWith("marry:"))) { var oo = o; string cnid = cn.Id; <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => AskConn(oo.Id, oo.Label, cnid)">@o.Label</button> }
-                            </div>
-                        }
-                    </div>
+                var acts = new List<Praetoria.Core.Presentation.Option>();
+                if (cn != null) { var matches = cn.Actions.Where(o => o.Id.StartsWith("marry:")).ToList(); var willing = matches.Where(o => o.Refusal == null).ToList(); acts.AddRange(willing.Count > 0 ? willing.Take(3) : matches.Take(1)); acts.AddRange(cn.Actions.Where(o => !o.Id.StartsWith("marry:"))); }
+                <div class="person hu-person">
+                    <Row Name="@ch.Name" Tip="@(cn != null && cn.Flags.Count > 0 ? string.Join("\n", cn.Flags.Select(f => Marks.Label(f) + ": " + Marks.Tip(f))) : "")">
+                        <Picture><Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Accent="@fh.AccentColor" Size="46" Height="56" /></Picture>
+                        <Sub>@(crn != null ? crn + " · " : "")@ch.Age@(ch == head ? " · head" : "")@(ch.Flags.Contains(FleetSystem.AchillesFlag) ? " · Achilles" : "")@if (cn != null && cn.Flags.Count > 0) { <span class="you-marks hu-marks">@foreach (var f in cn.Flags.Take(2)) { <em title="@Marks.Tip(f)">@Marks.Label(f)</em> }</span> }</Sub>
+                        <Cells>@if (ch.Id != pid) { <span class="ui-cell @(d < -20 ? "ui-down" : d > 20 ? "ui-up" : "")" title="What they think of you">@Signed(d)@if (rel?.Bond is { } bnd && bnd != BondType.None) { <small>&nbsp;@bnd.ToString().ToLowerInvariant()</small> }</span> }</Cells>
+                        <Action><span class="hs-acts hu-acts">
+                            @foreach (var o in acts)
+                            {
+                                var oo = o; string cnid = cn!.Id; var (verb, ci, ct, say) = ActOf(o);
+                                <Plate Label="@verb" Small="true" CostIcon="@ci" CostText="@ct" data-treaty="@(o.Id.StartsWith("marry:") ? o.Id : null)" data-act="@o.Id" Locked="@(o.Refusal != null)" Disabled="@(o.Refusal != null)" ShowNeed="false" Need="@(o.Refusal is { Length: > 0 } r ? LawsScreen.Say(r) : "")" Tip="@(say + (o.Id.StartsWith("marry:") && o.Refusal == null ? "\nThe family would agree today, on custom's terms." : ""))" OnClick="() => AskConn(oo.Id, oo.Label, cnid)" />
+                            }
+                        </span></Action>
+                    </Row>
                 </div>
             }
             </Section>
@@ -394,6 +410,19 @@
     private static string BreakSays => $"Refuse. You owe it nothing more, and its head thinks −{WealthSystem.FavourBroken} of you and remembers.";
     // trade between houses (docs/WEALTH.md, "Trade between houses"): the lot bought, sold or sent each year, and the term of a standing deal
     private int _lot = HouseTradeSystem.Lots[1], _term = HouseTradeSystem.Terms[0];
+    private string? _tradeGood; private bool _made;
+    private static string GoodIcon(string g) => g switch { "credits" => "credits", "materials" => "materials", "manpower" => "manpower", "exotics" => "exotics", "helium3" => "helium3", "rare_earths" => "rare_earths", "isotopes" => "isotopes", "influence" => "laurels", _ => "cargo-crate" };
+    private static string GoodTone(string g) => g switch { "materials" or "exotics" or "helium3" => "steel", "isotopes" => "ember", "credits" => "brass", _ => "ivory" };
+    /// <summary>An action on a person of another house as a plate (docs/VISUAL_SYSTEM.md 4.11): a verb of one to three words, the cost as an
+    /// icon and number after the hairline, and the whole sentence in the tooltip.</summary>
+    private (string verb, string icon, string cost, string tip) ActOf(Praetoria.Core.Presentation.Option o)
+    {
+        string say = o.Label.Replace(" ⚭ ", " and ").Replace("  (", " (");
+        var cost = System.Text.RegularExpressions.Regex.Match(o.Label, @"\((\d+) (influence|agents?)");
+        string ci = cost.Success ? (cost.Groups[2].Value.StartsWith("agent") ? "cowled" : "public-speaker") : "", ct = cost.Success ? cost.Groups[1].Value : "";
+        if (o.Id.StartsWith("marry:")) { var who = G.World!.Char(o.Id[6..]); return ("Propose " + (who == null || who.Id == G.World.ProtagonistId ? "yourself" : First(who.Name)), ci, ct, say); }
+        return o.Id switch { "assassinate" => ("Arrange accident", ci, ct, say), "foster" => ("Foster away", ci, ct, say), "recall" => ("Recall", ci, ct, say), _ => (o.Label.Split("  (")[0], ci, ct, say) };
+    }
     private HouseTradeCommand Trade(string what, string houseId, string good, int units, int years = 0, string dealId = "") => new(G.World!.ProtagonistId, what, houseId, G.Turn!.HouseTrade, good, units, years, dealId);
     private static string Here(bool on) => on ? "on" : "";
     private static string Capital(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

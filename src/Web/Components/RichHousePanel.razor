@@ -24,13 +24,16 @@
              IsEmpty="@(kin.Count == 0)" EmptyLine="Nobody of the house but you." EmptyIcon="castle">
         <Right><span>Brings <b>@estatePays</b> a year</span></Right>
         <ChildContent>
+        @{ var refusals = kin.Take(_allKin ? 40 : 6).Select(c => new EndowCommand(pid, c.Id).Refusal(G.Ctx)).ToList(); string? allNo = refusals.Count > 1 && refusals.All(r => r != null && r == refusals[0]) ? refusals[0] : null; }
+        @if (allNo != null) { <p class="hs-note hs-need" data-endow-all-no><Icon Name="padlock" Tone="ember" Size="14" />@LawsScreen.Say(allNo).</p> }
         @foreach (var c in kin.Take(_allKin ? 40 : 6))
         {
             string cid = c.Id; int held = WealthSystem.EstatesHeld(w, c.Id), cost = WealthSystem.EstateCost(w, c); var no = new EndowCommand(pid, cid).Refusal(G.Ctx);
             string gives = "Brings them " + estatePays + " a year: " + (WealthSystem.EstatePays * 100.0 / cost).ToString("F1") + " in the hundred on its price. They think " + WealthSystem.EstateRegard + " the better of you.";
             <Row Class="rich-row" Name="@c.Name" SubText="@($"{c.Age}{(c.Age < WealthSystem.Adult ? ", a child" : "")} · {(held == 0 ? "holds no land" : "holds " + Counted.Of(held, "estate"))}")">
                 <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
-                <Action><Plate Label="Settle an estate" Icon="castle" Small="true" CostIcon="credits" CostText="@Money.Show(cost)" data-endow="@cid" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@gives" OnClick="() => G.Execute(new EndowCommand(pid, cid))" /></Action>
+                <Cells>@if (allNo != null) { <Cell Icon="credits" Value="@Money.Show(cost)" Tip="@($"What land settled on {c.Name} would cost. {gives}")" /> }</Cells>
+                <Action>@if (allNo == null) { <Plate Label="Settle land" Icon="castle" Small="true" CostIcon="credits" CostText="@Money.Show(cost)" data-endow="@cid" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@gives" OnClick="() => G.Execute(new EndowCommand(pid, cid))" /> }</Action>
             </Row>
         }
         @if (kin.Count > 6) { <p class="hs-note"><Link data-rich-more="kin" OnClick="() => _allKin = !_allKin" Label='@(_allKin ? "Show fewer" : "Show all " + kin.Count)' /></p> }
@@ -44,34 +47,34 @@
         <Right><span>@seatNow</span></Right>
         <ChildContent>
         @if (WealthSystem.SeatShut(w, house)) { <WarnStrip Icon="castle" Lead="Shut up." Bad="true">The @WealthSystem.SeatName(grade) is shut up: the treasury could not pay its keep. It gives nothing until it is paid.</WarnStrip> }
+        @* three rows, one a grade: its glyph, its name, what it gives, its cost and keep, and Build on the one that is next *@
         <div class="hs-ladder">
         @for (int g = 1; g <= WealthSystem.SeatGrades; g++)
         {
-            int gg = g;
-            <div class="hs-rung @(gg <= grade ? "done" : gg == next ? "next" : "")" data-seat-grade="@gg" title="@WealthSystem.SeatGives(gg)">
-                <i class="hs-rung-dia" aria-hidden="true">@if (gg <= grade) { <Icon Name="check" Size="11" Class="flat" /> }</i>
-                <span class="hs-rung-nm">A @WealthSystem.SeatName(gg)</span>
-                <span class="hs-rung-sub">@Money.Show(WealthSystem.SeatCost(gg)) to build, @Money.Show(WealthSystem.SeatKeep(gg)) a year to keep. @WealthSystem.SeatGives(gg)</span>
+            int gg = g; bool done = gg <= grade, isNext = gg == next;
+            <div class="hs-rung @(done ? "done" : isNext ? "next" : "")" data-seat-grade="@gg">
+                <Row Name="@($"A {WealthSystem.SeatName(gg)}")" SubText="@WealthSystem.SeatGives(gg)" Tip="@($"A {WealthSystem.SeatName(gg)}: {Money.Show(WealthSystem.SeatCost(gg))} to build, {Money.Show(WealthSystem.SeatKeep(gg))} a year to keep. {WealthSystem.SeatGives(gg)}")" On="@(done && gg == grade)">
+                    <Picture><span class="ui-medal hs-medal @(done ? "lit" : "")"><Icon Name="@(done ? "check" : "castle")" Tone="@(done ? "brass" : "ivory")" Size="22" /></span></Picture>
+                    <Cells><Cell Icon="credits" Value="@Money.Show(WealthSystem.SeatCost(gg))" Tip="To build" /><Cell Icon="hourglass" Tone="ivory" Value="@Money.Show(WealthSystem.SeatKeep(gg))" Small=" a year" Tip="Its keep, a year" /></Cells>
+                    <Action>
+                        @if (isNext && grade == 0)
+                        {
+                            string siteId = _site.Length > 0 && sites.Any(x => x.Id == _site) ? _site : sites.FirstOrDefault()?.Id ?? ""; var no = siteId.Length > 0 ? new BuildSeatCommand(pid, siteId).Refusal(G.Ctx) : "the house holds no world to build on";
+                            <span class="hs-acts">
+                                @if (sites.Count > 1) { <Select Value="@siteId" Tip="The world it is built on" Options="@sites.Select(x => new Select.Option(x.Id, x.Name)).ToList()" OnChange="v => _site = v" /> }
+                                <Plate Label="Build" Icon="castle" Small="true" Primary="false" data-build-seat="@siteId" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@($"Build the manor on {sites.FirstOrDefault(x => x.Id == siteId)?.Name ?? "a world of your own"}. {WealthSystem.SeatGives(1)}")" OnClick="() => G.Execute(new BuildSeatCommand(pid, siteId))" />
+                            </span>
+                        }
+                        else if (isNext)
+                        {
+                            var no = new BuildSeatCommand(pid, string.Empty).Refusal(G.Ctx);
+                            <Plate Label="Build" Icon="castle" Small="true" data-build-seat="next" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@($"Make it a {WealthSystem.SeatName(next)}. {WealthSystem.SeatGives(next)}")" OnClick="() => G.Execute(new BuildSeatCommand(pid, string.Empty))" />
+                        }
+                    </Action>
+                </Row>
             </div>
         }
         </div>
-        @if (grade == 0)
-        {
-            <div class="hs-line">
-                <span class="hs-lbl">Build the manor on</span>
-                @foreach (var site in sites)
-                {
-                    string hid = site.Id; var no = new BuildSeatCommand(pid, hid).Refusal(G.Ctx);
-                    <Plate Label="@site.Name" Icon="castle" Small="true" CostIcon="credits" CostText="@Money.Show(WealthSystem.SeatCost(1))" data-build-seat="@hid" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@WealthSystem.SeatGives(1)" OnClick="() => G.Execute(new BuildSeatCommand(pid, hid))" />
-                }
-                @if (sites.Count == 0) { <span class="hs-mute-s">The house holds no world to build on.</span> }
-            </div>
-        }
-        else if (grade < WealthSystem.SeatGrades)
-        {
-            var no = new BuildSeatCommand(pid, string.Empty).Refusal(G.Ctx);
-            <div class="hs-line"><Plate Label="@($"Make it a {WealthSystem.SeatName(next)}")" Icon="castle" Small="true" CostIcon="credits" CostText="@Money.Show(WealthSystem.SeatCost(next))" data-build-seat="next" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@WealthSystem.SeatGives(next)" OnClick="() => G.Execute(new BuildSeatCommand(pid, string.Empty))" /></div>
-        }
         </ChildContent>
     </Section>
     </div>
@@ -128,6 +131,7 @@
 </div>
 
 @code {
+    private string _site = "";
     private bool _allKin, _allGrown;
     private const string TreasuryTip = "Out of the house's treasury. It is theirs for good, and goes as their own things go.";
     private const string PurseTip = "Out of your own purse. They will remember whose money it was.";

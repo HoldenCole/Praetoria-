@@ -13,7 +13,7 @@
     {
       "id": "a_world_in_revolt",
       "title": "A World in Revolt",
-      "body": "A world of {self.house} has stopped paying. The governor's writ ends at the palace gate; beyond it the square is full every night and the tithe-houses are shuttered. The region has not loved the Core in years and does not love the house now. Nothing comes off that world until the rising ends — by gift, by steel, or by a fleet in orbit.",
+      "body": "A world of {self.house} has stopped paying. The governor's writ ends at the palace gate; beyond it the square is full every night and the tithe-houses are shuttered. The region has not loved the Core in years and does not love the house now. Nothing comes off that world until the rising ends, by gift, by steel, or by a fleet in orbit.",
       "choices": {
         "concede": "Go down to the square unguarded. Forgive the tithe. Make councillors of the ringleaders.",
         "break_them": "Give the order. The square will be quiet by morning.",

@@ -14,7 +14,7 @@
     {
       "id": "the_consulship",
       "title": "The Consulship",
-      "body": "The Senate has elected {self.name} consul. The lictors — such as the Reach has — fall in at the door; the clerk brings the seal; the parties that did not vote for {self.house} are already composing their objections.",
+      "body": "The Senate has elected {self.name} consul. The lictors, such as the Reach has, fall in at the door; the clerk brings the seal; the parties that did not vote for {self.house} are already composing their objections.",
       "choices": {
         "a_programme": "Read a programme aloud (1 influence).",
         "reward_the_party": "Spend the first session rewarding your voters.",

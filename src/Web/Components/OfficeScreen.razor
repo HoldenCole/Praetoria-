@@ -85,8 +85,8 @@
             @if (m.Character.Nature.Count + m.Character.Aptitude.Count > 0)
             {
                 <div class="or-traits">
-                    @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@($"{TraitName(t)}\n{TraitDesc(t)}")">@TraitName(t)</span> }
-                    @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@($"{TraitName(t)}\n{TraitDesc(t)}")">@TraitName(t)</span> }
+                    @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@($"{TraitName(t)}\n{TraitDesc(t)}")"><Icon Name="heart-organ" Tone="brass" Size="14" />@TraitName(t)</span> }
+                    @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@($"{TraitName(t)}\n{TraitDesc(t)}")"><Icon Name="upgrade" Tone="good" Size="14" />@TraitName(t)</span> }
                 </div>
             }
             <div class="or-kv"><span><Icon Name="ambition" Tone="brass" Size="15" />Ambition</span><b>@m.Character.AmbitionName</b></div>
@@ -94,18 +94,17 @@
             <div class="or-kv"><span><Icon Name="brain" Tone="@(p.Stress >= 70 ? "ember" : "ivory")" Size="15" />Strain</span><b class="@(p.Stress >= 70 ? "ui-warn-t" : "")">@p.Stress@(m.Character.Broken ? " · broken" : "")</b></div>
             @if (top.Count > 0)
             {
-                <div class="or-kv sk"><span><Icon Name="upgrade" Tone="ivory" Size="15" />Skills</span>
-                    <b>@foreach (var k in top) { <span class="or-sk" title="@($"{Cap(k.Key)}\n{SkillWords.For(k.Key)}")"><Icon Name="@ChoiceStakes.SkillIcon(k.Key)" Tone="ivory" Size="14" />@Cap(k.Key) @k.Value</span> }</b></div>
+                <div class="or-figs">@foreach (var k in top) { <span class="or-fig" title="@($"{Cap(k.Key)} {k.Value}\n{SkillWords.For(k.Key)}")"><Icon Name="@ChoiceStakes.SkillIcon(k.Key)" Tone="ivory" Size="24" /><b>@k.Value</b></span> }</div>
             }
             <Section Title="Since last year" Count="@(since.Count > 0 ? since.Count.ToString() : "")" IsEmpty="@(since.Count == 0)" EmptyLine="Nothing of note." EmptyIcon="turn">
-                <div class="or-lines">@foreach (var h in since) { <div class="line">@h.Text</div> }</div>
+                <div class="or-lines">@foreach (var h in since) { <div class="line" title="@h.Text">@h.Text</div> }</div>
             </Section>
             @if (m.GreatCrisis is { } gc)
             {
                 <Section Title="@gc.Name" Class="@(gc.Resolved ? "resolved" : "")" Info="How near the Reach is to the next stage of its great war. Before the war it rises each year by what is wrong with the Reach (the Senate window lists what) and falls back when nothing is; once the war has begun it runs on, faster the more wars there are. The second figure is where the next stage begins.">
                     <div class="or-great">
                         <div class="or-kv"><span><Icon Name="crisis" Tone="ember" Size="15" />Stage</span><b>@(gc.Resolved ? "resolved" : gc.Stage ?? "not yet")</b></div>
-                        <Meter Label="How near" Value="@gc.Clock" Max="@(Math.Max(1, gc.NextAt ?? gc.Clock))" Text="@(gc.Clock + (gc.NextAt != null ? $" / {gc.NextAt}" : ""))" Color="#b8452f"
+                        <Meter Label="Great war" Value="@gc.Clock" Max="@(Math.Max(1, gc.NextAt ?? gc.Clock))" Text="@(gc.Clock + (gc.NextAt != null ? $" / {gc.NextAt}" : ""))" Color="#b8452f"
                                Tip="How near the Reach is to the next stage of its great war. Before the war it rises each year by what is wrong with the Reach (the Senate window lists what) and falls back when nothing is; once the war has begun it runs on, faster the more wars there are. The second figure is where the next stage begins." />
                         @if (gc.Bloc.Length > 0) { <div class="or-kv"><span><Icon Name="flying-flag" Tone="ivory" Size="15" />Your bloc</span><b>@gc.Bloc</b></div> }
                         @if (gc.HegemonName != null) { <div class="or-kv"><span><Icon Name="crown" Tone="brass" Size="15" />Hegemon</span><b>@gc.HegemonName</b></div> }

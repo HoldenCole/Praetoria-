@@ -8,7 +8,7 @@
    its own area while the choices stay pinned. The cast plates shrink with the painting. */
 
 /* ---- over the map: a flat dim, no blur; the top bar stays lit ---- */
-.ev-veil { position: fixed; left: 0; right: 0; bottom: 0; top: var(--top, 0px); z-index: 30; display: flex; align-items: center; justify-content: center;
+.ev-veil { position: fixed; left: 0; right: 0; bottom: 0; top: var(--top, 0px); z-index: 34; display: flex; align-items: center; justify-content: center;
   padding: .8rem calc(var(--ol-w, 0px) + var(--edge, 0px) + .8rem) .8rem calc(var(--rail, 0px) + .8rem);
   background: radial-gradient(ellipse at 50% 50%, rgba(3,4,8,.52), rgba(3,4,8,.84)); }
 
@@ -81,13 +81,18 @@
 .ev-ch .req { display: flex; align-items: flex-start; gap: .4rem; margin-top: .3333rem; font: 600 .8667rem/1.3 var(--f-ui); color: var(--warn); }
 .ev-ch .req .icon { flex: none; width: .9333rem; height: .9333rem; margin-top: 1px; }
 .ev-ch .fx { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; justify-content: flex-end; max-width: 22rem; }
-.ev-ch .chip { display: inline-flex; align-items: center; gap: .4rem; height: 2rem; padding: 0 .6667rem 0 .5333rem; background: rgba(4,6,9,.75); border-radius: 2px;
-  box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(255,255,255,.06); font: 600 .9667rem/1 var(--f-ui); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* the recessed chip (6): the well's colour and inset, 30px high, an 18px glyph and the signed figure in Plex 600 14.5px. Written with
+   .fx so it outweighs the old .game span.chip, which strips every span chip bare */
+.ev-ch .fx .chip { display: inline-flex; align-items: center; gap: .4rem; height: 2rem; padding: 0 .6667rem 0 .5333rem; background: var(--well); border: 0; border-radius: 2px;
+  box-shadow: var(--sh-inset); font: 600 .9667rem/1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; color: var(--ink); }
+/* a person's effect: their face at 22px, round, ringed in their house's colour */
+.ev-ch .fx .chip.face .portrait { width: 1.4667rem !important; height: 1.4667rem !important; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 0 0 2.5px var(--ring, #a5813a); }
+.ev-ch .fx .chip.face .portrait::after, .ev-ch .fx .chip.face .portrait .pf-band { display: none; }
 .ev-ch .chip .icon { width: 1.2rem; height: 1.2rem; stroke-width: 26px; }
 .ev-ch .chip .up { color: var(--good); } .ev-ch .chip .down { color: var(--bad); }
-.ev-ch .chip.face { padding-left: .3333rem; } .ev-ch .chip.face .portrait { width: 1.4667rem !important; height: 1.4667rem !important; }
+.ev-ch .fx .chip.face { padding-left: .4rem; }
 .ev-ch .chip.more b { color: var(--ink-dim); }
-.ev-ch .chip.words { height: auto; min-height: 2rem; padding: .3333rem .6667rem; white-space: normal; font: 500 .9333rem/1.3 var(--f-ui); color: var(--ink); max-width: 20rem; }
+.ev-ch .fx .chip.words { height: auto; min-height: 2rem; padding: .3333rem .6667rem; white-space: normal; font: 500 .9333rem/1.3 var(--f-ui); color: var(--ink); max-width: 20rem; }
 .ev-ch.choice:hover, .ev-ch.choice.hov, .ev-ch.choice:focus-visible { outline: 0; background: linear-gradient(#2f3850, #1b2131); box-shadow: var(--sh-plate), 0 0 0 1px var(--brass), 0 0 18px rgba(232,196,110,.16); }
 .ev-ch.choice:hover::before, .ev-ch.choice.hov::before, .ev-ch.choice:focus-visible::before { content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: .2rem; background: linear-gradient(#f6e2a0, #a5813a); }
 /* a locked choice: the plate darkens, the disc goes grey, the chips drop to half strength, the label keeps full ink */
@@ -114,7 +119,7 @@
   position-anchor: --evc0; left: calc(anchor(right) + 22px); top: auto; bottom: auto; align-self: anchor-center;
   position-try-fallbacks: --ev-tip-up, --ev-tip-down, --ev-tip-above, --ev-tip-below;
   font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink);
-  background: linear-gradient(180deg, rgba(24,28,38,.98), rgba(10,12,17,.98)); border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; border-image-outset: 6px; box-shadow: var(--sh-drop);
+  background: linear-gradient(180deg, #181c26, #0a0c11); border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; border-image-outset: 6px; box-shadow: var(--sh-drop);
   animation: ev-tip-in .12s ease-out both; }
 /* beside the choice but grown upward or downward from it, then above or below it, right-aligned with the window */
 @position-try --ev-tip-up { left: calc(anchor(right) + 22px); top: auto; bottom: anchor(bottom); align-self: auto; }

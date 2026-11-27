@@ -70,7 +70,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name}'s first command, and {self.name} took the worst of it personally — first into the danger, last out. {officer.name} and the others marked it forever: this is an officer who spends themselves before they spend us. The rank was earned the only way rank is ever truly earned, in the eyes of the people who must obey it."
+              "text": "{self.name}'s first command, and {self.name} took the worst of it personally, first into the danger, last out. {officer.name} and the others marked it forever: this is an officer who spends themselves before they spend us. The rank was earned the only way rank is ever truly earned, in the eyes of the people who must obey it."
             }
           ]
         },
@@ -108,7 +108,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} spent the command like coin and bought the objective with it. The mission succeeded, brilliantly, at a cost {officer.name} counted in faces. They will follow {self.name} anywhere now — out of respect for the results and fear of being the next line in the ledger. It is a kind of loyalty. The colder kind."
+              "text": "{self.name} spent the command like coin and bought the objective with it. The mission succeeded, brilliantly, at a cost {officer.name} counted in faces. They will follow {self.name} anywhere now, out of respect for the results and fear of being the next line in the ledger. It is a kind of loyalty. The colder kind."
             }
           ]
         },
@@ -147,7 +147,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} won the action and then, in the report that went up the chain, named {officer.name} and the others before {self.name}'s own part in it. Glory shared is glory multiplied — every name {self.name} lifted is a person who will lift {self.name} in turn, for the rest of a career that has only just begun."
+              "text": "{self.name} won the action and then, in the report that went up the chain, named {officer.name} and the others before {self.name}'s own part in it. Glory shared is glory multiplied, every name {self.name} lifted is a person who will lift {self.name} in turn, for the rest of a career that has only just begun."
             }
           ]
         }
@@ -231,7 +231,7 @@
             },
             {
               "type": "log",
-              "text": "The post went to {self.name} on the record alone — cleaner service, harder results, an argument no board could refuse. {competitor.name} of {competitor.house} was passed over fairly, which is the most galling way to lose. They congratulated {self.name} with a face that promised this was not finished."
+              "text": "The post went to {self.name} on the record alone, cleaner service, harder results, an argument no board could refuse. {competitor.name} of {competitor.house} was passed over fairly, which is the most galling way to lose. They congratulated {self.name} with a face that promised this was not finished."
             }
           ]
         },
@@ -268,7 +268,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not win the post so much as ensure {competitor.name} lost it — a doubt planted, a past failure resurfaced at the perfect hour. The promotion is {self.name}'s. So is an enemy who knows exactly what happened and can prove nothing, which is the most dangerous kind to make."
+              "text": "{self.name} did not win the post so much as ensure {competitor.name} lost it, a doubt planted, a past failure resurfaced at the perfect hour. The promotion is {self.name}'s. So is an enemy who knows exactly what happened and can prove nothing, which is the most dangerous kind to make."
             }
           ]
         },
@@ -304,7 +304,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} judged {competitor.name} the better fit for this post, this once, and said so to the board. The rank went elsewhere. But {competitor.name} of {competitor.house} learned that {self.name} could be trusted with the truth even when it cost — and there is no promotion in the service worth what that trust will return."
+              "text": "{self.name} judged {competitor.name} the better fit for this post, this once, and said so to the board. The rank went elsewhere. But {competitor.name} of {competitor.house} learned that {self.name} could be trusted with the truth even when it cost, and there is no promotion in the service worth what that trust will return."
             }
           ]
         }
@@ -365,7 +365,7 @@
             },
             {
               "type": "log",
-              "text": "{superior.name} of {superior.house} gave {self.name} an order that was really a question — about loyalty, about how far {self.name} would go on another's word. {self.name} carried it out. The trust earned is real, and so is the thing {self.name} now knows about themselves, which does not go back in its box."
+              "text": "{superior.name} of {superior.house} gave {self.name} an order that was really a question, about loyalty, about how far {self.name} would go on another's word. {self.name} carried it out. The trust earned is real, and so is the thing {self.name} now knows about themselves, which does not go back in its box."
             }
           ]
         },
@@ -399,7 +399,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} refused — quietly, respectfully, immovably. {superior.name} lost a useful subordinate and gained a measure of a person who would not be bent, which powerful people both resent and, in their colder calculations, value. The promotion did not come. Something harder to name did."
+              "text": "{self.name} refused, quietly, respectfully, immovably. {superior.name} lost a useful subordinate and gained a measure of a person who would not be bent, which powerful people both resent and, in their colder calculations, value. The promotion did not come. Something harder to name did."
             }
           ]
         },
@@ -430,7 +430,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} obeyed {superior.name} to the letter — and kept a copy of everything. The order was carried out; the promotion granted; and somewhere in {self.name}'s keeping now sits the proof of what {superior.name} asked, a knife that need never be drawn to do its work. Loyalty, with an exit."
+              "text": "{self.name} obeyed {superior.name} to the letter, and kept a copy of everything. The order was carried out; the promotion granted; and somewhere in {self.name}'s keeping now sits the proof of what {superior.name} asked, a knife that need never be drawn to do its work. Loyalty, with an exit."
             }
           ]
         }
@@ -616,7 +616,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not wait to inherit {admiral.name}'s shadow; {self.name} stepped out of it, in public, with a victory the old admiral could not have won and would not soon forgive. The fleet has a new name to follow. The old one watches it rise the way the setting sun watches the dawn — and begins, quietly, to plan."
+              "text": "{self.name} did not wait to inherit {admiral.name}'s shadow; {self.name} stepped out of it, in public, with a victory the old admiral could not have won and would not soon forgive. The fleet has a new name to follow. The old one watches it rise the way the setting sun watches the dawn, and begins, quietly, to plan."
             }
           ]
         }
@@ -679,7 +679,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the governor's seat and governed as though the people on the ledger had faces, because they did. The province prospered slower and steadier than a harder hand would have driven it — and stayed loyal through the lean year that broke {self.name}'s harsher neighbors. Justice is a slow economy. It pays in crises."
+              "text": "{self.name} took the governor's seat and governed as though the people on the ledger had faces, because they did. The province prospered slower and steadier than a harder hand would have driven it, and stayed loyal through the lean year that broke {self.name}'s harsher neighbors. Justice is a slow economy. It pays in crises."
             }
           ]
         },
@@ -702,7 +702,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the seat and ran the province like a well-tuned engine — every inefficiency trimmed, every yield maximized, the numbers immaculate. The treasury swelled. The people became, in {self.name}'s ledgers, a number that produces and occasionally complains. Both facts are true at once, and a governor must choose which to forget."
+              "text": "{self.name} took the seat and ran the province like a well-tuned engine, every inefficiency trimmed, every yield maximized, the numbers immaculate. The treasury swelled. The people became, in {self.name}'s ledgers, a number that produces and occasionally complains. Both facts are true at once, and a governor must choose which to forget."
             }
           ]
         },
@@ -807,7 +807,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} won the policy fight against {rival_minister.name} of {rival_minister.house} on the merits — better figures, longer sight, the dull unanswerable force of being correct. The ministry is {self.name}'s. {rival_minister.name} retreated to nurse the particular grudge of those defeated by arithmetic they could not refute."
+              "text": "{self.name} won the policy fight against {rival_minister.name} of {rival_minister.house} on the merits, better figures, longer sight, the dull unanswerable force of being correct. The ministry is {self.name}'s. {rival_minister.name} retreated to nurse the particular grudge of those defeated by arithmetic they could not refute."
             }
           ]
         },
@@ -895,7 +895,7 @@
             },
             {
               "type": "log",
-              "text": "Raised to the high treasury, {self.name} did the thing every predecessor had found reasons not to: cleaned it. Powerful people lost comfortable arrangements. {self.name} made the kind of enemies one only makes by being good at the job — and left the Reach's finances, for the first time in a generation, telling the truth."
+              "text": "Raised to the high treasury, {self.name} did the thing every predecessor had found reasons not to: cleaned it. Powerful people lost comfortable arrangements. {self.name} made the kind of enemies one only makes by being good at the job, and left the Reach's finances, for the first time in a generation, telling the truth."
             }
           ]
         },
@@ -927,7 +927,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the treasury and understood it for what it truly is: not a vault but a web, every disbursement a thread to someone who now depends on {self.name}'s goodwill. {self.name} did not steal. {self.name} did something more lasting — became the person without whom nothing in the Reach gets paid."
+              "text": "{self.name} took the treasury and understood it for what it truly is: not a vault but a web, every disbursement a thread to someone who now depends on {self.name}'s goodwill. {self.name} did not steal. {self.name} did something more lasting, became the person without whom nothing in the Reach gets paid."
             }
           ]
         }
@@ -1006,7 +1006,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name}'s first case, and {self.name} ruled as the law demanded rather than as power preferred — even when {defendant.name} of {defendant.house} had friends who expected otherwise. A reputation for incorruptible judgment is the slowest to build and the only one a magistrate cannot survive without. {self.name} began to build it here."
+              "text": "{self.name}'s first case, and {self.name} ruled as the law demanded rather than as power preferred, even when {defendant.name} of {defendant.house} had friends who expected otherwise. A reputation for incorruptible judgment is the slowest to build and the only one a magistrate cannot survive without. {self.name} began to build it here."
             }
           ]
         },
@@ -1044,7 +1044,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} found, in the law's gray margins, the verdict that served {self.name} best — {defendant.name} walked, gratefully, owing a debt that judges learn to collect. Justice is what {self.name} says it is, this once. Each time it gets easier, and each time the robe means a little less, and {self.name} tells themselves they will notice when to stop."
+              "text": "{self.name} found, in the law's gray margins, the verdict that served {self.name} best, {defendant.name} walked, gratefully, owing a debt that judges learn to collect. Justice is what {self.name} says it is, this once. Each time it gets easier, and each time the robe means a little less, and {self.name} tells themselves they will notice when to stop."
             }
           ]
         },
@@ -1076,7 +1076,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} made of {defendant.name} an example sharper than the crime required — a verdict meant to be talked about, and feared. The court learned what kind of magistrate it now served. So did everyone with a case yet to bring. Fear clears a docket fast. It also empties the room of justice, one frightened plaintiff at a time."
+              "text": "{self.name} made of {defendant.name} an example sharper than the crime required, a verdict meant to be talked about, and feared. The court learned what kind of magistrate it now served. So did everyone with a case yet to bring. Fear clears a docket fast. It also empties the room of justice, one frightened plaintiff at a time."
             }
           ]
         },
@@ -1099,7 +1099,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name}'s first case, and {self.name} found the precedent, followed it, and let it carry the weight — a ruling no one could fault and no one would remember. {defendant.name} of {defendant.house} got exactly what the books said. Safe is also a kind of statement."
+              "text": "{self.name}'s first case, and {self.name} found the precedent, followed it, and let it carry the weight, a ruling no one could fault and no one would remember. {defendant.name} of {defendant.house} got exactly what the books said. Safe is also a kind of statement."
             }
           ]
         }
@@ -1182,7 +1182,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} prosecuted {accused.name} of {accused.house} — a power above {self.name}'s station, who had assumed station was armor — and made the conviction stick before the whole court. The Reach learned that {self.name}'s law reaches upward. {accused.name} learned it too, and went to their punishment composing the long reply that the powerful always, eventually, compose."
+              "text": "{self.name} prosecuted {accused.name} of {accused.house}, a power above {self.name}'s station, who had assumed station was armor, and made the conviction stick before the whole court. The Reach learned that {self.name}'s law reaches upward. {accused.name} learned it too, and went to their punishment composing the long reply that the powerful always, eventually, compose."
             }
           ]
         },
@@ -1226,7 +1226,7 @@
             },
             {
               "type": "log",
-              "text": "{accused.name} of {accused.house} paid, and {self.name} found the law surprisingly accommodating. The acquittal advanced {self.name}'s career as a reliable friend to the powerful — which is a career, and a cage. {self.name} is now a person {accused.name} can ruin with a word, and both of them know it, and that knowledge is the actual price."
+              "text": "{accused.name} of {accused.house} paid, and {self.name} found the law surprisingly accommodating. The acquittal advanced {self.name}'s career as a reliable friend to the powerful, which is a career, and a cage. {self.name} is now a person {accused.name} can ruin with a word, and both of them know it, and that knowledge is the actual price."
             }
           ]
         },
@@ -1255,7 +1255,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} prosecuted {accused.name} of {accused.house} by the book — every form observed, every door for an appeal left open, the verdict narrow and defensible. The Reach learned that {self.name}'s law reached upward, cautiously. {accused.name} learned {self.name}'s name."
+              "text": "{self.name} prosecuted {accused.name} of {accused.house} by the book, every form observed, every door for an appeal left open, the verdict narrow and defensible. The Reach learned that {self.name}'s law reached upward, cautiously. {accused.name} learned {self.name}'s name."
             }
           ]
         }
@@ -1323,7 +1323,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the justice's robe on the strength of a record no one could gainsay, and {patron.name} of {patron.house}, who had expected to be thanked for the elevation, found {self.name} owed them nothing but courtesy. A clean ascent. The first power-holder in {self.name}'s life who cannot call in a debt for it — which is its own kind of wealth."
+              "text": "{self.name} took the justice's robe on the strength of a record no one could gainsay, and {patron.name} of {patron.house}, who had expected to be thanked for the elevation, found {self.name} owed them nothing but courtesy. A clean ascent. The first power-holder in {self.name}'s life who cannot call in a debt for it, which is its own kind of wealth."
             }
           ]
         },
@@ -1353,7 +1353,7 @@
             },
             {
               "type": "log",
-              "text": "{patron.name} of {patron.house} placed the robe on {self.name}'s shoulders, and the weight of it was partly cloth and partly obligation. {self.name} rose faster for the patronage and will answer for it later, as one always answers — at the patron's convenience, on a matter of the patron's choosing, for a price set the day the gift was given."
+              "text": "{patron.name} of {patron.house} placed the robe on {self.name}'s shoulders, and the weight of it was partly cloth and partly obligation. {self.name} rose faster for the patronage and will answer for it later, as one always answers, at the patron's convenience, on a matter of the patron's choosing, for a price set the day the gift was given."
             }
           ]
         }
@@ -1410,7 +1410,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sought out {rival.name} of {rival.house}, whom {self.name} had beaten to the post, and offered them a place worth having under {self.name}'s own command. The defeated rival, expecting cold triumph, got an open hand instead. The ones you best and then elevate become the ones who guard your back — because they have seen you choose generosity when cruelty was free."
+              "text": "{self.name} sought out {rival.name} of {rival.house}, whom {self.name} had beaten to the post, and offered them a place worth having under {self.name}'s own command. The defeated rival, expecting cold triumph, got an open hand instead. The ones you best and then elevate become the ones who guard your back, because they have seen you choose generosity when cruelty was free."
             }
           ]
         },
@@ -1443,7 +1443,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} kept {rival.name} close the other way — watched, reported on, every move shadowed by people {rival.name} would never spot. {self.name} sleeps easier knowing where the grudge is. {rival.name}, who might have let it fade, will eventually feel the surveillance, and resent it, and become exactly the threat {self.name} was watching for. Suspicion has a way of building its own enemies."
+              "text": "{self.name} kept {rival.name} close the other way, watched, reported on, every move shadowed by people {rival.name} would never spot. {self.name} sleeps easier knowing where the grudge is. {rival.name}, who might have let it fade, will eventually feel the surveillance, and resent it, and become exactly the threat {self.name} was watching for. Suspicion has a way of building its own enemies."
             }
           ]
         },
@@ -1458,7 +1458,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {rival.name} fade into the background of a busy career — neither befriended nor watched, simply outpaced. Most grudges die of neglect. A few do not. {self.name} has chosen, without quite deciding to, to find out which kind this one is, later, when it is no longer convenient."
+              "text": "{self.name} let {rival.name} fade into the background of a busy career, neither befriended nor watched, simply outpaced. Most grudges die of neglect. A few do not. {self.name} has chosen, without quite deciding to, to find out which kind this one is, later, when it is no longer convenient."
             }
           ]
         }
@@ -1498,7 +1498,7 @@
             },
             {
               "type": "log",
-              "text": "Offered a leap into a different track — a soldier courted for the senate, a steward for the fleet — {self.name} declined and went deeper into the mastery already begun. The Reach is full of capable people spread thin across three ambitions. {self.name} chose to be undeniable at one. Depth is its own kind of power, and a rarer one."
+              "text": "Offered a leap into a different track, a soldier courted for the senate, a steward for the fleet, {self.name} declined and went deeper into the mastery already begun. The Reach is full of capable people spread thin across three ambitions. {self.name} chose to be undeniable at one. Depth is its own kind of power, and a rarer one."
             }
           ]
         },
@@ -1532,7 +1532,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the leap into the unfamiliar track, trading hard-won seniority for a wider board to play on. The old colleagues called it folly; the old skills count for little in the new arena. But the figure who commands more than one domain frightens those who command only one — and fear, wielded well, is the shortest road to the top of any of them."
+              "text": "{self.name} took the leap into the unfamiliar track, trading hard-won seniority for a wider board to play on. The old colleagues called it folly; the old skills count for little in the new arena. But the figure who commands more than one domain frightens those who command only one, and fear, wielded well, is the shortest road to the top of any of them."
             }
           ]
         }
@@ -1585,7 +1585,7 @@
             },
             {
               "type": "log",
-              "text": "{mentor.name} of {mentor.house} grew old and outranked, the way every mentor eventually does, and {self.name} made sure the world remembered what {self.name} owed them — a place of honor, a public word, the respect a lesser climber would have economized on. The student who lifts the teacher up at the end is the student who proves the teaching took."
+              "text": "{mentor.name} of {mentor.house} grew old and outranked, the way every mentor eventually does, and {self.name} made sure the world remembered what {self.name} owed them, a place of honor, a public word, the respect a lesser climber would have economized on. The student who lifts the teacher up at the end is the student who proves the teaching took."
             }
           ]
         },
@@ -1618,7 +1618,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the post that had been {mentor.name}'s, in the end — not unkindly, but unmistakably, the pupil seated where the teacher once sat. {mentor.name} smiled and meant most of it. There is a grief in being surpassed by what you made, and a pride in it, and {mentor.name} felt both, and {self.name} pretended not to see the first."
+              "text": "{self.name} took the post that had been {mentor.name}'s, in the end, not unkindly, but unmistakably, the pupil seated where the teacher once sat. {mentor.name} smiled and meant most of it. There is a grief in being surpassed by what you made, and a pride in it, and {mentor.name} felt both, and {self.name} pretended not to see the first."
             }
           ]
         }
@@ -1649,7 +1649,7 @@
             },
             {
               "type": "log",
-              "text": "No glory in it, no event worth the telling — only the unending paperwork, the inspections, the small correct decisions that no one notices until one of them is wrong. {self.name} did the work. Careers are not made of set-pieces. They are made of the days between them, done right."
+              "text": "No glory in it, no event worth the telling, only the unending paperwork, the inspections, the small correct decisions that no one notices until one of them is wrong. {self.name} did the work. Careers are not made of set-pieces. They are made of the days between them, done right."
             }
           ]
         },
@@ -1736,7 +1736,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} called in what {debtor.name} of {debtor.house} owed — a vote, a signature, a door held open. The debt is paid. {debtor.name} will not forget having been collected from."
+              "text": "{self.name} called in what {debtor.name} of {debtor.house} owed, a vote, a signature, a door held open. The debt is paid. {debtor.name} will not forget having been collected from."
             }
           ]
         },
@@ -1803,7 +1803,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {debtor.name}'s debt stand uncollected — a small weight that {debtor.name} will carry into every room they share, which is worth more than any single favor."
+              "text": "{self.name} let {debtor.name}'s debt stand uncollected, a small weight that {debtor.name} will carry into every room they share, which is worth more than any single favor."
             }
           ]
         }

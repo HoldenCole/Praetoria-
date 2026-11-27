@@ -130,7 +130,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} watched the fleet go from the harbour gallery and said nothing. There would be time for words when it came home — or did not."
+              "text": "{self.name} watched the fleet go from the harbour gallery and said nothing. There would be time for words when it came home, or did not."
             }
           ]
         }

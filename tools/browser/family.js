@@ -28,7 +28,9 @@ require('fs').mkdirSync(shots, { recursive: true });
   await closeWindows();
   const wealthOn = await find('.panel.wealth'); console.log('wealth panel on: ' + (wealthOn || 'NOT FOUND'));
   let t = await text('.panel.wealth'); console.log('wealth: ' + (/NaN|undefined|Exception|@\(/.test(t) ? 'SUSPICIOUS TEXT' : 'ok') + ' · purse rows ' + await page.evaluate(() => document.querySelectorAll('.panel.wealth .purse-row').length));
-  console.log('take from the treasury: ' + (await press('.panel.wealth', 'take 20') || await press('.panel.wealth', 'take 5') || 'nothing pressed')); await page.waitForTimeout(300);
+  // the sum to move is on a joined stepper (docs/VISUAL_SYSTEM.md 4.12): raise it to 2,000 so there is enough to give and then lend
+  for (let i = 0; i < 3; i++) { await page.evaluate(() => { const b = document.querySelector('.panel.wealth .ui-step-wrap button[aria-label="More"]'); if (b && !b.disabled) b.click(); }); await page.waitForTimeout(150); }
+  console.log('take from the treasury: ' + (await press('.panel.wealth', 'take 2') || await press('.panel.wealth', 'take 5') || 'nothing pressed')); await page.waitForTimeout(300);
   console.log('give: ' + (await press('.panel.wealth .purse-row', 'Give 5') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('lend: ' + (await press('.panel.wealth .purse-row', 'Lend') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('dowries: ' + (await press('.panel.wealth', 'From my own purse first') || 'NO SUCH BUTTON')); await page.waitForTimeout(300);
@@ -36,8 +38,12 @@ require('fs').mkdirSync(shots, { recursive: true });
   await shot('.panel.wealth', 'family-wealth');
   const eduOn = await find('.panel.education'); console.log('education panel on: ' + (eduOn || 'NOT FOUND'));
   t = await text('.panel.education'); console.log('education: ' + (/NaN|undefined|Exception|@\(/.test(t) ? 'SUSPICIOUS TEXT' : 'ok'));
-  const asked = await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.education .suit-acts')].find(r => r.innerText.includes('Ask them to study')); if (!row) return 'NO ASK ROW'; const b = [...row.querySelectorAll('button')].find(e => !e.disabled); if (b) b.click(); return b ? b.innerText.trim() + ' (' + (b.getAttribute('title') || '') + ')' : 'nothing could be asked'; });
+  // a grown relative is a row with a Study select (docs/VISUAL_SYSTEM.md 4.12): open it and take the first thing they may be asked
+  const openStudy = () => page.evaluate(() => { const b = document.querySelector('.panel.education .dy-study .ui-select:not(.dy-tutor) .ui-select-btn'); if (b) b.click(); return !!b; });
+  await openStudy(); await page.waitForTimeout(300);
+  const asked = await page.evaluate(() => { const m = document.querySelector('.panel.education .dy-study .ui-menu'); if (!m) return 'NO ASK ROW'; const b = [...m.querySelectorAll('button')].find(e => !/cannot/.test(e.innerText) && !/^Have /.test(e.innerText.trim())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : 'nothing could be asked'; });
   console.log('asked to study: ' + asked); await page.waitForTimeout(400);
+  await openStudy(); await page.waitForTimeout(300);
   console.log('teach: ' + (await press('.panel.education', 'Have ') || 'nobody has anything to teach another')); await page.waitForTimeout(300);
   await shot('.panel.education', 'family-education');
   for (let y = 0; y < years; y++) await endTurn();

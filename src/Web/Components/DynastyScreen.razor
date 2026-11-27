@@ -44,7 +44,7 @@
         new("marriages", "Marriages", "marriage", askingKin > 0 ? askingKin.ToString() : "", askingKin > 0, Tip: "Marriages, courtships and suits to answer, and a match to make"),
         new("ambitions", "Ambitions", "stairs-goal", asking > 0 ? asking.ToString() : "", asking > 0, Tip: "What your people are after, what they ask of you, and your heir"),
         new("upbringing", "Upbringing", "open-book", atLessons > 0 ? atLessons.ToString() : "", Tip: "How the young are raised and what the grown study"),
-        new("dead", "The dead", "candle-light", dead > 0 ? dead.ToString() : "", Tip: "The health of the house, the dead and what they left, and what was said of them")
+        new("dead", dead > 0 ? "The dead" : "Health", dead > 0 ? "candle-light" : "heart-beats", dead > 0 ? dead.ToString() : "", Tip: "The health of the house, the dead and what they left, and what was said of them")
     };
     var facts = new List<(string icon, string text, string tip)>
     {
@@ -64,7 +64,7 @@
    heir's and your own names in brass) on brass lines: a row a generation, children under their parents, the wed joined by a double
    line. Whoever is picked on it is shown under it with what can be done about them, then the line of succession as rows. *@
 <div class="dyn-win" style="--accent:@house.AccentColor" data-dynasty="@_tab">
-    <WindowHeader Scene="family" HouseId="@house.Id" Accent="@house.AccentColor" Kicker="@($"Dynasty · {Ordinal(generation)} generation")" Title="@house.Name" Figures="figures" Class="dyn-head">
+    <WindowHeader Scene="family" HouseId="@house.Id" Accent="@house.AccentColor" Kicker="@($"Dynasty · {Ordinal(generation)} generation")" Title="@($"The {(house.Name.StartsWith("House ") ? house.Name[6..] : house.Name)} line")" Figures="figures" Class="dyn-head">
         <Facts>
             @for (int i = 0; i < facts.Count; i++) { var (icon, text, tip) = facts[i]; <span class="@(i >= 2 ? "dy-fx2" : "")" title="@tip"><Icon Name="@icon" Tone="ivory" Size="16" />@text</span> }
         </Facts>

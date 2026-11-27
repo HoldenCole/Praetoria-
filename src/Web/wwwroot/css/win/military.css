@@ -240,7 +240,7 @@
 .mc-gt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1333rem; } .mc-gt b { font: 600 1.0667rem/1.25 var(--f-ui); color: var(--ink); }
 .mc-sub { font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); }
 .mc-fig { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; white-space: nowrap; cursor: help; } .mc-fig b { font: 600 1.3333rem/1 var(--f-ui); color: var(--ink); } .mc-fig small { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); }
-.mc-meters { padding: .2667rem var(--g-r) .2667rem calc(var(--g-l) + 4rem); max-width: 34rem; } .mc-meters .ui-meter { cursor: help; }
+.mc-meters { padding: .2667rem var(--g-r) .2667rem calc(var(--g-l) + 4rem); } .mc-meters .ui-meter { cursor: help; }
 .mil-caesar .ac-fact { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .2rem .6667rem; align-items: baseline; padding: .5333rem var(--g-r) .5333rem var(--g-l); margin: 0; border: 0; background: none; }
 .mil-caesar .ac-fact > span, .mil-caesar .ac-fact .k { font: 600 .8rem/1.6 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); white-space: nowrap; }
 .mil-caesar .ac-fact p { margin: 0; font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink-dim); } .mil-caesar .ac-fact p b { color: var(--ink); }
@@ -307,3 +307,29 @@
 .tp-where { font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); max-width: 44rem; }
 
 .mil-table .mt-nm { display: inline-flex; align-items: center; gap: .5333rem; vertical-align: middle; }
+/* the plot's fleets: a chevron and a number plate (ivory for yours, steel for others), the name in the tooltip (7.3) */
+.plot .fleet .flp { fill: #8fa3bd; stroke: #000; stroke-width: 1; }
+.plot .fleet.mine .flp { fill: #ece4d0; } .plot .fleet.enemy .flp { fill: #f0b0a0; }
+.plot .fl { fill: #0b0e14; font: 700 13px var(--f-ui); text-anchor: middle; paint-order: normal; stroke: none; }
+.plot .nlabel { font-size: 13.5px; } .plot .nlabel.mine { font-size: 15px; } .plot .nlabel.far { font-size: 13px; }
+/* the navies' strength bar: a 4.10 meter in the toned house colour, wide enough to read */
+.mil-table.navies .ui-table td.bar { width: auto; min-width: 7rem; }
+.mil-table.navies .ui-table td.bar .ui-trk { display: block; width: 100%; min-width: 7rem; }
+.mc-crews-fig { display: flex; align-items: center; gap: .5333rem; padding: .2667rem var(--g-r) .4rem calc(var(--g-l) + 4rem); font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); cursor: help; }
+.mc-crews-fig b { font: 600 1.2rem/1 var(--f-ui); color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+/* the fleet's standing is one line; the whole of it is its tooltip */
+.mf-standing.clamp { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
+/* the lesser orders as small ghost plates, not bare words */
+.mf-tg { border: 1px solid rgba(201,162,74,.32); background: linear-gradient(#171b24, #0f1219); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+.mf-tg:hover { color: var(--brass-hi); border-color: rgba(201,162,74,.6); background: linear-gradient(#1c212c, #12151d); }
+.mf-more { gap: .2667rem; }
+/* a nation as a row: its arms, its ruler's face beside its one action; the march, seat and fleets fold under a summary */
+.mn-arms { width: 2.9333rem; height: 2.9333rem; flex: none; display: grid; place-items: center; }
+.mn-ruler { flex: none; margin-left: auto; display: inline-flex; }
+.mn-ruler + .ui-plate, .mn-ruler + button { margin-left: .6667rem; }
+.mn-more { margin: .4rem 0 0 3.8667rem; }
+.mn-more > summary { display: inline-flex; align-items: center; gap: .3333rem; cursor: pointer; list-style: none; font: 600 .8667rem/1.4 var(--f-ui); color: var(--brass-ink); }
+.mn-more > summary::-webkit-details-marker { display: none; }
+.mn-more[open] > summary .icon { transform: rotate(90deg); }
+.mn-more .mn-facts, .mn-more .mn-manner { margin-left: 0; }
+@container (max-width: 40rem) { .mn-more { margin-left: 0; } }

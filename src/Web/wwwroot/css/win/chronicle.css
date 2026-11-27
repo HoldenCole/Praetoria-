@@ -33,18 +33,20 @@
 .cr-full { position: absolute; right: 0; top: -1.2rem; font: 500 .8rem/1 var(--f-ui); color: var(--ink-mute); display: none; }
 
 /* the controls: the span of years, the kinds as joined plates, only the notable */
-.cr-ctl.chron-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .6667rem 1.0667rem; margin: .9333rem 1.4667rem .2rem 1.8667rem; }
+.cr-ctl.chron-controls { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; align-items: center; gap: .6667rem 1.0667rem; margin: .9333rem 1.4667rem .2rem 1.8667rem; }
 .cr-ctl .cr-sel .ui-select-btn { min-width: 12.6667rem; }
 .cr-ctl .ui-seg button { padding: 0 .6rem; }
 
 /* ---- a year: its section band, then its lines as rows; your house's lines first, with a brass bar and full ink ---- */
 .cr-n { font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
 .cr-rows { padding: .2667rem 1.4667rem .4rem 1.8667rem; }
-.cr-row.chron-line { position: relative; display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; column-gap: .8rem; align-items: center; min-height: 2.9333rem; padding: .3333rem .5333rem .3333rem .6667rem;
+.cr-row.chron-line { position: relative; display: grid; grid-template-columns: 2.2667rem minmax(0, 1fr); column-gap: .8rem; align-items: center; min-height: 2.9333rem; padding: .3333rem .5333rem .3333rem .6667rem;
   border-bottom: 1px solid rgba(255,255,255,.05); }
-.cr-row .cr-pic { display: grid; place-items: center; width: 2rem; min-height: 1.6rem; }
-.cr-row .cr-pic .portrait { width: 1.8667rem !important; height: 2.2667rem !important; }
-.cr-row .cr-ic .icon { width: 1.1333rem; height: 1.1333rem; opacity: .85; }
+.cr-row .cr-pic { display: grid; place-items: center; width: 2.2667rem; min-height: 1.6rem; }
+.cr-row .cr-pic.chip .portrait { width: 2rem !important; height: 2rem !important; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.45); }
+.cr-row .cr-pic.chip .portrait::after, .cr-row .cr-pic.chip .portrait .pf-band { display: none; }
+.cr-row .cr-ic { width: 2rem; height: 2rem; border-radius: 50%; background: radial-gradient(circle at 45% 35%, #232733, #0c0e13 75%); box-shadow: 0 0 0 1px #000, 0 0 0 1.5px rgba(201,162,74,.3); }
+.cr-row .cr-ic .icon { width: 1.1333rem; height: 1.1333rem; }
 .cr-row .cr-k { display: grid; place-items: center; opacity: .55; } .cr-row .cr-k .icon { width: .9333rem; height: .9333rem; }
 .cr-row:hover .cr-k { opacity: .9; }
 .cr-row .cr-t { font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink-dim); }

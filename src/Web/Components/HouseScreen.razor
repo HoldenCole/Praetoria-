@@ -73,10 +73,10 @@
     };
 }
 <div class="hs-win" data-house="@_view" style="--accent:@m.HouseAccent">
-    <WindowHeader Scene="world" Kicker="Your house" Title="@house.Name" HouseId="@house.Id" Accent="@house.AccentColor" Figures="figures" Class="hs-head">
+    <WindowHeader Scene="world" Kicker="House · your house" Title="@house.Name" HouseId="@house.Id" Accent="@house.AccentColor" Figures="figures" Class="hs-head">
         <Facts>
             <span title="@($"[legitimacy] {titleName}\nThe house's rank. A higher one is petitioned for in the Senate.")"><Icon Name="legitimacy" Tone="ivory" Size="16" /><b>@titleName</b></span>
-            <span><Icon Name="rolled-cloth" Tone="ivory" Size="16" />@Cap(house.Culture) culture</span>
+            <span class="hs-culture"><Icon Name="rolled-cloth" Tone="ivory" Size="16" />@Cap(house.Culture) culture</span>
             <span data-house-citizens="@citizens" title="@($"The citizens of every world and station of the house. On the scale the rules reckon by, they come to {pop}.")"><Icon Name="population" Tone="ivory" Size="16" /><b>@Census.Say(citizens)</b> citizens</span>
             <span title="The house's tithe, set in the Chancery (Laws) with the rest of the house's law"><Icon Name="scales" Tone="ivory" Size="16" />Tithe <b>@(m.Standing?.TaxPolicy ?? "customary")</b></span>
         </Facts>
@@ -181,7 +181,7 @@
                     @foreach (var l in lg.Lines.OrderByDescending(x => x.Delta.Credits))
                     {
                         int v = l.Delta.Credits;
-                        <span class="hs-led-src" title="@($"{Cap(l.Source)}: {Delta(l.Delta)}")"><Icon Name="@LineIcon(l.Kind)" Tone="ivory" Size="15" /><span class="hs-led-t">@Cap(l.Source)</span></span>
+                        <span class="hs-led-src" title="@($"{Cap(l.Source)}: {Delta(l.Delta)}")"><Icon Name="@LineIcon(l.Kind)" Tone="ivory" Size="15" /><span class="hs-led-t">@LedLabel(l.Source)</span></span>
                         <span class="hs-led-neg">@if (v < 0) { <i style="width:@Pc(100.0 * -v / maxAbs)"></i> }</span>
                         <span class="hs-led-pos">@if (v > 0) { <i style="width:@Pc(100.0 * v / maxAbs)"></i> }</span>
                         <span class="hs-led-amt @(v > 0 ? "ui-up" : v < 0 ? "ui-down" : "ui-mute")">@Sg(v)</span>
@@ -300,7 +300,7 @@
             @if (m.Treasury.Insolvent) { <WarnStrip Icon="credits" Lead="Insolvent." Bad="true">Unrest climbs on every populated world and unpaid crews will desert.</WarnStrip> }
             <div class="ui-table-wrap hs-stores">
                 <table class="ui-table">
-                    <thead><tr><th>Good</th><th>Held</th><th>A year</th></tr></thead>
+                    <thead><tr><th>Good</th><th>Held</th><th>A year</th>@if (m.Procure is { Count: > 0 }) { <th></th> }</tr></thead>
                     <tbody>
                     @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics), ("helium3", m.Treasury.Helium3, fc?.Helium3), ("rare_earths", m.Treasury.RareEarths, fc?.RareEarths), ("isotopes", m.Treasury.Isotopes, fc?.Isotopes) })
                     {
@@ -308,19 +308,20 @@
                             <td><Icon Name="@name" Tone="@ResTone(name)" Size="17" />@Cap(Resource.Label(name))@if (Resource.IsStrategic(name)) { <small class="hs-strat">strategic</small> }</td>
                             <td>@(name == Resource.Credits ? Money.Held(house.Treasury) : Money.Of(name, val))</td>
                             <td class="@(d > 0 ? "ui-up" : d < 0 ? "ui-down" : "ui-mute")">@(d is { } dd && dd != 0 ? (dd > 0 ? Money.SignedOf(name, dd) : "−" + Money.Of(name, -dd)) : "0")</td>
+                            @if (m.Procure is { Count: > 0 })
+                            {
+                                <td class="hs-buy">@if (m.Procure.FirstOrDefault(o => o.Id == "procure_" + name) is { } po)
+                                {
+                                    var q = new BuyGoodCommand(pid, name, 3, c.Trade).Quote(w);
+                                    <Plate Label="Buy 3" Icon="@name" IconTone="@ResTone(name)" CostIcon="credits" CostText="@(q.Credits > 0 ? Money.Show(q.Credits) : "")" Small="true" Locked="@(po.Refusal != null)" Disabled="@(po.Refusal != null)" ShowNeed="false" Need="@(po.Refusal ?? "")" Tip="@($"Buy 3 {Resource.Label(name)} on the market at once, for {(q.Credits > 0 ? Money.Show(q.Credits) : "nothing")} credits")" data-procure="@name" OnClick="() => G.Execute(new BuyGoodCommand(pid, name, 3, c.Trade))" />
+                                }</td>
+                            }
                         </tr>
                     }
                     </tbody>
                 </table>
             </div>
             <p class="hs-note deposits">Deposits under your worlds and claims: @(m.Deposits is { Count: > 0 } ? string.Join(" · ", m.Deposits.Select(Resource.Label)) : "none; what you need, you buy")</p>
-            @if (m.Procure is { Count: > 0 })
-            {
-                <div class="hs-line">
-                    <span class="hs-lbl">Buy at once</span>
-                    @foreach (var o in m.Procure) { var res = o.Id["procure_".Length..]; <Plate Label="@Cap(o.Label)" Icon="@res" IconTone="@ResTone(res)" Small="true" Locked="@(o.Refusal != null)" Disabled="@(o.Refusal != null)" ShowNeed="false" Need="@(o.Refusal ?? "")" Tip="@o.Label" OnClick="() => G.Execute(new BuyGoodCommand(pid, res, 3, c.Trade))" /> }
-                </div>
-            }
             </ChildContent>
         </Section>
 
@@ -398,7 +399,7 @@
                 var uw = G.Turn?.Economy?.UnrestWhy(w, holding) ?? new(); var pw = G.Turn?.Economy?.ProsperityWhy(w, holding) ?? new();
                 var subParts = new List<string> { h.SpecName }; if (h.Kind == "station") subParts.Add("station"); if (h.Kind == "claim") subParts.Add("claim"); if (h.SystemName != null) subParts.Add(h.SystemName); if (h.Culture.Length > 0) subParts.Add(Cap(h.Culture) + " culture"); if (works > 0) subParts.Add($"{works} work{(works == 1 ? "" : "s")} round its sun"); if (h.Belt > 0) subParts.Add($"belt richness {h.Belt}");
                 <div class="hs-world @(h.Besieged ? "besieged" : "") @(h.Unrest >= 50 ? "restless" : "")" data-world="@h.Id">
-                    <div class="hs-gl"><button class="hs-globe-btn" title="@($"Open {h.SystemName ?? h.Name} on the map")" @onclick='() => OnGo.InvokeAsync("galaxy:" + holding.SystemId)'><Globe Class="@gcls" Size="62" Ringed="@(h.Kind == "planet")" /></button></div>
+                    <div class="hs-gl"><button class="hs-globe-btn" title="@($"Open {h.SystemName ?? h.Name} on the map")" @onclick='() => OnGo.InvokeAsync("galaxy:" + holding.SystemId)'><Globe Class="@gcls" Size="62" Ringed="@(h.Kind == "planet")" Rich="@Math.Max(1, h.Belt)" /></button></div>
                     <div class="hs-wmain">
                         <div class="hs-whd">
                             <div class="hs-wtt">
@@ -494,7 +495,7 @@
                                     {
                                         string boId = bo.Id; bool isWork = bo.Work != null;
                                         <div class="hs-pick">
-                                            @if (G.WorkPicture(bo.Id) is { } bart) { <span class="ui-thumb hs-pick-art"><img src="@bart" alt="" loading="lazy" /></span> } else { <span class="hs-pick-art none"><Icon Name="build" Tone="ivory" Size="15" /></span> }
+                                            @if (G.WorkPicture(bo.Id) is { } bart) { <span class="ui-thumb hs-pick-art"><img src="@bart" alt="" loading="eager" decoding="async" /></span> } else { <span class="hs-pick-art none"><Icon Name="build" Tone="ivory" Size="15" /></span> }
                                             <span class="hs-pick-nm" title="@(bo.Work?.Description ?? "")">@Cap(bo.Name)</span>
                                             <span class="hs-pick-sub">@CourtProjection.Bundle(bo.Cost)@(bo.BuildTurns > 1 ? " · " + bo.BuildTurns + " years" : "")</span>
                                             <Plate Label="@(bo.BuildTurns > 1 ? "Begin" : "Build")" Icon="build" Small="true" Tip="@($"[build] {(bo.BuildTurns > 1 ? "Begin" : "Build")} {bo.Name}\n{(bo.Work?.Description ?? "")}\nCost: {CourtProjection.Bundle(bo.Cost)}{(bo.BuildTurns > 1 ? $", paid by the year over {bo.BuildTurns} years" : "")}")"
@@ -549,7 +550,7 @@
                 {
                     var up = uh.Provinces[ui]; var uy = ProvinceSystem.Yield(w, c.Holdings, uh, up); var ud = ProvinceSystem.Dues(w, c.Holdings, uh, ui); string usys = uh.SystemId; var focus = c.Holdings.Provinces.Focus(up.Focus);
                     <Row Class="held-row" Name="@up.Name" OnClick='() => OnGo.InvokeAsync("galaxy:" + usys)' Tip="Open its system: the province, its city and what can be built there">
-                        <Picture>@if (G.WorkPicture(ProvinceArt.GetValueOrDefault(up.Focus, up.Focus)) is { } pa) { <span class="ui-thumb"><img src="@pa" alt="" loading="lazy" /></span> } else { <span class="ui-thumb hs-thumb-none"><Icon Name="rolled-cloth" Tone="ivory" Size="18" /></span> }</Picture>
+                        <Picture>@if (G.WorkPicture(ProvinceArt.GetValueOrDefault(up.Focus, up.Focus)) is { } pa) { <span class="ui-thumb"><img src="@pa" alt="" loading="eager" decoding="async" /></span> } else { <span class="ui-thumb hs-thumb-none"><Icon Name="rolled-cloth" Tone="ivory" Size="18" /></span> }</Picture>
                         <Sub>@uh.Name, under <b>@(w.House(uh.OwnerId)?.Name)</b> · @(focus?.Name ?? up.Focus)@(up.City.Length > 0 ? " · " + up.City : "") · level @up.Level</Sub>
                         <Cells>
                             @if (uy.IsEmpty()) { <span class="ui-cell ui-mute">pays nothing</span> }
@@ -579,7 +580,7 @@
                     @foreach (var l in landLines)
                     {
                         int v = l.Delta.Credits;
-                        <span class="hs-led-src" title="@($"{Cap(l.Source)}: {Delta(l.Delta)}")"><Icon Name="@LineIcon(l.Kind)" Tone="ivory" Size="15" /><span class="hs-led-t">@Cap(l.Source)</span></span>
+                        <span class="hs-led-src" title="@($"{Cap(l.Source)}: {Delta(l.Delta)}")"><Icon Name="@LineIcon(l.Kind)" Tone="ivory" Size="15" /><span class="hs-led-t">@LedLabel(l.Source)</span></span>
                         <span class="hs-led-neg">@if (v < 0) { <i style="width:@Pc(100.0 * -v / landMax)"></i> }</span>
                         <span class="hs-led-pos">@if (v > 0) { <i style="width:@Pc(100.0 * v / landMax)"></i> }</span>
                         <span class="hs-led-amt @(v > 0 ? "ui-up" : "ui-down")">@Sg(v)</span>
@@ -603,6 +604,13 @@
         return string.Join("\n", lines);
     }
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>A ledger line's label, short enough for its column: "Dues of The Greywater Marches" is "Greywater Marches dues" (the
+    /// whole name stays in the line's tooltip).</summary>
+    private static string LedLabel(string s)
+    {
+        if (s.StartsWith("Dues of ", StringComparison.Ordinal)) { var n = s[8..]; if (n.StartsWith("The ", StringComparison.Ordinal)) n = n[4..]; return n + " dues"; }
+        return Cap(s);
+    }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private string? _focus, _build, _appoint; private string _view = "estate";

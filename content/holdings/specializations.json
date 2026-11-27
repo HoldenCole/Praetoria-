@@ -3,7 +3,7 @@
   // provide the instances. yield/upkeep are per-turn resource bundles; slots = build capacity;
   // popGrowth > 0 marks a populated world (grows to maxPopulation, and carries unrest); popManpower =
   // population per +1 Manpower/turn ("people are soldiers"). Tuned for medium baseline,
-  // NOT for uniformity — a forge-world and an agri-world are meant to play different economic games
+  // NOT for uniformity, a forge-world and an agri-world are meant to play different economic games
   // (GDD §17 variable emphasis).
   "specializations": [
     {

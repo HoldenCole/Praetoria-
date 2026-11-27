@@ -1,5 +1,5 @@
 {
-  "//": "THE ACADEMY OF THE REACH — the Republic's register (docs/ACADEMY.md). A school: lectures, societies, a regatta, a war game on the tactical table, examinations. Rivalry is friendly; nobody is hurt, nobody is wounded, nobody dies; nothing here touches the world outside the gates. Every event carries an `academy` condition (register republic) and binds its cadet roles from the cohort.",
+  "//": "THE ACADEMY OF THE REACH, the Republic's register (docs/ACADEMY.md). A school: lectures, societies, a regatta, a war game on the tactical table, examinations. Rivalry is friendly; nobody is hurt, nobody is wounded, nobody dies; nothing here touches the world outside the gates. Every event carries an `academy` condition (register republic) and binds its cadet roles from the cohort.",
   "events": [
     {
       "id": "matriculation",

@@ -126,19 +126,30 @@ public static class YearInBrief
             lines.Add(new BriefLine(Senate, c.Won ? "good" : "info", $"{c.Name} {(c.Won ? "was elected " : "stood for ")}{c.Rung.ToLowerInvariant()}{(c.Won ? "" : " and was not chosen")}, with {c.Votes} votes.", "senate:ladder"));
 
         // where the treasury stood and stands
-        var moved = new List<string>();
+        var moved = Moves(w).Select(m => $"{m.Label} {m.Before} → {m.After} ({m.Change})").ToList();
+        if (moved.Count > 0) lines.Add(new BriefLine(Money, house.Treasury.Credits < 0 ? "warn" : "info", "Over the year, with everything you spent and everything that came in: " + string.Join("; ", moved) + ".", "house:ledger"));
+        return lines.OrderBy(l => Array.IndexOf(Order, l.Kind)).ToList();
+    }
+
+    /// <summary>One stock as the year moved it: what it was when the year opened, what it is now, and the change with its sign (the true
+    /// minus for a loss), for the brief's stock chips.</summary>
+    public sealed record StockMove(string Resource, string Label, string Before, string After, string Change, bool Up);
+    /// <summary>How the year moved each of the house's stocks, credits first; only those that moved.</summary>
+    public static List<StockMove> Moves(World w)
+    {
+        var house = w.Protagonist is { } p ? w.House(p.HouseId) : null; var list = new List<StockMove>(); if (house == null) return list;
         foreach (var r in Counted)
         {
             if (r == Resource.Credits)
             {
                 long by = (long)w.Counter(DeltaKey(r)) * Praetoria.Core.Money.PerUnit + w.Counter(DeltaKey(Resource.Coin));
-                if (by != 0) moved.Add($"credits {Praetoria.Core.Money.Exact(house.Treasury.Total - by)} → {Praetoria.Core.Money.Held(house.Treasury)} ({(by > 0 ? "+" : "−")}{Praetoria.Core.Money.Exact(Math.Abs(by))})");
+                if (by != 0) list.Add(new StockMove(r, "credits", Praetoria.Core.Money.Exact(house.Treasury.Total - by), Praetoria.Core.Money.Held(house.Treasury), (by > 0 ? "+" : "−") + Praetoria.Core.Money.Exact(Math.Abs(by)), by > 0));
                 continue;
             }
-            if (w.WorldCounters.TryGetValue(DeltaKey(r), out int d) && d != 0) moved.Add($"{Resource.Label(r).ToLowerInvariant()} {Praetoria.Core.Money.Of(r, house.Treasury.Get(r) - d)} → {Praetoria.Core.Money.Of(r, house.Treasury.Get(r))} ({(d > 0 ? "+" : "−")}{Praetoria.Core.Money.Of(r, Math.Abs(d))})");
+            if (w.WorldCounters.TryGetValue(DeltaKey(r), out int d) && d != 0)
+                list.Add(new StockMove(r, Resource.Label(r).ToLowerInvariant(), Praetoria.Core.Money.Of(r, house.Treasury.Get(r) - d), Praetoria.Core.Money.Of(r, house.Treasury.Get(r)), (d > 0 ? "+" : "−") + Praetoria.Core.Money.Of(r, Math.Abs(d)), d > 0));
         }
-        if (moved.Count > 0) lines.Add(new BriefLine(Money, house.Treasury.Credits < 0 ? "warn" : "info", "Over the year, with everything you spent and everything that came in: " + string.Join("; ", moved) + ".", "house:ledger"));
-        return lines.OrderBy(l => Array.IndexOf(Order, l.Kind)).ToList();
+        return list;
     }
 
     private static string KindOf(string target)

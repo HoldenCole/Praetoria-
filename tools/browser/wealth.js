@@ -32,8 +32,9 @@ require('fs').mkdirSync(shots, { recursive: true });
   for (let i = 0; i < 7; i++) { await press('take 5'); await page.waitForTimeout(300); }
   console.log('made to order: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(300);
   console.log('heirlooms: ' + await page.evaluate(() => { const sec = document.querySelector('.panel.wealth [data-purse-sec="heirlooms"]'); return sec ? [...sec.querySelectorAll('.suit .ui-row, .suit-acts, .ui-empty')].map(n => n.innerText.replace(/\s+/g, ' ').slice(0, 80)).join(' || ') : 'NO SECTION'; }));
-  console.log('legatee picked: ' + await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => /of your purse/i.test(e.innerText)); const bs = row ? [...row.querySelectorAll('button')] : []; const i = bs.findIndex(b => b.innerText.trim() === 'all'); const b = bs[i + 1]; if (b) b.click(); return b ? b.innerText : 'nobody to name'; }));
-  await page.waitForTimeout(200); console.log('will: ' + (await press('half') || 'not set')); await page.waitForTimeout(200);
+  // the will is a row a person with a select for their share (docs/VISUAL_SYSTEM.md 4.12): open the first one's and choose half
+  console.log('legatee picked: ' + await page.evaluate(() => { const row = document.querySelector('.panel.wealth [data-legacies] .ui-row'); const b = row && row.querySelector('.ui-select-btn'); if (b) b.click(); return row ? row.querySelector('.ui-row-nm').innerText : 'nobody to name'; }));
+  await page.waitForTimeout(300); console.log('will: ' + (await press('half') || 'not set')); await page.waitForTimeout(200);
   console.log('estate: ' + (await press('Shared out') || 'could not')); await page.waitForTimeout(300);
   console.log('now: ' + await head()); await page.locator('.screen.window').screenshot({ path: shots + '/wealth-begin.png', timeout: 180000 });
   for (let y = 0; y < years; y++) { await endTurn(); await rail('House'); await tab('Purse'); await page.waitForTimeout(300); }
@@ -43,7 +44,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('made to order, later: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(400);
   // shares in the head's own name: buy one of whatever is offered, and say what the panel then shows (docs/WEALTH.md)
   for (let i = 0; i < 4; i++) { await press('take 5'); await page.waitForTimeout(300); }
-  const offer = await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => /buy for yourself/i.test(e.innerText)); if (!row) return 'NO ROW'; const bs = [...row.querySelectorAll('button')]; const b = bs.find(e => !e.disabled); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nothing affordable: ' + (bs[0] ? bs[0].title : 'no company listed'); });
+  const offer = await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => /buy for yourself/i.test(e.innerText)); if (!row) return 'NO ROW'; const bs = [...row.querySelectorAll('button')].filter(e => /^Buy/.test(e.innerText.trim())); const b = bs.find(e => !e.disabled); if (b) b.click(); return b ? (b.closest('.ui-row').querySelector('.ui-row-nm').innerText + ' · ' + b.innerText).replace(/\s+/g, ' ') : 'nothing affordable: ' + (bs[0] ? bs[0].title : 'no company listed'); });
   await page.waitForTimeout(400);
   console.log('own shares, bought: ' + offer);
   console.log('own shares, held: ' + await page.evaluate(() => { const sec = document.querySelector('.panel.wealth [data-purse-sec="shares"]'); return sec ? [...sec.querySelectorAll('.purse-row, .ui-empty')].map(n => n.innerText.replace(/\s+/g, ' ').slice(0, 160)).join(' || ') || 'NOTHING HELD' : 'NO SECTION'; }));

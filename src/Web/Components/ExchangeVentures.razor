@@ -27,7 +27,7 @@
         var raw = w.Business(b.Id); string bid0 = b.Id;
         <div class="vcard ex-venture @(raw is { LosingYears: > 0 } ? "distress" : "")" data-venture="@b.Id">
             <Row Name="@b.Name" SubText="@($"{b.KindName} · level {b.Level} of {b.MaxLevel}{(b.SystemName != null ? $" · {b.SystemName}" : "")}{(b.CompanyName != null ? $" · held by {b.CompanyName}" : "")}")" Tip="@($"Pays {(b.Yield == "—" ? "nothing" : b.Yield)}{(b.Charter != null ? $"; charter {b.Charter}" : "")}")">
-                <Picture>@if (raw != null && G.WorkPicture(raw.Kind) is { } art) { <span class="ui-thumb"><img src="@art" alt="" loading="lazy" /></span> } else { <span class="ui-thumb hs-thumb-none"><Icon Name="factory" Tone="brass" Size="20" /></span> }</Picture>
+                <Picture>@if (raw != null && G.WorkPicture(raw.Kind) is { } art) { <span class="ui-thumb"><img src="@art" alt="" loading="eager" decoding="async" /></span> } else { <span class="ui-thumb hs-thumb-none"><Icon Name="factory" Tone="brass" Size="20" /></span> }</Picture>
                 <Cells>
                     <Cell Icon="credits" Value="@(HouseScreen.Sg(b.Earnings) + " a year")" Class="@(b.Earnings > 0 ? "ui-up" : "ui-down")" Tip="What it earns a year at this year's prices" />
                     <Cell Icon="money-stack" Value="@Money.Show(b.Value)" Tip="Its worth: six years of what it earns now, half its book at least" />
@@ -169,7 +169,7 @@
         {
             string ksys = k.SystemId;
             <Row Name="@($"{k.SystemName} belt")" SubText="@($"richness {k.Belt} · {k.Staked} of {k.Belt} staked")">
-                <Picture><Globe Class="belt" Size="40" Ringed="false" /></Picture>
+                <Picture><Globe Class="belt" Size="40" Ringed="false" Rich="@k.Belt" /></Picture>
                 <Cells><Cell Icon="materials" Tone="steel" Value="@($"+{cbase + k.Belt} a year")" Class="ui-up" Tip="Materials a year" /></Cells>
                 <Action><Plate Label="Stake a claim" Icon="build" Small="true" CostIcon="credits" CostText="@Money.Show(c.Businesses.Finance.ClaimCredits)" Locked="@(k.Refusal != null)" Disabled="@(k.Refusal != null)" ShowNeed="false" Need="@(k.Refusal ?? "")" Tip="@($"Stake a claim in the {k.SystemName} belt: {Money.Show(c.Businesses.Finance.ClaimCredits)} credits and {c.Businesses.Finance.ClaimMaterials} materials")" OnClick="() => G.Execute(new StakeClaimCommand(pid, ksys, c.Holdings, c.Businesses))" /></Action>
             </Row>

@@ -21,7 +21,7 @@
     };
   }
   /** The map's mode as its camera makes it: from far off the realms, the houses in the middle distance, the systems close to. */
-  function modeOf(g) { if (!g) return 'houses'; if (g.sys) return 'system'; return g.distance > 1700 ? 'realms' : g.distance < 700 ? 'systems' : 'houses'; }
+  function modeOf(g) { if (!g) return 'houses'; if (g.sys) return 'system'; if (q('[data-map-window="reach"]')) return 'regions'; if (g.supply) return 'supply'; return g.distance > 1700 ? 'realms' : g.distance < 700 ? 'systems' : 'houses'; }
   /** The system nearest the middle of the view (inside a system, that system). */
   function nearest(g) {
     if (!g || !g.model || !g.model.systems) return '';
@@ -60,9 +60,12 @@
       const g = galaxy(); if (!g) return;
       if (what === 'home') g.home();
       else if (what === 'fit') g.fit();
-      else if (what === 'realms') { if (!g.sys) { g.distance = Math.max(g.distance, 2300); g.updateCamera(); } }
-      else if (what === 'houses') { if (!g.sys) { if (g.distance > 1700 || g.distance < 700) g.distance = 1650; g.updateCamera(); } }   // the opening distance (7.1), inside the houses' tier
+      const regionsOpen = !!q('[data-map-window="reach"]'), closeRegions = () => { if (regionsOpen) { const b = q('.map-tools button[title="The regions of the Reach"]'); if (b) b.click(); } };
+      if (['realms', 'houses', 'regions'].includes(what) && g.supply && typeof g.setSupply === 'function') g.setSupply(false);
+      if (what === 'realms') { closeRegions(); if (!g.sys) { g.distance = Math.max(g.distance, 2300); g.updateCamera(); } }
+      else if (what === 'houses') { closeRegions(); if (!g.sys) { if (g.distance > 1700 || g.distance < 700) g.distance = 1650; g.updateCamera(); } }   // the opening distance (7.1), inside the houses' tier
       else if (what === 'regions') { const b = q('.map-tools button[title="The regions of the Reach"]'); if (b) b.click(); }
+      else if (what === 'supply') { closeRegions(); if (typeof g.setSupply === 'function') g.setSupply(!g.supply); }
       else if (what === 'in') zoom(0.8); else if (what === 'out') zoom(1.25);
       setTimeout(tick, 60);
     },

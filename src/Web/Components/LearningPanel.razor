@@ -45,23 +45,17 @@
     <Section Title="Your study" Info="What you study takes points toward its next step every year. A tutor adds to it, from the house treasury. Studying hard gives a season to nothing else, for an agent.">
         <Right>@if (hard != null) { <Plate Label="Study hard" Icon="open-book" Small="true" CostIcon="cowled" CostText="1" Locked="@(!canHard)" Disabled="@(!canHard)" Need="You have no agent to spare this year." ShowNeed="false" Tip="@($"[open-book] Study {p.Study} hard\nA season given to nothing else: +{EducationSystem.TrainPoints} toward the next step. It costs an agent.")" OnClick="() => G.Execute(new TrainCommand(pid, p.Study))" /> }</Right>
         <ChildContent>
-        <div class="you-studies" title="Choose what you study">
-            @foreach (var r in rows.Where(r => r.level < r.top).OrderBy(r => r.skill, StringComparer.Ordinal))
-            {
-                string s = r.skill;
-                <button class="ui-btn sm @(p.Study == s ? "on" : "")" data-study="@s" aria-pressed="@(p.Study == s ? "true" : "false")" title="@($"[{CharacterScreen.SkillIcon(s)}] Study {s}\n{r.level} now, can reach {r.top}. {SkillWords.For(r.skill)}")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, s))"><Icon Name="@CharacterScreen.SkillIcon(s)" Tone="@(p.Study == s ? "brass" : "ivory")" Size="14" />@CharacterScreen.Cap(s)</button>
-            }
-            @if (p.Study.Length > 0) { <button class="ui-btn sm" data-study="" title="Study nothing: what you learn, you learn by doing" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, string.Empty))">Nothing</button> }
-        </div>
-        <div class="you-acts"><span class="you-lbl">A teacher of your own</span>
-            <span class="ui-seg">
-            @foreach (int t in Tutors)
-            {
-                int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()).Refusal(G.Ctx);
-                <button class="@(p.Tutor == t ? "on" : "")" data-tutor="@t" disabled="@(no != null)" title="@(no != null ? LifePanel.Say(no) : (t == 0 ? "No teacher" : $"+{EducationSystem.TutorPoints(t)} point{(EducationSystem.TutorPoints(t) == 1 ? "" : "s")} a year to what you study. The fee is {Money.Credits(EducationSystem.TutorCost(t))} a year from the house treasury, taken at the year's end; a teacher the treasury cannot pay leaves."))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, pid, lv.ToString()))">@TutorLabel(t)</button>
-            }
-            </span>
-        </div>
+        @* one row, a Select for the study (each skill with its ceiling as a dim note) and a second for the teacher (4.12), not a wall of plates *@
+        @{ var studyOpts = new List<Select.Option> { new("", "Nothing", "you learn by doing") }.Concat(rows.Where(r => r.level < r.top || r.skill == p.Study).OrderBy(r => r.skill, StringComparer.Ordinal).Select(r => new Select.Option(r.skill, CharacterScreen.Cap(r.skill), $"{r.level} now, can reach {r.top}"))).ToList(); }
+        <Row Name="@(p.Study.Length > 0 ? "Your study: " + CharacterScreen.Cap(p.Study) : "Your study: nothing")" SubText="@(p.Study.Length > 0 ? SkillWords.For(p.Study) : "What you learn, you learn by doing. Choose a study and it takes points toward its next step every year.")" Class="you-study">
+            <Picture><span class="ui-medal"><Icon Name="@(p.Study.Length > 0 ? CharacterScreen.SkillIcon(p.Study) : "open-book")" Tone="brass" Size="22" /></span></Picture>
+            <Action><span class="you-study-acts">
+                <Select Value="@p.Study" Placeholder="Study…" Tip="Choose what you study" Options="@studyOpts" OnChange="v => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, v))" />
+                <Select Value="@p.Tutor.ToString()" Class="you-tutor" Tip="A teacher of your own, paid from the house treasury at the year's end; a teacher the treasury cannot pay leaves"
+                        Options="@Tutors.Select(t => new Select.Option(t.ToString(), t == 0 ? "No teacher" : t == 1 ? "A good teacher" : "The best teacher", t == 0 ? "" : $"+{EducationSystem.TutorPoints(t)} a year · {Money.Show(EducationSystem.TutorCost(t))}")).ToList()"
+                        OnChange="v => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, pid, v))" />
+            </span></Action>
+        </Row>
         </ChildContent>
     </Section>
 </div>

@@ -40,7 +40,7 @@
 .sn-win .ui-plinth .ui-fig { cursor: help; }
 .sn-win .ui-facts { display: grid; grid-template-columns: repeat(2, max-content); justify-content: start; gap: .2667rem 1.0667rem; max-width: 30rem; }
 .sn-win .ui-facts > span { min-width: 0; white-space: nowrap; cursor: help; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9), 0 0 12px rgba(0,0,0,.6); }
-.sn-win .ui-facts > .sn-fmore { display: none; color: var(--ink-dim); }
+.sn-win .ui-facts > .sn-fmore { display: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-dim); cursor: help; text-decoration: underline dotted rgba(201,162,74,.7); text-underline-offset: .2rem; }
 @container sn (max-width: 46rem) {
   .sn-win .ui-title { font-size: 1.6rem; }
   .sn-win .ui-plinth { padding: 0 1.2rem 0 1.3333rem; }
@@ -50,7 +50,7 @@
   .sn-win .ui-head-text { right: 3.6rem; }
   .sn-win .ui-facts { grid-template-columns: max-content; gap: .2rem; }
   .sn-win .ui-facts > .sn-fx2 { display: none; }
-  .sn-win .ui-facts > .sn-fmore { display: inline-flex; }
+  .sn-win .ui-facts > .sn-fmore { display: inline-block; }
 }
 
 /* ---- the body: a scrolling page that fades at its foot and, once scrolled, at its head ---- */
@@ -289,10 +289,9 @@ p.sn-say { margin: .2667rem 0; }
 .sn-party { align-items: start; padding-top: .6rem; padding-bottom: .6rem; }
 .sn-party > :last-child { align-self: center; }
 .sn-party-pic { position: relative; width: 3.0667rem; height: 3.0667rem; display: grid !important; place-items: center; margin: 0 auto; }
-.sn-party-sw { position: absolute; inset: .3333rem; transform: rotate(45deg); background: radial-gradient(circle at 40% 35%, color-mix(in srgb, var(--party) 70%, white), var(--party) 55%, color-mix(in srgb, var(--party) 55%, black));
-  opacity: .55; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px rgba(255,255,255,.25); }
+.sn-party-sw { position: absolute; left: .5333rem; right: .5333rem; bottom: .0667rem; height: .2667rem; background: color-mix(in srgb, var(--party) 82%, #1b1e26); box-shadow: 0 0 0 1px #000; border-radius: 1px; }
 .sn-party-pic .sigil { position: relative; }
-.sn-party.mine .sn-party-sw { opacity: .8; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(246,226,160,.6); }
+.sn-party.mine .sn-party-sw { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(246,226,160,.6); }
 .sn-members { display: flex; flex-wrap: wrap; align-items: center; gap: .2667rem; margin-top: .3333rem; }
 .sn-members .member { display: inline-flex; }
 .sn-party .ui-row-nm .sn-tag { margin-left: .2rem; }
@@ -315,6 +314,8 @@ p.sn-say { margin: .2667rem 0; }
 .sn-win .sn-need span { display: inline-flex; align-items: center; gap: .4rem; color: var(--ink-dim); min-width: 0; }
 .sn-win .sn-need b { font-weight: 600; color: var(--ink); text-align: right; }
 .sn-win .sn-need.warn b { color: #ef8a74; } .sn-win .sn-need.met b { color: var(--good); }
+.sn-win .sn-need b:has(em.n) { color: var(--ink-dim); font-weight: 500; } .sn-win .sn-need b em.n { font-style: normal; font-weight: 600; } .sn-win .sn-need.warn b em.n { color: #ef8a74; } .sn-win .sn-need.met b em.n { color: var(--good); }
+.sn-pledge-sel { min-width: 12rem; }
 .sn-win > .sn-body .sn-need:not(.sn-needs .sn-need):not(.sn-tests .sn-need) { margin: 0 var(--sn-gr) 0 var(--sn-gl); }
 .sn-paths { display: grid; gap: .4rem; padding: .6rem var(--sn-gr) .2rem var(--sn-gl); }
 .sn-path { display: flex; flex-wrap: wrap; align-items: center; gap: .3333rem .8rem; }
@@ -376,3 +377,65 @@ p.sn-say { margin: .2667rem 0; }
 /* ---- a triumph voted: the laurels, the two answers ---- */
 .sn-triumph { margin: .4rem var(--sn-gr) .2rem var(--sn-gl); padding: .6667rem .8rem; border-bottom: 0; background: linear-gradient(90deg, rgba(201,162,74,.12), rgba(5,7,10,.35) 70%); box-shadow: inset 2px 0 0 var(--brass), inset 0 0 0 1px rgba(201,162,74,.22); }
 .sn-triumph + .sn-fact, .sn-win .sn-body > .sn-fact[data-triumph-home] { margin: 0; }
+
+/* ---- the motions as rows under bands (docs/VISUAL_SYSTEM.md 4.6, 4.7): one subtitle, the cost once on the one plate; the order bar
+   (what it is about, Move it, who else could move it) only under the row picked ---- */
+.sn-mgrp-h { display: flex; align-items: center; gap: .5333rem; margin: .8rem var(--sn-gut-r, 1.6rem) .1333rem var(--sn-gut-l, 1.8667rem); padding: .3333rem 0;
+  font: 600 .8667rem/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); box-shadow: inset 0 -1px 0 rgba(201,162,74,.25); }
+.sn-mgrp-h .sn-dia { width: .4rem; height: .4rem; transform: rotate(45deg); background: var(--brass); }
+.sn-mrow.sn-ent { display: block; padding: 0; border: 0; background: none; margin: 0; }
+.sn-mrow .ui-row { cursor: pointer; }
+.sn-mrow .sn-medal { width: 2.6667rem; height: 2.6667rem; margin: 0 auto; }
+.sn-mrow .sn-orderbar { display: none; }
+.sn-mrow.open .sn-orderbar { display: flex; flex-direction: column; gap: .4rem; margin: 0 var(--sn-gut-r, 1.6rem) .6667rem calc(var(--sn-gut-l, 1.8667rem) + 3.6rem + .9333rem); padding: .6rem .8rem;
+  background: var(--raised); box-shadow: inset 0 1px 0 rgba(201,162,74,.35), inset 2px 0 0 var(--brass); }
+.sn-mrow .sn-orderbar .sn-form { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: 0; }
+.sn-mneed { display: flex; align-items: center; gap: .4rem; margin: -.2667rem var(--sn-gut-r, 1.6rem) .4rem calc(var(--sn-gut-l, 1.8667rem) + 3.6rem + .9333rem); font: 600 .8667rem/1.3 var(--f-ui); color: var(--warn); }
+/* the senator's year as the event window's choice plates (docs/VISUAL_SYSTEM.md 6) */
+.sn-duty-choices { display: grid; gap: .4rem; margin: .5333rem 0; }
+.sn-duty-ch { position: relative; display: grid; grid-template-columns: 1.8667rem minmax(0, 1fr); align-items: center; column-gap: .8rem; min-height: 3.2rem; width: 100%; padding: .4rem .8rem;
+  text-align: left; cursor: pointer; color: inherit; background: linear-gradient(#262e40, #161b27); border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-plate); }
+.sn-duty-ch .n { width: 1.6rem; height: 1.6rem; border-radius: 50%; display: grid; place-items: center; font: 700 .8667rem/1 var(--f-ui); color: var(--ink-dark, #1d1506);
+  background: radial-gradient(circle at 40% 35%, #fbe7a7, #b68c35); box-shadow: 0 0 0 1px #000, inset 0 1px 0 rgba(255,255,255,.5); }
+.sn-duty-ch .l { font: 500 1.1333rem/1.25 var(--f-prose); color: #f1e8cf; }
+.sn-duty-ch .req { grid-column: 2; display: flex; align-items: center; gap: .3333rem; margin-top: .2rem; font: 600 .8667rem/1.3 var(--f-ui); color: var(--warn); }
+.sn-duty-ch:hover:not(:disabled) { background: linear-gradient(#2f3850, #1b2131); box-shadow: var(--sh-plate), 0 0 0 1px var(--brass), 0 0 18px rgba(232,196,110,.16); }
+.sn-duty-ch:hover:not(:disabled)::before { content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: .2rem; background: linear-gradient(#f6e2a0, #a5813a); }
+.sn-duty-ch.locked { cursor: default; background: linear-gradient(#1a1f2a, #11141b); } .sn-duty-ch.locked .n { background: #2a2f39; color: #a9adb6; }
+.sn-committee { margin-top: .4rem; }
+/* no vote is shown chosen until one is declared; how the house leans meanwhile is a faint hatch on that option */
+.sn-vote .ui-seg button.leans { background: repeating-linear-gradient(135deg, rgba(201,162,74,.16) 0 3px, transparent 3px 7px), linear-gradient(#262e40, #161b27); color: var(--ink); }
+/* the weight in each estate: named segments in toned house colours (2.2: 0.8 saturation, 0.88 value), the rest one grey segment */
+.sn-sphere .sphere-bar.sn-wbar, .sn-wbar { display: flex; height: 1.2rem; overflow: hidden; background: var(--well); box-shadow: var(--sh-inset); }
+.sn-sphere .sphere-bar.sn-wbar i, .sn-wbar i { opacity: 1; position: relative; display: flex; align-items: center; min-width: 0; height: 100%; overflow: hidden; font-style: normal;
+  background: color-mix(in srgb, var(--hc, #8fa3bd) 72%, #0e1117); box-shadow: inset -1px 0 0 rgba(0,0,0,.6); }
+.sn-wbar i.others { background: #2a303c; }
+.sn-wbar i.mine { box-shadow: inset 0 0 0 2px var(--brass-hi), inset -1px 0 0 rgba(0,0,0,.6); }
+.sn-wbar i span { padding: 0 .4rem; font: 600 .8rem/1 var(--f-ui); color: #fff8e8; text-shadow: 0 1px 1px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* a house or leader named in ink with a small square of its colour, never in coloured text */
+.sn-sq { display: inline-block; width: .5333rem; height: .5333rem; margin: 0 .3rem 0 .1333rem; vertical-align: .05em; box-shadow: 0 0 0 1px #000; }
+/* the ladder of offices as a career ladder (VISUAL_SYSTEM.md 4.18): a brass line down the rungs, a diamond node for each, filled where
+   held, a lit medallion where you sit, hollow above */
+.panel.cursus .rung-row.lad { position: relative; }
+.panel.cursus .rung-row.lad::before { content: ""; position: absolute; left: calc(var(--sn-gl, 1.0667rem) + 1.1333rem); top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, rgba(201,162,74,.55), rgba(201,162,74,.25)); }
+.panel.cursus .rung-row.lad.top::before { top: 50%; bottom: auto; height: 50%; top: 0; }
+.panel.cursus .rung-row.lad .lad-node { position: relative; z-index: 1; width: 2.2667rem; height: 2.2667rem; display: grid; place-items: center; border-radius: 0; transform: rotate(45deg) scale(.82);
+  background: #0d0f14; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.5); }
+.panel.cursus .rung-row.lad .lad-node > .icon { transform: rotate(-45deg) scale(1.15); }
+.panel.cursus .rung-row.lad.held .lad-node { background: linear-gradient(135deg, #3a2e17, #1a140a); box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--brass); }
+.panel.cursus .rung-row.lad.now .lad-node { background: linear-gradient(135deg, #fbe9b0, #dcb862 45%, #ab8436); box-shadow: 0 0 0 1px #000, 0 0 0 2px #f6e2a0, 0 0 12px rgba(232,196,110,.55); }
+.panel.cursus .rung-row.lad.open .lad-node { background: #0b0d12; box-shadow: 0 0 0 1px #000, 0 0 0 1.5px rgba(201,162,74,.35); }
+.panel.cursus .rung-row.lad.open .lad-node > .icon { opacity: .7; }
+.sn-trust .sn-say .icon { vertical-align: -.1333rem; opacity: .7; }
+/* breaking away: each condition a pip (met or not) with its name; what it says is in its tooltip */
+.sn-tests:has(.sn-test.pip) { display: flex; flex-wrap: wrap; gap: .4rem .5333rem; }
+.sn-test.pip { display: inline-flex; align-items: center; gap: .4rem; padding: .2rem .6rem .2rem .3333rem; border: 1px solid rgba(255,255,255,.08); border-radius: 2px; background: rgba(8,10,15,.45); cursor: help; }
+.sn-test.pip > b { font-weight: 500; color: var(--ink); } .sn-test.pip.met > b { color: var(--ink); } .sn-test.pip.warn > b { color: var(--ink); }
+.sn-test.pip.met { box-shadow: inset 2px 0 0 var(--good); } .sn-test.pip.warn { box-shadow: inset 2px 0 0 var(--warn); }
+.sn-test.pip .sn-test-says { display: none; }
+.sn-test.pip > .pill { width: 1.2rem; height: 1.2rem; padding: 0; display: inline-grid; place-items: center; }
+/* the three orders: one grid for all three meters; the calling is a chip on the order's badge; target ticks in bright brass */
+.sn-order { grid-template-columns: var(--sn-ic) minmax(0, 1fr); }
+.sn-order .sn-ic { position: relative; overflow: visible; }
+.sn-order .sn-calling { position: absolute; left: 50%; bottom: -.6rem; transform: translateX(-50%); font-size: .8rem; padding: 0 .2667rem; line-height: 1.1rem; height: 1.1rem; white-space: nowrap; z-index: 1; }
+.sn-order .sn-gauge .ui-tick { width: 2px; background: var(--brass-hi, #f6e2a0); box-shadow: 0 0 0 1px rgba(0,0,0,.6); }

@@ -13,7 +13,7 @@
     {
       "id": "the_front_or_the_flag",
       "title": "The Front or the Flag",
-      "body": "{self.name}'s first command asks a question every officer answers once: where will you stand when the shooting starts? On the flagship's bridge, where the crews can see you — or at the plot table, where you can see the battle.",
+      "body": "{self.name}'s first command asks a question every officer answers once: where will you stand when the shooting starts? On the flagship's bridge, where the crews can see you, or at the plot table, where you can see the battle.",
       "choices": {
         "the_front": "Lead from the front.",
         "the_flag": "Command from the flag. Needs the rank of Commander.",

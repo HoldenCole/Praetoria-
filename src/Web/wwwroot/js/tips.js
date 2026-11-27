@@ -79,7 +79,8 @@
       // "* sentence": one item of a list (the alerts of a badge), a whole sentence with a brass diamond before it, never split in two
       if (/^\* /.test(ln)) { const d = document.createElement('div'); d.className = 'li'; write(d, ln.slice(2), skip, budget); tipEl.appendChild(d); continue; }
       const d = document.createElement('div'); const k = /^(.+?): (.+)$/.exec(ln);
-      if (k && lines.length > 2) { d.className = 'row'; const a = document.createElement('span'), b = document.createElement('span'); write(a, k[1], skip, budget); b.textContent = k[2]; d.append(a, b); }
+      // "label: value" is a row of a breakdown only when both are short; a sentence with a colon in it stays a paragraph
+      if (k && lines.length > 2 && k[1].length <= 28 && k[2].length <= 40) { d.className = 'row'; const a = document.createElement('span'), b = document.createElement('span'); write(a, k[1], skip, budget); b.textContent = k[2]; d.append(a, b); }
       else write(d, ln, skip, budget);
       tipEl.appendChild(d);
     }

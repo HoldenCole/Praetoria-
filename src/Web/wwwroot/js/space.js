@@ -78,21 +78,24 @@ void main(){
   float n1 = fbm(p + uTime*0.004);
   float n2 = fbm(p*1.7 + vec2(5.2, 1.3) - uTime*0.003);
   float n3 = fbm(p*0.6 + vec2(-3.0, 8.0));
-  float cloud = smoothstep(-0.15, 0.75, n1) * smoothstep(-0.3, 0.6, n3);
+  float cloud = smoothstep(-0.45, 0.7, n1) * smoothstep(-0.55, 0.5, n3);
   float wisps = pow(max(0.0, n2), 2.2) * 0.9;
-  vec3 col = uA * cloud * 0.95 + uB * wisps * 1.1 + uC * pow(cloud, 3.0) * 1.2;
-  float knots = pow(max(0.0, fbm(p*3.3 + 21.0)), 5.0) * cloud * 2.5; col += vec3(0.9, 0.75, 0.6) * knots;
-  float dust = smoothstep(0.2, 0.5, fbm(p*2.5 + 40.0)) * 0.35;
+  vec3 col = uA * cloud * 0.95 + uB * wisps * 1.1 + uC * pow(cloud, 3.0) * 0.75;
+  float knots = pow(max(0.0, fbm(p*3.3 + 21.0)), 5.0) * cloud * 1.1; col += vec3(0.9, 0.75, 0.6) * knots;
+  float dust = smoothstep(0.25, 0.55, fbm(p*2.5 + 40.0)) * 0.25;
   col *= (1.0 - dust);
-  float vign = smoothstep(1.2, 0.2, length(vUv - 0.5) * 1.6);
-  gl_FragColor = vec4(col * vign * 2.4, 1.0);   // no bloom lifts it now (it is drawn in the main pass): a little brighter
+  float vign = smoothstep(1.45, 0.25, length(vUv - 0.5) * 1.6);
+  // the plate the mocks were drawn on (map-plate-open.png at brightness 1.6): blue cloud and violet wisps under the whole Reach, so
+  // the holders' cells carry the nebula and do not read as a diagram; a faint navy floor where the cloud is thin
+  col = col * 4.4 + uA * (0.3 + 0.3 * smoothstep(-0.4, 0.4, n3));
+  gl_FragColor = vec4(col * vign, 1.0);
 }`;
 
 // ---- the territory (7.2) ----
 const TERR_VS = `varying vec2 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xy; gl_Position = projectionMatrix * viewMatrix * w; }`;
 const TERR_FS = `
 uniform sampler2D uCand; uniform sampler2D uField; uniform sampler2D uSites; uniform sampler2D uPal;
-uniform vec4 uBox; uniform vec3 uTier; uniform float uDpr;
+uniform vec4 uBox; uniform vec3 uTier; uniform float uDpr; uniform float uSupply;
 varying vec2 vW;
 const vec3 IVORY = vec3(0.890, 0.827, 0.643);   // the Reach's outer edge, #E3D3A4
 const vec3 OWN = vec3(0.914, 0.725, 0.286);     // your land, #E9B949
@@ -164,7 +167,7 @@ void main(){
   }
   if (uTier.y > 0.001) {   // the middle distance: the houses
     vec4 d = vec4(0.0);
-    if (reach) over(d, WASH, 0.045 * cover);
+    if (reach) over(d, WASH, 0.025 * cover);
     if (!none) over(d, hf.rgb, (nation ? 0.05 + 0.14 * bnd + 0.09 * hatch : mine ? 0.15 + 0.25 * bnd : 0.06 + 0.16 * bnd) * cover);
     if (reach && inside && pReg < pOwn - 0.01) over(d, vec3(0.95, 0.9, 0.78), clamp(1.0 - abs(pReg - 0.5), 0.0, 1.0) * 0.13);
     if (seam) { over(d, vec3(0.0), clamp(1.0 - pOwn, 0.0, 1.0) * 0.5); if (!none) over(d, hl.rgb, band(pOwn, 0.6, mine ? 2.6 : 1.9) * (mine ? 0.92 : 0.56)); }
@@ -181,6 +184,11 @@ void main(){
     realmEdge(d, reach, outer, rl.rgb, er, inside);
     ownEdge(d, mine, pOwn, er, inside, 0.9);
     outc += d * uTier.z;
+  }
+  // the Supply mode (3.8): where your fleets are fed is lit faintly; beyond your supply the cell is darkened and hatched in ember
+  if (uSupply > 0.001 && inside && !outer) {
+    if (a1.z > 0.5) over(outc, vec3(0.55, 0.77, 0.49), 0.10 * cover * uSupply);
+    else { over(outc, vec3(0.0), 0.38 * cover * uSupply); over(outc, vec3(0.72, 0.27, 0.18), (0.08 + 0.30 * hatch) * cover * uSupply); }
   }
   gl_FragColor = outc;
 }`;
@@ -331,7 +339,7 @@ export class Galaxy {
     const S = model.systems, N = S.length; if (!N) return;
     const holderOf = s => (s.realm || '').startsWith('nation:') ? s.realm : (s.ownerId || '');
     const realmOf = s => s.realm || 'none';
-    const key = N + '|' + model.playerHouse + '|' + S.map(s => [s.x | 0, s.y | 0, holderOf(s), realmOf(s), s.regionId, s.accent, s.realmColor].join(',')).join(';');
+    const key = N + '|' + model.playerHouse + '|' + S.map(s => [s.x | 0, s.y | 0, holderOf(s), realmOf(s), s.regionId, s.accent, s.realmColor, s.supply ? 1 : 0].join(',')).join(';');
     if (this.terrKey === key && this.terr) { this.objects.add(this.terrMesh); return; }
     this.terrKey = key;
     // labels: holders (0 is nobody), realms (0 is the Reach), regions
@@ -366,7 +374,7 @@ export class Galaxy {
     }
     const mkTex = (data, type, filter) => { const t = new THREE.DataTexture(data, GW, GH, THREE.RGBAFormat, type); t.minFilter = t.magFilter = filter; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.generateMipmaps = false; t.needsUpdate = true; return t; };
     const candTex = mkTex(ci, THREE.FloatType, THREE.NearestFilter), fieldTex = mkTex(fieldData, THREE.HalfFloatType, THREE.LinearFilter);
-    const sites = new Float32Array(N * 2 * 4); S.forEach((s, i) => { sites.set([sx[i], sy[i], sh[i], sr[i]], i * 4); sites.set([sg[i], s.isPlayer ? 1 : 0, 0, 0], (N + i) * 4); });
+    const sites = new Float32Array(N * 2 * 4); S.forEach((s, i) => { sites.set([sx[i], sy[i], sh[i], sr[i]], i * 4); sites.set([sg[i], s.isPlayer ? 1 : 0, s.supply ? 1 : 0, 0], (N + i) * 4); });
     const siteTex = new THREE.DataTexture(sites, N, 2, THREE.RGBAFormat, THREE.FloatType); siteTex.minFilter = siteTex.magFilter = THREE.NearestFilter; siteTex.needsUpdate = true;
     // the palette: a holder's fill and line by kind (0 nobody, 1 a house, 2 yours, 3 a nation), a realm's line and fill by kind (0 the Reach, 1 a nation, 2 a state, 3 nobody's)
     const PW = Math.max(hk.length, rk.length), pal = new Float32Array(PW * 4 * 4); this.holderCol = {};
@@ -388,12 +396,12 @@ export class Galaxy {
     const palTex = new THREE.DataTexture(pal, PW, 4, THREE.RGBAFormat, THREE.FloatType); palTex.minFilter = palTex.magFilter = THREE.NearestFilter; palTex.needsUpdate = true;
     if (this.terrMesh) { this.terrMesh.geometry.dispose(); for (const u of ['uCand', 'uField', 'uSites', 'uPal']) this.terrMesh.material.uniforms[u].value?.dispose?.(); this.terrMesh.material.dispose(); }
     const mat = new THREE.ShaderMaterial({ vertexShader: TERR_VS, fragmentShader: TERR_FS, transparent: true, premultipliedAlpha: true, depthWrite: false, depthTest: false,
-      uniforms: { uCand: { value: candTex }, uField: { value: fieldTex }, uSites: { value: siteTex }, uPal: { value: palTex }, uBox: { value: new THREE.Vector4(x0, y0, GW * cell, GH * cell) }, uTier: { value: new THREE.Vector3(0, 1, 0) }, uDpr: { value: this.renderer.getPixelRatio() } } });
+      uniforms: { uCand: { value: candTex }, uField: { value: fieldTex }, uSites: { value: siteTex }, uPal: { value: palTex }, uBox: { value: new THREE.Vector4(x0, y0, GW * cell, GH * cell) }, uTier: { value: new THREE.Vector3(0, 1, 0) }, uDpr: { value: this.renderer.getPixelRatio() }, uSupply: { value: this.supply ? 1 : 0 } } });
     mat.__shared = true;
     this.terrMesh = new THREE.Mesh(new THREE.PlaneGeometry(GW * cell, GH * cell), mat); this.terrMesh.position.set(x0 + GW * cell / 2, y0 + GH * cell / 2, 0); this.terrMesh.renderOrder = 1; this.terrMesh.frustumCulled = false;
     this.objects.add(this.terrMesh);
     const centre = (sum, i) => sum[i * 3 + 2] > 0 ? { x: sum[i * 3] / sum[i * 3 + 2], y: sum[i * 3 + 1] / sum[i * 3 + 2] } : null;
-    this.terr = { x0, y0, cell, GW, GH, E, ci, sx, sy, sh, sr, sg, hk, rk, R, nn,
+    this.terr = { x0, y0, cell, GW, GH, E, ci, sx, sy, sh, sr, sg, hk, rk, R, nn, regIdx: regions,
       regionAt: Object.fromEntries(Object.keys(regions).map(id => [id, centre(regSum, regions[id])])), realmAt: Object.fromEntries(rk.map((k, i) => [k, centre(realmSum, i)])),
       land: landSum[2] > 0 ? { x: landSum[0] / landSum[2], y: landSum[1] / landSum[2] } : { x: (this.bounds.minX + this.bounds.maxX) / 2, y: (this.bounds.minY + this.bounds.maxY) / 2 } };
     this.miniBase = null;
@@ -457,7 +465,7 @@ export class Galaxy {
       if (s.conquered) marks += `<i class="mk conq ${s.conquered}" style="--hc:${esc(s.accent)}"></i>`;
       if (s.target) marks += `<i class="mk tgt ${s.target === 1 ? 'next' : ''}"></i><b class="jumps" title="">${s.target}</b>`;
       if (s.id === this.selected.systemId) marks += '<i class="mk sel"></i>';
-      const stn = (s.stations || 0) + (s.deepWorks || 0); if (stn) marks += `<span class="stn">${'<i></i>'.repeat(Math.min(4, s.stations || 0))}${'<i class="w"></i>'.repeat(Math.min(3, s.deepWorks || 0))}</span>`;
+      const stn = (s.stations || 0) + (s.deepWorks || 0); if (stn) marks += `<span class="stn" title="${stn === 1 ? 'A station' : stn + ' stations and works'} in orbit"><svg class="icon ico steel" viewBox="0 0 512 512" aria-hidden="true"><use href="#i-station"/></svg>${stn > 1 ? `<b>${stn}</b>` : ''}</span>`;   // a 12px glyph of the icon set in the steel ramp (8.1), never a boxed square
       el.innerHTML = marks + (s.capital ? `<span class="cap">${ico('crown', 'brass')}</span>` : '')
         + `<div class="sys-label${s.isPlayer ? ' mine' : ''}"><span class="nm" style="--hc:${under || 'transparent'}">${esc(s.name)}</span>${deps}</div>`;
       const lab = new CSS2DObject(el); lab.position.set(s.x, -s.y, 0); this.objects.add(lab); this.labels.push(lab);
@@ -490,7 +498,7 @@ export class Galaxy {
     for (const r of model.regions || []) {
       const c = t.regionAt[r.id] || { x: r.cx, y: -r.cy };
       const el = document.createElement('div'); el.className = 'region-pin'; el.innerHTML = `<div class="region-label${r.ring === 'beyond' ? ' beyond' : ''}${r.free || r.state ? ' free' : ''}">${esc(r.name)}${r.state ? `<span class="rs state">${esc(r.state)}${r.stateWar ? ', at war for it' : ', no longer of the Reach'}</span>` : ''}</div>`;
-      const lab = new CSS2DObject(el); lab.position.set(c.x, c.y, 0); this.objects.add(lab); this.labels.push(lab); this.regionPins.push(this.keepPlace({ el, inner: el.firstChild, lab, x: c.x, y: c.y, key: 'r:' + r.id }));
+      const lab = new CSS2DObject(el); lab.position.set(c.x, c.y, 0); this.objects.add(lab); this.labels.push(lab); this.regionPins.push(this.keepPlace({ el, inner: el.firstChild, lab, x: c.x, y: c.y, key: 'r:' + r.id, rid: r.id }));
     }
     const realms = {}; for (const s of model.systems) { const k = s.realm || ''; if (!k || k === 'none') continue; const z = realms[k] ||= { name: k === 'reach' ? (model.galaxyName || 'The Reach') : (s.polityName || s.ownerName || ''), color: s.realmColor, lands: new Set(), n: 0 }; z.n++; const rg = (model.regions || []).find(r => r.id === s.regionId); if (rg) z.lands.add(rg.name); }
     for (const [k, z] of Object.entries(realms)) {
@@ -554,6 +562,9 @@ export class Galaxy {
       if (ok(c.window)) x0 = Math.max(x0, c.window.x + c.window.w - host.left);
       if (ok(c.outliner)) x1 = Math.min(x1, c.outliner.x - host.left - 8); else if (ok(c.console)) x1 = Math.min(x1, c.console.x - host.left - 8);
       if (ok(c.topbar)) y0 = Math.max(y0, c.topbar.y + c.topbar.h - host.top);
+      // the toasts (3.6): where they take most of the free map's width (a window is open), the free map starts under them, so the
+      // camera keeps the seat clear of the news
+      if (ok(c.toasts)) { const tl = c.toasts.x - host.left, tr = tl + c.toasts.w, over = Math.min(x1, tr) - Math.max(x0, tl); if (over > (x1 - x0) * 0.45) y0 = Math.max(y0, c.toasts.y + c.toasts.h - host.top - 40); }
     }
     if (x1 - x0 < 160) { x0 = Math.max(0, x1 - 160); }
     return { x0, x1, y0, y1, W, H };
@@ -572,6 +583,8 @@ export class Galaxy {
   }
   /** The camera a step of k toward where it is going (the loop steps it by the time that has passed, so a slow machine is not slow to settle). */
   applyCamera(k = 0) {
+    // inside a system the view is fitted to the free map: when a window opens or closes, it is fitted again
+    if (this.sys && this.focused == null) { const f = this.freeRect(), key = Math.round(f.x1 - f.x0) + 'x' + Math.round(f.y1 - f.y0); if (this._fitFree && key !== this._fitFree) { this._fitFree = key; this.sysFitD = this.sysFit(); return; } this._fitFree = key; }
     const c = this.cur || (this.cur = { x: this.target.x, y: this.target.y, d: this.distance }), p = this.principal(); if (!this.vo) this.vo = { ...p };
     const ease = (a, b, snap) => { const v = a + (b - a) * k; return Math.abs(b - v) < snap ? b : v; };
     const was = c.x + ',' + c.y + ',' + c.d + ',' + this.vo.x + ',' + this.vo.y;
@@ -641,6 +654,8 @@ export class Galaxy {
   /** The whole map in the free part of the screen. */
   fit() { if (this.sys) { this.focused = null; this.sysFitD = this.sysFit(); return; } const b = this.bounds; if (!b) return; this.target.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, 0); this.distance = this.fitDistance(); this.updateCamera(); }
   focus(x, y) { this.distance = Math.min(this.distance, 1200); const t = this.clampTarget(x, -y, this.distance, 0.32); this.target.set(t.x, t.y, 0); this.updateCamera(); }
+  /** The Supply mode of the console (3.8): the territory shaded by where your fleets are fed. */
+  setSupply(on) { this.supply = !!on; if (this.terrMesh) this.terrMesh.material.uniforms.uSupply.value = this.supply ? 1 : 0; this.dirty = true; }
   /** The interface's rectangles (js/shell.js): the map re-offsets to the free part of the screen and keeps its names out from under them. */
   setCover(c) { const was = JSON.stringify([this.cover?.window, this.cover?.outliner, this.cover?.rail, this.cover?.topbar]); this.cover = c; this.relabel = true; this.hideTip(); if (this.model && !this.sys && was !== JSON.stringify([c?.window, c?.outliner, c?.rail, c?.topbar])) { const t = this.clampTarget(this.target.x, this.target.y, this.distance); this.target.x = t.x; this.target.y = t.y; } }
   planePoint(px, py) {
@@ -760,19 +775,33 @@ export class Galaxy {
     // the lanes as segments on the screen, which a name may cross at a cost
     const segs = []; for (const l of this.model.lanes) { const a = this.byId[l.a], b = this.byId[l.b]; if (!a || !b) continue; const pa = this.screenOf(a.x, -a.y), pb = this.screenOf(b.x, -b.y); segs.push([pa.x, pa.y, pb.x, pb.y]); }
     const crosses = r => { let n = 0; for (const [x1, y1, x2, y2] of segs) { if (Math.max(x1, x2) < r.x || Math.min(x1, x2) > r.x + r.w || Math.max(y1, y2) < r.y || Math.min(y1, y2) > r.y + r.h) continue; const dx = x2 - x1, dy = y2 - y1; let t0 = 0, t1 = 1; for (const [p, q] of [[-dx, x1 - r.x], [dx, r.x + r.w - x1], [-dy, y1 - r.y], [dy, r.y + r.h - y1]]) { if (p === 0) { if (q < 0) { t0 = 2; break; } } else { const t = q / p; if (p < 0) t0 = Math.max(t0, t); else t1 = Math.min(t1, t); } } if (t0 <= t1) n++; } return n; };
-    // a region's or a realm's name: the clearest place near its centre, or not at all
+    // where a stretch of a name lies on the map: which system's cell, which holder's land, which region (null off the territory)
+    const t = this.terr, cellAt = (px, py) => { const pt = this.planePoint(px, py); if (!pt || !t) return null; const i = this.siteAt(pt.x, pt.y); return i < 0 ? null : { site: i, holder: t.sh[i], region: t.sg[i] }; };
+    // a region's name lies inside its own region, across as few cells as it can, off the seams of a holder's land (the gold border of
+    // yours above all) and off the lanes: sampled at five points along its middle
+    const lie = (b, rid) => {
+      if (!t || rid == null || !(rid in t.regIdx)) return 0; const ri = t.regIdx[rid], cy = b.y + b.h / 2, sites = new Set(), holders = new Set();
+      const pts = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1].map(f => [b.x - 4 + (b.w + 8) * f, cy]).concat([[b.x - 4, b.y - 3], [b.x + b.w + 4, b.y - 3], [b.x - 4, b.y + b.h + 3], [b.x + b.w + 4, b.y + b.h + 3]]);
+      for (const [px, py] of pts) { const c = cellAt(px, py); if (!c || c.region !== ri) return null; sites.add(c.site); holders.add(c.holder); }
+      return (sites.size - 1) * 18 + (holders.size - 1) * 26;
+    };
+    const names = [];   // the region names placed so far: two never stand closer than a line's gap
+    // a region's or a realm's name: the clearest place near its centre, or not at all (a second name is dropped rather than stacked)
     const place = (list, big) => {
       for (const r of list) {
         const e = r.inner; e.style.setProperty('--dx', '0px'); e.style.setProperty('--dy', '0px'); const b0 = rect(e); if (!b0.w || this.screenOf(r.x, r.y).z >= 1) { e.style.visibility = 'hidden'; continue; }
         let best = null;
-        for (let dy = -100; dy <= 100; dy += 10) for (let dx = -180; dx <= 180; dx += 15) {
+        for (let dy = -110; dy <= 110; dy += 10) for (let dx = -180; dx <= 180; dx += 15) {
           const b = { x: b0.x + dx, y: b0.y + dy, w: b0.w, h: b0.h };
-          // a region's name keeps off the stars and crosses a lane only at a cost; a realm's, from far off, may lie over the stars
-          if (!inView(b, 6) || ui.some(u => hits(b, u, 8)) || placed.some(q => hits(b, q, big ? 14 : 6)) || (!big && stars.some(st => hits(b, st, 2)))) continue;
-          const pen = Math.hypot(dx, dy * 1.6) * 0.05 + (big ? stars.filter(st => hits(b, st, 0)).length * 3 : crosses(b) * 6); if (!best || pen < best.pen) best = { pen, dx, dy, b };
+          // a region's name keeps off the stars, the lanes where it can and the seams; a realm's, from far off, may lie over the stars
+          if (!inView(b, 6) || ui.some(u => hits(b, u, 12)) || placed.some(q => hits(b, q, big ? 14 : 6)) || names.some(q => hits(b, q, 26)) || (!big && stars.some(st => hits(b, st, 4)))) continue;
+          let pen = Math.hypot(dx, dy * 1.6) * 0.05;
+          if (big) pen += stars.filter(st => hits(b, st, 0)).length * 3;
+          else { const l = lie(b, r.rid); if (l == null) continue; pen += crosses(b) * 14 + l; }
+          if (!best || pen < best.pen) best = { pen, dx, dy, b };
         }
         if (!best) { e.style.visibility = 'hidden'; this.places[r.key] = null; continue; }
-        e.style.visibility = ''; e.style.setProperty('--dx', best.dx + 'px'); e.style.setProperty('--dy', best.dy + 'px'); placed.push(best.b); this.places[r.key] = { dx: best.dx, dy: best.dy };
+        e.style.visibility = ''; e.style.setProperty('--dx', best.dx + 'px'); e.style.setProperty('--dy', best.dy + 'px'); placed.push(best.b); names.push(best.b); this.places[r.key] = { dx: best.dx, dy: best.dy };
       }
     };
     this.places ||= {};
@@ -882,7 +911,12 @@ export class Galaxy {
     // the camera's view offset already puts the look-at point in the middle of the free map, so the circle's centre is the target
     this.frameOff = { x: 0, y: 0 }; this.target.set(cx, cy, 0); this.distance = d; this.updateCamera(); return d;
   }
-  sysFit() { return this.frame(this.sysAt.x, this.sysAt.y, this.sys.edge * 1.34); }   // the gates' names stand outside the edge, and are to be read
+  // fitted to the outermost orbit with room for its names, not to the far edge where the gates stand: a system is its worlds, and a
+  // view fitted to the gates left them a small cluster in a black field (the gates' names are read by panning or from the window)
+  sysFit() {
+    const orbs = this.sys.bodies.filter(b => b.parent < 0 && b.cls !== 'comet').map(b => b.orbit), outer = orbs.length ? Math.max(...orbs) : this.sys.edge * .6;
+    return this.frame(this.sysAt.x, this.sysAt.y, Math.min(this.sys.edge * 1.34, Math.max(outer * 1.3 + 40, 120)));
+  }
   clearSystem() {
     for (const l of this.sysLabels) l.element.remove(); this.sysLabels = []; this.sysHits = []; this.sysBodies = {}; this.sysTip = null;
     if (this.sysGroup) { this.scene.remove(this.sysGroup); this.sysGroup.traverse(c => { c.geometry?.dispose?.(); if (c.material && !c.material.__shared) c.material.dispose?.(); }); this.sysGroup = null; }
@@ -920,9 +954,9 @@ export class Galaxy {
     // the sun
     const tint = [[0xfff4e0, 1.0], [0xffe2a8, 0.92], [0xffb070, 0.84], [0xbfd4ff, 1.12], [0xffffff, 1.05], [0xffd0a0, 0.88]][chart.sunTint % 6];
     const sunR = 30 * tint[1], close = chart.focusBody != null && chart.focusBody >= 0;   // looking at one world, the sun is turned down so the world is what is seen
-    const corona = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.sun, color: tint[0], transparent: true, opacity: close ? .5 : 1, blending: THREE.AdditiveBlending, depthWrite: false })); corona.scale.set(sunR * (close ? 3.4 : 5.2), sunR * (close ? 3.4 : 5.2), 1); g.add(corona);
+    const corona = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.sun, color: tint[0], transparent: true, opacity: close ? .5 : 1, blending: THREE.AdditiveBlending, depthWrite: false })); corona.scale.set(sunR * (close ? 3.4 : 3.9), sunR * (close ? 3.4 : 3.9), 1); g.add(corona);   // kept tight, so the names of the inner worlds are not written on its glare
     const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(sunR * 1.5, sunR * 1.5, 1); g.add(core);
-    const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: tint[0], transparent: true, opacity: close ? 0 : .16, blending: THREE.AdditiveBlending, depthWrite: false })); flare.scale.set(sunR * 6.5, sunR * .3, 1); g.add(flare);
+    const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: tint[0], transparent: true, opacity: close ? 0 : .1, blending: THREE.AdditiveBlending, depthWrite: false })); flare.scale.set(sunR * 5, sunR * .26, 1); g.add(flare);
     if (chart.sunWorks) { const halo = new THREE.Mesh(new THREE.RingGeometry(sunR * 1.55, sunR * 1.66, 96), new THREE.MeshBasicMaterial({ color: 0xffd36a, transparent: true, opacity: .85, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); halo.userData.spinZ = -0.2; g.add(halo); }
     if (chart.sun != null) hitAt(0, 0, sunR * 0.9, { kind: 'body', id: String(chart.sun), tip: `<b>${esc(chart.sunName || 'The sun')}</b><div>the sun of ${esc(chart.name)}${chart.sunWorks ? ' · built on' : ''}</div>`, at: [0, 0], up: sunR + 10 });
 
@@ -942,7 +976,7 @@ export class Galaxy {
 
     // what goes round the sun, and what goes round that
     const lit = 2.513;   // the side of a painted world the light falls on, as fx.js paints it
-    const radius = b => b.cls === 'comet' ? 4.2 : b.parent >= 0 ? 3.6 + (b.size - 1) * 1.2 : b.cls === 'gas' ? 15 : b.primary ? 12.5 : b.size >= 3 ? 11 : b.size === 2 ? 8.2 : 5.6;
+    const radius = b => b.cls === 'comet' ? 4.2 : b.parent >= 0 ? 3.6 + (b.size - 1) * 1.2 : b.cls === 'gas' ? 15 : b.primary ? 12.5 : 1.25 * (b.size >= 3 ? 11 : b.size === 2 ? 8.2 : 5.6);   // the lesser worlds a quarter larger, to read at the fitted view (a moon's first orbit is 15, outside them all)
     const byIndex = {}; for (const b of chart.bodies) byIndex[b.index] = b;
     for (const b of chart.bodies) {
       if (b.cls === 'belt') {
@@ -997,7 +1031,7 @@ export class Galaxy {
       if (looked && b.primary && chart.provinces && chart.provinces.length) {
         const n = chart.provinces.length; chart.provinces.forEach((pv, k) => {
           const a = Math.PI / 2 + (k - (n - 1) / 2) * 1.5, px = Math.cos(a) * r * .5, py = Math.sin(a) * r * .46 - r * .08, ox = Math.cos(a) * r * 2.3, oy = Math.sin(a) * r * 1.6 + r * .2;
-          const pin = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: pv.accent || '#ffe8a3', transparent: true, opacity: 1, depthWrite: false })); pin.scale.set(3.2, 3.2, 1); pin.position.set(px, py, 5); grp.add(pin);
+          const pin = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: pv.accent || '#ffe8a3', transparent: true, opacity: 1, depthWrite: false })); pin.scale.set(Math.max(7, r * .5), Math.max(7, r * .5), 1); pin.position.set(px, py, 5); grp.add(pin);   // a pin that reads on the globe: two or three times the first
           const lead = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(px, py, 5), new THREE.Vector3(ox, oy, 5)]), new THREE.LineBasicMaterial({ color: pv.accent || '#ffe8a3', transparent: true, opacity: .7 })); grp.add(lead);
           label(`<span class="n">${esc(pv.name)}</span><span class="c">${pv.great ? '★ ' : ''}${esc(pv.city)}${pv.kind ? ' · ' + esc(pv.kind) : ''}</span><span class="o" style="color:${esc(pv.accent)}">${esc(pv.holderName || 'held by the house')}</span><span class="m">${esc(pv.citizens || '')}${pv.level > 1 ? ' · level ' + pv.level : ''}</span>`, 'sysv-prov ' + (ox < -1 ? 'left' : ox > 1 ? 'right' : 'mid'), ox, oy, 6, grp);
           hitAt(ox, oy, 7, { kind: 'province', id: String(k), tip: `<b>${esc(pv.name)}</b><div>a province of ${esc(b.name)} · ${esc(pv.holderName || '')}</div><div>click for the world's provinces</div>`, at: [b.x + ox, b.y + oy], up: 8 }, grp);
@@ -1023,7 +1057,7 @@ export class Galaxy {
         const wing = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.hull, color: f.accent, transparent: true, opacity: seen * .8, depthWrite: false })); wing.scale.set(ws, ws, 1); wing.position.set(px + side * row * sc * .62, py - row * sc * .58, 5.8); parent.add(wing); }
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: f.accent, transparent: true, opacity: f.isPlayer ? .6 : .28, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(sc * 2.2, sc * 2.2, 1); glow.position.set(px, py, 5); if (!f.laidUp) glow.userData.pulse = true; parent.add(glow);
       if (f.id === chart.selectedFleet) { const sel = new THREE.Mesh(new THREE.RingGeometry(sc * .9, sc * 1.02, 48), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: .95, side: THREE.DoubleSide })); sel.position.set(px, py, 5.5); sel.userData.spinZ = 0.8; parent.add(sel); }
-      label(`${esc(f.name)} · ${f.strength}${f.isPlayer ? '' : '?'}${f.laidUp ? ' · laid up' : f.moving ? ' · under way' : ''}`, 'sysv-fleet', px + sc * 1.1, py + 3, 6, parent).element.style.color = f.accent;
+      label(`${esc(f.name)} · ${f.strength}${f.isPlayer ? '' : '?'}${f.laidUp ? ' · laid up' : f.moving ? ' · under way' : ''}`, 'sysv-fleet', px + sc * .58, py, 6, parent).element.style.color = f.accent;   // beside its flagship, as on the galaxy map
       hitAt(px, py, sc * .9, { kind: 'fleet', id: f.id, tip: `<b>${esc(f.name)}</b><div>${esc(f.ownerName || '')} · ${f.strength} hull${f.strength === 1 ? '' : 's'}${f.isPlayer ? '' : ` · reported, ${f.confidence}% sure`}</div>${f.laidUp ? '<div>laid up: no crews aboard</div>' : f.moving ? '<div>making for the lane</div>' : ''}`, at: home ? [hb.x + px, hb.y + py] : [px, py], up: 14 }, parent);
     }
     for (const p of chart.posts) {

@@ -1,5 +1,5 @@
 {
-  "//": "SCENARIO 6 — THE OLD LION (GDD §5/§14: the dynasty outlives the man). You are Duke Aurel Castellan, sixty-eight, with a married heir, two grandchildren, a brother who thinks the seat should have been his, and a court of rivals waiting for the funeral. Succession, regency, family autonomy and the title ladder all fire in the first generation. era fractured_stars; galaxy the_reach.",
+  "//": "SCENARIO 6, THE OLD LION (GDD §5/§14: the dynasty outlives the man). You are Duke Aurel Castellan, sixty-eight, with a married heir, two grandchildren, a brother who thinks the seat should have been his, and a court of rivals waiting for the funeral. Succession, regency, family autonomy and the title ladder all fire in the first generation. era fractured_stars; galaxy the_reach.",
   "id": "the_old_lion",
   "protagonist": "aurel_castellan",
   "era": "fractured_stars",
@@ -20,7 +20,7 @@
         "influence": 9,
         "exotics": 2
       },
-      "//": "A Dukedom held two points below its bar — comfortable until the old man dies and the standing is re-read."
+      "//": "A Dukedom held two points below its bar, comfortable until the old man dies and the standing is re-read."
     },
     {
       "id": "oriel",
@@ -158,7 +158,7 @@
       "flags": [
         "wed"
       ],
-      "//": "Corvin's wife, married in from Marrow — the client house's thread into the Lion's household."
+      "//": "Corvin's wife, married in from Marrow, the client house's thread into the Lion's household."
     },
     {
       "id": "tam_castellan",
@@ -174,7 +174,7 @@
       "ambition": "",
       "father": "corvin_castellan",
       "mother": "ysolde_castellan",
-      "//": "The elder grandchild. Comes of age in seven turns — if the house still stands."
+      "//": "The elder grandchild. Comes of age in seven turns, if the house still stands."
     },
     {
       "id": "pell_castellan",

@@ -9,7 +9,7 @@
 .docked-win:has(.office-room) .win-bar { display: none; }
 .docked-win .win-body:has(.office-room) { padding: 0; overflow: hidden; display: flex; -webkit-mask-image: none; mask-image: none; }
 
-.office-room { position: relative; flex: 1 1 auto; align-self: stretch; min-height: 0; overflow: hidden; container-type: size; background: #06080c; --pw: clamp(17rem, 30cqw, 22rem); }
+.office-room { position: relative; flex: 1 1 auto; align-self: stretch; min-height: 0; overflow: hidden; container-type: size; background: #06080c; --pw: clamp(15.3333rem, 22cqw, 17.3333rem); }
 .or-stage { position: absolute; left: 50%; top: 50%; width: min(100cqw, 100cqh * 1.2121); height: min(100cqh, 100cqw / 1.2121); transform: translate(-50%, -50%); container-type: size; }
 .or-paint { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; user-select: none;
   filter: brightness(1.05) contrast(1.05) saturate(1.02); }
@@ -42,13 +42,13 @@
 @keyframes or-mote { 0% { transform: translate(0, 0); opacity: 0; } 18% { opacity: .85; } 50% { transform: translate(1.4cqh, -3.2cqh); opacity: .55; } 82% { opacity: .7; } 100% { transform: translate(-.8cqh, -6.4cqh); opacity: 0; } }
 
 /* ---- the year's letters on the desk: sealed in brass while unanswered, open once answered ---- */
-.or-letter { position: absolute; z-index: 2; width: 5.6cqh; height: 2.9cqh; padding: 0; border: 0; background: none; cursor: pointer; transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+.or-letter { position: absolute; z-index: 2; width: max(4.2667rem, 8.4cqh); height: max(2.8rem, 5.4cqh); padding: 0; border: 0; background: none; cursor: pointer; transform: translate(-50%, -50%) rotate(var(--r, 0deg));
   display: grid; place-items: center; transition: transform .15s ease-out, filter .15s; filter: drop-shadow(0 2px 2px rgba(0,0,0,.75)); }
 .or-letter .env { position: absolute; inset: 0; background: linear-gradient(170deg, #f0e3c2, #d3bf92 70%, #b8a271); box-shadow: inset 0 0 0 1px rgba(90,64,24,.55), inset 0 1px 0 rgba(255,255,255,.5); }
 .or-letter.sealed .env::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom right, transparent 49%, rgba(90,64,24,.45) 50%, transparent 52%), linear-gradient(to bottom left, transparent 49%, rgba(90,64,24,.45) 50%, transparent 52%); background-size: 100% 100%; clip-path: polygon(0 0, 100% 0, 50% 62%); }
 .or-letter.opened .env { background: linear-gradient(170deg, #f6eedb, #e1d2ae 70%, #cbb88c); opacity: .82; }
 .or-letter.opened .env::before { content: ""; position: absolute; left: 14%; right: 14%; top: 26%; height: 1px; background: rgba(90,64,24,.45); box-shadow: 0 .55cqh 0 rgba(90,64,24,.35), 0 1.1cqh 0 rgba(90,64,24,.3); }
-.or-letter > .icon { position: relative; width: 2.1cqh; height: 2.1cqh; min-width: 14px; min-height: 14px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.8)); }
+.or-letter > .icon { position: relative; width: max(1.4667rem, 3cqh); height: max(1.4667rem, 3cqh); filter: drop-shadow(0 1px 1px rgba(0,0,0,.8)); }
 .or-letter.setpiece.sealed .env { box-shadow: inset 0 0 0 1px rgba(90,64,24,.55), inset 0 1px 0 rgba(255,255,255,.5), 0 0 0 1px rgba(201,162,74,.8); }
 .or-letter:hover, .or-letter:focus-visible { outline: 0; z-index: 3; transform: translate(-50%, -62%) rotate(var(--r, 0deg)) scale(1.12); filter: drop-shadow(0 4px 6px rgba(0,0,0,.8)) drop-shadow(0 0 8px rgba(246,226,160,.55)); }
 
@@ -79,7 +79,7 @@
 .or-pick { grid-column: 2; justify-self: start; } .or-pick .ui-select-btn { min-width: 11.3333rem; height: 1.8667rem; font-size: .8667rem; }
 
 /* ---- the room's panel: one framed part on its right (the medium frame over a leather body cut to its chamfer) ---- */
-.or-panel { position: absolute; z-index: 6; right: 1.4rem; top: 4.4rem; width: var(--pw); max-height: calc(100% - 5.8rem); display: flex; filter: drop-shadow(0 10px 24px rgba(0,0,0,.7)); --c: 9px; }
+.or-panel { position: absolute; z-index: 6; right: 1.4rem; bottom: 1.4rem; width: var(--pw); max-height: calc(100% - 5.8rem); display: flex; filter: drop-shadow(0 10px 24px rgba(0,0,0,.7)); --c: 9px; }
 .or-panel-body { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 1.0667rem 0 1.2rem;
   clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
   background: linear-gradient(rgba(14,17,23,.62), rgba(14,17,23,.62)), var(--tex-leather); background-color: rgba(14,17,23,.9); scrollbar-width: thin; scrollbar-color: #c9a24a #05070a;
@@ -113,3 +113,12 @@
 @media (prefers-reduced-motion: reduce) {
   .or-stars i, .or-glow, .or-dust i, .or-visitor { animation: none; } .or-dust i { opacity: .5; } .or-glow { opacity: .75; }
 }
+
+/* the panel kept narrow and low, clear of the room's window; traits as tiles, skills as plinth figures, news one line each */
+.or-traits { display: grid; grid-template-columns: 1fr 1fr; gap: .3333rem; }
+.or-traits .trait { gap: .3333rem; justify-content: flex-start; border-radius: 2px; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(201,162,74,.28) !important; }
+.or-figs { display: flex; justify-content: space-around; gap: .4rem; padding: .6rem 1.2rem .2rem 1.3333rem; }
+.or-fig { display: inline-flex; align-items: center; gap: .3333rem; cursor: help; } .or-fig b { font: 600 1.1333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); }
+.or-lines .line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
+.or-letter:hover::before { content: ""; position: absolute; inset: -.3333rem; border-radius: 3px; box-shadow: 0 0 0 2px rgba(246,226,160,.75); }
+.or-panel .or-great .ui-meter { grid-template-columns: 4.8rem minmax(4rem, 1fr) 3.6rem; }   /* the track keeps its room in the narrow panel */

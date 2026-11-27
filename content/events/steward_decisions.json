@@ -75,7 +75,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sold off a holding to balance the books — solvent today at the cost of the house being smaller tomorrow. The tenants there learned, by letter, that they now belong to someone else. A house that sells its land to pay its debts is a house going quietly backward."
+              "text": "{self.name} sold off a holding to balance the books, solvent today at the cost of the house being smaller tomorrow. The tenants there learned, by letter, that they now belong to someone else. A house that sells its land to pay its debts is a house going quietly backward."
             }
           ]
         },
@@ -107,7 +107,7 @@
             },
             {
               "type": "log",
-              "text": "{lender.name} of {lender.house} was happy — too happy — to help. The credits arrived within the hour. So did the smile of a man who has just acquired something more useful than coin: a hold over {self.name}, to be called in at the worst possible moment, which is the only moment such men ever choose."
+              "text": "{lender.name} of {lender.house} was happy, too happy, to help. The credits arrived within the hour. So did the smile of a man who has just acquired something more useful than coin: a hold over {self.name}, to be called in at the worst possible moment, which is the only moment such men ever choose."
             }
           ]
         },
@@ -140,7 +140,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} cut the household's own spending before the people's — sold the plate, dismissed the musicians, ate as the garrison ate. It raises little, and costs much in pride. But a {era:senator|lord} who tightens their own belt first is remembered for it, in the only ledger that ever protects a house: the people's."
+              "text": "{self.name} cut the household's own spending before the people's, sold the plate, dismissed the musicians, ate as the garrison ate. It raises little, and costs much in pride. But a {era:senator|lord} who tightens their own belt first is remembered for it, in the only ledger that ever protects a house: the people's."
             }
           ]
         }
@@ -241,7 +241,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} could not pay in coin, so {creditor.name} of {creditor.house} named the other price: a vote, a posting, a door opened. The debt is cleared and a new kind of obligation takes its place — the kind that does not appear in any ledger, and never quite ends."
+              "text": "{self.name} could not pay in coin, so {creditor.name} of {creditor.house} named the other price: a vote, a posting, a door opened. The debt is cleared and a new kind of obligation takes its place, the kind that does not appear in any ledger, and never quite ends."
             }
           ]
         },
@@ -285,7 +285,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} made the debt disappear — the records, the witnesses, the leverage. {creditor.name} of {creditor.house} arrived to collect and found nothing to collect on, and a rival who had simply decided not to owe. The ledger is clean. The enemy is not."
+              "text": "{self.name} made the debt disappear, the records, the witnesses, the leverage. {creditor.name} of {creditor.house} arrived to collect and found nothing to collect on, and a rival who had simply decided not to owe. The ledger is clean. The enemy is not."
             }
           ]
         }
@@ -326,7 +326,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} poured materials into the forge-world's failing reactor before it failed. Expensive, unglamorous, invisible if it works — which is the whole nature of stewardship. The foundry-hands, who know exactly how close it came, will not forget who chose them over the budget."
+              "text": "{self.name} poured materials into the forge-world's failing reactor before it failed. Expensive, unglamorous, invisible if it works, which is the whole nature of stewardship. The foundry-hands, who know exactly how close it came, will not forget who chose them over the budget."
             }
           ]
         },
@@ -345,7 +345,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} ran the reactor past its margins and banked the output it should have spent on repairs. It held — this time. Every overrun the steward survives teaches the dangerous lesson that the next one will hold too. The foundry-hands work a little faster now, and a little more afraid."
+              "text": "{self.name} ran the reactor past its margins and banked the output it should have spent on repairs. It held, this time. Every overrun the steward survives teaches the dangerous lesson that the next one will hold too. The foundry-hands work a little faster now, and a little more afraid."
             }
           ]
         },
@@ -545,7 +545,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} heard the delegation out and granted the relief — remitted tithes, grain from the house stores, the small mercies that cost a {era:senator|lord} coin and buy a people's patience. It is expensive. It is also the difference between subjects who grumble and subjects who rise."
+              "text": "{self.name} heard the delegation out and granted the relief, remitted tithes, grain from the house stores, the small mercies that cost a {era:senator|lord} coin and buy a people's patience. It is expensive. It is also the difference between subjects who grumble and subjects who rise."
             }
           ]
         },
@@ -597,7 +597,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave the crowd a name to hate that was not {self.name}'s — a local official, a foreign merchant, anyone whose ruin would cost the house nothing. The anger found its target and spent itself there. A magician's trick: the hand is faster than the mob, this once."
+              "text": "{self.name} gave the crowd a name to hate that was not {self.name}'s, a local official, a foreign merchant, anyone whose ruin would cost the house nothing. The anger found its target and spent itself there. A magician's trick: the hand is faster than the mob, this once."
             }
           ]
         }
@@ -651,7 +651,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let the field-towns keep more of a fat year than custom required. A small thing, soon forgotten by the ledger — and long remembered by the people, who keep their own accounts, in a currency that does not spend but does protect."
+              "text": "{self.name} let the field-towns keep more of a fat year than custom required. A small thing, soon forgotten by the ledger, and long remembered by the people, who keep their own accounts, in a currency that does not spend but does protect."
             }
           ]
         }
@@ -709,7 +709,7 @@
             },
             {
               "type": "log",
-              "text": "While others sold in fear, {self.name} bought — holdings, stockpiles, contracts, all of it cheap in the panic and dear again by spring. The crash that ruins the timid enriches the cold. {self.name} ended the season larger than it began."
+              "text": "While others sold in fear, {self.name} bought, holdings, stockpiles, contracts, all of it cheap in the panic and dear again by spring. The crash that ruins the timid enriches the cold. {self.name} ended the season larger than it began."
             }
           ]
         }
@@ -781,7 +781,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} bought {auditor.name} of {auditor.house} the way the rot is always bought — quietly, expensively, and only ever for a while. The books came back clean. The price of a clean book is one more person who knows it isn't, and now owns you a little."
+              "text": "{self.name} bought {auditor.name} of {auditor.house} the way the rot is always bought, quietly, expensively, and only ever for a while. The books came back clean. The price of a clean book is one more person who knows it isn't, and now owns you a little."
             }
           ]
         },
@@ -838,7 +838,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} handed {auditor.name} a culprit — a steward, a clerk, someone whose ruin would satisfy the ledger without troubling the family name. The audit closed. Somewhere a lesser house took the fall for a greater one's habits, which is the oldest arithmetic there is."
+              "text": "{self.name} handed {auditor.name} a culprit, a steward, a clerk, someone whose ruin would satisfy the ledger without troubling the family name. The audit closed. Somewhere a lesser house took the fall for a greater one's habits, which is the oldest arithmetic there is."
             }
           ]
         }
@@ -898,7 +898,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked, and a grateful world gave — freely, which is the only kind of giving that doesn't breed resentment. They will give again, if {self.name} remembers not to ask too often. The art of being loved by those you tax is the whole art of lasting rule."
+              "text": "{self.name} asked, and a grateful world gave, freely, which is the only kind of giving that doesn't breed resentment. They will give again, if {self.name} remembers not to ask too often. The art of being loved by those you tax is the whole art of lasting rule."
             }
           ]
         },
@@ -975,7 +975,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} ordered the find catalogued, crated, and kept — not sold, not studied, just held, the way wise houses hold things they do not yet understand. There is a patience that looks like greed and a greed that looks like patience. Only time tells which this was."
+              "text": "{self.name} ordered the find catalogued, crated, and kept, not sold, not studied, just held, the way wise houses hold things they do not yet understand. There is a patience that looks like greed and a greed that looks like patience. Only time tells which this was."
             }
           ]
         },
@@ -1009,7 +1009,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} kept the find and set the house's best minds to it, against the steward's protest that curiosity has never once balanced a ledger. Perhaps not. But the houses that endure are not always the richest — sometimes they are merely the ones who looked closely at the thing everyone else sold."
+              "text": "{self.name} kept the find and set the house's best minds to it, against the steward's protest that curiosity has never once balanced a ledger. Perhaps not. But the houses that endure are not always the richest, sometimes they are merely the ones who looked closely at the thing everyone else sold."
             }
           ]
         }
@@ -1072,7 +1072,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid for swords instead of pressing them. Mercenaries fight well and ask no questions and stay exactly as long as the coin does — which is the entire problem with them, discovered always at the worst possible moment, never the bill's."
+              "text": "{self.name} paid for swords instead of pressing them. Mercenaries fight well and ask no questions and stay exactly as long as the coin does, which is the entire problem with them, discovered always at the worst possible moment, never the bill's."
             }
           ]
         },
@@ -1101,7 +1101,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not find more men. {self.name} found a way to need fewer — redrawn patrols, abandoned strongpoints not worth their cost, a thinner line held smarter. It is the steward's true art, this: making scarcity look like strategy, until the day it stops being a choice."
+              "text": "{self.name} did not find more men. {self.name} found a way to need fewer, redrawn patrols, abandoned strongpoints not worth their cost, a thinner line held smarter. It is the steward's true art, this: making scarcity look like strategy, until the day it stops being a choice."
             }
           ]
         }
@@ -1156,7 +1156,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} traded standing for coin through {broker.name} of {broker.house} — a contract steered, a rival's bid quietly spoiled, the kind of favor that leaves no fingerprints and fills the treasury. Influence is wealth that has not yet decided what to become. {self.name} decided for it."
+              "text": "{self.name} traded standing for coin through {broker.name} of {broker.house}, a contract steered, a rival's bid quietly spoiled, the kind of favor that leaves no fingerprints and fills the treasury. Influence is wealth that has not yet decided what to become. {self.name} decided for it."
             }
           ]
         },
@@ -1209,7 +1209,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} called in every debt at once, through {broker.name}, and the network paid out in a single overwhelming season — and then was empty, every favor spent, every well dry. A king's gambit. It works precisely once, and {self.name} had better have spent it on something worth never being able to do again."
+              "text": "{self.name} called in every debt at once, through {broker.name}, and the network paid out in a single overwhelming season, and then was empty, every favor spent, every well dry. A king's gambit. It works precisely once, and {self.name} had better have spent it on something worth never being able to do again."
             }
           ]
         }
@@ -1274,7 +1274,7 @@
             },
             {
               "type": "log",
-              "text": "{claimant.name} of {claimant.house} produced a debt {self.name}'s grandfather had sworn and never paid — old paper, faded ink, binding all the same. {self.name} honored it. A name is the one possession that crosses the grave, and a house that pays its dead's debts is a house whose word, living, is worth something."
+              "text": "{claimant.name} of {claimant.house} produced a debt {self.name}'s grandfather had sworn and never paid, old paper, faded ink, binding all the same. {self.name} honored it. A name is the one possession that crosses the grave, and a house that pays its dead's debts is a house whose word, living, is worth something."
             }
           ]
         },
@@ -1297,7 +1297,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the old debt to the magistrates and argued it into dust — technicalities, dead witnesses, the long memory of lawyers paid to forget. {claimant.name} left with nothing but a grievance, which in this world is never quite nothing. The debt is void. The enmity is now {self.name}'s own, freshly minted."
+              "text": "{self.name} took the old debt to the magistrates and argued it into dust, technicalities, dead witnesses, the long memory of lawyers paid to forget. {claimant.name} left with nothing but a grievance, which in this world is never quite nothing. The debt is void. The enmity is now {self.name}'s own, freshly minted."
             }
           ]
         },
@@ -1327,7 +1327,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not argue. {self.name} simply refused — the dead made no promises {self.name} would honor, and {claimant.name} could do what they liked about it. It is cleaner than the courts and far more dangerous. A repudiated creditor does not appeal. They wait, and they plan, and they remember the face."
+              "text": "{self.name} did not argue. {self.name} simply refused, the dead made no promises {self.name} would honor, and {claimant.name} could do what they liked about it. It is cleaner than the courts and far more dangerous. A repudiated creditor does not appeal. They wait, and they plan, and they remember the face."
             }
           ]
         }
@@ -1387,7 +1387,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} refused tribute and funded the hunt instead — dearer, bloodier, and final in a way that paying never is. The lanes ran red, then clear. The merchants who use them now use {self.name}'s name like a charm. The wolf that is killed sends no second bill."
+              "text": "{self.name} refused tribute and funded the hunt instead, dearer, bloodier, and final in a way that paying never is. The lanes ran red, then clear. The merchants who use them now use {self.name}'s name like a charm. The wolf that is killed sends no second bill."
             }
           ]
         },
@@ -1420,7 +1420,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not pay the raiders, nor hunt them. {self.name} hired them — turned the wolf to the leash, pointed it at rivals' lanes instead of {self.name}'s own. It is brilliant and it is filthy and it works until the leash frays, which it always, eventually, does."
+              "text": "{self.name} did not pay the raiders, nor hunt them. {self.name} hired them, turned the wolf to the leash, pointed it at rivals' lanes instead of {self.name}'s own. It is brilliant and it is filthy and it works until the leash frays, which it always, eventually, does."
             }
           ]
         }
@@ -1455,7 +1455,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} kept the grain-dole flowing through a thin month — a small standing cost, a small standing mercy. The people do not cheer a dole. They simply do not riot, which is the quiet dividend a wise steward learns to value above applause."
+              "text": "{self.name} kept the grain-dole flowing through a thin month, a small standing cost, a small standing mercy. The people do not cheer a dole. They simply do not riot, which is the quiet dividend a wise steward learns to value above applause."
             }
           ]
         },
@@ -1474,7 +1474,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} trimmed the dole to save a little. The ledger thanks {self.name}; the breadlines lengthen by a few, and a few is how every great unrest begins — never as a flood, always as a handful of people deciding they have had enough."
+              "text": "{self.name} trimmed the dole to save a little. The ledger thanks {self.name}; the breadlines lengthen by a few, and a few is how every great unrest begins, never as a flood, always as a handful of people deciding they have had enough."
             }
           ]
         }

@@ -35,7 +35,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   const blocked = await page.evaluate(() => document.querySelector('button.begin').disabled); console.log('Begin disabled while there are objections: ' + blocked);
   await click('.workshop .ws-row .chip', 'Throw the dice'); await page.waitForTimeout(300); console.log('dice (standard): ' + (await power()).replace(/\n/g, ' ').slice(0, 70) + ' · problems ' + (await problems()).length);
   await click('.workshop .ws-row .chip', preset); await page.waitForTimeout(300);
-  await click('.workshop .ui-tab', 'The face'); await click('.workshop .chip', 'a scar'); await click('.workshop .swatch'); await page.waitForTimeout(400);
+  // the face is a painted portrait chosen among those of the house's ancestry (the drawn stand-in is gone: docs/VISUAL_SYSTEM.md 9)
+  await click('.workshop .ui-tab', 'The face'); await page.evaluate(() => { const f = document.querySelector('.workshop .face-pick .face'); if (f) f.click(); }); await page.waitForTimeout(400);
   await page.screenshot({ path: shots + '/workshop-face.png' });
   if (process.argv[4] === 'academy') {
     await click('.workshop .ui-tab', 'The world'); await click('.workshop .chip', 'At the'); await page.waitForTimeout(300); console.log('academy start: problems ' + (await problems()).length);

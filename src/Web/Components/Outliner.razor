@@ -22,8 +22,8 @@
                 {
                     string scene = SceneArt.For(b.Item.Fired.Def.Id, b.Title);
                     <button class="ol-row ol-report rep @b.Tier.ToLowerInvariant() @(b.Resolved ? "done" : "")" data-report title="@(b.Resolved ? "Answered: open it again to read what was said" : "Open this report")" @onclick="() => OnOpenReport.InvokeAsync(b)">
-                        <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="lazy" /></span>
-                        <span class="nm"><span class="title">@b.Title</span><span class="k">@(b.Resolved ? "Answered" : b.Setpiece || b.Tier == "AMBIENT" ? "Lapses at the year's end" : "Answer by the year's end")</span></span>
+                        <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="eager" decoding="async" /></span>
+                        <span class="nm"><span class="title">@b.Title</span><span class="k">@if (!b.Resolved && (b.Setpiece || b.Tier == "AMBIENT")) { <Icon Name="hourglass" Tone="ember" Size="13" /> }@(b.Resolved ? "Answered" : b.Setpiece || b.Tier == "AMBIENT" ? "Lapses at the year's end" : "Answer by the year's end")</span></span>
                         @if (b.Resolved) { <Icon Name="check" Tone="good" Size="14" Class="tick" /> }
                         else { <Icon Name="wax-seal" Tone="brass" Size="20" Class="wseal" /> }
                     </button>
@@ -58,7 +58,7 @@
                     var hold = w.Holding(h.Id); string cls = hold != null ? w.Galaxy?.System(hold.SystemId)?.PlanetClass ?? "terran" : "terran";
                     <button class="ol-row" title="@($"{h.Name}: {h.SpecName}{(h.Unrest >= 50 ? ", restless" : "")}{(h.Besieged ? ", besieged" : "")}. Click and the map goes to it.")" @onclick='() => OnGo.InvokeAsync("galaxy:" + (hold?.SystemId ?? ""))'>
                         <Globe Class="@cls" Size="18" Ringed="false" />
-                        <span class="nm">@h.Name</span><span class="m @(h.Besieged || h.Unrest >= 50 ? "warn" : "")">@(h.Besieged ? "besieged" : h.Unrest >= 50 ? "restless" : h.SpecName)</span>
+                        <span class="nm">@h.Name</span>@if (h.Besieged || h.Unrest >= 50 || h.Name.Length + h.SpecName.Length <= 28) { <span class="m @(h.Besieged || h.Unrest >= 50 ? "warn" : "")">@(h.Besieged ? "besieged" : h.Unrest >= 50 ? "restless" : h.SpecName)</span> }
                     </button>
                 }
                 @foreach (var (uh, ui) in underOthers)
@@ -66,7 +66,7 @@
                     string usys = uh.SystemId; string ucls = w.Galaxy?.System(usys)?.PlanetClass ?? "terran";
                     <button class="ol-row" data-ol-province title="@($"A province you hold under another house, for life: {uh.Provinces[ui].Name}, on {uh.Name}, under {w.House(uh.OwnerId)?.Name}")" @onclick='() => OnGo.InvokeAsync("galaxy:" + usys)'>
                         <Globe Class="@ucls" Size="18" Ringed="false" />
-                        <span class="nm">@uh.Provinces[ui].Name</span><span class="m">Province</span>
+                        <span class="nm">@uh.Provinces[ui].Name</span>@if (uh.Provinces[ui].Name.Length <= 20) { <span class="m">Province</span> }
                     </button>
                 }
             }

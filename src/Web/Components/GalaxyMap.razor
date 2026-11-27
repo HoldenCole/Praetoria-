@@ -28,7 +28,7 @@
                 <Icon Name="chev" Size="11" Class="sep flat" />
                 @if (chart.RegionName.Length > 0) { <span class="crumb still">@chart.RegionName</span><Icon Name="chev" Size="11" Class="sep flat" /> }
                 <button class="crumb @(picked == null || !_world ? "here" : "")" data-crumb="system" title="The whole system" @onclick="() => { _world = false; }">@chart.Name</button>
-                @if (picked != null && _world) { <Icon Name="chev" Size="11" Class="sep flat" /><span class="crumb here" data-crumb="world">@picked.Name</span> }
+                @if (picked != null && _world) { <Icon Name="chev" Size="11" Class="sep flat" /><span class="crumb here" data-crumb="world">@(picked.Name == chart.Name ? picked.Name + " (world)" : picked.Name)</span> }
             </nav>
         }
         @if (selectedFleet != null)
@@ -79,7 +79,7 @@
                     @if (picked.Deposit.Length > 0) { <span><i>In the ground</i> @Resource.Label(picked.Deposit)</span> }
                     <span><i>Built</i> @cb.Works@(cb.Rising > 0 ? $" · {cb.Rising} rising" : "") · @slots slot@(slots == 1 ? "" : "s")</span>
                 </div>
-                <div class="ws-note">What can be built here is in the window at the left, under this body's name. Esc goes back to the whole system.</div>
+                <div class="ws-note">@if (_systemId != null) { <span>What can be built here is in the window at the left, under this body's name.</span> } else { <Link Label="Open the system window" Tip="What can be built here, and the system's law, in the window at the left" OnClick="() => _systemId = chart.SystemId" /> } Esc goes back to the whole system.</div>
             </div>
         }
         @* the map's own tools: the console stands for them in the shell (they stay for the scripts and the keys, docs/VISUAL_SYSTEM.md 3.8) *@
@@ -106,7 +106,7 @@
             <span title="The ivory line is the Reach's outer edge. A nation beyond it is drawn in its own toned colour, hatched."><i class="sw realm-own"></i>The Reach's edge</span>
             <span><i class="sw realm-other"></i>A nation beyond</span>
             <span title="A chevron is a fleet: solid and numbered when its strength is known, hollow with a question mark when it is only reported."><i class="sw chev"></i>Fleet · <i class="sw chev hollow"></i>reported</span>
-            <span><i class="sw siege"></i>Siege clock</span><span><i class="sw front"></i>Front line</span><span><i class="sw station"></i>Station</span><span><i class="sw raid"></i>Raiders</span>
+            <span><i class="sw siege"></i>Siege clock</span><span><i class="sw front"></i>Front line</span><span title="A station in orbit: a dock, a yard or a fortress"><svg class="icon ico steel sw-stn" viewBox="0 0 512 512" aria-hidden="true"><use href="#i-@Icons.Key("station")" /></svg>Station</span><span title="With Supply on (the console), a world your fleets are fed at is lit and one beyond your supply is hatched in ember"><i class="sw supply"></i>Out of supply</span><span><i class="sw raid"></i>Raiders</span>
             <span class="lg" title="A world of the Reach's that a nation has taken or been ceded, or a world of a nation's that a house of the Reach holds: a broken ring in the holder's colour. It can be taken back."><i class="sw conq"></i>Conquered</span>
             <span class="lg"><i class="sw ck"></i>Chokepoint</span>
             <span class="lg" title="The mark after a system's name: helium-3, rare earths or isotopes in its ground."><Icon Name="helium3" Tone="steel" Size="13" /><Icon Name="rare_earths" Tone="ivory" Size="13" /><Icon Name="isotopes" Tone="ember" Size="13" /> Deposits</span>
@@ -208,7 +208,7 @@
                     <Section Title="The holding" Info="Who holds the system's own world, who governs it, and what it is worth to them." IsEmpty="@(planet == null)" EmptyIcon="ringed-planet" EmptyLine="No one holds this world. It can be settled from The system tab.">
                         @if (planet != null)
                         {
-                            <Row Name="@planet.Name" SubText="@($"{kind} · {Sentence(sel.PlanetClass)} world{(sel.Capital ? " · the capital" : "")}")" Class="mw-world">
+                            <Row Name="@planet.Name" SubText="@($"{(kind.Replace("-", " ").Equals(Sentence(sel.PlanetClass) + " world", StringComparison.OrdinalIgnoreCase) || kind.Contains(sel.PlanetClass, StringComparison.OrdinalIgnoreCase) ? kind : $"{kind} · {Sentence(sel.PlanetClass)} world")}{(sel.Capital ? " · the capital" : "")}")" Class="mw-world">
                                 <Picture><span class="mw-globe"><img class="planet-sprite" data-planet="@sel.PlanetClass|@sel.SystemId|96" alt="" /></span></Picture>
                                 <Cells><span class="ui-cell" title="Prosperity"><Icon Name="sprout" Tone="good" Size="16" /><b>@planet.Prosperity</b></span></Cells>
                             </Row>
@@ -480,6 +480,7 @@
             string realm = polity.Length > 0 ? polity : n.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "" : !string.IsNullOrEmpty(reg?.StateName) ? "state:" + reg!.StateName : "reach";
             string realmColor = polity.Length > 0 ? polityColor : realm.StartsWith("state:") ? reg!.AccentColor : "#c3cde2";
             return new { id = n.SystemId, name = n.Name, x = n.X, y = n.Y, ownerId = n.OwnerHouseId, ownerName = n.OwnerHouseName, accent = n.AccentColor, polity, polityName, polityColor, realm, realmColor, isPlayer = n.IsPlayerTerritory, contested = n.Contested,
+                supply = G.Turn?.Fleets is { } fs && fs.InSupply(w, w.Protagonist!.HouseId, n.SystemId),
                 planetClass = n.PlanetClass, great = n.PlanetHoldingId != null && w.Holding(n.PlanetHoldingId) is { } gh ? string.Join(" · ", gh.Provinces.Where(x => CitySystem.KindOf(c.Holdings, x)?.Great == true).Select(x => x.City + ", " + CitySystem.KindOf(c.Holdings, x)!.Name)) : "", pop = n.Population, citizens = n.PlanetHoldingId != null && w.Holding(n.PlanetHoldingId) is { } ph ? Census.Say(Census.Citizens(w, ph)) : "", unrest = n.Unrest, stations = n.Stations, regionId = n.RegionId, governor = n.GovernorName, rebel = n.Rebellion > 0, capital = n.Capital, ring = n.Ring, chokepoint = n.Chokepoint, conquered = taken?.kind, deposits = n.Deposits == null ? "" : string.Join(" ", n.Deposits.Keys.Select(k => k == "helium3" ? "³He" : k == "rare_earths" ? "RE" : "Iso")),
                 bodies = Bodies(w, n),
                 // for the map's own note on a system (docs/VISUAL_SYSTEM.md 7.4) and the deposit marks after its name (7.3)

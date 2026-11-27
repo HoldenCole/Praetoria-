@@ -39,7 +39,7 @@
         @Res("exotics", "steel", t.Exotics, fc?.Exotics, "Exotics — rare finds; sell dear or study them.")
     </div>
     <div class="tb-pools-wrap">
-    <button class="tb-more-btn" data-pools title="The strategic three and the year's pools: what you can do this year" aria-expanded="@_more" @onclick="() => _more = !_more"><Icon Name="helium3" Tone="steel" Size="18" /><Icon Name="public-speaker" Tone="ivory" Size="18" /><span>Pools</span><Icon Name="chev" Tone="brass" Size="10" Class="tb-chev" /></button>
+    <button class="tb-more-btn" data-pools title="The strategic three and the year's pools: what you can do this year" aria-expanded="@_more" @onclick="TogglePools"><Icon Name="helium3" Tone="steel" Size="18" /><Icon Name="public-speaker" Tone="ivory" Size="18" /><span>Pools</span><Icon Name="chev" Tone="brass" Size="10" Class="tb-chev" /></button>
     <div class="tb-more">
         <i class="stud"></i>
         <div class="well tb-res strat @(w.HasFlag("fuel_short") ? "dry" : "")" title="The strategic three — dug or skimmed only where the galaxy put them. Helium-3 fuels the fleet (three hulls burn one a turn); rare earths build the heavy hulls and the clever buildings; isotopes arm battleships and bastions and are never on the open market.">
@@ -90,6 +90,10 @@
     [Parameter] public EventCallback OnMenu { get; set; }
     /// <summary>The folded pools plate is open (a narrow screen or the larger text): the strategic three and the year's pools below it.</summary>
     private bool _more;
+    private bool _menuWas;
+    /// <summary>One popover at a time: opening the pools closes the game menu, and opening the menu closes the pools.</summary>
+    private async Task TogglePools() { _more = !_more; if (_more && MenuOpen) await OnMenu.InvokeAsync(); }
+    protected override void OnParametersSet() { if (MenuOpen && !_menuWas) _more = false; _menuWas = MenuOpen; }
     /// <summary>A choice from the menu: the menu closes (if it was open) and the choice is made.</summary>
     private async Task Pick(EventCallback what) { if (MenuOpen) await OnMenu.InvokeAsync(); await what.InvokeAsync(); }
 

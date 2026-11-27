@@ -65,7 +65,7 @@
                     {
                         string scene = SceneArt.For(b.Item.Fired.Def.Id, b.Title);
                         <button class="ac-report @(b.Resolved ? "done" : "") @(b.Setpiece ? "setpiece" : "")" title="@(b.Resolved ? "Answered: open it again to read what was said" : "Open this report")" @onclick="() => OnOpenReport.InvokeAsync(b)">
-                            <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="lazy" /></span>
+                            <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="eager" decoding="async" /></span>
                             <span class="nm"><b>@b.Title</b><span class="k">@(b.Resolved ? "answered" : b.Setpiece ? "a turning point · waiting for you" : "waiting for you")</span></span>
                             @if (b.Resolved) { <Icon Name="check" Tone="good" Size="16" /> }
                             else if (b.Setpiece) { <Icon Name="laurels" Tone="brass" Size="22" /> }
@@ -148,7 +148,17 @@
             {
                 <p class="ui-lede">The Reach as it stands the year you enter: who sits in the Senate, and how the houses think of yours.</p>
                 <Section Title="The state of the Reach" Count="@a.Politics.Count.ToString()" Info="As it stands the year you enter.">
-                    @foreach (var f in a.Politics) { <div class="ac-fact ac-row"><span>@f.Heading</span><p>@f.Text</p></div> }
+                    @foreach (var f in a.Politics)
+                    {
+                        @if (f.Text.Count(ch => ch == ';') >= 3)
+                        {
+                            /* a list run on with semicolons (the law of the Reach) is set out as rows: each law and its setting */
+                            <div class="ac-fact ac-row lawlist"><span>@f.Heading</span></div>
+                            <div class="ac-laws">@foreach (var part in f.Text.TrimEnd('.').Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                            { var kv = part.Split(':', 2, StringSplitOptions.TrimEntries); <div class="ac-law"><Icon Name="scales" Tone="brass" Size="14" /><span>@(kv.Length == 2 ? Cap(kv[0]) : Cap(part))</span>@if (kv.Length == 2) { <b>@kv[1]</b> } else { <b></b> }</div> }</div>
+                        }
+                        else { <div class="ac-fact ac-row"><span>@f.Heading</span><p>@f.Text</p></div> }
+                    }
                 </Section>
                 <Section Title="The houses that matter" Count="@a.Houses.Count.ToString()" Info="By seats in the Senate. Toward you is what the house's head thinks of yours, from −100 to +100.">
                     <Right><span>by seats in the Senate</span></Right>
@@ -193,7 +203,7 @@
                         bool isFocus = k.Id == _focus;
                         <div class="ac-cadet @(k.You ? "mine" : "") @(isFocus ? "on" : "") @(k.Alive ? "" : "gone")" @onclick="() => _focus = isFocus ? null : k.Id">
                             <span class="ac-place">@if (k.Alive) { @place } else { <Icon Name="candle-light" Tone="ivory" Size="14" /> }</span>
-                            <Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@k.Accent" Size="30" Height="36" Opens="false" />
+                            <Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@k.Accent" Size="46" Height="56" Opens="false" />
                             <span class="nm"><b>@k.Name</b>@if (k.StandardAccent != null) { <i class="ac-std" style="background:@k.StandardAccent" title="@k.StandardName"></i> }<span class="k">of @k.HouseName</span></span>
                             <span class="ac-score"><span class="ui-trk"><i class="ui-fill" style="width:@(100 * k.Score / maxScore)%;--mc:@k.Accent"></i></span><b>@k.Score</b></span>
                             <span class="ac-disp" title="@(k.You ? "You" : $"What {k.Name} thinks of you, from −100 to +100")">@if (!k.You) { <Icon Name="shaking-hands" Tone="@(k.Disposition < -20 ? "ember" : k.Disposition > 20 ? "good" : "ivory")" Size="16" /><b class="@(k.Disposition < -20 ? "ui-down" : k.Disposition > 20 ? "ui-up" : "")">@Signed(k.Disposition)</b>@if (k.Bond.Length > 0) { <span class="k">@k.Bond</span> } } else { <span class="ac-tag">you</span> }</span>

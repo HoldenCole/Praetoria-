@@ -17,7 +17,7 @@
   ],
 
   // One barony each: the dynasty's domain endures even while its heir is at the Academy (GDD §17
-  // "start = one barony = one modest holding"). NPC houses are abstracted (GDD §3) — a single
+  // "start = one barony = one modest holding"). NPC houses are abstracted (GDD §3), a single
   // holding stands in for their realm; only House Vega's is the player's to manage in depth.
   "holdings": [
     { "id": "vega_barony", "system": "tessaly",   "owner": "vega",   "name": "Tessaly Reach",  "specialization": "agri_world",  "population": 20 },
@@ -26,7 +26,7 @@
     { "id": "sato_holdfast", "system": "sato_holdfast",  "owner": "sato",  "name": "Sato Holdfast",   "specialization": "fortress",    "population": 0 }
   ],
 
-  // Each house keeps a small house fleet at its seat (GDD §8 treasury 2). Corwin's is the largest — the
+  // Each house keeps a small house fleet at its seat (GDD §8 treasury 2). Corwin's is the largest, the
   // Count's standing shows on the map before a single word is spoken at the Academy.
   "fleets": [
     { "id": "fleet_vega",   "name": "Vega Household Squadron", "owner": "vega",   "system": "tessaly",        "strength": 1 },

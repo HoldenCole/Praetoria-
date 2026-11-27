@@ -22,7 +22,7 @@
                         <span class="ui-slot free" title="@(s.Name.Length > 0 ? s.Name : FreeTip)"><Icon Name="plus" Tone="ivory" Size="13" /></span>
                         break;
                     default:
-                        if (s.Img.Length > 0) { <span class="ui-slot" title="@s.Name"><img src="@s.Img" alt="@s.Name" loading="lazy" /></span> }
+                        if (s.Img.Length > 0) { <span class="ui-slot" title="@s.Name"><img src="@s.Img" alt="@s.Name" loading="eager" decoding="async" /></span> }
                         else { <span class="ui-slot noart" title="@s.Name"><Icon Name="@(s.Icon.Length > 0 ? s.Icon : "build")" Tone="ivory" Size="16" /></span> }
                         break;
                 }
@@ -30,7 +30,7 @@
         }
         else
         {
-            @foreach (var (img, name) in Filled) { <span class="ui-slot" title="@name"><img src="@img" alt="@name" loading="lazy" /></span> }
+            @foreach (var (img, name) in Filled) { <span class="ui-slot" title="@name"><img src="@img" alt="@name" loading="eager" decoding="async" /></span> }
             @for (int i = 0; i < Free; i++) { <span class="ui-slot free" title="@FreeTip"><Icon Name="plus" Tone="ivory" Size="13" /></span> }
         }
     </div>

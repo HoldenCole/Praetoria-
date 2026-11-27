@@ -13,8 +13,20 @@
         {
             <div class="brief-group">
                 <h4 class="box-sec">@g.k</h4>
+                @if (g.k == YearInBrief.Money && YearInBrief.Moves(w) is { Count: > 0 } moves)
+                {
+                    @* the treasury as the top bar shows it: a stock chip for each that moved, its glyph, where it stands and the year's change *@
+                    <button class="brief-stocks" title="@string.Join("\n", moves.Select(m => $"{Cap(m.Label)}: {m.Before} when the year opened, {m.After} now ({m.Change})"))" @onclick='() => OnGo.InvokeAsync("house:ledger")'>
+                        @foreach (var m in moves)
+                        {
+                            <span class="bs-chip"><Icon Name="@m.Resource" Tone="@(m.Resource == "credits" ? "brass" : m.Resource == "manpower" ? "ivory" : "steel")" Size="20" /><b>@m.After</b><small class="@(m.Up ? "up" : "down")">@m.Change</small></span>
+                        }
+                        <Icon Name="chev" Tone="brass" Size="10" Class="bl-go" />
+                    </button>
+                }
                 @foreach (var l in g.list)
                 {
+                    if (g.k == YearInBrief.Money && l.Target == "house:ledger" && l.Text.StartsWith("Over the year")) continue;
                     string go = l.Target;
                     <button class="brief-line @l.Tone" title="Open the place this can be seen" @onclick="() => OnGo.InvokeAsync(go)">
                         @if (l.Tone is "good" or "warn") { <Icon Name="@(l.Tone == "good" ? "plus" : "minus")" Tone="@(l.Tone == "good" ? "good" : "ember")" Size="12" Class="bl-mark" /> } else { <i class="bl-mark bl-dot" aria-hidden="true"></i> }
@@ -31,6 +43,7 @@
     </Foot>
 </Box>
 @code {
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public bool Every { get; set; } = true;

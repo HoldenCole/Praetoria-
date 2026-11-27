@@ -294,7 +294,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} stopped the fleet to pull survivors from the wrecks — the enemy's too. Two companies' worth of crews, and a wardroom that approves."
+              "text": "{self.name} stopped the fleet to pull survivors from the wrecks, the enemy's too. Two companies' worth of crews, and a wardroom that approves."
             }
           ]
         },

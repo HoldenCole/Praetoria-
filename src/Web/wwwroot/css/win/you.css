@@ -126,7 +126,7 @@
 /* ---- Learning: every skill a meter to ten, with the part toward the next step and the ceiling as a brass tick ---- */
 .you-lede { margin-top: 1.0667rem; }
 .learn-rows { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.6rem; row-gap: .1333rem; padding: .6667rem var(--yg-r) .4rem var(--yg-l); }
-.learn-row { display: grid; grid-template-columns: 1.1333rem 6.6667rem minmax(0, 1fr) 2.6667rem; align-items: center; column-gap: .5333rem; height: 2rem; cursor: help; }
+.learn-row { display: grid; grid-template-columns: 1.1333rem 7.6rem minmax(0, 1fr) 2.6667rem; align-items: center; column-gap: .5333rem; height: 2rem; cursor: help; }
 .learn-row > .icon { width: 1.1333rem; height: 1.1333rem; }
 .learn-row .nm { font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .learn-row.studied .nm { color: var(--brass-hi); font-weight: 600; }
@@ -184,7 +184,7 @@
   .you-head .ui-plinth .ui-fig:nth-child(4):not(:has(use[href="#i-heart-beats"])):not(:has(use[href="#i-laurels"])):not(:has(use[href="#i-brain"])) { display: none; }
   .you-kv { grid-template-columns: 7.4667rem minmax(0, 1fr) auto; }
   .learn-rows { column-gap: 1.0667rem; }
-  .learn-row { grid-template-columns: 1.1333rem 5.6rem minmax(0, 1fr) 2.4rem; column-gap: .4rem; }
+  .learn-row { grid-template-columns: 1.1333rem 7.2rem minmax(0, 1fr) 2.2667rem; column-gap: .4rem; } .learn-row .nm { font-size: .8667rem; }
   .you-tie { grid-template-columns: 3.0667rem minmax(0, 1fr) 11rem; }
   .you-rung > span { font-size: .8333rem; } .you-rung.now > span { font-size: .8667rem; }
 }
@@ -196,7 +196,7 @@
 .profile-x { position: absolute; top: .45rem; right: .55rem; z-index: 2; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid var(--line2); background: rgba(5,7,12,.7); color: var(--ink2); font-size: 1.2rem; line-height: 1; }
 .profile-x:hover { border-color: var(--brass); color: var(--brass2); }
 .pk { display: flex; align-items: center; gap: .55rem; text-align: left; background: rgba(5,7,12,.4); border: 1px solid var(--line); border-radius: 3px; padding: .25rem .5rem .25rem .25rem; }
-.pk:hover { border-color: var(--brass); background: #1d1a12; } .pk span { display: grid; min-width: 0; line-height: 1.2; } .pk b { font-weight: 600; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .pk em { font-style: normal; color: var(--muted); font-size: .76rem; }
+.pk:hover { border-color: var(--brass); background: #1d1a12; } .pk span { display: grid; min-width: 0; line-height: 1.2; } .pk b { font-weight: 600; font-size: .88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .pk em { font-style: normal; color: var(--ink-dim); font-size: .8rem; }
 @media (max-width: 760px) {
   .profile-head { grid-template-columns: 1fr; justify-items: start; } .profile-frame .portrait { width: 11.2rem !important; height: 11.2rem !important; }
   .regards { grid-template-columns: 1fr; } .profile-body { grid-template-columns: 1fr; } .profile-who h2 { font-size: 1.6rem; }
@@ -209,3 +209,8 @@
 .profile-frame, .hero-frame { border-radius: 0; } .profile h3 { justify-content: flex-start; }
 /* what can be done to a person, on their profile */
 .profile-acts { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: .5rem 0; }
+
+/* your study as one row with two selects (docs/VISUAL_SYSTEM.md 4.12) */
+.you-study .you-study-acts { display: inline-flex; align-items: center; gap: .4rem; }
+.you-study .ui-select-btn { min-width: 8.5333rem; justify-content: space-between; }
+.you-study .ui-menu { right: 0; left: auto; min-width: 16rem; max-height: 22rem; overflow-y: auto; }

@@ -83,24 +83,22 @@
             <div class="sn-ent-main">
                 <div class="sn-hd"><b class="sn-nm">Your seat in the Senate</b><span class="sn-tag warn">not yet spent</span></div>
                 <div class="sn-tx">@seatSays</div>
-                <div class="sn-choices">
+                @* the year's four choices as the event window's choice plates (docs/VISUAL_SYSTEM.md 6): full width, the digit disc, a verb,
+                   what it does in the tooltip *@
+                <div class="sn-duty-choices">
+                @{ int dn = 0; }
                 @foreach (var choice in LadderSystem.DutyChoices(LadderSystem.SeatKind))
                 {
-                    string ch = choice; var no = new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, seat, ch);
-                    <div class="sn-choice suit-acts">
-                        <Plate Label="@Label(ch)" Small="true" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? tip)" OnClick='() => G.ExecuteTold(new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy), "The year’s duty", Label(ch))' />
-                        <span class="sn-say">@tip</span>
-                    </div>
+                    string ch = choice; dn++; var no = new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy).Refusal(G.Ctx); string tip = LadderSystem.DutyChoiceSays(w, policy, seat, ch);
+                    <button class="sn-duty-ch @(no != null ? "locked" : "")" disabled="@(no != null)" title="@(Label(ch) + "\n" + (no != null ? LawsScreen.Say(no) + ". " : "") + tip)" @onclick='() => G.ExecuteTold(new DutyCommand(pid, LadderSystem.SeatKind, ch, offices, policy), "The year’s duty", Label(ch))'>
+                        <span class="n">@dn</span><span class="l">@Label(ch)</span>@if (no != null) { <span class="req"><Icon Name="padlock" Tone="ember" Size="13" />@LawsScreen.Say(no)</span> }
+                    </button>
                 }
                 </div>
                 @if (absentLine.Length > 0) { <div class="sn-note bad"><Icon Name="alert" Tone="ember" Size="15" /><span>@absentLine</span></div> }
-                <div class="sn-say ui-dim committee-line">@LadderSystem.CommitteeSays(w, w.House(p.HouseId)!) @LadderSystem.AttendanceSays(w, p)</div>
-                <div class="sn-acts suit-acts"><span class="sn-lbl">Sit instead on</span>
-                    @foreach (var cm in LadderSystem.Committees.Where(x => x != LadderSystem.CommitteeOf(w, w.House(p.HouseId)!)))
-                    {
-                        string cid = cm; var noMove = new CommitteeCommand(pid, cid).Refusal(G.Ctx);
-                        <Plate Label="@LadderSystem.CommitteeName(cm)" Small="true" Locked="@(noMove != null)" Disabled="@(noMove != null)" Tip="@(noMove ?? MoveTip)" OnClick="() => G.Execute(new CommitteeCommand(pid, cid))" />
-                    }
+                @{ var curCom = LadderSystem.CommitteeOf(w, w.House(p.HouseId)!); }
+                <div class="sn-acts suit-acts sn-committee" title="@($"{LadderSystem.CommitteeSays(w, w.House(p.HouseId)!)} {LadderSystem.AttendanceSays(w, p)}")">
+                    <Segmented Label="Committee" Value="@curCom" Options="@LadderSystem.Committees.Select(cm => (cm, CommitteeShort(cm), cm == curCom ? "Your house sits on it" : MoveTip)).ToList()" Refusal="@(cm => cm == curCom ? null : new CommitteeCommand(pid, cm).Refusal(G.Ctx) is { } r ? LawsScreen.Say(r) : null)" OnChange="cm => { if (cm != curCom) G.Execute(new CommitteeCommand(pid, cm)); }" />
                 </div>
             </div>
         </div>
@@ -184,6 +182,8 @@
     private static string PostIcon(string kind) => kind switch { LadderSystem.Desk => "desk", LadderSystem.Posting => "eagle-emblem", LadderSystem.Brief => "scroll-quill", LadderSystem.Ledgers => "abacus", LadderSystem.Watch => "spyglass", _ => "tied-scroll" };
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private const string NoBench = "Your rank asks nothing more of you this year. Every rank in a service has work: a brief, the ledgers or the watches for a junior; a bench, a desk or a posting above that.";
+    /// <summary>A committee in one word for the segmented control: "Fleet", "Purse", "Laws".</summary>
+    private static string CommitteeShort(string cm) { string n = LadderSystem.CommitteeName(cm); foreach (var w in new[] { "Fleet", "Purse", "Laws", "Law" }) if (n.Contains(w)) return w; return LawsScreen.Cap(n.Replace("the Committee of the ", "").Replace("the Committee on the ", "").Replace("the ", "")); }
     private static string Label(string choice) => choice switch
     {
         LadderSystem.Law => "Rule on the law", LadderSystem.ForHouse => "Find for the house", LadderSystem.ForEstate => "Find for the petitioners",

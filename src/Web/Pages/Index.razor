@@ -56,8 +56,18 @@ else if (G.World!.InAcademy && G.Academy() is { } am)
                 </ChildContent>
                 <Foot>
                     <p class="box-note muted small">You can change this at any time in the lecture hall.</p>
-                    <button class="btn @(_beenBefore ? "" : "primary")" @onclick='() => Teach("full")'>First time here: teach me everything</button>
-                    <button class="btn @(_beenBefore ? "primary" : "")" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
+                    <span class="box-acts">
+                        @if (_beenBefore)
+                        {
+                            <button class="btn" @onclick='() => Teach("full")'>First time here: teach me everything</button>
+                            <button class="btn primary" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
+                        }
+                        else
+                        {
+                            <button class="btn" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
+                            <button class="btn primary" @onclick='() => Teach("full")'>First time here: teach me everything</button>
+                        }
+                    </span>
                 </Foot>
             </Box>
         }
@@ -91,6 +101,7 @@ else
                             string says = label + (waiting > 0 ? " · " + waiting + " waiting" : "") + (railKey.Length > 0 && _set.NumberKeys ? " · key " + railKey : "");
                             <button class="rail-btn sock @(_screen == id ? "active on" : "")" data-label="@says" aria-label="@says" data-rail="@id" @onclick="() => Go(id)">
                                 <Icon Name="@icon" Size="28" Tone="@(_screen == id ? "dark" : "ivory-hi")" /><span class="rl">@label</span>
+                                <span class="rlab" aria-hidden="true"><b>@label</b>@if (waiting > 0) { <i class="@(danger ? "danger" : "")">@waiting waiting</i> }@if (railKey.Length > 0 && _set.NumberKeys) { <kbd>@railKey</kbd> }</span>
                                 @if (waiting > 0) { <span class="pip @(danger ? "danger" : "")" data-n="@waiting" aria-hidden="true"></span> }
                             </button>
                         }
@@ -129,7 +140,7 @@ else
             </main>
         }
         <AlertsRow Items="alerts" OnGo="Go" Year="@G.World!.Turn" MaxBadges="@(_screen == "galaxy" ? 10 : WideScreens.Contains(_screen) ? 4 : 6)" />
-        <Toasts Notes="Notes()" Paused="front" OnGo="Go" />
+        <Toasts Notes="Notes()" Paused="front" Hidden="@(_brief && G.World is { InAcademy: false, IsDynastyDead: false })" OnGo="Go" />
         <Outliner Model="m" OnOpenReport="OpenReport" OnGo="Go" Folded="@(_screen != "galaxy" || _narrow)" />
         @* the console (3.8): the map tools, the map modes as joined sockets, the legend; the minimap and its caption (the mode, and the
            system nearest the middle of the view); End Year on its rim (3.9) with the count of unanswered reports *@
@@ -142,7 +153,8 @@ else
                 <span class="modes">
                     <button class="tool @(_mode == "realms" ? "on" : "")" data-mode="realms" title="[world] Realms — the map from far off: the Reach as one, each nation beyond it and each state that has left it in its own colour, and their names" @onclick='() => MapDo("realms")'><Icon Name="world" Tone="ivory" Size="18" /></button>
                     <button class="tool @(_mode == "houses" || _mode == "systems" ? "on" : "")" data-mode="houses" title="[flying-flag] Houses — the middle distance: every world in its holder's colour, your own land in gold" @onclick='() => MapDo("houses")'><Icon Name="flying-flag" Tone="ivory" Size="18" /></button>
-                    <button class="tool" data-mode="regions" title="[region] Regions — the regions of the Reach, who rules each and what lies in it" @onclick='() => MapDo("regions")'><Icon Name="region" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "regions" ? "on" : "")" data-mode="regions" title="[region] Regions — the regions of the Reach, who rules each and what lies in it" @onclick='() => MapDo("regions")'><Icon Name="region" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "supply" ? "on" : "")" data-mode="supply" title="[fuel-tank] Supply — where your fleets are fed: a world of yours within reach, a depot or your campaign's target. Beyond it the map is hatched in ember, and a fleet there loses supply each year." @onclick='() => MapDo("supply")'><Icon Name="fuel-tank" Tone="ivory" Size="18" /></button>
                 </span>
                 <span class="gap"></span>
                 <button class="tool @(_legend ? "on" : "")" data-map="legend" aria-pressed="@_legend" title="[info] The legend — what the marks on the map mean. The map zooms on the wheel, and on Page Up and Page Down." @onclick="() => _legend = !_legend"><Icon Name="info" Tone="ivory" Size="18" /></button>
@@ -224,7 +236,7 @@ else
     private static readonly string[][] RailOrder = { new[] { "character", "dynasty", "house" }, new[] { "planets", "military", "exchange" }, new[] { "senate", "laws", "houses" }, new[] { "chronicle", "office" } };
     private string _screen = "galaxy";
     /// <summary>Screens whose window is the wide one: a chamber, a table of houses, a market.</summary>
-    private static readonly HashSet<string> WideScreens = new() { "houses", "office" };
+    private static readonly HashSet<string> WideScreens = new() { "office" };   // the Houses dock at the shared width (docs/VISUAL_SYSTEM.md 2.4)
     private void MapPicked() { if (_screen != "galaxy") { _screen = "galaxy"; StateHasChanged(); } }
     /// <summary>The rail's groups in the role register's order: a register changes only the order (docs/VISUAL_SYSTEM.md 3.3), so the
     /// screens its RoleTheme.Priority names stand first as a group of their own and the groups keep the rest.</summary>
@@ -267,7 +279,7 @@ else
 
     /* the shell's own state: the game menu, the legend, the map's mode (as the map reports it), a screen under 1500px wide */
     private bool _menu, _legend, _narrow; private string _mode = "houses", _miniId = ""; private ElementReference _mini;
-    private string ModeName => _mode switch { "realms" => "Realms", "systems" => "Systems", "system" => "The system", _ => "Houses" };
+    private string ModeName => _mode switch { "realms" => "Realms", "systems" => "Systems", "system" => "The system", "regions" => "Regions", "supply" => "Supply", _ => "Houses" };
     /// <summary>A tool of the console: the map is moved by js/shell.js through the map's own script, never drawn by it.</summary>
     private async Task MapDo(string what) { try { await JS.InvokeVoidAsync("praetoriaShell.map", what); } catch { } }
     /// <summary>The map's mode, as the camera's distance makes it (js/shell.js): "realms" from far off, "houses", "systems" close to, "system" inside one.</summary>

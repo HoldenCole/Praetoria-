@@ -103,7 +103,7 @@ details.sysp-grant select { max-width: 20rem; }
 .sw-head .lvl { display: inline-flex; gap: 2px; margin: 0 .2rem; vertical-align: middle; cursor: help; } .sw-head .lvl i { width: .4rem; height: .6667rem; display: inline-block; transform: skewX(-12deg); background: #06080c; box-shadow: 0 0 0 1px rgba(165,129,58,.45); }
 .sw-head .lvl i.on { background: linear-gradient(#f3dfa6, #c9a24a); box-shadow: 0 0 0 1px #000; }
 .sysp-work.infra .lv { display: inline-flex; gap: .2rem; margin-left: .4rem; vertical-align: middle; cursor: help; }
-.sysp-work.infra .lv i { width: .9333rem; height: .4667rem; display: inline-block; background: #06080c; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(165,129,58,.45); }
+.sysp-work.infra .lv i { width: .6rem; height: .6rem; margin: 0 .0667rem; display: inline-block; transform: rotate(45deg); background: #06080c; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(165,129,58,.6); }
 .sysp-work.infra .lv i.on { background: linear-gradient(#f3dfa6, #c9a24a 55%, #8a6a2a); box-shadow: 0 0 0 1px #000; } .sysp-work.infra .lv i.up { background: repeating-linear-gradient(90deg, rgba(201,162,74,.6) 0 2px, transparent 2px 4px), #06080c; }
 .sysp.infra > .sysp-desc { margin: .8rem var(--g-r) .4rem var(--g-l); }
 .sysp.infra > .sysp-work { margin: 0 var(--g-r) 0 var(--g-l); }

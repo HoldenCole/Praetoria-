@@ -63,7 +63,7 @@
     };
 }
 <div class="laws-win" data-laws="@_tab">
-    <WindowHeader Scene="court" Kicker="@("Laws of " + house.Name)" Title="The Chancery" Glyph="scales" Figures="figures" Class="lw-head">
+    <WindowHeader Scene="court" Kicker="@("Laws · " + house.Name)" Title="The Chancery" Glyph="scales" Figures="figures" Class="lw-head">
         <Facts>
             @* four facts in two columns; where the header is narrow (1366 wide, or a larger text size) two in one column and the rest in a tooltip *@
             @for (int i = 0; i < Math.Min(4, positions.Count); i++) { var (icon, text) = positions[i]; <span class="@(i >= 2 ? "lw-fx2" : "")"><Icon Name="@icon" Tone="ivory" Size="16" />@text</span> }
@@ -100,7 +100,8 @@
                         <span class="es2-note" title="@NoteSays(e)">
                             @if (e.Mood == "loyal") { <span class="ui-up">Loyal</span>@($": gives the house {Minus(e.Effects)}") }
                             else if (e.Mood == "hostile") { <span class="ui-down">Hostile</span>@($": costs the house {Minus(e.Effects)}") }
-                            else { <span class="es2-mood">@Cap(e.Mood)</span>@(e.Target != e.Approval ? $", drifting to {Signed(e.Target)}" : ", holding") }
+                            else if (e.Target != e.Approval) { <span class="es2-mood">@Cap(e.Mood)</span>@($", drifting to {Signed(e.Target)}") }
+                            @* an estate that is indifferent and holding says nothing: the same words on every row would say nothing either *@
                             @if (e.HostileIn > 0) { <span class="ui-mute">@($" · hostile in {Counted.Houses(e.HostileIn)} of the Reach")</span> }
                             @if (e.Petition != null) { <span class="es2-pet"><Icon Name="vote" Tone="brass" Size="14" />@e.Petition</span> } else if (e.HostileIn >= SenateSystem.PetitionMinHouses) { <span class="ui-mute"> · a petition to the Senate is near</span> }
                         </span>
@@ -126,7 +127,7 @@
     else if (_tab == "yours")
     {
         <p class="ui-lede lw-lede">@Bold($"You may set {held.Count} {(held.Count == 1 ? "law" : "laws")} by your positions, {offCustom} of them off the custom{(settled > 0 ? $" and {settled} settled" : "")}. With {pool} influence to spend you can change {(changeable == held.Count && held.Count > 0 ? "any of them" : changeable.ToString())} this year.")</p>
-        <Section Title="In your gift" Count="@held.Count.ToString()" Info="@($"What your positions let you set. Changing a law costs influence of this year's and settles it for some years. Each plate is one option: the lit one is in force, the others show what moving to them costs. The marks are the estates that would warm (a green rim, a chevron up) or cool (a red rim, a chevron down) to it, two chevrons for 15 or more; the plate's tooltip has the figures.")"
+        <Section Title="In your gift" Count="@held.Count.ToString()" Info="@($"What your positions let you set. Changing a law costs influence of this year's and settles it for some years. Each plate is one option: the lit one is in force, the others show what moving to them costs. The two marks are the estate that would warm to it most (a green rim, a wedge up) and the one that would cool most (a red rim, a wedge down), two wedges for 15 or more; the plate's tooltip has every figure.")"
                  IsEmpty="@(held.Count == 0)" EmptyLine="No law is in your gift: your house holds no position that sets one." EmptyIcon="scales">
             <Right><span class="lw-pool @(pool == 0 ? "none" : "")" title="Influence of this year's, which every change of law spends"><Icon Name="public-speaker" Tone="ivory" Size="16" /><b>@pool</b> to spend</span></Right>
             <ChildContent>
@@ -193,7 +194,7 @@
     else if (_tab == "reach" && ch.Reach is { Count: > 0 } reach)
     {
         <p class="ui-lede lw-lede">@Bold(ch.Bound ? $"{reach.Count} laws bind every house of the Reach, {byAct} of them changed only by an Act. At its custom a law changes no yield and no cost: what it moves is how the estates think of you." : $"{reach.Count} laws bind the houses of the Reach, and not yours: your house has broken away, and is bound only by its own laws. At its custom a law changes no yield and no cost: what it moves is how the estates think of you.")</p>
-        <Section Title="The law of the Reach" Count="@reach.Count.ToString()" Info="A law of the Senate changes only by an Act carried in the chamber; a law of a position (the chair, the throne, an office of the Reach) is set by whoever holds it. A law with nothing written under its name stands at its custom: no Act has yet been carried on it. Each plate is one option, the lit one in force; the marks are the estates that would warm or cool to it.">
+        <Section Title="The law of the Reach" Count="@reach.Count.ToString()" Info="Customary: no Act has yet been carried. A law with nothing written under its name stands at its custom. A law of the Senate changes only by an Act carried in the chamber, and is marked By an Act; a law of a position (the chair, the throne, an office of the Reach) is set by whoever holds it. Each plate is one option, the lit one in force; the two marks on a plate are the estate that would warm to it most and the one that would cool most, every figure in the plate's tooltip.">
             <Right><button class="ui-link lw-senate" data-open-senate title="A law of the Senate changes only by an Act carried in the chamber. Move one from the Senate, under Move a motion." onclick="var b=document.querySelector('[data-rail=senate]');if(b)b.click();">Move an Act in the Senate<Icon Name="chev" Size="11" Class="flat" /></button></Right>
             <ChildContent>
             @foreach (var grp in reach.GroupBy(r => r.Category))
@@ -211,8 +212,9 @@
                             @if (r.Act && !custom) { <span class="lw-sub act" title="@rTip"><Icon Name="vote" Tone="brass" Size="13" />By an Act@(r.CooldownLeft > 0 ? $" · {r.CooldownLeft} yr" : "")</span> }
                             else if (sub != null) { <span class="lw-sub @(r.Mine ? "mine" : "") @(sub.StartsWith("No ") || sub.EndsWith("empty") ? "vac" : "")" title="@rTip">@sub</span> }
                         </div>
-                        @if (card != null) { @ReadLadderOf(card, r.Mine, custom ? "no Act yet" : null) }
-                        else { <span class="lw-lad ro"><span class="lw-pl on" title="@rTip"><i class="lw-stud" aria-hidden="true"></i><span class="lw-pn">@PlateName(r.OptionName)</span>@if (custom) { <span class="lw-in cust">no Act yet</span> }</span></span> }
+                        @* the custom is the plain state: nothing on the plate; an Act in force is marked beside the name, with its years *@
+                        @if (card != null) { @ReadLadderOf(card, r.Mine, null) }
+                        else { <span class="lw-lad ro"><span class="lw-pl on" title="@rTip"><i class="lw-stud" aria-hidden="true"></i><span class="lw-pn">@PlateName(r.OptionName)</span></span></span> }
                     </div>
                 }
                 </div>
@@ -303,15 +305,17 @@
     /// (the CSS picks which "+N" shows, by the window's width in rem, so the larger text sizes are counted).</summary>
     public static RenderFragment MarksOf(IEnumerable<(string estate, int opinion)> ops)
     {
-        var list = ops.Where(x => x.opinion != 0).ToList();
-        return @<span class="lw-mks">@for (int i = 0; i < Math.Min(3, list.Count); i++) { var x = list[i]; <i class="lw-mk @(x.opinion > 0 ? "up" : "down") @(Math.Abs(x.opinion) >= 15 ? "hi" : "") m@(i + 1)"><Icon Name="@EstateIcon(x.estate)" Tone="ivory" Size="13" /></i> }@for (int k = 3; k >= 1; k--) { if (list.Count > k) { <i class="lw-mk more k@(k)">+@(list.Count - k)</i> } }</span>;
+        // one mark a side: the estate that warms to it most and the one that cools most; every figure is in the plate's tooltip
+        var all = ops.Where(x => x.opinion != 0).ToList();
+        var list = new[] { all.Where(x => x.opinion > 0).OrderByDescending(x => x.opinion).FirstOrDefault(), all.Where(x => x.opinion < 0).OrderBy(x => x.opinion).FirstOrDefault() }.Where(x => x.opinion != 0).ToList();
+        return @<span class="lw-mks">@for (int i = 0; i < list.Count; i++) { var x = list[i]; <i class="lw-mk @(x.opinion > 0 ? "up" : "down") @(Math.Abs(x.opinion) >= 15 ? "hi" : "") m@(i + 1)"><Icon Name="@EstateIcon(x.estate)" Tone="ivory" Size="14" /></i> }</span>;
     }
     /// <summary>A law's options as a ladder to read, not to press: the law of the Reach, and the laws beyond the house's gift. <paramref name="mark"/>
     /// is the quiet word on the plate in force ("no Act yet" for a law of the Senate at its custom, no Act yet carried); otherwise it says "In force".</summary>
     public static RenderFragment ReadLadderOf(LawCard l, bool mine, string? mark) => @<span class="lw-lad ro">@for (int i = 0; i < l.Options.Count; i++)
     {
         var o = l.Options[i]; if (i > 0) { <i class="lw-step" aria-hidden="true"></i> }
-        <span class="lw-pl @(o.InForce ? "on" : "") @(o.InForce && mine ? "mine" : "")" title="@ReadTip(l, o)">@if (o.InForce) { <i class="lw-stud" aria-hidden="true"></i> }<span class="lw-pn">@PlateName(o.Name)</span>@MarksOf(o.Opinions.Select(x => (x.Estate, x.Opinion)))@if (o.InForce) { <span class="lw-in @(mark != null ? "cust" : "")">@(mark ?? "In force")</span> }</span>
+        <span class="lw-pl @(o.InForce ? "on" : "") @(o.InForce && mine ? "mine" : "")" title="@ReadTip(l, o)">@if (o.InForce) { <i class="lw-stud" aria-hidden="true"></i> }<span class="lw-pn">@PlateName(o.Name)</span>@MarksOf(o.Opinions.Select(x => (x.Estate, x.Opinion)))@if (o.InForce && mark != null) { <span class="lw-in yrs">@mark</span> }</span>
     }</span>;
     private static string ReadTip(LawCard l, LawOptionCard o) => $"[{LawIcon(l.Id, l.Category)}] {o.Name}\n{FxSay(o.Effects)}\n{OpinionLines(o)}" + (o.InForce ? "key: In force now" : "key: " + WhoSets(l.Scope));
     /// <summary>Who may move a law to another option, for a plate that is not in force.</summary>

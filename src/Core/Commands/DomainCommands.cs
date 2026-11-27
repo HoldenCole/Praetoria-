@@ -73,7 +73,7 @@ public sealed class BuildCommand : ICommand
         {
             w.WorldCounters["megastructures"] = w.Counter("megastructures") + 1;
             if (byPlayer) w.WorldFlags.Add("megastructure_raised");
-            w.Log($"{house.Name} raises the {building.Name} over {holding.Name} — a thing the whole Reach can see.");
+            w.Log($"{house.Name} raises the {building.Name} over {holding.Name}, a thing the whole Reach can see.");
         }
     }
 }

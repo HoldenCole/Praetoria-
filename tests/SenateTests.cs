@@ -60,7 +60,7 @@ public class SenateTests
         ex.TryExecute(new ProposeMotionCommand("self", "levy", "", senate), ctx); var m = SenateSystem.Docket(w).Single();
         w.Relationship("corwin_head", "self").Disposition = -40;
         int lean0 = senate.Lean(w, m, "corwin");
-        Assert.Equal("Mara will not hear you — try coin", new LobbyCommand("self", m.Id, "corwin", 1).Refusal(ctx));
+        Assert.Equal("Mara will not hear you; try coin", new LobbyCommand("self", m.Id, "corwin", 1).Refusal(ctx));
         // a purse is priced by the house that takes it: its weight in the Senate, its rank, and what its head thinks of the buyer
         int had = w.House("vega")!.Treasury.Credits, price = SenateSystem.BribeCost(w, w.House("corwin")!, w.Char("self")); Assert.True(price > SenateSystem.BribeCredits);
         Assert.True(ex.TryExecute(new LobbyCommand("self", m.Id, "corwin", 1, bribe: true), ctx));

@@ -1,11 +1,39 @@
 @* A lit planet (docs/VISUAL_SYSTEM.md 4.8): light, land, sea and shadow by the world's class, an atmosphere, a terminator, and (when
    Ringed) a thin brass orbit ring. Size in px at the normal text size: 62 in an estate, 18 in the outliner. *@
-<span class="ui-globe @(Ringed ? " ringed" : "") @(Size < 30 ? " sm" : "")" style="width:@W;height:@W;@Style" title="@Tip"></span>
+@if (Class == "belt")
+{
+    @* a belt is no planet: a tilted ring of small lit rocks round a faint dust lane, brighter the richer it is *@
+    var (lit, body) = Rich switch { >= 3 => ("#efe3c4", "#8f8470"), 2 => ("#d5dbe3", "#6f7a88"), _ => ("#b4bcc7", "#59626e") };
+    <span class="ui-belt" style="width:@W;height:@W" title="@(Tip.Length > 0 ? Tip : null)">
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+            <ellipse cx="20" cy="20" rx="16.5" ry="7.5" transform="rotate(-18 20 20)" fill="none" stroke="@body" stroke-opacity=".45" stroke-width="3.2" />
+            @foreach (var (x, y, r) in Rocks)
+            {
+                <circle cx="@F(x)" cy="@F(y)" r="@F(r)" fill="@body" stroke="#000" stroke-width=".5" />
+                <circle cx="@F(x - r * .3)" cy="@F(y - r * .3)" r="@F(r * .55)" fill="@lit" />
+            }
+        </svg>
+    </span>
+}
+else
+{
+    <span class="ui-globe @(Ringed ? " ringed" : "") @(Size < 30 ? " sm" : "")" style="width:@W;height:@W;@Style" title="@Tip"></span>
+}
 @code {
     [Parameter] public string Class { get; set; } = "terran";
     [Parameter] public int Size { get; set; } = 62;
     [Parameter] public bool Ringed { get; set; } = true;
     [Parameter] public string Tip { get; set; } = "";
+    /// <summary>A belt's richness (1 to 3), for its tint.</summary>
+    [Parameter] public int Rich { get; set; } = 1;
+    private static string F(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    /// <summary>The rocks of a belt mark: on a tilted ellipse, of three sizes, the same for every belt.</summary>
+    private static readonly (double x, double y, double r)[] Rocks = Enumerable.Range(0, 13).Select(i =>
+    {
+        double a = i * 2 * Math.PI / 13 + (i % 3) * .17, ex = 16.5 * Math.Cos(a), ey = 7.5 * Math.Sin(a), t = -18 * Math.PI / 180;
+        double r = i % 4 == 0 ? 2.6 : i % 3 == 0 ? 2.0 : 1.45;
+        return (20 + ex * Math.Cos(t) - ey * Math.Sin(t), 20 + ex * Math.Sin(t) + ey * Math.Cos(t), r);
+    }).ToArray();
     private string W => (Size / 15.0).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture) + "rem";
     /// <summary>Light, land, sea, shadow and atmosphere for a planet class (the classes of Svg.Planet).</summary>
     public static (string g0, string g1, string g2, string g3, string atm) Ramp(string cls) => cls switch

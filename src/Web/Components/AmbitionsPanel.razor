@@ -23,7 +23,7 @@
         {
             <Row Wrap="true" Name="@shown.Name" SubText="@(named != null ? "Named by you, whatever the law would say" : "By " + house.SuccessionLaw.Replace('_', ' '))" Class="dy-heir-row">
                 <Picture><Portrait Id="@shown.Id" Name="@shown.Name" Sex="@shown.Sex" Age="@shown.Age" Alive="@shown.Alive" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
-                <Cells><span class="ui-cell" title="Their age">@shown.Age</span></Cells>
+                <Cells><span class="ui-cell" title="Their age">Age @shown.Age</span></Cells>
             </Row>
         }
         else { <WarnStrip Icon="family-tree" Lead="No heir." Bad="true" Class="dy-strip">Nobody stands to take the house.</WarnStrip> }
@@ -70,7 +70,7 @@
     }
 
     <Section Title="What they are after" Count="@members.Count.ToString()" Info="They go after it themselves. Now and then one of them asks you for something that would help. You grant it or you do not; that is all there is for you to do. How near runs from 0 to 100 by their own reckoning; at 100 they have it."
-             IsEmpty="@(members.Count == 0)" EmptyIcon="stairs-goal" EmptyLine="@(w.FamilyAutonomy <= 0 ? "Yours is a deferential family: they wait to be told." : "Nobody grown of the house has set their mind on anything yet.")">
+             IsEmpty="@(members.Count == 0)" EmptyIcon="stairs-goal" EmptyLine="@(w.FamilyAutonomy <= 0 ? "Yours is a deferential family: they wait to be told." : "An ambition comes with age and temper: the grown of the house take one up in their own time, and the heir most of all.")">
     @foreach (var c in members)
     {
         var u = c.Pursuit!; string cid = c.Id; bool asks = u.Request.Length > 0;

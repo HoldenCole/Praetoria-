@@ -1,14 +1,14 @@
 {
-  // HUMAN CRISES — Milestone 5 gate/cascade/damper pool (GDD §16). Crises are gated, buildable
+  // HUMAN CRISES, Milestone 5 gate/cascade/damper pool (GDD §16). Crises are gated, buildable
   // states, NOT random events: while any gate is un-cleared the crisis cannot fire. Gates reuse the
   // condition vocabulary; onTrigger/damper effects reuse the effect vocabulary (no new mini-language).
   //
   // THE CASCADE (emergent, not scripted): a local revolt raises `unrest` and drops `legitimacy` and
-  // sets `realm_unstable` — and *crushing* it raises unrest further. Those very writes clear the
+  // sets `realm_unstable`, and *crushing* it raises unrest further. Those very writes clear the
   // civil-war gates. So brutal suppression of a small crisis arms a galaxy-spanning one.
   //
   // THE DAMPERS are scaled by prior play: the loyalist rally that arrests a civil war needs banked
-  // `goodwill` — the ruler who clawed up through brutality spent that goodwill and cannot rally.
+  // `goodwill`, the ruler who clawed up through brutality spent that goodwill and cannot rally.
   //
   // onResolve un-arms what onTrigger armed (realm_unstable / civil_war_active) when a civil or coalition
   // war subsides, so the §16 web cools once the great crises pass instead of staying warm forever.
@@ -36,7 +36,7 @@
         { "type": "setWorldFlag", "flag": "realm_unstable", "value": true }
       ],
       // No onResolve here on purpose: a revolt that is CRUSHED leaves the realm unstable (that is the
-      // cascade into civil war). Only concessions — addressing the cause — restore stability.
+      // cascade into civil war). Only concessions, addressing the cause, restore stability.
       "dampers": [
         {
           "id": "concessions", "name": "Grant Concessions", "relief": 2,
@@ -92,7 +92,7 @@
 
     {
       // POWER-BALANCE CASCADE (GDD §7→§16): when the protagonist's house grows over-mighty, the
-      // SphereSystem accumulates `coalition_pressure`. At 3 the rivals coordinate — a coalition war.
+      // SphereSystem accumulates `coalition_pressure`. At 3 the rivals coordinate, a coalition war.
       // Its writes (unrest, legitimacy, realm_unstable) feed the SAME gates the civil war reads, so
       // an over-mighty house's coalition can itself cascade into open civil war.
       "id": "coalition_war",
@@ -127,8 +127,7 @@
 
     {
       // SOFT-LOCK CASCADE (GDD §13→§16): holding a title above your legitimacy accrues
-      // `title_instability` (set each turn by the progression system). At 20 the contest turns open —
-      // rivals press their own claims. A Military usurper (legitimacy ignored) lands here fastest.
+      // `title_instability` (set each turn by the progression system). At 20 the contest turns open, // rivals press their own claims. A Military usurper (legitimacy ignored) lands here fastest.
       "id": "contested_title",
       "name": "Contested Title",
       "tier": "house",

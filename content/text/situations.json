@@ -188,7 +188,7 @@
     {
       "id": "the_free_march",
       "title": "The Free March",
-      "body": "{self.house} rides under the free march's banner — no {era:senator|lord} above it and every {era:senator|lord} against it. The disaffected of the old houses' worlds are drifting in. So are the old houses' letters.",
+      "body": "{self.house} rides under the free march's banner, no {era:senator|lord} above it and every {era:senator|lord} against it. The disaffected of the old houses' worlds are drifting in. So are the old houses' letters.",
       "choices": {
         "recruit_the_disaffected": "Take in the disaffected.",
         "court_the_court": "Send the chair compliments and ask nothing (1 influence).",

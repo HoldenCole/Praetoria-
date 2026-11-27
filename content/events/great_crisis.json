@@ -1,5 +1,5 @@
 {
-  "//": "THE GREAT CRISIS — scenes for the war of the Reach (GDD §11/§16). Each reads a stage flag the engine raises (great_crisis:<stage>) and a once-marker it sets so it fires once per stage. the_blocs_form lets the player choose a side (joinBloc) against the engine's default sorting.",
+  "//": "THE GREAT CRISIS, scenes for the war of the Reach (GDD §11/§16). Each reads a stage flag the engine raises (great_crisis:<stage>) and a once-marker it sets so it fires once per stage. the_blocs_form lets the player choose a side (joinBloc) against the engine's default sorting.",
   "events": [
     {
       "id": "the_rumblings",

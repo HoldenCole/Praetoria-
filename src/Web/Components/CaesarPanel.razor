@@ -96,7 +96,8 @@
                 <div class="mc-meters">
                     <Meter Label="Sway" Value="@sway" Target="@CaesarSystem.RecallSway" Text="@sway.ToString()" Color="@(sway >= CaesarSystem.FearedSway ? "#8cc47e" : "#c9a24a")" Tip="@($"[eagle-emblem] Sway\n{(swayWhy.Length > 0 ? swayWhy : "No victories yet")}. The tick is {CaesarSystem.RecallSway}, where the Senate may order the general home.")" />
                 </div>
-                <div class="ac-fact mc-crews"><span class="k">The crews</span><p>@crewsLine <b>@laurels</b>.</p></div>
+                @{ int ofFleet = fleets.Sum(f => f.Strength); }
+                <div class="mc-crews-fig" title="@($"{crewsLine} {laurels}.")"><Icon Name="fleet" Tone="steel" Size="18" /><b>@hulls</b><span>of @ofFleet hulls follow @(mineIsMe ? "you" : general?.Name ?? "the general") before the house</span></div>
                 <div class="suit-acts mc-acts">
                     <Plate Label="Ask the Senate for a triumph" Small="true" Icon="laurels" Locked="@(noTriumph != null)" Disabled="@(noTriumph != null)" ShowNeed="false" Need="@Cap(Mine(noTriumph))" Tip="@("[laurels] Ask the Senate for a triumph\n" + TriumphTip)" OnClick="() => G.Execute(new ProposeMotionCommand(pid, MotionTriumph, house.Id, G.Turn!.Senate))" />
                     @if (noTriumph != null) { <span class="ui-need">@Cap(Mine(noTriumph)).</span> }

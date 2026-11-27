@@ -33,12 +33,13 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('header: ' + (t.match(/your own purse[^.]*?a year[^A-Z]*/i) || ['?'])[0].trim());
   console.log('heirloom lines: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 170)).join(' || ')));
   console.log('take from the treasury: ' + (await press('.panel.wealth', 'take 20') || await press('.panel.wealth', 'take 5') || 'nothing pressed')); await page.waitForTimeout(300);
-  console.log('lend at interest: ' + (await press('.panel.wealth .purse-row', 'Lend 1,000 at interest') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
+  // the sum is on the row's stepper (500 unless moved); the plate reads "Lend 500 at interest"
+  console.log('lend at interest: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth .purse-row button')].find(e => !e.disabled && /^Lend .* at interest$/.test(e.innerText.trim())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : 'REFUSED OR NONE'; })); await page.waitForTimeout(300);
   console.log('borrow buttons: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .purse-row button')].filter(b => /^Borrow/.test(b.innerText.trim())).map(b => b.innerText.trim() + (b.disabled ? ' (' + (b.title || 'cannot') + ')' : '')).slice(0, 6).join(' | ')));
   console.log('borrow: ' + (await press('.panel.wealth .purse-row', 'Borrow') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('pills: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .pill')].map(e => e.innerText).filter(x => /owe/.test(x)).join(' | ')));
   console.log('pay back: ' + (await press('.panel.wealth .purse-row', 'Pay them back') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
-  const entailed = await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit')].some(e => /entailed: it goes with the house/.test(e.innerText)));
+  const entailed = await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit')].some(e => /entailed: it goes with the house/i.test(e.innerText)));
   console.log('an heirloom entailed at the start: ' + entailed);
   if (entailed) {
     console.log('break the entail: ' + (await press('.panel.wealth', 'Break the entail') || 'REFUSED')); await page.waitForTimeout(300);
@@ -50,7 +51,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   const eduOn = await find('.panel.education'); console.log('education panel on: ' + (eduOn || 'NOT FOUND'));
   t = await text('.panel.education'); console.log('education: ' + bad(t));
   console.log('priced asks: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.education button')].filter(b => /of your own/.test(b.innerText)).map(b => b.innerText.trim() + (b.disabled ? ' (cannot)' : '')).slice(0, 6).join(' | ') || 'none (all would for the asking, or would not at all)'));
-  console.log('pay to study: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.education button')].find(b => !b.disabled && /of your own/.test(b.innerText)); if (b) { b.click(); return b.innerText.trim(); } return 'none offered'; })); await page.waitForTimeout(400);
+  // the price is an option of a grown relative's Study select: open each in turn until one offers it
+  console.log('pay to study: ' + await page.evaluate(async () => { for (const s of [...document.querySelectorAll('.panel.education .dy-study .ui-select:not(.dy-tutor) .ui-select-btn')]) { s.click(); await new Promise(r => setTimeout(r, 250)); const b = [...document.querySelectorAll('.panel.education .ui-menu button')].find(b => /of your own/.test(b.innerText) && !/cannot/.test(b.innerText)); if (b) { const t = b.innerText.replace(/\s+/g, ' ').trim(); b.click(); return t; } } return 'none offered'; })); await page.waitForTimeout(400);
   await shot('.panel.education', 'register-education');
 
   const hhOn = await find('.panel.household'); console.log('household panel on: ' + (hhOn || 'NOT FOUND'));

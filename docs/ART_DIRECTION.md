@@ -265,6 +265,14 @@ intrigue, a world, a shipyard, a triumph), chosen by what the event is about (`S
 the foot of the painting in capitals. The people involved are shown at bust size in brass frames. The prose is
 serif. The choices are full-width plates; setting it aside is a plain line beneath.
 
+### Key art (2026-11-27)
+
+The title's painting and the plate of "A character of your own" (`tools/art/keyart.py`, `img/scenes/title.webp` and `own.webp`) are
+**AI-generated** with the same open model as the portraits and the event paintings. The first key art read as a present-day Earth city
+at dusk (a dome, a spire like an obelisk, a river road); the one now shipped is a city of spires on a ridge under a ringed gate of light,
+and its prompt names the Earth landmarks it must not paint. The own-character plate is a hooded figure seen from behind in a dark
+hall before a window of stars: anyone at all, in the same frame and grade as the eight painted faces beside it.
+
 ### Buildings (2026-11-20)
 
 The owner, of the building list: "let us get some artwork that matches the buildings to make sense." Every building, great

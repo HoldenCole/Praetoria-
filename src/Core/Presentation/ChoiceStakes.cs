@@ -177,8 +177,11 @@ public static class ChoiceStakes
     {
         var apt = ctx.Content?.Traits.Aptitude.FirstOrDefault(x => x.Id == id); var nat = ctx.Content?.Traits.Nature.FirstOrDefault(x => x.Id == id);
         string name = apt?.Name ?? nat?.Name ?? id.Replace('_', ' ');
-        return apt != null ? ("AEIOU".Contains(char.ToUpperInvariant(name[0])) ? "an " : "a ") + name : name;
+        return apt != null && !Adjective(name) ? ("AEIOU".Contains(char.ToUpperInvariant(name[0])) ? "an " : "a ") + name : name;
     }
+    /// <summary>An aptitude named by an adjective ("Greedy", "Paranoid", "Brilliant") takes no article; one named by a noun ("a Schemer") does.</summary>
+    private static bool Adjective(string name) =>
+        new[] { "y", "id", "ant", "ent", "ous", "ful", "ive", "ic", "ble", "al" }.Any(e => name.EndsWith(e, StringComparison.OrdinalIgnoreCase));
     /// <summary>What the player is, for a refusal said to them: "Ambitious, Proud and a Tactician".</summary>
     private static string Traits(EvalContext ctx, Character c)
     {

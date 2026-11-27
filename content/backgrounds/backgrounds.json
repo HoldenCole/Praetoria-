@@ -97,7 +97,7 @@
     {
       "id": "court_ward",
       "name": "Ward of the Court",
-      "description": "Fostered at a great house as a child — half hostage, half heir. You learned every corridor, every whisper, and exactly how little blood guarantees.",
+      "description": "Fostered at a great house as a child, half hostage, half heir. You learned every corridor, every whisper, and exactly how little blood guarantees.",
       "legitimacy": 4,
       "treasury": {
         "influence": 5

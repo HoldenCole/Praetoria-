@@ -26,7 +26,7 @@
     string devTrend = dev < devTop ? "growing toward " + devTop : dev > devTop ? "more than it can bear: falling toward " + devTop : "as high as it can bear";
 }
 <div class="sysp @(Infrastructure ? "infra" : "")" data-system="@sys.Id">
-    @if (sys.Description.Length > 0) { <p class="sysp-lede">@sys.Description</p> }
+    @if (sys.Description.Length > 0 && !Infrastructure) { <p class="sysp-lede">@sys.Description</p> }
     @if (planet == null)
     {
         var fc = new FoundColonyCommand(me.Id, sys.Id, cat); string? why = fc.Refusal(ctx);
@@ -49,8 +49,7 @@
             <span class="dv-text"><span class="dv-l"><b>Development</b><span class="ui-dim">@devTrend</span></span>
                 <Meter Value="@dev" Target="@devTop" Text="@($"{dev}")" Small="/100" Color="@(dev > devTop ? "#c4472f" : "#c9a24a")" /></span>
         </div>
-        <div class="muted small sysp-devnote">@devNext</div>
-        @if (!Infrastructure) { <LocalLawBlock HoldingId="@planet.Id" /> }
+        @if (!Infrastructure) { <div class="muted small sysp-devnote">@devNext</div> }
         @if (mine && ClaimSystem.Of(w, sys.Id, house.Id).ToList() is { Count: > 0 } claims)
         {
             /* the claims other houses hold in your belt: what each brings its house, what it owes you, and a price to buy it out
@@ -429,6 +428,8 @@
         </div>
     }
     }
+    @* the system's bodies first (the tab's subject), the world's local law after them (docs/VISUAL_SYSTEM.md 4.6) *@
+    @if (!Infrastructure && planet != null) { <LocalLawBlock HoldingId="@planet.Id" /> }
 </div>
 
 @code {
@@ -460,7 +461,7 @@
     /// <summary>The painting of a thing, where it has one; an empty plate of the same size where it has not.</summary>
     private RenderFragment Art(string id) => __builder =>
     {
-        if (G.WorkPicture(id) is { } src) { <img class="sw-art" src="@src" alt="" loading="lazy" /> } else { <span class="sw-art none" aria-hidden="true"></span> }
+        if (G.WorkPicture(id) is { } src) { <img class="sw-art" src="@src" alt="" loading="eager" decoding="async" /> } else { <span class="sw-art none" aria-hidden="true"></span> }
     };
     /// <summary>The lit globe a body is drawn as (Globe's classes): moons and comets grey, a belt as rock.</summary>
     private static string GlobeClass(Body b) => b.Class switch { "moon" or "comet" => "belt", "belt" => "belt", _ => b.Class };

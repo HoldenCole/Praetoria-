@@ -38,7 +38,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('ties: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.life .ac-fact')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 110)).join(' || ')));
   const box = await page.evaluate(() => { const r = document.querySelector('.panel.life').getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 900) }; });
   await page.screenshot({ path: shots + '/life-panel.png', clip: box });
-  await rail('Dynasty'); await wtab('The dead'); await page.waitForTimeout(600);
+  await rail('Dynasty'); await wtab('The dead'); await wtab('Health'); await page.waitForTimeout(600);   // the tab is named Health while nobody of the house has died
   console.log('health of the house: ' + await page.evaluate(() => [...document.querySelectorAll('.health-row')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' | ')));
   console.log('said of the dead: ' + await page.evaluate(() => [...document.querySelectorAll('.funeral')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' ## ')));
   const fb = await page.evaluate(() => { const els = [...document.querySelectorAll('.panel.funerals')]; if (!els.length) return null; const a = els[0].getBoundingClientRect(), b = els[els.length - 1].getBoundingClientRect(); return { x: Math.max(0, a.x), y: Math.max(0, a.y), width: a.width, height: Math.min(b.bottom - a.y, 900) }; });

@@ -1,5 +1,5 @@
 {
-  "//": "THE ESTATES SPEAK (GDD §6.1; the owner's ask: groups that support and dislike your laws). These read PolicySystem's flags — estate_hostile:<id>, estate_loyal:<id>, law:<law>:<option> — and move the estates' regard through the counters estate_offset:<id> (which decay), so a cultivated mood lasts a few turns and then the laws reassert themselves.",
+  "//": "THE ESTATES SPEAK (GDD §6.1; the owner's ask: groups that support and dislike your laws). These read PolicySystem's flags, estate_hostile:<id>, estate_loyal:<id>, law:<law>:<option>, and move the estates' regard through the counters estate_offset:<id> (which decay), so a cultivated mood lasts a few turns and then the laws reassert themselves.",
   "events": [
     {
       "id": "the_commons_march",

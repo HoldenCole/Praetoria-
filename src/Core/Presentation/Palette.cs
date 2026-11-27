@@ -51,7 +51,7 @@ public static class Palette
         "#FFB3B3", "#9EC5FF", "#FFF3A3", "#B5F0C9", "#E6EAF2", "#FFD1A8", "#D9C2FF", "#A8F0FF", "#FFC2E0", "#DCF5A8", "#FFE08A", "#A8E6DF"
     };
     /// <summary>Party colours for the Senate's benches, taken as they form.</summary>
-    public static readonly string[] Parties = { "#E63946", "#3A86FF", "#FFD60A", "#2EC27E", "#C9D1DC", "#FF8C42", "#9B5DE5", "#00D4FF", "#FF4FA3", "#A7E34B" };
+    public static readonly string[] Parties = { "#A3324A", "#3A86FF", "#8C9BB8", "#2EC27E", "#C9D1DC", "#14B8A6", "#9B5DE5", "#00D4FF", "#FF4FA3", "#A7E34B" };   // no gold, yellow, orange or alarm red (2.2): those mean yours and danger
 
     /// <summary>The colour of the index-th house in the order houses are assigned: 0 is the player's gold, the rest the house list.</summary>
     public static string House(int index) => index == 0 ? Player : Houses[(((index - 1) % Houses.Length) + Houses.Length) % Houses.Length];
