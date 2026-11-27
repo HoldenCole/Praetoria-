@@ -15,7 +15,7 @@ const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots 
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 2 }); page.setDefaultTimeout(60000);
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 2 }); page.setDefaultTimeout(180000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -87,7 +87,7 @@ require('fs').mkdirSync(shots, { recursive: true });
 
   // a world's card on the Worlds window: the local-law block, and a law set
   await rail('Worlds'); await page.waitForTimeout(900);
-  console.log('world picked: ' + await page.evaluate(() => { const r = document.querySelector('.screen.window tr.mine'); if (r) r.click(); return r ? r.innerText.replace(/\s+/g, ' ').slice(0, 60) : 'no world of yours in the list'; })); await page.waitForTimeout(700);
+  console.log('world picked: ' + await page.evaluate(() => { const r = document.querySelector('.screen.window tr.mine') || document.querySelector('.screen.window .wl-world.mine .ww-row'); if (r) r.click(); return r ? r.innerText.replace(/\s+/g, ' ').slice(0, 60) : 'no world of yours in the list'; })); await page.waitForTimeout(700);
   const block = await text('[data-local-laws]'); console.log('local-law block: ' + suspicious(block) + ' · ' + block.slice(0, 500));
   await shot('[data-local-laws]', 'local-laws-block.png');
   const set = await page.evaluate(() => { const want = ['dole:corn_dole', 'local_tithe:remitted', 'charter:chartered']; for (const k of want) { const b = document.querySelector('[data-local-option="' + k + '"]'); if (b && !b.disabled) { b.click(); return k; } } const b = [...document.querySelectorAll('[data-local-option]')].find(e => !e.disabled); if (b) { b.click(); return b.getAttribute('data-local-option'); } return ''; });
