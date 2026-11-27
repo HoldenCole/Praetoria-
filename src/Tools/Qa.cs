@@ -112,6 +112,13 @@ internal static class Qa
 
         Section("Events that never fired", never);
         Section($"Rarely fired (≤ {Math.Max(1, runs / 10)} across all runs)", rare.Select(kv => $"{kv.Key} ×{kv.Value}"));
+        // the other end: a report that crowds the briefing, with its share of all that fired, so a new batch can be seen not to drown the rest
+        int firedTotal = Math.Max(1, fired.Values.Sum());
+        Section("Most fired (top 30, with the share of all reports)", fired.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(30)
+            .Select(kv => $"{kv.Key} ×{kv.Value} ({100.0 * kv.Value / firedTotal:0.0}%)"));
+        var fileOf = EventFiles(contentRoot);
+        Section("Reports fired by the file they come from", content.Events.GroupBy(e => fileOf.GetValueOrDefault(e.Id, "?")).Select(g => (file: g.Key, n: g.Sum(e => fired.GetValueOrDefault(e.Id)), kinds: g.Count(e => fired.ContainsKey(e.Id)), all: g.Count()))
+            .OrderByDescending(x => x.n).ThenBy(x => x.file, StringComparer.Ordinal).Select(x => $"{x.file}: {x.n} ({100.0 * x.n / firedTotal:0.0}%), {x.kinds} of {x.all} kinds"));
         Section("Choices never taken (on events that did fire)", neverTaken);
         Section("Commands the randomised player gave", taken.Where(kv => kv.Key.StartsWith("cmd/")).OrderByDescending(kv => kv.Value).Select(kv => $"{kv.Key[4..]} ×{kv.Value}"));
         Section("The triumph, the charge and the gold: what the randomised player gave", ImperatorLabels.Select(l => $"{l} ×{taken.GetValueOrDefault("imp/" + l)} (offered {taken.GetValueOrDefault("imp-offered/" + l)})"));
@@ -192,6 +199,21 @@ internal static class Qa
     {
         var line = (ex.StackTrace ?? "").Split('\n').FirstOrDefault(l => l.Contains("Praetoria.Core")) ?? (ex.StackTrace ?? "").Split('\n').FirstOrDefault() ?? "";
         return line.Trim();
+    }
+
+    /// <summary>Which events file each event id is written in, for the soak's count by file.</summary>
+    private static Dictionary<string, string> EventFiles(string contentRoot)
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        var opts = new System.Text.Json.JsonDocumentOptions { CommentHandling = System.Text.Json.JsonCommentHandling.Skip, AllowTrailingCommas = true };
+        foreach (var f in Directory.EnumerateFiles(Path.Combine(contentRoot, "events"), "*.json"))
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(f), opts);
+            if (!doc.RootElement.TryGetProperty("events", out var list)) continue;
+            foreach (var e in list.EnumerateArray())
+                if (e.TryGetProperty("id", out var id) && id.GetString() is { } s) map[s] = Path.GetFileNameWithoutExtension(f);
+        }
+        return map;
     }
 
     private static readonly Dictionary<string, string> _contentCache = new();
