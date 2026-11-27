@@ -117,8 +117,6 @@
 }
 
 /* the foot: what a year asks of you, or what still stands in the way, and the gold plate that begins the saga */
-.fr-foot { flex: none; position: relative; z-index: 2; display: flex; align-items: center; gap: 1.0667rem; min-height: 4rem; padding: .5333rem 1.6rem .5333rem 1.8667rem;
-  background: linear-gradient(180deg, #161b25, #0b0e14); box-shadow: inset 0 1px 0 rgba(201,162,74,.5), 0 -1px 0 #000, 0 -8px 16px rgba(0,0,0,.35); }
 .fr-foot > .fr-begin { margin-left: auto; }
 .fr-turn { flex: 1 1 auto; min-width: 0; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); }
 .fr-turn b { font-weight: 600; color: var(--brass-ink); margin-right: .2rem; }

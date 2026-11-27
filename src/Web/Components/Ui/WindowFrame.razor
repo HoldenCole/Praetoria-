@@ -1,24 +1,42 @@
 @* The window (docs/VISUAL_SYSTEM.md 4.1): the brass frame as an overlay above a leather body cut to the frame's chamfer, so a
-   scrolling body never clips it; a brass roundel with a drawn cross closes it. Header and Tabs stand above the body; the body
+   scrolling body never clips it; a brass roundel with a drawn cross closes it. Header and TabRow stand above the body; the body
    scrolls as one page under a thin brass scrollbar and fades over its last 56px. A window whose body does not scroll ends at its
-   content height (Scrolls false), so the map shows below it. Docked puts it beside the rail, at the shell's width. *@
+   content height (Scrolls false), so the map shows below it. Foot is a fixed strip under the body for the window's one gold plate
+   (the creator's Begin, the Academy's End the term). Bare puts the content straight in the frame, for a window that lays out its
+   own header, body and foot. Docked puts it beside the rail, at the shell's width. *@
 <section class="ui-win @(Docked ? " docked" : "") @(Class.Length > 0 ? " " + Class : "")" @attributes="Attrs">
     <div class="ui-win-body">
-        @Header
-        @Tabs
-        <div class="ui-wbody @(Scrolls ? " fades" : " still")">@ChildContent</div>
+        @if (Bare)
+        {
+            @ChildContent
+        }
+        else
+        {
+            @Header
+            @TabRow
+            <div class="ui-wbody @(Scrolls ? " fades" : " still") @(BodyClass.Length > 0 ? " " + BodyClass : "")">@ChildContent</div>
+            @if (Foot != null) { <footer class="ui-win-foot @(FootClass.Length > 0 ? " " + FootClass : "")">@Foot</footer> }
+        }
     </div>
     <i class="ui-win-frame" aria-hidden="true"></i>
     @if (OnClose.HasDelegate)
     {
-        <button class="ui-round ui-close win-close" title="Close (Esc)" aria-label="Close" @onclick="OnClose"><Icon Name="close" Tone="ivory" Size="13" /></button>
+        <button class="ui-round ui-close @CloseClass" title="@CloseTip" aria-label="@CloseTip" @onclick="OnClose"><Icon Name="close" Tone="ivory" Size="13" /></button>
     }
 </section>
 @code {
     [Parameter] public RenderFragment? Header { get; set; }
-    [Parameter] public RenderFragment? Tabs { get; set; }
+    /// <summary>The tabs under the header (a Tabs part). Named TabRow so a Tabs part can sit inside it without the two names meeting.</summary>
+    [Parameter] public RenderFragment? TabRow { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Foot { get; set; }
+    [Parameter] public string FootClass { get; set; } = "";
+    [Parameter] public string BodyClass { get; set; } = "";
+    [Parameter] public bool Bare { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public string CloseTip { get; set; } = "Close (Esc)";
+    /// <summary>The close roundel's own class: win-close, which the scripts press to close a window, unless a window must not be closed that way.</summary>
+    [Parameter] public string CloseClass { get; set; } = "win-close";
     [Parameter] public bool Scrolls { get; set; } = true;
     [Parameter] public bool Docked { get; set; }
     [Parameter] public string Class { get; set; } = "";

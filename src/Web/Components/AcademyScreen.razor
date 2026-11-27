@@ -37,8 +37,8 @@
     };
 }
 <div class="academy ac @(imperium ? "institute" : "")" style="--accent:@house.AccentColor" data-academy-tab="@_tab">
-    <section class="ui-win ac-win">
-        <div class="ui-win-body">
+    <WindowFrame Class="ac-win" BodyClass="ac-body" FootClass="ac-foot">
+        <Header>
             <WindowHeader Scene="@(imperium ? "senate" : "audience")" Kicker="@($"Term {a.Term} of {a.Terms} · {a.TermName}")" Title="@a.SchoolName" Glyph="@(imperium ? "eagle-emblem" : "open-book")" Figures="figures" Class="ac-head">
                 <Facts>
                     <span><Icon Name="roman-toga" Tone="ivory" Size="16" />Cadet <b>@p.Name</b> of @house.Name, @p.Age</span>
@@ -51,9 +51,9 @@
                 <button class="ui-btn sm" title="Save the year as it stands" @onclick="OnSave"><Icon Name="save" Tone="ivory" Size="14" />Save</button>
                 <button class="ui-btn sm" title="Leave to the title screen" @onclick="OnQuit"><Icon Name="quit" Tone="ivory" Size="14" />Quit</button>
             </span>
-            <Tabs Items="tabs" Active="@_tab" OnPick="t => _tab = t" />
-
-            <div class="ui-wbody fades ac-body">
+        </Header>
+        <TabRow><Tabs Items="tabs" Active="@_tab" OnPick="t => _tab = t" /></TabRow>
+        <ChildContent>
             @if (_tab == "term")
             {
                 <p class="ui-lede">@if (open > 0) { <text><b>@Counted.Matters(open)</b> @(open == 1 ? "waits" : "wait") for you at the door. </text> } else { <text>Nothing waits at the door. </text> }You are reading <b>@(reading?.Name ?? "nothing")</b> this term@(a.FinalTerm ? ", the last before the board commissions you." : $", with {Counted.Terms(termsLeft)} after it.")</p>
@@ -241,15 +241,12 @@
                     @foreach (var line in a.Record) { <div class="line ac-line">@line</div> }
                 </Section>
             }
-            </div>
-
-            <footer class="ac-foot">
+        </ChildContent>
+        <Foot>
                 <span class="ac-foot-t">@(a.FinalTerm ? $"You leave at seventeen, commissioned into {(asked != null ? asked.Name : "the service")}. The world begins." : $"{Counted.Terms(termsLeft)} {Counted.Remain(termsLeft)} after this one.")</span>
                 <button class="ui-btn primary ac-end" @onclick="OnEndTerm" title="@(open > 0 ? $"{Counted.Matters(open)} unanswered: ending the term sets them aside" : a.FinalTerm ? "Pass out of the Academy and begin" : "End the term")">@(a.FinalTerm ? "Pass out" : "End the term")<Icon Name="chev" Tone="dark" Size="13" />@if (open > 0) { <span class="ac-badge">@open</span> }</button>
-            </footer>
-        </div>
-        <i class="ui-win-frame" aria-hidden="true"></i>
-    </section>
+        </Foot>
+    </WindowFrame>
 </div>
 
 @code {

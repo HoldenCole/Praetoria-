@@ -21,7 +21,7 @@
         <ChildContent>
         @if (shown != null)
         {
-            <Row Name="@shown.Name" SubText="@(named != null ? "Named by you, whatever the law would say" : "By " + house.SuccessionLaw.Replace('_', ' '))" Class="dy-heir-row">
+            <Row Wrap="true" Name="@shown.Name" SubText="@(named != null ? "Named by you, whatever the law would say" : "By " + house.SuccessionLaw.Replace('_', ' '))" Class="dy-heir-row">
                 <Picture><Portrait Id="@shown.Id" Name="@shown.Name" Sex="@shown.Sex" Age="@shown.Age" Alive="@shown.Alive" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
                 <Cells><span class="ui-cell" title="Their age">@shown.Age</span></Cells>
             </Row>

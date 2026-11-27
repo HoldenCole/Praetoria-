@@ -55,8 +55,8 @@
 <div class="chron-win" data-chronicle="@_whose" style="--accent:@house.AccentColor">
     <WindowHeader Scene="@(mourning ? "funeral" : "dispatch")" Kicker="@("The record of " + house.Name)" Title="The Chronicle" Glyph="scroll-unfurled" Figures="figures" Class="cr-head">
         <Facts>
-            <span title="Every line the Reach has written since the first year"><Icon Name="scroll-quill" Tone="ivory" Size="16" /><span><b>@w.History.Count</b> entries over @Counted.Years(w.Turn)</span></span>
-            <span title="@($"The seat has passed {Counted.Times(w.Successions.Count)}")"><Icon Name="family-tree" Tone="ivory" Size="16" /><span>You are the <b>@Ordinal(gen)</b> of your line to hold the seat</span></span>
+            <span title="Every line the Reach has written since the first year"><Icon Name="scroll-quill" Tone="ivory" Size="16" /><b>@w.History.Count</b> entries over @Counted.Years(w.Turn)</span>
+            <span title="@($"The seat has passed {Counted.Times(w.Successions.Count)}")"><Icon Name="family-tree" Tone="ivory" Size="16" />You are the <b>@Ordinal(gen)</b> of your line to hold the seat</span>
         </Facts>
     </WindowHeader>
     <Tabs Items="tabs" Active="@_whose" OnPick="k => _whose = k" />

@@ -11,8 +11,6 @@
 
 .laws-win { --lw-name: 10.6667rem; --lw-ic: 2.2667rem; --lw-gut-l: 1.8667rem; --lw-gut-r: 1.6rem; container: lw / inline-size; }
 
-/* the old window rule for every h3 in a docked window (app.css, ".game .win-body h3") outweighs the section heading's own: put it back */
-.game .win-body .laws-win .ui-sec h3, .game .win-body .local-summary .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
 
 /* ---- the painted header: the court, its hall and the bench at the end of it; the five figures spread along the plinth ----
    The court is a bright hall of white columns, so the shade behind the text column is held dark further across than on a darker

@@ -71,9 +71,10 @@
     if (m && (lines.length === 1 && m[2].length > 24 || headIcon)) { const h = document.createElement('b'); if (headIcon) h.innerHTML = glyph(headIcon, 'ivory'); h.append(m[1]); tipEl.appendChild(h); lines[0] = m[2]; const own = idOf(m[1]); if (own) skip.add(own); }
     else if (headIcon) { const h = document.createElement('b'); h.innerHTML = glyph(headIcon, 'ivory'); h.append(lines.shift()); tipEl.appendChild(h); if (!lines.length) return ''; }
     for (const ln of lines) {
-      // "[icon] words = value": an effect line, its value red or green by its sign; "key: Press [1] to choose it": the footer of keys
-      const fx = /^\[([\w-]+)\] (.+?) = (.+)$/.exec(ln);
-      if (fx) { const d = document.createElement('div'); d.className = 'fx'; const w = document.createElement('span'); write(w, fx[2], skip, budget); const v = document.createElement('span'); v.className = 'v' + (/^[−-]/.test(fx[3]) ? ' down' : /^\+/.test(fx[3]) ? ' up' : ''); v.textContent = fx[3]; d.innerHTML = glyph(fx[1], ''); d.append(w, v); tipEl.appendChild(d); continue; }
+      // "[icon] words = value": an effect line, its value red or green by its sign; "=+ value" and "=- value" say outright whether it is
+      // good or bad for you (strain +10 is bad), "=~ value" neither; "key: Press [1] to choose it": the footer of keys
+      const fx = /^\[([\w-]+)\] (.+?) =([+~-])? (.+)$/.exec(ln);
+      if (fx) { const d = document.createElement('div'); d.className = 'fx'; const w = document.createElement('span'); write(w, fx[2], skip, budget); const v = document.createElement('span'); const tone = fx[3] === '+' ? ' up' : fx[3] === '-' ? ' down' : fx[3] === '~' ? '' : /^[−-]/.test(fx[4]) ? ' down' : /^\+/.test(fx[4]) ? ' up' : ''; v.className = 'v' + tone; v.textContent = fx[4]; d.innerHTML = glyph(fx[1], ''); d.append(w, v); tipEl.appendChild(d); continue; }
       if (/^key: /.test(ln)) { const f = document.createElement('div'); f.className = 'foot'; for (const part of ln.slice(5).split(/(\[[^\]]+\])/)) { if (/^\[.+\]$/.test(part)) { const k = document.createElement('kbd'); k.textContent = part.slice(1, -1); f.append(k); } else if (part) f.append(part); } tipEl.appendChild(f); continue; }
       // "* sentence": one item of a list (the alerts of a badge), a whole sentence with a brass diamond before it, never split in two
       if (/^\* /.test(ln)) { const d = document.createElement('div'); d.className = 'li'; write(d, ln.slice(2), skip, budget); tipEl.appendChild(d); continue; }

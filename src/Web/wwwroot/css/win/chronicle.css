@@ -4,9 +4,6 @@
    Check, EmptyState. */
 .chron-win { container: cr / inline-size; }
 
-/* the old window rule for every h3 in a docked window (app.css, ".game .win-body h3") outweighs the section heading's own: put it back */
-.game .win-body .chron-win .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
-.game .win-body .chron-win .ui-sec h3::before, .game .win-body .chron-win .ui-sec h3::after { display: none; }
 
 /* the painted header: the dispatch (or the funeral while the house mourns); the facts held to the dark side of the shade */
 .chron-win .ui-head-art { background-position: center 45%; }

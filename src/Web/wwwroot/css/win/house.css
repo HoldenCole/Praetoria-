@@ -22,12 +22,6 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 
 /* ---- the window ---- */
 .hs-win { --hs-gut-l: 1.8667rem; --hs-gut-r: 1.6rem; container: hs / inline-size; }
-/* the old window rules for every h3, table and panel in a docked window (app.css, ".game .win-body ...") outweigh the parts' own: put them back */
-.game .win-body .hs-win .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
-.game .win-body .hs-win .ui-table th { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; color: var(--ink-dim); border-bottom: 1px solid rgba(201,162,74,.45); }
-.game .win-body .hs-win .ui-table tbody tr:nth-child(even) { background: none; }
-.game .win-body .hs-win .ui-table tbody tr:hover { background: none; }
-.game .win-body .hs-win section.panel { margin: 0; padding: 0; }
 
 /* the painted header: the world, its night side and the citadel; the shade held dark behind the text, the plinth's five figures spread */
 .hs-win .ui-head-art { background-position: center 46%; }
@@ -148,13 +142,6 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 .hs-meters { display: grid; gap: .2rem; padding-top: .1333rem; }
 .hs-meters .ui-meter[title] { cursor: help; }
 .hs-slots .ui-slots-head span:last-child { font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); letter-spacing: 0; text-transform: none; }
-.hs-slots .ui-slots-head[title] { cursor: help; }
-.hs-slots .ui-slot.hs-noart, .hs-slots .ui-slot.hs-other { display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #252c3b, #0a0c11); }
-.hs-slots .ui-slot.hs-other { width: 2.1333rem; }
-.hs-slots .ui-slot.hs-rising { display: grid; place-items: center; align-content: center; gap: 1px; width: 2.8rem; background: radial-gradient(circle at 50% 40%, #2a2416, #0b0a07); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.75), 0 2px 4px #000; }
-.hs-slots .ui-slot.hs-rising small { font: 600 .8rem/1 var(--f-ui); color: var(--brass-hi); }
-.hs-slots .ui-slot.hs-rising.stalled { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(224,85,63,.75), 0 2px 4px #000; }
-.hs-slots .ui-slot.hs-rising.stalled small { color: #ff8a70; }
 .hs-world .ui-wstrip { margin: .8rem 0 0; }
 .hs-gov { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; margin-top: .6667rem; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
 .hs-gov b { color: var(--ink); font-weight: 600; }

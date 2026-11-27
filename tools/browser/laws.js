@@ -99,7 +99,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await closeWindows();
 
   // the Senate: the Act picker grouped by category
-  await rail('Senate'); await page.waitForTimeout(900); await tab('Move a motion');
+  await rail('Senate'); await page.waitForTimeout(900); await tab('Motions');
   await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => e.innerText.startsWith('Show what could be moved')); if (b) b.click(); });
   await page.waitForTimeout(400);
   const groups = await page.evaluate(() => [...document.querySelectorAll('optgroup[data-act-category]')].map(g => g.getAttribute('label') + ' (' + g.children.length + ')'));
@@ -113,7 +113,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const el = await page.evaluateHandle(() => { const s = [...document.querySelectorAll('select.sel')].find(x => x.querySelector('optgroup[data-act-category]')); return s ? s.closest('.proposal') : null; });
   if (el && el.asElement()) { await el.asElement().screenshot({ path: shots + '/senate-act-picker.png' }); console.log('saved senate-act-picker.png'); }
   // the ladder of offices shows the age the law of the Reach sets for each rung
-  await tab('Ladder and courts'); console.log('ladder ages: ' + await page.evaluate(() => { const t = (document.querySelector('.screen.window') || document.body).innerText; return (t.match(/from \d+/g) || []).slice(0, 6).join(', ') || 'none shown'; }));
+  await tab('Ladder'); console.log('ladder ages: ' + await page.evaluate(() => { const t = (document.querySelector('.screen.window') || document.body).innerText; return (t.match(/from \d+/g) || []).slice(0, 6).join(', ') || 'none shown'; }));
 
   // the larger text size (an 18px root) at 1600 by 1000 and 1366 by 768, and the large one (16.5px) at 1366 by 768: every tab of the
   // Laws window, and what is cut short

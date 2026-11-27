@@ -83,8 +83,8 @@
             <Section Title="Goods" Count="@goods.Count.ToString()" Info="@MovesAPrice">
                 <Right><span title="@(mk.OwnMarket ? "" : $"You have no market of your own and do not hold the capital: the caravaneers carry your orders at a {mk.SpreadPct}% spread. A market, a free port or a patronage office narrows it to {c.Market.Rules.SpreadPct}%.")">@Cap(terms) · <b>@mk.SpreadPct%</b> spread</span></Right>
                 <ChildContent>
-                <div class="ex-goods" data-goods-table>
-                    <DataTable Class="ex-table">
+                <div class="ex-goods">
+                    <DataTable Class="ex-table" data-goods-table="1">
                         <Head>
                             <th title="Credits a unit; hover a good for what moves it">Good</th><th>Price</th><th title="The last twelve years">12 years</th><th title="The change over five years">5 yrs</th><th title="What the merchants hold">Stock</th>
                             <th title="What your house holds, and what it makes or burns a year; and all there is in the Reach: the merchants' stock and every house's store. Who holds the most is under the table.">Held</th>
@@ -111,12 +111,7 @@
                             <span class="ui-order-nm"><Icon Name="@IconOf(sel.Id)" Tone="@ToneOf(sel.Id)" Size="18" />@sel.Name</span>
                             <span class="ex-quote" title="What one unit costs you to buy and brings you sold, before your order's own weight: the price, your spread, and what the Reach's law of trade adds or takes.">@(sel.CanBuy && sel.BuyRefusal == null ? $"buy {Money.Show(sel.BuyUnit)}" : "not to be bought") · sell @Money.Show(sel.SellUnit)</span>
                             <span class="ui-order-sp"></span>
-                            <span class="ui-seg-l" title="How many units to buy or sell at once. Change it: the plates show the lot and what it comes to.">Lot</span>
-                            <span class="ui-step ex-step">
-                                <button aria-label="Fewer" disabled="@(qty <= 1)" @onclick="() => _qty[sid] = Math.Max(1, qty - 1)"><Icon Name="minus" Tone="ivory" Size="12" /></button>
-                                <input type="number" min="1" max="999" value="@qty" aria-label="Units in the lot" @oninput="e => SetQty(sid, e)" />
-                                <button aria-label="More" disabled="@(qty >= 999)" @onclick="() => _qty[sid] = Math.Min(999, qty + 1)"><Icon Name="plus" Tone="ivory" Size="12" /></button>
-                            </span>
+                            <Stepper Label="Lot" LabelTip="How many units to buy or sell at once. Change it: the plates show the lot and what it comes to." Value="qty" Min="1" Max="999" Input="true" Live="true" InputLabel="Units in the lot" OnChange="v => _qty[sid] = v" />
                             @if (sel.CanBuy) { <Plate Label="@($"Buy {qty}")" CostIcon="credits" CostText="@(buy.Credits > 0 ? Money.Show(buy.Credits) : "nothing")" Locked="@(buy.Refusal != null)" Disabled="@(buy.Refusal != null)" ShowNeed="false" Need="@(buy.Refusal ?? "")" Tip="@($"[credits] Buy {qty} {sel.Name.ToLowerInvariant()}\n{Money.Show(buy.UnitPrice)} a unit with your order's weight\n[{IconOf(sel.Id)}] {sel.Name} = +{qty}, {sel.Held} to {sel.Held + qty}\n[credits] Credits = −{Money.Show(buy.Credits)}")" OnClick="() => G.Execute(new BuyGoodCommand(pid, sid, qty, t))" /> }
                             @if (sel.CanSell) { <Plate Label="@($"Sell {qty}")" CostIcon="credits" CostText="@(sell.Refusal == null ? Money.Show(sell.Credits) : "nothing")" Locked="@(sell.Refusal != null)" Disabled="@(sell.Refusal != null)" ShowNeed="false" Need="@(sell.Refusal ?? "")" Tip="@($"[credits] Sell {qty} {sel.Name.ToLowerInvariant()}\n{Money.Show(sell.UnitPrice)} a unit with your order's weight\n[{IconOf(sel.Id)}] {sel.Name} = −{qty}, {sel.Held} to {Math.Max(0, sel.Held - qty)}\n[credits] Credits = +{Money.Show(sell.Credits)}")" OnClick="() => G.Execute(new SellGoodCommand(pid, sid, qty, t))" /> }
                         }
@@ -133,7 +128,7 @@
 
             <div data-holders-fold>
             <Section Title="Who holds what" Count="@goods.Count(g => g.Holders.Count > 0).ToString()" Info="@FromStores()">
-                <Right><button class="ui-link" data-holders-toggle @onclick="() => _holders = !_holders">@(_holders ? "Hide" : "Show what a corner would take")<Icon Name="chev" Size="11" Class="flat" /></button></Right>
+                <Right><Link data-holders-toggle="1" OnClick="() => _holders = !_holders" Label='@(_holders ? "Hide" : "Show what a corner would take")' /></Right>
                 <ChildContent>
                 @if (_holders)
                 {
@@ -182,7 +177,6 @@
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private readonly Dictionary<string, int> _qty = new();
     private int Qty(string good) => _qty.TryGetValue(good, out var q) ? q : 5;
-    private void SetQty(string good, ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var q)) _qty[good] = Math.Clamp(q, 1, 999); }
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
     /// <summary>A good's glyph and its metal (docs/VISUAL_SYSTEM.md 8.3).</summary>

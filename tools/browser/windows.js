@@ -14,9 +14,10 @@ const quick = process.argv[4] === 'quick';
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
+  // --disable-gpu-rasterization: under SwiftShader a raster tile of a long window is sometimes painted blank (seen on the House's Household tab)
+  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-rasterization'] });
   const only = (process.env.PRAETORIA_ONLY || '').toLowerCase().split(',').map(x => x.trim()).filter(Boolean);
-  const page = await browser.newPage({ viewport: { width: +(process.env.PRAETORIA_W || 1600), height: +(process.env.PRAETORIA_H || 1000) }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 1) }); page.setDefaultTimeout(60000);
+  const page = await browser.newPage({ viewport: { width: +(process.env.PRAETORIA_W || 1600), height: +(process.env.PRAETORIA_H || 1000) }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 1) }); page.setDefaultTimeout(180000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -26,10 +27,12 @@ require('fs').mkdirSync(shots, { recursive: true });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   for (let y = 0; y < years; y++) await endTurn();
   console.log('turn ' + await turnNo());
+  await page.mouse.move(1598, 640);   // the pointer off the console, so no tooltip of its own stands in every picture
   const rails = await page.evaluate(() => [...document.querySelectorAll('.rail-btn')].map(e => e.innerText.trim().toLowerCase()).filter(n => n && n !== 'galaxy'));
   // what a window says of itself: how far it scrolls, and its sections that are a heading over one muted line
   const look = () => page.evaluate(() => {
-    const body = document.querySelector('.screen.window .win-body') || document.querySelector('.ui-win .ui-wbody'); if (!body) return null;
+    // a window rebuilt on the shared parts scrolls inside its .ui-wbody (or, for You, the page that holds the header); the old ones in .win-body
+    const win = document.querySelector('.screen.window'); const body = (win && (win.querySelector('.ui-wbody') || win.querySelector('.win-body'))) || document.querySelector('.ui-win .ui-wbody'); if (!body) return null;
     const hollow = [...body.querySelectorAll('section.panel')].filter(s => {
       const h = s.querySelector('h3'); if (!h || s.getBoundingClientRect().height === 0) return false;
       const rest = [...s.children].filter(c => c !== h && c.getBoundingClientRect().height > 0);
@@ -44,10 +47,11 @@ require('fs').mkdirSync(shots, { recursive: true });
     await page.waitForTimeout(1500);
     const tabs = await page.evaluate(() => [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung, .ui-win .ui-tabs .ui-tab, .screen.window .ui-tabs .ui-tab')].map(e => e.innerText.trim()));
     for (let i = 0; i < Math.max(1, tabs.length); i++) {
+      await page.mouse.move(1598, 640);
       if (tabs.length > 0) { await page.evaluate(i => { const b = [...document.querySelectorAll('.screen.window .cw-tabs .rung, .screen.window .ex-tabs .rung, .ui-win .ui-tabs .ui-tab, .screen.window .ui-tabs .ui-tab')][i]; if (b) b.click(); }, i); await page.waitForTimeout(700); }
       const l = await look(); if (!l) { console.log(r + ': no window opened'); continue; }
-      const name = r + (tabs.length > 0 ? '_' + tabs[i].toLowerCase().replace(/[^a-z]+/g, '-').replace(/-+$/, '') : '');
-      if (!quick) await page.screenshot({ path: shots + '/win_' + name + '.png' });
+      const name = r + (tabs.length > 0 ? '_' + tabs[i].replace(/\s+(\d+(\/\d+)?|!)$/, '').toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-+|-+$/g, '') : '');   // a tab's count badge is not part of its name
+      if (!quick) await page.screenshot({ path: shots + '/win_' + name + '.png', timeout: 180000 });
       if (l.over > 40) long++; hollowAll += l.hollow.length;
       console.log(name.padEnd(40) + (l.over > 40 ? 'scrolls ' + l.over + 'px' : 'fits').padEnd(16) + (l.hollow.length ? 'heading over nothing: ' + l.hollow.join(' | ') : ''));
     }

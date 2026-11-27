@@ -25,11 +25,25 @@ Where the system lives in the client (the foundation, 2026-11-27; the windows an
 - **Icons**: `src/Web/Services/Icons.cs` holds every glyph; `python3 tools/icons.py` writes the sprite and the six ramps into
   `index.html` once, outside Blazor's root, and `tests/IconSpriteTests.cs` fails when the two drift apart.
 - **Tooltips**: `js/tips.js` draws the framed tooltip of 4.14. A tooltip's text may open with `[icon] Title — text` for a head
-  with its glyph, hold effect lines written `[icon] words = value` (red or green by the sign) and end with `key: Press [1] ...`.
+  with its glyph, hold effect lines written `[icon] words = value` (red or green by the sign; `=+` and `=-` say outright that
+  it is good or bad for you, `=~` neither) and end with `key: Press [1] ...`.
 - **Colour**: `src/Core/Presentation/Palette.cs` (`Player`, the house list of 2.2, `RivalAllowed`), held by `tests/PaletteTests.cs`.
 - **Textures and paths**: `--tex-steel` and `--tex-leather` are registered as urls (`@property`), so a window's sheet in
   `css/win/` may use them; any other `url()` written in a window's sheet is relative to `css/win/` (`../../img/...`).
 - **Scripts**: WindowFrame's close keeps the class `win-close` and Tabs' buttons carry `data-tab`, so `tools/browser` finds them.
+- **What the parts take** (added when the windows were merged, 2026-11-27, from what each window had to build for itself): any
+  `data-*` attribute on Link, Section (the band), WarnStrip, DataTable (its wrap, with the order bar), Slots, Stepper (the figure)
+  and Plate, and on one tab through `Tabs.Tab(Attrs:)`; `Tabs.Tab(CountTip:)` and `Tabs Sticky StickyTop`; `WindowHeader.Figure`
+  with `OnClick` (the figure is a button) and `Attrs`, `WindowHeader Action` (one plate at the top right) and `Strip`/`StripKicker`
+  (a person's header collapsing to the 64px strip); `WindowFrame Foot` (the fixed foot with the window's gold plate), `TabRow`
+  (named so a Tabs part fits inside it), `BodyClass`, `Bare`, `CloseTip`, `CloseClass`; `Stepper Format` (money through
+  `Money.Show`), `Input` and `Live` (a field to type in), `FewerTip`/`MoreTip`; `Slots Items` (built, built with no painting,
+  rising, in use, free); `Segmented Refusal` (an option dark, with why) and `Note`; `Plate KeepIcon` (unavailable now, with its own
+  glyph) and `Stop`; `Row Wrap` and the `--ui-row-gl`, `--ui-row-gr`, `--ui-row-gap` gutters; `WarnStrip Note` (nothing to do
+  here); `Portrait Titled`. The old window rules in `app.css` (every `h3`, `th`, card and `details` of `.game .win-body`) leave
+  the section band, the table and everything in a `.ui-wbody` alone, so a window no longer resets them; `.warn` and `.good` weigh
+  nothing (`:where`). A plate's corners are cut by its frame and four dark corner cuts, not by a clip-path (a clip-path on every
+  plate stopped Chromium's software raster painting a long page).
 - **The shell** (step 3, 2026-11-27): `Pages/Index.razor` (the rail with its groups, pips and standard; the docked-window host;
   the console and End Year), `Components/TopBar.razor`, `Outliner.razor`, `AlertsRow.razor`, `Toasts.razor`, `ProfileCard.razor`,
   the boxes (`YearBrief`, `Primer`, `SavesBox`, `SettingsBox` with "Show rail labels", `ConfirmBox`) in `Components/Ui/Box.razor`,

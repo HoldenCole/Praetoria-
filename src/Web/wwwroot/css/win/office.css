@@ -58,7 +58,7 @@
   transition: transform .18s ease-out; animation: or-arrive .5s ease-out both; }
 .or-visitor:nth-child(2) { animation-delay: .08s; } .or-visitor:nth-child(3) { animation-delay: .16s; } .or-visitor:nth-child(4) { animation-delay: .24s; } .or-visitor:nth-child(5) { animation-delay: .32s; }
 @keyframes or-arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.or-visitor .portrait, .or-visitor .nm, .or-visitor .biz { pointer-events: none; }   /* the visitor's own tooltip (their business), not the plate's name */
+.or-visitor .nm, .or-visitor .biz { pointer-events: none; }   /* the visitor's own tooltip (their business); the plate inside carries no title of its own (Portrait Titled) */
 .or-visitor .portrait { width: 12.2cqh !important; height: 15.2cqh !important; min-width: 74px; min-height: 92px; filter: drop-shadow(0 10px 14px rgba(0,0,0,.7)); transition: filter .18s; }
 .or-visitor::after { content: ""; position: absolute; left: 10%; right: 10%; bottom: -.4rem; height: .8rem; border-radius: 50%; background: radial-gradient(ellipse, rgba(0,0,0,.6), transparent 70%); z-index: -1; }
 .or-visitor .nm { position: relative; margin-top: .4rem; padding: .3rem .6667rem .2667rem; max-width: 100%; font: 600 .8667rem/1.1 var(--f-display); letter-spacing: .03em; color: #1d1506; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -100,9 +100,6 @@
 .or-kv.sk { grid-template-columns: 1fr; row-gap: .3333rem; }
 .or-kv.sk > b { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .2667rem .8rem; font-weight: 500; text-align: left; }
 .or-sk { display: inline-flex; align-items: center; gap: .2667rem; white-space: nowrap; cursor: help; } .or-sk .icon { width: .9333rem; height: .9333rem; }
-/* the old window rule for every h3 in a docked window (app.css, ".game .win-body h3") outweighs the section heading's own: put it back */
-.game .win-body .office-room .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
-.game .win-body .office-room .ui-sec h3::before, .game .win-body .office-room .ui-sec h3::after { display: none; }
 .or-panel .ui-sec { margin-top: .9333rem; }
 .or-lines { padding: .2667rem 1.2rem 0 1.3333rem; }
 .or-lines .line { position: relative; padding: .4rem 0 .4rem .9333rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); border-bottom: 1px solid rgba(255,255,255,.05); }

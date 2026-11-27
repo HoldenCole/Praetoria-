@@ -389,7 +389,7 @@
     }
     </div>
 
-    <footer class="fr-foot">
+    <footer class="ui-win-foot fr-foot">
         @if (problems.Count > 0)
         {
             <div class="ws-problems" title="@string.Join("\n", problems.Take(8).Select(pr => Cap(pr) + "."))"><Icon Name="threat" Tone="ember" Size="18" /><b>Before this character can begin</b>@foreach (var pr in problems.Take(8)) { <div>@Cap(pr).</div> }@if (problems.Count > 1) { <span class="ws-more">and @(Math.Min(8, problems.Count) - 1) more</span> }</div>

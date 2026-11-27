@@ -69,11 +69,8 @@
    passed, a 64px strip (your face, your name) stays at the top with the tabs under it. *@
 <div class="you-win" style="--accent:@house.AccentColor" data-you="@_tab">
     <div class="ui-wbody fades you-scroll">
-        <div class="you-strip" aria-hidden="true">
-            <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="40" Height="48" Opens="false" />
-            <div><div class="ui-kick">@house.Name</div><b>@p.Name</b></div>
-        </div>
-        <WindowHeader Scene="@scene" Kicker="@($"{house.Name} · {c.Ancestries.Name(Lineage.Of(w, c.Ancestries, p))}{(epithet.Length > 0 ? " · " + epithet : "")}")" Title="@p.Name" Figures="figs" Class="you-head">
+        <WindowHeader StripKicker="@house.Name" Scene="@scene" Kicker="@($"{house.Name} · {c.Ancestries.Name(Lineage.Of(w, c.Ancestries, p))}{(epithet.Length > 0 ? " · " + epithet : "")}")" Title="@p.Name" Figures="figs" Class="you-head">
+            <Strip><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="40" Height="48" Opens="false" /></Strip>
             <Who>
                 <div class="you-por">
                     <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="150" Height="188" Condition="@(ill ? "pill" : wounded ? "sticking-plaster" : "")" ConditionTip="@(ill ? "Ill" : "Wounded")" />
@@ -102,7 +99,7 @@
                 </div>
             </ChildContent>
         </WindowHeader>
-        <Tabs Items="tabs" Active="@_tab" OnPick="Pick" Class="you-tabs" />
+        <Tabs Items="tabs" Active="@_tab" OnPick="Pick" Class="you-tabs" Sticky="true" StickyTop="4.2667rem" />
         <div class="you-page">
         @if (_tab == "life")
         {
@@ -146,7 +143,7 @@
                 @if (spouse != null)
                 {
                     var sh = w.House(spouse.HouseId);
-                    <Row Name="@spouse.Name" SubText="@($"Your {(spouse.Sex == "female" ? "wife" : "husband")} · {(spouse.Alive ? spouse.Age.ToString() : "remembered")}{(spouse.HouseId != house.Id ? $" · of {sh?.Name}" : "")}")" Class="you-person">
+                    <Row Wrap="true" Name="@spouse.Name" SubText="@($"Your {(spouse.Sex == "female" ? "wife" : "husband")} · {(spouse.Alive ? spouse.Age.ToString() : "remembered")}{(spouse.HouseId != house.Id ? $" · of {sh?.Name}" : "")}")" Class="you-person">
                         <Picture><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(sh?.AccentColor ?? "#888")" Size="46" Height="56" /></Picture>
                         <Cells>@if (sh != null && spouse.HouseId != house.Id) { <span class="you-arms" title="@sh.Name"><Sigil HouseId="@sh.Id" Accent="@sh.AccentColor" Size="20" /></span> }</Cells>
                     </Row>
@@ -155,7 +152,7 @@
                 @foreach (var k in children)
                 {
                     string? rn = c.Careers.RankName(k.CareerTrack, k.CareerRank, w.Era);
-                    <Row Name="@k.Name" SubText="@($"Your {(k.Sex == "female" ? "daughter" : "son")} · {(k.Alive ? k.Age.ToString() : "remembered")}{(rn != null ? " · " + rn : "")}{(k.Id == heirNow?.Id ? " · your heir" : "")}")" Class="@("you-person" + (k.Id == heirNow?.Id ? " heir" : ""))">
+                    <Row Wrap="true" Name="@k.Name" SubText="@($"Your {(k.Sex == "female" ? "daughter" : "son")} · {(k.Alive ? k.Age.ToString() : "remembered")}{(rn != null ? " · " + rn : "")}{(k.Id == heirNow?.Id ? " · your heir" : "")}")" Class="@("you-person" + (k.Id == heirNow?.Id ? " heir" : ""))">
                         <Picture><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
                     </Row>
                 }

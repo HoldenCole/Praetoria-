@@ -1,6 +1,4 @@
 @inject GameClient G
-@inject IJSRuntime JS
-@implements IAsyncDisposable
 @* The event window (docs/VISUAL_SYSTEM.md 6; the mock is ui-mock/final/event.png). Over a flat dim of the map, 900px wide and as tall as
    its content: the painting by subject (SceneArt), brightened and darkening into the body at its foot; the cast standing in it as
    framed plates, the other party at the left and you at the right; the kicker between laurel sprays, the title in Cinzel on the
@@ -169,31 +167,11 @@
 
     /// <summary>The choice whose tooltip is open (hovered or focused), or -1.</summary>
     private int _tip = -1;
-    private DotNetObjectReference<EventWindow>? _self;
     private void Leave(int at) { if (_tip == at) _tip = -1; }
     private Task Choose(ChoiceCard ch) => ch.Available && !Card.Resolved ? OnChoose.InvokeAsync((Card, ch.Id)) : Task.CompletedTask;
 
-    /* The digits 1 to 9 pick a choice (docs/VISUAL_SYSTEM.md 6). The shell's own keys (index.html, Index.Key) give the digits to the
-       rail, and would open another window behind this one; while this window is open a listener in the capturing phase takes the
-       digits first and keeps them from the shell. It is installed once and points at whichever event window is open. */
-    private const string KeysJs = "(()=>{if(window.praetoriaEventKeys)return;let ref=null;window.addEventListener('keydown',e=>{if(!ref||e.ctrlKey||e.metaKey||e.altKey)return;const t=e.target;if(t&&['INPUT','SELECT','TEXTAREA'].includes(t.tagName))return;if(!/^[0-9=-]$/.test(e.key))return;e.stopImmediatePropagation();e.preventDefault();if(!e.repeat&&/^[1-9]$/.test(e.key))ref.invokeMethodAsync('Pick',+e.key).catch(()=>{});},true);window.praetoriaEventKeys={on:r=>{ref=r;},off:()=>{ref=null;}};})()";
-    protected override async Task OnAfterRenderAsync(bool first)
-    {
-        if (!first) return;
-        _self = DotNetObjectReference.Create(this);
-        try { await JS.InvokeVoidAsync("eval", KeysJs); await JS.InvokeVoidAsync("praetoriaEventKeys.on", _self); } catch { }
-    }
-    [JSInvokable] public async Task Pick(int n)
-    {
-        if (Card.Resolved || n < 1 || n > Card.Choices.Count) return;
-        await Choose(Card.Choices[n - 1]);
-    }
-    public async ValueTask DisposeAsync()
-    {
-        try { await JS.InvokeVoidAsync("praetoriaEventKeys.off"); } catch { }
-        _self?.Dispose();
-    }
-
+    /* The digits 1 to 9 pick a choice (docs/VISUAL_SYSTEM.md 6): the shell's keys (index.html, Index.Key) give them to the open report,
+       not to the rail behind it, so nothing here listens for keys. */
     /* the first letter is set large, and a browser that floats it drops the space after it: "A market" read "Amarket". A space that does not break is kept. */
     private static string Prose(string s) => s.Length > 2 && s[1] == ' ' ? s[0] + " " + s[2..] : s;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

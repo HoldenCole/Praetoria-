@@ -110,8 +110,9 @@
 .gs-shell.game.on-map:has(.galaxy .ui-win.sys-win) { --free-l: calc(var(--rail) + 2px + var(--win-w)); }
 .sys-win .ui-head-text { right: 4.4rem; }
 .sys-win .ui-facts .great-city { color: var(--brass-ink); }
-.sys-win .ui-win-body > .sys-go { position: absolute; right: 1.0667rem; top: 3.7333rem; z-index: 4; }
-.sys-win .ui-win-body:has(> .sys-go) .ui-head-text { right: 12.8rem; }
+/* "Go into the system" sits in the header's action slot, under the close roundel */
+.sys-win .ui-head-act { right: 1.0667rem; top: 3.7333rem; }
+.sys-win .ui-head:has(.sys-go) .ui-head-text { right: 12.8rem; }
 .sys-win .ui-wbody { padding-bottom: 2.4rem; }
 .sys-win .sysp { padding: .6667rem 1.4667rem 0 1.8667rem; }
 /* the world: facts as a two-column list of label and value, not boxes */

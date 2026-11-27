@@ -11,9 +11,6 @@
 
 .sn-win { --sn-gl: 1.8667rem; --sn-gr: 1.6rem; --sn-ic: 2.6667rem; container: sn / inline-size; }
 
-/* the old window rules for every h3, details and card in a docked window (app.css) outweigh the shared parts' own: put them back */
-.game .win-body .sn-win .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
-.game .win-body .sn-win .panel { margin: 0; }
 .game .win-body .sn-win .panel > .muted.small { display: inline; }
 .game .win-body .sn-win details > summary { font: 600 .9333rem/1.2 var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--brass-ink); padding: 0; }
 .game .win-body .sn-win details > summary:hover { color: var(--brass-hi); }
@@ -25,9 +22,6 @@
 .game .win-body .sn-win .sn-row.off-card { padding: .4667rem var(--sn-gr) .4667rem var(--sn-gl); }
 .game .win-body .sn-win .sn-row.off-card.emergency { box-shadow: inset 2px 0 0 var(--bad); background: linear-gradient(90deg, rgba(224,85,63,.08), transparent 60%); }
 .game .win-body .sn-win .sn-focus.seat-card { margin: .4rem var(--sn-gr) .2rem var(--sn-gl); padding: .6rem .6rem .6rem .4rem; }
-/* A portrait plate cuts its corners with clip-path (app.css). Under SwiftShader a long scrolling page with a dozen of them stops painting
-   its text outside a band, so here the corners are left to the plate's frame, which draws the chamfer over them. */
-.sn-win .portrait { clip-path: none; }
 .sn-win .line { font-size: inherit; color: inherit; border-top: 0; padding: 0; }
 .sn-win .caesar-recall { border: 0; border-radius: 0; margin: 0; line-height: inherit; }
 .sn-win .suit-acts { margin: 0; gap: .4rem; }

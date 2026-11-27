@@ -48,19 +48,18 @@ else if (G.World!.InAcademy && G.Academy() is { } am)
         }
         @if (am.Tutorial.Length == 0)
         {
-            <div class="overlay">
-                <div class="epilogue wide">
-                    <div class="tier"><span class="glyph">✦</span> @(am.Register == "imperium" ? "UNDER THE IMPERIUM" : "IN THE REPUBLIC") · AGE SIXTEEN</div>
-                    <h2>@am.SchoolName</h2>
+            @* the first morning at the Academy (docs/ACADEMY.md): a box over the hall, how the lectures are to be given *@
+            <Box BoxClass="epilogue-box ac-welcome" Glyph="@(am.Register == "imperium" ? "eagle-emblem" : "open-book")" Kicker="@((am.Register == "imperium" ? "Under the Imperium" : "In the Republic") + " · age sixteen")" Title="@am.SchoolName" Width="min(52rem, calc(100vw - 2rem))">
+                <ChildContent>
                     <p class="epi-text">@am.Blurb</p>
                     <p class="epi-text">@(_beenBefore ? "You have passed out of here before. The lectures can be the short course: the state of the Reach, the houses that matter, and who is in your year." : "If this is your first time in the Reach, the lectures will teach you how all of it works, a little each term: the Senate, the houses, the law, coin, fleets, and what lies beyond.")</p>
-                    <div class="row">
-                        <button class="btn @(_beenBefore ? "" : "primary")" @onclick='() => Teach("full")'>First time here: teach me everything</button>
-                        <button class="btn @(_beenBefore ? "primary" : "")" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
-                    </div>
-                    <div class="muted small">You can change this at any time in the lecture hall.</div>
-                </div>
-            </div>
+                </ChildContent>
+                <Foot>
+                    <p class="box-note muted small">You can change this at any time in the lecture hall.</p>
+                    <button class="btn @(_beenBefore ? "" : "primary")" @onclick='() => Teach("full")'>First time here: teach me everything</button>
+                    <button class="btn @(_beenBefore ? "primary" : "")" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
+                </Foot>
+            </Box>
         }
     </div>
 }
@@ -296,7 +295,8 @@ else
 
     /// <summary>The keys of the rail, in its order: the first nine windows by number, then 0, - and = for the rest.</summary>
     private const string RailKeys = "1234567890-=";
-    /// <summary>Keyboard: the rail's keys switch windows, Enter ends the turn (when no report is open), Escape closes a window, ? opens the primer.</summary>
+    /// <summary>Keyboard: the rail's keys switch windows (while a report is open, the digits pick its choices instead), Enter ends the turn
+    /// (when no report is open), Escape closes a window, ? opens the primer.</summary>
     [JSInvokable]
     public async Task Key(string key)
     {
@@ -311,6 +311,15 @@ else
         else if (key == "Enter" && _brief) _brief = false;
         else if (key == "Enter" && _openReport == null && _succession == null) { if (!_set.EnterEnds) return; await EndTurn(); }
         else if (key == "?") _primer = !_primer;
+        // a report is open: the digits 1 to 9 pick its choices (docs/VISUAL_SYSTEM.md 6), and no digit reaches the rail behind it
+        else if ((_openReport != null || _succession != null) && key.Length == 1 && RailKeys.IndexOf(key[0]) >= 0)
+        {
+            if (_openReport == null || key[0] is < '1' or > '9') return;
+            var card = G.Court().Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item));
+            int n = key[0] - '0';
+            if (card == null || card.Resolved || n > card.Choices.Count || !card.Choices[n - 1].Available) return;
+            Choose((card, card.Choices[n - 1].Id));
+        }
         else if (_set.NumberKeys && key.Length == 1 && RailKeys.IndexOf(key[0]) is >= 0 and var i && G.World?.InAcademy != true) { var rail = Rail().ToList(); if (i < rail.Count) _screen = rail[i].id; }
         else return;
         StateHasChanged();

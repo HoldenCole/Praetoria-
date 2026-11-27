@@ -126,8 +126,6 @@
 .ac .ac-line { padding: .6rem 1.6rem .6rem 1.8667rem; border-top: 0; border-bottom: 1px solid rgba(255,255,255,.05); font: 400 .9333rem/1.5 var(--f-ui); color: var(--ink-dim); }
 
 /* the foot: what is left of the year, and the gold plate that ends the term, with the reports it would set aside */
-.ac-foot { flex: none; position: relative; z-index: 2; display: flex; align-items: center; gap: 1.0667rem; min-height: 4rem; padding: .5333rem 1.6rem .5333rem 1.8667rem;
-  background: linear-gradient(180deg, #161b25, #0b0e14); box-shadow: inset 0 1px 0 rgba(201,162,74,.5), 0 -1px 0 #000, 0 -8px 16px rgba(0,0,0,.35); }
 .ac-foot-t { flex: 1 1 auto; font: italic 400 1.0667rem/1.35 var(--f-prose); color: var(--ink-dim); }
 .ui-btn.ac-end { position: relative; height: 2.6667rem; padding: 0 1.3333rem 0 1.6rem; gap: .6rem; font: 600 1.0667rem/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; }
 .ui-btn.ac-end .icon { width: .8667rem; height: .8667rem; }
@@ -143,31 +141,8 @@
   .gs-shell.academy-shell .screen:has(> .ac) { padding: .8rem 1.0667rem; }
 }
 
-/* the welcome on the first morning (drawn by the shell, Pages/Index.razor): a box in the window frame over the dimmed night, the kicker
-   in brass small capitals, the school's name in Cinzel over a gilt rule, the two answers as plates, one of them gold. A local variant
-   of the shell's old card, kept to the Academy's shell. */
-.academy-shell > .overlay:has(> .epilogue) { z-index: 40; background: radial-gradient(ellipse at 50% 50%, rgba(3,4,8,.52), rgba(3,4,8,.84)); }
-.academy-shell > .overlay > .epilogue { position: relative; isolation: isolate; width: min(52rem, calc(100vw - 2rem)); max-width: none; padding: 2rem 2.4rem 1.8rem 2.6rem;
-  background: none; border: 0; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 28px rgba(0,0,0,.6)) drop-shadow(0 2px 6px rgba(0,0,0,.6)); animation: rise .2s ease-out both; }
-.academy-shell > .overlay > .epilogue::before { content: ""; position: absolute; inset: 0; z-index: -1; --c: 14px;
-  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
-  background: linear-gradient(180deg, rgba(255,255,255,.04), transparent 7rem), linear-gradient(90deg, rgba(201,162,74,.1), transparent 70%), var(--tex-leather); background-color: var(--base); }
-.academy-shell > .overlay > .epilogue::after { content: ""; position: absolute; inset: 0; z-index: 2; border: 24px solid transparent; border-image: url(../../img/ui/frame.svg) 24 / 24px stretch; pointer-events: none; }
-.academy-shell .epilogue .tier { display: flex; align-items: center; gap: .5333rem; padding: 0; margin: 0; border: 0; border-radius: 0; background: none;
-  font: 600 .8333rem/1 var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--brass-ink); text-shadow: 0 1px 3px #000; }
-.academy-shell .epilogue .tier .glyph { font-size: 0; width: .4667rem; height: .4667rem; transform: rotate(45deg); background: var(--brass); box-shadow: 0 0 0 1px #000; }
-.academy-shell .epilogue h2 { position: relative; margin: .5rem 0 0; padding-bottom: .9rem; font: 600 2rem/1.12 var(--f-display); letter-spacing: .04em; color: #f5e9c9; text-transform: none;
-  text-shadow: 0 -1px 0 rgba(0,0,0,.8), 0 2px 10px rgba(0,0,0,.95); }
-.academy-shell .epilogue h2::after { content: ""; position: absolute; left: -.8rem; right: -.6rem; bottom: 0; height: 1px; background: var(--gilt-rule); opacity: .75; }
-.academy-shell .epilogue .epi-text { margin: 1rem 0 0; font: 400 1.1333rem/1.55 var(--f-prose); color: #e3d9c0; font-variant-numeric: lining-nums; white-space: pre-line; }
-.academy-shell .epilogue .row { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.4rem; }
-.academy-shell .epilogue .row > .btn { display: inline-flex; align-items: center; height: 2.4rem; padding: 0 1rem; border: 1px solid #000; border-radius: 2px; font: 600 .9333rem/1 var(--f-ui); letter-spacing: 0;
-  text-transform: none; color: #eae2cc; background: linear-gradient(#323b50, #1c2231); box-shadow: var(--sh-plate); text-shadow: none; filter: none; }
-.academy-shell .epilogue .row > .btn:hover { color: #fff6dc; background: linear-gradient(#3a4560, #212839); box-shadow: var(--sh-plate), 0 0 0 1px var(--brass-mid), 0 0 10px rgba(232,196,110,.18); }
-.academy-shell .epilogue .row > .btn.primary { color: var(--ink-dark); text-shadow: 0 1px 0 rgba(255,240,200,.45); background: linear-gradient(#f6e2a0, #d2ad58 45%, #a07a30);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.25), 0 1px 3px #000; font: 600 1.0667rem/1 var(--f-display); letter-spacing: .06em; padding: 0 1.2rem; }
-.academy-shell .epilogue .row > .btn.primary:hover { background: linear-gradient(#fbe9b0, #dcb862 45%, #ab8436); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.25), 0 0 12px rgba(232,196,110,.35); }
-.academy-shell .epilogue > .muted.small { margin-top: .8rem; font: italic 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+/* the welcome on the first morning is the shell's Box (Pages/Index.razor); here only its width of prose */
+.ac-welcome .epi-text { max-width: 44rem; }
 
 /* kept from before for the outliner's and the event window's set pieces */
 .ol-report.setpiece { border-left-color: #d8705a; background: linear-gradient(90deg, #241820, rgba(17,22,34,.9)); }

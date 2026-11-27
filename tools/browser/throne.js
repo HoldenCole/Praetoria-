@@ -21,9 +21,9 @@ require('fs').mkdirSync(shots, { recursive: true });
     const d = [...document.querySelectorAll('details')].find(x => /The throne/.test(x.querySelector('summary')?.innerText || '')); if (!d) return null; d.open = true;
     const kv = d.querySelector('.kv'); return { text: d.innerText.replace(/\s+/g, ' ').slice(0, 700), made: kv ? kv.getAttribute('title') : '', buttons: [...d.querySelectorAll('button')].map(b => b.innerText.trim() + (b.disabled ? ' (off: ' + (b.title || '').slice(0, 80) + ')' : '')).join(' | ') };
   });
-  const tab = () => page.evaluate(() => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => e.innerText.includes('titles')); if (t) t.click(); return !!t; });
+  const tab = () => page.evaluate(() => { const t = document.querySelector('.screen.window .ui-tab[data-tab="offices"]') || [...document.querySelectorAll('.ex-tabs .rung')].find(e => e.innerText.includes('titles')); if (t) t.click(); return !!t; });   // the throne is on the Senate's Offices tab
   await dismiss(); console.log('screen: ' + await rail()); await page.waitForTimeout(400); await tab(); await page.waitForTimeout(500);
-  console.log('headline tile: ' + await page.evaluate(() => { const t = [...document.querySelectorAll('.tile')].find(e => /the throne/i.test(e.innerText)); return t ? t.innerText.replace(/\s+/g, ' ') : 'none'; }));
+  console.log('headline tile: ' + await page.evaluate(() => { const t = [...document.querySelectorAll('.tile, .ui-fig, .ui-facts > span')].find(e => /the throne/i.test(e.innerText + ' ' + (e.title || ''))); return t ? t.innerText.replace(/\s+/g, ' ') : 'none'; }));
   let first = await read(); if (!first) { console.log('no throne panel found'); await browser.close(); return; }
   console.log('year 1: ' + first.text); console.log('made of: ' + first.made); console.log('buttons: ' + first.buttons);
   const shot = async name => { const el = await page.evaluateHandle(() => { const d = [...document.querySelectorAll('details')].find(x => /The throne/.test(x.querySelector('summary')?.innerText || '')); return d ? d.closest('section') : null; }); if (el.asElement()) { await el.asElement().scrollIntoViewIfNeeded(); await el.asElement().screenshot({ path: shots + '/' + name }); } };

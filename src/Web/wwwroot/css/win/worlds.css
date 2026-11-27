@@ -7,8 +7,6 @@
    Widths: the window is a container ("wl"); "mid" is under 46rem (1366 wide, or 1600 at the larger text sizes). */
 
 .wl-win { --g-l: 1.8667rem; --g-r: 1.6rem; container: wl / inline-size; }
-.game .win-body .wl-win .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
-.game .win-body .wl-win .ui-sec h3::before, .game .win-body .wl-win .ui-sec h3::after { display: none !important; }
 
 /* the painted header */
 .wl-head .ui-head-art { background-position: center 38%; }

@@ -33,7 +33,7 @@
                 <Action><Plate Label="Settle an estate" Icon="castle" Small="true" CostIcon="credits" CostText="@Money.Show(cost)" data-endow="@cid" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@gives" OnClick="() => G.Execute(new EndowCommand(pid, cid))" /></Action>
             </Row>
         }
-        @if (kin.Count > 6) { <p class="hs-note"><button class="ui-link" data-rich-more="kin" @onclick="() => _allKin = !_allKin">@(_allKin ? "Show fewer" : "Show all " + kin.Count)<Icon Name="chev" Size="11" Class="flat" /></button></p> }
+        @if (kin.Count > 6) { <p class="hs-note"><Link data-rich-more="kin" OnClick="() => _allKin = !_allKin" Label='@(_allKin ? "Show fewer" : "Show all " + kin.Count)' /></p> }
         @if (settled.Count > 0) { <p class="hs-note" data-rich-settled>Settled so far: @string.Join("; ", settled.Select(h => h.Name + ", " + (w.Char(h.HolderId)?.Name ?? "nobody") + "'s")).</p> }
         </ChildContent>
     </Section>
@@ -97,7 +97,7 @@
                 </Action>
             </Row>
         }
-        @if (grown.Count > 6) { <p class="hs-note"><button class="ui-link" data-rich-more="grown" @onclick="() => _allGrown = !_allGrown">@(_allGrown ? "Show fewer" : "Show all " + grown.Count)<Icon Name="chev" Size="11" Class="flat" /></button></p> }
+        @if (grown.Count > 6) { <p class="hs-note"><Link data-rich-more="grown" OnClick="() => _allGrown = !_allGrown" Label='@(_allGrown ? "Show fewer" : "Show all " + grown.Count)' /></p> }
     </Section>
     </div>
 

@@ -151,7 +151,6 @@
         };
         <WindowFrame Docked="true" Class="map-side sys-win" OnClose="CloseSide" data-map-window="system" data-system="@sys.Id">
             <Header>
-                @if (_inSystem != sys.Id) { <div class="sys-go"><Plate Label="Go into the system" Icon="expand" Small="true" Tip="The close map of this system: its sun, its worlds where they are this year, its belt, and the gates where its lanes leave" OnClick="() => Enter(sys.Id)" data-enter-system="@sys.Id" /></div> }
                 <WindowHeader Scene="@scene" Kicker="@kicker" Title="@sel.Name" HouseId="@(owner?.Id ?? "")" Accent="@(owner?.AccentColor ?? Palette.Player)" Glyph="ringed-planet" Figures="figs" Class="sys-head">
                     <Facts>
                         <span><Icon Name="ringed-planet" Tone="ivory" Size="16" /> @kind</span>
@@ -161,9 +160,10 @@
                         @if (citizens > 0) { <span data-head-citizens="@citizens" title="@CitizensTip(w, planet!, spec?.MaxPopulation ?? 0)"><Icon Name="population" Tone="ivory" Size="16" /> <b>@Census.Say(citizens)</b> citizens</span> }
                         @if (planet != null) { foreach (var gp in planet.Provinces) { if (CitySystem.KindOf(c.Holdings, gp) is { Great: true } gk) { <span class="great-city" data-great="@gk.Id" title="@($"{gk.What} {CitySystem.Says(gk)}.")"><Icon Name="crown" Tone="brass" Size="16" /> @gp.City, @gk.Name</span> } } }
                     </Facts>
+                    <Action>@if (_inSystem != sys.Id) { <span class="sys-go"><Plate Label="Go into the system" Icon="expand" Small="true" Tip="The close map of this system: its sun, its worlds where they are this year, its belt, and the gates where its lanes leave" OnClick="() => Enter(sys.Id)" data-enter-system="@sys.Id" /></span> }</Action>
                 </WindowHeader>
-                <Tabs Items="stabs" Active="@_sideTab" OnPick="k => _sideTab = k" Class="sys-tabs" />
             </Header>
+            <TabRow><Tabs Items="stabs" Active="@_sideTab" OnPick="k => _sideTab = k" Class="sys-tabs" /></TabRow>
             <ChildContent>
                 @if (_sideTab == "system") { <SystemPanel SystemId="@sys.Id" OpenBody="@(_inSystem == sys.Id ? _body : -1)" OpenStamp="_bodyStamp" /> }
                 else if (_sideTab == "infra") { <SystemPanel SystemId="@sys.Id" Infrastructure="true" /> }
@@ -237,7 +237,7 @@
                             }
                             else
                             {
-                                <WarnStrip Icon="office-chair" Lead="No governor.">The world is governed by no one.</WarnStrip>
+                                <WarnStrip Icon="office-chair" Lead="No governor." Note="@(mineSys ? "Appoint in the House window" : "Not yours to fill")" NoteTip="@(mineSys ? "The House window, on Estate: the world's chair, and who of the house may sit in it" : $"The chair is {owner?.Name ?? "its holder"}'s to fill")">The world is governed by no one.</WarnStrip>
                             }
                             string take = G.Turn!.Fleets.HowToTake(w, planet, playerHouse);
                             @if (take.Length > 0) { <p class="mw-note" data-how-to-take="@planet.Id">@take</p> }

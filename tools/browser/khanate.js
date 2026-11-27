@@ -17,7 +17,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   for (let i = 0; i < 10; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(250); }
-  await page.evaluate(() => { const el = [...document.querySelectorAll('.rail-btn')].find(e => /^galaxy$/i.test(e.innerText.trim())); if (el) el.click(); }); await page.waitForTimeout(2500);
+  await page.evaluate(() => { const el = document.querySelector('[data-close-window]') || [...document.querySelectorAll('.rail-btn')].find(e => /^galaxy$/i.test(e.innerText.trim())); if (el) el.click(); }); await page.waitForTimeout(2500);   // back to the map: the docked window's close (the rail has no Galaxy socket)
   await page.evaluate(() => { const b = document.querySelector('button[title="Fit the whole Reach"]'); if (b) b.click(); }); await page.waitForTimeout(3000);
   await page.screenshot({ path: shots + "/khanate-map.png", timeout: 240000 });
   const labels = await page.evaluate(() => (document.body.innerText.match(/Vashti Steppe|Thessaran Shore|Ardent Concord|Outer Compact|Hollow Crown/gi) || []).map(x => x.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())));   // the map writes region names in capitals

@@ -22,7 +22,7 @@
         string cid = c.Id;
         if (c.Age < EducationSystem.SchoolAge)
         {
-            <Row Name="@c.Name" SubText="@($"{c.Age} · too young for lessons. They begin at {EducationSystem.SchoolAge}.")" Class="suit dy-young">
+            <Row Wrap="true" Name="@c.Name" SubText="@($"{c.Age} · too young for lessons. They begin at {EducationSystem.SchoolAge}.")" Class="suit dy-young">
                 <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
             </Row>
             continue;

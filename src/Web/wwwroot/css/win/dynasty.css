@@ -9,8 +9,6 @@
    Widths: the window is a container ("dw"); narrow is under 44rem (1366 wide, or a larger text size). */
 
 .dyn-win { container: dw / inline-size; --yg-l: 1.8667rem; --yg-r: 1.6rem; }
-.game .win-body .dyn-win .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
-.game .win-body .dyn-win .panel { margin: 0; }
 .dyn-win .ui-sec { padding-left: var(--yg-l); padding-right: var(--yg-r); }
 .dyn-win .ui-sec-r { white-space: nowrap; }
 .dyn-win .ui-empty { padding-left: var(--yg-l); }
@@ -75,18 +73,17 @@
 .dy-heir.first .ui-row-nm { color: var(--brass-hi); }
 .dy-pick { cursor: pointer; text-decoration: underline dotted rgba(201,162,74,.6); text-underline-offset: .2rem; } .dy-pick:hover { color: var(--brass-hi); }
 .dy-strip { margin: .6667rem var(--yg-r) .2rem var(--yg-l); }
-.dyn-win .ui-row .ui-row-sub { white-space: normal; }
 /* a row that carries .suit for tools/browser keeps the row's own gutters over the old ".panel.education .suit" rule */
 .dyn-win .panel .ui-row.suit { padding: .4667rem 1.6rem .4667rem 1.8667rem; border-top: 0; }
 .dy-gone .ui-row-nm { color: var(--ink-dim); }
 
 /* ---- a person block: a face (or two), and beside it what they are, a meter, and the plates ---- */
 /* the person blocks carry .suit for tools/browser, and the old ".panel.ambitions .suit" rules (and the like) outweigh a single class: hence the window's name in front */
-:is(.dyn-win, .hs-win) .dy-blk, .dyn-win .panel .dy-blk.suit, .dyn-win .panel .dy-blk.suit.incoming { border-top: 0; border-left: 0; padding: .8rem var(--yg-r) .5333rem var(--yg-l); }
-:is(.dyn-win, .hs-win) .dy-blk { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .9333rem; align-items: start; position: relative; padding: .8rem var(--yg-r) .5333rem var(--yg-l); border-bottom: 1px solid rgba(255,255,255,.05); }
-:is(.dyn-win, .hs-win) .dy-blk.incoming { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,0) 60%); }
-:is(.dyn-win, .hs-win) .dy-blk.incoming::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
-:is(.dyn-win, .hs-win) .dy-blk.warn::before { background: var(--warn); }
+:is(.dyn-win, .hu-win) .dy-blk, .dyn-win .panel .dy-blk.suit, .dyn-win .panel .dy-blk.suit.incoming { border-top: 0; border-left: 0; padding: .8rem var(--yg-r) .5333rem var(--yg-l); }
+:is(.dyn-win, .hu-win) .dy-blk { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: .9333rem; align-items: start; position: relative; padding: .8rem var(--yg-r) .5333rem var(--yg-l); border-bottom: 1px solid rgba(255,255,255,.05); }
+:is(.dyn-win, .hu-win) .dy-blk.incoming { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,0) 60%); }
+:is(.dyn-win, .hu-win) .dy-blk.incoming::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+:is(.dyn-win, .hu-win) .dy-blk.warn::before { background: var(--warn); }
 .dy-pair { display: flex; gap: .2667rem; }
 .dy-blk-body { min-width: 0; display: flex; flex-direction: column; gap: .3333rem; }
 .dy-blk-nm { font: 600 1rem/1.3 var(--f-ui); color: var(--ink); }
@@ -99,7 +96,7 @@
 .dy-meter, .dy-meters .ui-meter { max-width: 30rem; }
 .dyn-win .ui-meter { grid-template-columns: 9.3333rem 1fr 3.2rem; }
 .dy-meters { display: grid; gap: .2667rem; }
-:is(.dyn-win, .hs-win) .you-acts.dy-acts { padding: .2667rem 0 .2667rem; gap: .4rem; }
+:is(.dyn-win, .hu-win) .you-acts.dy-acts { padding: .2667rem 0 .2667rem; gap: .4rem; }
 .dyn-win .ui-seg button:disabled { opacity: .5; cursor: not-allowed; }
 .dy-seg { flex-wrap: wrap; }
 .dy-note { margin: 0; padding: .6rem var(--yg-r) .2rem var(--yg-l); font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); } .dy-note b { color: var(--ink); font-weight: 600; }
@@ -123,7 +120,6 @@
 .dy-table { margin: .4rem var(--yg-r) 0 var(--yg-l); overflow-x: auto; }
 .game .win-body .dyn-win .ui-table th { height: 1.8667rem; text-align: right; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); border-bottom: 1px solid rgba(201,162,74,.45); padding: 0 .5333rem; white-space: nowrap; }
 .game .win-body .dyn-win .ui-table th:first-child, .game .win-body .dyn-win .ui-table td:first-child, .game .win-body .dyn-win .ui-table th:nth-child(2), .game .win-body .dyn-win .ui-table td:nth-child(2) { text-align: left; }
-.game .win-body .dyn-win .ui-table tbody tr:nth-child(even) { background: none; }
 .dyn-win .ui-table td { height: 2.6667rem; font-weight: 600; }
 .dyn-win .ui-table td:first-child { font-weight: 500; }
 .dyn-win .ui-table tbody tr { cursor: default; }

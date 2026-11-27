@@ -158,7 +158,7 @@
             @foreach (var h in heirs.Take(6))
             {
                 rank++; int place = rank; string hid = h.Id; string? hr = h.CareerTrack.Length > 0 ? c.Careers.RankName(h.CareerTrack, h.CareerRank, w.Era) : null;
-                <Row Name="@h.Name" SubText="@($"{h.Age} · {(Kinship.Of(w, p, h) is { Length: > 0 } hk ? hk : "kin")}{(hr != null ? " · " + hr : "")}")" Class="@("person heir dy-heir" + (place == 1 ? " first" : ""))" OnClick="() => _focus = hid" Tip="Pick them on the tree">
+                <Row Wrap="true" Name="@h.Name" SubText="@($"{h.Age} · {(Kinship.Of(w, p, h) is { Length: > 0 } hk ? hk : "kin")}{(hr != null ? " · " + hr : "")}")" Class="@("person heir dy-heir" + (place == 1 ? " first" : ""))" OnClick="() => _focus = hid" Tip="Pick them on the tree">
                     <Picture><span class="dy-rank">@place</span><Portrait Id="@h.Id" Name="@h.Name" Sex="@h.Sex" Age="@h.Age" Alive="@h.Alive" Accent="@house.AccentColor" Size="46" Height="56" Opens="false" /></Picture>
                     <Cells>@if (DisownSystem.IsStruck(h)) { <span class="dy-tag warn" title="@Marks.Tip(DisownSystem.StruckChar)">Struck out</span> }</Cells>
                 </Row>
@@ -184,7 +184,7 @@
             @foreach (var k in bonds)
             {
                 var rel = w.GetRelationship(k.Id, pid); int d = rel?.Disposition ?? 0; string kid = k.Id; string? kr = c.Careers.RankName(k.CareerTrack, k.CareerRank, w.Era);
-                <Row Name="@k.Name" SubText="@($"{(Kinship.Of(w, w.Protagonist!, k) is { Length: > 0 } kk ? kk + " · " : "")}{(kr != null ? kr + " · " : "")}{k.Age}")" Class="person dy-bond" Tip="@Kinship.ChildOfSays(w, k)" OnClick='() => { _focus = kid; _tab = "tree"; }'>
+                <Row Wrap="true" Name="@k.Name" SubText="@($"{(Kinship.Of(w, w.Protagonist!, k) is { Length: > 0 } kk ? kk + " · " : "")}{(kr != null ? kr + " · " : "")}{k.Age}")" Class="person dy-bond" Tip="@Kinship.ChildOfSays(w, k)" OnClick='() => { _focus = kid; _tab = "tree"; }'>
                     <Picture><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Accent="@house.AccentColor" Size="46" Height="56" Opens="false" /></Picture>
                     <Cells><span class="ui-cell @(d < -20 ? "ui-down" : d > 20 ? "ui-up" : "")" title="What they think of you">@(d >= 0 ? "+" : "")@Counted.Figure(d)@(rel?.Bond is { } b && b != BondType.None ? " · " + b.ToString().ToLowerInvariant() : "")</span></Cells>
                 </Row>
@@ -203,7 +203,7 @@
                 @foreach (var k in gone)
                 {
                     string kid = k.Id;
-                    <Row Name="@k.Name" SubText="@(w.Deaths.FirstOrDefault(x => x.PersonId == k.Id) is { } dr ? $"Died at {dr.Age} in year {dr.Turn}{(dr.How.Length > 0 ? ", " + dr.How : "")}" : "Remembered")" Class="line dy-gone" OnClick='() => { _focus = kid; _tab = "tree"; }'>
+                    <Row Wrap="true" Name="@k.Name" SubText="@(w.Deaths.FirstOrDefault(x => x.PersonId == k.Id) is { } dr ? $"Died at {dr.Age} in year {dr.Turn}{(dr.How.Length > 0 ? ", " + dr.How : "")}" : "Remembered")" Class="line dy-gone" OnClick='() => { _focus = kid; _tab = "tree"; }'>
                         <Picture><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="false" Accent="@house.AccentColor" Size="46" Height="56" Opens="false" /></Picture>
                     </Row>
                 }

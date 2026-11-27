@@ -404,7 +404,7 @@
             }
         }
         <Section Title="Your fleets" Count="@m.Fleets.Count.ToString()" Info="Movement is ordered on the map: pick a fleet in the outliner or on the map, then a world. Here you set how each fights (its stance and its loadout), who commands it and from where, and what is done with its hulls.">
-            <Right><button class="ui-link" data-to-shipyard="1" title="Hulls are laid down at a world of yours: the House window lists your worlds, and each has its shipyard's buttons" @onclick='() => OnGo.InvokeAsync("house:estate")'>Lay down hulls<Icon Name="chev" Size="11" Class="flat" /></button></Right>
+            <Right><Link data-to-shipyard="1" Tip="Hulls are laid down at a world of yours: the House window lists your worlds, and each has its shipyard's buttons" OnClick='() => OnGo.InvokeAsync("house:estate")' Label="Lay down hulls" /></Right>
             <ChildContent>
             @if (mil != null)
             {
@@ -568,10 +568,9 @@
                         <div class="mf-drawer" data-hulls="@f.Id">
                             <div class="mf-row"><Stepper Label="How many" Value="hn" Min="1" Max="@Math.Max(1, fleet.Strength)" OnChange="v => _hulls[fid] = v" Tip="The hulls to detach or pay off" />
                                 <span class="mo" data-detach-class="@f.Id" title="The hulls a detachment takes: the lightest, or a class you name. Hulls paid off are always the lightest."><span class="mo-l">Detach which</span>
-                                    <span class="ui-seg mil-seg">
-                                        <button class="@(pickCls.Length == 0 ? "on" : "")" @onclick="() => _classOf[fid] = string.Empty">The lightest</button>
-                                        @foreach (var (cls, n) in fs.Composition(fleet)) { var cid = cls.Id; <button class="@(pickCls == cid ? "on" : "")" @onclick="() => _classOf[fid] = cid">@cls.Name <small>@n</small></button> }
-                                    </span></span>
+                                    @{ var comp = fs.Composition(fleet).ToList(); }
+                                    <Segmented Class="mil-seg" Value="@pickCls" Options="@(new[] { (string.Empty, "The lightest", "The lightest hulls go") }.Concat(comp.Select(x => (x.cls.Id, x.cls.Name, $"{x.count} {x.cls.Name.ToLowerInvariant()} in the fleet"))).ToList())"
+                                               Note="@(id => comp.Where(x => x.cls.Id == id).Select(x => x.count.ToString()).FirstOrDefault() ?? "")" OnChange="id => _classOf[fid] = id" /></span>
                             </div>
                             <div class="mf-row">
                                 @if (f.CaptainId == null) { <span class="mf-none" data-detach-captain="@f.Id" title="@NoCaptainToSend">No captain to send with it</span> }
@@ -799,13 +798,8 @@
     private RenderFragment Seg(IReadOnlyList<Option>? opts, string current, Func<string, string> label, Func<string, string> help, Action<string> pick) => __builder =>
     {
         if (opts == null) return;
-        <span class="ui-seg mil-seg" role="radiogroup">
-            @foreach (var o in opts)
-            {
-                var id = o.Id; bool on = current == id; bool no = o.Refusal != null && o.Refusal != "already so";
-                <button class="@(on ? "on" : "")" role="radio" aria-checked="@(on ? "true" : "false")" disabled="@no" title="@(no ? Cap(o.Refusal!) : help(id))" @onclick="() => pick(id)">@label(id)</button>
-            }
-        </span>
+        <Segmented Class="mil-seg" Value="@current" Options="@opts.Select(o => (o.Id, label(o.Id), help(o.Id))).ToList()"
+                   Refusal="@(id => opts.FirstOrDefault(o => o.Id == id)?.Refusal is { } r && r != "already so" ? Cap(r) : null)" OnChange="id => pick(id)" />
     };
     /// <summary>The fleet's token (docs/VISUAL_SYSTEM.md 3.7, 7.3): a chevron in the house colour with a light facet, in a recessed well; hollow when laid up.</summary>
     private static RenderFragment Token(string accent, bool faint) => __builder =>

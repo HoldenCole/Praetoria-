@@ -50,6 +50,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('crews: ' + await crews());
   await shot('caesar-after');
   await rail('Senate'); await page.waitForTimeout(600);
+  await page.evaluate(() => { const t = document.querySelector('.screen.window .ui-tab[data-tab="move"]'); if (t) t.click(); }); await page.waitForTimeout(600);   // the motions are on the Senate's Motions tab
   console.log('senate: ' + await page.evaluate(() => { const t = document.body.innerText || ''; const shown = t.includes('Censure'); return shown ? ['Triumph', 'Recall'].map(k => k + (t.includes(k) ? ' offered' : ' MISSING')).join(', ') : 'the list of motions is not shown to this house on this view'; }));
   await rail('Chronicle'); await page.waitForTimeout(600);
   console.log('chronicle: ' + await page.evaluate(() => (document.body.innerText || '').split('\n').map(t => t.trim()).filter(t => /triumph|lay down the command|CROSSES|donative|crews of/i.test(t)).slice(0, 8).map(t => t.slice(0, 220)).join('\n   ')));

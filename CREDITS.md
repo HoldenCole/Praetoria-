@@ -14,10 +14,13 @@ Praetoria's code and writing are the project's own. The browser client uses thes
   Leather026 ([ambientCG](https://ambientcg.com), CC0 1.0), made seamless at 512 pixels, high-passed and tinted for the game.
 - **Frames** (`src/Web/wwwroot/img/ui/`): the window, medium and small brass frames are drawn for the game (SVG); the wax seal,
   the arms, the standard, the laurel sprays (halves of Lorc's laurels, CC BY 3.0), globes and pips are drawn in SVG and CSS.
-- **Portraits, event paintings and the pictures of buildings** (`src/Web/wwwroot/img/portraits/`, `src/Web/wwwroot/img/scenes/`,
-  `src/Web/wwwroot/img/works/`): **AI-generated** for this project by `tools/art/portraits.py`, `tools/art/scenes.py` and
-  `tools/art/works.py` with the open-weight model
+- **Portraits, event paintings, the pictures of buildings and the Office's rooms** (`src/Web/wwwroot/img/portraits/`,
+  `src/Web/wwwroot/img/scenes/`, `src/Web/wwwroot/img/works/`, `src/Web/wwwroot/img/rooms/`): **AI-generated** for this project by
+  `tools/art/portraits.py`, `tools/art/scenes.py`, `tools/art/works.py` and `tools/art/rooms.py` with the open-weight model
   [Lykon/dreamshaper-8-lcm](https://huggingface.co/Lykon/dreamshaper-8-lcm) (Stable Diffusion 1.5 family,
-  CreativeML OpenRAIL-M). No artist's name is used in a prompt. A store page for the game must disclose this.
-- Planet sprites, nebulae, the galaxy and the office are drawn procedurally at runtime (`src/Web/wwwroot/js/`), as is the
-  fallback portrait shown where no painted one exists; no third-party art.
+  CreativeML OpenRAIL-M); the rooms are held to their plan by two ControlNets of the same family and licence
+  (lllyasviel/control_v11p_sd15_mlsd and control_v11f1p_sd15_depth). No artist's name is used in a prompt. A store page for the
+  game must disclose this.
+- Planet sprites, nebulae and the galaxy are drawn procedurally at runtime (`src/Web/wwwroot/js/`), as is the featureless figure
+  shown where no painted portrait exists (the drawn cameo faces are gone); no third-party art. The old 3D office
+  (`js/office.js`) is kept in the repository, unused, until the owner has seen the painted rooms.

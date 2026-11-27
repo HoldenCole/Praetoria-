@@ -11,11 +11,11 @@
    praetoriaBust.paint(), which this component calls for itself so any screen may place a portrait without a paint hook of its own. *@
 @if (EmptyGlyph.Length > 0)
 {
-    <span class="portrait pf-empty @Tier" style="width:@Rem(Size); height:@Rem(Height ?? Size)" title="@Name"><Icon Name="@EmptyGlyph" Tone="ivory" Size="@(Math.Max(10, Size * 2 / 5))" /></span>
+    <span class="portrait pf-empty @Tier" style="width:@Rem(Size); height:@Rem(Height ?? Size)" title="@(Titled ? Name : null)"><Icon Name="@EmptyGlyph" Tone="ivory" Size="@(Math.Max(10, Size * 2 / 5))" /></span>
 }
 else
 {
-<span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "") @(CanOpen ? "opens" : "") @(Size <= CloseBelow ? "close" : "") @Tier" style="--ring:@Accent; width:@Rem(Size); height:@Rem(Height ?? Size)" title="@(CanOpen ? Name + " · open their profile" : Name)"
+<span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "") @(CanOpen ? "opens" : "") @(Size <= CloseBelow ? "close" : "") @Tier" style="--ring:@Accent; width:@Rem(Size); height:@Rem(Height ?? Size)" title="@(!Titled ? null : CanOpen ? Name + " · open their profile" : Name)"
       @onclick="Open" @onclick:stopPropagation="CanOpen">
     @if (Painted is { } url) { <img @key="url" class="lib" src="@url" alt="@Name" width="@Size" height="@(Height ?? Size)" loading="lazy" /> }
     else { <img @key="SpecNow" data-bust="@SpecNow" alt="@Name" width="@Size" height="@(Height ?? Size)" /> }
@@ -44,6 +44,9 @@ else
     private static string Rem(int px) => (px / 15.0).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture) + "rem";
     /// <summary>A face by choice, as "skin=2,hair=1,style=-1,beard=1,scar=1"; null reads the world's record for this person, if any.</summary>
     [Parameter] public string? Look { get; set; }
+    /// <summary>Whether the plate carries its own tooltip (the name). Off where the plate stands inside something whose tooltip says more:
+    /// an Office visitor, whose tooltip is their business.</summary>
+    [Parameter] public bool Titled { get; set; } = true;
     /// <summary>Whether a click opens the person's profile. Off inside the profile itself and where there is no such person yet.</summary>
     [Parameter] public bool Opens { get; set; } = true;
     /// <summary>Dress for someone the world does not hold yet (the creation screen): "military", "stewardship", "law".</summary>

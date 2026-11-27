@@ -12,26 +12,13 @@
 .you-win { container: yw / inline-size; --yg-l: 1.8667rem; --yg-r: 1.6rem; }
 .you-scroll { padding-bottom: 2.4rem; }
 /* the old rule for every h3 in a docked window outweighs the section heading's own: put it back */
-.game .win-body .you-win .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
-.game .win-body .you-win .panel { margin: 0; }
 .you-win .ui-sec { padding-left: var(--yg-l); padding-right: var(--yg-r); }
 .you-win .ui-sec-r { white-space: nowrap; }
 .you-win .ui-sec.you-first { margin-top: 0; border-top-color: transparent; }
 .you-win .ui-empty { padding-left: var(--yg-l); }
 
-/* ---- the strip: once the header has scrolled away, the face and the name at the top ---- */
-.you-strip { position: sticky; top: 0; z-index: 8; height: 4.2667rem; margin-bottom: -4.2667rem; display: flex; align-items: center; gap: .8rem; padding: 0 4.4rem 0 var(--yg-l);
-  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.25)), var(--tex-steel); background-color: #1b202b; box-shadow: inset 0 -1px 0 rgba(201,162,74,.55), 0 1px 0 #000, 0 6px 12px rgba(0,0,0,.45);
-  opacity: 0; visibility: hidden; pointer-events: none; }
-.you-strip > div { display: flex; flex-direction: column; gap: .2667rem; min-width: 0; }
-.you-strip b { font: 600 1.2rem/1 var(--f-display); letter-spacing: .04em; color: #f5e9c9; text-shadow: 0 1px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.you-strip .ui-kick { font-size: .8rem; }
-@supports (animation-timeline: scroll()) {
-  .you-strip { animation: you-strip linear both; animation-timeline: scroll(nearest block); animation-range: 7.2rem 8.8rem; }
-}
-@keyframes you-strip { 0% { opacity: 0; visibility: hidden; } 1% { visibility: visible; } 100% { opacity: 1; visibility: visible; } }
-/* the tabs hold under the strip as the page passes beneath them */
-.you-win .ui-tabs.you-tabs { position: sticky; top: 4.2667rem; z-index: 7; box-shadow: 0 6px 10px rgba(0,0,0,.35); }
+/* the strip (WindowHeader Strip) and the sticky tabs under it are the shared parts'; here only the strip's gutter */
+.you-win .ui-head-strip { padding-left: var(--yg-l); }
 
 /* ---- the header ---- */
 .you-head .ui-head-art { background-position: center 38%; }
@@ -111,11 +98,10 @@
 .you-acts .ui-seg button:disabled { opacity: .5; cursor: not-allowed; }
 .you-win .ui-btn.you-veto { box-shadow: var(--sh-plate), inset 0 -2px 0 rgba(224,85,63,.7); }
 .you-win .ui-btn:disabled .icon, .you-win .ui-btn.off .icon { opacity: .7; }
-.you-unwell { border-bottom: 0; } .you-unwell .ui-row-sub { white-space: normal; }
+.you-unwell { border-bottom: 0; }
 .you-empty.ac-fact { display: flex; align-items: center; gap: 1.0667rem; padding: .9333rem var(--yg-r) .6667rem var(--yg-l); border: 0; font-size: inherit; }
 .you-empty.ac-fact > .icon { width: 2.6667rem; height: 2.6667rem; opacity: .32; flex: none; }
 .you-empty.ac-fact p { margin: 0; font: italic 400 1.0667rem/1.4 var(--f-prose); color: var(--ink-dim); }
-.you-person .ui-row-sub { white-space: normal; }
 .you-person.heir .ui-row-nm { color: var(--brass-hi); }
 .you-person .ui-cell { font-size: .8667rem; }
 .you-arms { display: inline-flex; filter: drop-shadow(0 1px 2px #000); cursor: help; }

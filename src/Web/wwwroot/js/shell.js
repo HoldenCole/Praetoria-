@@ -61,7 +61,7 @@
       if (what === 'home') g.home();
       else if (what === 'fit') g.fit();
       else if (what === 'realms') { if (!g.sys) { g.distance = Math.max(g.distance, 2300); g.updateCamera(); } }
-      else if (what === 'houses') { if (!g.sys) { if (g.distance > 1700 || g.distance < 700) g.distance = 1150; g.updateCamera(); } }
+      else if (what === 'houses') { if (!g.sys) { if (g.distance > 1700 || g.distance < 700) g.distance = 1650; g.updateCamera(); } }   // the opening distance (7.1), inside the houses' tier
       else if (what === 'regions') { const b = q('.map-tools button[title="The regions of the Reach"]'); if (b) b.click(); }
       else if (what === 'in') zoom(0.8); else if (what === 'out') zoom(1.25);
       setTimeout(tick, 60);

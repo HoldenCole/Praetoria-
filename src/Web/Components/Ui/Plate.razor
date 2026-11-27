@@ -1,16 +1,18 @@
 @* A button (docs/VISUAL_SYSTEM.md 4.11): an action plate with a 16px icon and a verb-first label of one to three words; the cost
    sits inside at the right after a hairline. Primary is the gold plate, one per window at most. Small is 28px, for strips and rows.
-   Locked: the plate goes dark, its glyph becomes a padlock, the label stays legible, and the requirement is written in warn colour
-   beside it (when Need is set and there is room) and always in the tooltip. Every plate has a tooltip (Tip). *@
-<span class="ui-plate-wrap">
-    <button class="ui-btn @(Primary && !Locked ? " primary" : "") @(Small ? " sm" : "") @(Locked ? " off" : "") @(Class.Length > 0 ? " " + Class : "")" title="@(Locked && Need.Length > 0 ? (Tip.Length > 0 ? Tip + "\n" : "") + Need : Tip)"
-            aria-disabled="@(Locked ? "true" : "false")" disabled="@Disabled" @onclick="Click" @attributes="Attrs">
-        @if (Locked) { <Icon Name="padlock" Tone="ivory" Size="16" /> }
-        else if (Icon.Length > 0) { <Icon Name="@Icon" Tone="@(Primary ? "dark" : IconTone)" Size="16" /> }
+   Locked: the plate goes dark, its glyph becomes a padlock (or stays its own with KeepIcon, for a plate that is only unavailable
+   now: a season away, the physicians), the label stays legible, and the requirement is written in warn colour beside it (when Need
+   is set and there is room) and always in the tooltip. Every plate has a tooltip (Tip); while the button is disabled the tooltip
+   sits on its wrap too, so it opens in every browser. Stop keeps the click from reaching the row it sits in. *@
+<span class="ui-plate-wrap" title="@(Disabled ? TipText : null)">
+    <button class="ui-btn @(Primary && !Locked ? " primary" : "") @(Small ? " sm" : "") @(Locked ? " off" : "") @(Locked && KeepIcon ? " keep" : "") @(Class.Length > 0 ? " " + Class : "")" title="@TipText"
+            aria-disabled="@(Locked ? "true" : "false")" disabled="@Disabled" @onclick="Click" @onclick:stopPropagation="Stop" @attributes="Attrs">
+        @if (Locked && !KeepIcon) { <Icon Name="padlock" Tone="ivory" Size="16" /> }
+        else if (Icon.Length > 0) { <Icon Name="@Icon" Tone="@(Primary && !Locked ? "dark" : IconTone)" Size="16" /> }
         @Label
         @if (CostText.Length > 0 || Cost != null)
         {
-            <span class="ui-cost">@if (CostIcon.Length > 0) { <Icon Name="@CostIcon" Tone="@(Primary ? "dark" : "brass")" Size="14" /> }@CostText@Cost</span>
+            <span class="ui-cost">@if (CostIcon.Length > 0) { <Icon Name="@CostIcon" Tone="@(Primary && !Locked ? "dark" : "brass")" Size="14" /> }@CostText@Cost</span>
         }
     </button>
     @if (Locked && ShowNeed && Need.Length > 0) { <span class="ui-need">@Need</span> }
@@ -25,13 +27,18 @@
     [Parameter] public bool Primary { get; set; }
     [Parameter] public bool Small { get; set; }
     [Parameter] public bool Locked { get; set; }
+    /// <summary>A locked plate keeps its own glyph instead of the padlock: it cannot be used now, but nothing is barred.</summary>
+    [Parameter] public bool KeepIcon { get; set; }
     /// <summary>What a locked plate needs, in "you": "Needs a relative of age with no post".</summary>
     [Parameter] public string Need { get; set; } = "";
     [Parameter] public bool ShowNeed { get; set; } = true;
     [Parameter] public bool Disabled { get; set; }
     [Parameter] public string Tip { get; set; } = "";
     [Parameter] public string Class { get; set; } = "";
+    /// <summary>Keep the click from reaching a row or entry the plate sits in.</summary>
+    [Parameter] public bool Stop { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
     [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+    private string TipText => Locked && Need.Length > 0 ? (Tip.Length > 0 ? Tip + "\n" : "") + Need : Tip;
     private Task Click() => Locked ? Task.CompletedTask : OnClick.InvokeAsync();
 }

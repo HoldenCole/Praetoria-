@@ -120,8 +120,8 @@
     @if (open.Count == 0) { <EmptyState Icon="factory" Text="Nothing can be founded with what the house holds and where it stands." /> }
     else
     {
-        <div class="ex-found" data-found-table>
-        <DataTable Class="ex-table">
+        <div class="ex-found">
+        <DataTable Class="ex-table" data-found-table="1">
             <Head><th>Venture</th><th>Where</th><th title="What it yields is goods, not coin: what a year of it is worth at today's prices, after its keep and the charter. Prices move.">Earns</th><th>Pays back</th><th>Built in</th></Head>
             <ChildContent>
             @foreach (var v in shown)

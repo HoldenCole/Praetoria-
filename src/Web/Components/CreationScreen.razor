@@ -66,8 +66,8 @@
     @if (open)
     {
         <div class="fr-veil" @onclick="Close"></div>
-        <section class="ui-win fr-win creation @(_custom ? "custom" : "")" data-creator="@(_custom ? "custom" : _scenario)" role="dialog" aria-label="A new saga">
-            <div class="ui-win-body">
+        <WindowFrame Bare="true" Class="@("fr-win creation" + (_custom ? " custom" : ""))" data-creator="@(_custom ? "custom" : _scenario)" role="dialog" aria-label="A new saga"
+                     OnClose="Close" CloseTip="Back to the title" CloseClass="fr-x">
                 @if (_custom)
                 {
                     var problems = CharacterWorkshop.Problems(_spec, G.Content!, G.BlankWorld(_spec.Imperium));
@@ -156,15 +156,12 @@
 
                         @Rules()
                     </div>
-                    <footer class="fr-foot">
+                    <footer class="ui-win-foot fr-foot">
                         @if (_error != null) { <span class="error fr-err">@_error</span> } else { @TurnLine() }
                         <button class="ui-btn primary fr-begin begin" title="@($"Begin {Title(_scenario)} as {(_name.Trim().Length > 0 ? _name.Trim() : _protagonistName)}")" @onclick="BeginAsked">Begin the saga<Icon Name="chev" Tone="dark" Size="13" /></button>
                     </footer>
                 }
-            </div>
-            <i class="ui-win-frame" aria-hidden="true"></i>
-            <button class="ui-round ui-close fr-x" title="Back to the title" aria-label="Back to the title" @onclick="Close"><Icon Name="close" Tone="ivory" Size="13" /></button>
-        </section>
+        </WindowFrame>
     }
 </div>
 

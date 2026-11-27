@@ -51,7 +51,7 @@ h4 { font-family: var(--display); font-size: .72rem; color: var(--ink2); text-tr
 a { color: var(--brass2); }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .45; }
-.muted { color: var(--muted); } .small { font-size: .82rem; } .warn { color: var(--bad); } .good { color: var(--good); } .error { color: var(--bad); }
+.muted { color: var(--muted); } .small { font-size: .82rem; } :where(.warn) { color: var(--bad); } :where(.good) { color: var(--good); }   /* the old words-in-colour classes weigh nothing: any part's or window's own rule wins */ .error { color: var(--bad); }
 .icon { display: inline-block; vertical-align: -.2em; fill: currentColor; flex: none; overflow: visible; }
 /* the drawn glyph (docs/VISUAL_SYSTEM.md 8.1): one of the six ramps of the sprite in index.html, a dark keyline, a 1px shadow */
 .ico { stroke: #120c04; stroke-width: 22px; paint-order: stroke; stroke-linejoin: round; fill: url(#g-brass); filter: drop-shadow(0 1px 0 rgba(0,0,0,.9)); }
@@ -100,10 +100,15 @@ details > summary::before { content: "▸ "; color: var(--brass3); } details[ope
 /* portraits & heraldry */
 /* the portrait plate (docs/VISUAL_SYSTEM.md 4.15): a backdrop tinted by the house colour, the painting, an inner vignette, a band in
    the house colour along the foot, and a frame by size: the window frame from 120px, the medium frame from 64px, the small one below */
+/* The corners are chamfered by the frame drawn over them and by four dark corner cuts under it, not by a clip-path: a clip-path on
+   every plate stops Chromium's software raster painting a long page that holds a dozen of them (the Senate's offices, the Military's
+   posts; seen under SwiftShader, 2026-11-27). */
 .portrait { position: relative; display: inline-grid; place-items: center; flex: none; vertical-align: middle; overflow: hidden;
-  clip-path: polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px);
   background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--ring, #d4a23e) 32%, #101318), #05070b 80%); }
-.portrait::before { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 18px rgba(0,0,0,.7); z-index: 1; pointer-events: none; }
+.portrait::before { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 18px rgba(0,0,0,.7); z-index: 1; pointer-events: none;
+  background: linear-gradient(135deg, #05070b 0 4px, transparent 4.5px) top left / 8px 8px no-repeat, linear-gradient(225deg, #05070b 0 4px, transparent 4.5px) top right / 8px 8px no-repeat,
+    linear-gradient(45deg, #05070b 0 4px, transparent 4.5px) bottom left / 8px 8px no-repeat, linear-gradient(315deg, #05070b 0 4px, transparent 4.5px) bottom right / 8px 8px no-repeat; }
+.portrait.pf-chip::before { background: none; }
 .portrait::after { content: ""; position: absolute; inset: 0; border: 10px solid transparent; border-image: url(../img/ui/frame-sm.svg) 10 / 10px stretch; z-index: 2; pointer-events: none; }
 .portrait.pf-md::after { border-width: 16px; border-image: url(../img/ui/frame-md.svg) 16 / 16px stretch; }
 .portrait.pf-lg::after { border-width: 24px; border-image: url(../img/ui/frame.svg) 24 / 24px stretch; }
@@ -276,7 +281,7 @@ details.venture, details.found { border: 1px solid var(--line); border-radius: 3
 /* the docket */
 .motion { border: 1px solid var(--line); border-radius: 4px; padding: .5rem .6rem; margin: .45rem 0; background: rgba(5,7,12,.45); } .motion.against { border-color: var(--bad); } .motion.mine { border-color: var(--brass3); } .motion.petition { border-left: 3px solid #c9a24a; background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(5,7,12,.45) 40%); }
 .whip { display: flex; height: .4rem; border-radius: 3px; overflow: hidden; background: rgba(255,255,255,.08); } .whip .for { background: var(--good); } .whip .against { background: var(--bad); }
-.opt.inline.tiny { padding: .05rem .4rem; font-size: .72rem; } .opt.inline.here { border-color: var(--brass2); color: var(--brass2); }
+:where(.opt.inline.tiny) { padding: .05rem .4rem; font-size: .72rem; } .opt.inline.here { border-color: var(--brass2); color: var(--brass2); }
 /* the seat passes · the primer */
 .epilogue.wide { max-width: 50.6667rem; } .epilogue .tier { font-size: .72rem; letter-spacing: .14em; color: var(--brass2); margin-bottom: .3rem; }
 .primer h2 { margin-bottom: .4rem; } .primer .epi-text { min-height: 6.5rem; }
@@ -426,8 +431,8 @@ details.inline { display: inline-block; margin: .1rem .25rem; } details.inline >
 .ws-name { font-family: var(--display); font-size: 1.15rem; letter-spacing: .04em; } .ws-name .muted { font-family: var(--sans); font-size: .78rem; letter-spacing: 0; margin-left: .4rem; }
 .chip.tiny { padding: .05rem .45rem; font-size: .74rem; min-width: 1.6rem; } .chip.file { cursor: pointer; } .chip.file input { display: none; }
 .chip.world { text-align: left; } .chip.world:disabled { opacity: .35; }
-.panel.courtship .suit { border-top: 1px solid var(--line); padding: .55rem 0 .5rem; }
-.panel.courtship .suit.incoming { border-left: 2px solid var(--brass2); padding-left: .6rem; }
+:where(.panel.courtship .suit) { border-top: 1px solid var(--line); padding: .55rem 0 .5rem; }
+:where(.panel.courtship .suit.incoming) { border-left: 2px solid var(--brass2); padding-left: .6rem; }
 .suit-who { display: flex; align-items: center; gap: .45rem; font-size: .9rem; } .suit-who > div { min-width: 0; line-height: 1.3; }
 .suit-acts { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; margin: .25rem 0 .1rem; }
 .suit .gauge { grid-template-columns: 9.5rem 1fr 2.2667rem; } .suit .gauge span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -439,28 +444,28 @@ table.prospects button { white-space: nowrap; } table.prospects td, table.prospe
   table.prospects { min-width: 0; display: block; overflow-x: auto; } .suit .gauge { grid-template-columns: 6.5rem 1fr 2rem; } table.prospects th:nth-child(3), table.prospects td:nth-child(3) { display: none; }
 }
 /* ---- the household: found family and delegated duties (docs/HOUSEHOLD.md) ---- */
-.panel.cursus, .panel.breakaway { margin-top: .8rem; max-width: 65.3333rem; }
+:where(.panel.cursus, .panel.breakaway) { margin-top: .8rem; max-width: 65.3333rem; }
 .caesar-war, .caesar-recall { border: 1px solid var(--bad, #c9a227); border-radius: 6px; padding: .5rem .6rem; margin: .4rem 0 .6rem; line-height: 1.45; }
 .gate-row { padding: .18rem 0; line-height: 1.4; } .gate-row .pill { min-width: 3.6rem; text-align: center; display: inline-block; }
-.panel.caesar .ac-fact { display: block; } .panel.caesar .ac-fact > span { display: block; margin-bottom: .1rem; } .panel.caesar .suit-acts { flex-wrap: wrap; }
-.panel.life { grid-column: span 2; }
+:where(.panel.caesar .ac-fact) { display: block; } :where(.panel.caesar .ac-fact > span) { display: block; margin-bottom: .1rem; } :where(.panel.caesar .suit-acts) { flex-wrap: wrap; }
+:where(.panel.life) { grid-column: span 2; }
 @media (max-width: 1000px) {
-  .panel.life { grid-column: auto; }
+:where(.panel.life) { grid-column: auto; }
 }
-.panel.life .hh-head { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; } .panel.life b.bad { color: var(--bad); }
+:where(.panel.life .hh-head) { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; } :where(.panel.life b.bad) { color: var(--bad); }
 .health-row { padding: .2rem 0; border-top: 1px dotted var(--line); font-size: .86rem; } .health-row:first-of-type { border-top: 0; }
 .funeral { border-top: 1px dotted var(--line); padding: .4rem 0; font-size: .86rem; color: var(--ink2); line-height: 1.45; } .funeral .first { color: var(--ink); font-family: var(--serif, inherit); }
-.panel.ambitions .suit { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; } .panel.ambitions .suit.incoming { border-left: 2px solid var(--brass2); padding-left: .6rem; }
-.panel.wealth { margin-top: .8rem; } .panel.wealth .hh-head { border-top: 1px solid var(--line); margin-top: .55rem; padding-top: .5rem; line-height: 1.35; } .panel.wealth .suit { border-top: 1px dotted var(--line); padding: .35rem 0 .25rem; }
-.panel.household { margin-top: .8rem; }
-.panel.household .hh-head { border-top: 1px solid var(--line); margin-top: .55rem; padding-top: .5rem; line-height: 1.35; }
-.panel.household .hh-head:first-of-type { border-top: 0; margin-top: 0; }
-.panel.household .duty { padding: .35rem 0 .3rem; border-top: 1px dotted var(--line); }
-.panel.household .suit { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; }
-.panel.household .suit.incoming { border-left: 2px solid var(--brass2); padding-left: .6rem; }
-.panel.household .small.bad { color: var(--bad); }
-.panel.education .suit { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; } .panel.education .small.bad { color: var(--bad); } .panel.education .small.good { color: var(--good); }
-.panel.education .hh-head { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; }
+:where(.panel.ambitions .suit) { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; } :where(.panel.ambitions .suit.incoming) { border-left: 2px solid var(--brass2); padding-left: .6rem; }
+:where(.panel.wealth) { margin-top: .8rem; } :where(.panel.wealth .hh-head) { border-top: 1px solid var(--line); margin-top: .55rem; padding-top: .5rem; line-height: 1.35; } :where(.panel.wealth .suit) { border-top: 1px dotted var(--line); padding: .35rem 0 .25rem; }
+:where(.panel.household) { margin-top: .8rem; }
+:where(.panel.household .hh-head) { border-top: 1px solid var(--line); margin-top: .55rem; padding-top: .5rem; line-height: 1.35; }
+:where(.panel.household .hh-head:first-of-type) { border-top: 0; margin-top: 0; }
+:where(.panel.household .duty) { padding: .35rem 0 .3rem; border-top: 1px dotted var(--line); }
+:where(.panel.household .suit) { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; }
+:where(.panel.household .suit.incoming) { border-left: 2px solid var(--brass2); padding-left: .6rem; }
+:where(.panel.household .small.bad) { color: var(--bad); }
+:where(.panel.education .suit) { border-top: 1px dotted var(--line); padding: .4rem 0 .3rem; } :where(.panel.education .small.bad) { color: var(--bad); } :where(.panel.education .small.good) { color: var(--good); }
+:where(.panel.education .hh-head) { border-top: 1px solid var(--line); margin-top: .5rem; padding-top: .45rem; }
 /* ===== the picture: a headline, tiles that carry a comparison, tables that say what a thing is to you (docs/DASHBOARDS.md) ===== */
 h3 { flex-wrap: wrap; row-gap: .1rem; }
 h3 > .muted { flex: 1 1 100%; font-family: var(--sans); font-size: .72rem; font-weight: 400; letter-spacing: .02em; text-transform: none; color: var(--muted); }
@@ -544,9 +549,12 @@ details.orders { margin-top: .3rem; border-top: 1px dotted var(--line); padding-
 .game .win-body .panel, .game .win-body .card, .game .win-body .dash-head { background: none; border: 0; border-radius: 0; box-shadow: none; outline: 0; backdrop-filter: none; padding: 0; margin: 0 0 1.5rem; max-width: none; }
 .game .win-body .panel::before, .game .win-body .panel::after { display: none !important; }
 .game .win-body .dash-col, .game .win-body .deck-col { display: block; }
-.game .win-body h3 { justify-content: center; gap: .8rem; font-size: .74rem; letter-spacing: .24em; color: var(--brass2); margin: 0 0 .7rem; }
-.game .win-body h3::before, .game .win-body h3::after { content: "" !important; flex: 1; height: 1px; margin: 0; opacity: 1; } .game .win-body h3::before { background: linear-gradient(270deg, var(--brass3), transparent); } .game .win-body h3::after { background: linear-gradient(90deg, var(--brass3), transparent); }
-.game .win-body h3 .muted, .game .win-body h3 .icon { display: none; } .game .win-body h3 + .muted.small, .game .win-body .panel > .muted.small:nth-child(2) { display: none; }
+/* the old window rules below are for what is not a shared part: a section heading (.ui-sec), a table (.ui-table) and every entry
+   inside a rebuilt body (.ui-wbody) keep their own look (docs/VISUAL_SYSTEM.md 4) */
+.game .win-body h3:not(.ui-sec h3) { justify-content: center; gap: .8rem; font-size: .74rem; letter-spacing: .24em; color: var(--brass2); margin: 0 0 .7rem; }
+.game .win-body h3:not(.ui-sec h3)::before, .game .win-body h3:not(.ui-sec h3)::after { content: "" !important; flex: 1; height: 1px; margin: 0; opacity: 1; } .game .win-body h3:not(.ui-sec h3)::before { background: linear-gradient(270deg, var(--brass3), transparent); } .game .win-body h3:not(.ui-sec h3)::after { background: linear-gradient(90deg, var(--brass3), transparent); }
+.game .win-body h3:not(.ui-sec h3) .muted, .game .win-body h3:not(.ui-sec h3) .icon { display: none; } .game .win-body h3:not(.ui-sec h3) + .muted.small, .game .win-body .panel:not(.ui-wbody *) > .muted.small:nth-child(2) { display: none; }
+.game .win-body .ui-wbody .panel { margin: 0; }
 .game .win-body .dh-title { font-family: var(--display); font-size: 1.25rem; letter-spacing: .06em; margin-bottom: .2rem; } .game .win-body .dh-title .muted { display: block; font-family: var(--sans); font-size: .8rem; letter-spacing: 0; margin-top: .15rem; }
 .game .win-body .headline { font-family: var(--serif); font-size: 1.18rem; line-height: 1.4; border-left: 0; padding: 0; margin: .3rem 0 .9rem; max-width: 62ch; color: var(--ink); } .game .win-body .headline.bad { color: #f6c9bd; } .game .win-body .headline.warn { color: #f0dba8; }
 /* figures: a strip of number and label, not tiles */
@@ -579,14 +587,14 @@ details.orders { margin-top: .3rem; border-top: 1px dotted var(--line); padding-
 .game .opt.inline.here { background: linear-gradient(180deg, #5a4a22, #2e2612); color: var(--brass2); border-color: #000; }
 .game .window[data-screen="houses"] .win-body .dash-grid { display: block !important; } .game .win-body button.rung.back { margin: 0 0 .8rem; color: var(--brass2); }
 .game .win-body .standings tbody tr { cursor: pointer; }
-.game .win-body table { border-collapse: collapse; width: 100%; } .game .win-body th { font-family: var(--display); font-size: .62rem; letter-spacing: .16em; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--brass3); }
-.game .win-body tbody tr:nth-child(even) { background: rgba(255,255,255,.022); } .game .win-body tbody tr:hover { background: linear-gradient(90deg, rgba(201,162,74,.14), transparent); }
+.game .win-body table { border-collapse: collapse; width: 100%; } .game .win-body th:not(.ui-table th) { font-family: var(--display); font-size: .62rem; letter-spacing: .16em; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--brass3); }
+.game .win-body tbody tr:not(.ui-table tr):nth-child(even) { background: rgba(255,255,255,.022); } .game .win-body tbody tr:not(.ui-table tr):hover { background: linear-gradient(90deg, rgba(201,162,74,.14), transparent); }
 /* what used to be a card is an entry in a list: a rule above it, nothing around it */
-.game .win-body .seat-card, .game .win-body .vcard, .game .win-body .off-card, .game .win-body .hcard, .game .win-body .fcard, .game .win-body .motion, .game .win-body .estate-board .estate, .game .win-body .regard {
+.game .win-body :is(.seat-card, .vcard, .off-card, .hcard, .fcard, .motion, .estate-board .estate, .regard):not(.ui-wbody *) {
   border: 0; border-top: 1px solid rgba(255,255,255,.07); border-radius: 0; background: none; box-shadow: none; padding: .7rem 0 .6rem; margin: 0; }
-.game .win-body .motion.against, .game .win-body .off-card.emergency { box-shadow: inset 3px 0 0 var(--bad); padding-left: .8rem; } .game .win-body .motion.mine { box-shadow: inset 3px 0 0 var(--brass2); padding-left: .8rem; }
+.game .win-body :is(.motion.against, .off-card.emergency):not(.ui-wbody *) { box-shadow: inset 3px 0 0 var(--bad); padding-left: .8rem; } .game .win-body .motion.mine:not(.ui-wbody *) { box-shadow: inset 3px 0 0 var(--brass2); padding-left: .8rem; }
 .game .win-body .hcards, .game .win-body .fcards { gap: 0 1.6rem; }
-.game .win-body details > summary { font-family: var(--display); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); cursor: pointer; padding: .2rem 0; } .game .win-body details > summary:hover { color: var(--brass2); }
+.game .win-body details:not(.ui-wbody *) > summary { font-family: var(--display); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); cursor: pointer; padding: .2rem 0; } .game .win-body details:not(.ui-wbody *) > summary:hover { color: var(--brass2); }
 .game select, .game input[type="text"], .game input[type="number"] { border-radius: 0; border: 1px solid #000; background: #0a0d13; color: var(--ink); box-shadow: inset 0 1px 3px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.05); padding: .25rem .4rem; }
 /* ---- The event window (docs/ART_DIRECTION.md): a painting, the title over its foot, the people, the prose, the choices ---- */
 .win.event { width: min(54.6667rem, 96vw); max-height: 94vh; overflow-y: auto; border-radius: 0; border: 1px solid #000; background: #0f1219 var(--noise); box-shadow: 0 0 0 1px var(--brass3), 0 0 0 2px #000, 0 0 0 5px rgba(201,162,74,.22), 0 40px 100px rgba(0,0,0,.85); }
@@ -716,6 +724,9 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-wbody::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #7a5c24, #d9bd78, #7a5c24); border-radius: 3px; box-shadow: 0 0 0 1px #000; }
 .ui-wbody.still { overflow: visible; flex: none; }
 
+/* the window's foot (WindowFrame Foot): a fixed strip under the body for what the window asks and its one gold plate */
+.ui-win-foot { flex: none; position: relative; z-index: 2; display: flex; align-items: center; gap: 1.0667rem; min-height: 4rem; padding: .5333rem 1.6rem .5333rem 1.8667rem;
+  background: linear-gradient(180deg, #161b25, #0b0e14); box-shadow: inset 0 1px 0 rgba(201,162,74,.5), 0 -1px 0 #000, 0 -8px 16px rgba(0,0,0,.35); }
 /* a round brass roundel: close, undo, the menu */
 .ui-round { width: 2rem; height: 2rem; border-radius: 50%; display: grid; place-items: center; flex: none; padding: 0; cursor: pointer; color: var(--ink);
   background: radial-gradient(circle at 50% 35%, #2b3242, #0d1017 75%) padding-box, linear-gradient(160deg, #e3c985, #7a5c24 45%, #c2a056 75%, #4a3510) border-box;
@@ -741,7 +752,9 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-title { font: 600 2rem/1.08 var(--f-display); letter-spacing: .04em; color: #f5e9c9; text-shadow: 0 -1px 0 rgba(0,0,0,.8), 0 1px 0 rgba(255,225,150,.14), 0 2px 10px rgba(0,0,0,.95); margin: .4rem 0 0; }
 .ui-lede-head { margin: .5333rem 0 0; font: italic 400 1.1333rem/1.4 var(--f-prose); color: #e3d9c0; text-shadow: 0 1px 4px #000; max-width: 34rem; }
 .ui-facts { display: flex; flex-wrap: wrap; gap: .2667rem 1.0667rem; margin-top: .6rem; font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); text-shadow: 0 1px 3px #000; }
-.ui-facts > span { display: inline-flex; align-items: center; gap: .4rem; } .ui-facts .icon { width: 1.0667rem; height: 1.0667rem; stroke-width: 26px; } .ui-facts b { color: var(--ink); font-weight: 600; }
+/* a fact is one run of words: its icon, then text and bold that flow together and keep their spaces ("Tithe normal", "The 3rd of your line") */
+.ui-facts > span { display: inline-block; white-space: nowrap; } .ui-facts .icon { width: 1.0667rem; height: 1.0667rem; stroke-width: 26px; } .ui-facts b { color: var(--ink); font-weight: 600; }
+.ui-facts > span > :is(.icon, svg, i):first-child { display: inline-block; vertical-align: -.2em; margin-right: .4rem; }
 .ui-plinth { position: absolute; left: 0; right: 0; bottom: 0; height: 3.7333rem; display: flex; align-items: center; padding: 0 1.6rem 0 1.7333rem;
   background: linear-gradient(180deg, rgba(8,10,15,0), rgba(8,10,15,.72) 40%, rgba(8,10,15,.9)); }
 .ui-plinth::before { content: ""; position: absolute; left: 1.2rem; right: 1.2rem; top: 0; height: 1px; background: var(--gilt-rule); opacity: .75; }
@@ -754,6 +767,25 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-fig-v { font: 600 1.3333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
 .ui-fig-v .d { font-size: .8667rem; margin-left: .2667rem; font-weight: 600; } .ui-fig-v small { font-size: .8667rem; color: var(--ink-mute); font-weight: 500; }
 .ui-fig-l { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
+/* a figure that opens something: a button with no plate of its own, a brass label on hover */
+button.ui-fig { appearance: none; border: 0; background: none; padding: 0; margin: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.ui-plinth button.ui-fig + .ui-fig, .ui-plinth .ui-fig + button.ui-fig { margin-left: 1.2rem; padding-left: 1.2rem; }
+button.ui-fig:hover .ui-fig-l, button.ui-fig:focus-visible .ui-fig-l { color: var(--brass-hi); } button.ui-fig:focus-visible { outline: 1px solid var(--brass); outline-offset: 3px; }
+/* one action at the header's top right, clear of the close roundel */
+.ui-head-act { position: absolute; right: 4.2667rem; top: 1.0667rem; z-index: 3; }
+.ui-head:has(.ui-head-act:not(:empty)) .ui-head-text { right: 13.3333rem; }
+/* a person's header collapsed (5.2): a 64px strip of steel that holds at the top of the scrolling page once the header has passed,
+   the face and the name; shown by the page's own scroll (a scroll timeline), so it costs nothing where scroll timelines are missing */
+.ui-head-strip { position: sticky; top: 0; z-index: 8; height: 4.2667rem; margin-bottom: -4.2667rem; display: flex; align-items: center; gap: .8rem; padding: 0 4.4rem 0 1.8667rem;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.25)), var(--tex-steel); background-color: #1b202b; box-shadow: inset 0 -1px 0 rgba(201,162,74,.55), 0 1px 0 #000, 0 6px 12px rgba(0,0,0,.45);
+  opacity: 0; visibility: hidden; pointer-events: none; }
+.ui-head-strip > div { display: flex; flex-direction: column; gap: .2667rem; min-width: 0; }
+.ui-head-strip b { font: 600 1.2rem/1 var(--f-display); letter-spacing: .04em; color: #f5e9c9; text-shadow: 0 1px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ui-head-strip .ui-kick { font-size: .8rem; }
+@supports (animation-timeline: scroll()) {
+  .ui-head-strip { animation: ui-head-strip linear both; animation-timeline: scroll(nearest block); animation-range: 7.2rem 8.8rem; }
+}
+@keyframes ui-head-strip { 0% { opacity: 0; visibility: hidden; } 1% { visibility: visible; } 100% { opacity: 1; visibility: visible; } }
 
 /* the house's marks: the wax seal, the arms, the standard (Sigil.razor) */
 .house-seal { flex: none; display: block; overflow: visible; } .house-standard { flex: none; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,.8)); }
@@ -771,6 +803,8 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-tab.on .icon { opacity: 1; }
 @media (max-width: 1500px) { .ui-tabs.many .ui-tab .icon { display: none; } }
 
+/* tabs that hold at the top of a page scrolling under them (Tabs Sticky; the top is set on the row, under a header's strip) */
+.ui-tabs.sticky { position: sticky; z-index: 7; box-shadow: 0 6px 10px rgba(0,0,0,.35); }
 /* the lede: one or two lines of Alegreya italic, numbers in bold roman lining figures */
 .ui-lede { position: relative; margin: 1.0667rem 2rem 2px 1.8667rem; font: italic 400 1.1333rem/1.45 var(--f-prose); color: #e3d9c0; font-variant-numeric: lining-nums; }
 .ui-lede b { font-style: normal; font-weight: 700; color: var(--ink); }
@@ -786,13 +820,14 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-sec-r { margin-left: auto; display: flex; align-items: center; gap: .6667rem; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); } .ui-sec-r b { color: var(--ink); font-weight: 600; }
 
 /* rows: one grid for every list */
-.ui-row { display: grid; grid-template-columns: 3.6rem minmax(0,1fr) auto auto; align-items: center; column-gap: .9333rem; min-height: 3.8667rem; padding: .4667rem 1.6rem .4667rem 1.8667rem; border-bottom: 1px solid rgba(255,255,255,.05); position: relative; }
+.ui-row { display: grid; grid-template-columns: 3.6rem minmax(0,1fr) auto auto; align-items: center; column-gap: var(--ui-row-gap, .9333rem); min-height: 3.8667rem; padding: .4667rem var(--ui-row-gr, 1.6rem) .4667rem var(--ui-row-gl, 1.8667rem); border-bottom: 1px solid rgba(255,255,255,.05); position: relative; }
 .ui-row.nopic { grid-template-columns: minmax(0,1fr) auto auto; }
 .ui-row.click { cursor: pointer; }
 .ui-row:hover, .ui-row.on { background: linear-gradient(90deg, rgba(201,162,74,.10), rgba(255,255,255,.02)); }
 .ui-row:hover::before, .ui-row.on::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
 .ui-row-nm { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ui-row-sub { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; } .ui-row-sub b { color: var(--ink); font-weight: 500; }
+.ui-row.wrap .ui-row-sub { white-space: normal; }
 .ui-cols { display: flex; gap: 1.0667rem; align-items: center; }
 .ui-cell { display: flex; align-items: center; gap: .3333rem; font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 3.4667rem; justify-content: flex-end; }
 .ui-cell small { font-size: .8333rem; } .ui-cell .icon { width: 1.1333rem; height: 1.1333rem; stroke-width: 26px; }
@@ -843,6 +878,9 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-seg button { height: 1.8667rem; padding: 0 .7333rem; display: grid; place-items: center; font: 600 .8667rem/1 var(--f-ui); color: #aea996; background: linear-gradient(#262d3e, #181d29); box-shadow: inset 0 1px 0 rgba(255,255,255,.07); border: 0; border-radius: 0; cursor: pointer; }
 .ui-seg button + button { border-left: 1px solid #000; } .ui-seg button:hover { color: var(--ink); }
 .ui-seg button.on { color: var(--brass-hi); background: #0b0e14; box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass); }
+/* an option the game refuses: dark, not to be pressed, the reason in its tooltip; a small figure after an option's words */
+.ui-seg button { display: inline-flex; align-items: center; } .ui-seg button:disabled { color: #a39d90; background: linear-gradient(#171b25, #10131a); cursor: not-allowed; }
+.ui-seg button small { margin-left: .3333rem; font: 600 .8rem/1 var(--f-ui); color: var(--ink-mute); }
 
 /* a select: a plate with a brass ring and a chevron, opening a list in the medium frame */
 .ui-select { position: relative; display: inline-block; }
@@ -870,6 +908,11 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-step button:hover:not(:disabled) { background: linear-gradient(#3a4560, #212839); } .ui-step button:disabled { opacity: .5; cursor: not-allowed; }
 .ui-step button .icon { width: .8rem; height: .8rem; }
 .ui-step b { min-width: 3.0667rem; height: 2rem; padding: 0 .4rem; display: grid; place-items: center; font: 600 1rem/1 var(--f-ui); font-variant-numeric: tabular-nums; background: #05070a; box-shadow: inset 0 1px 3px #000; border-left: 1px solid #000; border-right: 1px solid #000; }
+/* the stepper's figure as a field the player types into (Stepper Input) */
+.ui-step input[type="number"] { width: 3.4667rem; height: 2rem; padding: 0 .4rem; text-align: center; font: 600 1rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink);
+  -webkit-appearance: none; appearance: none; background: #05070a; border: 0; border-left: 1px solid #000; border-right: 1px solid #000; box-shadow: inset 0 1px 3px #000; border-radius: 0; }
+.ui-step input::-webkit-inner-spin-button, .ui-step input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.ui-step input[type="number"]:focus { outline: none; box-shadow: inset 0 1px 3px #000, inset 0 0 0 1px var(--brass); }
 
 /* building slots: the building's painting; a free slot is a hatched well with a faint plus */
 .ui-slots { display: flex; gap: .4rem; align-items: center; flex-wrap: wrap; }
@@ -877,6 +920,14 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ui-slot.free { width: 2.1333rem; background: repeating-linear-gradient(135deg, rgba(201,162,74,.08) 0 5px, transparent 5px 10px), #06080c; box-shadow: inset 0 1px 3px #000, 0 0 0 1px rgba(165,129,58,.3); display: grid; place-items: center; }
 .ui-slot.free .icon { width: .8667rem; height: .8667rem; opacity: .55; stroke-width: 40px; }
+/* a building with no painting yet, a slot used by a work on the world itself, and a building still rising (ember when stalled) */
+.ui-slot.noart, .ui-slot.other { display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #252c3b, #0a0c11); }
+.ui-slot.other { width: 2.1333rem; }
+.ui-slot.rising { display: grid; place-items: center; align-content: center; gap: 1px; width: 2.8rem; background: radial-gradient(circle at 50% 40%, #2a2416, #0b0a07); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.75), 0 2px 4px #000; }
+.ui-slot.rising small { font: 600 .8rem/1 var(--f-ui); color: var(--brass-hi); }
+.ui-slot.rising.stalled { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(224,85,63,.75), 0 2px 4px #000; }
+.ui-slot.rising.stalled small { color: #ff8a70; }
+.ui-slots-head[title] { cursor: help; }
 .ui-slots-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .4rem; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); }
 .ui-slots-head b { color: var(--ink); font-weight: 600; } .ui-slots-head span:first-child { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
 
@@ -885,6 +936,7 @@ details.inline[data-hulls] .qty { width: 4rem; }
 .ui-wstrip > .icon { width: 1.2rem; height: 1.2rem; }
 .ui-wstrip-t { flex: 1; min-width: 0; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); } .ui-wstrip-t b { color: var(--warn); font-weight: 600; }
 .ui-wstrip.bad { background: linear-gradient(90deg, rgba(224,85,63,.14), rgba(224,85,63,.03)); box-shadow: inset 2px 0 0 var(--bad), inset 0 0 0 1px rgba(224,85,63,.16); } .ui-wstrip.bad .ui-wstrip-t b { color: var(--bad); }
+.ui-wstrip-note { flex: none; padding: 0 .5333rem; font: italic 400 .9333rem/1.2 var(--f-ui); color: var(--ink-mute); white-space: nowrap; } .ui-wstrip-note[title] { cursor: help; }
 
 /* an empty state: a faint picture, one line, one way on */
 .ui-empty { display: flex; align-items: center; gap: 1.0667rem; padding: .9333rem 1.6rem .6667rem 1.8667rem; }

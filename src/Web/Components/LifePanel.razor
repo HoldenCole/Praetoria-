@@ -36,9 +36,9 @@
                 </p>
             }
             <div class="you-acts">
-                <Plate Label="Season away" Icon="sundial" CostIcon="public-speaker" CostText="@LifeSystem.RestInfluence.ToString()" Locked="@(rest != null)" Disabled="@(rest != null)" Need="@Say(rest)" ShowNeed="false"
+                <Plate Label="Season away" Icon="sundial" KeepIcon="true" CostIcon="public-speaker" CostText="@LifeSystem.RestInfluence.ToString()" Locked="@(rest != null)" Disabled="@(rest != null)" Need="@Say(rest)" ShowNeed="false"
                        Tip="@RestTip" OnClick="() => G.Execute(new LifeCommand(pid, LifeCommand.Rest))" />
-                <Plate Label="Physicians" Icon="caduceus" CostIcon="credits" CostText="@Money.Show(LifeSystem.PhysicianCredits)" Locked="@(phys != null)" Disabled="@(phys != null)" Need="@Say(phys)" ShowNeed="false"
+                <Plate Label="Physicians" Icon="caduceus" KeepIcon="true" CostIcon="credits" CostText="@Money.Show(LifeSystem.PhysicianCredits)" Locked="@(phys != null)" Disabled="@(phys != null)" Need="@Say(phys)" ShowNeed="false"
                        Tip="@($"[caduceus] The physicians\nHealth +6, and an illness cured. {Money.Credits(LifeSystem.PhysicianCredits)} from your own purse.")" OnClick="() => G.Execute(new LifeCommand(pid, LifeCommand.Physicians))" />
                 @if (_confirm)
                 {
@@ -47,14 +47,14 @@
                 }
                 else
                 {
-                    <Plate Label="Step down" Icon="wooden-chair" Locked="@(retire != null)" Disabled="@(retire != null)" Need="@Say(retire)" ShowNeed="false"
+                    <Plate Label="Step down" Icon="wooden-chair" KeepIcon="true" Locked="@(retire != null)" Disabled="@(retire != null)" Need="@Say(retire)" ShowNeed="false"
                            Tip="@($"[wooden-chair] Lay the house down\n{(heir != null ? heir.Name + " has the house and you play on as them." : "Your heir has the house and you play on as them.")} You stay as its elder and teach them.")" OnClick="() => _confirm = true" />
                 }
             </div>
             @foreach (var x in unwell)
             {
                 string xid = x.Id; var send = new LifeCommand(pid, LifeCommand.Send, xid).Refusal(G.Ctx); bool xill = x.Flags.Contains(LifeSystem.IllChar);
-                <Row Name="@($"{x.Name} is {(xill ? "ill" : LifeSystem.HealthName(x.Health))}")" SubText="@($"{Cap(LifeSystem.HealthName(x.Health))}, health {x.Health}. A physician can be sent for from your own purse.")" Class="you-unwell">
+                <Row Wrap="true" Name="@($"{x.Name} is {(xill ? "ill" : LifeSystem.HealthName(x.Health))}")" SubText="@($"{Cap(LifeSystem.HealthName(x.Health))}, health {x.Health}. A physician can be sent for from your own purse.")" Class="you-unwell">
                     <Picture><Portrait Id="@x.Id" Name="@x.Name" Sex="@x.Sex" Age="@x.Age" Accent="@house.AccentColor" Size="46" Height="56" Condition="@(xill ? "pill" : "")" ConditionTip="Ill" /></Picture>
                     <Action><Plate Label="Send physicians" Icon="caduceus" Small="true" CostIcon="credits" CostText="@Money.Show(LifeSystem.PhysicianCredits)" Locked="@(send != null)" Disabled="@(send != null)" Need="@Say(send)" ShowNeed="false"
                                    Tip="@($"[caduceus] Send your physicians\n{SendTip}")" OnClick="() => G.Execute(new LifeCommand(pid, LifeCommand.Send, xid))" /></Action>
@@ -89,7 +89,7 @@
             @foreach (var (kv, friend) in friends.Take(5).Select(f => (f, true)).Concat(enemies.Take(5).Select(e => (e, false))))
             {
                 var o = w.Char(kv.Key)!; var oh = w.House(o.HouseId);
-                <Row Name="@o.Name" SubText="@TieSub(kv.Key, kv.Value, friend)" Class="@("you-person " + (friend ? "friend" : "enemy"))" Tip="@((friend ? "An old friend. " : "An old enemy. ") + TieRule)">
+                <Row Wrap="true" Name="@o.Name" SubText="@TieSub(kv.Key, kv.Value, friend)" Class="@("you-person " + (friend ? "friend" : "enemy"))" Tip="@((friend ? "An old friend. " : "An old enemy. ") + TieRule)">
                     <Picture><Portrait Id="@o.Id" Name="@o.Name" Sex="@o.Sex" Age="@o.Age" Accent="@(oh?.AccentColor ?? "#888")" Size="46" Height="56" /></Picture>
                     <Cells><span class="ui-cell @(friend ? "ui-up" : "ui-down")"><Icon Name="@(friend ? "shaking-hands" : "crossed-sabres")" Tone="@(friend ? "good" : "ember")" Size="17" />@(friend ? "Friend" : "Enemy")</span></Cells>
                 </Row>

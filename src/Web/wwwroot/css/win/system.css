@@ -1,67 +1,11 @@
-/* The system panel (docs/VISUAL_SYSTEM.md 10: "System view and world view: the standard painted header and plinth; no stretched sprite"):
-   SystemPanel draws its own painted header (a painting by the system's subject, the holder's wax seal, the region, the name, the world
-   and its holder as facts, four figures on the plinth) at the top of the map's side window, then the development as a meter, then each
-   place of the system as a row with its lit globe, its marks drawn (a feature, a deposit, the building slots, the site of a great work),
-   opened in place for what stands there and what can be built. Loaded after app.css, so a rule here wins over a shared rule of the same
-   weight. Only SystemPanel uses the sysp- classes below.
+/* The system panel (docs/VISUAL_SYSTEM.md 10): the body of the map's system window. GalaxyMap draws the window itself (the frame, the
+   painted header with the holder's seal, the figures and the tabs); SystemPanel draws what is under the tabs: the development as a
+   meter, then each place of the system as a row with its lit globe, its marks drawn (a feature, a deposit, the building slots, the
+   site of a great work), opened in place for what stands there and what can be built. Loaded after app.css, so a rule here wins over
+   a shared rule of the same weight. Only SystemPanel uses the sysp- classes below. */
 
-   The side window itself (its strip, its close, the painting and name it drew before, its three tabs and "Go into the system") is drawn by
-   GalaxyMap, which is not this panel's file: while the panel's header is in it (":has(.sysp-head)") the old painting and name step aside,
-   the header moves to the top, the strip becomes a close roundel on the painting, and the tabs and the button take the shared look. On
-   GalaxyMap's own "The world" tab the panel is not drawn, so the old header shows there. */
-
-/* ---- the side window, while the panel's header is in it ---- */
-.game .map-side:has(.sysp-head) { background: var(--tex-leather); background-color: var(--base); }
-.game .map-side:has(.sysp-head) > .win-bar { position: absolute; top: 0; right: 0; z-index: 8; height: auto; padding: .8rem .8rem 0 0; background: none; border: 0; box-shadow: none; }
-.game .map-side:has(.sysp-head) > .win-bar h2 { display: none; }
-.game .map-side:has(.sysp-head) > .win-bar .win-x { position: relative; width: 2rem; height: 2rem; padding: 0; border-radius: 50%; font-size: 0; color: transparent; cursor: pointer;
-  background: radial-gradient(circle at 50% 35%, #2b3242, #0d1017 75%) padding-box, linear-gradient(160deg, #e3c985, #7a5c24 45%, #c2a056 75%, #4a3510) border-box;
-  border: 2px solid transparent; box-shadow: 0 0 0 1px #000, 0 2px 6px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.12); }
-.game .map-side:has(.sysp-head) > .win-bar .win-x::before, .game .map-side:has(.sysp-head) > .win-bar .win-x::after { content: ""; position: absolute; left: 50%; top: 50%; width: .8667rem; height: 2px; margin: -1px 0 0 -.4333rem; background: #e2d7bd; box-shadow: 0 0 0 1px rgba(0,0,0,.5); border-radius: 1px; }
-.game .map-side:has(.sysp-head) > .win-bar .win-x::before { transform: rotate(45deg); } .game .map-side:has(.sysp-head) > .win-bar .win-x::after { transform: rotate(-45deg); }
-.game .map-side:has(.sysp-head) > .win-bar .win-x:hover { filter: brightness(1.15); }
-.game .map-side:has(.sysp-head) > .win-body { padding: 0 0 4rem; scrollbar-width: thin; scrollbar-color: #c9a24a #05070a; }
-.game .map-side .planet-card:has(.sysp-head) { display: flex; flex-direction: column; margin: 0; padding: 0; overflow: visible; }
-.game .map-side .planet-card:has(.sysp-head) > .planet-hero, .game .map-side .planet-card:has(.sysp-head) > .planet-head, .game .map-side .planet-card:has(.sysp-head) > p.muted.small { display: none; }
-.game .map-side .planet-card:has(.sysp-head) > .sysp { display: contents; }
-.game .map-side .planet-card:has(.sysp-head) > .sysp > .sysp-head { order: -3; }
-.game .map-side .planet-card:has(.sysp-head) > .sys-tabs { order: -2; }
-.game .map-side .planet-card:has(.sysp-head) > .sys-enter { order: -1; }
-/* GalaxyMap's tabs, in the shared tabs' look (docs/VISUAL_SYSTEM.md 4.4) */
-.game .map-side .planet-card:has(.sysp-head) > .sys-tabs { display: flex; flex-wrap: nowrap; gap: .2rem; margin: 0; padding: .6667rem .9333rem 0; border: 0; position: relative; background: linear-gradient(#090b10, #0c0f15); }
-.game .map-side .planet-card:has(.sysp-head) > .sys-tabs::after { content: ""; position: absolute; left: .6rem; right: .6rem; bottom: 0; height: 1px; background: rgba(201,162,74,.5); box-shadow: 0 1px 0 #000; }
-.game .win-body .map-side .planet-card:has(.sysp-head) > .sys-tabs button.rung, .game .map-side .planet-card:has(.sysp-head) > .sys-tabs button.rung { height: 2.2667rem; margin: 0; padding: 0 .7333rem; display: flex; align-items: center;
-  font: 600 .8667rem/1 var(--f-ui); letter-spacing: 0; text-transform: none; color: #b3ad9c; white-space: nowrap; cursor: pointer;
-  background: linear-gradient(#1f2635, #131823); border: 1px solid #000; border-bottom: none; border-radius: 0; box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
-  clip-path: polygon(5px 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 0 100%, 0 5px); }
-.game .map-side .planet-card:has(.sysp-head) > .sys-tabs button.rung:hover { color: var(--ink); background: linear-gradient(#273044, #161b27); }
-.game .map-side .planet-card:has(.sysp-head) > .sys-tabs button.rung.here { color: var(--brass-hi); background: linear-gradient(#262c3a, var(--base) 85%); margin-bottom: -1px; height: 2.3333rem; z-index: 2;
-  box-shadow: inset 0 2px 0 var(--brass), inset 0 3px 0 rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12); }
-.game .map-side .planet-card:has(.sysp-head) > .sys-enter { align-self: flex-start; margin: .8rem 1.2rem 0 1.4rem; height: 2rem; padding: 0 .8rem; display: inline-flex; align-items: center; gap: .4rem;
-  font: 600 .8667rem/1 var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--ink-dark, #1d1506); border: 1px solid #000; border-radius: 2px;
-  background: linear-gradient(#f6e2a0, #d2ad58 45%, #a07a30); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.25), 0 1px 3px #000; }
-
-/* ---- the painted header, at the side window's width (410px) ---- */
+/* ---- the panel, at the map window's width ---- */
 .sysp { --g-l: 1.4rem; --g-r: 1.2rem; display: flex; flex-direction: column; color: var(--ink); font: 400 .9333rem/1.4 var(--f-ui); }
-.sysp-head.ui-head { height: 12rem; }
-.sysp-head .ui-head-art { background-position: center 42%; }
-.sysp-head .ui-head-shade { background:
-  linear-gradient(90deg, rgba(8,10,15,.88) 0, rgba(8,10,15,.62) 12rem, rgba(8,10,15,.22) 22rem, rgba(8,10,15,.18) 100%),
-  linear-gradient(180deg, rgba(8,10,15,.3) 0%, rgba(8,10,15,0) 26%, rgba(8,10,15,0) 52%, rgba(8,10,15,.92) 100%); }
-.sysp-head .ui-head-mark { left: 1.0667rem; top: 1.2rem; width: 3.8667rem; height: 3.8667rem; }
-.sysp-head .ui-head-mark .house-seal, .sysp-head .ui-head-mark svg.sigil { width: 3.8667rem; height: 3.8667rem; }
-.sysp-head .ui-medal { width: 3.6rem; height: 3.6rem; } .sysp-head .ui-medal .icon { width: 2rem; height: 2rem; }
-.sysp-head .ui-head-text { left: 5.6rem; top: 1.2rem; right: 3.4667rem; }
-.sysp-head .ui-kick { font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sysp-head .ui-title { font-size: 1.6rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sysp-head .ui-facts { flex-direction: column; gap: .2rem; margin-top: .4667rem; font-size: .8667rem; }
-.sysp-head .ui-facts > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9); }
-.sysp-head .ui-facts > .own { color: var(--brass-hi); }
-.sysp-head .ui-plinth { height: 3.4667rem; padding: 0 .9333rem; justify-content: space-between; }
-.sysp-head .ui-plinth::before { left: .6667rem; right: .6667rem; }
-.sysp-head .ui-plinth .ui-fig { gap: .4rem; cursor: help; } .sysp-head .ui-plinth .ui-fig + .ui-fig { margin-left: .2667rem; padding-left: .6667rem; }
-.sysp-head .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
-.sysp-head .ui-fig-v { font-size: 1.1333rem; } .sysp-head .ui-fig-v small { font-size: .8rem; } .sysp-head .ui-fig-l { font-size: .8rem; }
 .sysp-lede { margin: .8rem var(--g-r) .2667rem var(--g-l); font: italic 400 1.0667rem/1.45 var(--f-prose); color: #e3d9c0; }
 
 /* ---- settling, a holder's note, the development ---- */
@@ -182,17 +126,8 @@ details.sysp-grant select { max-width: 20rem; }
 .sysp-dues .seg { display: inline-flex; gap: 0; } .sysp-dues .seg .opt + .opt { margin-left: -1px; }
 .sysp-demand { margin-top: .4rem; padding: .5333rem .6667rem; border: 0; background: linear-gradient(90deg, rgba(224,85,63,.14), rgba(224,85,63,.03)); box-shadow: inset 2px 0 0 var(--bad), inset 0 0 0 1px rgba(224,85,63,.16); font: 400 .8667rem/1.4 var(--f-ui); color: var(--ink-dim); }
 .sysp-demand b { color: var(--bad); } .sysp-demand .row { margin-top: .4rem; gap: .4rem; display: flex; flex-wrap: wrap; }
-/* the panel's parts are the side window's flex items while the header leads it: none may be wider than the window */
-.game .map-side .planet-card:has(.sysp-head) > .sysp > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
-.game .map-side .planet-card:has(.sysp-head) > .sysp > .local-laws { margin: .6rem var(--g-r) .4rem var(--g-l); max-width: calc(100% - var(--g-l) - var(--g-r)); }
+/* the panel's parts are flex items of the map window's body: none may be wider than the window (LocalLawBlock among them) */
+.sysp > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.sysp > .local-laws { margin: .6rem var(--g-r) .4rem var(--g-l); max-width: calc(100% - var(--g-l) - var(--g-r)); }
 .sysp-cost { font: 400 .8667rem/1.35 var(--f-ui); color: var(--ink-dim); }
 
-/* ---- GalaxyMap's own "The world" tab (the panel is not drawn there): its hero becomes the world painting, not the planet's sprite
-   stretched, with the name and its line set on the painting's foot. No plinth: the figures need GalaxyMap's markup. ---- */
-.game .map-side .planet-card:not(:has(.sysp-head)) > .planet-hero { height: 9.3333rem; margin: -1rem -1.2rem 0; background: #0a0d14; }
-.game .map-side .planet-card:not(:has(.sysp-head)) > .planet-hero::before { content: ""; position: absolute; inset: 0; background: url(../../img/scenes/world.webp) center 42% / cover no-repeat; filter: brightness(1.16) contrast(1.08) saturate(1.04); }
-.game .map-side .planet-card:not(:has(.sysp-head)) > .planet-hero .planet-sprite { display: none; }
-.game .map-side .planet-card:not(:has(.sysp-head)) > .planet-hero .hero-fade { background: linear-gradient(90deg, rgba(8,10,15,.86), rgba(8,10,15,.5) 50%, rgba(8,10,15,.15)), linear-gradient(180deg, rgba(8,10,15,.2), rgba(8,10,15,0) 40%, rgba(13,16,23,.96) 100%); }
-.game .map-side .planet-card:not(:has(.sysp-head)) > .planet-head { position: relative; z-index: 1; margin-top: -4.6667rem; min-height: 4.6667rem; align-items: flex-end; padding-bottom: .4rem; border-bottom: 1px solid rgba(201,162,74,.5); }
-.game .map-side .planet-card:not(:has(.sysp-head)) > .planet-head h2 { font: 600 1.6rem/1.1 var(--f-display); letter-spacing: .04em; color: #f5e9c9; text-shadow: 0 -1px 0 rgba(0,0,0,.8), 0 2px 10px rgba(0,0,0,.95); margin: 0; }
-.game .map-side .planet-card:not(:has(.sysp-head)) > .planet-head .muted { font: 500 .8667rem/1.35 var(--f-ui); color: var(--ink-dim); text-shadow: 0 1px 3px #000; }

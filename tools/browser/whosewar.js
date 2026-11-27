@@ -47,7 +47,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const hint = await card('vashti'); console.log('the Khanates\' card says how often a Great Khan comes: ' + ((hint || '').match(/Under a Great Khan[^.]*\./) || ['NOT SHOWN'])[0]);
   const el = await page.$('.panel.abroad'); if (el) { await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: shots + '/whosewar-card.png' }); }
   // the Galaxy screen, with two worlds marked as conquered (staged: see the note at the top)
-  await rail('galaxy'); await page.waitForTimeout(2500);
+  await page.evaluate(() => { const el = document.querySelector('[data-close-window]'); if (el) el.click(); }); await page.waitForTimeout(2500);   // back to the map: the docked window's close (the rail has no Galaxy socket)
   const staged = await page.evaluate(() => {
     if (!window.__last) return 'the map gave no model';
     const m = JSON.parse(window.__last.json); const khan = m.systems.find(s => /khal/i.test(s.id)); const rim = m.systems.find(s => s.id === 'the_veil') || m.systems.find(s => s.ring === 'rim' && s.ownerId);

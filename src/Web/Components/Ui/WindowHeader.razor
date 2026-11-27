@@ -3,7 +3,13 @@
    painting's foot under a gilt rule the plinth: at most five figures (seven for a person), numbers only. A person's header is 288px
    tall and stands their portrait (the Who slot) where the seal would be. Paintings by window: House world, You by career, Dynasty
    family, Worlds world, Military bridge, Exchange audience, Senate senate, Laws court, Houses audience, Chronicle funeral or
-   dispatch, Office audience. *@
+   dispatch, Office audience. Action puts one plate at the header's top right; a figure with OnClick is a button. Strip gives a person's header
+   its collapsed 64px strip. *@
+@if (Strip != null)
+{
+    @* the 64px strip a person's header collapses to (5.2): it holds at the top of the scrolling page once the header has passed *@
+    <div class="ui-head-strip @(Class.Length > 0 ? " " + Class + "-strip" : "")" aria-hidden="true">@Strip<div>@if (StripKicker.Length > 0) { <div class="ui-kick">@StripKicker</div> }<b>@Title</b></div></div>
+}
 <header class="ui-head @(Who != null ? " tall portrait-head" : Tall ? " tall" : "") @(Class.Length > 0 ? " " + Class : "")">
     <div class="ui-head-art" style="background-image:url('img/scenes/@(Scene).webp')"></div>
     <div class="ui-head-shade"></div>
@@ -17,25 +23,29 @@
         @if (Facts != null) { <div class="ui-facts">@Facts</div> }
         @ChildContent
     </div>
+    @if (Action != null) { <div class="ui-head-act">@Action</div> }
     @if (Figures is { Count: > 0 })
     {
         <div class="ui-plinth">
             @foreach (var f in Figures.Take(Who != null ? 7 : 5))
             {
-                <div class="ui-fig" title="@f.Tip">
-                    <Icon Name="@f.Icon" Tone="@(f.Tone.Length > 0 ? f.Tone : "ivory")" Size="24" />
-                    <div class="ui-fig-vv">
-                        <span class="ui-fig-v">@f.Value@if (f.Of.Length > 0) { <small>/@f.Of</small> }@if (f.Delta.Length > 0) { <span class="d @(f.Delta.StartsWith("−") || f.Delta.StartsWith("-") ? "ui-down" : "ui-up")">@f.Delta</span> }</span>
-                        <span class="ui-fig-l">@f.Label</span>
-                    </div>
-                </div>
+                if (f.OnClick.HasDelegate)
+                {
+                    <button class="ui-fig click" title="@f.Tip" @onclick="f.OnClick" @attributes="f.Attrs">@FigBody(f)</button>
+                }
+                else
+                {
+                    <div class="ui-fig" title="@f.Tip" @attributes="f.Attrs">@FigBody(f)</div>
+                }
             }
         </div>
     }
 </header>
 @code {
-    /// <summary>One figure on the plinth: a 24px icon, the value (its ceiling as "/8" when Of is set, a yearly change in Delta), a label.</summary>
-    public sealed record Figure(string Icon, string Value, string Label, string Tone = "", string Of = "", string Delta = "", string Tip = "");
+    /// <summary>One figure on the plinth: a 24px icon, the value (its ceiling as "/8" when Of is set, a yearly change in Delta), a label.
+    /// With OnClick the figure is a button (what the legitimacy is made of, say); Attrs carries a data-* hook for the scripts.</summary>
+    public sealed record Figure(string Icon, string Value, string Label, string Tone = "", string Of = "", string Delta = "", string Tip = "",
+        EventCallback OnClick = default, IReadOnlyDictionary<string, object>? Attrs = null);
     /// <summary>The painting's key in img/scenes (SceneArt's names): world, bridge, court, senate, family, audience, funeral, dispatch...</summary>
     [Parameter] public string Scene { get; set; } = "audience";
     [Parameter] public string Kicker { get; set; } = "";
@@ -49,6 +59,20 @@
     [Parameter] public RenderFragment? Lede { get; set; }
     [Parameter] public RenderFragment? Facts { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    /// <summary>A person's header that scrolls with its page: the small face for the 64px strip that holds at the top once the header
+    /// has passed (the name beside it is the Title). Put the header inside the scrolling body and give the Tabs under it Sticky.</summary>
+    [Parameter] public RenderFragment? Strip { get; set; }
+    [Parameter] public string StripKicker { get; set; } = "";
+    /// <summary>One action at the header's top right, left of the close roundel ("Go into the system").</summary>
+    [Parameter] public RenderFragment? Action { get; set; }
     [Parameter] public IReadOnlyList<Figure>? Figures { get; set; }
     [Parameter] public string Class { get; set; } = "";
+    private static RenderFragment FigBody(Figure f) => __builder =>
+    {
+        <Icon Name="@f.Icon" Tone="@(f.Tone.Length > 0 ? f.Tone : "ivory")" Size="24" />
+        <div class="ui-fig-vv">
+            <span class="ui-fig-v">@f.Value@if (f.Of.Length > 0) { <small>/@f.Of</small> }@if (f.Delta.Length > 0) { <span class="d @(f.Delta.StartsWith("−") || f.Delta.StartsWith("-") ? "ui-down" : "ui-up")">@f.Delta</span> }</span>
+            <span class="ui-fig-l">@f.Label</span>
+        </div>
+    };
 }

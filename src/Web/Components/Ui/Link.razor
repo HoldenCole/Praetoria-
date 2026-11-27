@@ -1,8 +1,13 @@
-@* A link to another window or tab (docs/VISUAL_SYSTEM.md 4.11): brass text with a small chevron, never a plate. *@
-<button class="ui-link @(Class.Length > 0 ? " " + Class : "")" title="@Tip" @onclick="OnClick">@Label<Icon Name="chev" Size="11" Class="flat" /></button>
+@* A link to another window or tab (docs/VISUAL_SYSTEM.md 4.11): brass text with a small chevron, never a plate. Any other attribute
+   (a data-* hook for the scripts) lands on the button. It is always written self-closing, with Label: Razor reads <Link> as the
+   void HTML element. *@
+<button class="ui-link @(Class.Length > 0 ? " " + Class : "")" title="@(Tip.Length > 0 ? Tip : null)" @onclick="OnClick" @onclick:stopPropagation="Stop" @attributes="Attrs">@Label<Icon Name="chev" Size="11" Class="flat" /></button>
 @code {
     [Parameter] public string Label { get; set; } = "";
     [Parameter] public string Tip { get; set; } = "";
     [Parameter] public string Class { get; set; } = "";
+    /// <summary>Keep the click from reaching a row or entry the link sits in.</summary>
+    [Parameter] public bool Stop { get; set; }
     [Parameter] public EventCallback OnClick { get; set; }
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
 }

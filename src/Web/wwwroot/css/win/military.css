@@ -11,11 +11,6 @@
 
 .mil-win { --g-l: 1.8667rem; --g-r: 1.6rem; container: mil / inline-size; }
 
-/* the old window rule for every h3 in a docked window (app.css, ".game .win-body h3") outweighs the section heading's own: put it back */
-.game .win-body .mil-win .ui-sec h3 { font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; color: var(--brass-ink); margin: 0; gap: 0; justify-content: flex-start; text-transform: uppercase; }
-.game .win-body .mil-win .ui-sec h3::before, .game .win-body .mil-win .ui-sec h3::after { display: none !important; }
-.game .win-body .mil-win .panel { margin: 0; }
-.game .win-body .mil-win .panel > .muted.small:nth-child(2) { display: block; }
 
 /* ---- the painted header: the bridge (or a battle), the eagle in its medallion, three facts, five figures spread along the plinth ---- */
 .mil-head .ui-head-art { background-position: center 46%; }
@@ -132,9 +127,6 @@
 .mil-pick .mil-tok { width: 1.8667rem; height: 1.8667rem; border-width: 1px; } .mil-pick .mil-tok svg { width: 1.0667rem; height: 1.0667rem; }
 
 /* joined plates where an option may be refused: the refused one dark, its reason in the tooltip */
-.mil-seg button:disabled { color: #a39d90; background: linear-gradient(#171b25, #10131a); cursor: not-allowed; }
-.mil-seg button small { margin-left: .3333rem; font: 600 .8rem/1 var(--f-ui); color: var(--ink-mute); }
-.mil-seg button { display: inline-flex; align-items: center; }
 
 @container mil (max-width: 46rem) {
   .mf-body, .mf-people { grid-template-columns: minmax(0, 1fr); margin-left: 0; }
@@ -314,7 +306,4 @@
 .tp-note { font: 600 .8667rem/1.2 var(--f-ui); cursor: help; }
 .tp-where { font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); max-width: 44rem; }
 
-/* an empty post's plate in this window is square: with the shared chamfer (a clip-path on a hatched well) Chromium's software raster
-   drops the window's body above it at 1x (seen in swiftshader, 2026-11-27) */
-.mil-win .portrait.pf-empty { clip-path: none; box-shadow: inset 0 0 0 1px rgba(165,129,58,.35); }
 .mil-table .mt-nm { display: inline-flex; align-items: center; gap: .5333rem; vertical-align: middle; }

@@ -1,11 +1,13 @@
-@* Segmented plates (docs/VISUAL_SYSTEM.md 4.11): joined with no gaps; the chosen one recessed with brass text and a brass foot. *@
-<span class="ui-seg-wrap">
+@* Segmented plates (docs/VISUAL_SYSTEM.md 4.11): joined with no gaps; the chosen one recessed with brass text and a brass foot. An
+   option the game refuses (Refusal gives why, in "you") is dark and cannot be pressed, with the reason as its tooltip. Note adds a
+   small figure after an option's words (how many of a class). *@
+<span class="ui-seg-wrap @(Class.Length > 0 ? " " + Class : "")">
     @if (Label.Length > 0) { <span class="ui-seg-l">@Label</span> }
     <span class="ui-seg" role="radiogroup">
         @foreach (var (key, text, tip) in Options)
         {
-            var k = key;
-            <button class="@(k == Value ? "on" : "")" role="radio" aria-checked="@(k == Value ? "true" : "false")" title="@tip" @onclick="() => OnChange.InvokeAsync(k)">@text</button>
+            var k = key; string? no = Refusal?.Invoke(k); string note = Note?.Invoke(k) ?? "";
+            <button class="@(k == Value ? "on" : "")" role="radio" aria-checked="@(k == Value ? "true" : "false")" disabled="@(no != null)" title="@(no ?? tip)" @onclick="() => OnChange.InvokeAsync(k)">@text@if (note.Length > 0) { <small>@note</small> }</button>
         }
     </span>
 </span>
@@ -13,5 +15,9 @@
     [Parameter] public IReadOnlyList<(string key, string text, string tip)> Options { get; set; } = Array.Empty<(string, string, string)>();
     [Parameter] public string Value { get; set; } = "";
     [Parameter] public string Label { get; set; } = "";
+    /// <summary>Why an option cannot be chosen now, or null when it can.</summary>
+    [Parameter] public Func<string, string?>? Refusal { get; set; }
+    [Parameter] public Func<string, string>? Note { get; set; }
+    [Parameter] public string Class { get; set; } = "";
     [Parameter] public EventCallback<string> OnChange { get; set; }
 }

@@ -53,7 +53,7 @@
                 var vc = v.ch.ch!; var vh = w.House(vc.HouseId); var card = v.card;
                 <button class="or-visitor @card.Tier.ToLowerInvariant()" data-visitor="@vc.Id" title="@($"[report] {card.Title}\n{vc.Name}{(vh != null ? ", " + vh.Name : "")} · {v.ch.role.Replace('_', ' ')}\n{(card.Setpiece || card.Tier == "AMBIENT" ? "It lapses at the year's end" : "Answer by the year's end")}\nkey: Click to hear their business")"
                         @onclick="() => OnOpenReport.InvokeAsync(card)">
-                    <Portrait Id="@vc.Id" Name="@vc.Name" Sex="@vc.Sex" Age="@vc.Age" Alive="@vc.Alive" Accent="@(vh?.AccentColor ?? "#888")" Size="110" Height="137" Opens="false" />
+                    <Portrait Id="@vc.Id" Name="@vc.Name" Sex="@vc.Sex" Age="@vc.Age" Alive="@vc.Alive" Accent="@(vh?.AccentColor ?? "#888")" Size="110" Height="137" Opens="false" Titled="false" />
                     <span class="nm">@vc.Name</span>
                     <span class="biz">@card.Title</span>
                 </button>

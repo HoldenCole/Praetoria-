@@ -21,8 +21,8 @@ else
 <Section Title="The companies" Count="@ex.Companies.Count.ToString()" Info="@SharePriced">
     <Right><span title="The index over the last twelve years"><Spark Values="ex.IndexHistory" Color="@(ex.IndexChangePct >= 0 ? "#8cc47e" : "#e0553f")" /> Confidence <b class="@(ex.ConfidencePct < 85 ? "ui-warn-t" : "")">@ex.ConfidencePct</b></span></Right>
     <ChildContent>
-    <div class="ex-shares" data-shares-table>
-        <DataTable Class="ex-table">
+    <div class="ex-shares">
+        <DataTable Class="ex-table" data-shares-table="1">
             <Head><th>Company</th><th>Price</th><th title="The last twelve years">12 years</th><th title="What it earned last year, and the dividend it declared as a share of its price">Pays</th><th title="Shares on the float, of all its shares">Float</th><th>You hold</th></Head>
             <ChildContent>
             @foreach (var c in ex.Companies)
@@ -47,12 +47,7 @@ else
                 <span class="ui-order-nm"><Icon Name="coins-pile" Tone="brass" Size="18" />@sel.Name</span>
                 <span class="ex-quote">@Money.Show(sel.Price) a share</span>
                 <span class="ui-order-sp"></span>
-                <span class="ui-seg-l" title="How many shares to buy or sell at once. Change it: the plates show the lot and what it comes to.">Lot</span>
-                <span class="ui-step ex-step">
-                    <button aria-label="Fewer" disabled="@(qty <= 1)" @onclick="() => _qty[sid] = Math.Max(1, qty - 1)"><Icon Name="minus" Tone="ivory" Size="12" /></button>
-                    <input type="number" min="1" max="999" value="@qty" aria-label="Shares in the lot" @oninput="e => SetQty(sid, e)" />
-                    <button aria-label="More" disabled="@(qty >= 999)" @onclick="() => _qty[sid] = Math.Min(999, qty + 1)"><Icon Name="plus" Tone="ivory" Size="12" /></button>
-                </span>
+                <Stepper Label="Lot" LabelTip="How many shares to buy or sell at once. Change it: the plates show the lot and what it comes to." Value="qty" Min="1" Max="999" Input="true" Live="true" InputLabel="Shares in the lot" OnChange="v => _qty[sid] = v" />
                 <Plate Label="@($"Buy {qty}")" CostIcon="credits" CostText="@(buy.Credits > 0 ? Money.Show(buy.Credits) : "nothing")" Locked="@(buy.Refusal != null)" Disabled="@(buy.Refusal != null)" ShowNeed="false" Need="@(buy.Refusal ?? "")" Tip="@BuyTip(buy, sel, wouldControl)" OnClick="() => G.Execute(new BuySharesCommand(pid, sid, qty, cs))" />
                 @if (sel.Held > 0) { <Plate Label="@($"Sell {qty}")" CostIcon="credits" CostText="@(sell.Refusal == null ? Money.Show(sell.Credits) : "nothing")" Locked="@(sell.Refusal != null)" Disabled="@(sell.Refusal != null)" ShowNeed="false" Need="@(sell.Refusal ?? "")" Tip="@($"{Money.Show(sell.UnitPrice)} a share with your order's weight")" OnClick="() => G.Execute(new SellSharesCommand(pid, sid, qty, cs))" /> }
             }
@@ -88,11 +83,7 @@ else
                 </div>
                 <div class="hs-line">
                     <span class="hs-lbl">How many</span>
-                    <span class="ui-step ex-step">
-                        <button aria-label="Fewer" disabled="@(n <= 1)" @onclick='() => _qty["board:" + cid] = Math.Max(1, n - 1)'><Icon Name="minus" Tone="ivory" Size="12" /></button>
-                        <input type="number" min="1" max="99" value="@n" aria-label="Shares, or hundreds of credits to pay in" @onchange="e => SetQty(BoardKey(cid), e)" />
-                        <button aria-label="More" disabled="@(n >= 99)" @onclick='() => _qty["board:" + cid] = Math.Min(99, n + 1)'><Icon Name="plus" Tone="ivory" Size="12" /></button>
-                    </span>
+                    <Stepper Value="n" Min="1" Max="99" Input="true" InputLabel="Shares, or hundreds of credits to pay in" OnChange='v => _qty["board:" + cid] = v' />
                     <Plate Label="@($"Float {n} new")" Small="true" CostText="@(fl == null ? "raises " + Money.Show(cs.FloatProceeds(co!, n)) : "")" Locked="@(fl != null)" Disabled="@(fl != null)" ShowNeed="false" Need="@(fl ?? "")" Tip="New shares sold to the public at a tenth under the price; the coin goes into the company, and your share of it shrinks" OnClick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.Float, n, cs))" />
                     <Plate Label="@($"Buy back {n}")" Small="true" Locked="@(bb != null)" Disabled="@(bb != null)" ShowNeed="false" Need="@(bb ?? "")" Tip="The company buys its own shares off the float with its cash and cancels them" OnClick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.Buyback, n, cs))" />
                     <Plate Label="@($"Pay in {Money.Show(n)}")" Small="true" data-payin="@c.Id" Locked="@(pin != null)" Disabled="@(pin != null)" ShowNeed="false" Need="@(pin ?? "")" Tip="@($"{Money.Credits(n)} of the house's own go into the company's chest, for no new shares: your share of it stays what it is, and every other holder is the richer by theirs. It is how a company you direct is given the coin to enlarge a venture without cutting the dividend or floating shares.")" OnClick="() => G.Execute(new BoardCommand(pid, cid, BoardCommand.PayIn, n, cs))" />
@@ -189,8 +180,6 @@ else
     private string _grantee = string.Empty; private string? _sel;
     private readonly Dictionary<string, int> _qty = new();
     private int Qty(string key) => _qty.TryGetValue(key, out var q) ? q : 5;
-    private void SetQty(string key, ChangeEventArgs e) { if (int.TryParse(e.Value?.ToString(), out var q)) _qty[key] = Math.Clamp(q, 1, 999); }
-    private static string BoardKey(string id) => "board:" + id;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
     private static string BuyTip(ShareQuote q, CompanyLine c, bool wouldControl) =>

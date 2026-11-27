@@ -24,31 +24,8 @@
     string devNext = (nextWorld > 0 ? "A slot more on the home world at " + nextWorld : "") + (nextBody > 0 ? (nextWorld > 0 ? ", on every other place at " : "A slot more on every other place at ") + nextBody : "") + (nextWorld > 0 || nextBody > 0 ? ". " : "")
         + "Buildings may stand at level " + SystemWorks.Roman(levelMay) + (nextUp > 0 ? "; " + SystemWorks.Roman(levelMay + 1) + " at " + nextUp + "." : ".");
     string devTrend = dev < devTop ? "growing toward " + devTop : dev > devTop ? "more than it can bear: falling toward " + devTop : "as high as it can bear";
-    // the standard painted header (docs/VISUAL_SYSTEM.md 4.2, 10): a painting by subject, the holder's wax seal or the ringed planet, the
-    // region as the kicker, the system's name, its world, its people and its holder as facts, and four figures on the plinth
-    var owner = planet != null ? w.House(planet.OwnerId) : null; var region = w.Galaxy.Region(sys.RegionId); string ring = region?.Ring ?? "middle";
-    bool besieged = planet != null && w.Sieges.ContainsKey(planet.Id);
-    string scene = ring == "beyond" ? "steppe" : besieged ? "battle" : planet?.InRebellion == true ? "unrest" : "world";
-    int built = SystemWorks.In(w, sys.Id).Count() + (planet?.Buildings.Count ?? 0), risingAll = w.Projects.Count(p => (p.Kind == Project.Work && SystemWorks.Parse(p.TargetId).systemId == sys.Id) || (p.Kind == Project.Colony && p.TargetId == sys.Id));
-    int places = sys.Bodies.Count(b => !b.IsStar);
-    var heads = new List<WindowHeader.Figure>
-    {
-        new("upgrade", dev.ToString(), "Development", dev > devTop ? "ember" : "brass", Of: "100", Tip: $"[upgrade] Development {dev} of 100\nIt can bear {devTop}: {devParts}. It grows a point a year toward that, two on a prosperous world, and falls under siege or revolt."),
-        new("shaking-hands", planet != null && planet.Population > 0 ? (100 - planet.Unrest).ToString() : "0", planet != null && planet.Population > 0 ? "Loyalty" : "No people", planet != null && planet.Unrest >= 50 ? "ember" : "good", Tip: planet != null && planet.Population > 0 ? $"[shaking-hands] Loyalty {100 - planet.Unrest}\nA hundred less the unrest; below 50 the world is restless." : "[shaking-hands] Nobody lives here yet"),
-        new("build", built.ToString(), risingAll > 0 ? $"Built, {risingAll} rising" : "Built", "brass", Tip: $"[build] Works built\n{built} stand in the system, {risingAll} rising."),
-        planet != null && planet.Population > 0
-            ? new("population", Census.Short(Census.Citizens(w, planet)), "Citizens", "ivory", Tip: $"[population] {Census.Say(Census.Citizens(w, planet))} citizens\nOn the world, scale {planet.Population}.")
-            : new("ringed-planet", places.ToString(), "Places", "ivory", Tip: $"[ringed-planet] Places to build\nEvery body round its sun, and open space: {places} in all.")
-    };
 }
 <div class="sysp @(Infrastructure ? "infra" : "")" data-system="@sys.Id">
-    <WindowHeader Scene="@scene" Kicker="@((region?.Name ?? "") + (ring != "middle" ? " · " + (ring == "beyond" ? "beyond the rim" : "the " + ring) : ""))" Title="@sys.Name" HouseId="@(owner?.Id ?? "")" Accent="@(owner?.AccentColor ?? "#d4a23e")" Glyph="ringed-planet" Figures="heads" Class="sysp-head">
-        <Facts>
-            @{ var pc = sys.Bodies.FirstOrDefault(b => b.IsPrimary); }
-            <span><Icon Name="ringed-planet" Tone="ivory" Size="15" />@Cap(pc != null ? Kind(pc) : "no world")@(pc != null && pc.Feature.Length > 0 && cat.Feature(pc.Feature) is { } pf ? ", " + pf.Name.ToLowerInvariant() : "")</span>
-            <span class="@(mine ? "own" : "")"><Icon Name="castle" Tone="ivory" Size="15" />@(owner == null ? (colony != null ? "A colony on its way" : "Nobody's: it can be settled") : mine ? "Yours" : owner.Name)@(planet != null && planet.InRebellion ? ", in revolt" : besieged ? ", besieged" : "")</span>
-        </Facts>
-    </WindowHeader>
     @if (sys.Description.Length > 0) { <p class="sysp-lede">@sys.Description</p> }
     @if (planet == null)
     {

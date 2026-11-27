@@ -52,7 +52,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await closeWindows();
 
   // 2. naming a legate, under the Senate's offices
-  await rail('Senate'); await page.waitForTimeout(800); await tab('Offices and parties');
+  await rail('Senate'); await page.waitForTimeout(800); await tab('Offices');
   const legates = await page.evaluate(() => [...document.querySelectorAll('[data-name-legate]')].map(b => b.getAttribute('data-name-legate') + (b.disabled ? ' (no: ' + (b.title || '').slice(0, 80) + ')' : ' (yes)')));
   console.log('legates you could name: ' + (legates.length ? legates.join('; ') : 'none (you hold no office with a fleet under it)'));
   if (legates.length) { const el = await page.evaluateHandle(() => { const b = document.querySelector('[data-name-legate]'); return b ? b.closest('.panel') || b.parentElement : null; }); if (el && el.asElement()) { await el.asElement().screenshot({ path: shots + '/ck3-legates.png', timeout: 180000 }); console.log('saved ck3-legates.png'); } }
@@ -105,7 +105,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   for (let y = 0; y < years; y++) {
     if (await endTurn()) { handed = true; await profileCheck(); }
     if (y % 2 === 1 || y === years - 1) {
-      await rail('Senate'); await page.waitForTimeout(600); await tab('Ladder and courts');
+      await rail('Senate'); await page.waitForTimeout(600); await tab('Ladder');
       const suits = await page.evaluate(() => [...document.querySelectorAll('[data-undutiful-will]')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 300)));
       if (suits.length && !suitSeen && handed) { suitSeen = true; console.log('year ' + await turnNo() + ', the suit of the undutiful will: ' + suspicious(suits.join(' ')) + ' · ' + suits.join(' | ')); await shotOf('[data-undutiful-will]', 'ck3-will-suit.png'); }
       await closeWindows();
