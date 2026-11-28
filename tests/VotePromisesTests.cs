@@ -42,7 +42,7 @@ namespace Praetoria.Tests;
 /// names written down after a censure and a motion thrown out; a name in commerce and its loans; the shares and the corner; the
 /// chancellor asked to be asked; the house you owe blood to; a favour between two other houses in the whip count; your threat and a
 /// threat against you; a loan from the house window; foreign gold shown to the chamber; the accounts called for in the squares.</summary>
-public class VotePromisesTests
+public partial class VotePromisesTests
 {
     private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
 
@@ -891,13 +891,15 @@ public class VotePromisesTests
     }
 
     [Fact]
-    public void TheFavourCalled_AMotionAgainstYourHouseComesFirst_OneThatStrikesAtTheirsIsNotAsked_AndWithNoneThereIsNoVote()
+    public void TheFavourCalled_AMotionAgainstYourHouseComesFirst_OneThatStrikesAtTheirsIsNotAsked_AndWithNoneTheVoteIsKeptForYourNext()
     {
-        // a censure of their own house is the only motion: nobody votes for their own censure, so no vote is given, and you are told
+        // a censure of their own house is the only motion: nobody votes for their own censure, so the vote is kept: their house owes yours one, for your next motion
         var (g, theirs, debtor, f) = Indebted((g, theirs) => IMove(g, "censure", theirs.Id));
         var censureOfThem = g.W.Motions.Single(m => m.Open && m.ProposerHouseId == g.Mine.Id);
         Answer(g, f, "call_it_in");
-        Assert.False(censureOfThem.Votes.ContainsKey(theirs.Id)); Assert.True(g.Told($"No motion before the Senate wants the vote of {theirs.Name} now, so {debtor.Name} pays what they owed in other ways"));
+        Assert.False(censureOfThem.Votes.ContainsKey(theirs.Id)); Assert.True(g.Told($"No motion before the Senate wants the vote of {theirs.Name} now, so {debtor.Name} owes it instead: {theirs.Name} owes your house a vote."));
+        Assert.True(WealthSystem.FavourOwed(g.W, theirs.Id, g.Mine.Id)); Assert.False(g.Senate.Owes(g.W, censureOfThem, theirs.Id));   // not on the censure of their own house
+        Session(g); Only(g); var next = IMove(g); HardAgainst(g, next, theirs); Session(g); Assert.Equal(1, next.Votes[theirs.Id]);   // something you can hold: their house's vote on your next motion
         // your own motion and a censure of your house by a third: the vote goes against the censure
         Motion levy = null!, censure = null!;
         var (g2, theirs2, debtor2, f2) = Indebted((g, theirs) => { levy = IMove(g); var third = Others(g).First(h => h.Id != theirs.Id); censure = g.Senate.Add(g.W, third.Id, "censure", g.Mine.Id); Leans(g, censure, theirs, 6); });
@@ -1671,7 +1673,7 @@ public class VotePromisesTests
     // ------------------------------------------------------------------ the whip's displeasure: FactionSystem.BreakWhip, the_whips_displeasure
 
     [Fact]
-    public void TheWhipsDispleasure_AVoteAgainstYourBench_IsFiveAndTwo_AndEveryHouseOfItLeansOneAgainstYourMotionAtTheNextCount_ThenForgets()
+    public void TheWhipsDispleasure_AVoteAgainstYourBench_IsFiveAndTwo_AndEveryHouseOfItLeansOneAgainstYourNextMotionAtItsCount_ThenForgets()
     {
         var (g, leader, mover, other, bench) = Seated();
         var theirs = TheyMove(g, mover); Leans(g, theirs, leader, 3); IVote(g, theirs, -1);
@@ -1679,14 +1681,16 @@ public class VotePromisesTests
         Assert.Equal(1, theirs.Votes[leader.Id]); Assert.True(g.W.HasFlag("broke_the_whip"));
         Assert.Equal(regard - FactionSystem.BreakWhipDisposition, g.Regard(leader));
         Assert.Equal(affinity - FactionSystem.BreakWhipAffinity - 1, Affinity(g, leader));   // the whip's two, and the vote apart itself
-        Assert.True(g.Told($"You voted against the Test Bench, your bench: {g.HeadOf(leader).Name} thinks 5 the worse of you, and your tie to the bench is weaker by 2. At the next count every house of the Test Bench leans 1 against any motion of yours"));
-        var (f, _) = (ReportOf(g, "the_whips_displeasure"), 0); Answer(g, f, "say_nothing");
-        // the next count: your motion, moved before it
+        Assert.True(g.Told($"You voted against the Test Bench, your bench: {g.HeadOf(leader).Name} thinks 5 the worse of you, and your tie to the bench is weaker by 2. At the count of your next motion every house of the Test Bench leans 1 against it"));
+        // the next year, as the game plays it: the report, then your motion moved, the year's own session, and the count a year on
+        g.W.Turn++; var (f, _) = (ReportOf(g, "the_whips_displeasure"), 0); Answer(g, f, "say_nothing");
         var mine = IMove(g); Only(g, mine);
         Assert.Equal(-FactionSystem.WhipRemembered, By(g, mine, leader, "it remembers that you voted against the Test Bench"));
         Assert.Equal(-FactionSystem.WhipRemembered, By(g, mine, other, "it remembers that you voted against the Test Bench"));
         Assert.Equal(0, By(g, mine, mover, "it remembers"));   // not a house of the bench
-        g = Reload(g); mine = g.W.Motions.First(x => x.Id == mine.Id); other = g.W.House(other.Id)!; leader = g.W.House(leader.Id)!;   // a save and a load before it
+        g.Senate.Tick(g.W); Assert.False(mine.Resolved);   // the year's own session: nothing of yours to count, and the bench still remembers
+        Assert.Equal(-FactionSystem.WhipRemembered, By(g, mine, other, "it remembers that you voted against the Test Bench"));
+        g = Reload(g); mine = g.W.Motions.First(x => x.Id == mine.Id); other = g.W.House(other.Id)!; leader = g.W.House(leader.Id)!;   // a save and a load before the count
         Leans(g, mine, leader, 1); Leans(g, mine, other, 0); int forecast = g.Senate.Stance(g.W, mine, other.Id);   // the leader is for your motion still, so voting for it breaks no whip
         g.W.WorldCounters.Remove(FactionSystem.WhipKey(bench.Id)); Assert.True(g.Senate.Lean(g.W, mine, other.Id) > 0); g.W.WorldCounters[FactionSystem.WhipKey(bench.Id)] = FactionSystem.WhipActive;   // its own one, and what its leader remembers too
         Session(g);

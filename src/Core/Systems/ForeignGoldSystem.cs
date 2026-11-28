@@ -134,6 +134,7 @@ public static class ForeignGoldSystem
                      .OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             bool theirs = h.Id == mine; if (!theirs && (reached >= MostReached || f < a || m.Votes.ContainsKey(h.Id))) continue;   // a house that has given its word on the vote is not written to
+            if (theirs && DealingsSystem.PledgeOn(w, h.Id, m.Id) != null) continue;   // nor the player's, whose vote on it is pledged or sold: taking it would break that word
             if (Economy.HeadOf(w, h) is not { Alive: true } head) continue;
             int stance = senate.Stance(w, m, h.Id); if (stance < 0) continue;
             int seats = senate.Weight(w, h.Id); int lean = senate.Lean(w, m, h.Id);
@@ -187,6 +188,9 @@ public static class ForeignGoldSystem
         if (w.IsImperium) return "a throne stands now, and the Cities treat with it, not with the benches";
         if (!Answers.Contains(answer)) return "take it, refuse it, or tell the Senate";
         if (w.Motions.FirstOrDefault(x => x.Id == o.MotionId) is not { Open: true }) return "the vote it was sent for is over";
+        // the house's vote on it is pledged or sold another way: taking the gold would turn it, and break that word
+        if (answer == Take && o.Ask != Withdraw && DealingsSystem.PledgeOn(w, house.Id, o.MotionId) is { } p && p.Side != (o.Ask == Against ? -1 : 0))
+            return $"your vote on it is {(p.Paid ? "bought by" : "pledged to")} {w.House(p.ToHouseId)?.Name ?? "another house"}, {(p.Side > 0 ? "for" : "against")} it: take this and you break that word (its head would think {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you)";
         return null;
     }
 
@@ -209,7 +213,7 @@ public static class ForeignGoldSystem
                 m.Bought.TryAdd(house.Id, 0);   // a bench does not follow a leader who was paid, whoever paid him (SenateSystem.LeaderStance)
                 if (ours) m.Votes[house.Id] = o.Ask == Against ? -1 : 0;
             }
-            if (ours) w.Log($"{head.Name} takes what {nation} sent. It is not spoken of.");
+            if (ours) { w.Log($"{head.Name} takes what {nation} sent. It is not spoken of."); VoteMarks.Wanted(w, house.Id); }   // the vote is held by the gold: no report asks it of the house again
             // the reminder before the count of what the gold binds the house to, in the words the button gave (TakeSays)
             if (ours && m != null) w.Tell("warn", $"You took what {nation} sent: your house is declared {(o.Ask == Against ? "against the war on " + warOn : "to stay away from the vote on the war on " + warOn)}. Vote for the war after all and they send your house nothing for {Counted.Years(BrokenYears)}.", "senate:chamber", house.Id);
             return;

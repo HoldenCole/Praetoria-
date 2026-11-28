@@ -457,10 +457,20 @@ count, forecast, tally and count alike; docs/events/votes.md, "Promises"):
   declared vote. Each counts on the house page among the favours paid with a vote.
 - **A debt called in** (*The Favor Called*) is paid with the vote of the debtor's house where a motion before the Senate
   needs it (`DealingsSystem.DebtPaid`): against one that strikes at your house, else for your own, else as you declared;
-  never their own motion or one that strikes at them, nor at war. With none, it is paid in other ways, and you are told.
+  never their own motion or one that strikes at them, nor at war or across blood. With none, it is kept as a vote their
+  house owes yours (a favour, for your next motion), and you are told (the closing round, 2026-11-28).
 - **Your word on the house window** tells you at once what it binds you to, and again if you change that vote on the
   Senate window. A broken word on a vote younger than eight years is never dropped from the record of dealings (the 300
   newest are kept) to make room, since the eight years are read from it.
+- **A vote is given once** (the closing round, 2026-11-28; docs/events/votes.md, "Promises"). While your vote on a motion
+  is pledged, sold, or held by gold from beyond the Reach (`VoteMarks.Given`), no report asks it of you again, the house
+  window takes no word that would break it (nor one against a motion whose mover calls in a favour you owe at that count),
+  and the gold is neither sent for it nor taken against it. **No bargain across a war or blood**: a vote an enemy promised
+  would be void as it was given. **A vote for a vote is both ways**: break your word and the vote their house owed you for
+  it goes; keep it and nothing more is owed. **A favour owed is a vote, and a consul keeps it**: the consul of a house that
+  owes yours a favour does not veto your motion, and a whip or a bribe on such a house is refused, since it votes for it
+  already. **Seats never counted owe nothing**: the favour owed for a patron's backing goes if your house is not standing
+  at the count, or when a throne stands.
 
 ### A favour you owe
 

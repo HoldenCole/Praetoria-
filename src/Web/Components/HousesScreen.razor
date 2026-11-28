@@ -291,6 +291,7 @@
     {
         if (m.ProposerHouseId == h.Id) return "its own motion";
         if (m.Votes.TryGetValue(h.Id, out int cast)) return cast > 0 ? "it has declared for" : cast < 0 ? "it has declared against" : "it has declared that it stays away";
+        if (G.Turn!.Senate.Owes(G.World!, m, h.Id)) return "it votes for it: it owes your house a favour";   // as the Senate window's whip count has it (SenateSystem.Owes)
         int lean = G.Turn!.Senate.Lean(G.World!, m, h.Id); return lean > 0 ? $"it leans for (+{lean})" : lean < 0 ? $"it leans against ({lean})" : "it leans neither way";
     }
     private static string RateSays(House h) => $"The rate it bears follows how short it is: {DealingsSystem.BearsShort} in the hundred while it holds under {Money.Show(DealingsSystem.ShortAt)}, {DealingsSystem.BearsPinched} under {Money.Show(DealingsSystem.PinchedAt)}, {DealingsSystem.BearsInTheRed} in the red. It holds {Money.Show(h.Treasury.Credits)}. A low rate is taken as a kindness, a high one as business.";

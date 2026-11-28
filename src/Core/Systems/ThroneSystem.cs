@@ -91,6 +91,7 @@ public static partial class ThroneSystem
         h.Claims.Remove(Title.Emperor);
         bool flipped = w.Era != "imperium";
         w.Era = "imperium";
+        if (flipped) ElectionSystem.NoMoreElections(w);   // the pledges of seats for consul lapse, and what was owed for them (docs/events/votes.md, "Promises")
         foreach (var f in w.Fleets.Values.Where(f => f.Office)) f.OwnerId = houseId;        // the office's fleets go with the office (GDD §8)
         if (seized)
         {

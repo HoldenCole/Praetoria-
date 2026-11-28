@@ -248,43 +248,61 @@ public static class FactionSystem
         {
             w.WorldFlags.Add("broke_the_whip"); w.WorldCounters[WhipKey(f.Id)] = WhipPending;
             w.Tell("warn", $"You voted against {f.Name}, your bench: {leaderHead?.Name ?? "its leader"} thinks {BreakWhipDisposition} the worse of you, and your tie to the bench is weaker by {BreakWhipAffinity}. "
-                + $"At the next count every house of {f.Name} leans {WhipRemembered} against any motion of yours", "senate:chamber", f.LeaderHouseId);
+                + $"At the count of your next motion every house of {f.Name} leans {WhipRemembered} against it", "senate:chamber", f.LeaderHouseId);
         }
     }
 
     // ---------------- what the bench remembers, and how closely it follows (docs/events/votes.md, "Promises", the bench group) ----------------
-    // Each lasts one count: the next session's. A mark set by a report in the year (the bench fed at the leader's table, or reminded who
-    // leads it) is read by the whip count at once and by the count that follows, and goes with it. A vote against the bench, which is
-    // made at a count, is remembered from the count after it: pending until its own session is done, then read by the whip count and
-    // the next count, and gone with that one (SessionDone). RNG-free.
+    // A mark set by a report in the year (the bench fed at the leader's table, or reminded who leads it) is for the next count: the
+    // first session from now that counts a motion, and on the motions it counts. A session with nothing to count leaves it for the one
+    // after. A vote against the bench, which is made at a count, is remembered from the count after it, at the count of the player's
+    // next motion: pending until its own session is done, then read by the whip count and the count on any motion of the player's,
+    // until a session has counted one (SessionDone). A motion the player moves after the break is counted a year later, so a memory
+    // gone with the next session would be shown by the whip count and never felt at the count. RNG-free.
 
     /// <summary>The leader's table (the_leaders_table): fed, or reminded who leads it, the player's bench follows the player's vote by
     /// <see cref="FollowedBy"/> more than its discipline at the next count (world flags, set by the report's choice).</summary>
     public const string FedFlag = "bench_fed", WhippedFlag = "bench_whipped";
     public const int FollowedBy = 1, WhipRemembered = 1, WhipPending = 1, WhipActive = 2;
     public const string WhipPrefix = "whip_remembered:";
+    /// <summary>The world flag the_whips_displeasure/apologise sets: the apology is accepted, and the bench forgets the vote (<see cref="Apologised"/>).</summary>
+    public const string ApologyFlag = "apologised_to_the_bench";
     public static string WhipKey(string benchId) => WhipPrefix + benchId;
-    /// <summary>How much more closely a member of the player's bench follows the player's vote this session, and why, or 0.</summary>
-    public static int Followed(World w, Faction f, out string because)
+    /// <summary>Whether this motion is counted at the next count: the first session from now that counts anything. A motion moved last
+    /// year or before is counted at this year's session; one moved this year is counted at the next, unless this year's has nothing to
+    /// count and leaves the table's following for it.</summary>
+    public static bool AtNextCount(World w, Motion m) => m.ProposedTurn < w.Turn || !SenateSystem.Docket(w).Any(x => x.ProposedTurn < w.Turn);
+    /// <summary>How much more closely a member of the player's bench follows the player's vote on this motion, and why, or 0: the table
+    /// is for the motions of the next count.</summary>
+    public static int Followed(World w, Faction f, Motion m, out string because)
     {
-        because = ""; string? mine = w.Protagonist?.HouseId; if (mine == null || f.LeaderHouseId != mine) return 0;
+        because = ""; string? mine = w.Protagonist?.HouseId; if (mine == null || f.LeaderHouseId != mine || !w.HasFlag(FedFlag) && !w.HasFlag(WhippedFlag) || !AtNextCount(w, m)) return 0;
         string name = w.House(mine)?.Name ?? "its leader";
         if (w.HasFlag(FedFlag)) { because = $"{name} has fed its bench at the house's table"; return FollowedBy; }
         if (w.HasFlag(WhippedFlag)) { because = $"{name} has reminded its bench, one house at a time, who leads it"; return FollowedBy; }
         return 0;
     }
-    /// <summary>A house of a bench the player voted against at the last count leans this much against the player's motions now, or 0.</summary>
+    /// <summary>A house of a bench the player voted against leans this much against the player's motion now, or 0: from the count after
+    /// the vote, until the count of the player's next motion.</summary>
     public static int RemembersWhip(World w, Motion m, string houseId, out string because)
     {
         because = ""; string? mine = w.Protagonist?.HouseId; if (mine == null || houseId == mine || m.ProposerHouseId != mine) return 0;
         var f = Of(w, houseId); if (f == null || w.Counter(WhipKey(f.Id)) != WhipActive) return 0;
         because = $"it remembers that you voted against {f.Name}"; return -WhipRemembered;
     }
-    /// <summary>A session's counts are done: what was for this count goes, and what was remembered at it is for the next.</summary>
-    public static void SessionDone(World w)
+    /// <summary>The apology made to the bench's leader (the_whips_displeasure/apologise, read as the choice is made): accepted, the
+    /// vote against the bench is forgotten, and the player is told.</summary>
+    public static void Apologised(World w)
     {
-        w.WorldFlags.Remove(FedFlag); w.WorldFlags.Remove(WhippedFlag);
+        if (!w.WorldFlags.Remove(ApologyFlag) || w.Protagonist?.HouseId is not { } mine || Of(w, mine) is not { } bench || !w.WorldCounters.Remove(WhipKey(bench.Id))) return;
+        w.Tell("good", $"{w.House(bench.LeaderHouseId)?.Name ?? "The leader of your bench"} accepted the apology: {bench.Name} will not lean against your next motion for that vote.", "senate:chamber", bench.LeaderHouseId);
+    }
+    /// <summary>A session's counts are done: the table's following goes if anything was counted; a vote against the bench remembered at
+    /// the count of a motion of the player's goes with it; one made at this session is remembered from now.</summary>
+    public static void SessionDone(World w, bool countedAny, bool countedMine)
+    {
+        if (countedAny) { w.WorldFlags.Remove(FedFlag); w.WorldFlags.Remove(WhippedFlag); }
         foreach (var k in w.WorldCounters.Keys.Where(k => k.StartsWith(WhipPrefix, StringComparison.Ordinal)).OrderBy(k => k, StringComparer.Ordinal).ToList())
-            if (w.WorldCounters[k] == WhipActive || !w.Factions.Any(f => WhipKey(f.Id) == k)) w.WorldCounters.Remove(k); else w.WorldCounters[k] = WhipActive;
+            if (!w.Factions.Any(f => WhipKey(f.Id) == k) || (w.WorldCounters[k] == WhipActive && countedMine)) w.WorldCounters.Remove(k); else w.WorldCounters[k] = WhipActive;
     }
 }

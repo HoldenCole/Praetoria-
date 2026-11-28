@@ -183,11 +183,35 @@ public static class ElectionSystem
             // the one the player pledged to no longer stood at the count: the seats went as the bench or the patron had them, and the pledge lapsed
             else if (parts.Length == 2 && parts[0] == mine && !nominees.Any(n => n.houseId == parts[1]) && w.House(parts[1]) is { } dropped)
                 w.Tell("info", $"{dropped.Name} was not standing when the consuls were elected, so the seats you pledged it went as your bench or your patron had them, and it owes you nothing for them.", "senate", dropped.Id);
+            // the seats pledged to the player's house, which was not standing at the count: they were never counted for it, so the favour owed for them goes
+            else if (parts.Length == 2 && parts[1] == mine && !nominees.Any(n => n.houseId == mine)) Uncounted(w, parts[0], mine, "your house was not standing when the consuls were elected");
         }
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("stands_for_consul:")).ToList()) w.WorldFlags.Remove(f);
         OrderSystem.SweepCanvass(w);
         w.WorldCounters["elections"] = w.Counter("elections") + 1; w.WorldFlags.Add("election_held"); w.WorldCounters["mark:election_held"] = w.Turn;   // marked, so the year's reports of it come in its year (docs/events/votes.md)
         w.Log($"The Senate elects its consuls: {string.Join(", ", winners.Select((kv, i) => $"{w.House(kv.Key)?.Name ?? kv.Key} ({kv.Value}) as {consuls[Math.Min(i, consuls.Count - 1)].Name}"))}.{(nominees.Count > winners.Count ? " Also standing: " + string.Join(", ", tally.Where(kv => winners.All(x => x.Key != kv.Key)).OrderByDescending(kv => kv.Value).Select(kv => $"{w.House(kv.Key)?.Name ?? kv.Key} ({kv.Value})")) + "." : "")}");
+    }
+
+    /// <summary>The seats a house pledged to the player's at the player's asking (AskAbove, backing) were never counted for it: the favour
+    /// the player's house came to owe for them goes, and the player is told.</summary>
+    private static void Uncounted(World w, string backerId, string mine, string why)
+    {
+        if (w.House(backerId) is not { } backer || !WealthSystem.FavourOwed(w, mine, backerId) || !w.WorldCounters.ContainsKey(AskAbove.AskedKey(backerId, mine))) return;
+        w.WorldCounters.Remove(WealthSystem.FavourKey(mine, backerId)); w.WorldCounters.Remove(DealingsSystem.CalledKey(mine, backerId));
+        w.Tell("info", $"{why}, so the seats {backer.Name} pledged you were never counted for you, and you owe it nothing for them.", "senate", backerId);
+    }
+    /// <summary>The consuls will not be elected again: a throne stands (ThroneSystem). The pledges of seats lapse, and a favour the player's
+    /// house owed for seats pledged to it goes, with a notice.</summary>
+    public static void NoMoreElections(World w)
+    {
+        var mine = w.Protagonist?.HouseId;
+        foreach (var f in w.WorldFlags.Where(f => f.StartsWith(PledgePrefix, StringComparison.Ordinal)).OrderBy(f => f, StringComparer.Ordinal).ToList())
+        {
+            var parts = f[PledgePrefix.Length..].Split('>'); w.WorldFlags.Remove(f);
+            if (mine != null && parts.Length == 2 && parts[1] == mine) Uncounted(w, parts[0], mine, "A throne stands, and the consuls will not be elected again");
+            else if (mine != null && parts.Length == 2 && parts[0] == mine && w.House(parts[1]) is { } to) w.Tell("info", $"A throne stands, and the consuls will not be elected again: the seats you pledged {to.Name} are your own, and it owes you nothing for them.", "senate", to.Id);
+        }
+        foreach (var f in w.WorldFlags.Where(f => f.StartsWith("stands_for_consul:", StringComparison.Ordinal)).ToList()) w.WorldFlags.Remove(f);
     }
 
     // ---------------- what a consul promises the player (docs/events/votes.md, "Promises", the office group) ----------------
@@ -228,6 +252,9 @@ public static class ElectionSystem
         foreach (var c in w.Characters.Values.Where(c => Promises.Any(c.Flags.Contains)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
             string? why = !InTheChair(w, offices, c) ? $"{c.Name} no longer holds the chair" : w.AtWar(c.HouseId, mine) ? $"{w.House(c.HouseId)?.Name ?? c.Name} is at war with your house" : null;
+            // the friend in the chair whose veto this term is spent (on a motion against their own house, which they would not let stand for anyone): not while emergency powers set it aside, when it waits for them to be laid down
+            if (why == null && c.Flags.Contains(FriendChar) && w.Emergency == null && VetoSpent(w, offices, c.HouseId))
+            { c.Flags.Remove(FriendChar); w.Tell("info", $"{c.Name} has used their veto this term, and {Promised(FriendChar)} is gone with it.", "senate:chamber", c.HouseId); }
             if (why == null) continue;
             foreach (var f in Promises.Where(c.Flags.Remove)) w.Tell("info", $"{why}, and {Promised(f)} goes with it.", "senate:chamber", c.HouseId);
         }
@@ -243,7 +270,14 @@ public static class ElectionSystem
     public static void Courted(World w)
     {
         bool courted = w.WorldFlags.Remove(CourtedFlag);
-        foreach (var c in w.Characters.Values.Where(c => c.Flags.Remove(OtherConsulChar)).ToList()) if (courted && c.Alive) c.Flags.Add(FriendChar);
+        foreach (var c in w.Characters.Values.Where(c => c.Flags.Remove(OtherConsulChar)).ToList())
+        {
+            if (!courted || !c.Alive) continue;
+            c.Flags.Add(FriendChar);
+            w.Tell("good", $"{c.Name} of {w.House(c.HouseId)?.Name ?? "their house"} is your friend in the chair: once this term they strike with their veto the first motion before the Senate that strikes at your house, "
+                + "however the chamber leans, though not one their own house moved. They keep the veto for it, and spend it on nothing of their own unless a motion strikes at their own house, which would end the promise. "
+                + "It ends with their term, if they leave the chair, or if your houses go to war." + (w.Emergency != null ? " While emergency powers run their veto is set aside, and the promise waits for the powers to be laid down." : ""), "senate:chamber", c.HouseId);
+        }
     }
     /// <summary>The player struck a motion of the colleague who divided the consulship's business with them, with the veto or from the
     /// chair: the division is broken, and the colleague is free to strike the player's.</summary>
@@ -305,12 +339,17 @@ public static class ElectionSystem
                 w.Tell("good", $"{consul.Name}, as {d.Name}, strikes the motion against your house with their veto, as a friend in the chair: {senate.Describe(w, foe)}", "senate:chamber", h.HouseId);
                 continue;
             }
+            bool friend = consul != null && consul.Flags.Contains(FriendChar);
             foreach (var m in due)
             {
                 var def = senate.Motions.Def(m.Kind); if (def == null) continue;
-                bool against = def.Target == "house" && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0) && (m.TargetId == h.HouseId || (party != null && m.TargetId == party.LeaderHouseId));
+                bool own = def.Target == "house" && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0) && m.TargetId == h.HouseId;
+                bool against = own || def.Target == "house" && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0) && party != null && m.TargetId == party.LeaderHouseId;
                 bool undoes = def.Law && party != null && party.Laws.TryGetValue(m.LawId, out var line) && line != m.LawOption && senate.Policies.Law(m.LawId) is { } ld && (PolicySystem.ReachOption(w, senate.Policies, ld) ?? ld.DefaultOption).Id == line;
                 if (!against && !undoes) continue;
+                if (friend && !own) continue;   // the friend in the chair keeps the veto for the player's house: not for their bench's leader or its line
+                // a house that owes the player's a favour votes for the player's motion (WealthSystem.VotesFor; the whip count says "it owes your house a favour"): its consul does not strike it
+                if (m.ProposerHouseId == mine && senate.Owes(w, m, h.HouseId)) continue;
                 if (m.ProposerHouseId == mine && consul != null && consul.Flags.Contains(DividedChar)) continue;   // the player's business, by the division: left alone, and nothing spent
                 if (m.ProposerHouseId == mine && consul != null && consul.Flags.Remove(DinedChar))
                 {
@@ -320,6 +359,9 @@ public static class ElectionSystem
                 }
                 Veto(w, offices, h.HouseId, m);
                 w.Log($"{w.House(h.HouseId)?.Name ?? h.HouseId}, as {d.Name}, vetoes: {senate.Describe(w, m)}");
+                // the friend spent the veto on a motion against their own house: the one they kept for the player's is gone, and the player is told
+                if (friend && consul!.Flags.Remove(FriendChar))
+                    w.Tell("info", $"{consul.Name}, as {d.Name}, has struck a motion against their own house with their veto: {senate.Describe(w, m)} The veto they would have used for you this term is gone with it.", "senate:chamber", h.HouseId);
                 break;
             }
         }

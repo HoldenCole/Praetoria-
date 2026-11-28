@@ -251,6 +251,12 @@ a promise:
 - **The chancellor asked to be asked** (*The Chancellor's Voice*) brings the next doubtful vote (one on which the house leans
   within one of nothing) to the player at the session that puts it on the docket, with how the house leans, and does not
   declare it; the rest it declares as before (`HouseholdSystem.BringUpstairs`).
+- **The closing round** (2026-11-28; docs/events/votes.md, "Promises"): the friend in the chair is told their promise and
+  keeps their veto for the player's house (spent first only on a motion against their own house, which ends the promise,
+  with a notice); a colleague strikes once a term, the first motion of the player's that strikes at their house, their
+  bench's leader or its line; a vote against the bench is remembered until the count of the player's next motion, and the
+  leader's table lasts until a session counts something; a repeal word gets a year more for each year the chamber could not
+  hear the player's house; only a vote the player cast breaks the whip; the chancellor keeps the player's word to stand.
 
 ## The lead of a bench by a contest (2026-11-21)
 

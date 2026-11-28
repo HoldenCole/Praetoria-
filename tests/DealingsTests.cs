@@ -148,13 +148,16 @@ public class DealingsTests
     [Fact]
     public void A_favour_owed_is_called_in_for_a_vote_from_the_house_that_owes_it()
     {
-        var g = Start(); var m = g.Move(g.Mine.Id, "censure", "oriel");
+        var g = Start(); var own = g.Move(g.Mine.Id, "censure", "oriel"); var m = g.Move("lucent", "levy", "");
         Assert.Equal("they owe you nothing", g.No(DealingsCommand.CallVote, "ashgrove", m.Id));
         WealthSystem.OweFor(g.W, "ashgrove", g.Mine.Id); g.SetRegard("ashgrove", -30);   // a favour is owed whatever its head thinks
         Assert.Equal("no such motion before the Senate", g.No(DealingsCommand.CallVote, "ashgrove", ""));
+        // on your own motion it votes for it already, and is spent only if it would not have of its own accord (WealthSystem.VotesFor)
+        Assert.Equal("it votes for your motion already: the favour is kept for one it would not vote for", g.No(DealingsCommand.CallVote, "ashgrove", own.Id));
+        m.Votes[g.Mine.Id] = -1;   // you have declared against their levy
         int called = g.W.Counter(WealthSystem.FavoursCalledKey);
         g.Do(DealingsCommand.CallVote, "ashgrove", m.Id);
-        Assert.Equal(1, m.Votes["ashgrove"]); Assert.False(WealthSystem.FavourOwed(g.W, "ashgrove", g.Mine.Id)); Assert.Equal(called + 1, g.W.Counter(WealthSystem.FavoursCalledKey));
+        Assert.Equal(-1, m.Votes["ashgrove"]); Assert.False(WealthSystem.FavourOwed(g.W, "ashgrove", g.Mine.Id)); Assert.Equal(called + 1, g.W.Counter(WealthSystem.FavoursCalledKey));
         Assert.Equal("they owe you nothing", g.No(DealingsCommand.CallVote, "ashgrove", m.Id));
         // the two ways it could already be called in still stand, and are what the house's page offers beside this one
         WealthSystem.OweFor(g.W, "lucent", g.Mine.Id); g.H("lucent").Treasury.Credits = 40;

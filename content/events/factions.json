@@ -27,8 +27,8 @@
       "id": "the_whips_displeasure", "tier": "situation", "weight": 10, "repeatable": true,
       "when": [ { "type": "worldFlag", "flag": "broke_the_whip" } ],
       "choices": [
-        { "id": "apologise", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": -1 }, { "type": "adjustCounter", "key": "stress", "delta": 3 },
-            { "type": "log", "text": "{self.name} went to the leader of the bench and apologised for the vote. It was accepted, in the way such things are." } ] },
+        { "id": "apologise", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": -1 }, { "type": "adjustCounter", "key": "stress", "delta": 3 }, { "type": "setWorldFlag", "flag": "apologised_to_the_bench", "value": true },
+            { "type": "log", "text": "{self.name} went to the leader of the bench and apologised for the vote. It was accepted, in the way such things are, and the bench let the vote go." } ] },
         { "id": "stand_by_it", "requires": [ { "type": "trait", "role": "self", "trait": "Proud", "kind": "nature", "present": true } ],
           "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
             { "type": "log", "text": "{self.name} stood by the vote and said so to the bench's face. Half of them wished they had the nerve." } ] },

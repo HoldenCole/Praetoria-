@@ -86,7 +86,7 @@ public static partial class VoteMarks
     /// only while there is such a client (<see cref="ClientFlag"/>).</summary>
     public const string HelpFlag = "helping_a_client", ClientFlag = "client_to_help";
 
-    private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar, VotedYouUpChar, VotedYouDownChar };
+    private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar, VotedYouUpChar, VotedYouDownChar, ForYoursChar, AgainstYoursHouseChar };
     private static readonly string[] SessionFlags = { AbstainedFlag, PurseOutFlag, ActAgainstFlag };
     private static readonly string[] DocketChars = { MovesChar, MovesAgainstChar, UndecidedChar, AgainstYoursChar, VoteWantedChar, BargainOpenChar, WeakestChar };
 
@@ -115,6 +115,7 @@ public static partial class VoteMarks
         if (w.WorldFlags.Remove(SplitFlag) && mine != null) Split(w, mine);
         if (w.WorldFlags.Remove(BringOverFlag) && mine != null) BringOver(w, mine);
         if (w.WorldFlags.Remove(HelpFlag) && mine != null) HelpClient(w, mine);
+        FactionSystem.Apologised(w);   // the apology to the bench's leader for a vote against the bench (the_whips_displeasure/apologise)
         Answers(w, mine);   // the feast, the round, the names written down, the repeal promised, the loans (VoteMarks.Answers.cs)
         foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar) || c.Flags.Contains(VoteSoldChar) || c.Flags.Contains(DebtCalledChar) || c.Flags.Contains(StandChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
@@ -123,20 +124,26 @@ public static partial class VoteMarks
             if (stand) Stand(w, mine, theirs);
             if (debt) DealingsSystem.DebtPaid(w, mine, c, theirs);
             if (!both && !sold && !promised && !owes) continue;
-            if (both) Word(w, mine, theirs);
+            // a vote owed by a house at war with yours, or across blood, is void as it is given (WealthSystem.Apart): no bargain is struck
+            if ((both || owes) && WealthSystem.Apart(w, theirs.Id, mine))
+            {
+                w.Tell("info", $"{(w.AtWar(theirs.Id, mine) ? "You are at war with" : "There is blood between your house and")} {theirs.Name}: no bargain is struck across it, and neither house owes the other a vote for it.", "houses", theirs.Id);
+                both = owes = false; if (!sold && !promised) continue;
+            }
+            if (both && !Word(w, mine, theirs)) both = false;   // your vote on their motion is given elsewhere already: no second word, and nothing owed for it
             if (sold) Sell(w, mine, theirs);
             if (promised) WealthSystem.OweFor(w, mine, theirs.Id);
             if (both || owes) WealthSystem.OweFor(w, theirs.Id, mine);
             foreach (var x in w.LivingCharacters().Where(x => x.HouseId == theirs.Id)) { x.Flags.Add(BargainBarredChar); x.Flags.Remove(BargainOpenChar); }
         }
-        Callable(w, mine); Gates(w, mine);
+        Callable(w, mine); Gates(w, mine); Wanted(w, mine);
     }
 
     /// <summary>The houses that stand in a favour with the player's house, either way, or have had the player's word broken to them lately,
-    /// or have blood between them and it: no new bargain is struck with them (a house owes another one favour at a time, and across blood
-    /// none at all, WealthSystem.Apart).</summary>
+    /// or are at war with it or have blood between them and it: no new bargain is struck with them (a house owes another one favour at a
+    /// time, and across a war or blood none at all, WealthSystem.Apart: a vote promised by an enemy would be void as it was given).</summary>
     private static HashSet<string> Standing(World w, string mine) =>
-        w.Houses.Values.Where(h => h.Id != mine && (WealthSystem.FavourOwed(w, h.Id, mine) || WealthSystem.FavourOwed(w, mine, h.Id) || FeudSystem.Between(w, h.Id, mine)
+        w.Houses.Values.Where(h => h.Id != mine && (WealthSystem.FavourOwed(w, h.Id, mine) || WealthSystem.FavourOwed(w, mine, h.Id) || WealthSystem.Apart(w, h.Id, mine)
             || DealingsSystem.Remembered(w, DealingsSystem.PledgeBrokenKind, mine, h.Id).Any(d => w.Turn - d.Turn < DealingsSystem.PledgeMemoryYears))).Select(h => h.Id).ToHashSet();
     /// <summary>The head to bring over: marked open to a bargain, thinking no worse than nothing of the player, the one who thinks best of them.</summary>
     private static Character? Senator(World w)
@@ -247,14 +254,25 @@ public static partial class VoteMarks
     }
 
     /// <summary>The player's word on the motion of the house that gave its own: a pledge for it, the vote declared, and the player told
-    /// what it binds them to. Nothing, if that house's motion is no longer before the Senate.</summary>
-    private static void Word(World w, string mine, House theirs)
+    /// what it binds them to. Nothing, if that house's motion is no longer before the Senate. False, with the player told why, if the
+    /// player's vote on it is given elsewhere already (<see cref="Given"/>): a second word on one vote would break the first.</summary>
+    private static bool Word(World w, string mine, House theirs)
     {
-        var m = SenateSystem.Docket(w).FirstOrDefault(x => x.ProposerHouseId == theirs.Id); if (m == null) return;
-        if (DealingsSystem.PledgeOn(w, mine, m.Id) is { } given && given.ToHouseId == theirs.Id) return;
-        DealingsSystem.GiveWord(w, mine, theirs.Id, m, 1);
+        var m = SenateSystem.Docket(w).FirstOrDefault(x => x.ProposerHouseId == theirs.Id); if (m == null) return true;
+        if (DealingsSystem.PledgeOn(w, mine, m.Id) is { } given && given.ToHouseId == theirs.Id) return true;
+        if (Elsewhere(w, mine, theirs, m)) return false;
+        DealingsSystem.GiveWord(w, mine, theirs.Id, m, 1, bargain: true);
         w.Tell("warn", $"You gave {theirs.Name} your word: your vote on its motion is declared for it. Keep it at the count and its head thinks {DealingsSystem.PledgeKeptRegard:+0;-0} of you; "
-            + $"change it and its head thinks {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you, it is written down, and {theirs.Name} takes no word of yours on a vote for {Praetoria.Core.Counted.Years(DealingsSystem.PledgeMemoryYears)}. In return {theirs.Name} owes your house a vote.", "senate:chamber", theirs.Id);
+            + $"change it and its head thinks {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you, it is written down, and {theirs.Name} takes no word of yours on a vote for {Praetoria.Core.Counted.Years(DealingsSystem.PledgeMemoryYears)}. In return {theirs.Name} owes your house a vote, "
+            + "and if you break your word it owes you nothing.", "senate:chamber", theirs.Id);
+        return true;
+    }
+    /// <summary>The player's vote on that house's motion is given elsewhere already: said, and true.</summary>
+    private static bool Elsewhere(World w, string mine, House theirs, Motion m)
+    {
+        if (Given(w, mine, m) is not { } given) return false;
+        w.Tell("warn", $"Your vote on the motion of {theirs.Name} is {given} already: you cannot give it to {theirs.Name} as well without breaking that, so it is not given, and nothing is owed for it either way.", "senate:chamber", theirs.Id);
+        return true;
     }
 
     /// <summary>The player's vote sold to a house, on its motion now before the Senate (not one that strikes at the player's house): a
@@ -267,6 +285,7 @@ public static partial class VoteMarks
     {
         var m = SenateSystem.Docket(w).FirstOrDefault(x => x.ProposerHouseId == theirs.Id && !WealthSystem.StrikesAt(x, mine)); if (m == null) return;
         if (DealingsSystem.PledgeOn(w, mine, m.Id) is { } given && given.ToHouseId == theirs.Id) return;
+        if (Elsewhere(w, mine, theirs, m)) return;
         DealingsSystem.GiveWord(w, mine, theirs.Id, m, 1, paid: true);
         w.Tell("warn", $"{theirs.Name} has bought your vote on its motion: it is declared for it. Vote so at the count and its head thinks {DealingsSystem.PledgeKeptRegard:+0;-0} of you; "
             + $"change it and its head thinks {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you, it is written down, and {theirs.Name} takes no word of yours on a vote for {Praetoria.Core.Counted.Years(DealingsSystem.PledgeMemoryYears)}.", "senate:chamber", theirs.Id);
@@ -288,7 +307,7 @@ public static partial class VoteMarks
         w.WorldFlags.Remove(SplittableFlag);
         Gates(w, mine);
         if (SenateSystem.Docket(w).FirstOrDefault(m => senate.BenchAgainst(w, m, mine)) is { } against && FactionSystem.Of(w, against.ProposerHouseId) is { } bench && bench.LeaderHouseId == against.ProposerHouseId
-            && bench.Members.Where(id => id != bench.LeaderHouseId && id != mine && w.House(id) != null && !against.Votes.ContainsKey(id) && senate.Stance(w, against, id) > 0)
+            && bench.Members.Where(id => id != bench.LeaderHouseId && id != mine && w.House(id) != null && !WealthSystem.Apart(w, id, mine) && !against.Votes.ContainsKey(id) && senate.Stance(w, against, id) > 0)
                 .OrderBy(id => senate.Weight(w, id)).ThenBy(id => senate.Lean(w, against, id)).ThenBy(id => id, StringComparer.Ordinal).FirstOrDefault() is { } least && Head(w, least) is { Alive: true } weakestHead)
         { weakestHead.Flags.Add(WeakestChar); w.WorldFlags.Add(SplittableFlag); }
         foreach (var m in SenateSystem.Docket(w).ToList())
@@ -296,12 +315,31 @@ public static partial class VoteMarks
             if (m.ProposerHouseId == mine) { w.WorldFlags.Add(MyMotionFlag); continue; }
             if (SenateSystem.IsPetition(m) || Head(w, m.ProposerHouseId) is not { } mover) continue;
             mover.Flags.Add(MovesChar);
-            // its house wants the player's vote on it, if it is to be had (a report that buys it, or bargains for it, reads this)
-            if (!WealthSystem.StrikesAt(m, mine, senate.Motions.Def(m.Kind)) && DealingsSystem.PledgeOn(w, mine, m.Id) == null)
-                foreach (var c in w.LivingCharacters().Where(c => c.HouseId == m.ProposerHouseId)) c.Flags.Add(VoteWantedChar);
             if (m.TargetId == mine && senate.Motions.Def(m.Kind) is { Target: "house" } d && (d.LegitimacyTarget < 0 || d.EmbargoTurns > 0)) mover.Flags.Add(MovesAgainstChar);
         }
+        Wanted(w, mine);   // its house wants the player's vote on it, if it is to be had (a report that buys it, or bargains for it, reads this)
         Leanings(w, senate, mine);
+    }
+
+    /// <summary>Everyone of a house with a motion before the Senate on which the player's vote is to be had (<see cref="VoteWantedChar"/>):
+    /// not a petition, not one that strikes at the player's house, not one the player's vote is given on already (<see cref="Given"/>).
+    /// Written with the docket, and again whenever the player's vote is given (a word, a sale: DealingsSystem.GiveWord; gold taken:
+    /// ForeignGoldSystem.Answer; a report's bargain), so that a report that would have it a second time is closed at once.</summary>
+    public static void Wanted(World w, string? mine)
+    {
+        foreach (var c in w.Characters.Values) c.Flags.Remove(VoteWantedChar);
+        if (mine == null) return;
+        foreach (var m in SenateSystem.Docket(w).Where(m => m.ProposerHouseId != mine && !SenateSystem.IsPetition(m) && !WealthSystem.StrikesAt(m, mine) && Given(w, mine, m) == null).ToList())
+            foreach (var c in w.LivingCharacters().Where(c => c.HouseId == m.ProposerHouseId)) c.Flags.Add(VoteWantedChar);
+    }
+    /// <summary>What the player's vote on this motion is given to already, in words, or null: a word or a sale to a house, or gold taken
+    /// from beyond the Reach to vote against it or stay away.</summary>
+    public static string? Given(World w, string mine, Motion m)
+    {
+        if (DealingsSystem.PledgeOn(w, mine, m.Id) is { } p) return $"{(p.Paid ? "bought by" : "pledged to")} {w.House(p.ToHouseId)?.Name ?? "another house"}, {(p.Side > 0 ? "for" : "against")} it";
+        if (w.GoldOffers.FirstOrDefault(o => o.MotionId == m.Id && o.HouseId == mine && o.Answer == ForeignGoldSystem.Taken && o.Ask != ForeignGoldSystem.Withdraw) is { } gold)
+            return $"held by the gold you took from {gold.NationName} {ForeignGoldSystem.AskSays(gold)}";
+        return null;
     }
 
     /// <summary>On the player's motion now before the Senate, the heads of the houses that have not made up their mind (no vote declared,
@@ -324,9 +362,13 @@ public static partial class VoteMarks
     /// <summary>At the count. On the player's own motion: the heads of the houses that voted for it and against it. On a motion the
     /// leader of the player's bench voted on, and the player's house did not: the leader saw it; or, where the player had given that
     /// house their word to vote at this vote, the word is judged (<see cref="Stood"/>).</summary>
-    public static void Counted(World w, Motion m, string? mine)
+    public static void Counted(World w, Motion m, string? mine, Data.MotionDef? def = null)
     {
         if (mine == null) return;
+        // a motion for the player's house whose roll a report reads (a triumph, a return from exile, the powers for life): who voted which way
+        if (RollRead(def, m, mine))
+            foreach (var (houseId, vote) in m.Votes.OrderBy(kv => kv.Key, StringComparer.Ordinal))
+                if (houseId != mine && vote != 0 && Head(w, houseId) is { Alive: true } head) head.Flags.Add(vote > 0 ? ForYoursChar : AgainstYoursHouseChar);
         if (m.ProposerHouseId == mine)
         {
             foreach (var (houseId, vote) in m.Votes.OrderBy(kv => kv.Key, StringComparer.Ordinal))

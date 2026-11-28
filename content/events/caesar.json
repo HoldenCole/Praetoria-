@@ -194,6 +194,7 @@
         {
           "id": "learn_who_voted",
           "effects": [
+            { "type": "setWorldFlag", "flag": "names_of_the_division", "value": true },
             {
               "type": "adjustResource",
               "resource": "influence",

@@ -158,6 +158,7 @@
         {
           "id": "remember_who_voted",
           "effects": [
+            { "type": "setWorldFlag", "flag": "names_of_the_division", "value": true },
             {
               "type": "setWorldFlag",
               "flag": "called_home_from_exile",

@@ -6,11 +6,11 @@
       "when": [ { "type": "worldFlag", "flag": "motion_open" }, { "type": "turn", "op": "gte", "value": 2 } ],
       "roles": [ { "name": "whip", "when": [ { "type": "rank", "role": "whip", "op": "gte", "value": 2 }, { "type": "charFlag", "role": "whip", "flag": "wants_your_vote", "value": true } ] } ],
       "choices": [
-        { "id": "take_the_coin", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 6 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 8 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 }, { "type": "setCharFlag", "role": "whip", "flag": "sold_your_vote", "value": true },
+        { "id": "take_the_coin", "requires": [ { "type": "charFlag", "role": "whip", "flag": "wants_your_vote", "value": true } ], "effects": [ { "type": "adjustResource", "resource": "credits", "delta": 6 }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 8 }, { "type": "adjustCounter", "key": "legitimacy", "delta": -1 }, { "type": "setCharFlag", "role": "whip", "flag": "sold_your_vote", "value": true },
             { "type": "log", "text": "{self.name} took {whip.name}'s purse and promised the house's vote for the motion of {whip.house}. Six hundred credits, a friend in the chamber, and a story the benches will tell." } ] },
-        { "id": "name_your_price", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 }, { "type": "charFlag", "role": "whip", "flag": "no_bargain_with_you", "value": false } ],
-          "effects": [ { "type": "setCharFlag", "role": "whip", "flag": "their_house_owes_you_a_vote", "value": true }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 3 },
-            { "type": "log", "text": "{self.name} wanted no coin from {whip.name}: a favour, to be named later. The whip agreed; whips always do. {whip.house} owes your house a favour." } ] },
+        { "id": "name_your_price", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 }, { "type": "charFlag", "role": "whip", "flag": "no_bargain_with_you", "value": false }, { "type": "atWar", "role": "whip", "present": false }, { "type": "charFlag", "role": "whip", "flag": "wants_your_vote", "value": true } ],
+          "effects": [ { "type": "setCharFlag", "role": "whip", "flag": "owes_you_a_vote", "value": true }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 3 },
+            { "type": "log", "text": "{self.name} wanted no coin from {whip.name}: the house's vote for the motion of {whip.house}, for a favour to be named later. The whip agreed; whips always do. {whip.house} owes your house a favour." } ] },
         { "id": "show_them_the_door", "effects": [ { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": -10 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
             { "type": "log", "text": "{self.name} showed {whip.name} the door with the purse still in their hand. The vote stays the house's own." } ] }
       ]

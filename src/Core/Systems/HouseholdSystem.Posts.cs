@@ -133,14 +133,17 @@ public sealed partial class HouseholdSystem
         int upstairs = house.Id == w.Protagonist?.HouseId ? open.RemoveAll(m => w.WorldCounters.ContainsKey(UpstairsKey(m.Id))) : 0;
         if (open.Count == 0) { d.LastReport = upstairs > 0 ? "Brought the year's one doubtful vote to you, and declared nothing else: nothing else wanted the house's voice." : "Nothing was decided this year that wanted the house's voice."; return; }
         if (d.Favour == Abstain) { d.LastReport = $"Declared nothing on {Counted.Motions(open.Count)}, as told."; return; }
-        string follow = d.Favour == WithPatron && house.PatronId.Length > 0 && w.House(house.PatronId) != null ? house.PatronId : house.Id; int yes = 0, no = 0, none = 0;
+        string follow = d.Favour == WithPatron && house.PatronId.Length > 0 && w.House(house.PatronId) != null ? house.PatronId : house.Id; int yes = 0, no = 0, none = 0; bool stood = false;
         foreach (var m in open)
         {
             int stance = follow != house.Id && m.Votes.TryGetValue(follow, out int theirs) ? theirs : Math.Sign(Lean?.Invoke(w, m, follow) ?? 0);
+            // the head's word to the bench's leader that the house will vote at the next vote of the bench: not left in its seat on it, but on its feet with the leader
+            if (stance == 0 && house.Id == w.Protagonist?.HouseId && VoteMarks.StandsOn(w, m) != null && FactionSystem.Of(w, house.Id) is { } bench)
+            { stance = m.Votes.TryGetValue(bench.LeaderHouseId, out int led) ? led : Math.Sign(Lean?.Invoke(w, m, bench.LeaderHouseId) ?? 0); stood |= stance != 0; }
             m.Votes[house.Id] = stance; if (stance > 0) yes++; else if (stance < 0) no++; else none++;
         }
         Mark(w, ChancellorVotedFlag);
-        d.LastReport = $"Declared the house on {Counted.Motions(open.Count)}: for {yes}, against {no}{(none > 0 ? $", standing aside on {none}" : "")}{(follow != house.Id ? $", as {w.House(follow)!.Name} went" : "")}{(upstairs > 0 ? "; and brought the doubtful one to you" : "")}.";
+        d.LastReport = $"Declared the house on {Counted.Motions(open.Count)}: for {yes}, against {no}{(none > 0 ? $", standing aside on {none}" : "")}{(follow != house.Id ? $", as {w.House(follow)!.Name} went" : "")}{(upstairs > 0 ? "; and brought the doubtful one to you" : "")}{(stood ? "; and kept the house on its feet with the leader of its bench, as you had promised" : "")}.";
     }
 
     /// <summary>The spymaster: the Reach at large, one house closely, or the house's own books.</summary>

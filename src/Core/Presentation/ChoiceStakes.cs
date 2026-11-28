@@ -100,7 +100,7 @@ public static class ChoiceStakes
             case ClaimCondition cl: return want == cl.Present ? "needs a claim to the rank of " + Progression.Title.StyleOf(cl.TitleId, ctx.World.Era) : "not while the house holds that claim";
             case AgeCondition ag: return want ? $"needs an age {Op(ag.Op)} {ag.Value}" : "not at that age";
             case FleetStrengthCondition fl: { var a = ctx.Actor(fl.Role); int have = a != null ? Systems.FleetSystem.StrengthOf(ctx.World, a.HouseId) : 0; return want ? $"needs {Op(fl.Op)} {Counted.Hulls(fl.Value)} (the house has {have})" : "not with a fleet of that size"; }
-            case AtWarCondition aw: return want == aw.Present ? "only in a war" : "not while at war";
+            case AtWarCondition aw: return want == aw.Present ? "only in a war" : aw.Role is "self" or "" ? "not while at war" : $"not while your house is at war with {(ctx.Actor(aw.Role) is { } foe && ctx.World.House(foe.HouseId) is { } foeHouse ? foeHouse.Name : "theirs")}";
             case PeaceTermCondition pc: { var t = pc.Terms(ctx).FirstOrDefault(); return !want ? "" : t == null ? (pc.Kind == Systems.HousePeace.Tribute ? "tribute is asked by the side ahead in the war, and you are not ahead (a battle won is 2, a world taken 3)" : "there is no such term to ask in this war") : t.Why.Length > 0 ? t.Why : "they will not take that term"; }
             case BondCondition: return want ? "needs a tie between the two that is not there" : "not between two so tied";
             case TrackCondition tr: return want == tr.Present ? "needs a career in " + tr.Track.Replace('_', ' ') : "not for one in " + tr.Track.Replace('_', ' ');
@@ -109,11 +109,22 @@ public static class ChoiceStakes
             case SphereCondition sp: return want ? $"needs standing {Op(sp.Op)} {sp.Value} with {sp.SphereKey.Replace('_', ' ')}" : "";
             case BlocCondition bl: return want == bl.Present ? "needs a seat with " + bl.Bloc.Replace('_', ' ') : "not for one of " + bl.Bloc.Replace('_', ' ');
             case CharFlagCondition cf when cf.Flag == Systems.VoteMarks.BargainBarredChar: return $"not while a favour stands between your house and {(ctx.Actor(cf.Role) is { } bound && ctx.World.House(bound.HouseId) is { } boundHouse ? boundHouse.Name : "theirs")}, either way (a house owes another one favour at a time), nor within {Systems.DealingsSystem.PledgeMemoryYears} years of your breaking your word on a vote to it";
+            case CharFlagCondition cf when cf.Flag == Systems.VoteMarks.VoteWantedChar && want == cf.Value: return WantedWhy(ctx, cf.Role);
             case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.FavoursToCallFlag: return want == wf.Value ? "needs a house that owes yours a favour and can vote against the motion: not the house that moved it, nor one at war with yours" : "";
             case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.ClientFlag: return want == wf.Value ? "needs a client house with no favour standing between it and yours, either way" : "";
             case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.SplittableFlag: return want == wf.Value ? "needs a house of that bench, not its leader, that would vote for the motion and has not declared" : "";
             case WorldFlagCondition wf when wf.Flag == Systems.ElectionSystem.CourtFlag: return want == wf.Value ? "needs another consul, of a third house, with a veto still to use this term" : "";
             default: return "";   // a flag, a counter, a turn: something that happened or did not, which the story has told
         }
+    }
+    /// <summary>Why that house may not have the player's vote on its motion now: given elsewhere already, or no such motion before the Senate.</summary>
+    private static string WantedWhy(EvalContext ctx, string role)
+    {
+        var w = ctx.World; string? mine = w.Protagonist?.HouseId; var bound = ctx.Actor(role); var theirs = bound != null ? w.House(bound.HouseId) : null;
+        if (mine == null || theirs == null) return "needs a motion of theirs before the Senate that your vote may be had on";
+        var m = Systems.SenateSystem.Docket(w).FirstOrDefault(x => x.ProposerHouseId == theirs.Id);
+        if (m == null) return $"{theirs.Name} has no motion before the Senate now";
+        if (Systems.VoteMarks.Given(w, mine, m) is { } given) return $"your vote on the motion of {theirs.Name} is {given} already: giving it again would break that";
+        return Systems.WealthSystem.StrikesAt(m, mine) ? $"the motion of {theirs.Name} strikes at your house" : "needs a motion of theirs before the Senate that your vote may be had on";
     }
 }

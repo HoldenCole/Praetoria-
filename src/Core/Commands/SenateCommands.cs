@@ -136,6 +136,8 @@ public sealed class LobbyCommand : ICommand
         if (m.Lobbied.Contains(house.Id + "→" + _houseId)) return "you have already had their ear";
         // a declared vote is struck when the house is lobbied: one declared your way (a favour called in, a vote asked or a debt paid) would be lost by it
         if (m.Votes.TryGetValue(_houseId, out int cast) && cast == _side) return $"it has declared {(cast > 0 ? "for" : "against")} it already";
+        // a house that owes yours a favour votes for your motion already (SenateSystem.Owes): a purse that came out would strike the vote the favour gives
+        if (_side > 0 && WealthSystem.VotesFor(w, m, _houseId)) return "it votes for your motion already: it owes your house a favour";
         var head = Economy.HeadOf(w, target); if (head == null) return "no one to speak to";
         if (_bribe) { int price = SenateSystem.BribeCost(w, target, actor); return SenateSystem.BribeRefused(w, target, actor) ?? (house.Treasury.Credits >= price ? null : $"needs {Money.Credits(price)} (the house has {Money.Held(house.Treasury)})"); }
         if ((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) < -20) return $"{head.Name} will not hear you — try coin";

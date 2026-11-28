@@ -71,6 +71,10 @@
       "choices": [
         {
           "id": "give_your_word",
+          "requires": [
+            { "type": "charFlag", "role": "senator", "flag": "wants_your_vote", "value": true },
+            { "type": "atWar", "role": "senator", "present": false }
+          ],
           "effects": [
             {
               "type": "adjustRelationship",
@@ -98,6 +102,7 @@
         {
           "id": "name_a_price",
           "requires": [
+            { "type": "charFlag", "role": "senator", "flag": "wants_your_vote", "value": true },
             {
               "type": "trait",
               "role": "self",
@@ -218,6 +223,9 @@
       "choices": [
         {
           "id": "vote_as_they_ask",
+          "requires": [
+            { "type": "charFlag", "role": "buyer", "flag": "wants_your_vote", "value": true }
+          ],
           "effects": [
             {
               "type": "adjustRelationship",

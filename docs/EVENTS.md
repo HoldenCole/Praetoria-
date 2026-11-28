@@ -295,6 +295,9 @@ their own phase after this one, with its own brief, so there are not two designs
 Three critics (the words, the code, the play) read the merged sets. What changed, in short; each design doc has a "Round 1"
 section and the detail at each report.
 
+- **Every vote promise listed.** docs/events/votes.md, "Promises", lists every promise about a vote the reports, notices and windows
+  make (five groups and a closing round), what in the engine keeps it, and the test in tests/VotePromisesTests.cs or
+  tests/VotePromisesClosingTests.cs that proves it through the real count.
 - **Promises made real.** A vote given for a vote, and a promise to vote for a motion, are favours owed that the count judges
   (`VoteMarks.Bargains`); a consul who dined with you spares a motion of yours the veto; the parley's counted ships fight the worse;
   the young one sent to the front can be wounded and comes home; the recount is for your relative who lost.
