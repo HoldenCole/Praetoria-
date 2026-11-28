@@ -14,7 +14,9 @@ public sealed record AcademyCadetLine(string Id, string Name, string HouseId, st
 public sealed record AcademyLessonCard(string Id, int Term, string Title, string Brief, IReadOnlyList<string> Paragraphs, string Summary = "");
 /// <summary>A term's report card as the screen shows it (docs/ACADEMY.md, "The report card"): the place before and after, what moved it,
 /// each a sentence with its figures, and one tip for the term to come.</summary>
-public sealed record AcademyTermCard(int Term, string TermName, int PlaceFrom, int PlaceTo, int Of, int ScoreFrom, int ScoreTo, IReadOnlyList<string> Moved, string Tip);
+public sealed record AcademyTermCard(int Term, string TermName, int PlaceFrom, int PlaceTo, int Of, int ScoreFrom, int ScoreTo, IReadOnlyList<AcademyCardLine> Moved, string Tip);
+/// <summary>A line of a report card and what it is about: "read", "standing", "score", "year", "passed" or "banner".</summary>
+public sealed record AcademyCardLine(string Kind, string Text);
 /// <summary>A house that matters, as the orientation tells it.</summary>
 public sealed record AcademyHouseLine(string Id, string Name, string Accent, string Style, string HeadName, string HeadRank, string Party, string PartyAccent, int Weight, int Worlds, int Hulls, int Disposition, bool Chair, bool Yours);
 public sealed record AcademyFact(string Heading, string Text);
@@ -133,23 +135,23 @@ public static class AcademyProjection
     /// a lead to hold, or the pace of the year.</summary>
     public static AcademyTermCard Card(World w, AcademyCatalog cat, AcademyRegister reg, Character p, TermReport r)
     {
-        var a = w.Academy!; var lines = new List<string>(); var fy = cat.FirstYears;
+        var a = w.Academy!; var lines = new List<AcademyCardLine>(); var fy = cat.FirstYears;
         string Std(string id, bool first = false) => cat.Standard(id)?.Name is { Length: > 0 } n ? (first ? char.ToUpperInvariant(n[0]) + n[1..] : n) : id;
-        if (cat.Subject(r.Subject) is { } read) lines.Add($"You read {read.Name}: {Counted.Of(r.Marks, "mark")}.");
+        if (cat.Subject(r.Subject) is { } read) lines.Add(new("read", $"You read {read.Name}: {Counted.Of(r.Marks, "mark")}."));
         int worth = AcademySystem.StandingWeight * (Math.Max(0, r.StandingTo) - Math.Max(0, r.StandingFrom));
         if (r.StandingTo != r.StandingFrom)
-            lines.Add($"Your standing {(r.StandingTo > r.StandingFrom ? "rose" : "fell")} from {Counted.Figure(r.StandingFrom)} to {Counted.Figure(r.StandingTo)}"
-                + (worth != 0 ? $": {Math.Abs(worth)} {(worth > 0 ? "more" : "fewer")} {(Math.Abs(worth) == 1 ? "mark" : "marks")} on your score, since standing counts twice." : ", and the order of merit does not count standing below nothing."));
-        else lines.Add("Your standing did not move.");
-        lines.Add($"Your score went from {r.ScoreFrom} to {r.ScoreTo}.");
+            lines.Add(new("standing", $"Your standing {(r.StandingTo > r.StandingFrom ? "rose" : "fell")} from {Counted.Figure(r.StandingFrom)} to {Counted.Figure(r.StandingTo)}"
+                + (worth != 0 ? $": {Math.Abs(worth)} {(worth > 0 ? "more" : "fewer")} {(Math.Abs(worth) == 1 ? "mark" : "marks")} on your score, since standing counts twice." : ", and the order of merit does not count standing below nothing.")));
+        else lines.Add(new("standing", "Your standing did not move."));
+        lines.Add(new("score", $"Your score went from {r.ScoreFrom} to {r.ScoreTo}."));
         int others = Math.Max(0, r.Of - 1);
-        if (others > 0) lines.Add(r.YearLow == r.YearHigh ? $"The other {Counted.Of(others, "cadet")} gained {r.YearLow} each."
-            : $"The other {Counted.Of(others, "cadet")} gained {r.YearLow} to {r.YearHigh} each, {r.YearMean} on average.");
-        if (r.PassedBy > 0 && r.Passed > 0) lines.Add($"{Counted.Of(r.PassedBy, "cadet")} passed you, and you passed {Counted.Of(r.Passed, "cadet")}.");
-        else if (r.PassedBy > 0) lines.Add($"{Counted.Of(r.PassedBy, "cadet")} passed you.");
-        else if (r.Passed > 0) lines.Add($"You passed {Counted.Of(r.Passed, "cadet")}.");
+        if (others > 0) lines.Add(new("year", r.YearLow == r.YearHigh ? $"The other {Counted.Of(others, "cadet")} gained {r.YearLow} each."
+            : $"The other {Counted.Of(others, "cadet")} gained {r.YearLow} to {r.YearHigh} each, {r.YearMean} on average."));
+        if (r.PassedBy > 0 && r.Passed > 0) lines.Add(new("passed", $"{Counted.Of(r.PassedBy, "cadet")} passed you, and you passed {Counted.Of(r.Passed, "cadet")}."));
+        else if (r.PassedBy > 0) lines.Add(new("passed", $"{Counted.Of(r.PassedBy, "cadet")} passed you."));
+        else if (r.Passed > 0) lines.Add(new("passed", $"You passed {Counted.Of(r.Passed, "cadet")}."));
         if (r.BannerLost.Length > 0)
-            lines.Add($"{Std(r.BannerTaker, true)} took the banner of {Std(r.BannerLost)}." + (r.BannerYours ? $" It was yours: you serve under {Std(r.BannerTaker)} now, and lost 2 standing with it." : ""));
+            lines.Add(new("banner", $"{Std(r.BannerTaker, true)} took the banner of {Std(r.BannerLost)}." + (r.BannerYours ? $" It was yours: you serve under {Std(r.BannerTaker)} now, and lost 2 standing with it." : "")));
 
         // the one tip: the first of these that fits the term
         string tip;

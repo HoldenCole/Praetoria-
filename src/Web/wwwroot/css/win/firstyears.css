@@ -1,0 +1,74 @@
+/* The first years (docs/ACADEMY.md, "The first years"; docs/VISUAL_SYSTEM.md 3.7, 4.9, 4.11): the list pinned at the top of the outliner,
+   the pulsing ring "Show me" puts on a control, the primer's spotlight, and the rail's labels note in Options. Sizes in rem (2.4). */
+
+/* ---- the list: the outliner's steel head strip over rows with their own dark backing ---- */
+.outliner .ol-sec.fy { box-shadow: 0 0 0 1px rgba(0,0,0,.8), 0 0 0 2px rgba(165,129,58,.35), 0 4px 10px rgba(0,0,0,.45); }
+.outliner .fy-head { cursor: default; gap: .2667rem; padding-right: .3333rem; }
+.outliner .fy-head:hover { filter: none; }
+.outliner .fy-fold { display: flex; align-items: center; gap: .4667rem; flex: 1 1 auto; min-width: 0; height: 100%; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; text-align: left; }
+.outliner .fy-fold:hover { filter: brightness(1.15); }
+.outliner .ol-sec.fy.shut .fy-head .chev { transform: rotate(-45deg) translate(-1px,-1px); }
+.outliner .fy-head .n { margin-left: 0; padding-right: .2667rem; } .outliner .fy-head .n.good { color: var(--good); }
+.outliner .fy-x { flex: none; width: 1.4667rem; height: 1.4667rem; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: radial-gradient(circle at 50% 35%, #2a3142, #0d1017); box-shadow: inset 0 0 0 1px rgba(165,129,58,.45), 0 1px 2px #000; }
+.outliner .fy-x:hover { box-shadow: inset 0 0 0 1px var(--brass), 0 0 8px rgba(232,196,110,.25); }
+.outliner .fy-x .icon { width: .7333rem; height: .7333rem; stroke-width: 40px; }
+.outliner .fy-lede { padding: .4rem .6rem .1333rem .6667rem; font: italic 400 .9333rem/1.3 var(--f-prose); color: var(--ink-dim); }
+
+.outliner .fy-step { display: flex; align-items: center; gap: .5333rem; min-height: 2.6667rem; padding: .3333rem .4667rem .3333rem .6rem; border-top: 1px solid rgba(255,255,255,.045); position: relative; }
+.outliner .fy-lede + .fy-step { border-top: 0; }
+.outliner .fy-step:hover { background: linear-gradient(90deg, rgba(201,162,74,.10), rgba(255,255,255,.02)); box-shadow: inset 2px 0 0 var(--brass); }
+.outliner .fy-box { flex: none; width: 1.2rem; height: 1.2rem; display: grid; place-items: center; background: var(--well); box-shadow: var(--sh-inset), inset 0 0 0 1px rgba(165,129,58,.45); border-radius: 2px; }
+.outliner .fy-box .icon { width: .8667rem; height: .8667rem; }
+.outliner .fy-term { flex: none; min-width: 1.4667rem; height: 1.2rem; padding: 0 .2rem; display: grid; place-items: center; font: 600 .8rem/1 var(--f-display); letter-spacing: .04em; color: var(--brass-ink);
+  box-shadow: inset 0 0 0 1px rgba(201,162,74,.45); background: linear-gradient(#2b2413, #15110a); border-radius: 1px; }
+.outliner .fy-step .nm { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1333rem; }
+.outliner .fy-step .nm .t { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); overflow-wrap: anywhere; }
+.outliner .fy-step .nm .k { font: italic 400 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.outliner .fy-step .nm .k.warn { color: var(--warn); }
+.outliner .fy-show { flex: none; gap: .2667rem; height: 1.7333rem; padding: 0 .4667rem; font-size: .8333rem; }
+.outliner .fy-show .icon { width: .8rem; height: .8rem; }
+/* with a window open, or on a narrow screen, a step is one line: what to do and Show me (where it is done stays in its tooltip) */
+.outliner .fy.fy-folded .fy-step { min-height: 2.2667rem; }
+.outliner .fy.fy-folded .fy-step .nm .k:not(.warn) { display: none; }
+.outliner .fy-step.done { min-height: 2.1333rem; }
+.outliner .fy-step.done .nm .t { color: var(--ink-dim); font-weight: 500; }
+.outliner .fy-step.done .fy-box { box-shadow: var(--sh-inset), inset 0 0 0 1px rgba(140,196,126,.55); }
+.outliner .fy-step.done .fy-term { opacity: .6; }
+.outliner .fy-step.fresh { animation: fy-tick 2.2s ease-out both; }
+.outliner .fy-step.fresh .fy-box { animation: fy-box 2.2s ease-out both; }
+@keyframes fy-tick { 0% { background: rgba(140,196,126,.28); box-shadow: inset 2px 0 0 var(--good); } 100% { background: transparent; box-shadow: inset 2px 0 0 transparent; } }
+@keyframes fy-box { 0% { transform: scale(1.35); box-shadow: var(--sh-inset), 0 0 0 2px var(--good), 0 0 14px rgba(140,196,126,.7); } 100% { transform: none; } }
+.outliner .fy-done-all { display: flex; align-items: center; gap: .6667rem; padding: .6667rem .8rem; font: italic 400 1rem/1.35 var(--f-prose); color: #e3d9c0;
+  background: linear-gradient(90deg, rgba(201,162,74,.16), rgba(201,162,74,.02)); animation: fy-tick 3s ease-out both; }
+.outliner .fy-done-all .icon { flex: none; width: 1.4667rem; height: 1.4667rem; }
+
+/* ---- the guide's layer (js/guide.js): over the shell and the top bar (40), under the primer while it points (46), tooltips and questions ---- */
+#guide-layer { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+#guide-layer .guide-ring { position: absolute; border-radius: 6px; box-shadow: 0 0 0 2px var(--brass-hi), 0 0 0 4px rgba(0,0,0,.65), 0 0 18px 4px rgba(246,226,160,.55);
+  animation: guide-pulse 1.25s ease-in-out infinite; }
+#guide-layer .guide-ring::after { content: ""; position: absolute; inset: -4px; border-radius: 8px; border: 2px solid rgba(246,226,160,.75); animation: guide-wave 1.25s ease-out infinite; }
+@keyframes guide-pulse { 0%, 100% { box-shadow: 0 0 0 2px var(--brass-hi), 0 0 0 4px rgba(0,0,0,.65), 0 0 12px 2px rgba(246,226,160,.4); } 50% { box-shadow: 0 0 0 2px #fff3c8, 0 0 0 4px rgba(0,0,0,.65), 0 0 26px 8px rgba(246,226,160,.7); } }
+@keyframes guide-wave { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.12); } }
+#guide-layer .guide-spot { position: absolute; border-radius: 6px; box-shadow: 0 0 0 2px var(--brass-hi), 0 0 22px 6px rgba(246,226,160,.45), 0 0 0 200vmax rgba(3,4,8,.76);
+  transition: left .25s ease, top .25s ease, width .25s ease, height .25s ease; }
+#guide-layer .guide-spot::after { content: ""; position: absolute; inset: -4px; border-radius: 8px; border: 2px solid rgba(246,226,160,.75); animation: guide-wave 1.4s ease-out infinite; }
+#guide-layer .guide-spot.none { left: 50% !important; top: 50% !important; width: 0 !important; height: 0 !important; box-shadow: 0 0 0 200vmax rgba(3,4,8,.76); }
+#guide-layer .guide-spot.none::after { display: none; }
+@media (prefers-reduced-motion: reduce) { #guide-layer .guide-ring, #guide-layer .guide-ring::after, #guide-layer .guide-spot::after, .outliner .fy-step.fresh, .outliner .fy-step.fresh .fy-box { animation: none; } }
+
+/* ---- the primer while it points at a part of the screen: its own dim gives way to the guide's, which leaves that part lit ---- */
+.overlay.box-veil.hb-point { background: transparent; z-index: 46; }
+.overlay.box-veil.hb-point.hb-low { place-items: end center; padding-bottom: 9vh; }
+.overlay.box-veil.hb-point.hb-left { place-items: center start; padding-left: calc(var(--rail, 76px) + 9vw); }
+.handbook .hb-where { display: flex; align-items: center; gap: .5333rem; margin: .2rem 0 .6667rem; font: 600 .8667rem/1.2 var(--f-ui); color: var(--brass-ink); letter-spacing: .02em; }
+.handbook .hb-where .icon { width: 1rem; height: 1rem; }
+.handbook .hb-steps { list-style: none; margin: .4rem 0 .8rem; padding: 0; }
+.handbook .hb-steps li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; border-top: 1px solid rgba(255,255,255,.05); font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.handbook .hb-steps li:first-child { border-top: 0; }
+.handbook .hb-steps li b { display: block; font: 600 .9333rem/1.3 var(--f-ui); color: var(--ink); }
+.handbook .hb-steps .fy-box { flex: none; width: 1.2rem; height: 1.2rem; margin-top: .1rem; display: grid; place-items: center; background: var(--well); box-shadow: var(--sh-inset), inset 0 0 0 1px rgba(165,129,58,.45); border-radius: 2px; }
+.handbook .hb-steps .fy-box .icon { width: .8667rem; height: .8667rem; }
+
+/* ---- Options: the rail's labels on by themselves ---- */
+.box.settings .set-auto { align-self: center; margin-right: .6667rem; font: italic 400 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }

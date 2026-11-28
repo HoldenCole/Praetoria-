@@ -29,6 +29,8 @@ public sealed class FirstYearsCatalog
     public IReadOnlyDictionary<string, IReadOnlyList<FirstStep>> Starts { get; init; } = new Dictionary<string, IReadOnlyList<FirstStep>>();
     /// <summary>What a step says while it cannot be done yet, by the act it waits on ("vote": nothing is before the Senate).</summary>
     public IReadOnlyDictionary<string, string> NotYet { get; init; } = new Dictionary<string, string>();
+    /// <summary>The same in a few words, for the line under the step ("Not yet: nothing before the Senate").</summary>
+    public IReadOnlyDictionary<string, string> Waits { get; init; } = new Dictionary<string, string>();
     /// <summary>What the four terms carried onto the real screen are about, term by term ("the Office and you").</summary>
     public IReadOnlyList<string> Terms { get; init; } = Array.Empty<string>();
     public IReadOnlyDictionary<string, LectureSummary> Lectures { get; init; } = new Dictionary<string, LectureSummary>();
@@ -74,7 +76,7 @@ public sealed class FirstYearsCatalog
         return new FirstYearsCatalog
         {
             Years = ConditionParser.Int(root, "years", 3), LabelYears = ConditionParser.Int(root, "labelYears", 3),
-            Starts = starts, NotYet = Texts(root, "notYet"), Lectures = lectures, Tips = Texts(root, "tips"),
+            Starts = starts, NotYet = Texts(root, "notYet"), Waits = Texts(root, "waits"), Lectures = lectures, Tips = Texts(root, "tips"),
             Terms = root.TryGetProperty("terms", out var t) && t.ValueKind == JsonValueKind.Array ? t.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString()!).ToList() : new List<string>(),
         };
     }

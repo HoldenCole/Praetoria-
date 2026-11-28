@@ -63,7 +63,10 @@ public class FirstStepsTests
                 foreach (var d in step.Done.Split('|'))
                     Assert.True(d == "report" || d is "did:vote" or "did:fleet" or "did:buy" or "did:venture" or "did:build" or "did:law" || d == "seen:map"
                         || (d.StartsWith("seen:") && windows.Contains(d[5..].Split(':')[0])), $"{s}/{step.Id}: {d}");
-                Assert.Contains(step.Show.Split(':')[0], windows);
+                // Show me opens a window and lights what to press there; for a step that is the opening of a window it opens nothing and
+                // lights the window's socket, so the player opens it and the step is theirs
+                if (step.Show.Length == 0) Assert.Matches("^seen:[a-z]+$", step.Done); else Assert.Contains(step.Show.Split(':')[0], windows);
+                if (step.Done.StartsWith("seen:") && step.Done != "seen:map") Assert.NotEqual(step.Done[5..], step.Show);   // Show me never does the step itself
                 Assert.NotEmpty(step.Ring);
                 foreach (var r in step.Ring) Assert.True(rings.Contains(r) || (r.StartsWith("rail:") && windows.Contains(r[5..])) || r.StartsWith("tab:"), $"{s}/{step.Id}: {r}");
                 // what a player reads: plain, with no em dash, no "(s)", a sentence that ends, a title of a few words
@@ -268,16 +271,16 @@ public class FirstStepsTests
                 var c = seen[i]; var r = w.Academy.Reports[i];
                 Assert.Equal(i + 1, c.Term);
                 Assert.InRange(c.PlaceTo, 1, c.Of); Assert.InRange(c.PlaceFrom, 1, 12);
-                Assert.Contains(c.Moved, l => l.StartsWith("You read ") && l.Contains(r.Marks.ToString()));   // what was read, with its marks
-                Assert.Contains(c.Moved, l => l == $"Your score went from {r.ScoreFrom} to {r.ScoreTo}.");
-                Assert.Contains(c.Moved, l => l.StartsWith("The other "));   // what the rest of the year did
+                Assert.Contains(c.Moved, l => l.Kind == "read" && l.Text.StartsWith("You read ") && l.Text.Contains(r.Marks.ToString()));   // what was read, with its marks
+                Assert.Contains(c.Moved, l => l.Kind == "score" && l.Text == $"Your score went from {r.ScoreFrom} to {r.ScoreTo}.");
+                Assert.Contains(c.Moved, l => l.Kind == "year" && l.Text.StartsWith("The other "));   // what the rest of the year did
                 Assert.Equal(r.ScoreFrom + r.Marks + AcademySystem.StandingWeight * (Math.Max(0, r.StandingTo) - Math.Max(0, r.StandingFrom)), r.ScoreTo);
                 Assert.NotEmpty(c.Tip); Assert.DoesNotContain("{", c.Tip);
-                foreach (var l in c.Moved.Append(c.Tip)) { Assert.DoesNotContain("—", l); Assert.DoesNotContain("(s)", l); Assert.DoesNotContain("-1", l); }
+                foreach (var l in c.Moved.Select(x => x.Text).Append(c.Tip)) { Assert.DoesNotContain("—", l); Assert.DoesNotContain("(s)", l); Assert.DoesNotContain("-1", l); }
             }
             Assert.Equal(w.Academy.Place, seen[^1].PlaceTo);   // the last card ends where the passing out says
             Assert.Equal(Cat.Tip("last"), seen[^1].Tip);
-            if (scenario == "the_institute") Assert.Contains(seen, c => c.Moved.Any(l => l.Contains("took the banner of")));
+            if (scenario == "the_institute") Assert.Contains(seen, c => c.Moved.Any(l => l.Kind == "banner" && l.Text.Contains("took the banner of")));
         }
     }
 

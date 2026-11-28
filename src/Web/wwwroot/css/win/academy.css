@@ -199,3 +199,37 @@
 .ac-law > span { min-width: 0; }
 .ac-law b.ac-chip { flex: none; margin-left: .1333rem; padding: .2667rem .5333rem; font: 600 .8667rem/1 var(--f-ui); color: var(--ink-dim); text-align: left; white-space: nowrap; background: #090b10; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(201,162,74,.28); border-radius: 1px; }
 @container ac (max-width: 1000px) { .ac-laws { column-gap: 1.6rem; } }
+
+/* a lecture folded to its few lines (docs/ACADEMY.md, "The tutorial"): the fold in reading type, "Read more" a brass link under it */
+.ac .ac-prose p.ac-fold { margin-top: .4rem; font: 400 1.1333rem/1.58 var(--f-prose); color: #ece2c8; }
+.ac .ac-full { margin-top: .2667rem; padding-left: .9333rem; box-shadow: inset 2px 0 0 rgba(201,162,74,.35); }
+.ac .ac-full p { color: #d9cfb6; }
+.ac .ac-more { margin-top: .6667rem; }
+.ac .ac-more.on .icon { transform: rotate(-90deg); }
+
+/* a term's report card (docs/ACADEMY.md, "The report card"): a framed plate, the place large and how it moved, what moved it, one tip */
+.ac-card { margin: .6667rem 1.6rem .4rem 1.8667rem; padding: .8rem 1.0667rem .6667rem; background: linear-gradient(180deg, rgba(33,40,54,.65), rgba(14,17,23,.8)); position: relative;
+  box-shadow: inset 0 0 0 1px rgba(165,129,58,.45), inset 0 1px 0 rgba(255,255,255,.06), 0 2px 8px rgba(0,0,0,.5); }
+.ac-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--brass); }
+.ac-card.up::before { background: var(--good); } .ac-card.down::before { background: var(--bad); }
+.ac-card-hd { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-bottom: .5333rem; border-bottom: 1px solid rgba(201,162,74,.22); }
+.ac-card-tt { display: flex; flex-direction: column; gap: .3333rem; min-width: 0; }
+.ac-card-sub { font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.ac-card-place { display: flex; align-items: baseline; gap: .4rem; flex: none; }
+.ac-card-place > .icon { align-self: center; width: 1.4667rem; height: 1.4667rem; }
+.ac-card-place b { font: 600 1.6rem/1 var(--f-display); letter-spacing: .03em; color: #f5e9c9; font-variant-numeric: lining-nums; }
+.ac-card-place .of { font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); }
+.ac-card-place .mv { display: inline-flex; align-items: center; gap: .2667rem; margin-left: .4rem; font: 600 .9333rem/1 var(--f-ui); }
+.ac-card-place .arrow { width: 0; height: 0; border-left: .3333rem solid transparent; border-right: .3333rem solid transparent; }
+.ac-card-place .arrow.u { border-bottom: .4667rem solid var(--good); } .ac-card-place .arrow.d { border-top: .4667rem solid var(--bad); }
+.ac-card-why { list-style: none; margin: .4rem 0 0; padding: 0; }
+.ac-card-why li { display: flex; align-items: flex-start; gap: .6rem; padding: .3333rem 0; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink); font-variant-numeric: lining-nums; }
+.ac-card-why li .icon { flex: none; width: 1.0667rem; height: 1.0667rem; margin-top: .1rem; }
+.ac-card-tip { display: flex; align-items: flex-start; gap: .6rem; margin-top: .4667rem; padding: .5333rem .6667rem; background: rgba(201,162,74,.08); box-shadow: inset 2px 0 0 var(--brass);
+  font: italic 400 1rem/1.45 var(--f-prose); color: #e3d9c0; }
+.ac-card-tip .icon { flex: none; width: 1.2rem; height: 1.2rem; margin-top: .1rem; }
+.ac-card-tip b { font: 600 .8rem/1.6 var(--f-ui); font-style: normal; letter-spacing: .08em; text-transform: uppercase; color: var(--brass-ink); margin-right: .3333rem; }
+.ac-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr)); gap: 0; }
+.ac-cards .ac-card { margin-right: .8rem; }
+/* on the passing-out card the last term's report stands inside the box */
+.box .ac-card.last { margin: .4rem 0 .8rem; }
