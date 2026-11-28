@@ -444,3 +444,95 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
    above the screen's foot at every text size */
 .fr-plate-pic { max-height: clamp(8rem, 26vh, 16rem); }
 @media (max-height: 820px) { .fr-plate .sc-name { margin-top: .4rem; } }
+
+/* ==== The boxes the title opens (and the game menu): the settings and the handbook (SettingsBox.razor, Primer.razor) ====
+   The settings: each option one 58px row (docs/VISUAL_SYSTEM.md 4.7), its glyph, its name, an "i" with what it does, its plates at the
+   right; the keys as rows of key caps sized to their glyph and centred, as in the event tooltip's footer. The glossary: a codex, the
+   words as rows at the left by kind (each with its meaning in its tooltip), the one picked read in full at the right. */
+.box.settings .set-row { display: grid; grid-template-columns: 1.6rem auto auto minmax(0, 1fr); align-items: center; column-gap: .6667rem; min-height: 3.8667rem; padding: .4rem 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.box.settings .set-row > .icon { width: 1.3333rem; height: 1.3333rem; }
+.box.settings .set-row > b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; }
+.box.settings .set-row > .set-pick { justify-self: end; }
+.box.settings .set-pick .opt.on { color: var(--brass-hi); background: #0b0e14; box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass); border-color: #000; }
+.box.settings .set-sw { min-width: 5.3333rem; justify-content: flex-start; gap: .5333rem; }
+.box.settings .set-sw > i { width: .6rem; height: .6rem; border-radius: 50%; flex: none; background: #2a2f3a; box-shadow: 0 0 0 1px #000, inset 0 1px 1px rgba(255,255,255,.1); }
+.box.settings .set-sw.on > i { background: radial-gradient(circle at 40% 35%, #fff0bc, #d6ae55 60%, #8f6a26); box-shadow: 0 0 0 1px #000, 0 0 6px rgba(246,226,160,.55); }
+.box.settings .set-none { font: italic 400 .9333rem/1 var(--f-ui); color: var(--ink-mute); }
+.box.settings .set-keys-head { margin-top: 1.0667rem; }
+.box.settings .set-keys-head h3 { margin: 0; font: 600 .9rem/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
+.box.settings .set-keys { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 0 1.0667rem; margin-top: .4rem; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); }
+.box.settings .set-keys > span { min-height: 2.4rem; display: flex; align-items: center; border-bottom: 1px solid rgba(255,255,255,.05); }
+.box.settings .set-caps { gap: .2667rem; }
+.box.settings .set-caps i { font: italic 400 .8667rem/1 var(--f-ui); color: var(--ink-mute); margin: 0 .1333rem; }
+.box.settings .set-keys kbd, .box.handbook kbd { display: inline-grid; place-items: center; min-width: 1.6rem; height: 1.6rem; padding: 0 .4rem; box-sizing: border-box; font: 600 .8rem/1 var(--f-ui); color: var(--brass-ink); text-align: center;
+  background: linear-gradient(#1b2130, #0e1118); border: 1px solid rgba(201,162,74,.5); border-radius: 2px; box-shadow: 0 1px 0 #000, inset 0 1px 0 rgba(255,255,255,.06); white-space: nowrap; }
+
+.box.handbook .hb-find { position: relative; display: flex; align-items: center; gap: .8rem; margin-bottom: .8rem; }
+.box.handbook .hb-find > .icon { position: absolute; left: .7rem; width: 1rem; height: 1rem; pointer-events: none; }
+.box.handbook .hb-find input { height: 2.1333rem; padding: 0 .8rem 0 2.2rem; font: 400 .9333rem/1 var(--f-ui); color: var(--ink); background: #07090e; border: 0; box-shadow: var(--sh-inset), 0 0 0 1px rgba(201,162,74,.25); border-radius: 2px; }
+.box.handbook .hb-find input:focus { outline: 0; box-shadow: var(--sh-inset), 0 0 0 1px var(--brass); }
+.box.handbook .hb-codex { display: grid; grid-template-columns: 15.4667rem minmax(0, 1fr); gap: 0; height: min(62vh, 34rem); border-top: 1px solid rgba(201,162,74,.3); }
+.box.handbook .hb-list { overflow-y: auto; max-height: none; padding: .2667rem .4rem .8rem 0; box-shadow: inset -1px 0 0 rgba(201,162,74,.2); scrollbar-width: thin; scrollbar-color: #c9a24a #05070a; }
+.box.handbook .hb-list h4 { margin: .8rem 0 .2667rem; padding: 0 0 .2667rem .4rem; }
+.box.handbook .hb-term { position: relative; display: flex; align-items: center; width: 100%; min-height: 2.1333rem; padding: 0 .6667rem; margin: 0; font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); text-align: left; background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.04); cursor: pointer; }
+.box.handbook .hb-term:hover { color: var(--ink); background: linear-gradient(90deg, rgba(201,162,74,.10), rgba(255,255,255,0)); }
+.box.handbook .hb-term.on { color: var(--brass-hi); font-weight: 600; background: linear-gradient(90deg, rgba(201,162,74,.16), rgba(201,162,74,.02)); }
+.box.handbook .hb-term:hover::before, .box.handbook .hb-term.on::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.box.handbook .hb-def { padding: 1.2rem 0 1rem 1.6rem; overflow-y: auto; }
+.box.handbook .hb-def-t { margin: .4rem 0 .6rem; font: 600 1.4667rem/1.15 var(--f-display); letter-spacing: .03em; color: #f5e9c9; text-transform: none; }
+.box.handbook .hb-def-p { margin: 0 0 1rem; max-width: 34em; font: 400 1.1333rem/1.55 var(--f-prose); color: #e3d9c0; }
+.box.handbook .hb-go { gap: .4rem; }
+@media (max-width: 760px) { .box.handbook .hb-codex { grid-template-columns: minmax(0, 1fr); height: auto; } .box.handbook .hb-list { max-height: 40vh; } }
+
+/* ==== The workshop's tab row and its map (Workshop.razor) ==== */
+/* "Start from" is one plate at the right of the tab row that opens a framed menu (the menu is always in the page, shown when open) */
+.ws-tabrow { position: relative; flex: none; }
+.ws-start { position: absolute; right: 1.4667rem; bottom: .3333rem; z-index: 8; }
+.ws-start-btn { gap: .4667rem; }
+.ws-start-btn > .icon:last-child { width: .7333rem; height: .7333rem; transform: rotate(90deg); transition: transform .12s; }
+.ws-start.open .ws-start-btn > .icon:last-child { transform: rotate(-90deg); }
+.ws-start.open .ws-start-btn { box-shadow: var(--sh-plate), 0 0 0 1px var(--brass-mid); }
+.ws-start .ws-start-menu { display: none; left: auto; right: -.4rem; min-width: 16rem; }
+.ws-start.open .ws-start-menu { display: block; }
+.ws-start-menu .ws-start-l { display: block; padding: .4rem .5333rem .2667rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
+.ws-start-menu .ws-start-div { display: block; height: 1px; margin: .3333rem .4rem; background: rgba(201,162,74,.3); }
+.ws-start-menu .chip, .ws-start-menu label.chip { display: flex; align-items: center; gap: .6rem; width: 100%; height: 2.2667rem; min-height: 0; margin: 0; padding: 0 .5333rem; font: 400 .9333rem/1 var(--f-ui); color: var(--ink);
+  background: none; border: 0; box-shadow: none; border-radius: 0; text-align: left; cursor: pointer; white-space: nowrap; }
+.ws-start-menu .chip:hover { background: linear-gradient(90deg, rgba(201,162,74,.10), transparent); box-shadow: inset 2px 0 0 var(--brass); }
+.ws-start-menu .chip .icon { width: 1rem; height: 1rem; flex: none; }
+.ws-start-menu label.chip input[type=file] { display: none; }
+@container fr (max-width: 900px) { .ws-tabs .ui-tab { padding: 0 .6rem; } }
+
+/* the map sized to the body's visible height, the account of the world under the pointer beside it */
+.workshop[data-ws-tab="holdings"] .ws-body { container: wsb / size; }
+.ws-map-wrap { grid-template-columns: max-content minmax(15rem, 1fr) !important; align-items: start; }
+.ws-mapbox { position: relative; width: min(calc(100cqw - 22rem), calc((100cqh - 8.4rem) * 1.6842)); min-width: 22rem; aspect-ratio: 640 / 380; }
+.ws-mapbox .ws-map { position: absolute; inset: 0; width: 100%; height: 100%; }
+@container fr (max-width: 760px) { .ws-map-wrap { grid-template-columns: minmax(0, 1fr) !important; } .ws-mapbox { width: 100%; } }
+.ws-site-card { padding-top: .2rem; }
+.ws-site-card .ws-site-facts { grid-template-columns: minmax(0, 1fr) !important; }
+.ws-site-card .kv { grid-template-columns: 8rem minmax(0, 1fr); }
+
+/* the map's parts (docs/VISUAL_SYSTEM.md 7.2, 7.3): held cells in their holder's toned colour, rising toward their border, the holder's
+   line inside it, your own in gold; the Reach's pale wash and ivory edge; the nations beyond hatched; lanes as hairlines, yours in gold;
+   stars lit by class; names on a soft backing with the holder's underline */
+.ws-map .ws-cell { fill-opacity: .16; }
+.ws-map .ws-cell.mine { fill-opacity: .3; }
+.ws-map .ws-seam { fill: none; stroke-width: 2.8px; stroke-opacity: .62; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.ws-map .ws-seam.mine { stroke-width: 4px; stroke-opacity: .95; }
+.ws-map .ws-cellline { fill: none; stroke: rgba(227,211,164,.05); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.ws-map .ws-reach-edge circle { fill: #000; }
+.ws-map .ws-lane { stroke: rgba(168,188,222,.28); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.ws-map .ws-lane.mine { stroke: rgba(240,198,97,.6); stroke-width: 1.3px; }
+.ws-map .ws-site .dot { stroke: rgba(0,0,0,.55); stroke-width: .8px; vector-effect: non-scaling-stroke; }
+.ws-map .ws-site .halo { transition: opacity .12s; }
+.ws-map .ws-site:hover .halo, .ws-map .ws-site.here .halo { opacity: 1; transform-box: fill-box; transform-origin: center; transform: scale(1.35); }
+.ws-map .ws-site:hover .dot { stroke: #fff; stroke-width: 1.2px; }
+.ws-map .ws-site .ring { fill: none; stroke: var(--own-line, #f0c661); stroke-width: 1.6px; vector-effect: non-scaling-stroke; filter: drop-shadow(0 0 2px rgba(240,198,97,.6)); }
+.ws-map .ws-site.no .dot, .ws-map .ws-site.no .halo { opacity: .38; }
+.ws-map .ws-site.beyond .dot { stroke-dasharray: none; }
+.ws-labels { position: absolute; inset: 0; pointer-events: none; }
+.ws-lbl { position: absolute; transform: translate(-50%, calc(-100% - .7rem)); padding: .1333rem .4rem .1333rem; font: 600 .8667rem/1.1 var(--f-ui); color: #ebe6d8; white-space: nowrap;
+  background: rgba(4,6,11,.62); box-shadow: 0 0 6px 2px rgba(4,6,11,.55), inset 0 -2px 0 var(--hc, transparent); border-radius: 2px; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+.ws-lbl.mine { color: #f3d68e; }
+.ws-lbl.here { z-index: 2; color: #fff; }

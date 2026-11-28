@@ -154,14 +154,15 @@
     }
 
     <div class="suit begin">
-        <Section Title="A match to make" Info="Your kin court for themselves and come to you for your blessing. You can also arrange a match for one of them, and they will have a view of it. Your own courtship is yours to press. The figures in the table run from 0 to 100, as they would stand on the first day of the courtship.">
+        <Section Title="A match to make" Class="dy-match" Info="@($"Your kin court for themselves and come to you for your blessing. You can also arrange a match for one of them, and they will have a view of it. Your own courtship is yours to press: choose for whom, then whom. The figures in the table run from 0 to 100, as they would stand on the first day of the courtship. Favour is what the one courted would feel; Family is how near their family is to saying yes, and they agree at {CourtshipSystem.AcceptAt}. Wish is what your own relative thinks of the match: under {CourtshipSystem.UnwillingWish} they are unwilling. Both move in the years of the courtship.")">
             <Right><span>@(full ? "As many in hand as you can manage" : free.Count == 0 ? "Nobody free to be matched" : $"{free.Count} free")</span></Right>
             <ChildContent>
-            <div class="suit-head dy-note">@(full ? "You have as many matches in hand as you can manage." : free.Count == 0 ? "Nobody of the house is free to be matched." : "Pay court, or arrange a match: choose for whom, then whom.")</div>
+            @if (full || free.Count == 0) { <div class="suit-head dy-note">@(full ? "You have as many matches in hand as you can manage." : "Nobody of the house is free to be matched.")</div> }
             @if (!full && suitor != null)
             {
                 var tooYoung = w.LivingCharacters().Where(k => k.HouseId == house.Id && k.Age < CourtshipSystem.BetrothalAge && DynastySystem.Spouse(w, k) == null).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
-                <div class="you-acts suit-acts dy-for-row"><span class="you-lbl">For</span>
+                @* for whom: the table's first header row, a ladder of plates, one a relative free to be matched (docs/VISUAL_SYSTEM.md 4.11) *@
+                <div class="suit-acts dy-for-row" title="For whom: choose one of the house, then whom in the table"><span class="dy-for-l"><Icon Name="marriage" Tone="brass" Size="15" />For</span>
                     <span class="ui-seg dy-seg dy-for">
                     @foreach (var k in free.Take(8)) { string kid = k.Id; <button class="@(k.Id == suitor.Id ? "on" : "")" data-suitor="@kid" title="@($"{k.Name}, {k.Age}")" @onclick="() => { _suitor = kid; _more = false; }">@(k.Id == pid ? "Yourself" : First(k.Name)) · @k.Age</button> }
                     @foreach (var k in tooYoung.Take(4)) { <button disabled title="@($"A child can be promised from {CourtshipSystem.BetrothalAge}: {First(k.Name)} is {k.Age}. A promise is kept when both are of age.")">@First(k.Name) · @k.Age</button> }
@@ -181,15 +182,17 @@
                 @if (prospects.Count == 0) { <EmptyState Icon="marriage" Text="@($"There is no one {suitor.Name} could be matched with now.")" /> }
                 else
                 {
-                    bool wishCol = suitor.Id != pid && suitor.Age >= 16;
-                    <p class="dy-note" data-prospect-legend><b>Favour</b> is what the one courted would feel; <b>Family</b> is how near their family is to saying yes, and they agree at @CourtshipSystem.AcceptAt. @(wishCol ? $"{First(suitor.Name)}'s wish is what your own relative thinks of the match: under {CourtshipSystem.UnwillingWish} they are unwilling. " : "")Both move in the years of the courtship.</p>
+                    bool wishCol = suitor.Id != pid && suitor.Age >= 16; string wishWho = First(suitor.Name) + "'s wish";
+                    string legend = "Favour is what the one courted would feel; Family is how near their family is to saying yes, and they agree at " + CourtshipSystem.AcceptAt + ". " + (wishCol ? wishWho + " is what your own relative thinks of the match: under " + CourtshipSystem.UnwillingWish + " they are unwilling. " : "") + "Both move in the years of the courtship.";
+                    string wishTip = "What your own kin would think of them: " + wishWho + ". Under " + CourtshipSystem.UnwillingWish + " they are unwilling. It moves in the years of the courtship.";
+                    string familyTip = "How near their family is to saying yes on the first day, from 0 to 100: they agree at " + CourtshipSystem.AcceptAt + ". It moves in the years of the courtship. Sort by it.";
                     var shownPr = Sorted(w, suitor, prospects).Take(_more ? 24 : 6).ToList(); var picked = shownPr.Select(x => x.person).FirstOrDefault(x => x.Id == _pick) ?? shownPr.FirstOrDefault().person;
                     <div class="ui-table-wrap dy-table">
                     <table class="ui-table prospects">
-                        <thead><tr><th class="sortable @(_sort == "" ? "here" : "")" title="Likeliest: the likeliest match first, favour and family together, those who can bear heirs ahead. Click a row to pick it; what can be done is at the table's foot." @onclick='() => _sort = ""'>Who</th><th class="sortable @(_sort == "house" ? "here" : "")" title="Sort by the standing of their house" @onclick='() => _sort = "house"'>House</th>@if (wishCol) { <th title="What your own kin would think of them">Wish</th> }
+                        <thead data-prospect-legend title="@legend"><tr><th class="sortable @(_sort == "" ? "here" : "")" title="Likeliest: the likeliest match first, favour and family together, those who can bear heirs ahead. Click a row to pick it; what can be done is at the table's foot." @onclick='() => _sort = ""'>Who</th><th class="sortable @(_sort == "house" ? "here" : "")" title="Sort by the standing of their house" @onclick='() => _sort = "house"'>House</th>@if (wishCol) { <th title="@wishTip">Wish</th> }
                             <th class="sortable dy-best @(_sort == "skill" ? "here" : "")" title="What they are best at, and how good (skills run from 0 to 10). Sort by it." @onclick='() => _sort = "skill"'>Best</th>
                             <th class="sortable @(_sort == "dowry" ? "here" : "")" title="The customary dowry of a match with their house, in credits: it follows the house's rank and wealth. It is paid by the bride's house, so it comes to you when one of yours marries a daughter of theirs and is yours to pay when a daughter of yours marries into theirs. The terms can ask for none, or for a rich one of twice this. Sort by it." @onclick='() => _sort = "dowry"'>Dowry</th>
-                            <th class="sortable @(_sort == "favour" ? "here" : "")" title="What they would feel on the first day. Sort by it." @onclick='() => _sort = "favour"'>Favour</th><th class="sortable @(_sort == "family" ? "here" : "")" title="What their family would think on the first day. Sort by it." @onclick='() => _sort = "family"'>Family</th></tr></thead>
+                            <th class="sortable @(_sort == "favour" ? "here" : "")" title="What the one courted would feel on the first day, from 0 to 100. It moves in the years of the courtship. Sort by it." @onclick='() => _sort = "favour"'>Favour</th><th class="sortable @(_sort == "family" ? "here" : "")" title="@familyTip" @onclick='() => _sort = "family"'>Family</th></tr></thead>
                         <tbody>
                             @foreach (var pr in shownPr)
                             {
