@@ -32,7 +32,7 @@
     },
     {
       "id": "one_of_yours_is_elected",
-      "title": "One Of Yours Is Elected",
+      "title": "One of Yours Is Elected",
       "body": "{kin.name} stood, on {kin.name}'s own decision, and the houses have chosen {kin.name}. For five years one of {self.name}'s own will sit as a magistrate of the Reach. {kin.name} did the asking, and {kin.name} won it.",
       "choices": {
         "be_seen_to_be_proud": "Be seen to be proud.",

@@ -36,7 +36,7 @@
 .you-head .ui-lede-head b { font-style: normal; font-weight: 700; color: var(--ink); }
 /* the traits and the ambition as tiles: a recessed tile in a dull brass ring with a band by group; the ambition gold, ticked when won */
 .you-traits { display: flex; gap: .4rem; margin-top: .9333rem; align-items: flex-start; }
-.you-trait { width: 4.2667rem; flex: none; display: flex; flex-direction: column; align-items: center; gap: .4rem; cursor: help; }
+.you-trait { width: auto; min-width: 4.2667rem; max-width: 6rem; flex: none; display: flex; flex-direction: column; align-items: center; gap: .4rem; cursor: help; }
 .you-tile { width: 2.9333rem; height: 2.9333rem; position: relative; display: grid; place-items: center;
   background: radial-gradient(circle at 50% 35%, #263045, #0b0e15 80%); box-shadow: 0 0 0 1px #000, 0 0 0 2px #8a6a2a, 0 0 0 3px #000, 0 3px 6px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.1); }
 .you-tile .icon { width: 1.8rem; height: 1.8rem; }
@@ -168,7 +168,7 @@
   .you-kin { width: 6.7333rem; grid-template-columns: 3.0667rem 3.0667rem; column-gap: .6rem; left: calc(100% + 1rem); }
   .you-k .portrait { width: 3.0667rem !important; height: 3.7333rem !important; }
   .you-traits { gap: .2667rem; margin-top: .6667rem; }
-  .you-trait { width: auto; min-width: 3.4667rem; max-width: 4.6667rem; }
+  .you-trait { width: auto; min-width: 3.4667rem; max-width: 5.6rem; }
   .you-trait.amb { max-width: 6rem; } .you-trait.amb > span:last-child { white-space: normal; line-height: 1.15; }
   .you-head .ui-kick { letter-spacing: .06em; }
   .you-tile { width: 2.5333rem; height: 2.5333rem; } .you-tile .icon { width: 1.5333rem; height: 1.5333rem; }

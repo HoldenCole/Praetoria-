@@ -189,7 +189,7 @@
                             <div class="ww-open">
                                 @if (sys != null && sys.Description.Length > 0) { <p class="ww-desc">@sys.Description</p> }
                                 <div class="ww-facts">
-                                    <span class="k">Held by</span><span>@(owner != null ? owner.Name : "nobody: it is unclaimed")@(n.Culture.Length > 0 ? $" · {n.Culture} culture" : "")</span>
+                                    <span class="k">Held by</span><span>@(owner != null ? owner.Name : "nobody: it is unclaimed")@(n.Culture.Length > 0 ? $" · {CharacterScreen.Cap(n.Culture)} culture" : "")</span>
                                     @if (n.GovernorName != null) { <span class="k">Governor</span><span>@n.GovernorName</span> }
                                     @if (planet != null) { <span class="k">Industry</span><span>@Labels.Sentence(c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization)</span> }
                                     @if (n.Population > 0) { <span class="k">Citizens</span><span>@(planet != null ? Census.Say(Census.Citizens(w, planet)) : n.Population.ToString()) · loyalty @(100 - n.Unrest)@(n.Rebellion > 0 ? $" · rebellion {n.Rebellion}" : "")</span> }

@@ -7,6 +7,10 @@ public static class Counted
 {
     /// <summary>A figure as it is written for the reader, with a true minus sign when it is below nothing: "−40", "0", "15".</summary>
     public static string Figure(long n) => n < 0 ? "−" + (-n) : n.ToString();
+    /// <summary>A name lowered for the middle of a sentence: "The Citizenship of the Reach" reads "the citizenship of the Reach",
+    /// "Citizenship for the whole Reach" reads "citizenship for the whole Reach". The setting's proper nouns keep their capital.</summary>
+    public static string Lower(string name) => string.Join(' ', name.Split(' ').Select(w => Proper.Contains(w.TrimEnd(',', '.', ':', ';', ')')) ? w : w.ToLowerInvariant()));
+    private static readonly HashSet<string> Proper = new(StringComparer.Ordinal) { "Reach", "Reach's", "Senate", "Senate's", "Republic", "Republic's", "Imperium", "Imperium's" };
     public static string Of(long n, string one) => n == 1 ? $"1 {one}" : $"{n} {one}s";
     /// <summary>With a word before the thing: "3 more years", "1 office hull".</summary>
     public static string Of(long n, string before, string one) => n == 1 ? $"1 {before} {one}" : $"{n} {before} {one}s";

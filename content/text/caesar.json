@@ -12,7 +12,7 @@
     },
     {
       "id": "a_kinsmans_triumph",
-      "title": "A Triumph In The House",
+      "title": "A Triumph in the House",
       "body": "The Senate has voted a triumph to {kin.name}. It is {kin.name}'s victories it honours and {kin.name}'s name the crowd is shouting, and the crews who march behind know exactly whom they followed. The house is raised by it. The house's head is not the one being cheered.",
       "choices": {
         "walk_behind_them": "Walk in the procession, behind.",
@@ -42,7 +42,7 @@
     },
     {
       "id": "a_kinsman_recalled",
-      "title": "They Have Recalled One Of Yours",
+      "title": "They Have Recalled One of Yours",
       "body": "The Senate has ordered {kin.name} to lay down the command and come home. {kin.name} has sent the order on to the head of the house, with a short note that asks nothing and means a great deal. The crews are {kin.name}'s. The fleets are the house's. What the house does next is {self.name}'s to say.",
       "choices": {
         "counsel_obedience": "Counsel obedience.",
@@ -62,7 +62,7 @@
     },
     {
       "id": "a_general_marches",
-      "title": "A General Marches On The Capital",
+      "title": "A General Marches on the Capital",
       "body": "A general has crossed the line with the fleets that follow him and is on the lanes to the capital. The Senate has named a house to carry its war. Every house in the Reach is being asked the same question this week, and silence is also an answer: for the general, for the Senate, or aside. It will be remembered either way.",
       "choices": {
         "call_the_house_together": "Call the house together.",
@@ -132,7 +132,7 @@
     },
     {
       "id": "a_name_on_every_lip",
-      "title": "A Name On Every Lip",
+      "title": "A Name on Every Lip",
       "body": "{general.name} of {general.house} has won too often for it to be luck, has been voted a triumph, and is liked: by the crews, who would follow, and by people who have never met a general in their lives. The Reach has many good commanders. It very rarely has one of these. If the Republic were ever in real trouble, it is {general.name} they would send for, or {general.name} they would have to stop.",
       "choices": {
         "make_a_friend_of_them": "Make a friend of them.",
@@ -142,7 +142,7 @@
     },
     {
       "id": "the_hour",
-      "title": "They Are Saying It Of Your House",
+      "title": "They Are Saying It of Your House",
       "body": "The Republic is in trouble and everyone knows it. {self.house} has a general of the first rank with a triumph behind them, crews who would follow anywhere, and a name the squares like the sound of. People who would not have said it a year ago are saying it now, and they are saying it about this house. Nothing has been done. Everything that would be needed is in place.",
       "choices": {
         "let_it_be_said": "Let it be said.",

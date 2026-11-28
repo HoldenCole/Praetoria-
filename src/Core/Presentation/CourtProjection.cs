@@ -874,14 +874,14 @@ public static class CourtProjection
             }
             says.AddRange(LocalLawSystem.Says(w, cat, house.Id, e.Id));   // the law of single worlds, by the share of the house's worlds that keep it
             var pet = w.Motions.FirstOrDefault(m => m.Open && SenateSystem.PetitionEstate(m) == e.Id);
-            string? petition = pet != null ? $"petitioning the Senate: that {cat.Law(pet.LawId)?.Name.ToLowerInvariant()} be {cat.Law(pet.LawId)?.Option(pet.LawOption)?.Name.ToLowerInvariant()}" : null;
+            string? petition = pet != null ? $"petitioning the Senate: that {Counted.Lower(cat.Law(pet.LawId)?.Name ?? pet.LawId)} be {Counted.Lower(cat.Law(pet.LawId)?.Option(pet.LawOption)?.Name ?? pet.LawOption)}" : null;
             int hostileIn = w.Houses.Values.Count(h => w.OfTheReach(h.Id) && PolicySystem.Approval(w, h.Id, e.Id) <= PolicySystem.Hostile);   // as SenateSystem.Petition counts them: the houses of the Reach
             // what would warm them most: the single option, among the laws in the player's gift, that raises their opinion furthest over what is in force
             string? wants = null; int bestGain = 0;
             foreach (var l in cat.Laws.Where(l => !l.Reach && PolicySystem.HoldsScope(w, house.Id, l.Scope)))
             {
                 var cur = PolicySystem.Option(w, cat, house.Id, l.Id); if (cur == null) continue;
-                foreach (var o in l.Options) { int gain = o.Opinions.GetValueOrDefault(e.Id) - cur.Opinions.GetValueOrDefault(e.Id); if (gain > bestGain) { bestGain = gain; wants = $"{l.Name.ToLowerInvariant()} → {o.Name.ToLowerInvariant()} (+{gain}, {l.Cost} influence{(PolicySystem.OnCooldown(w, house.Id, l.Id) ? ", on cooldown" : "")})"; } }
+                foreach (var o in l.Options) { int gain = o.Opinions.GetValueOrDefault(e.Id) - cur.Opinions.GetValueOrDefault(e.Id); if (gain > bestGain) { bestGain = gain; wants = $"{Counted.Lower(l.Name)} → {Counted.Lower(o.Name)} (+{gain}, {l.Cost} influence{(PolicySystem.OnCooldown(w, house.Id, l.Id) ? ", on cooldown" : "")})"; } }
             }
             return new EstateCard(e.Id, e.Name, e.Description, a, target, mood, fx, says.Count == 0 ? "no law moves them" : string.Join(" · ", says), petition, hostileIn, wants);
         }).ToList();

@@ -46,7 +46,7 @@
                 {
                     <button class="ol-row" data-ol-fleet="@f.Id" title="@($"Pick this fleet: the map goes to it, and the next world you click shows the way there\n{Counted.Hulls(f.Strength)} · {(f.Moving ? "bound for " + f.Destination : "at " + f.Where)}")" @onclick='() => OnGo.InvokeAsync("fleet:" + f.Id)'>
                         <svg class="tok" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20 L12 3 L21 20 L12 15 Z" fill="@m.HouseAccent" stroke="#000" stroke-width="1.4" stroke-linejoin="round" /><path d="M12 3 L12 15 L3 20 Z" fill="#fff" opacity=".22" /></svg>
-                        <span class="nm">@f.Name</span><span class="m">@(f.Moving ? "bound for " + f.Destination : Counted.Hulls(f.Strength))</span>
+                        @{ string fm = f.Moving ? "bound for " + f.Destination : Counted.Hulls(f.Strength); }<span class="nm">@f.Name</span>@if (Room(f.Name, fm)) { <span class="m">@fm</span> }
                     </button>
                 }
             }
@@ -63,7 +63,7 @@
                     var hold = w.Holding(h.Id); string cls = hold != null ? w.Galaxy?.System(hold.SystemId)?.PlanetClass ?? "terran" : "terran";
                     <button class="ol-row" title="@($"{h.Name}: {Labels.Sentence(h.SpecName)}{(h.Unrest >= 50 ? ", restless" : "")}{(h.Besieged ? ", besieged" : "")}. Click and the map goes to it.")" @onclick='() => OnGo.InvokeAsync("galaxy:" + (hold?.SystemId ?? ""))'>
                         <Globe Class="@cls" Size="18" Ringed="false" />
-                        <span class="nm">@h.Name</span><span class="m @(h.Besieged || h.Unrest >= 50 ? "warn" : "")">@(h.Besieged ? "Besieged" : h.Unrest >= 50 ? "Restless" : Labels.Sentence(h.SpecName))</span>
+                        @{ bool hw = h.Besieged || h.Unrest >= 50; string hm = h.Besieged ? "Besieged" : h.Unrest >= 50 ? "Restless" : Labels.Sentence(h.SpecName); }<span class="nm">@h.Name</span>@if (hw || Room(h.Name, hm)) { <span class="m @(hw ? "warn" : "")">@hm</span> }
                     </button>
                 }
                 @foreach (var (uh, ui) in underOthers)
@@ -71,7 +71,7 @@
                     string usys = uh.SystemId; string ucls = w.Galaxy?.System(usys)?.PlanetClass ?? "terran";
                     <button class="ol-row" data-ol-province title="@($"A province you hold under another house, for life: {uh.Provinces[ui].Name}, on {uh.Name}, under {w.House(uh.OwnerId)?.Name}")" @onclick='() => OnGo.InvokeAsync("galaxy:" + usys)'>
                         <Globe Class="@ucls" Size="18" Ringed="false" />
-                        <span class="nm">@uh.Provinces[ui].Name</span><span class="m">Province</span>
+                        <span class="nm">@uh.Provinces[ui].Name</span>@if (Room(uh.Provinces[ui].Name, "Province")) { <span class="m">Province</span> }
                     </button>
                 }
             }
@@ -108,4 +108,8 @@
             <i class="chev"></i><Icon Name="@icon" Tone="ivory" Size="16" /><span class="t">@title</span><span class="n @(warn ? "warn" : "")">@count</span>
         </button>
     };
+    /// <summary>Whether a row has room for its second word (a world's kind, a fleet's hulls) beside its name: the name is what the row is
+    /// for, so a long one keeps the room and the kind goes to the tooltip, rather than both ending in an ellipsis. About 27 letters
+    /// fit the outliner's width at the normal text size.</summary>
+    private static bool Room(string name, string second) => name.Length + second.Length <= 27;
 }

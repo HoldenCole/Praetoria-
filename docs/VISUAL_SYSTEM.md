@@ -806,3 +806,24 @@ at 125% and 150% scaling, and at every text-size setting:
   finished look.
 - Two judges disagreed on the End Year wreath; the laurel stays on the date plate only. The owner may want it back.
 - The Office is the owner's decision (section 9).
+
+## 15. What still differs from the spec
+The rebuild is merged and every window follows the parts above: the shell, the shared window parts (section 4), the map, the
+Office as a painted room, and every tab of You, Dynasty, House, Houses, Exchange, Laws, Senate, Military, Worlds and Chronicle.
+All 34 scripts in `tools/browser` drive the new windows. The last critics, at 1600 by 1000 and 1366 by 768 in three starts and
+after seven years of play, still saw these, and they are the next to mend:
+- **Forms left.** The creator's character section (an input, selects and three walls of text plates where trait tiles belong),
+  the Workshop's person, house and family tabs (a label column and controls; the treasury's eight steppers), the Upbringing of
+  grown kin (two selects a row), and the Senate's pledge (a select under prose).
+- **The Academy.** This term has one short column and empty space beside it; The Reach is a list of labels with boxed chips;
+  So far is plain lines; the plinth reads three zeros at the start.
+- **The event's outcome.** "What came of it" is a plain box with no painting, and what changed is a line of text rather than the
+  chips the choice showed.
+- **The map.** Regions mode tints nothing and names no region on the map; at the far zoom a nation's name can sit on a star or
+  cross the Reach's edge; in the world view the province plates can overlap one another and the system's name; the End Year
+  medallion covers about a third of the minimap, nearer half at 1366 by 768.
+- **Long tabs.** Worlds scrolls about five screens after seven years, the House Ledger two, a house's page on Houses two; the
+  Senate's motions are tall rows whose names can end in an ellipsis.
+- **Caps.** Some section titles and kickers of more than four words are set in capitals ("The dead, and what they left",
+  "Military · Navy of House Castellan"); the spec keeps capitals to four words.
+- **Sound.** There is none in the game; the settings say so.

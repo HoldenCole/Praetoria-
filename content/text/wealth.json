@@ -2,7 +2,7 @@
   "texts": [
     {
       "id": "a_debt_in_the_family",
-      "title": "A Debt In The Family",
+      "title": "A Debt in the Family",
       "body": "{debtor.name} owes money. Not a ruinous sum yet, but the kind that grows, to the kind of people who are patient only while it does. {debtor.name} has not asked {self.name} for anything. The steward thought {self.name} ought to know all the same.",
       "choices": {
         "have_it_out_with_them": "Have it out with them.",
@@ -12,7 +12,7 @@
     },
     {
       "id": "out_of_their_own_pocket",
-      "title": "Out Of Their Own Pocket",
+      "title": "Out of Their Own Pocket",
       "body": "The treasury was short, and then it was a little less short, and nobody had been asked for anything. It turns out {giver.name} put in money of their own, quietly, through the steward, and asked that nothing be made of it.",
       "choices": {
         "thank_them_before_the_family": "Thank them before the family.",
@@ -42,7 +42,7 @@
     },
     {
       "id": "sold_out_of_the_family",
-      "title": "Sold Out Of The Family",
+      "title": "Sold Out of the Family",
       "body": "It had been in the family longer than anyone could say, and now it is in a dealer's window with a price on it. The sale was {self.name}'s to make. The family is taking it as though something had died.",
       "choices": {
         "it_was_only_a_thing": "It was only a thing.",
@@ -102,7 +102,7 @@
     },
     {
       "id": "plate_for_the_wedding",
-      "title": "Plate For The Wedding",
+      "title": "Plate for the Wedding",
       "body": "{giver.name} has sent plate for the wedding: good work, with both houses' marks on it. It belongs to the one who married, not to the house. A gift like this asks for an answer, and the answer will be weighed.",
       "choices": {
         "write_and_thank_them": "Write and thank them.",
@@ -112,7 +112,7 @@
     },
     {
       "id": "one_of_yours_buys_shares",
-      "title": "Shares Of Their Own",
+      "title": "Shares of Their Own",
       "body": "{kin.name} has bought shares on the Exchange with their own money, in their own name. They are not the house's: what they pay goes into {kin.name}'s purse, and they give the house no say in the company. {kin.name} has told you because they would rather you heard it from them.",
       "choices": {
         "it_is_their_money": "It is their money.",
@@ -122,7 +122,7 @@
     },
     {
       "id": "they_ask_for_their_standard",
-      "title": "They Ask For Their Standard",
+      "title": "They Ask for Their Standard",
       "body": "{asker.name} has written, civilly, about the standard one of yours took from their house. The war is over. They would like it home, and they have not said what they would give for it. It is the holder's own, but nobody in either house doubts that the answer is yours.",
       "choices": {
         "send_it_home": "Send it home, and ask nothing.",
@@ -132,7 +132,7 @@
     },
     {
       "id": "one_of_yours_has_a_thing_made",
-      "title": "Made In Their Own Name",
+      "title": "Made in Their Own Name",
       "body": "{kin.name} has had something made for the house with their own money: saved, ordered and paid for without a word to you until it was done. It bears the house's name. It is {kin.name}'s.",
       "choices": {
         "it_does_the_house_credit": "It does the house credit.",

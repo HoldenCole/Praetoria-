@@ -130,7 +130,7 @@ details > summary:has(.icon)::before { content: none; display: none; }
 /* an empty post: the post's glyph centred at 55% of the plate's width, half strength in the ivory ramp, read as a placeholder face */
 .portrait.pf-empty { display: inline-grid !important; place-items: center; }
 .portrait.pf-empty > .icon { width: 55%; height: auto; aspect-ratio: 1; opacity: .5; position: relative; z-index: 3; margin: 0; align-self: center; justify-self: center; }
-.portrait img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; object-position: 50% 22%; filter: contrast(1.04) saturate(.92) sepia(.06); } .portrait.dead img { filter: grayscale(1) contrast(1.05) brightness(.92); }
+.portrait img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; object-position: 50% 22%; filter: contrast(1.04) saturate(.92) sepia(.06); color: transparent; font-size: 0; }   /* never the alt text: a face not yet drawn is the plate's backdrop */ .portrait.dead img { filter: grayscale(1) contrast(1.05) brightness(.92); }
 .sigil { flex: none; display: inline-block; vertical-align: middle; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
 /* ===== shell ===== */
 .gs-shell { display: grid; grid-template-columns: 5.067rem minmax(0, 1fr) 20rem; grid-template-rows: 3.867rem minmax(0, 1fr); height: 100vh; overflow: hidden; background: #05070c center / cover no-repeat; }
@@ -1200,7 +1200,7 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
 .outliner .ol-row:hover, .outliner .ol-row:focus-visible { background: linear-gradient(90deg, rgba(201,162,74,.12), rgba(255,255,255,.02)); box-shadow: inset 2px 0 0 var(--brass); color: var(--ink); outline: 0; }
 .outliner .ol-row .nm { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the class of a holding gives way before its name does: it shrinks first and is cut to nothing rather than the name */
-.outliner .ol-row .m { flex: none; max-width: 48%; text-overflow: ellipsis; min-width: 0; overflow: hidden; font: 500 .8333rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; } .outliner .ol-row .m.warn { color: var(--warn); }
+.outliner .ol-row .m { flex: 0 100 auto; max-width: 48%; text-overflow: ellipsis; min-width: 0; overflow: hidden; font: 500 .8333rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; } .outliner .ol-row .m.warn { color: var(--warn); }
 .outliner .ol-row .tok { width: 18px; height: 18px; flex: none; filter: drop-shadow(0 1px 1px #000); }
 .outliner .ol-row .ui-globe { margin: 0 1px; }
 .outliner .ol-row.rep { min-height: 3.2rem; height: auto; align-items: center; }

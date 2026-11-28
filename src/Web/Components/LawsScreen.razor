@@ -109,10 +109,10 @@
                         {
                             var sl = stepLaw; var so = stepOpt; string? no = so.Refusal; int gain = step!.Value.gain;
                             <span class="es2-step">
-                                <b class="es2-gain ui-up" title="@($"{e.Name} would warm by +{gain} to {so.Name.ToLowerInvariant()} ({sl.Name.ToLowerInvariant()})")">+@gain</b>
+                                <b class="es2-gain ui-up" title="@($"{e.Name} would warm by +{gain} to {Counted.Lower(so.Name)} ({Counted.Lower(sl.Name)})")">+@gain</b>
                                 <Plate Label="@StepName(so.Name)" Icon="@LawIcon(sl.Id, sl.Category)" Small="true" Class="es2-pl" Locked="@(no != null)" ShowNeed="false" Need="@(no != null ? Say(no) : "")"
                                        CostIcon="@(sl.CooldownLeft > 0 ? "hourglass" : "public-speaker")" CostText="@(sl.CooldownLeft > 0 ? $"{sl.CooldownLeft} yr" : sl.Cost.ToString())"
-                                       Tip="@($"[{LawIcon(sl.Id, sl.Category)}] {sl.Name}: {so.Name.ToLowerInvariant()}{(sl.CooldownLeft > 0 ? $"\nSettled for {Counted.MoreYears(sl.CooldownLeft)}" : "")}\nWould warm {Plain(e.Name)} by +{gain}. {FxSay(so.Effects)}\n{OpinionLines(so)}{(no == null ? $"key: Click to enact it for {sl.Cost} influence; you are asked first" : "")}")"
+                                       Tip="@($"[{LawIcon(sl.Id, sl.Category)}] {sl.Name}: {Counted.Lower(so.Name)}{(sl.CooldownLeft > 0 ? $"\nSettled for {Counted.MoreYears(sl.CooldownLeft)}" : "")}\nWould warm {Plain(e.Name)} by +{gain}. {FxSay(so.Effects)}\n{OpinionLines(so)}{(no == null ? $"key: Click to enact it for {sl.Cost} influence; you are asked first" : "")}")"
                                        OnClick="() => AskLaw(sl, so)" data-estate-step="@($"{sl.Id}:{so.Id}")" />
                             </span>
                         }
@@ -203,7 +203,7 @@
                 @foreach (var r in grp)
                 {
                     var card = ch.Laws.FirstOrDefault(x => x.Id == r.Id); bool custom = r.SetBy.StartsWith("the custom"); string? sub = custom ? null : SetBySays(r, card?.Scope ?? "");
-                    string rTip = $"[{LawIcon(r.Id, r.Category)}] {r.Name}\n{Prose(card?.Description ?? r.Category)}\nIn force, {r.OptionName.ToLowerInvariant()}{(r.Effects.StartsWith("changes no yield") ? ", which changes no yield and no cost" : ", " + Minus(r.Effects))}.\n{(custom ? "The custom, no Act yet carried." : Cap(r.SetBy) + ".")}{(r.Act && r.CooldownLeft > 0 ? $"\nSettled, {Counted.Years(r.CooldownLeft)} before the chamber will hear it again" : "")}";
+                    string rTip = $"[{LawIcon(r.Id, r.Category)}] {r.Name}\n{Prose(card?.Description ?? r.Category)}\nIn force, {Counted.Lower(r.OptionName)}{(r.Effects.StartsWith("changes no yield") ? ", which changes no yield and no cost" : ", " + Minus(r.Effects))}.\n{(custom ? "The custom, no Act yet carried." : Cap(r.SetBy) + ".")}{(r.Act && r.CooldownLeft > 0 ? $"\nSettled, {Counted.Years(r.CooldownLeft)} before the chamber will hear it again" : "")}";
                     <div class="lw-row ro @(r.Mine ? "mine" : "") @(custom ? "at-custom" : "")" data-reach-law="@r.Id">
                         <span class="lw-ic" title="@r.Category"><Icon Name="@LawIcon(r.Id, r.Category)" Tone="@(r.Mine ? "brass" : "ivory")" Size="22" /></span>
                         <div class="lw-hd">

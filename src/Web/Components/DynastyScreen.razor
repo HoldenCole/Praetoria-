@@ -17,7 +17,7 @@
     string law = house.SuccessionLaw.Replace('_', ' '); string heirBy = DynastySystem.HeirBy(w, p);
     string story;
     if (heir == null) story = "There is no heir. The line hangs by a thread: wed, or the name dies with you.";
-    else if (heir.Age < 16) story = $"{heir.Name}, {heir.Age}, is your heir, {heirBy}: the seat would pass to a child{(heirs.Count > 1 ? $", with {heirs.Count - 1} more behind in the line" : ", and nobody stands behind")}.";
+    else if (heir.Age < 16) story = $"{heir.Name}, {heir.Age}, is your heir, {heirBy}. The seat would pass to a child{(heirs.Count > 1 ? $", with {heirs.Count - 1} more behind in the line" : ", and nobody stands behind")}.";
     else if (heirs.Count == 1) story = $"{heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, is your heir, {heirBy}, and the only one: the line is one life deep.";
     else story = $"{heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, is your heir, {heirBy}, with {heirs.Count - 1} more behind in the line. {living} of the blood are living, {children} of them children{(ailing.Count > 0 ? $"; {ailing[0].Name} is {LifeSystem.HealthName(ailing[0].Health)}" : "")}.";
     if (heir != null && heirRegard < -20) story += $" Your heir thinks ill of you ({Counted.Figure(heirRegard)}).";

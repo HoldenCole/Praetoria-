@@ -33,7 +33,7 @@
     private string Detail(Holding h)
     {
         var cat = G.Content!.Policies;
-        return string.Join("\n", LocalLawSystem.InForce(cat, h).Select(x => "* " + x.law.Name + ": " + x.option.Name.ToLowerInvariant() + " (" + LocalLawSystem.Does(x.option) + ")."));
+        return string.Join("\n", LocalLawSystem.InForce(cat, h).Select(x => "* " + x.law.Name + ": " + Counted.Lower(x.option.Name) + " (" + LocalLawSystem.Does(x.option) + ")."));
     }
     private void Redraw() => InvokeAsync(StateHasChanged);
     protected override void OnInitialized() => G.Changed += Redraw;

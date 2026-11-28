@@ -107,7 +107,7 @@ are a public breaking and a parade in chains), your stress 2 to 4 (another's 5 t
   All three clear `officer_owed`.
 - **Numbers.** A sworn bond is the strongest thing a report can give one person; it costs the influence of a motion. 300 credits
   is a purse, not a fortune.
-- **Nearest.** *A Triumph In The House* is for a general the Senate honours; this is for one the house chooses to.
+- **Nearest.** *A Triumph in the House* is for a general the Senate honours; this is for one the house chooses to.
 
 ### 4. The Other Dispatch (`the_other_dispatch`)
 - **What happened.** The war is over, and the officer you wronged has written their own account of the battle, and it is being

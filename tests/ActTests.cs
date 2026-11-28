@@ -48,7 +48,7 @@ public class ActTests
         Assert.Null(move.Refusal(ctx)); Assert.True(ex.TryExecute(move, ctx));
         Assert.Equal(5, w.Pools["self"].Influence);
         var m = SenateSystem.Docket(w).Single(x => x.ProposerHouseId == "vega"); Assert.Equal("common_law", m.LawId); Assert.Equal("assizes", m.LawOption); Assert.Equal(1, m.Votes["vega"]);
-        Assert.Contains("that the common law be the reach's assizes throughout the Reach", senate.Describe(w, m));
+        Assert.Contains("that the common law be the Reach's assizes throughout the Reach", senate.Describe(w, m));   // the Reach keeps its capital (Counted.Lower)
         Assert.Equal("you already have a motion before the Senate", new ProposeMotionCommand("self", "act", "", senate, lawId: "common_law", optionId: "local_courts").Refusal(ctx));
         senate.Tick(w); Assert.True(w.HasFlag("act_open"));
     }

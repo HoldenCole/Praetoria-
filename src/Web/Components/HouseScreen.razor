@@ -406,7 +406,7 @@
             </div>
         }
         <Section Title="Worlds" Count="@m.Holdings.Count.ToString()" Info="Each world of the house: its loyalty (100 less its unrest), its prosperity and where it is settling (the brass tick), its people, and its building slots. Hover a meter for why it stands where it does. Build opens what can be begun there; Invest raises its prosperity at once. A world with an empty governor's chair goes ungoverned."
-                 IsEmpty="@(m.Holdings.Count == 0)" EmptyLine="Your house holds no land. A fief is won, granted, or married into." EmptyIcon="ringed-planet">
+                 IsEmpty="@(m.Holdings.Count == 0)" EmptyLine="No world of the house's own yet." EmptyIcon="ringed-planet">
             <Right><span><b>@Census.Say(citizens)</b> citizens</span></Right>
             <ChildContent>
             @foreach (var h in m.Holdings)

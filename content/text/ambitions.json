@@ -22,7 +22,7 @@
     },
     {
       "id": "a_venture_of_their_own",
-      "title": "A Venture Of Their Own",
+      "title": "A Venture of Their Own",
       "body": "{kin.name} has founded something: found the site, struck the bargain, put up the money, all of it without a word to anyone until it was done. It carries the house's name, as everything does. It is {kin.name}'s all the same, and {kin.name} would like that to be understood.",
       "choices": {
         "wish_them_luck": "Wish them luck with it.",

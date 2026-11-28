@@ -12,7 +12,7 @@
     },
     {
       "id": "a_rival_for_the_hand",
-      "title": "A Rival For The Hand",
+      "title": "A Rival for the Hand",
       "body": "{rival.name} of {rival.house} has begun calling on {beloved.name}. The family receives them both with the same courtesy, which tells {self.name} nothing. {rival.name} has a name and prospects, and no reason to step aside.",
       "choices": {
         "outshine_them": "Be better company than they are.",
@@ -84,7 +84,7 @@
     },
     {
       "id": "a_marriage_of_two_minds",
-      "title": "A Marriage Of Two Minds",
+      "title": "A Marriage of Two Minds",
       "body": "It is noticed, by people who notice such things, that {self.name} and {spouse.name} are happy. They finish each other's arguments. {spouse.name} knows what {self.name} is going to decide before {self.name} does, and is usually right about whether it is wise.",
       "choices": {
         "ask_what_they_think": "Make a habit of asking what they think.",
@@ -104,7 +104,7 @@
     },
     {
       "id": "the_in_laws_ask_a_favour",
-      "title": "The In-Laws Ask A Favour",
+      "title": "The In-Laws Ask a Favour",
       "body": "{spouse.name}'s family is short this season and has asked, through {spouse.name}, whether {self.name}'s house could see its way to a loan. Fifteen hundred credits. They are family now, as {spouse.name} does not quite say.",
       "choices": {
         "lend_it": "Lend it, and say nothing of when.",

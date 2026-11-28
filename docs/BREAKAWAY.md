@@ -322,7 +322,7 @@ the first war usually ends too late for a second to be fought; in a longer one i
 
 ## Events
 
-Twelve, in `content/events/breakaway.json`: *They Come Back For It*, *Back In The Reach*, *They Told The Capital*, *A House Gives Its Word*, and *The Declaration*, *They Let You Go*, *A War Of Independence*,
+Twelve, in `content/events/breakaway.json`: *They Come Back for It*, *Back in the Reach*, *They Told the Capital*, *A House Gives Its Word*, and *The Declaration*, *They Let You Go*, *A War of Independence*,
 *Independence*, *The State Is No More*, *You Need Not Kneel*, *A State Breaks Away*, *The Reach Is Partitioned*.
 
 ## For content

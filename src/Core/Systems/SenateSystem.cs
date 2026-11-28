@@ -451,7 +451,7 @@ public sealed class SenateSystem
         var def = _motions.Def(m.Kind); if (def == null) return m.Kind;
         string target = def.Target == "region" ? w.Galaxy?.Regions.FirstOrDefault(r => r.Id == m.TargetId)?.Name ?? m.TargetId : def.Target == "house" ? w.House(m.TargetId)?.Name ?? m.TargetId : def.Target == "nation" ? Nations.Def(m.TargetId)?.Name ?? m.TargetId : def.Target == "edict" ? EdictSystem.Title(w, m.TargetId) : "";
         return def.Description.Replace("{proposer}", ProposerName(w, m)).Replace("{target}", target).Replace("{office}", _offices.Def(m.OfficeId)?.Name ?? m.OfficeId).Replace("{rank}", _titles.ById(m.TitleId)?.NameIn(w.Era) ?? m.TitleId)
-            .Replace("{law}", Policies.Law(m.LawId)?.Name.ToLowerInvariant() ?? m.LawId).Replace("{option}", Policies.Law(m.LawId)?.Option(m.LawOption)?.Name.ToLowerInvariant() ?? m.LawOption);
+            .Replace("{law}", (Policies.Law(m.LawId) is { } lw0 ? Counted.Lower(lw0.Name) : null) ?? m.LawId).Replace("{option}", (Policies.Law(m.LawId)?.Option(m.LawOption) is { } op0 ? Counted.Lower(op0.Name) : null) ?? m.LawOption);
     }
 
     public void Tick(World w)
@@ -688,7 +688,7 @@ public sealed class SenateSystem
             PolicySystem.Enact(w, Policies, PolicySystem.SenateHolder, law.Id, opt.Id);
             w.WorldFlags.Add("act_passed"); w.WorldFlags.Add("act_passed:" + law.Id); w.WorldCounters["acts_passed"] = w.Counter("acts_passed") + 1;
             VoteMarks.ActCarried(w, m, mine);   // the houses that voted against it (docs/events/votes.md)
-            w.Log($"An Act of the Senate: {law.Name.ToLowerInvariant()} is now {opt.Name.ToLowerInvariant()} throughout the Reach.");
+            w.Log($"An Act of the Senate: {Counted.Lower(law.Name)} is now {Counted.Lower(opt.Name)} throughout the Reach.");
         }
         if (def.EmbargoTurns > 0 && target != null)
         {

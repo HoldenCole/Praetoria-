@@ -2,7 +2,7 @@
   "texts": [
     {
       "id": "war_is_declared_on_you",
-      "title": "War Is Declared On You",
+      "title": "War Is Declared on You",
       "body": "A herald has read it at the door, in the old form: a house of the Reach holds itself at war with {self.house}, from this day, until it is satisfied or beaten. There is no law against it. The Senate does not make war between houses and does not stop it. What it is over, and what it would take to end it, is written below.",
       "choices": {
         "answer_it_in_the_senate": "Answer it in the Senate, where the benches can hear.",

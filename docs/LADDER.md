@@ -977,7 +977,7 @@ The outliner says when the head could stand and an election is within two years.
 ## Events
 
 Five, in `content/events/ladder.json`: *The Canvass* (while standing), *The Count Goes Your Way*, *The Count Goes
-Against You*, *One Of Yours Is Elected* (a relative who stood by their own decision), *The Aedile's Games*.
+Against You*, *One of Yours Is Elected* (a relative who stood by their own decision), *The Aedile's Games*.
 
 ## For content
 

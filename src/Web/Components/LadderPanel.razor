@@ -42,7 +42,7 @@
     @if (active)
     {
         string when = next <= 0 ? "at the end of this year" : next == 1 ? "at the end of next year, year " + (w.Turn + 1) : "in " + next + " years, at the end of year " + (w.Turn + next);
-        <p class="ui-lede sn-lede" data-next-election="@next">@SenateScreen.Bold((p.Cursus.Count == 0 ? "You have held no office yet." : $"You have been {Held(p)}.") + $" The next election is {when}, and {Counted.Names(w.Candidacies.Count)} {Counted.Are(w.Candidacies.Count)} down so far.")</p>
+        <p class="ui-lede sn-lede" data-next-election="@next">@SenateScreen.Bold((p.Cursus.Count == 0 ? "You have held no office yet." : $"You have been {Held(p)}.") + $" The next election is {when}, and {(w.Candidacies.Count == 0 ? "nobody has put a name down yet" : $"{Counted.Names(w.Candidacies.Count)} {Counted.Are(w.Candidacies.Count)} down so far")}.")</p>
     }
     <Section Title="The ladder of offices" Info="Each rung is held by a person, for five years, and filled by election: every rung below the consulship at the same count, and names go down before it. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides.">
         <Right><span>@(!active ? "there are no elections under a throne" : w.Emergency != null ? "no election is held while the emergency powers run" : w.Counter(LadderSystem.OwedKey) > 0 ? "the election put off under the emergency powers is held at the end of this year" : $"the next election in {Counted.Years(next)}")</span></Right>

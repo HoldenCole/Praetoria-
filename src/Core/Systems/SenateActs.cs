@@ -500,7 +500,7 @@ public static class SenateActs
             if (best is not { } b) continue;
             var moved = senate.Add(w, b.h.Id, "act", "", lawId: b.law.Id, lawOption: b.o.Id);
             w.WorldCounters[BenchMovedKey] = w.Counter(BenchMovedKey) + 1;
-            w.Log($"{b.h.Name} moves, for {f.Name}, that {InASentence(b.law.Name)} be {b.o.Name.ToLowerInvariant()}: it is on the bench's platform, and the bench counts the votes to carry it.");
+            w.Log($"{b.h.Name} moves, for {f.Name}, that {InASentence(b.law.Name)} be {Counted.Lower(b.o.Name)}: it is on the bench's platform, and the bench counts the votes to carry it.");
             Told(w, senate, moved, mine);
             return moved;
         }
@@ -512,6 +512,6 @@ public static class SenateActs
         if (mine == null || w.House(mine) is not { } house || senate.Policies.Law(m.LawId) is not { } law || law.Option(m.LawOption) is not { } next) return;
         var cur = PolicySystem.ReachOption(w, senate.Policies, law) ?? law.DefaultOption;
         if (ToHouse(w, house, cur, next, senate.Offices) is { Length: > 0 } says)
-            w.Tell("info", $"{senate.ProposerName(w, m)} moves that {InASentence(law.Name)} be {next.Name.ToLowerInvariant()}. It is voted at the end of next year. {says}", "senate:chamber", m.Id);
+            w.Tell("info", $"{senate.ProposerName(w, m)} moves that {InASentence(law.Name)} be {Counted.Lower(next.Name)}. It is voted at the end of next year. {says}", "senate:chamber", m.Id);
     }
 }

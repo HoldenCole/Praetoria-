@@ -125,7 +125,7 @@
                 <Sigil HouseId="@fh.Id" Accent="@fh.AccentColor" Size="58" Mode="seal" />
                 <div class="hu-id-who">
                     <h3 class="hu-id-nm">@fh.Name</h3>
-                    <div class="hu-id-sub">@(c.Titles.NameOf(fh.Title, G.World!.Era)) · @fh.Culture culture@(fh.Bloc.Length > 0 ? $" · bloc {fh.Bloc}" : "")</div>
+                    <div class="hu-id-sub">@(c.Titles.NameOf(fh.Title, G.World!.Era)) · @CharacterScreen.Cap(fh.Culture) culture@(fh.Bloc.Length > 0 ? $" · bloc {fh.Bloc}" : "")</div>
                 </div>
                 <div class="hu-id-r">
                     @if (fh.Id != mine.Id) { <span class="hu-disp big @(disp < -20 ? "ui-down" : disp > 20 ? "ui-up" : "")" title="What its people think of you, on average">@Signed(disp)<small>toward you</small></span> }

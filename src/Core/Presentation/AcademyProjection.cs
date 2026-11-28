@@ -72,7 +72,7 @@ public static class AcademyProjection
         if (w.IsImperium) facts.Add(new AcademyFact("The offices", "The fleet, the purse and the order of business are the throne's. The Emperor holds every office of the Reach and lends them to no one for long."));
         else if (officers.Count > 0)
             facts.Add(new AcademyFact("The offices", string.Join(" ", officers.Select(x => x.h != null ? $"{x.o.Name}: {w.House(x.h.HouseId)?.Name}." : $"{x.o.Name}: vacant."))));
-        var reachLaws = content.Policies.Laws.Where(l => l.Scope == "senate").Select(l => $"{l.Name}: {(PolicySystem.ReachOption(w, content.Policies, l) ?? l.DefaultOption).Name.ToLowerInvariant()}").ToList();
+        var reachLaws = content.Policies.Laws.Where(l => l.Scope == "senate").Select(l => $"{l.Name}: {Counted.Lower((PolicySystem.ReachOption(w, content.Policies, l) ?? l.DefaultOption).Name)}").ToList();
         if (reachLaws.Count > 0) facts.Add(new AcademyFact("The law of the Reach", string.Join("; ", reachLaws) + "."));
         facts.Add(new AcademyFact("War and peace", w.Wars.Count == 0 ? "No house is at war with another."
             : $"{w.Wars.Count} war{(w.Wars.Count == 1 ? "" : "s")} between houses: " + string.Join("; ", w.Wars.Take(4).Select(x => $"{w.House(x.HouseA)?.Name} against {w.House(x.HouseB)?.Name}")) + "."));

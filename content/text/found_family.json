@@ -2,7 +2,7 @@
   "texts": [
     {
       "id": "a_child_with_nowhere_to_go",
-      "title": "A Child With Nowhere To Go",
+      "title": "A Child With Nowhere to Go",
       "body": "{child.name} of {child.house} is the kind of child houses talk about in lowered voices: a family that cannot keep them, or will not, and no one stepping forward. A steward mentions it to {self.name} in passing, in the tone of someone mentioning the weather, and waits.",
       "choices": {
         "take_the_child_in": "Take the child into your house.",
@@ -12,7 +12,7 @@
     },
     {
       "id": "the_ward_comes_of_age",
-      "title": "The Ward Comes Of Age",
+      "title": "The Ward Comes of Age",
       "body": "{ward.name} is sixteen, and free to go home to {ward.house}. {ward.name} has come to {self.name}'s study to say, a little stiffly, that they would rather stay, if there is a place for them here. They have clearly rehearsed it.",
       "choices": {
         "you_are_family": "\"You are family. There was never a question.\"",
@@ -32,7 +32,7 @@
     },
     {
       "id": "a_place_at_the_table",
-      "title": "A Place At The Table",
+      "title": "A Place at the Table",
       "body": "There is a formal dinner, and a seating plan, and the steward has brought it to {self.name} with one name circled. {member.name} is of the household but not of the blood. Where {member.name} sits tonight will tell the whole house what {member.name} is.",
       "choices": {
         "at_the_family_table": "With the family.",

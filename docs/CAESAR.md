@@ -247,7 +247,7 @@ player's.
 
 #### What is not built
 
-- No new events: *The Triumph* and *A Triumph In The House* now follow a triumph had at the gate; nothing is reported
+- No new events: *The Triumph* and *A Triumph in the House* now follow a triumph had at the gate; nothing is reported
   for a triumph declined, for the year at home, or for leave given.
 - Nobody moves a triumph for a rival on purpose to take a fleet off them; the lever is there for the player, and other
   houses move triumphs as before, for themselves or a friend.
@@ -375,9 +375,9 @@ A march is cut short without a victor if a throne is taken some other way or the
 
 ## Events
 
-Fifteen, in `content/events/caesar.json`. Three are warnings: *The Republic Falters*, *A Name On Every Lip* (another
-house's general who is of the first rank and loved), *They Are Saying It Of Your House*. The other twelve: *The Triumph*, *A Triumph In The House*, *No Triumph*, *The Recall*, *They
-Have Recalled One Of Yours*, *The Line Is Crossed*, *A General Marches On The Capital*, *The Republic Stands*, *The
+Fifteen, in `content/events/caesar.json`. Three are warnings: *The Republic Falters*, *A Name on Every Lip* (another
+house's general who is of the first rank and loved), *They Are Saying It of Your House*. The other twelve: *The Triumph*, *A Triumph in the House*, *No Triumph*, *The Recall*, *They
+Have Recalled One Of Yours*, *The Line Is Crossed*, *A General Marches on the Capital*, *The Republic Stands*, *The
 Republic Falls*, *The Capital Is Yours*, *The March Has Failed*, *The Crews Are Theirs*. They colour what happened.
 What is decided (to come home, to cross, to declare) is decided on the Military screen.
 

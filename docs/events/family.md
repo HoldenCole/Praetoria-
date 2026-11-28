@@ -21,7 +21,7 @@ Read before writing: `life.json`, `household.json`, `found_family.json`, `courts
 
 - Births. Nothing reads a birth. *The Nurse at the Cradle* (`court.json`) needs a nurse in the house and is about her. Here a
   child of a marriage is named, once a marriage, and a grandchild is born, once for each head.
-- Children. *Not Made For It* and *Far Ahead of Their Years* (`education.json`) read how a child takes to lessons; *A Child with
+- Children. *Not Made for It* and *Far Ahead of Their Years* (`education.json`) read how a child takes to lessons; *A Child with
   Nowhere to Go* (`found_family.json`, 2.2% of all reports in the baseline) takes in somebody else's child. Here it is the mirror:
   the other family asks for yours, and the engine's fostering (`hidden`, which only *The Defiant Kin* used, for a grown relative)
   is used for a child, who comes home at sixteen.

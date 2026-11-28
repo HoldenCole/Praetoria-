@@ -22,7 +22,7 @@
     },
     {
       "id": "the_war_of_independence",
-      "title": "A War Of Independence",
+      "title": "A War of Independence",
       "body": "The Reach has not accepted it, and its fleets are on the lanes. This war has no end fixed in advance. It is over when the capital tires of sending ships to bring one region back, or when those ships are beaten, or when they take the region and there is no state left to recognise. Every year it goes on costs both sides, and the Reach has more to spend.",
       "choices": {
         "hold_what_you_have": "Hold what you have.",
@@ -82,7 +82,7 @@
     },
     {
       "id": "they_told_the_capital",
-      "title": "They Told The Capital",
+      "title": "They Told the Capital",
       "body": "The house that was sounded out heard everything politely, agreed with nothing, and wrote to the capital the same night. Nothing was said that could be charged. But the capital now knows that {self.house} has been talking to its neighbours about how they are governed, and it has a long memory for that kind of talk.",
       "choices": {
         "say_it_was_idle_talk": "Say it was idle talk.",
@@ -102,7 +102,7 @@
     },
     {
       "id": "they_come_back_for_it",
-      "title": "They Come Back For It",
+      "title": "They Come Back for It",
       "body": "The treaty's years ran out, and the Senate has voted. The Reach is rested, it thinks it has the fleets, and it has decided that a border it agreed to once is not a border it agreed to for ever. The state that {self.house} belongs to is at war for its independence a second time, on the same terms as the first: hold the region, and outlast them.",
       "choices": {
         "hold_them_to_the_treaty": "Hold them to the treaty, aloud.",
@@ -112,7 +112,7 @@
     },
     {
       "id": "back_in_the_reach",
-      "title": "Back In The Reach",
+      "title": "Back in the Reach",
       "body": "The state is no more, by its own ruler's decision. The border is off the maps, the region answers to the capital again, and {self.house} has its seat in the Senate back. Some there will say it should never have left. Others, more quietly, that it should never have come back.",
       "choices": {
         "take_your_seat_quietly": "Take your seat quietly.",

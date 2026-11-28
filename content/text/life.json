@@ -52,7 +52,7 @@
     },
     {
       "id": "a_death_in_the_house",
-      "title": "A Death In The House",
+      "title": "A Death in the House",
       "body": "One of the house is dead, and the house must bury them. What was said over them is written in the book. How it is done is for {self.name} to decide, and will be remembered by everyone who was there.",
       "choices": {
         "a_funeral_the_city_sees": "A funeral the city will see.",
@@ -62,7 +62,7 @@
     },
     {
       "id": "the_elder_at_the_table",
-      "title": "The Elder At The Table",
+      "title": "The Elder at the Table",
       "body": "{elder.name} laid the house down and has not quite laid it down. At dinner {elder.name} has an opinion on the matter before {self.name}, and the household has turned to hear it before {self.name} has spoken. {elder.name} ran this house for a long time.",
       "choices": {
         "ask_their_counsel": "Ask their counsel.",

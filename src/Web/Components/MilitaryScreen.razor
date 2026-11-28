@@ -402,7 +402,7 @@
             @if (near.Count > 8) { <div class="mil-more">And @(near.Count - 8) more.</div> }
         </Section>
         <Section Title="The navies" Count="@navies.ToString()" Info="Every house with a hull, strongest first, by hulls in commission. To you is what its head thinks of you, from −100 to +100.">
-            <Right>@if (raidersAtLarge > 0) { <span class="ui-down">Raiders on the lanes: <b class="ui-down">@raidersAtLarge</b> hulls</span> }</Right>
+            <Right>@if (raidersAtLarge > 0) { <span class="ui-down">Raiders on the lanes: <b class="ui-down">@raidersAtLarge</b> @(raidersAtLarge == 1 ? "hull" : "hulls")</span> }</Right>
             <ChildContent>
             @{ var board = fleetsOf; int myPlace = board.FindIndex(x => x.mine); var shownBoard = _allNavies ? board : board.Take(6).ToList(); if (!_allNavies && myPlace >= 6) { shownBoard = board.Take(5).Append(board[myPlace]).ToList(); } }
             <DataTable Class="mil-table navies">

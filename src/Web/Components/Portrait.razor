@@ -17,7 +17,7 @@ else
 {
 <span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "") @(CanOpen ? "opens" : "") @(Size <= CloseBelow ? "close" : "") @Tier" style="--ring:@Accent; width:@Rem(Size); height:@Rem(Height ?? Size)" title="@(!Titled ? null : CanOpen ? Name + " · open their profile" : Name)"
       @onclick="Open" @onclick:stopPropagation="CanOpen">
-    @if (Painted is { } url) { <img @key="url" class="lib" src="@url" alt="@Name" width="@Size" height="@(Height ?? Size)" loading="eager" decoding="async" /> }
+    @if (Painted is { } url) { <img @key="url" class="lib" src="@url" data-bust="@SpecNow" alt="@Name" width="@Size" height="@(Height ?? Size)" loading="eager" decoding="async" onerror="this.onerror=null;this.removeAttribute('src');this.classList.remove('lib');window.praetoriaBust&&praetoriaBust.paint()" /> }
     else { <img @key="SpecNow" data-bust="@SpecNow" alt="@Name" width="@Size" height="@(Height ?? Size)" /> }
     @if (Size > 22) { <i class="pf-band"></i> }
     @if (!Alive && Size > 22) { <i class="pf-ribbon"></i> }

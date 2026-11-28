@@ -28,4 +28,31 @@ public class CountedTests
         }
         Assert.True(bad.Count == 0, "written with (s): " + string.Join(", ", bad));
     }
+
+    [Fact]
+    public void A_name_lowered_for_a_sentence_keeps_the_Reach_and_the_Senate_capital()
+    {
+        Assert.Equal("the citizenship of the Reach", Counted.Lower("The Citizenship of the Reach"));
+        Assert.Equal("citizenship for the whole Reach", Counted.Lower("Citizenship for the whole Reach"));
+        Assert.Equal("the Reach's assizes", Counted.Lower("The Reach's assizes"));
+        Assert.Equal("the navigation act", Counted.Lower("The Navigation Act"));
+        Assert.Equal("open to the Reach, by the Senate's leave", Counted.Lower("Open to the Reach, by the Senate's leave"));
+    }
+
+    [Fact]
+    public void Report_titles_keep_their_short_words_low()
+    {
+        // one house style for every report's title: "A Death in the House", never "A Death In The House" (a, an, the, and, but,
+        // or, nor, for, of, in, on, at, to, by and as are low unless they open or close the title)
+        var small = new System.Collections.Generic.HashSet<string> { "A", "An", "The", "And", "But", "Or", "Nor", "For", "Of", "In", "On", "At", "To", "By", "As" };
+        var bad = new System.Collections.Generic.List<string>();
+        foreach (var f in System.IO.Directory.EnumerateFiles(System.IO.Path.Combine(ContentLocator.FindContentDir(), "text"), "*.json"))
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(System.IO.File.ReadAllText(f), "\"title\":\\s*\"([^\"]+)\""))
+            {
+                var words = m.Groups[1].Value.Split(' ');
+                for (int i = 1; i < words.Length - 1; i++)
+                    if (small.Contains(words[i]) && !words[i - 1].EndsWith(":") && !(words[i - 1] == "Brought" && words[i] == "On")) { bad.Add(System.IO.Path.GetFileName(f) + ": " + m.Groups[1].Value); break; }
+            }
+        Assert.True(bad.Count == 0, "titles with a capital on a short word: " + string.Join("; ", bad));
+    }
 }
