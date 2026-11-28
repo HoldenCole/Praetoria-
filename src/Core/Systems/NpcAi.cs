@@ -249,14 +249,20 @@ public sealed class NpcAi
             }
 
             // war and peace (GDD §7 fear with teeth): a house that hates you and outguns you declares war;
-            // one that has lost half its hulls sues for peace.
+            // one that has lost half its hulls sues for peace. Past the weariness threshold (docs/MILITARY.md, "A decided war ends")
+            // the house behind or level sues, and the house ahead sends its terms: a war the player does not end is ended for them
+            // to answer, not left standing at nought to ten for sixteen years.
             if (player != null && playerHouse != null)
             {
                 int warAppetite = (int)Math.Round(-60 / Math.Max(0.25, world.Difficulty));   // harsh difficulty: rivals go to war sooner
+                var ourWar = atWar ? world.Wars.FirstOrDefault(x => x.Between(house.Id, playerHouse)) : null;
+                bool weary = ourWar != null && new FleetSystem(rules).Weary(world, ourWar);
                 if (!atWar && disposition < warAppetite && FleetSystem.StrengthOf(world, house.Id) > FleetSystem.StrengthOf(world, playerHouse))
                 { if (executor.TryExecute(new DeclareWarCommand(head.Id, playerHouse, rules), ctx)) atWar = true; }
-                else if (atWar && FleetSystem.StrengthOf(world, house.Id) * 2 < FleetSystem.StrengthOf(world, playerHouse))
+                else if (atWar && (FleetSystem.StrengthOf(world, house.Id) * 2 < FleetSystem.StrengthOf(world, playerHouse) || (weary && ourWar!.Lead(house.Id) <= 0)))
                 { if (executor.TryExecute(new SueForPeaceCommand(head.Id, playerHouse, rules), ctx)) continue; }
+                else if (weary && ourWar!.Lead(house.Id) > 0)
+                { if (executor.TryExecute(new OfferTermsCommand(head.Id, playerHouse, rules), ctx)) continue; }
             }
 
             // a lord does not forgive a stolen world (GAP §6): a free hold that took one is bought back when the coin is there, else fought when the fleet is

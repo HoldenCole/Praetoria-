@@ -66,7 +66,7 @@ public static class SceneArt
         YearMoments.Succession or YearMoments.Death => "funeral",
         YearMoments.Birth or YearMoments.OfAge => "family",
         YearMoments.Marriage => "feast",
-        YearMoments.War or YearMoments.Siege => "battle",
+        YearMoments.War or YearMoments.Battle or YearMoments.Siege => "battle",
         YearMoments.WorldLost => "world",
         YearMoments.SeatLost => "unrest",
         YearMoments.RankLost => "senate",

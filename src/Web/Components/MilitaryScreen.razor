@@ -75,7 +75,7 @@
     else if (m.Wars.Count > 0)
     {
         var war0 = m.Wars[0]; var wr0 = w.Wars.First(x => x.Between(house.Id, war0.EnemyHouseId)); int sa = wr0.Score(house.Id), sb = wr0.Score(war0.EnemyHouseId);
-        story = $"At war with {war0.EnemyName} since year {war0.Since}. The score stands {sa} to {sb}; they have about {Counted.Hulls(war0.EnemyHulls)} to your {ours}." + (war0.TheyAreSuing ? " They are suing for peace." : "") + (m.Wars.Count > 1 ? $" And {Counted.OtherWars(m.Wars.Count - 1)}." : "");
+        story = $"At war with {war0.EnemyName} since year {war0.Since}. The score stands {sa} to {sb}; they have about {Counted.Hulls(war0.EnemyHulls)} to your {ours}." + (war0.TheyAreSuing ? " They are suing for peace." : war0.TheyOfferTerms ? " They have sent their terms." : "") + (m.Wars.Count > 1 ? $" And {Counted.OtherWars(m.Wars.Count - 1)}." : "");
         storyTone = sa >= sb ? "warn" : "bad";
     }
     else if (warAbroad != null)
@@ -687,7 +687,7 @@
                     <div class="mil-warrow war">
                         <div class="mw-top">
                             <span class="mw-arms"><Sigil HouseId="@war.EnemyHouseId" Accent="@(eh?.AccentColor ?? "#888")" Size="26" /></span>
-                            <div class="mw-id"><b>@war.EnemyName</b><span class="mw-sub">since year @war.Since · their hulls about @war.EnemyHulls@(war.TheyAreSuing ? " · they sue for peace" : "")</span></div>
+                            <div class="mw-id"><b>@war.EnemyName</b><span class="mw-sub">since year @war.Since · their hulls about @war.EnemyHulls@(war.TheyAreSuing ? " · they sue for peace" : war.TheyOfferTerms ? " · they have sent their terms" : "")</span></div>
                             <span class="mw-score" title="War score: yours, then theirs"><b>@a : @b</b><small>war score</small></span>
                         </div>
                         <Meter Kind="diverging" Value="@(a - b)" Max="@Math.Max(6, Math.Max(a, b))" Text="@Signed(a - b)" Label="The score" Tip="Your score against theirs: a battle won is 2, a world taken 3" />

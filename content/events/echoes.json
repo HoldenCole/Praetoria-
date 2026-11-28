@@ -1423,6 +1423,12 @@
           "id": "demand_tribute",
           "requires": [
             {
+              "type": "warLead",
+              "role": "envoy",
+              "op": "gte",
+              "value": 1
+            },
+            {
               "type": "peaceTerm",
               "role": "envoy",
               "kind": "tribute"
@@ -1460,6 +1466,12 @@
         {
           "id": "demand_world",
           "requires": [
+            {
+              "type": "warLead",
+              "role": "envoy",
+              "op": "gte",
+              "value": 1
+            },
             {
               "type": "peaceTerm",
               "role": "envoy",

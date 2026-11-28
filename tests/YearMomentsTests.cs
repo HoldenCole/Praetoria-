@@ -188,6 +188,35 @@ public class YearMomentsTests
     }
 
     [Fact]
+    public void A_battle_of_the_house_is_a_card_with_its_hulls_and_the_score_and_the_brief_says_it_once()
+    {
+        // docs/STEAM_REVIEW.md, item 13: a battle report card when the score moves
+        var (w, tc, house, me) = Start();
+        var foe = Foe(w, house);
+        tc.Fleets.DeclareWar(w, foe.Id, house.Id);
+        var war = w.Wars.Single(x => x.Between(house.Id, foe.Id)); war.AddScore(foe.Id, 2);
+        var sys = w.Galaxy!.Systems.Values.OrderBy(x => x.Id, StringComparer.Ordinal).ToList(); string at = sys[0].Name;
+        w.Battles.Add(new BattleRecord { Turn = w.Turn + 1, SystemId = sys[0].Id, Place = at, AttackerId = foe.Id, DefenderId = house.Id, WinnerId = foe.Id,
+            AttackerHulls = 9, DefenderHulls = 5, AttackerLost = 2, DefenderLost = 4 });
+        NextYear(w);
+        var lost = Assert.Single(YearMoments.For(w, Content), x => x.Kind == YearMoments.Battle);
+        Assert.Equal($"Defeat at {at}", lost.Title); Assert.True(lost.Bad); Assert.Equal(YearMoments.BattleLost, lost.Weight);
+        Assert.Contains($"Your 5 hulls met 9 of {foe.Name} at {at}, and were beaten. You lost 4, they lost 2.", lost.Text);
+        Assert.Contains("The war stands 0 to 2.", lost.Text); Assert.Equal("battle", lost.Scene); Plain(lost);
+        var brief = YearInBrief.For(w, Content);
+        Assert.Single(brief, l => l.Text.StartsWith($"The battle of {at}"));   // the card's line is the brief's own, made grave
+        Assert.Contains(brief, l => l.Text.StartsWith($"The battle of {at}") && l.Grave == YearMoments.BattleLost);
+
+        // two battles the next year, both won: one card for them, good news
+        w.Battles.Add(new BattleRecord { Turn = w.Turn + 1, SystemId = sys[1].Id, Place = sys[1].Name, AttackerId = house.Id, DefenderId = foe.Id, WinnerId = house.Id, AttackerHulls = 6, DefenderHulls = 3, AttackerLost = 1, DefenderLost = 3 });
+        w.Battles.Add(new BattleRecord { Turn = w.Turn + 1, SystemId = sys[2].Id, Place = sys[2].Name, AttackerId = house.Id, DefenderId = foe.Id, WinnerId = house.Id, AttackerHulls = 4, DefenderHulls = 2, AttackerLost = 0, DefenderLost = 2 });
+        NextYear(w);
+        var won = Assert.Single(YearMoments.For(w, Content), x => x.Kind == YearMoments.Battle);
+        Assert.Equal("Two battles, both won", won.Title); Assert.False(won.Bad); Assert.Equal(YearMoments.BattleWon, won.Weight);
+        Assert.Contains(": both won. You lost 1 hull and sank 5.", won.Text); Plain(won);
+    }
+
+    [Fact]
     public void At_most_three_moments_are_cards_and_a_death_in_the_main_line_comes_first()
     {
         var (w, tc, house, me) = Start();

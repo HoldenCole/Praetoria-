@@ -261,6 +261,7 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `era` | `era: fractured_stars\|imperium`, `present:bool` | which start the world is in (GDD §10) — gate court-of-the-emperor content on `imperium` |
 | `fleetStrength` | `role`(default `self`), `op`, `value` | total hulls the role's house commands (GDD §6/§8) |
 | `atWar` | `role`, `present:bool` | is the role's house at war with self's house? |
+| `warLead` | `role`, `op`, `value` | self's house's lead by the score in its war with the role's house, negative when behind (a battle won is 2, a world taken 3); false with no war between them (docs/MILITARY.md, "A decided war ends") |
 | `sex` | `role`, `value: male\|female` **or** `op: eq\|neq` + `vsRole` | a character's sex, or compared to another role's |
 | `bloc` | `role`(default `self`), `bloc: hegemon\|alliance`, `present:bool` | which Great-Crisis bloc the role's house is in |
 | `turn` | `op`, `value` | current turn number compare |
@@ -879,7 +880,7 @@ REFUSED    a {role.name} twice in a string · stress (say strain) · county outs
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
 FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age sex counter resource sphere title claim fleetStrength atWar bloc eventFired inLine buried
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age sex counter resource sphere title claim fleetStrength atWar warLead bloc eventFired inLine buried
 EVENT KEYS id tier weight repeatable roles when choices ambitions
 FLEETS     incursions · ships_raised · fleets_raised counters · incursion:<house> flags   (system-written, §19)
 WAR        battles · battles_won · battles_lost · conquests · wars_declared counters · battle_fought · conquest_made · holding_lost · at_war:<house> flags · suing_for_peace char flag

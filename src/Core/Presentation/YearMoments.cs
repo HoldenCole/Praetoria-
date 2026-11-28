@@ -37,16 +37,17 @@ public sealed record Moment(string Kind, string Key, int Weight, string Kicker, 
 public static class YearMoments
 {
     public const string Succession = "succession", Death = "death", Birth = "birth", Marriage = "marriage", OfAge = "of_age",
-        War = "war", Siege = "siege", WorldLost = "world_lost", SeatLost = "seat_lost", RankLost = "rank_lost", Suit = "suit";
+        War = "war", Battle = "battle", Siege = "siege", WorldLost = "world_lost", SeatLost = "seat_lost", RankLost = "rank_lost", Suit = "suit";
     /// <summary>Every kind, in the order a tie in weight is broken.</summary>
-    public static readonly string[] Kinds = { Succession, Death, War, SeatLost, Birth, RankLost, WorldLost, Marriage, Siege, Suit, OfAge };
+    public static readonly string[] Kinds = { Succession, Death, War, Battle, SeatLost, Birth, RankLost, WorldLost, Marriage, Siege, Suit, OfAge };
     /// <summary>At most this many moments of a year are opened as cards; the rest stay lines in the year in brief.</summary>
     public const int MaxCards = 3;
 
     /// <summary>What each moment weighs: a death in the main line first, then the house's own ill fortune and its births and weddings.</summary>
     public const int HeadDies = 100, SpouseDies = 96, HeirDies = 95, ChildDies = 94, ParentDies = 92, SiblingDies = 88,
         WarDeclared = 84, GreatSeatLost = 82, LastWorldLost = 82, ChildBorn = 80, RankFalls = 78, WorldTaken = 76, HeadWeds = 74,
-        GrandchildBorn = 72, ProvinceLost = 68, ChildWeds = 66, Besieged = 64, HeadCharged = 60, Sued = 58, HeadOfAge = 56, HeirOfAge = 54, ChildOfAge = 50;
+        GrandchildBorn = 72, BattleLost = 70, ProvinceLost = 68, ChildWeds = 66, Besieged = 64, BattleWon = 62, HeadCharged = 60, Sued = 58,
+        HeadOfAge = 56, HeirOfAge = 54, ChildOfAge = 50;
 
     /// <summary>The moments of the year that has just ended (the world is at the start of the next), the heaviest first.</summary>
     public static List<Moment> For(World w, ContentDatabase content)
@@ -60,6 +61,7 @@ public static class YearMoments
         Weddings(w, head, house, year, list);
         OfAgeNow(w, content, head, house, list);
         Wars(w, head, house, year, list);
+        Battles(w, head, house, list);
         Sieges(w, head, house, list);
         Losses(w, head, house, list);
         Rank(w, content, head, house, year, list);
@@ -196,6 +198,36 @@ public static class YearMoments
                 Lead(foeHead, "head of " + foe.Name), new[] { new MomentFace(head.Id, "you") }, foe.Id,
                 foe.Id, YearInBrief.War, "warn", $"{foe.Name} declared war on your house.", "military"));
         }
+    }
+
+    /// <summary>The battles the house fought as the year turned (dated with the year that opens, as the year in brief reads them): one card
+    /// for them all (docs/STEAM_REVIEW.md, item 13: "a battle report card when the score moves"), led by the greatest, saying the hulls
+    /// on each side, what each lost, and how the war stands now. Lost or no better than even, it is ill news; won, good. Its subject is
+    /// blank, as the year in brief's battle lines are, so the brief says the battle once.</summary>
+    private static void Battles(World w, Character head, House house, List<Moment> list)
+    {
+        var fought = w.Battles.Where(b => b.Turn == w.Turn && b.Involves(house.Id)).ToList(); if (fought.Count == 0) return;
+        int won = fought.Count(b => b.WinnerId == house.Id), lost = fought.Count - won;
+        int ours(BattleRecord b, bool hulls) => b.AttackerId == house.Id ? (hulls ? b.AttackerHulls : b.AttackerLost) : (hulls ? b.DefenderHulls : b.DefenderLost);
+        int theirs(BattleRecord b, bool hulls) => b.AttackerId == house.Id ? (hulls ? b.DefenderHulls : b.DefenderLost) : (hulls ? b.AttackerHulls : b.AttackerLost);
+        var big = fought.OrderByDescending(b => b.AttackerHulls + b.DefenderHulls).ThenBy(b => b.Place, StringComparer.Ordinal).First();
+        string foeId = big.AttackerId == house.Id ? big.DefenderId : big.AttackerId; var foe = w.House(foeId); string foeName = foe?.Name ?? "the enemy";
+        bool good = won > lost; int ourLost = fought.Sum(b => ours(b, false)), theirLost = fought.Sum(b => theirs(b, false));
+        var war = w.Wars.Concat(w.PastWars).Where(x => x.Between(house.Id, foeId)).OrderByDescending(x => x.Since).FirstOrDefault();
+        string stands = war == null ? "" : war.Ended > 0 ? $" The war is over: it ended {war.Score(house.Id)} to {war.Score(foeId)}." : $" The war stands {war.Score(house.Id)} to {war.Score(foeId)}.";
+        string tally = won == fought.Count ? (fought.Count == 2 ? "both won" : "all won") : lost == fought.Count ? (fought.Count == 2 ? "both lost" : "all lost")
+            : $"{WarLedger.Words(won)} won and {WarLedger.Words(lost)} lost";
+        string title = fought.Count == 1 ? (good ? $"Victory at {big.Place}" : $"Defeat at {big.Place}") : $"{Cap(WarLedger.Words(fought.Count))} battles, {tally}";
+        string text = fought.Count == 1
+            ? $"Your {Counted.Hulls(ours(big, true))} met {theirs(big, true)} of {foeName} at {big.Place}, and {(good ? "carried the day" : "were beaten")}. You lost {ours(big, false)}, they lost {theirs(big, false)}.{stands}"
+            : $"At {string.Join(", ", fought.Select(b => b.Place).Distinct().Take(3))}: {tally}. You lost {Counted.Hulls(ourLost)} and sank {theirLost}.{stands}";
+        var admiral = w.Fleets.Values.Where(f => f.OwnerId == house.Id && f.SystemId == big.SystemId).Select(f => w.Char(f.AdmiralId)).FirstOrDefault(c => c is { Alive: true });
+        var foeLead = w.Fleets.Values.Where(f => f.OwnerId == foeId && f.SystemId == big.SystemId).Select(f => w.Char(f.AdmiralId)).FirstOrDefault(c => c is { Alive: true }) ?? (foe != null ? Economy.HeadOf(w, foe) : null);
+        var lead = admiral != null && admiral.Id != head.Id ? Lead(admiral, Join(Tie(w, head, admiral), "your admiral")) : Lead(head, "you");
+        var around = foeLead != null ? new[] { new MomentFace(foeLead.Id, foe != null && Economy.HeadOf(w, foe)?.Id == foeLead.Id ? "head of " + foeName : "admiral of " + foeName) } : Array.Empty<MomentFace>();
+        list.Add(new Moment(Battle, "battle:" + w.Turn, good ? BattleWon : BattleLost, good ? "A victory" : "A defeat", title, text, "To the fleet", "crossed-sabres",
+            lead, around, foeId, "", YearInBrief.War, good ? "good" : "warn",
+            $"The battle of {big.Place}: {(good ? "won against" : "lost to")} {foeName}.", "military:battles"));
     }
 
     private static void Sieges(World w, Character head, House house, List<Moment> list)

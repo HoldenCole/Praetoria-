@@ -47,8 +47,10 @@ public static class HousePeace
         if (ThroneSystem.ForTheThrone(w, asker, other)) { terms.Add(new Term(White, "", "Peace", "", false, "a war for a throne is not ended by treaty: one of the two sits on it at the end")); return terms; }
         string them = w.House(other)?.Name ?? other; int lead = war.Lead(asker), mine = FleetSystem.StrengthOf(w, asker), theirs = FleetSystem.StrengthOf(w, other);
         bool suing = w.LivingCharacters().Any(c => c.HouseId == other && c.Flags.Contains(FleetSystem.SuingForPeaceFlag));
-        bool listens = suing || fleets.WouldAcceptPeace(w, other, asker);
-        string deaf = $"{them} smells victory ({Counted.Hulls(theirs)} to your {mine}{(war.Lead(other) > 0 ? ", and ahead by " + war.Lead(other) : "")}): it will not hear of peace yet";
+        // a house that has sent its terms hears a peace that pays them, but not one that asks nothing (docs/MILITARY.md, "A decided war ends")
+        bool offering = w.LivingCharacters().Any(c => c.HouseId == other && c.Flags.Contains(FleetSystem.OfferingTermsFlag));
+        bool listens = suing || offering || fleets.WouldAcceptPeace(w, other, asker);
+        string deaf = $"{them} smells victory ({Counted.Hulls(theirs)} to your {mine}{(war.Lead(other) > 0 ? ", and ahead by " + war.Lead(other) : "")}): it will not hear of peace yet. A war wears both sides down, and from year {war.Since + rules.WarWearinessTurns} it will take its price for one";
         int owed = Math.Abs(lead) * rules.TributePerScore;
         if (lead >= 0)
         {

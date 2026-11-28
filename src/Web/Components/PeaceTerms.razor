@@ -20,7 +20,7 @@
     [Parameter, EditorRequired] public WarLine War { get; set; } = default!;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private string Standing() => War.Lead > 0 ? $"You are ahead by {War.Lead}. A battle won is 2 and a world taken 3; a world may be asked for from {HousePeace.WorldLead} ahead." + (War.TheyAreSuing ? " They are suing for peace." : "")
-        : War.Lead < 0 ? $"You are behind by {-War.Lead}. Peace will cost something unless they tire of it first." + (War.TheyAreSuing ? " They are suing for peace: a white peace is on the table." : "")
+        : War.Lead < 0 ? $"You are behind by {-War.Lead}. Peace will cost something unless they tire of it first." + (War.TheyAreSuing ? " They are suing for peace: a white peace is on the table." : War.TheyOfferTerms ? " They have sent their terms: they will take tribute or a world." : G.World is { } w && w.Turn < War.WearyFrom ? $" From year {War.WearyFrom} the war is long enough that they will take their price for a peace." : "")
         : "The war stands level." + (War.TheyAreSuing ? " They are suing for peace." : "");
     private void Put(HousePeace.Term t)
     {

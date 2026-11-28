@@ -2647,6 +2647,142 @@
           ]
         }
       ]
+    },
+    {
+      "id": "the_victors_terms",
+      "tier": "setpiece",
+      "weight": 6,
+      "repeatable": true,
+      "cooldown": 3,
+      "roles": [
+        {
+          "name": "envoy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "envoy",
+              "flag": "offering_terms",
+              "value": true
+            },
+            {
+              "type": "atWar",
+              "role": "envoy",
+              "present": true
+            },
+            {
+              "type": "warLead",
+              "role": "envoy",
+              "op": "lte",
+              "value": -1
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "pay_tribute",
+          "requires": [
+            {
+              "type": "peaceTerm",
+              "role": "envoy",
+              "kind": "tribute"
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "offering_terms",
+              "value": false
+            },
+            {
+              "type": "peaceTerms",
+              "role": "envoy",
+              "kind": "tribute"
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid {envoy.house} what the score said was owed, and the fleets stood down. It was a defeat, and it was over."
+            }
+          ]
+        },
+        {
+          "id": "give_a_world",
+          "requires": [
+            {
+              "type": "peaceTerm",
+              "role": "envoy",
+              "kind": "world"
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "offering_terms",
+              "value": false
+            },
+            {
+              "type": "peaceTerms",
+              "role": "envoy",
+              "kind": "world"
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave {envoy.house} a world to end the war. The treasury was spared, and the map was not."
+            }
+          ]
+        },
+        {
+          "id": "fight_on",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "envoy",
+              "flag": "offering_terms",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "envoy",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {envoy.name} of {envoy.house} home with no answer worth carrying. The war went on, and so did the grumbling on both sides."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -177,7 +177,10 @@ public sealed record GreatCrisisCard(string Name, string? Stage, int Clock, int?
 /// <summary>A war with a house. <c>Terms</c> is every peace that could be put to it now, each with what it would do and whether it
 /// would be taken (docs/PLAYTHROUGH.md 9).</summary>
 public sealed record WarLine(string EnemyHouseId, string EnemyName, int Since, int EnemyHulls, bool PeaceAvailable, string PeaceTooltip, bool TheyAreSuing)
-{ public IReadOnlyList<HousePeace.Term> Terms { get; init; } = Array.Empty<HousePeace.Term>(); public int Lead { get; init; } public bool CanPay { get; init; } }
+{ public IReadOnlyList<HousePeace.Term> Terms { get; init; } = Array.Empty<HousePeace.Term>(); public int Lead { get; init; } public bool CanPay { get; init; }
+  /// <summary>They are ahead and have sent their terms (docs/MILITARY.md, "A decided war ends"); and the year from which the war is weary
+  /// and the side ahead takes its price for a peace.</summary>
+  public bool TheyOfferTerms { get; init; } public int WearyFrom { get; init; } }
 public sealed record BattleLine(string Text);
 /// <summary>A choice as offered: <paramref name="Reason"/> is null when available, else why not ("requirements not met" — a trait,
 /// skill or rank gate — or "cannot afford: 2 influence").</summary>
@@ -399,9 +402,11 @@ public static class CourtProjection
             bool can = peace.CanExecute(ctx);
             bool refuses = !tc.Fleets.WouldAcceptPeace(w, enemy, house.Id);
             bool suing = w.LivingCharacters().Any(c => c.HouseId == enemy && c.Flags.Contains(FleetSystem.SuingForPeaceFlag));
+            bool offering = w.LivingCharacters().Any(c => c.HouseId == enemy && c.Flags.Contains(FleetSystem.OfferingTermsFlag));
             wars.Add(new WarLine(enemy, w.House(enemy)?.Name ?? enemy, war.Since, FleetSystem.StrengthOf(w, enemy), can,
                 can ? "" : refuses ? "They smell victory: their hulls far outnumber yours." : "No Influence left this turn.", suing)
-                { Terms = HousePeace.Terms(w, tc.Fleets, content.Fleets, house.Id, enemy), Lead = war.Lead(house.Id), CanPay = pools.Get(Pool.Influence) >= content.Fleets.PeaceCost });
+                { Terms = HousePeace.Terms(w, tc.Fleets, content.Fleets, house.Id, enemy), Lead = war.Lead(house.Id), CanPay = pools.Get(Pool.Influence) >= content.Fleets.PeaceCost,
+                  TheyOfferTerms = offering, WearyFrom = war.Since + content.Fleets.WarWearinessTurns });
         }
 
         var briefing = new List<BriefingCard>();

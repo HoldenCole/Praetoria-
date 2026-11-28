@@ -95,7 +95,7 @@ public static class Alerts
         foreach (var ch in LadderSystem.ChargesOn(w, house.Id)) Add(Court, Danger, $"{w.House(ch.AccuserId)?.Name} charges {w.Char(ch.AccusedId)?.Name}: heard {LadderSystem.HeardSays(w, ch.Turn)}" + (LadderSystem.PleaderOf(w, ch) == null ? ", and nobody is to answer it" : ""), "senate:ladder");
         foreach (var jr in w.Judgments.Where(j => j.Turn == w.Turn - 1 && !(j.Kind == "charge" && j.Judge.Length == 0)))
             Add(Court, jr.WinnerId == house.Id ? Good : Danger, jr.WinnerId == house.Id ? $"The court found for you: {w.House(jr.LoserId)?.Name} paid {Praetoria.Core.Money.Credits(jr.Sum)}" : $"The court found against you: you paid {w.House(jr.WinnerId)?.Name} {Praetoria.Core.Money.Credits(jr.Sum)}", "senate:ladder");
-        foreach (var war in m.Wars) Add(War, Danger, $"At war with {war.EnemyName}{(war.TheyAreSuing ? ": they sue for peace" : "")}", "military");
+        foreach (var war in m.Wars) Add(War, Danger, $"At war with {war.EnemyName}{(war.TheyAreSuing ? ": they sue for peace" : war.TheyOfferTerms ? ": they have sent their terms" : "")}", "military");
         foreach (var sg in m.Sieges.Where(s => s.Ours)) Add(War, Danger, $"{sg.HoldingName} besieged by {sg.BesiegerName} ({sg.Turns}/{sg.Required})", "galaxy:" + (w.Holdings.Values.FirstOrDefault(x => x.Name == sg.HoldingName)?.SystemId ?? ""));
         foreach (var h in m.Household.Where(h => h.Actions.Any(a => a.Id == "defiant"))) Add(Household, Danger, $"{h.Name} is defiant", "house:household");
         if (m.Character.Regency) Add(Family, Info, "A regent rules in your name", "dynasty");

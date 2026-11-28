@@ -158,6 +158,16 @@
         "a_war_tax": "Lay a war tax on the people of your worlds to pay them. The crews are paid; the commons will hate it.",
         "turn_them_loose": "Turn them loose unpaid. Neither the officers nor the towns will forgive it."
       }
+    },
+    {
+      "id": "the_victors_terms",
+      "title": "The Victor's Terms",
+      "body": "{envoy.name} of {envoy.house} comes under a flag of truce and does not trouble to look humble. {envoy.house} is ahead in this war, and has been long enough that its own worlds grumble at the cost. It will stop, for a price: the tribute the score says you owe, or a world. Or you can send {envoy.him} home and go on with a war you are losing.",
+      "choices": {
+        "pay_tribute": "Pay the tribute the score asks, and end it.",
+        "give_a_world": "Give up a world, and keep the treasury.",
+        "fight_on": "Send {envoy.him} home. The war goes on."
+      }
     }
   ]
 }

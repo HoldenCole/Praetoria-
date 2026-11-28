@@ -468,6 +468,23 @@ public sealed class PeaceTermCondition : ICondition
     public bool Evaluate(EvalContext ctx) => Terms(ctx).Any(t => t.Accepted);
 }
 
+/// <summary>How the protagonist's house stands by the score in its war with the role's house (docs/MILITARY.md: a battle won is 2, a world
+/// taken 3): its lead, negative when behind. False when the two are not at war. JSON: { "type": "warLead", "role": "envoy", "op": "gte", "value": 1 }.</summary>
+public sealed class WarLeadCondition : ICondition
+{
+    public string Role { get; }
+    public CompareOp Op { get; }
+    public int Value { get; }
+    public WarLeadCondition(string role, CompareOp op, int value) { Role = role; Op = op; Value = value; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var self = ctx.Actor(Binding.Self); var other = ctx.Actor(Role);
+        if (self == null || other == null) return false;
+        var war = ctx.World.Wars.FirstOrDefault(x => x.Between(self.HouseId, other.HouseId));
+        return war != null && Comparison.Apply(Op, war.Lead(self.HouseId), Value);
+    }
+}
+
 /// <summary>Total fleet strength the role's house commands (GDD §6/§8). JSON: { "type": "fleetStrength", "role": "self", "op": "gte", "value": 2 }.</summary>
 public sealed class FleetStrengthCondition : ICondition
 {

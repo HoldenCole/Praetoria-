@@ -100,6 +100,9 @@ public sealed class FleetSystem
     public const string WarsBegunCounter = "wars_begun";
     public static string AtWarFlag(string houseId) => $"at_war:{houseId}";
     public const string SuingForPeaceFlag = "suing_for_peace";
+    /// <summary>On the head of a house ahead in a weary war with the player's: it has sent its terms, and waits on the answer
+    /// (docs/MILITARY.md, "A decided war ends"; the_victors_terms in content/events/war_front.json).</summary>
+    public const string OfferingTermsFlag = "offering_terms";
     public const string AdmiralFlag = "admiral";                  // the character commands a fleet
     /// <summary>Who was in a battle, for the reports of it (docs/events/war.md). An admiral or captain of the player's house, not the
     /// head, who stood in the line of a battle the house fought this year: until the next year's tick.</summary>
@@ -745,6 +748,11 @@ public sealed class FleetSystem
     /// <summary>Long wars grind: past the weariness threshold, every holding of a warring house grows restless each turn.</summary>
     public const int ExhaustionTurns = 12;   // a war between rivals with no battle this long ends in a white peace
 
+    /// <summary>A war worn past the weariness threshold (<see cref="FleetRules.WarWearinessTurns"/> years, docs/MILITARY.md, "A decided
+    /// war ends"): both sides' worlds grow restless, the side ahead will take its price for a peace rather than hold out for more, and
+    /// a house at war with the player's sends its terms or sues.</summary>
+    public bool Weary(World w, War war) => w.Turn - war.Since >= _rules.WarWearinessTurns;
+
     private void WarWeariness(World w)
     {
         foreach (var war in w.Wars)
@@ -837,7 +845,7 @@ public sealed class FleetSystem
             }
         }
         foreach (var s in w.Sieges.Values.Where(s => (war.Involves(s.BesiegerId)) && war.Involves(w.Holding(s.HoldingId)?.OwnerId ?? "")).ToList()) w.Sieges.Remove(s.HoldingId);
-        foreach (var c in w.Characters.Values.Where(c => war.Involves(c.HouseId))) c.Flags.Remove(SuingForPeaceFlag);
+        foreach (var c in w.Characters.Values.Where(c => war.Involves(c.HouseId))) { c.Flags.Remove(SuingForPeaceFlag); c.Flags.Remove(OfferingTermsFlag); }
         RefreshWarFlags(w);
         RefreshSiegeFlag(w);
         w.Log($"{w.House(a)?.Name ?? a} and {w.House(b)?.Name ?? b} make peace.");
@@ -869,10 +877,12 @@ public sealed class FleetSystem
     }
 
     /// <summary>Would NPC house <paramref name="houseId"/> accept peace from <paramref name="from"/>? Not while it smells
-    /// victory — ahead on war score, or hulls past the refusal ratio.</summary>
+    /// victory — ahead on war score, or hulls past the refusal ratio — unless the war has worn on past the weariness threshold:
+    /// then it takes a peace (the side ahead still wants its tribute or a world for stopping, by the terms of <see cref="HousePeace"/>).</summary>
     public bool WouldAcceptPeace(World w, string houseId, string from)
     {
         var war = w.Wars.FirstOrDefault(x => x.Between(houseId, from));
+        if (war != null && Weary(w, war)) return true;
         if (war != null && war.Lead(houseId) >= 5 && StrengthOf(w, houseId) >= StrengthOf(w, from)) return false;
         return StrengthOf(w, houseId) <= Math.Max(1, StrengthOf(w, from)) * _rules.PeaceRefusalRatio;
     }

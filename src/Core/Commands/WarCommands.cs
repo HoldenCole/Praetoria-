@@ -94,6 +94,39 @@ public sealed class SueForPeaceCommand : ICommand
 }
 
 
+/// <summary>A house ahead in a weary war with the player's sends its terms (docs/MILITARY.md, "A decided war ends"): its head is flagged
+/// <c>offering_terms</c>, and the player answers through the victor's envoy (the_victors_terms): pay the tribute the score asks, give
+/// up a world, or fight on. While the terms stand, the player can also take them from the Military window. Only toward the player's
+/// house, and only in a war past the weariness threshold that the actor's house leads; nothing is spent.</summary>
+public sealed class OfferTermsCommand : ICommand
+{
+    private readonly string _targetHouseId;
+    private readonly FleetRules _rules;
+    public OfferTermsCommand(string actorId, string targetHouseId, FleetRules rules) { ActorId = actorId; _targetHouseId = targetHouseId; _rules = rules; }
+
+    public string ActorId { get; }
+    public string Describe() => $"offer terms to {_targetHouseId}";
+
+    public bool CanExecute(CommandContext ctx)
+    {
+        var w = ctx.World;
+        var actor = w.Char(ActorId);
+        if (actor?.Alive != true || _targetHouseId != w.Protagonist?.HouseId) return false;
+        var war = w.Wars.FirstOrDefault(x => x.Between(actor.HouseId, _targetHouseId));
+        if (war == null || war.Lead(actor.HouseId) <= 0 || ThroneSystem.ForTheThrone(w, actor.HouseId, _targetHouseId)) return false;
+        if (w.LivingCharacters().Any(c => c.HouseId == actor.HouseId && (c.Flags.Contains(FleetSystem.OfferingTermsFlag) || c.Flags.Contains(FleetSystem.SuingForPeaceFlag)))) return false;   // an envoy is already out
+        return new FleetSystem(_rules).Weary(w, war);
+    }
+
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World;
+        var actor = w.Char(ActorId)!;
+        actor.Flags.Add(FleetSystem.OfferingTermsFlag);
+        w.Log($"{actor.Name} of {w.House(actor.HouseId)?.Name ?? actor.HouseId} sends {w.House(_targetHouseId)?.Name ?? _targetHouseId} the terms of a peace.");
+    }
+}
+
 /// <summary>Buy a free hold back (GAP §6 "free holds are orphans"): a world that broke away from your house swears to it again for
 /// a price that rises with its people and its leader's grudge. The free hold's leader comes in as the world's governor; a free
 /// house left with nothing is folded away, its militia with it. The other way back is war.</summary>

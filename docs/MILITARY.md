@@ -451,6 +451,28 @@ it is no more often walked: a legate's commission is short, and the gates are un
 - Another house's head is never named legate or lent (only the player's head may serve).
 - Nobody serves in another house's household (the other half of GAPS R1).
 
+## A decided war ends
+
+Built 2026-11-28 from the review against Steam (docs/STEAM_REVIEW.md, item 13). The review's long campaign found a war with the
+player standing at nought to ten in its sixteenth year with every peace refused: the house ahead smelled victory and would not
+hear of one, the house behind had no world it could give, and no fleet met another. Only wars between other houses ended of
+exhaustion. Now a war past the weariness threshold (`warWearinessTurns` in content/fleets/rules.json, six years, the same that
+makes both sides' worlds restless) is weary (`FleetSystem.Weary`), and:
+
+- **The side ahead takes its price.** A weary house hears a peace that pays it (`WouldAcceptPeace`): the side behind can buy
+  one with the tribute the score says, or a world, from the Military window. It still will not take a white peace from the side
+  behind. Before the threshold the refusal says from which year it will listen.
+- **A house ahead of the player's sends its terms** (`OfferTermsCommand`, the head flagged `offering_terms`): the report "The
+  Victor's Terms" (`the_victors_terms` in content/events/war_front.json) offers paying the tribute, giving up a world, or fighting
+  on. Fought on, the envoy comes back after three years at the soonest; meanwhile the terms stand under Wars in the Military
+  window, and the war card and the alert say they have been sent.
+- **A house behind or level sues** (the existing envoy, `the_envoy_of_peace`), as a house that has lost half its hulls already did.
+  Its answers that name a price are open only to the side ahead (the condition `warLead`): its words say the envoy's house pays.
+
+A war for a throne is not ended this way (docs/THRONE.md). `tests/WarWearinessTests.cs` holds it: the price taken once weary
+and refused with its year before; the terms sent, the report bound and its answers open, the tribute paid and the war over; the
+envoy asking no price of a house behind; and a weary war with the player never standing unanswered for four years.
+
 ## Flags and counters for content
 `battle_won`, `battle_lost`, `fought_at_the_front`, `hulls_captured`, `became_achilles`, `fleet_deserts`, `out_of_supply`,
 `supply_low`, `fleet_restive`, `fleet_mutinous`, `campaign_declared`, `campaign_open`, `campaign_over`; counters

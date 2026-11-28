@@ -12,7 +12,7 @@ namespace Praetoria.Core.Presentation;
 /// </summary>
 public static class ReportFacts
 {
-    public const string EnvoyReport = "the_envoy_of_peace";
+    public const string EnvoyReport = "the_envoy_of_peace", VictorReport = "the_victors_terms";
     /// <param name="binding">Who the report is about, when the caller has it: a report that names one of the house's dead (a role
     /// bound by <see cref="BuriedCondition"/>) says what was said over them.</param>
     public static string For(World w, EventDef def, ContentDatabase content, Binding? binding = null)
@@ -21,16 +21,18 @@ public static class ReportFacts
         if (binding != null && SaidOver(w, def, binding) is { Length: > 0 } eulogy) return eulogy;
         var flags = def.Conditions.OfType<WorldFlagCondition>().Where(c => c.Value).Select(c => c.Flag).ToHashSet();
         string Nm(string id) => w.House(id)?.Name ?? id;
-        if (def.Id == EnvoyReport)
+        if (def.Id == EnvoyReport || def.Id == VictorReport)
         {
-            /* an envoy's peace: how the war stands and what each answer would bring, by the terms the Military window lists */
-            var envoy = w.LivingCharacters().FirstOrDefault(c => c.Flags.Contains(FleetSystem.SuingForPeaceFlag) && w.AtWar(mine, c.HouseId)); if (envoy == null) return "";
+            /* an envoy's peace: how the war stands and what each answer would bring, by the terms the Military window lists; the victor's
+               envoy says what its house will take, the envoy who sues what may be asked of it */
+            bool victor = def.Id == VictorReport; string flag = victor ? FleetSystem.OfferingTermsFlag : FleetSystem.SuingForPeaceFlag;
+            var envoy = w.LivingCharacters().FirstOrDefault(c => c.Flags.Contains(flag) && w.AtWar(mine, c.HouseId)); if (envoy == null) return "";
             var war = w.Wars.FirstOrDefault(x => x.Between(mine, envoy.HouseId)); if (war == null) return "";
             var rules = content.Fleets; var terms = HousePeace.Terms(w, new FleetSystem(rules), rules, mine, envoy.HouseId);
             int lead = war.Lead(mine);
             string stands = $"The war with {Nm(envoy.HouseId)}, begun in year {war.Since}: {(lead > 0 ? $"you are {lead} ahead" : lead < 0 ? $"you are {-lead} behind" : "neither side is ahead")} by the score (a battle won is 2, a world taken 3), with {Counted.Hulls(FleetSystem.StrengthOf(w, mine))} to their {FleetSystem.StrengthOf(w, envoy.HouseId)}.";
             var asks = terms.Where(t => t.Kind != HousePeace.White).Select(t => t.Accepted ? $"{t.Label}: {t.What}" : $"{t.Label}: not to be had ({t.Why}).").ToList();
-            return stands + (asks.Count > 0 ? " What may be asked: " + string.Join(" ", asks) : " Nothing may be asked beyond the peace itself.") + " While the envoy waits, the same terms are under Wars in the Military window.";
+            return stands + (asks.Count > 0 ? (victor ? " What they will take: " : " What may be asked: ") + string.Join(" ", asks) : victor ? " There is nothing of yours they will take." : " Nothing may be asked beyond the peace itself.") + " While the envoy waits, the same terms are under Wars in the Military window.";
         }
         if (flags.Contains("case_won") || flags.Contains("case_lost") || flags.Contains(LadderSystem.SuitWonFlag) || flags.Contains(LadderSystem.SuitLostFlag))
         {
