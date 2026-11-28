@@ -490,7 +490,8 @@ public class SystemWorksTests
         glory = house.Glory - def.Glory;
         Assert.Contains(w.History, hst => hst.Text.Contains(def.Name) && hst.Text.Contains("stands"));
         Assert.Equal(1, w.Counter(SystemWorks.WondersCounter));
-        Year(tc); Assert.True(house.Glory <= glory + def.Glory, "given once");
+        int was = house.Glory; Year(tc); Assert.True(house.Glory < was + def.Glory, "given once");   // a battle won in the year may add its point; the work's glory does not come again
+        Assert.Equal(1, w.Counter(SystemWorks.WondersCounter));
     }
 
     [Fact]

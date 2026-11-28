@@ -324,15 +324,6 @@
       "choices": [
         {
           "id": "claim_lawfully",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Honorable",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "cost": {
             "influence": 2
           },
@@ -607,15 +598,6 @@
       "choices": [
         {
           "id": "defend_in_law",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Honorable",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "cost": {
             "influence": 2
           },
@@ -803,15 +785,6 @@
         },
         {
           "id": "hold_until_death",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Proud",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "setCharFlag",
@@ -906,11 +879,23 @@
           "id": "play_them_against",
           "requires": [
             {
-              "type": "trait",
-              "role": "self",
-              "trait": "Schemer",
-              "kind": "aptitude",
-              "present": true
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "intrigue",
+                  "op": "gte",
+                  "value": 2
+                }
+              ]
             }
           ],
           "effects": [

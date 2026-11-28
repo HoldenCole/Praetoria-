@@ -101,6 +101,23 @@ also a say in what they will want, and forcing one against their nature has a co
 **The loser of a quarrel** over an office or a command, when the other one gets it, thinks 8 the less of them and
 stops coming to table. The winner has nothing to forgive.
 
+## Outgrown (2026-11-28)
+
+A review found a Fleet Admiral who still wanted to "earn a command". As each year opens (`AmbitionSystem.Outgrow`, before the
+year's reports are drawn) an ambition someone has outgrown is changed:
+
+- **Anyone** on the navy's ladder at Admiral or above (rank 5 of 6) who wants to earn a command has earned it by rank, and now
+  wants a fleet of their own to command (*Command a Fleet*), unless they are of another house and command one already (next). The
+  head is told so in the year in brief; one of the house begins the new pursuit with the note "Has earned a command by rank, and
+  wants a fleet of their own."
+- **One of another house** who wants to earn a command and commands a fleet has the command they wanted, and now wants to outshine
+  every rival.
+- One of the player's house below Admiral who commands a fleet is left to the pursuit above: having what they wanted is a story of
+  its own, and they want something else when it is over.
+
+The events audit (docs/TOOLS.md, "The events audit") reports anyone it finds still wanting to earn a command at Admiral or above,
+or commanding a fleet of another house: none, after this.
+
 ## The house divides behind a quarrel
 
 Closed straight off the register on 2026-11-15 (the second half of docs/GAPS.md A5). While two of the house quarrel

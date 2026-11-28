@@ -3,7 +3,7 @@
     {
       "id": "the_naming_of_a_child",
       "title": "The Naming of a Child",
-      "body": "{child.name} has been born to you and {spouse.name}, and the house is waiting to hear the name said aloud. It is already written in the book. What is left is how it is given, and whose family it is seen to come from. {spouse.name} has said once, quietly, which family they would like it to be.",
+      "body": "{child.name} has been born to you and {spouse.name}, and the house is waiting to hear the name said aloud. It is already written in the book. What is left is how it is given, and whose family it is seen to come from. {spouse.first} has said once, quietly, which family {spouse.he} would like it to be.",
       "choices": {
         "a_naming_feast": "Hold a naming feast the city hears of. {spouse.name} is glad of it.",
         "a_name_from_their_side": "Say it is a name from {spouse.name}'s family. Your marriage is the warmer for it.",
@@ -67,7 +67,7 @@
     {
       "id": "the_wedding_remembered",
       "title": "The Wedding Remembered",
-      "body": "Your wedding day with {spouse.name} has come round again, and it is a round number of years. The house keeps count even when you do not. Somebody has asked whether there is to be anything for the day, and {spouse.name} is waiting to hear the answer as much as anyone.",
+      "body": "Your wedding day with {spouse.name} has come round again, and it is a round number of years. The house keeps count even when you do not. Somebody has asked whether there is to be anything for the day, and {spouse.first} is waiting to hear the answer as much as anyone.",
       "choices": {
         "a_feast_for_both_families": "Give a feast for both families, and let the Reach see it (800 credits). {spouse.name} is glad of it.",
         "a_gift_between_the_two_of_you": "Give {spouse.name} a gift, and keep the evening for the two of you. It does the marriage good.",

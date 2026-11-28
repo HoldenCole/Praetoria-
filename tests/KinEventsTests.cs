@@ -103,7 +103,9 @@ public class KinEventsTests
         EveryChoice("a_grandchild_is_born", Born, (w, b, _) =>
         {
             Assert.Equal("son", b.Resolve("parent")); Assert.Equal("grandbabe", b.Resolve("grandchild")); Assert.False(IsEligible(w, "a_grandchild_is_born"));   // once for each head
-            w.Protagonist!.Flags.Remove("had_a_grandchild"); Assert.True(IsEligible(w, "a_grandchild_is_born"));          // a new head, who has not had one, has theirs
+            w.Protagonist!.Flags.Remove("had_a_grandchild"); Assert.False(IsEligible(w, "a_grandchild_is_born"));         // and once for each grandchild
+            var next = Add(w, Mine, "grandbabe2", 0); next.FatherId = "son"; Blood(w, "son", next.Id); next.Flags.Add(DynastySystem.GrandchildChar);
+            Assert.True(IsEligible(w, "a_grandchild_is_born"));                                                            // a head who has not had one has theirs
         });
         // the sister's child is blood of one bound to the head by blood, and no grandchild
         var w2 = Base(50); var niece = Add(w2, Mine, "niece", 0); niece.MotherId = Sister; Blood(w2, Sister, niece.Id); w2.WorldFlags.Add(DynastySystem.BornFlag);

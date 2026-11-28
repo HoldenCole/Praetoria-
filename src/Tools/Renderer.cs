@@ -16,16 +16,16 @@ public static class Renderer
     {
         var ctx = new EvalContext(world, fired.Binding, NoRng);
 
-        string title = text?.Title ?? fired.Def.Id;
+        string title = text?.TitleOf(fired.Version) ?? fired.Def.Id;
         Console.WriteLine();
         Console.WriteLine($"  ┌─ {TextRenderer.Substitute(title, ctx)}  [{fired.Def.Tier}]");
-        if (text != null && !string.IsNullOrWhiteSpace(text.Body))
-            Console.WriteLine(Indent(TextRenderer.Substitute(text.Body, ctx), "  │  "));
+        if (text != null && !string.IsNullOrWhiteSpace(text.BodyOf(fired.Version)))
+            Console.WriteLine(Indent(TextRenderer.Substitute(text.BodyOf(fired.Version), ctx), "  │  "));
 
         for (int i = 0; i < choices.Count; i++)
         {
             var oc = choices[i];
-            string label = text != null && text.Choices.TryGetValue(oc.Choice.Id, out var t)
+            string label = text?.ChoiceOf(oc.Choice.Id, fired.Version) is { } t
                 ? TextRenderer.Substitute(t, ctx)
                 : oc.Choice.Id;
             string marker = oc.Available ? $"{i + 1}" : "✗";

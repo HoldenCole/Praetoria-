@@ -5,7 +5,7 @@
       "choices": { "take_the_coin": "Take the purse and promise your vote for the motion of {whip.house}. Six hundred credits.", "name_your_price": "No coin. Your vote for the motion of {whip.house}, for a favour to be named later.", "show_them_the_door": "Show the whip the door, purse and all." } },
     { "id": "a_censure_on_the_docket", "title": "A Motion Against the House",
       "body": "The clerk reads the docket and {self.house}'s name is in it: a motion of censure or embargo, moved by a rival, to be voted next session. The benches are already counting. So should you.",
-      "choices": { "answer_in_the_chamber": "Answer it from the floor. Oratory.", "call_in_favours": "Spend the night calling in favours (2 influence): the houses that owe yours one vote against it.", "let_them_talk": "Let it stand unanswered. Contempt is an argument." } },
+      "choices": { "answer_in_the_chamber": "Answer it from the floor.", "call_in_favours": "Spend the night calling in favours (2 influence): the houses that owe yours one vote against it.", "let_them_talk": "Let it stand unanswered. Contempt is an argument." } },
     { "id": "censured", "title": "The Censure Carries",
       "body": "The Senate has censured {self.house}. The clerk's copy is delivered with the seal still warm. Legitimacy bleeds from it; so does the question of what you do with the chamber's verdict in hand.",
       "choices": { "bow_to_it": "Bow to it and say the words.", "defy_it": "Tear it in half on the floor. Proud.", "remember_who_voted": "Say nothing. Write down every name." } },

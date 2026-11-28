@@ -65,6 +65,31 @@ public sealed class AmbitionSystem
     public AmbitionSystem(BusinessCatalog ventures, HoldingCatalog holdings, TitleCatalog? titles, CareerCatalog careers) { _ventures = ventures; _holdings = holdings; _titles = titles; _careers = careers; }
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
+
+    /// <summary>The rank in the navy at which a command has been earned: Admiral.</summary>
+    public const int CommandEarnedRank = 5;
+    /// <summary>What someone wants, where they have outgrown it (docs/AMBITIONS.md, "Outgrown"): one who has risen to Admiral or above has
+    /// earned their command, and wants now a fleet of their own to command; one of another house who commands a fleet has the command they
+    /// wanted, and wants now to outshine every rival. The people of the player's house below Admiral who command a fleet are left to
+    /// <see cref="Tick"/>, where having what they wanted is a story of its own. Called as each year opens, so no profile or report shows a
+    /// Fleet Admiral who still wants to earn a command. RNG-free.</summary>
+    public static void Outgrow(World w, CareerCatalog careers)
+    {
+        string mine = w.Protagonist?.HouseId ?? "";
+        foreach (var c in w.LivingCharacters().OrderBy(c => c.Id, StringComparer.Ordinal))
+        {
+            if (c.Ambition != "earn_a_command") continue;
+            bool commands = w.Fleets.Values.Any(f => f.AdmiralId == c.Id);
+            bool earned = c.CareerTrack == "military" && c.CareerRank >= Math.Min(CommandEarnedRank, careers.MaxRank("military") ?? CommandEarnedRank);
+            if (commands && c.HouseId != mine) c.Ambition = "outshine_all_rivals";
+            else if (earned) c.Ambition = "command_a_fleet";
+            else continue;
+            if (c.Id == w.ProtagonistId)
+                w.Tell("good", commands ? "You have earned your command by your rank, and you hold one. What you want now is to keep a fleet of your own." : "You have earned your command by your rank. What you want now is a fleet of your own to command.", "you");
+            else if (c.HouseId == mine) c.Pursuit = new Pursuit { Goal = c.Ambition, Since = w.Turn, Note = "Has earned a command by rank, and wants a fleet of their own." };
+        }
+    }
+
     private static void Regard(World w, Character? from, Character? to, int delta, int floor = -100)
     {
         if (from == null || to == null || from.Id == to.Id) return;

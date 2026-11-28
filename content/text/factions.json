@@ -5,7 +5,7 @@
       "choices": { "hear_them_out": "Hear {whip.him} out. A bench is a thing to be courted by.", "my_vote_is_my_own": "My vote is my own. The chamber likes an independent." } },
     { "id": "the_bench_forms", "title": "A Bench Takes Shape",
       "body": "The Senate's clerks have a new name on their rolls, and {self.house} is on it: a bench of houses that have voted together often enough to be counted as one. You lead it, it has a record to make, and its houses lean the way you vote.",
-      "choices": { "a_dinner_for_the_bench": "Give the bench a dinner. Five hundred credits.", "set_the_terms": "Stand up and say what the bench is for. Oratory." } },
+      "choices": { "a_dinner_for_the_bench": "Give the bench a dinner. Five hundred credits.", "set_the_terms": "Stand up and say what the bench is for." } },
     { "id": "the_whips_displeasure", "title": "The Whip's Displeasure",
       "body": "{self.house} voted against its bench. The leader's note is short and the leader's regard is shorter. The bench will remember it at the count of the next motion {self.house} moves: every house of it leans a little against it.",
       "choices": { "apologise": "Apologise for the vote, and the bench lets it go. One influence, a little pride.", "stand_by_it": "Stand by it to the bench's face. Proud.", "say_nothing": "Say nothing. Let them decide what the silence means." } },

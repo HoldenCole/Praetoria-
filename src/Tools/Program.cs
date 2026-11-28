@@ -23,6 +23,7 @@ using Praetoria.Tools;
 //   disown    [--scenario id] [--seeds N]                        who other houses strike from their lines or cast out, and why (DISOWN_PLAYER=1: the head strikes a child out)
 //   charges   [--scenario id|all] [--seeds N] [--turns N]        a charge against the powerful: how the accused answer, exiles called home, threats (docs/LADDER.md)
 //   gold      [--scenario id|all] [--seeds N] [--turns N]          foreign gold before a war vote: offers made, taken, refused, exposed, votes turned, charges (GOLD_WAR=thessar:8, GOLD_PLAYER=take)
+//   events    [--scenario id|all] [--years N] [--seeds N] [--act]  each start played by a stand-in who answers reports: how often each card came, repeats for one head, misfires (docs/TOOLS.md)
 // The whole simulation runs here without Godot — the Milestone-1 rule.
 
 var (command, opts) = ParseArgs(args);
@@ -65,6 +66,7 @@ try
         "heirs"    => HeirsProbe.Run(opts),
         "disown"   => DisownProbe.Run(opts),
         "gold"     => GoldProbe.Run(opts),
+        "events"   => EventsAudit.Run(opts),
         _ => Unknown(command)
     };
 }
@@ -91,6 +93,8 @@ static (string, Options) ParseArgs(string[] args)
             case "--size" when i + 1 < args.Length: o.Size = args[++i]; break;
             case "--autonomy" when i + 1 < args.Length: o.Autonomy = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
             case "--seeds" when i + 1 < args.Length: o.Seeds = int.Parse(args[++i]); break;
+            case "--years" when i + 1 < args.Length: o.Years = int.Parse(args[++i]); break;
+            case "--act": o.Act = true; break;
             case "--difficulty" when i + 1 < args.Length: o.Difficulty = double.Parse(args[++i], System.Globalization.CultureInfo.InvariantCulture); break;
             case "--name" when i + 1 < args.Length: o.Creation.Name = args[++i]; break;
             case "--sex" when i + 1 < args.Length: o.Creation.Sex = args[++i]; break;
@@ -118,6 +122,7 @@ static int Help()
     Console.WriteLine("  qa       [--scenario id|all] [--seeds N] [--turns N]   QA soak: randomised play, determinism, save/load, coverage");
     Console.WriteLine("  drift    --scenario id --seed N [--turns N]            one game straight and once saved and resumed: the first year they differ");
     Console.WriteLine("  roads    [--scenario id|all] [--seeds N] [--turns N]   three players with an end in view (general, seceder, courtier): how far each gets, and what refuses them");
+    Console.WriteLine("  events   [--scenario id|all] [--years N] [--seeds N] [--act]   each start played by a stand-in who answers reports: repeats, waiting times and misfires");
     Console.WriteLine("  turn [--seed N] [--turns N]   full Briefing→Action→Resolve cycle with pools + NPCs");
     Console.WriteLine("  economy [--seed N] [--turns N] domain economy: holdings accrue, invest in buildings");
     Console.WriteLine("  crisis [--seed N]              crisis gate/cascade/damper demonstration");
@@ -159,5 +164,7 @@ sealed class Options
     public string Intensity = "default";   // GDD §20 crisis intensity: off | low | default | dominant
     public double Autonomy = 1.0;          // GDD §20 family autonomy
     public int Seeds = 10;                 // simulate: how many seeds
+    public int Years;                      // events: how many years each start is played (0: twenty)
+    public bool Act;                       // events: the stand-in gives the soak's random commands as well as answering reports
     public Praetoria.Core.Creation.CreationOptions Creation = new();   // character customisation at start
 }

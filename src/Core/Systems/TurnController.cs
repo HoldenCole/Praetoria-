@@ -60,6 +60,9 @@ public sealed class TurnController
     private readonly DynastySystem _dynasty;           // always-on — the dynasty IS the game (GDD §14)
     private readonly int _briefingBudget;
     private readonly List<BriefingItem> _briefing = new();
+    /// <summary>The world flags marked this year that the year's reports have already been drawn on: a flag marked since, by the head's own
+    /// act, is a moment of the year (docs/EVENTS.md, "Moments in the year").</summary>
+    private readonly HashSet<string> _drawnOn = new(StringComparer.Ordinal);
 
     public IReadOnlyList<BriefingItem> Briefing => _briefing;
 
@@ -155,6 +158,28 @@ public sealed class TurnController
         _houseTrade = new HouseTradeSystem(content.Trade, _economy, _fleets);
         _greatCrisis = new GreatCrisisSystem(content.GreatCrisis, _fleets); _greatCrisis.Polities = _polities;
         _briefingBudget = briefingBudget;
+        Executor.Executed += (command, _) => AfterAct(command);
+    }
+
+    /// <summary>The flags marked this year, as the year's reports stand drawn on them.</summary>
+    private void NoteMoments()
+    {
+        _drawnOn.Clear();
+        foreach (var f in World.WorldFlags) if (World.WorldCounters.TryGetValue("mark:" + f, out int at) && at == World.Turn) _drawnOn.Add(f);
+    }
+
+    /// <summary>After an act of the head's in the year (a command, or an answer to a report): a world flag it has marked is a moment of the
+    /// year, and a report that answers it is drawn at once into the year's reports (docs/EVENTS.md, "Moments in the year"). So the wedding
+    /// comes with the match agreed, in its year, and not as the next year opens after the year in brief has told it as done.</summary>
+    private void AfterAct(ICommand command)
+    {
+        if (Phase != TurnPhase.Action || World.InAcademy || command.ActorId != World.ProtagonistId) return;
+        var fresh = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var f in World.WorldFlags) if (!_drawnOn.Contains(f) && World.WorldCounters.TryGetValue("mark:" + f, out int at) && at == World.Turn) fresh.Add(f);
+        if (fresh.Count == 0) return;
+        _drawnOn.UnionWith(fresh);
+        if (Engine.DrawMoment(World, fresh, _briefing.Select(b => b.Fired.Def.Id)) is { } fired) _briefing.Add(new BriefingItem(fired));
+        SyncRng();
     }
 
     public ActionPools PlayerPools => World.PoolsFor(World.ProtagonistId);
@@ -197,16 +222,20 @@ public sealed class TurnController
         Phase = TurnPhase.Briefing;
         _briefing.Clear();
         DynastySystem.MarkRanks(World);   // how long each has held the rank they hold, before the year's reports are chosen
+        AmbitionSystem.Outgrow(World, _content.Careers);   // and what each wants, where they have outgrown it: no Admiral still wants to earn a command (docs/AMBITIONS.md)
         VoteMarks.Leanings(World, _senate, World.Protagonist?.HouseId);   // who leans which way on the player's motion as the year opens, so a report that says so is right (docs/events/votes.md, "Promises")
         VoteMarks.Refresh(World, World.Protagonist?.HouseId);   // and the bargains and favours as they stand after the year's turn: a war or blood since the session closes a bargain with that house
         using (Perf.Time("begin:events"))
             foreach (var fired in Engine.SelectBriefing(World, _briefingBudget))
                 _briefing.Add(new BriefingItem(fired));
+        NoteMoments();
 
         Presentation.YearInBrief.Mark(World);   // where the treasury stands as the year opens, and how it moved over the last (the year in brief)
         Phase = TurnPhase.Action;
         SyncRng();
-        return _briefing;
+        // the reports as the year opens: a report a moment of the year brings on later joins Briefing, not this list, so a caller may
+        // answer these in a loop over them (docs/EVENTS.md, "Moments in the year")
+        return _briefing.ToArray();
     }
 
     /// <summary>The world as a save, in the middle of the year: what has been done this year is in it, and the year's reports with the
@@ -218,7 +247,7 @@ public sealed class TurnController
         if (Phase != TurnPhase.Action) return SaveSystem.Serialize(World);
         World.MidYear = new MidYear
         {
-            Reports = _briefing.Select(b => new PendingReport { EventId = b.Fired.Def.Id, Roles = new Dictionary<string, string>(b.Fired.Binding.All), Resolved = b.Resolved, ChosenId = b.ChosenId }).ToList()
+            Reports = _briefing.Select(b => new PendingReport { EventId = b.Fired.Def.Id, Roles = new Dictionary<string, string>(b.Fired.Binding.All), Resolved = b.Resolved, ChosenId = b.ChosenId, Version = b.Fired.Version }).ToList()
         };
         try { return SaveSystem.Serialize(World); }
         finally { World.MidYear = null; }
@@ -235,10 +264,11 @@ public sealed class TurnController
         foreach (var r in mid.Reports)
         {
             if (_content.Event(r.EventId) is not { } def) continue;
-            _briefing.Add(new BriefingItem(new FiredEvent(def, Binding.From(r.Roles))) { Resolved = r.Resolved, ChosenId = r.ChosenId });
+            _briefing.Add(new BriefingItem(new FiredEvent(def, Binding.From(r.Roles), r.Version)) { Resolved = r.Resolved, ChosenId = r.ChosenId });
         }
+        NoteMoments();   // what was marked this year before the save has had its reports drawn already
         Phase = TurnPhase.Action;
-        return _briefing;
+        return _briefing.ToArray();
     }
 
     /// <summary>A term at the Academy opens in place of a turn (docs/ACADEMY.md): no world system runs and the year does not advance; the
@@ -252,7 +282,7 @@ public sealed class TurnController
             _briefing.Add(new BriefingItem(fired));
         Phase = TurnPhase.Action;
         SyncRng();
-        return _briefing;
+        return _briefing.ToArray();
     }
 
     /// <summary>The choices for a briefing item, flagged Available only if requirements hold AND the

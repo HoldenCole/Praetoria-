@@ -44,7 +44,7 @@ else if (G.World!.InAcademy && G.Academy() is { } am)
         @if (_savedFlash) { <div class="endturn-dock"><span class="notice">@_flashText</span></div> }
         @if (_openReport != null && m.Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item)) is { } card)
         {
-            <EventWindow Card="card" OnClose="() => _openReport = null" OnChoose="Choose" />
+            <EventWindow @ref="_eventWin" Card="card" OnClose="() => _openReport = null" OnChoose="Choose" />
         }
         @if (am.Tutorial.Length == 0)
         {
@@ -180,7 +180,7 @@ else
 
         @if (_openReport != null && m.Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item)) is { } card)
         {
-            <EventWindow Card="card" OnClose="() => _openReport = null" OnChoose="Choose" />
+            <EventWindow @ref="_eventWin" Card="card" OnClose="() => _openReport = null" OnChoose="Choose" />
         }
         @if (m.EpilogueText != null && !_epilogueDismissed)
         {
@@ -279,6 +279,8 @@ else
     /// <summary>The Academy: this browser has graduated before (so the short course is offered first); the year just ended (so the passing-out card shows).</summary>
     private bool _beenBefore, _passingOut;
     private BriefingCard? _openReport;
+    /// <summary>The event window in front, so a digit on a locked answer can flash what it needs.</summary>
+    private EventWindow? _eventWin;
     /// <summary>The reports Enter has already put in front this year: Enter opens each unanswered one once, then ends the year.</summary>
     private readonly HashSet<object> _enterShown = new(ReferenceEqualityComparer.Instance);
     private SuccessionRecord? _succession; private bool _primer, _primerChecked, _saves, _settings; private int _keptSaves; private ClientSettings _set = ClientSettings.Default;
@@ -364,7 +366,8 @@ else
             if (_openReport == null || key[0] is < '1' or > '9') return;
             var card = G.Court().Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item));
             int n = key[0] - '0';
-            if (card == null || card.Resolved || n > card.Choices.Count || !card.Choices[n - 1].Available) return;
+            if (card == null || card.Resolved || n > card.Choices.Count) return;
+            if (!card.Choices[n - 1].Available) { _eventWin?.Press(n - 1); return; }   // a locked answer says what it needs, as a click on it does
             Choose((card, card.Choices[n - 1].Id));
         }
         else if (_set.NumberKeys && key.Length == 1 && RailKeys.IndexOf(key[0]) is >= 0 and var i && G.World?.InAcademy != true) { var rail = Rail().ToList(); if (i < rail.Count) _screen = rail[i].id; }

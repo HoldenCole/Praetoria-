@@ -7,6 +7,7 @@
       "tier": "situation",
       "weight": 60,
       "repeatable": true,
+      "cooldown": 0,
       "when": [
         {
           "type": "worldFlag",
@@ -187,6 +188,11 @@
           "type": "track",
           "role": "self",
           "track": "military"
+        },
+        {
+          "type": "topRank",
+          "role": "self",
+          "present": false
         }
       ],
       "choices": [

@@ -77,7 +77,13 @@ public sealed class AddBondEffect : IEffect
                 }
         }
         Write(ctx.World, f, t);
-        if (Bond == BondType.Marriage) Write(ctx.World, t, f);
+        if (Bond == BondType.Marriage)
+        {
+            Write(ctx.World, t, f);
+            // the marriage is made now, in the year, with its record and its mark, and not at the year's turn: so the wedding comes with it,
+            // in this year's reports (docs/EVENTS.md, "Moments in the year")
+            Systems.CourtshipSystem.Sync(ctx.World, announce: true);
+        }
     }
 
     private void Write(World world, string from, string to)

@@ -101,6 +101,15 @@ public static class ConditionParser
                 return new InLineCondition(Str(el, "role"), OptStr(el, "vsRole", "self"), Bool(el, "value", true));
             case "buried":
                 return new BuriedCondition(Str(el, "role"), Int(el, "years", 1));
+            case "office":
+                return new OfficeCondition(OptStr(el, "role", "self"), Str(el, "office"), Bool(el, "present", true));
+            case "ventures":
+                return new VenturesCondition(OptStr(el, "role", "self"), Op(el), Int(el, "value", 1));
+            case "topRank":
+                return new TopRankCondition(OptStr(el, "role", "self"), Bool(el, "present", true));
+            case "origin":
+                return OptStr(el, "origin", "") is "old" or "new" ? new OriginCondition(OptStr(el, "role", "self"), OptStr(el, "origin", ""))
+                    : throw new ContentException("'origin' must be \"old\" or \"new\".");
 
             default:
                 throw new ContentException($"Unknown condition type '{type}'.");

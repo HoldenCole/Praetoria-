@@ -13,6 +13,10 @@ public sealed class CommandExecutor
     /// <summary>Ordered, human-readable record of every command that executed this run.</summary>
     public IReadOnlyList<string> Log => _log;
 
+    /// <summary>Told after every command that executed, the player's and every other: the turn uses it to draw at once a report that answers a
+    /// moment the head's own act has made (docs/EVENTS.md, "Moments in the year").</summary>
+    public event Action<ICommand, CommandContext>? Executed;
+
     /// <summary>Execute if legal. Returns false (and records nothing) if the command can't run.</summary>
     public bool TryExecute(ICommand command, CommandContext ctx)
     {
@@ -25,6 +29,7 @@ public sealed class CommandExecutor
         if (command.ActorId == ctx.World.ProtagonistId && command is not ResolveChoiceCommand) Systems.VoteMarks.Refresh(ctx.World, ctx.World.Protagonist?.HouseId);
         Systems.FirstStepsSystem.Acted(ctx.World, command);   // the first years: an act of the player's own ticks its step (docs/ACADEMY.md, "The first years")
         _log.Add($"T{ctx.World.Turn} {command.ActorId}: {command.Describe()}");
+        Executed?.Invoke(command, ctx);
         return true;
     }
 }

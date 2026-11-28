@@ -11,16 +11,10 @@
           "name": "sovereign",
           "when": [
             {
-              "type": "title",
+              "type": "office",
               "role": "sovereign",
-              "title": "emperor",
+              "office": "sovereign",
               "present": true
-            },
-            {
-              "type": "rank",
-              "role": "sovereign",
-              "op": "gt",
-              "vsRole": "self"
             }
           ]
         }

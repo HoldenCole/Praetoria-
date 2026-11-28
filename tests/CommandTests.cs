@@ -90,7 +90,8 @@ public class CommandTests
             }
         };
         var engine = TestContent.Engine(w, TestContent.Db(new[] { def }));
-        var fired = engine.NextEvent(w)!;
+        // a card whose answers are closed is not drawn (docs/EVENTS.md, "Two answers open"): here it is in hand, as one drawn before the pools were spent
+        var fired = new FiredEvent(def, new Binding("self"));
         var cmd = new ResolveChoiceCommand(engine, fired, "bribe", "self");
 
         Assert.False(cmd.CanExecute(Ctx(w)));

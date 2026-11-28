@@ -285,7 +285,7 @@ internal static class Qa
     /// stopping after two take. <see cref="CommandExecutor.TryExecute"/> guards each with CanExecute, so illegal picks cost nothing;
     /// what is recorded under <c>cmd/</c> in the "taken" table is the coverage. Candidates are built in id order so a replay and a
     /// resumed save draw the same list.</summary>
-    private static void Act(TurnController tc, World w, ContentDatabase content, IRng decisions, Dictionary<string, int>? taken)
+    internal static void Act(TurnController tc, World w, ContentDatabase content, IRng decisions, Dictionary<string, int>? taken)
     {
         var labels = new Dictionary<ICommand, string>();
         var cands = Candidates(tc, w, content, decisions); cands.AddRange(ServiceAndLine(w, content, decisions, tc, labels)); if (cands.Count == 0) return;
@@ -756,9 +756,14 @@ internal static class Qa
         var text = content.Text(fired.Def.Id);
         if (text == null) { tokens.Add($"{fired.Def.Id}: no text entry"); return; }
         var ctx = new EvalContext(world, fired.Binding, NoRng, content);
-        Check(fired.Def.Id, "title", TextRenderer.Substitute(text.Title ?? "", ctx), tokens);
-        Check(fired.Def.Id, "body", TextRenderer.Substitute(text.Body, ctx), tokens);
-        foreach (var kv in text.Choices) Check(fired.Def.Id, kv.Key, TextRenderer.Substitute(kv.Value, ctx), tokens);
+        // every version of the words is read against the binding, not only the one drawn, so a version seldom drawn is checked too
+        for (int v = 0; v < text.VersionCount; v++)
+        {
+            string at = v == 0 ? "" : $" (version {v + 1})";
+            Check(fired.Def.Id, "title" + at, TextRenderer.Substitute(text.TitleOf(v) ?? "", ctx), tokens);
+            Check(fired.Def.Id, "body" + at, TextRenderer.Substitute(text.BodyOf(v), ctx), tokens);
+            foreach (var c in fired.Def.Choices) if (text.ChoiceOf(c.Id, v) is { } words) Check(fired.Def.Id, c.Id + at, TextRenderer.Substitute(words, ctx), tokens);
+        }
     }
 
     private static void Check(string id, string part, string rendered, HashSet<string> tokens)

@@ -352,6 +352,7 @@
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
+      "cooldown": 0,
       "roles": [
         {
           "name": "dead",

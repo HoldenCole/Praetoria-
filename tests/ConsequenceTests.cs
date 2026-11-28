@@ -76,7 +76,8 @@ public class ConsequenceTests
         };
         var db = TestContent.Db(new[] { def });
         var engine = TestContent.Engine(w, db);
-        var fired = engine.NextEvent(w)!;
+        Assert.Null(engine.NextEvent(w));   // a card whose only answer is closed is not drawn (docs/EVENTS.md, "Two answers open")
+        var fired = new FiredEvent(def, new Binding("self"));
 
         Assert.False(engine.OfferChoices(fired, w)[0].Available);
         Assert.Throws<InvalidOperationException>(() => engine.Resolve(fired, w, "hard"));

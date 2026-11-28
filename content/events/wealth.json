@@ -984,7 +984,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that {kin.name}'s money was {kin.name}'s to place. It was the answer they had hoped for."
+              "text": "{self.name} said that {kin.name}'s money was {kin.his} own to place. It was the answer {kin.he} had hoped for."
             }
           ]
         },
@@ -1018,7 +1018,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sat down with {kin.name} and went through what the house hears of the Exchange before the Exchange hears it. {kin.name} listened closely."
+              "text": "{self.name} sat down with {kin.name} and went through what the house hears of the Exchange before the Exchange hears it. {kin.He} listened closely."
             }
           ]
         },

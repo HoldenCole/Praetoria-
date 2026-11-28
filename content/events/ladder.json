@@ -7,6 +7,7 @@
       "tier": "situation",
       "weight": 26,
       "repeatable": true,
+      "cooldown": 0,
       "when": [
         {
           "type": "worldFlag",
@@ -1035,7 +1036,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let it be known that a house with worlds to run cannot sit in the chamber all year. Some of the benches accepted it."
+              "text": "{self.name} let it be known that a house with its own affairs to run cannot sit in the chamber all year. Some of the benches accepted it."
             }
           ],
           "requires": [

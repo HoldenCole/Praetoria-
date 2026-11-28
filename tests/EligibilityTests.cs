@@ -55,7 +55,8 @@ public class EligibilityTests
     public void RepeatableEvent_StaysEligible_AfterFiring()
     {
         var w = TestContent.ThreeCadetWorld();
-        var def = new EventDef { Id = "rep", Repeatable = true, Choices = new[] { new Choice { Id = "x" } } };
+        // a repeatable card with no waiting time; one with a waiting time waits it (EventCardsTests)
+        var def = new EventDef { Id = "rep", Repeatable = true, Cooldown = 0, Choices = new[] { new Choice { Id = "x" } } };
         var db = TestContent.Db(new[] { def });
         var engine = TestContent.Engine(w, db);
 

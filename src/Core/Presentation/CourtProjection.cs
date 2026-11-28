@@ -420,13 +420,14 @@ public static class CourtProjection
                 var items = oc.Choice.Cost.Where(c => c.Value != 0).Select(c => new StakeItem("pool:" + c.Key, ChoiceStakes.PoolIcon(c.Key), -c.Value, Counted.Figure(-c.Value),
                     (c.Key == Pool.Treasury ? Counted.TreasuryActions(c.Value) : c.Key == Pool.Agents ? Counted.Agents(c.Value) : $"{c.Value} {c.Key}") + " this year", false, pools.Get(c.Key).ToString(), Counted.Figure(pools.Get(c.Key) - c.Value))).Concat(ChoiceStakes.Items(oc.Choice, ectx, p)).ToList();
                 return new ChoiceCard(oc.Choice.Id,
-                    text != null && text.Choices.TryGetValue(oc.Choice.Id, out var ct) ? TextRenderer.Substitute(ct, ectx) : oc.Choice.Id,
+                    text?.ChoiceOf(oc.Choice.Id, fired.Version) is { } ct ? TextRenderer.Substitute(ct, ectx) : oc.Choice.Id,
                     cost, oc.Available, reason, ChoiceStakes.Of(oc.Choice, ectx, p), ChoiceStakes.Overdraws(oc.Choice, ectx, p))
                     { Items = items, Needs = ChoiceStakes.Needs(oc.Choice, ectx) };
             }).ToList();
-            briefing.Add(new BriefingCard(item, TextRenderer.Substitute(text?.Title ?? fired.Def.Id, ectx), fired.Def.Tier.ToString().ToUpperInvariant(),
-                fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.Body) ? "" : TextRenderer.Substitute(text!.Body, ectx), item.Resolved, choices)
-                { Facts = ReportFacts.For(w, fired.Def, content, fired.Binding), Answer = item.Resolved && item.ChosenId.Length > 0 ? (text != null && text.Choices.TryGetValue(item.ChosenId, out var answered) ? TextRenderer.Substitute(answered, ectx) : item.ChosenId) : "" });
+            // the words of the version the card was drawn in (docs/EVENTS.md, "Versions")
+            briefing.Add(new BriefingCard(item, TextRenderer.Substitute(text?.TitleOf(fired.Version) ?? fired.Def.Id, ectx), fired.Def.Tier.ToString().ToUpperInvariant(),
+                fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.BodyOf(fired.Version)) ? "" : TextRenderer.Substitute(text!.BodyOf(fired.Version), ectx), item.Resolved, choices)
+                { Facts = ReportFacts.For(w, fired.Def, content, fired.Binding), Answer = item.Resolved && item.ChosenId.Length > 0 ? (text?.ChoiceOf(item.ChosenId, fired.Version) is { } answered ? TextRenderer.Substitute(answered, ectx) : item.ChosenId) : "" });
         }
 
         var members = house.Members.Select(w.Char).Where(c => c != null && c!.Id != p.Id).Select(c => c!)

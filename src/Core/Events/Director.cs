@@ -35,9 +35,36 @@ public sealed class Director
     /// <summary>How much likelier a report is while the thing that raised it is a year old or less.</summary>
     public const double FreshBias = 5.0;
 
-    public double WeightOf(EventDef def, World world)
+    /// <summary>How many times each card has come to the player's house, under any head: the sum of <see cref="World.Cards"/> by event.</summary>
+    public static Dictionary<string, int> HadByTheHouse(World world)
+    {
+        var had = new Dictionary<string, int>(StringComparer.Ordinal);
+        foreach (var (key, seen) in world.Cards)
+        {
+            int bar = key.IndexOf('|'); if (bar <= 0 || seen.Times <= 0) continue;
+            string id = key[..bar]; had[id] = had.GetValueOrDefault(id) + seen.Times;
+        }
+        return had;
+    }
+
+    public double WeightOf(EventDef def, World world) => WeightOf(def, world, 0);
+
+    /// <summary>Is the report raised by something that happened this year or last (a world flag it reads, marked then)?</summary>
+    public static bool IsNews(EventDef def, World world)
+    {
+        foreach (var c in def.Conditions.OfType<WorldFlagCondition>())
+            if (c.Value && world.WorldCounters.TryGetValue("mark:" + c.Flag, out var at) && world.Turn - at <= 1) return true;
+        return false;
+    }
+
+    /// <param name="had">How many times the card has come to the house before, under any head: a card the house has had is drawn the less
+    /// readily, its weight divided by one more than that, squared unless it is news of this year or last (a quarter as readily after once,
+    /// a ninth after twice; news half and a third), so the reports of a long game are more often new and news still comes (docs/EVENTS.md,
+    /// "Waiting times"). A new head may still meet it once its waiting time is out.</param>
+    public double WeightOf(EventDef def, World world, int had)
     {
         double w = Math.Max(0.0001, def.Weight);
+        if (had > 0 && def.Cooldown < 0) w /= IsNews(def, world) ? 1 + had : (1 + had) * (1 + had);   // a card that names its own wait comes as often as its author meant
 
         // Rising action: set-pieces grow more likely the longer the run has gone.
         if (def.Tier == EventTier.Setpiece)
@@ -50,8 +77,7 @@ public sealed class Director
 
         // News comes while it is news: a report raised by something that happened this year or last is drawn ahead of the rest,
         // so the card for an election does not come two years after the count (docs/PLAYTHROUGH.md, Easy, P78).
-        foreach (var c in def.Conditions.OfType<WorldFlagCondition>())
-            if (c.Value && world.WorldCounters.TryGetValue("mark:" + c.Flag, out var at) && world.Turn - at <= 1) { w *= FreshBias; break; }
+        if (IsNews(def, world)) w *= FreshBias;
 
         // A lull breeds complications: weight above-ambient events up the longer nothing has happened.
         if (def.Tier != EventTier.Ambient)
@@ -79,9 +105,10 @@ public sealed class Director
 
         double total = 0;
         var weights = new double[pool.Count];
+        var had = HadByTheHouse(world);
         for (int i = 0; i < pool.Count; i++)
         {
-            weights[i] = WeightOf(pool[i].def, world);
+            weights[i] = WeightOf(pool[i].def, world, had.GetValueOrDefault(pool[i].def.Id));
             total += weights[i];
         }
         if (total <= 0) return pool[0];

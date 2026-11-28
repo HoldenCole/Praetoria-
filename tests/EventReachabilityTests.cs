@@ -74,7 +74,8 @@ public class EventReachabilityTests
     [InlineData("raiders_from_beyond", "raided_by_nation")]
     [InlineData("the_war_abroad_is_lost", "war_lost_abroad")]
     [InlineData("the_tribute_comes_in", "nation_subdued")]
-    public void ANationFlagEvent_IsEligible_WhenItsFlagIsUp(string eventId, string flag) => Eligible("the_risen_officer", eventId, (w, _) => w.WorldFlags.Add(flag));
+    // the house has the money for a second answer: a card is drawn only with two of its answers open (docs/EVENTS.md, "Two answers open")
+    public void ANationFlagEvent_IsEligible_WhenItsFlagIsUp(string eventId, string flag) => Eligible("the_risen_officer", eventId, (w, p) => { w.WorldFlags.Add(flag); w.House(p.HouseId)!.Treasury.Credits = 20; });
     [Fact] public void TheMentionInDispatches() => Eligible("the_risen_officer", "the_mention_in_dispatches", (w, p) => { w.WorldFlags.Add("battle_won"); w.WorldFlags.Add("fought_at_the_front"); p.CareerTrack = "military"; });
     [Fact] public void TheFrontOrTheFlag() => Eligible("the_risen_officer", "the_front_or_the_flag", (_, p) => { p.CareerTrack = "military"; p.CareerRank = 1; p.Flags.Remove("command:front"); p.Flags.Remove("command:flag"); });
     [Fact] public void TheTorpedoRun() => Eligible("the_risen_officer", "the_torpedo_run", (w, p) => { w.WorldFlags.Add("at_war_any"); w.House(p.HouseId)!.Treasury.Isotopes = 2; });
@@ -83,15 +84,15 @@ public class EventReachabilityTests
     [Fact] public void TheRegentsHand() => Eligible("the_fallen_house", "the_regents_hand", (w, p) => { w.WorldFlags.Add(DynastySystem.RegencyFlag); Other(w, p).Flags.Add(DynastySystem.RegentFlag); });
     [Fact] public void TheOfficersGrievance() => Eligible("the_fallen_house", "the_officers_grievance", (w, p) => { w.WorldFlags.Add("estate_hostile:officers"); foreach (var f in w.Fleets.Values.Where(f => f.OwnerId == p.HouseId)) f.Strength = 3; if (!w.Fleets.Values.Any(f => f.OwnerId == p.HouseId)) w.Fleets["t"] = new Fleet { Id = "t", Name = "Test", OwnerId = p.HouseId, Strength = 3 }; });
     [Fact] public void TheFrontierRidesIn() => Eligible("the_fallen_house", "the_frontier_rides_in", (w, _) => { w.WorldFlags.Add("estate_hostile:frontier"); w.WorldFlags.Add("ring:rim"); });
-    [Fact] public void TheCoalitionHolds() => Eligible("the_fallen_house", "the_coalition_holds", (w, p) => Other(w, p).Flags.Add("coalition_leader"));
+    [Fact] public void TheCoalitionHolds() => Eligible("the_fallen_house", "the_coalition_holds", (w, p) => { Other(w, p).Flags.Add("coalition_leader"); p.Skills["diplomacy"] = 2; });
     [Fact] public void WhatTheSabotageTaught() => Eligible("the_fallen_house", "what_the_sabotage_taught", (_, p) => p.Flags.Add("sabotaged"));
     [Fact] public void TheBreakingPoint() => Eligible("the_fallen_house", "the_breaking_point", (_, p) => p.Flags.Add("broken"));
     [Fact] public void TheHumiliatedReturns() => Eligible("academy_crucible", "the_humiliated_returns", (w, p) => { Institute(w, 2); Other(w, p).Flags.Add("humiliated"); });
     [Fact] public void TheMarkedMan() => Eligible("academy_crucible", "the_marked_man", (w, p) => { Institute(w, 3); Other(w, p).Flags.Add("marked_for_death"); });
     [Fact] public void TheFrameUnravels() => Eligible("academy_crucible", "the_frame_unravels", (w, p) => { Institute(w, 3); Other(w, p).Flags.Add("framed"); });
     [Fact] public void ThePetitioner() => Eligible("academy_crucible", "the_petitioner", (w, p) => { Institute(w, 2); w.WorldCounters["standing"] = 2; });
-    [Fact] public void TheMinistersDilemma() => Eligible("the_fallen_house", "the_ministers_dilemma", (w, p) => { p.CareerTrack = "stewardship"; p.CareerRank = 2; p.Skills["economics"] = 2; var o = Other(w, p); o.CareerTrack = "stewardship"; o.CareerRank = 3; });
-    [Fact] public void TheTreasuryAudit() => Eligible("the_fallen_house", "the_treasury_audit", (_, p) => { p.CareerTrack = "stewardship"; p.CareerRank = 3; p.Skills["economics"] = 3; });
+    [Fact] public void TheMinistersDilemma() => Eligible("the_fallen_house", "the_ministers_dilemma", (w, p) => { p.CareerTrack = "stewardship"; p.CareerRank = 2; p.Skills["economics"] = 2; p.Skills["oratory"] = 2; var o = Other(w, p); o.CareerTrack = "stewardship"; o.CareerRank = 3; });
+    [Fact] public void TheTreasuryAudit() => Eligible("the_fallen_house", "the_treasury_audit", (_, p) => { p.CareerTrack = "stewardship"; p.CareerRank = 3; p.Skills["economics"] = 3; p.Skills["administration"] = 3; });
     [Fact] public void TheEmptyHall() => Eligible("the_fallen_house", "the_empty_hall", (w, _) => w.WorldCounters["houses_fallen"] = 1);
     [Fact] public void TheIsotopeBroker() => Eligible("the_fallen_house", "the_isotope_broker", (w, p) => w.House(p.HouseId)!.Treasury.Isotopes = 3);
     [Fact] public void TheHeliumGlut() => Eligible("the_fallen_house", "the_helium_glut", (w, p) =>

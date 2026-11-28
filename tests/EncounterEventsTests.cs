@@ -243,7 +243,9 @@ public class EncounterEventsTests
 
     private static (World w, Character me, Character prince, House theirs) Merchant()
     {
-        var (w, me, _, theirs) = Start(); var prince = Add(w, theirs, "prince", 50); theirs.Wealth = 1_000_000; theirs.Treasury.Credits = Math.Max(20, theirs.Treasury.Credits); Gifted(me); return (w, me, prince, theirs);
+        var (w, me, _, theirs) = Start(); var prince = Add(w, theirs, "prince", 50); theirs.Wealth = 1_000_000; theirs.Treasury.Credits = Math.Max(20, theirs.Treasury.Credits); Gifted(me);
+        theirs.HeadId = prince.Id;   // the one who raises the house's venture heads it (the grandee is bound by the office of head: docs/EVENTS.md)
+        return (w, me, prince, theirs);
     }
 
     [Fact]

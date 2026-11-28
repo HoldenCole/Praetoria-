@@ -121,9 +121,10 @@ public class ProseTests
         {
             Id = "probe", Roles = new[] { new RoleDef { Name = "kin" } },
             Conditions = imperiumOnly ? new ICondition[] { new EraCondition(World.EraImperium, true) } : Array.Empty<ICondition>(),
-            Choices = new[] { new Choice { Id = "a", Effects = new IEffect[] { new LogEffect(line) } } }
+            // two answers, as every event must have (docs/EVENTS.md, "Two answers open"); the line under test is the first one's chronicle
+            Choices = new[] { new Choice { Id = "a", Effects = new IEffect[] { new LogEffect(line) } }, new Choice { Id = "b" } }
         };
-        var text = new EventText { Id = "probe", Title = "A Probe", Body = "You are asked.", Choices = new Dictionary<string, string> { ["a"] = "Answer." } };
+        var text = new EventText { Id = "probe", Title = "A Probe", Body = "You are asked.", Choices = new Dictionary<string, string> { ["a"] = "Answer.", ["b"] = "Say nothing." } };
         return ContentValidator.Validate(TestContent.Db(new[] { e }, new[] { text })).Where(i => i.Severity == "error").ToList();
     }
 

@@ -125,6 +125,32 @@ Read for how they solved a problem. Code under the GPL cannot be copied into thi
   would take single checklists from it after reading them, and not install it whole: it is somebody else's
   instructions running in our sessions.
 
+## A tool of our own: the events audit (2026-11-28)
+
+`dotnet run --project src/Tools -c Release -- events --scenario all --years 20 --seeds 3` plays each start a player may choose (or
+the one named) for the years given, once for each seed, with a stand-in player who answers every report with an answer open to
+them, drawn from a seeded stream (`--act` adds the soak's random commands, as `qa` gives them). It sits beside `qa`, `simulate`,
+`roads` and the other measuring commands of `src/Tools` (`help` lists them), and is written up in docs/EVENTS.md, "The deck as a
+whole". What it prints:
+
+| Part | What it says |
+|---|---|
+| Per start | Reports shown and answered; how many of those answered were different events in one game, summed over the games, and that as a share; how many cards came back to the same head within their waiting time; the shortest gap between two comings of one card to one head; misfires; cards shown with fewer than two answers open as the stand-in came to them |
+| Every event that came | How often it came and was answered, how many heads it came to, its shortest gap for one head, its waiting time, how many versions of its words were read |
+| Misfires, by kind | The house's hulls, ships or fleet spoken of to a house with none; its worlds to a house with none; its ventures to a house with none; shares on the Exchange when nobody of the house holds any; a grandfather or forebears to a new name; the head's spouse to a head with none; a role named for an office (sovereign, consul, praetor, aedile, quaestor, treasurer, speaker, admiral, the head of a house) bound to someone who does not hold it; a step up the ladder offered to one at its top. Each with the words that gave it away |
+| The known misfires | The review's list by name (docs/STEAM_REVIEW.md, row 3): The Empty Command for one past it, The Fleet Grows for a house with no hulls or one below Commander, a sovereign who does not hold the throne or the chair, The Old Paper for a new name, anyone at Admiral or above (or commanding another house's fleet) who still wants to earn a command, the wedding or the naming a year after its moment or after the year in brief told it as done |
+| Held back | How often each card was eligible and held back at the draw because fewer than two of its answers were open |
+
+It exits 1 when a card came back within its waiting time or a known misfire was seen. A card about a moment that took the thing away
+(a venture wound up, a battle lost) is right to speak of it, and is not counted. The words it reads are the card's title, body and
+answers as the player reads them, in the version drawn; what it can see from the binding is all it checks, so it finds misfires of
+these kinds and no others. 20 years × 3 seeds × 8 starts takes about half a minute; 54 years about a minute and a half.
+
+Measured before and after the work of 2026-11-28 (docs/EVENTS.md, "Measured", per start): the share of different events among
+those answered went from 78.6% to 97.0% over 20 years and from 56.1% to 83.4% over 54 (the review's game: 59%); no card comes back
+within its waiting time (230 did within ten years over 20 years, 773 over 54); the known misfires went from 237 to none, every kind
+from 277 to 2, and the cards shown with one answer open from 125 to none.
+
 ## Looked at and left
 
 - **Machinations-style economy modellers** (Monix, Game-Economy-Simulator): small and new. The `simulate`, `roads` and

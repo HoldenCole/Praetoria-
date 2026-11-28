@@ -87,6 +87,8 @@ public static class ContentLoader
                 Tier = ParseTier(ConditionParser.OptStr(el, "tier", "situation")),
                 Weight = el.TryGetProperty("weight", out var w) && w.ValueKind == JsonValueKind.Number ? w.GetDouble() : 1.0,
                 Repeatable = ConditionParser.Bool(el, "repeatable", false),
+                Cooldown = ParseCooldown(el),
+                Moment = ConditionParser.Bool(el, "moment", false),
                 Scene = ConditionParser.OptStr(el, "scene", ""),
                 Roles = ParseRoles(el),
                 Conditions = el.TryGetProperty("when", out var when)
@@ -117,7 +119,8 @@ public static class ContentLoader
                 Name = ConditionParser.Str(r, "name"),
                 Constraints = r.TryGetProperty("when", out var w)
                     ? ConditionParser.ParseList(w)
-                    : Array.Empty<ICondition>()
+                    : Array.Empty<ICondition>(),
+                Once = ConditionParser.Bool(r, "once", false)
             });
         }
         return list;
@@ -156,6 +159,16 @@ public static class ContentLoader
         return cost;
     }
 
+    /// <summary>"cooldown": the years a repeatable card waits before it comes again to the same head (a whole number, 0 or more);
+    /// absent, the default (<see cref="EventDef.DefaultCooldown"/>).</summary>
+    private static int ParseCooldown(JsonElement el)
+    {
+        if (!el.TryGetProperty("cooldown", out var c)) return -1;
+        if (c.ValueKind != JsonValueKind.Number || !c.TryGetInt32(out int years) || years < 0)
+            throw new ContentException("'cooldown' must be a whole number of years, 0 or more.");
+        return years;
+    }
+
     private static EventTier ParseTier(string s) => s.ToLowerInvariant() switch
     {
         "ambient" => EventTier.Ambient,
@@ -175,17 +188,24 @@ public static class ContentLoader
             var list = new List<EventText>();
             foreach (var el in arr.EnumerateArray())
             {
-                var choiceTexts = new Dictionary<string, string>();
-                if (el.TryGetProperty("choices", out var ch) && ch.ValueKind == JsonValueKind.Object)
-                    foreach (var p in ch.EnumerateObject())
-                        choiceTexts[p.Name] = p.Value.GetString() ?? "";
+                // a card that comes back may carry other versions of its words: each a body, and its own title and choice words if it likes
+                var versions = new List<TextVersion>();
+                if (el.TryGetProperty("versions", out var vs) && vs.ValueKind == JsonValueKind.Array)
+                    foreach (var v in vs.EnumerateArray())
+                        versions.Add(new TextVersion
+                        {
+                            Title = ConditionParser.OptStrOrNull(v, "title"),
+                            Body = ConditionParser.OptStr(v, "body", ""),
+                            Choices = ChoiceTexts(v)
+                        });
 
                 list.Add(new EventText
                 {
                     Id = ConditionParser.Str(el, "id"),
                     Title = ConditionParser.OptStrOrNull(el, "title"),
                     Body = ConditionParser.OptStr(el, "body", ""),
-                    Choices = choiceTexts
+                    Choices = ChoiceTexts(el),
+                    Versions = versions
                 });
             }
             return list;
@@ -194,6 +214,15 @@ public static class ContentLoader
         {
             throw new ContentException($"Invalid JSON in '{path}': {ex.Message}", ex);
         }
+    }
+
+    private static Dictionary<string, string> ChoiceTexts(JsonElement el)
+    {
+        var choiceTexts = new Dictionary<string, string>();
+        if (el.TryGetProperty("choices", out var ch) && ch.ValueKind == JsonValueKind.Object)
+            foreach (var p in ch.EnumerateObject())
+                choiceTexts[p.Name] = p.Value.GetString() ?? "";
+        return choiceTexts;
     }
 
     private static JsonElement SectionArray(JsonElement root, string section)

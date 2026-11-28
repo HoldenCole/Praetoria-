@@ -457,15 +457,6 @@
         },
         {
           "id": "quiet_dismissal",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Just",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "adjustResource",
@@ -683,6 +674,12 @@
           "resource": "credits",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -702,15 +699,6 @@
         },
         {
           "id": "buy_the_dip",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Greedy",
-              "kind": "aptitude",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "adjustResource",
@@ -803,15 +791,6 @@
         },
         {
           "id": "confess_and_reform",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Honorable",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "adjustResource",
@@ -1258,6 +1237,11 @@
           "type": "turn",
           "op": "gte",
           "value": 4
+        },
+        {
+          "type": "worldFlag",
+          "flag": "new_name",
+          "value": false
         }
       ],
       "choices": [
@@ -1320,15 +1304,6 @@
         },
         {
           "id": "repudiate_it",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Ruthless",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "setCharFlag",
