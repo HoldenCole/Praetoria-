@@ -60,7 +60,7 @@ played in it; the page reads them before the game starts, so the title is alread
 | setting | what it does |
 |---|---|
 | Text size | Small, Normal, Large, Larger: the root size is 13.5, 15, 16.5 or 18 pixels. Every size in the stylesheet is in `rem`, and so are the widths of the rail, the windows and the outliner, so the layout grows with the words. The map does not change. |
-| Enter ends the year | On by default. Off, a year ends only by the End Year medallion. |
+| Enter ends the year | On by default. On, Enter first opens each unanswered report that can be answered, one at a time and once each, and with none left it ends the year (a click on End Year still sets the unanswered ones aside). With a report open it does nothing. While a box is open over the game (the question asked before something that cannot be taken back, or what came of an answer) no key reaches the game behind it: the question takes Esc for its "no" and wants a click for its "yes", and what came of an answer takes Enter or Esc. Off, a year ends only by the End Year medallion. |
 | Number keys open windows | On by default, in the order of the rail. |
 | Show rail labels | Off by default. On, each socket of the rail carries its window's name under it (the name shows beside a socket on hover either way). Kept as `railLabels`. |
 | The year in brief | Every year, or only when asked (the same choice the card itself offers). |
@@ -108,6 +108,14 @@ there is. They close when the pointer leaves, on a click elsewhere, on scrolling
 
 `tools/browser/tooltips.js` checks it in a real browser: a tooltip, one inside it and one inside that, all wholly on the
 screen, closed on leaving, turned upward at the foot of the screen.
+
+## The seed of a new saga
+
+Each new saga rolls its own seed as the title screen opens (1 to 99998), so a restart is another world: other houses,
+other first reports, other deaths. The seed stands on the new-saga panel, where it can be read, typed or thrown again
+(the dice beside it), and the same seed with the same choices makes the same saga. `?seed=N` in the address fixes it;
+the browser scripts open the game through `tools/browser/address.js`, which asks for seed 1, so each script plays the
+same world on every run (`CreationScreen.SeedAsked`).
 
 ## Money settings at the start of a game
 

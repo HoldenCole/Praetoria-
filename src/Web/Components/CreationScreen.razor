@@ -1,4 +1,5 @@
 @inject GameClient G
+@inject NavigationManager Nav
 @using Praetoria.Core.Creation
 @* The title screen and the creator (docs/VISUAL_SYSTEM.md 10). The title: the key art full-bleed (img/scenes/title, the capital at dusk),
    the logotype in Cinzel with a brass bevel, a short column of menu items in Cinzel, and the starts along the foot as framed portrait
@@ -203,7 +204,7 @@
     private readonly Dictionary<string, Scenario> _scenarios = new();
     private string _scenario = "";
     private string _protagonistName = "";
-    private int _seed = 1;
+    private int _seed = 1;   // rolled as the screen opens (OnInitialized)
     private string _mode = "ironman", _intensity = "default", _beyond = "default", _aggression = "default", _size = "small", _ease = MoneySettings.Standard;
     private readonly HashSet<string> _boosts = new();
     private int _written;
@@ -229,7 +230,17 @@
     protected override void OnInitialized()
     {
         foreach (var id in G.ScenarioIds) _scenarios[id] = G.Scenario(id);
+        // each new saga rolls its own dice, so a restart is another world; seed=N in the address fixes them (the browser scripts ask for 1)
+        _seed = SeedAsked(new Uri(Nav.Uri).Query) ?? Random.Shared.Next(1, 99999);
         Pick(G.ScenarioIds.Contains("the_academy") ? "the_academy" : G.ScenarioIds.FirstOrDefault() ?? "");   // the Academy is the game's opening and its tutorial
+    }
+
+    /// <summary>The seed the address asks for (?seed=N, 1 to 99999), or none.</summary>
+    public static int? SeedAsked(string query)
+    {
+        foreach (var part in query.TrimStart('?').Split('&'))
+            if (part.StartsWith("seed=", StringComparison.Ordinal) && int.TryParse(part[5..], out int n) && n >= 1) return Math.Min(n, 99999);
+        return null;
     }
 
     private void Pick(string id)

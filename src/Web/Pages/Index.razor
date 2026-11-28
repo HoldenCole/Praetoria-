@@ -166,7 +166,7 @@ else
         @if (!m.DynastyDead)
         {
             <div class="endturn-dock">
-                <button class="endturn" title="@((unanswered > 0 ? $"[hourglass] End the year\n{Counted.Reports(unanswered)} still unanswered: ending the year sets them aside." : "[hourglass] End the year\nThe year ends and the next begins.") + "\nkey: Press [Enter] to end the year")" @onclick="EndTurn">
+                <button class="endturn" title="@((unanswered > 0 ? $"[hourglass] End the year\n{Counted.Reports(unanswered)} still unanswered: ending the year sets them aside." : "[hourglass] End the year\nThe year ends and the next begins.") + (!_set.EnterEnds ? "" : unanswered > 0 ? "\nkey: [Enter] opens each of them in turn, then ends the year" : "\nkey: Press [Enter] to end the year"))" @onclick="EndTurn">
                     <i class="ring" aria-hidden="true"></i><span class="med"><Icon Name="hourglass" Tone="dark" Size="44" /></span><span class="rib">End Year</span>
                     @if (unanswered > 0) { <span class="cnt" data-n="@unanswered" aria-label="@Counted.Reports(unanswered) unanswered"></span> }
                 </button>
@@ -267,6 +267,8 @@ else
     /// <summary>The Academy: this browser has graduated before (so the short course is offered first); the year just ended (so the passing-out card shows).</summary>
     private bool _beenBefore, _passingOut;
     private BriefingCard? _openReport;
+    /// <summary>The reports Enter has already put in front this year: Enter opens each unanswered one once, then ends the year.</summary>
+    private readonly HashSet<object> _enterShown = new(ReferenceEqualityComparer.Instance);
     private SuccessionRecord? _succession; private bool _primer, _primerChecked, _saves, _settings; private int _keptSaves; private ClientSettings _set = ClientSettings.Default;
     /* the year in brief: shown as each year opens unless the player has said not to (kept in this browser), and from the year in the top bar */
     private bool _brief, _briefEvery = true, _briefAsked;
@@ -307,21 +309,37 @@ else
 
     /// <summary>The keys of the rail, in its order: the first nine windows by number, then 0, - and = for the rest.</summary>
     private const string RailKeys = "1234567890-=";
-    /// <summary>Keyboard: the rail's keys switch windows (while a report is open, the digits pick its choices instead), Enter ends the turn
-    /// (when no report is open), Escape closes a window, ? opens the primer.</summary>
+    /// <summary>Keyboard: the rail's keys switch windows (while a report is open, the digits pick its choices instead), Enter opens each
+    /// unanswered report in turn and then ends the year (when no report is open), Escape closes a window, ? opens the primer. A box over
+    /// everything takes every key first.</summary>
     [JSInvokable]
     public async Task Key(string key)
     {
         if (G.Turn == null) return;
+        // a box over everything (ConfirmBox.razor) holds the keys, so none reaches the desk behind it and ends the year there: the question
+        // takes Escape for its "no" (its "yes" wants a click, as it cannot be taken back), and what came of an answer takes Enter or Escape
+        if (G.Asking != null) { if (key == "Escape") G.Answer(false); return; }
+        if (G.Told != null) { if (key is "Enter" or "Escape") G.Dismiss(); return; }
+        // so do the cards that stand in front of a year: the passing-out card takes Enter or Escape for "To the desk", and the saga's
+        // turning takes them for "Play on" (the end of the line has no year after it, so no key acts behind it)
+        if (_passingOut && G.Academy() is { Graduated: true }) { if (key is "Enter" or "Escape") { _passingOut = false; StateHasChanged(); } return; }
+        if (G.Court() is { EpilogueText: not null } ep && !_epilogueDismissed) { if ((key is "Enter" or "Escape") && !ep.DynastyDead) { _epilogueDismissed = true; StateHasChanged(); } return; }
         if (_settings) { if (key == "Escape") _settings = false; else return; }   // the settings are in front
-        else if (_saves) { if (key == "Escape" && G.Asking == null) _saves = false; else return; }   // the saves window is in front
+        else if (_saves) { if (key == "Escape") _saves = false; else return; }   // the saves window is in front
         else if (_primer) { if (key is "Escape" or "?") await ClosePrimer(); else return; }   // the handbook is in front: it takes Escape, and no key reaches the desk behind it
         else if (key == "Escape" && _menu) _menu = false;   // the game menu is in front
         else if (key == "Escape" && _brief) _brief = false;
         // Escape closes what is in front, a step at a time; with nothing in front it opens the game menu (docs/VISUAL_SYSTEM.md 3.1)
         else if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else if (_screen == "galaxy" && _map?.Up() == true) { } else if (_screen != "galaxy") _screen = "galaxy"; else _menu = true; }
         else if (key == "Enter" && _brief) _brief = false;
-        else if (key == "Enter" && _openReport == null && _succession == null) { if (!_set.EnterEnds) return; await EndTurn(); }
+        else if (key == "Enter" && _openReport == null && _succession == null)
+        {
+            if (!_set.EnterEnds) return;
+            // Enter goes on to what is waiting before it ends the year: each unanswered report that can be answered opens once, and with
+            // none left the year ends (a click on End Year still sets them aside, and its count says how many)
+            var next = G.Court().Briefing.FirstOrDefault(b => !b.Resolved && !_enterShown.Contains(b.Item) && b.Choices.Any(c => c.Available));
+            if (next != null) { _enterShown.Add(next.Item); _openReport = next; } else await EndTurn();
+        }
         else if (key == "?") _primer = !_primer;
         // a report is open: the digits 1 to 9 pick its choices (docs/VISUAL_SYSTEM.md 6), and no digit reaches the rail behind it
         else if ((_openReport != null || _succession != null) && key.Length == 1 && RailKeys.IndexOf(key[0]) >= 0)
@@ -405,7 +423,7 @@ else
     private async Task EndTurnNow()
     {
         long perfStart = System.Diagnostics.Stopwatch.GetTimestamp();
-        _openReport = null;
+        _openReport = null; _enterShown.Clear();
         bool cadet = G.World?.InAcademy == true; string tutorial = G.World?.Academy?.Tutorial ?? "";
         G.EndTurn();
         if (cadet && G.World?.InAcademy == false)
@@ -451,7 +469,7 @@ else
     /// <summary>A save chosen from the list is loaded: whatever was open belongs to the game that is being left.</summary>
     private void LoadSave(string json)
     {
-        _saves = false; _openReport = null; _succession = null; _brief = false; _passingOut = false; _epilogueDismissed = false; _primerChecked = true;
+        _saves = false; _openReport = null; _enterShown.Clear(); _succession = null; _brief = false; _passingOut = false; _epilogueDismissed = false; _primerChecked = true;
         try { G.LoadJson(json); if (G.World is { InAcademy: false }) _screen = "galaxy"; } catch { G.Ask("That save could not be loaded", "It may have been made by a newer version of the game, or the browser may have cut it short.", "Close", () => { }, "Close"); }
         StateHasChanged();
     }

@@ -216,7 +216,17 @@
         scrollHome: (sel) => { const e = document.querySelector(sel); if (e) e.scrollTop = 0; },
         size: (el) => { const r = el.getBoundingClientRect(); return [r.width, r.height]; },
         ready: (name) => new Promise(res => { let n = 0; const t = setInterval(() => { if (window[name] || ++n > 200) { clearInterval(t); res(!!window[name]); } }, 50); }),
-        keys: (ref) => { window.addEventListener('keydown', e => { if (e.target && ['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return; if (e.ctrlKey || e.metaKey || e.altKey) return; if (e.key === 'Enter' || e.key === 'Escape' || e.key === '?' || /^[0-9=-]$/.test(e.key)) ref.invokeMethodAsync('Key', e.key); }); }
+        keys: (ref) => {
+          // a button pressed with the mouse lets go of the focus, so a later Enter belongs to the game and does not press that button
+          // again (a click on End Year, then Enter to close the brief, ended a second year)
+          window.addEventListener('click', e => { if (e.detail > 0) { const b = e.target && e.target.closest && e.target.closest('button'); if (b && b === document.activeElement) b.blur(); } }, true);
+          window.addEventListener('keydown', e => {
+            if (e.target && ['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return; if (e.ctrlKey || e.metaKey || e.altKey) return;
+            // Enter on a control the keyboard went to (by Tab) presses that control, and only that
+            if (e.key === 'Enter' && e.target && e.target.closest && e.target.closest('button, a[href], [role=button]')) return;
+            if (e.key === 'Enter' || e.key === 'Escape' || e.key === '?' || /^[0-9=-]$/.test(e.key)) ref.invokeMethodAsync('Key', e.key);
+          });
+        }
       };
     </script>
     <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>

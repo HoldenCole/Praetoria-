@@ -8,7 +8,7 @@
 const { chromium } = require('playwright');
 const title = process.argv[2] || 'The Risen Officer';   // a head of an age to stand who has held nothing yet
 const years = parseInt(process.argv[3] || '7', 10);
-const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
+const base = require('./address')(); const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-rasterization'] });

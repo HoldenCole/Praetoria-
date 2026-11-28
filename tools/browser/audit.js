@@ -8,7 +8,7 @@
 const { chromium } = require('playwright');
 const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.argv[3] || '3', 10);
 const W = parseInt(process.env.PRAETORIA_W || '1440', 10), H = parseInt(process.env.PRAETORIA_H || '900', 10);
-const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
+const base = require('./address')(); const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });

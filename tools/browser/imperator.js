@@ -16,7 +16,7 @@
 // minutes (default 24). Needs the build served locally (see README.md here). Screenshots go to PRAETORIA_SHOTS (default ./shots), imp-*.png.
 const { chromium } = require('playwright');
 const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.argv[3] || '16', 10); const goldAnswer = process.argv[4] || 'take';
-const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
+const base = require('./address')(); const shots = process.env.PRAETORIA_SHOTS || './shots';
 const warYear = parseInt(process.env.PRAETORIA_WAR_YEAR || '5', 10); const capMs = parseFloat(process.env.PRAETORIA_CAP_MIN || '24') * 60000;
 const LONG = 180000; const t0 = Date.now(); const mins = () => ((Date.now() - t0) / 60000).toFixed(1);
 require('fs').mkdirSync(shots, { recursive: true });

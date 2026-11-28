@@ -15,7 +15,7 @@ const OUTLINE = (max) => {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 }); page.setDefaultTimeout(60000);
   const errors = []; page.on('pageerror', e => errors.push(e.message.slice(0, 300))); page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
-  await page.goto(process.env.PRAETORIA_URL || 'http://localhost:8112/', { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 120000 });
+  await page.goto(require('./address')(), { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 120000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   if (scenario !== 'title') { await page.click(`.scenario:has-text("${scenario}")`); await page.click('button.begin'); await page.waitForTimeout(3000); }
   const settle = () => page.waitForTimeout(700);

@@ -9,7 +9,7 @@ const { chromium } = require('playwright'); const path = require('path');
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
   const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1 }); page.setDefaultTimeout(60000);
   const errors = []; page.on('pageerror', e => errors.push(e.message.slice(0, 200))); page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); });
-  await page.goto(process.env.PRAETORIA_URL || 'http://localhost:8112/', { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 120000 });
+  await page.goto(require('./address')(), { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 120000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) { } });
   await page.click('.scenario:has-text("The Old Lion")'); await page.click('button.begin'); await page.waitForSelector('.topbar', { timeout: 120000 }); await page.waitForTimeout(4000);
   const tips = () => page.evaluate(() => [...document.querySelectorAll('.gtip:not(.map-gtip)')].map(t => { const r = t.getBoundingClientRect(); return { level: +t.dataset.level, head: t.innerText.slice(0, 40), terms: t.querySelectorAll('.term').length, in: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight }; }));

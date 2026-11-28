@@ -229,6 +229,7 @@ public sealed class GameClient
     public void EndTurn()
     {
         if (Turn == null || World == null) return;
+        Asking = null; Told = null;   // a question or an outcome still open belongs to the year that is ending
         Changing();
         using (Perf.Time("client:resolve the year")) Turn.EndTurn();
         Turn.SyncRng();

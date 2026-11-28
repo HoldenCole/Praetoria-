@@ -5,7 +5,7 @@
 // Needs the build served locally (see README.md here).
 const { chromium } = require('playwright');
 const title = process.argv[2] || 'The Old Lion';
-const base = process.env.PRAETORIA_URL || 'http://localhost:8112/';
+const base = require('./address')();
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } }); page.setDefaultTimeout(120000);

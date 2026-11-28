@@ -11,7 +11,7 @@
 const { chromium } = require('playwright');
 const [mode = 'screens', title = 'The Circling Heir', turnsArg = '3', extra = ''] = process.argv.slice(2);
 const turns = parseInt(turnsArg, 10) || 0;
-const base = process.env.PRAETORIA_URL || 'http://localhost:8112/';
+const base = require('./address')();
 const shots = process.env.PRAETORIA_SHOTS || './shots';
 const fs = require('fs'); fs.mkdirSync(shots, { recursive: true });
 
@@ -21,7 +21,7 @@ async function open(viewport, query = '') {
   const errors = [];
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); if (m.text().startsWith('PERF')) console.log('   ' + m.text().slice(0, 700)); });
   page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
-  await page.goto(base + query, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
+  await page.goto(require('./address')(query), { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   return { browser, page, errors };

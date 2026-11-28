@@ -11,7 +11,7 @@
 const { chromium } = require('playwright');
 const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.argv[3] || '0', 10);
 const quick = process.argv[4] === 'quick';
-const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
+const base = require('./address')(); const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
   // --disable-gpu-rasterization: under SwiftShader a raster tile of a long window is sometimes painted blank (seen on the House's Household tab)

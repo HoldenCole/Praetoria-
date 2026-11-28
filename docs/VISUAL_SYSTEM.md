@@ -327,7 +327,7 @@ brass at the left, the system nearest the centre of the view at the right. Zoom 
 A 104px medallion overlapping the console's lower-left corner: a radial brass face (`#fff0bc`, `#e0bd68`, `#b88b33`,
 `#6b4d17`), a 2px black ring, an inner light ring, an engraved outer ring on a dark band, a 44px hourglass in dark
 bronze, an oxblood ribbon with "END YEAR" in Cinzel 13px, and the count of unanswered reports on a 28px brass disc on
-its rim (brass: a decision, not a danger). Enter ends the year.
+its rim (brass: a decision, not a danger). Enter opens each unanswered report in turn, then ends the year (docs/WEB_CLIENT.md, "Settings").
 
 ### 3.10 By screen width
 - 1600 and up: as in the mocks.
