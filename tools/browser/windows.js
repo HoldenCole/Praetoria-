@@ -24,7 +24,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 }); await page.waitForTimeout(1200);
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/i); return m ? parseInt(m[1], 10) : -1; });
-  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
+  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.evaluate(() => { const y = document.querySelector('.confirm-box [data-confirm="yes"]'); if (y) y.click(); }); await page.waitForTimeout(50); } await closeWindows(); };   // a year that would end short asks first: end it anyway
   for (let y = 0; y < years; y++) await endTurn();
   console.log('turn ' + await turnNo());
   await page.mouse.move(1598, 640);   // the pointer off the console, so no tooltip of its own stands in every picture
@@ -38,6 +38,16 @@ require('fs').mkdirSync(shots, { recursive: true });
       const rest = [...s.children].filter(c => c !== h && c.getBoundingClientRect().height > 0);
       return rest.length === 0 || (rest.length === 1 && rest[0].matches('.muted, .empty-line') && !rest[0].querySelector('button, select, input'));
     }).map(s => s.querySelector('h3').innerText.replace(/\s+/g, ' ').trim().slice(0, 40));
+    // the shared Section part (docs/VISUAL_SYSTEM.md 4.6) is a band (.ui-sec) with its content after it, up to the next band: a band over
+    // nothing, or over one muted or empty line with no control, is the same fault (an empty Section should fold to its line, 4.17)
+    const shown = e => e.getBoundingClientRect().height > 0;
+    for (const b of body.querySelectorAll('.ui-sec')) {
+      if (!shown(b)) continue; const rest = [];
+      const r = b.querySelector('.ui-sec-r'); if (r && r.innerText.trim().length > 0) continue;   // a band that carries its own sum or note is not a heading over nothing
+      for (let n = b.nextElementSibling; n && !n.classList.contains('ui-sec'); n = n.nextElementSibling) if (shown(n)) rest.push(n);
+      if (rest.length === 0 || (rest.length === 1 && rest[0].matches('.muted, .empty-line, .ui-mute, .ui-empty') && !rest[0].querySelector('button, select, input')))
+        hollow.push((b.querySelector('h3') || b).innerText.replace(/\s+/g, ' ').trim().slice(0, 40));
+    }
     return { over: body.scrollHeight - body.clientHeight, hollow };
   });
   let long = 0, hollowAll = 0;

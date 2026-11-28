@@ -49,7 +49,7 @@
             <span class="ws-power @rating" title="@($"How strong a start this person is, by the points spent: under 30 modest, to 60 able, to 110 formidable, to 220 overpowered, beyond that absurd.\n{costLines}")">
                 <b>@total</b> point@(total == 1 ? "" : "s") · <b class="ws-rating">@rating</b>
                 @if (!free) { <span class="ws-bar ui-trk"><i class="ui-fill @(over ? "over" : "")" style="width:@(Math.Min(100, 100 * total / Math.Max(1, lim.Budget)))%;--mc:@(over ? "#e0553f" : "#8cc47e")"></i></span> <span class="ui-mute">of @lim.Budget</span> }
-                else { <span class="ui-mute">made without limits; the saga will say so</span> }
+                else { <span class="ui-mute">· made without limits; the saga will say so</span> }
             </span>
         </Facts>
     </WindowHeader>
@@ -172,7 +172,7 @@
                     @foreach (var a in G.Content!.Ancestries.OfTheReach)
                     {
                         var aid = a.Id; var one = G.Portraits.Faces(c.Sex, aid, age);
-                        @if (one.Count > 0) { <button class="face" title="@($"{a.Name}: choose a face painted for it")" @onclick="() => { c.Ancestry = aid; c.Face.Portrait = 0; Changed(); }"><span class="face-img"><img src="@one[0]" alt="@a.Name" loading="eager" decoding="async" /></span><span class="face-nm">@a.Name</span></button> }
+                        @if (one.Count > 0) { <button class="face" data-ancestry="@aid" title="@($"{a.Name}: choose a face painted for it")" @onclick="() => { c.Ancestry = aid; c.Face.Portrait = 0; Changed(); }"><span class="face-img"><img src="@one[0]" alt="@a.Name" loading="eager" decoding="async" /></span><span class="face-nm">@a.Name</span></button> }
                     }
                 </div>
             </Section>

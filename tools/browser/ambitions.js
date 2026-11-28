@@ -30,7 +30,7 @@ require('fs').mkdirSync(shots, { recursive: true });
     console.log('year ' + y + ': ' + (rows.length ? rows.join(' || ') : 'nobody has set their mind on anything yet'));
     const asking = await page.evaluate(() => { const r = document.querySelector('.panel.ambitions .suit.incoming'); return r ? r.innerText.replace(/\s+/g, ' ').match(/[A-Z][a-z]+ asks[^.]*\./)?.[0] || 'someone asks' : ''; });
     if (asking) {
-      if (!shot) { await page.screenshot({ path: shots + '/ambitions-asking.png' }); shot = true; }
+      if (!shot) { await page.locator('.screen.window').screenshot({ path: shots + '/ambitions-asking.png', timeout: 180000 }); shot = true; }   // the window alone: the map behind it is slow to draw without a graphics card
       const did = answered % 2 === 0 ? (await press('Grant it') ? 'granted' : (await press('Say no') ? 'could not grant; said no' : 'nothing')) : (await press('Say no') ? 'said no' : 'nothing');
       console.log('   → ' + asking + ' ' + did); answered++; await page.waitForTimeout(300);
     }
@@ -38,7 +38,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   }
   await rail('Dynasty'); await wtab('Ambitions'); await page.waitForTimeout(500);
   const box = await page.evaluate(() => { const r = document.querySelector('.panel.ambitions').getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1200) }; });
-  await page.screenshot({ path: shots + '/ambitions-panel.png', clip: box });
+  await page.screenshot({ path: shots + '/ambitions-panel.png', clip: box, timeout: 180000 });
   console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e));
   await browser.close();
 })().catch(e => { console.error('FAILED ' + e.message.split('\n')[0]); process.exit(1); });

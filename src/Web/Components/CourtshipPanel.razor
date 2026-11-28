@@ -68,7 +68,7 @@
                     <div class="dy-blk-sub">@who.Age, @(c.Careers.RankName(who.CareerTrack, who.CareerRank, w.Era) ?? "of no office") · @(wh == null ? "" : Praetoria.Core.Progression.Title.StyleOf(wh.Title, w.Era)) house, legitimacy @wh?.Legitimacy · the suit is withdrawn in @Counted.Years(Math.Max(1, left)) if unanswered</div>
                     <Meter Label="@(First(kin.Name) + "'s wish")" Value="@s.Favour" Max="100" Target="@CourtshipSystem.LoveAt" Color="@(s.Favour >= CourtshipSystem.LoveAt ? "#8cc47e" : s.Favour < 25 ? "#e3a64a" : "#c9a24a")" Tip="What your own kin feels about the suitor. Give them to someone they cannot bear and they will hold it against you; refuse someone they want and they will too." Class="dy-meter" />
                     <TermsPicker W="w" Suit="s" Dowry="@dowry" Kids="@kids" OnChange="t => _terms[sid] = t" />
-                    <div class="dy-answer">On these terms: <b class="@(ans.ok ? "ui-up" : "ui-down")">@ans.why</b>.</div>
+                    <div class="dy-answer">On these terms: <b class="@(ans.ok ? "ui-up" : "ui-down")">@Verdict(ans.why)</b>@Reason(ans.why).</div>
                     <div class="you-acts dy-acts suit-acts">
                         <Plate Label="Accept the suit" Icon="marriage" Small="true" Locked="@(!ans.ok)" Disabled="@(!ans.ok)" Need="They will not agree on these terms." ShowNeed="false" Tip="Accept the suit on these terms" OnClick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.Propose, dowry, kids))" />
                         <Plate Label="Refuse" Small="true" Tip="Their head will think a little worse of you." OnClick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.Refuse))" />
@@ -131,7 +131,7 @@
                             else if (!mine) { <span class="you-lbl">Optional.</span> }
                         </div>
                         <TermsPicker W="w" Suit="s" Dowry="@dowry" Kids="@kids" OnChange="x => _terms[sid] = x" />
-                        <div class="dy-answer">Asked now, on these terms: <b class="@(ans.ok ? "ui-up" : "ui-down")">@ans.why</b>.@(!child && s.Favour >= CourtshipSystem.LoveAt ? $" {First(t.Name)} is arguing for it at home." : "")</div>
+                        <div class="dy-answer">Asked now, on these terms: <b class="@(ans.ok ? "ui-up" : "ui-down")">@Verdict(ans.why)</b>@Reason(ans.why).@(!child && s.Favour >= CourtshipSystem.LoveAt ? $" {First(t.Name)} is arguing for it at home." : "")</div>
                         <div class="you-acts dy-acts suit-acts">
                             <Plate Label="@(child ? "Propose the betrothal" : theirOwn ? "Give your blessing" : "Propose the match")" Icon="marriage" Small="true" Primary="@(ans.ok && ask == null)" Locked="@(ask != null)" Disabled="@(ask != null)" Need="@LifePanel.Say(ask)" ShowNeed="false"
                                    Tip="@((child ? "Propose the betrothal" : theirOwn ? "Give your blessing and ask the family" : "Propose the match") + "\n" + (ans.ok ? "They will agree." : "They will refuse, and think a little less of the match for being asked too soon."))" OnClick="() => G.Execute(new SettleSuitCommand(pid, sid, SettleSuitCommand.Propose, dowry, kids))" />
@@ -269,4 +269,8 @@
     private static string Years(int n) => n <= 0 ? "this year" : n == 1 ? "a year" : $"{n} years";
     private static string DivorceTip(World w, Marriage m, House? theirs) =>
         $"Divorce\nThe house loses standing{(w.IsImperium ? " (more under a throne)" : "")}; {(theirs == null ? "their family" : theirs.Name)} takes it as an insult{(m.Estranged ? ", less so as they already live apart" : "")}{(m.Dowry > 0 ? "; the dowry goes back" : "")}. The children stay.";
+    /// <summary>The family's answer is "verdict: why"; the verdict is coloured and the reason stays in ink, so no whole sentence is red
+    /// (docs/VISUAL_SYSTEM.md 1, rule 4).</summary>
+    private static string Verdict(string why) { int c = why.IndexOf(": ", StringComparison.Ordinal); return c > 0 ? why[..c] : why; }
+    private static string Reason(string why) { int c = why.IndexOf(": ", StringComparison.Ordinal); return c > 0 ? why[c..] : ""; }
 }

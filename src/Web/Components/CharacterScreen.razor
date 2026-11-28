@@ -73,7 +73,7 @@
         <WindowHeader StripKicker="@house.Name" Scene="@scene" Kicker="@($"{house.Name} · {c.Ancestries.Name(Lineage.Of(w, c.Ancestries, p))}{(epithet.Length > 0 ? " · " + epithet : "")}")" Title="@p.Name" Figures="figs" Class="you-head">
             <Strip><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="40" Height="48" Opens="false" /></Strip>
             <Who>
-                <div class="you-por">
+                <div class="you-por" data-you-portrait>
                     <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="150" Height="188" Condition="@(ill ? "pill" : wounded ? "sticking-plaster" : "")" ConditionTip="@(ill ? "Ill" : "Wounded")" />
                     <span class="you-seal"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="40" Mode="seal" /></span>
                 </div>
