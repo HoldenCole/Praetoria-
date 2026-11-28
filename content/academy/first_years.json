@@ -29,7 +29,7 @@
       { "id": "fleet", "title": "Order your fleet", "text": "Pick The Lion's Fleet in the list on the right, click a world on the map, then press Send. Nothing is ordered until you do.",
         "done": "did:fleet", "show": "fleet", "ring": ["order", "fleet"] },
       { "id": "ledger", "title": "Read the House ledger", "text": "Every line of what House Castellan takes in and pays out, and where the treasury will stand when the year ends.",
-        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house"] },
+        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house", "top:treasury"] },
       { "id": "vote", "title": "Declare your vote", "text": "Open the Senate and vote for or against a motion. A duke's seats weigh heavily; left alone, your house votes as it leans.",
         "done": "did:vote", "show": "senate:chamber", "ring": ["rail:senate", "vote"] }
     ],
@@ -37,7 +37,7 @@
       { "id": "report", "title": "Answer a report", "text": "Reports wait in the list on the right and in your Office. Open one, read what each answer costs and gives, and choose.",
         "done": "report", "show": "office", "ring": ["report", "rail:office"] },
       { "id": "ledger", "title": "Read the House ledger", "text": "House Voss has little coin. The ledger says where the treasury will stand when the year ends, and which lines cost the most.",
-        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house"] },
+        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house", "top:treasury"] },
       { "id": "laws", "title": "Open the Laws", "text": "The tithe and the other laws of your house. Six estates judge them, and an estate that is loyal to you pays.",
         "done": "seen:laws", "show": "", "ring": ["rail:laws"] },
       { "id": "fleet", "title": "Order your fleet", "text": "Pick the Greywater Remnant in the list on the right, click a world on the map, then press Send. Nothing is ordered until you do.",
@@ -55,7 +55,7 @@
       { "id": "build", "title": "Begin a building", "text": "House Serval is rich. Open House and press Build on one of your two worlds.",
         "done": "did:build", "show": "house:estate", "ring": ["rail:house", "build"] },
       { "id": "ledger", "title": "Read the House ledger", "text": "Every line of what the house takes in and pays out, and where the treasury will stand when the year ends.",
-        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house"] },
+        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house", "top:treasury"] },
       { "id": "vote", "title": "Declare your vote", "text": "Open the Senate and vote for or against a motion. Left alone, your house votes as it leans.",
         "done": "did:vote", "show": "senate:chamber", "ring": ["rail:senate", "vote"] }
     ],
@@ -81,7 +81,7 @@
       { "id": "build", "title": "Begin a building", "text": "Open House and press Build on Lesser Marrow, your fief: it says what can be begun now and what each costs.",
         "done": "did:build", "show": "house:estate", "ring": ["rail:house", "build"] },
       { "id": "ledger", "title": "Read the House ledger", "text": "Every line of what House Thorne takes in and pays out, and where the treasury will stand when the year ends.",
-        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house"] },
+        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house", "top:treasury"] },
       { "id": "vote", "title": "Declare your vote", "text": "Even under a throne the Senate votes. Open it and vote for or against a motion.",
         "done": "did:vote", "show": "senate:chamber", "ring": ["rail:senate", "vote"] }
     ],
@@ -91,7 +91,7 @@
       { "id": "you", "title": "Open the You window", "text": "Your ambition is to amass a fortune. See your skills, your career and what you are after.",
         "done": "seen:character", "show": "", "ring": ["rail:character"] },
       { "id": "ledger", "title": "Read the House ledger", "text": "What the trading company earns, what the house pays out, and where the treasury will stand when the year ends.",
-        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house"] },
+        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house", "top:treasury"] },
       { "id": "coin", "title": "Put your coin to work", "text": "You hold no world. On the Exchange, buy goods or a share in a company, or found a second venture.",
         "done": "did:buy|did:venture", "show": "exchange:goods", "ring": ["rail:exchange", "goods"] },
       { "id": "ladder", "title": "See what a seat would take", "text": "Open the Senate's ladder: the offices you could stand for, and what each asks of a new man.",
@@ -115,7 +115,7 @@
       { "id": "military", "term": 3, "title": "Open Military", "text": "Your fleets, the wars of the Reach and the navies of the other houses.",
         "done": "seen:military", "show": "", "ring": ["rail:military"] },
       { "id": "ledger", "term": 4, "title": "Read the House ledger", "text": "Every line of what the house takes in and pays out, and where the treasury will stand when the year ends.",
-        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house"] },
+        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house", "top:treasury"] },
       { "id": "buy", "term": 4, "title": "Buy on the Exchange", "text": "Pick a good, set how many, and press Buy. War and scarcity move the prices, so buy before you need to.",
         "done": "did:buy", "show": "exchange:goods", "ring": ["rail:exchange", "goods"] }
     ],
@@ -135,7 +135,7 @@
       { "id": "military", "term": 3, "title": "Open Military", "text": "The Imperial Navy, the wars of the Reach and the fleets of the great houses.",
         "done": "seen:military", "show": "", "ring": ["rail:military"] },
       { "id": "ledger", "term": 4, "title": "Read the House ledger", "text": "Every line of what House Thorne takes in and pays out, and where the treasury will stand when the year ends.",
-        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house"] },
+        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house", "top:treasury"] },
       { "id": "buy", "term": 4, "title": "Buy on the Exchange", "text": "Pick a good, set how many, and press Buy. War and scarcity move the prices, so buy before you need to.",
         "done": "did:buy", "show": "exchange:goods", "ring": ["rail:exchange", "goods"] }
     ],
@@ -151,7 +151,7 @@
       { "id": "fleet", "title": "Order your fleet", "text": "Pick your fleet in the list on the right, click a world on the map, then press Send.",
         "done": "did:fleet", "show": "fleet", "ring": ["order", "fleet"], "needs": "fleet" },
       { "id": "ledger", "title": "Read the House ledger", "text": "Every line of what the house takes in and pays out, and where the treasury will stand when the year ends.",
-        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house"] },
+        "done": "seen:house:ledger", "show": "house", "ring": ["tab:ledger", "rail:house", "top:treasury"] },
       { "id": "vote", "title": "Declare your vote", "text": "Open the Senate and vote for or against a motion. Left alone, your house votes as it leans.",
         "done": "did:vote", "show": "senate:chamber", "ring": ["rail:senate", "vote"] }
     ]

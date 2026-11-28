@@ -126,7 +126,7 @@ done (`FirstStepsSystem.Carry`).
 
 **Show me.** Each step still to do has a Show me: it opens the window the step is done in and lights the control with a pulsing brass ring
 (`js/guide.js`): the vote of the motion before the chamber, a world's Build, the Exchange's order bar, the picked fleet's order bar, the
-first unanswered report in the list. A step that is the opening of a window lights its socket on the rail and leaves the opening to the
+first unanswered report in the list; the ledger's tab with the treasury in the top bar it accounts for. A step that is the opening of a window lights its socket on the rail and leaves the opening to the
 player, and a step that is a tab opens the window and lights the tab, so Show me never does the step itself. A ring goes out when its
 control is pressed, when the step ticks, or after twelve seconds. A step that cannot be done yet says why under it ("Not yet: no motion":
 nothing is before the Senate in year 1, and what the houses move then is voted in year 2).

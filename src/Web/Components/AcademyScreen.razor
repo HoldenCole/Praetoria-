@@ -301,7 +301,7 @@
             <div class="ac-prose">
                 <p class="ac-fold" data-lecture-summary>@(l.Summary.Length > 0 ? l.Summary : l.Brief)</p>
                 @if (more) { <div class="ac-full" data-lecture-full>@foreach (var para in l.Paragraphs) { <p>@para</p> }</div> }
-                <Link Label="@(more ? "Read less" : "Read more")" Class="@(more ? "ac-more on" : "ac-more")" Tip="@(more ? "Fold the lecture back to its few lines" : "The whole of the lecture, as it was given")" data-read-more="@id" OnClick="() => More(id)" />
+                <div class="ac-more-row"><Link Label="@(more ? "Read less" : "Read more")" Class="@(more ? "ac-more on" : "ac-more")" Tip="@(more ? "Fold the lecture back to its few lines" : "The whole of the lecture, as it was given")" data-read-more="@id" OnClick="() => More(id)" /></div>
             </div>
         </details>
     };

@@ -24,7 +24,7 @@
   box-shadow: inset 0 0 0 1px rgba(201,162,74,.45); background: linear-gradient(#2b2413, #15110a); border-radius: 1px; }
 .outliner .fy-step .nm { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1333rem; }
 .outliner .fy-step .nm .t { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); overflow-wrap: anywhere; }
-.outliner .fy-step .nm .k { font: italic 400 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.outliner .fy-step .nm .k { font: italic 400 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); overflow-wrap: anywhere; }   /* it wraps rather than ending in an ellipsis */
 .outliner .fy-step .nm .k.warn { color: var(--warn); }
 .outliner .fy-show { flex: none; gap: .2667rem; height: 1.7333rem; padding: 0 .4667rem; font-size: .8333rem; }
 .outliner .fy-show .icon { width: .8rem; height: .8rem; }

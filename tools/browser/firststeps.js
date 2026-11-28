@@ -91,7 +91,8 @@ async function openFromRail(page, id, rail) {
   await ticks(page, id);
 }
 async function openTab(page, id, tab) {
-  await showMe(page, id, `data-tab="${tab}"`);
+  const hit = await showMe(page, id, `data-tab="${tab}"`);
+  if (tab === 'ledger') check(hit.some(x => x.sel.startsWith('.topbar')), `Show me for "${id}" lights the treasury in the top bar too`);
   await page.click(`.screen.window [data-tab="${tab}"]`); await page.waitForTimeout(900);
   await ticks(page, id);
 }

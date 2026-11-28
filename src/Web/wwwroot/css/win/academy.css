@@ -202,9 +202,10 @@
 
 /* a lecture folded to its few lines (docs/ACADEMY.md, "The tutorial"): the fold in reading type, "Read more" a brass link under it */
 .ac .ac-prose p.ac-fold { margin-top: .4rem; font: 400 1.1333rem/1.58 var(--f-prose); color: #ece2c8; }
-.ac .ac-full { margin-top: .2667rem; padding-left: .9333rem; box-shadow: inset 2px 0 0 rgba(201,162,74,.35); }
+/* the rest of the lecture and its link keep the hall's centred reading measure (40em, above) */
+.ac .ac-full { max-width: 40em; margin: .2667rem auto 0; padding-left: .9333rem; box-shadow: inset 2px 0 0 rgba(201,162,74,.35); }
 .ac .ac-full p { color: #d9cfb6; }
-.ac .ac-more { margin-top: .6667rem; }
+.ac .ac-more-row { max-width: 40em; margin: .6667rem auto 0; }
 .ac .ac-more.on .icon { transform: rotate(-90deg); }
 
 /* a term's report card (docs/ACADEMY.md, "The report card"): a framed plate, the place large and how it moved, what moved it, one tip */
@@ -217,7 +218,7 @@
 .ac-card-sub { font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); font-variant-numeric: tabular-nums; }
 .ac-card-place { display: flex; align-items: baseline; gap: .4rem; flex: none; }
 .ac-card-place > .icon { align-self: center; width: 1.4667rem; height: 1.4667rem; }
-.ac-card-place b { font: 600 1.6rem/1 var(--f-display); letter-spacing: .03em; color: #f5e9c9; font-variant-numeric: lining-nums; }
+.ac-card-place b { font: 600 1.4667rem/1 var(--f-ui); color: #f5e9c9; font-variant-numeric: tabular-nums lining-nums; }
 .ac-card-place .of { font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); }
 .ac-card-place .mv { display: inline-flex; align-items: center; gap: .2667rem; margin-left: .4rem; font: 600 .9333rem/1 var(--f-ui); }
 .ac-card-place .arrow { width: 0; height: 0; border-left: .3333rem solid transparent; border-right: .3333rem solid transparent; }

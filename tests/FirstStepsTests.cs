@@ -68,7 +68,7 @@ public class FirstStepsTests
                 if (step.Show.Length == 0) Assert.Matches("^seen:[a-z]+$", step.Done); else Assert.Contains(step.Show.Split(':')[0], windows);
                 if (step.Done.StartsWith("seen:") && step.Done != "seen:map") Assert.NotEqual(step.Done[5..], step.Show);   // Show me never does the step itself
                 Assert.NotEmpty(step.Ring);
-                foreach (var r in step.Ring) Assert.True(rings.Contains(r) || (r.StartsWith("rail:") && windows.Contains(r[5..])) || r.StartsWith("tab:"), $"{s}/{step.Id}: {r}");
+                foreach (var r in step.Ring) Assert.True(rings.Contains(r) || (r.StartsWith("rail:") && windows.Contains(r[5..])) || r.StartsWith("tab:") || r is "top:treasury" or "top:pools", $"{s}/{step.Id}: {r}");
                 // what a player reads: plain, with no em dash, no "(s)", a sentence that ends, a title of a few words
                 foreach (var text in new[] { step.Title, step.Text })
                 { Assert.DoesNotContain("\u2014", text); Assert.DoesNotContain("(s)", text); }
