@@ -123,7 +123,7 @@
     private bool _confirm, _all;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     /// <summary>A refusal from the rules as the player reads it: a capital, no dash, a full stop.</summary>
-    public static string Say(string? refusal) => refusal == null ? "" : Cap(refusal.Replace(" — ", ", ").TrimEnd('.')) + ".";
+    public static string Say(string? refusal) => refusal == null ? "" : Cap(refusal.Replace(" \u2014 ", ", ").TrimEnd('.')) + ".";
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);
     public void Dispose() => G.Changed -= Redraw;

@@ -40,7 +40,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   for (let y = 0; y < years; y++) { await rail('House'); await page.waitForTimeout(200); await endTurn(); }
   await rail('You'); await wtab('Learning'); await page.waitForTimeout(600); console.log('after ' + years + ' years: ' + await skills());
   await rail('Dynasty'); await wtab('Upbringing'); await page.waitForTimeout(600);
-  console.log('children: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.education .suit .suit-who')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 170)).join(' || ')));
+  console.log('children: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.education .suit .suit-who')].map(e => { const row = e.closest('.ui-row'); const nm = row && row.querySelector('.ui-row-nm'); return ((nm ? nm.innerText + ': ' : '') + e.innerText).replace(/\s+/g, ' ').slice(0, 170); }).join(' || ')));   // a child is a row (docs/VISUAL_SYSTEM.md 4.7): the name in .ui-row-nm, what they are in .suit-who
   await page.screenshot({ path: shots + '/education-end.png' });
   console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e));
   await browser.close();

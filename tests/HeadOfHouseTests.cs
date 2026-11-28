@@ -37,7 +37,7 @@ public class HeadOfHouseTests
         HeadSystem.Tick(w); Assert.Equal(elder.Id, other.HeadId);
         able.CareerRank = elder.CareerRank + HeadSystem.RankLead - 1;   // a promotion that is not a good reason
         for (int i = 0; i < 12; i++) { w.Turn++; HeadSystem.Tick(w); }
-        Assert.Equal(elder.Id, Economy.HeadOf(w, other)!.Id); Assert.DoesNotContain(w.History, h => h.Text.Contains("stands aside as head of House " + other.Name));
+        Assert.Equal(elder.Id, Economy.HeadOf(w, other)!.Id); Assert.DoesNotContain(w.History, h => h.Text.Contains("stands aside as head of " + other.Name));
         Assert.Equal(w.Protagonist!.Id, Economy.HeadOf(w, mine)!.Id); Assert.Equal("", mine.HeadId);   // the player's house is the player's
     }
 
@@ -56,7 +56,7 @@ public class HeadOfHouseTests
         HeadSystem.Tick(w); var newcomer = Add(w, other, "newcomer", 64);   // someone older joins the house: the head it has stays
         w.Turn++; HeadSystem.Tick(w); Assert.Equal(elder.Id, other.HeadId);
         elder.Alive = false; Assert.Equal(newcomer.Id, Economy.HeadOf(w, other)!.Id);
-        w.Turn++; HeadSystem.Tick(w); Assert.Equal(newcomer.Id, other.HeadId); Assert.Contains(w.History, h => h.Text.Contains("now leads House " + other.Name));
+        w.Turn++; HeadSystem.Tick(w); Assert.Equal(newcomer.Id, other.HeadId); Assert.Contains(w.History, h => h.Text.Contains("now leads " + other.Name));
         Assert.NotEqual(next.Id, other.HeadId);
     }
 
@@ -68,7 +68,7 @@ public class HeadOfHouseTests
         Assert.Equal("stands well above them in rank", HeadSystem.Cause(elder, able)); Assert.Equal(able.Id, HeadSystem.Challenger(w, other, elder)!.Value.who.Id);
         UntilChallenged(w, other, elder);
         Assert.Equal(able.Id, other.HeadId); Assert.True(elder.Alive); Assert.Equal(other.Id, elder.HouseId); Assert.True(w.Counter(HeadSystem.ChallengesKey) >= 1);
-        Assert.Contains(w.History, h => h.Text.Contains("stands aside as head of House " + other.Name) && h.Text.Contains(able.Name));
+        Assert.Contains(w.History, h => h.Text.Contains("stands aside as head of " + other.Name) && h.Text.Contains(able.Name));
         // the one who stood aside is still the eldest, and does not come back for it
         for (int i = 0; i < 8; i++) { w.Turn++; HeadSystem.Tick(w); }
         Assert.Equal(able.Id, other.HeadId);

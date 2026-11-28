@@ -147,7 +147,7 @@
                     @if (myStand == null)
                     {
                         <div class="sn-acts suit-acts">
-                            <Plate Label="@("Stand for " + rung.Name.ToLowerInvariant())" Small="true" Icon="stairs-goal" Locked="@(stand != null)" Disabled="@(stand != null)" Tip="@(stand ?? "Your name goes down for the next election")" CostIcon="public-speaker" CostText="@LadderSystem.StandInfluence.ToString()" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices))" />
+                            <Plate Label="@("Stand for " + rung.Name.ToLowerInvariant())" Small="true" Icon="stairs-goal" Locked="@(stand != null)" Disabled="@(stand != null)" Tip="@(stand != null ? Cap(You(stand)) + "." : "Your name goes down for the next election")" CostIcon="public-speaker" CostText="@LadderSystem.StandInfluence.ToString()" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices))" />
                             @if (stand != null) { <span class="sn-no">@Cap(You(stand)).</span> }
                         </div>
                     }
@@ -188,7 +188,7 @@
     private static string RungIcon(string rung) => rung switch { "quaestor" => "abacus", "aedile" => "build", "praetor" => "scales", _ => "stairs-goal" };
     private static string FundTip(string size) => "Out of the treasury: " + LadderSystem.CampaignVotes(size) + " votes at the count in all, besides what speaking for them does." + (size == LadderSystem.Lavish ? " It goes on the record as votes bought: any house may charge them with it before a praetor, and one convicted loses the office and may not stand for " + Counted.Years(LadderSystem.BarYears) + "." : "");
     private const string AskDown = "It is their name. The loyal will take it down; the wilful will not, and either will think less of you.";
-    private static string You(string s) => s.Replace("they have", "you have").Replace("they must", "you must").Replace("they command", "you command");
+    private static string You(string s) => s.Replace("they have laid their work down", "you have laid your work down").Replace("they have", "you have").Replace("they must", "you must").Replace("they command", "you command").Replace("they were", "you were");
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     protected override void OnInitialized() => G.Changed += Redraw;
     private void Redraw() => InvokeAsync(StateHasChanged);

@@ -5,7 +5,7 @@ namespace Praetoria.Tests;
 
 /// <summary>The owner's style: no em dashes in anything a player reads (docs/VISUAL_SYSTEM.md, rule 9). The content is checked by
 /// validate_praetoria.py; this reads every string literal in Core (log lines, refusals, reports) and fails on an em dash used as
-/// punctuation. A lone dash standing for "nothing" in a table cell is not punctuation and is allowed.</summary>
+/// punctuation, and on a lone dash standing for "nothing" too: that is said in a word, or the table cell takes a muted dot.</summary>
 public class NoEmDashTests
 {
     private static string Root()
@@ -30,10 +30,18 @@ public class NoEmDashTests
                 foreach (Match m in Regex.Matches(code, "\\$?@?\"(?:[^\"\\\\]|\\\\.)*\""))
                 {
                     var lit = m.Value.TrimStart('$', '@').Trim('"');
-                    if (lit.Contains('\u2014') && lit.Trim() != "\u2014") bad.Add($"{Path.GetFileName(path)}:{i + 1}: {lit}");
+                    if (lit.Contains('\u2014')) bad.Add($"{Path.GetFileName(path)}:{i + 1}: {lit}");
                 }
             }
         }
         Assert.True(bad.Count == 0, "em dashes in Core strings (use a comma, colon or full stop):\n" + string.Join("\n", bad));
+    }
+
+    [Fact]
+    public void An_empty_bundle_says_nothing_in_a_word()
+    {
+        Assert.Equal("nothing", Praetoria.Core.Presentation.CourtProjection.Bundle(new Praetoria.Core.State.Resources()));
+        var some = new Praetoria.Core.State.Resources(); some.Set(Praetoria.Core.State.Resource.Materials, 3);
+        Assert.DoesNotContain('\u2014', Praetoria.Core.Presentation.CourtProjection.Bundle(some));
     }
 }

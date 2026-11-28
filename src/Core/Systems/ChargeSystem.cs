@@ -280,7 +280,19 @@ public sealed class ChargeSystem
         if (!HoldsCommand(w, who)) return;   // home for a triumph, or to stand, the fleet that waits for them is theirs to lay down
         held.Sentence = LayDown; held.AnswerBy = w.Turn + LayDownYears;
         w.Log($"{who.Name} is convicted, and holds a command: the court orders it laid down by the end of year {held.AnswerBy}.");
-        if (who.HouseId == mine) w.Tell("warn", $"{(who.Id == w.ProtagonistId ? "You are" : who.Name + " is")} convicted while in command. The command must be laid down by the end of year {held.AnswerBy}, or the house crosses the line.", "senate:ladder", who.Id);
+        if (who.HouseId == mine) w.Tell("warn", $"{(who.Id == w.ProtagonistId ? "You are" : who.Name + " is")} convicted while in command. The command must be laid down by the end of year {held.AnswerBy}, or your house crosses the line.", "senate:ladder", who.Id);
+        else if (accuser.Id == mine) w.Tell("info", ConvictedSays(w, held, who), "senate:ladder", who.Id);
+    }
+
+    /// <summary>The conviction of one who commands, said to the house that brought the charge: which house must lay the command down, by
+    /// when, and what it loses if the court's officers have to take it.</summary>
+    public static string ConvictedSays(World w, Indictment held, Character who) =>
+        $"{who.Name}{(w.House(who.HouseId) is { } h ? " of " + h.Name : "")} is convicted while in command. {LayDownSays(w, held, who)}";
+    /// <summary>What a conviction in command asks, said to another house than the convicted one's: that house by name.</summary>
+    public static string LayDownSays(World w, Indictment held, Character who)
+    {
+        string theirs = w.House(who.HouseId)?.Name ?? "Their house";
+        return $"{theirs} must lay the command down by the end of year {held.AnswerBy}, or cross the line. Left alone, the court's officers take it and {theirs} loses {TakenLegitimacy} legitimacy.";
     }
 
     // ---------------- answers ----------------

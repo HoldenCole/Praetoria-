@@ -9,7 +9,8 @@
     var recall = w.Recalls.FirstOrDefault(r => r.HouseId == house.Id); var cw = w.CivilWar;
     bool atTheGate = TriumphSystem.HomeFor(w, house.Id).Count > 0;   /* one of the house is home for a triumph (docs/CAESAR.md) */
     var fleets = w.Fleets.Values.Where(f => (f.OwnerId == house.Id && !f.Office || ServiceSystem.CommandedBy(w, f, house.Id)) && f.AdmiralId.Length > 0).OrderByDescending(f => f.Devotion).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();   /* and those one of the house commands by service (docs/MILITARY.md) */
-    var watched = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && CaesarSystem.Sway(w, x.g) >= 30)
+    /* only a house of the Reach can be recalled: a nation's ruler beyond it, or a state that has left it, is not watched here */
+    var watched = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id)).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && CaesarSystem.Sway(w, x.g) >= 30)
         .OrderByDescending(x => CaesarSystem.Sway(w, x.g!)).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(3).ToList();
     string? noTriumph = w.IsImperium ? null : new ProposeMotionCommand(pid, "triumph", house.Id, G.Turn.Senate).Refusal(G.Ctx);
     string? noCross = new CaesarCommand(pid, CaesarCommand.Cross, "", cz).Refusal(G.Ctx);
@@ -84,7 +85,7 @@
         @if (general == null) { if (!atTheGate) { <EmptyState Icon="laurels" Text="Nobody of the house commands a fleet. A name is made in command: appoint someone, or take a fleet yourself." /> } }   @* home for a triumph, the gate above says who and why *@
         else
         {
-            <Section Title="The general" Info="@($"The general is the one of the house the crews know. Sway comes of victories in command, rank in the service, triumphs and renown: {(swayWhy.Length > 0 ? swayWhy : "no victories yet")}. At {CaesarSystem.RecallSway} the Senate may order the general home; at {CaesarSystem.FearedSway} the general is feared. A triumph asks {CaesarSystem.TriumphLaurels} victories since the last.")">
+            <Section Title="The general" data-caesar-general="1" Info="@($"The general is the one of the house the crews know. Sway comes of victories in command, rank in the service, triumphs and renown: {(swayWhy.Length > 0 ? swayWhy : "no victories yet")}. At {CaesarSystem.RecallSway} the Senate may order the general home; at {CaesarSystem.FearedSway} the general is feared. A triumph asks {CaesarSystem.TriumphLaurels} victories since the last.")">
                 <div class="mc-general">
                     <Portrait Id="@general.Id" Name="@general.Name" Sex="@general.Sex" Age="@general.Age" Alive="@general.Alive" Accent="@house.AccentColor" Size="46" Height="56" />
                     <div class="mc-gt">

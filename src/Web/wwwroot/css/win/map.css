@@ -83,25 +83,41 @@
 .map-gtip .kv { display: grid; grid-template-columns: 1.4667rem 6.1333rem 1fr; row-gap: .4667rem; align-items: center; font: 400 .9333rem/1.25 var(--f-ui); }
 .map-gtip .kv .icon { width: 1.1333rem; height: 1.1333rem; } .map-gtip .kv .k { color: var(--ink-dim); } .map-gtip .kv .v { color: var(--ink); } .map-gtip .kv .v b { font-weight: 600; }
 .map-gtip .own { display: inline-block; width: .6667rem; height: .6667rem; margin-right: .4rem; vertical-align: -1px; box-shadow: 0 0 0 1px #000; }
+.map-gtip .kv .v { text-align: left; justify-self: start; min-width: 0; white-space: normal; }
+.map-gtip .kv .v b { text-align: left; }
+.map-gtip .kv .v.hold { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; column-gap: .4rem; } .map-gtip .kv .v.hold .own { margin: 0; transform: translateY(-1px); }
 .map-gtip .chev { flex: none; line-height: 0; } .map-gtip .chev svg { width: 1.8667rem; height: 1.8667rem; } .map-gtip .chev path { fill: var(--fc); stroke: #000; stroke-width: 1.2; stroke-linejoin: round; }
 
 /* ==== the close map of a solar system (docs/SYSTEMS.md, "The close map") ==== */
-.sysv-label, .sysv-exit, .sysv-fleet { font-family: var(--f-ui); color: #e3e8f2; text-shadow: 0 1px 3px #000, 0 0 8px #000; white-space: nowrap; pointer-events: none; }
-.sysv-label .in { display: flex; flex-direction: column; align-items: center; gap: 1px; transform: translateY(50%); font-size: .8667rem; }
+/* every name of the close map is anchored at what it names (a zero-sized point) and its box is placed round it by js/space.js
+   (declutterSystem): outward from the sun, clear of every world's disc, the sun's core, the fleets, the other names and the interface
+   (rule 5). Until it is placed it is not drawn; a name with no clear place drops its second lines (.lean), then is not drawn at all. */
+.sysv-label, .sysv-exit, .sysv-fleet, .sysv-prov { width: 0; height: 0; font-family: var(--f-ui); color: #e3e8f2; white-space: nowrap; pointer-events: none; }
+.sysv-label > .in, .sysv-exit > .in, .sysv-fleet > .in, .sysv-prov > .in { position: absolute; left: 0; top: 0; width: max-content; }
+.unplaced > .in, .unplaced > .lead { visibility: hidden; }
+.lean .o, .lean .m, .lean .c { display: none; }
+/* a world's name: Plex 600 on a soft dark backing, its second lines dimmer; the system's own world in Cinzel and gold */
+.sysv-label .in { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 6px 3px; font-size: .8667rem; text-shadow: 0 1px 2px #000, 0 0 4px #000;
+  background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(3,5,10,.72), rgba(3,5,10,.38) 65%, rgba(3,5,10,0) 100%); }
 .sysv-label .n { font-family: var(--f-ui); font-weight: 600; letter-spacing: .02em; } .sysv-label.primary .n { font-family: var(--f-display); color: #f3d68e; font-size: 1rem; letter-spacing: .04em; }
 .sysv-label .o { font-size: .8rem; opacity: .95; } .sysv-label .m { font-size: .8rem; color: #cdbd92; }
-.sysv-label.moon .in { font-size: .8rem; color: #b9c2d4; } .sysv-label.belt .n { color: #cfc4b0; }
-.sysv-exit .in { display: flex; flex-direction: column; align-items: center; gap: 1px; font-size: .8667rem; }
+.sysv-label.moon .in { font-size: .8rem; color: #b9c2d4; } .sysv-label.belt .n { color: #cfc4b0; } .sysv-label.comet .in { font-size: .8rem; color: #bfe6ff; }
+.sysv-exit .in { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 6px; font-size: .8667rem; text-shadow: 0 1px 3px #000, 0 0 8px #000; }
 .sysv-exit .n { font-family: var(--f-display); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: .8667rem; color: #dfe6f4; } .sysv-exit .o { font-size: .8rem; }
-.sysv-fleet .in { font-size: .8rem; font-weight: 600; transform: translate(50%, 0); margin-left: .3rem; padding: 0 .3rem; background: rgba(5,7,12,.62); }
+/* a fleet's name beside its flagship: a small dark plate with a hairline, as the galaxy map's number plate */
+.sysv-fleet .in { font-size: .8rem; font-weight: 600; padding: 1px .4rem; background: rgba(5,7,12,.78); box-shadow: 0 0 0 1px rgba(0,0,0,.9), inset 0 0 0 1px rgba(255,255,255,.06); text-shadow: 0 1px 2px #000; }
 /* a moon is named when the view is close, or when its world is the one looked at; from far off only the worlds are named */
 .sysv-label.moon { display: none; } .gl-labels.sys-near .sysv-label.moon, .sysv-label.moon.of-looked, .sysv-label.moon.looked { display: block; }
 .gl-labels.sys-far .sysv-label .m, .gl-labels.sys-far .sysv-fleet { display: none; }
-.sysv-prov { font-family: var(--f-ui); color: #e3e8f2; text-shadow: 0 1px 3px #000, 0 0 8px #000; white-space: nowrap; pointer-events: none; }
-.sysv-prov .in { display: flex; flex-direction: column; gap: 1px; font-size: .8667rem; padding: .3rem .55rem; background: linear-gradient(rgba(14,17,25,.9), rgba(8,10,15,.9)); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.45); }
-.sysv-prov.left .in { transform: translateX(-50%); align-items: flex-end; } .sysv-prov.right .in { transform: translateX(50%); align-items: flex-start; } .sysv-prov.mid .in { transform: translateY(-60%); align-items: center; }
+/* a province of the world looked at: a plate in the medium frame, with a short leader to its pin on the globe; click it for the world's
+   provinces in the window */
+.sysv-prov { text-shadow: 0 1px 2px #000; }
+.sysv-prov .in { display: flex; flex-direction: column; gap: 1px; font-size: .8667rem; padding: .3rem .6rem .35rem; pointer-events: auto; cursor: pointer;
+  background: linear-gradient(180deg, rgba(24,28,38,.97), rgba(10,12,17,.97)); border: 12px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 12px stretch; border-image-outset: 3px; box-shadow: var(--sh-drop); }
+.sysv-prov .in:hover { box-shadow: var(--sh-drop), 0 0 10px rgba(232,196,110,.25); }
+.sysv-prov.left .in { align-items: flex-end; text-align: right; } .sysv-prov.right .in { align-items: flex-start; } .sysv-prov.mid .in { align-items: center; }
 .sysv-prov .n { font-family: var(--f-display); font-weight: 600; color: #f3d68e; font-size: .9333rem; letter-spacing: .04em; } .sysv-prov .c { color: #dfe6f4; } .sysv-prov .o { font-size: .8rem; } .sysv-prov .m { font-size: .8rem; color: #b9c2d4; }
-.sysv-label.comet .in { font-size: .8rem; color: #bfe6ff; transform: translate(60%, -160%); }
+.sysv-prov .lead { position: absolute; left: 0; top: 0; height: 1px; transform-origin: 0 50%; background: linear-gradient(90deg, var(--pc), color-mix(in srgb, var(--pc) 55%, transparent)); box-shadow: 0 0 2px #000; }
 .map-tip { background: linear-gradient(180deg, rgba(24,28,38,.97), rgba(10,12,17,.97)); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.55), var(--sh-drop); padding: .45rem .7rem; font: 400 .8667rem/1.35 var(--f-ui); color: var(--ink-dim); white-space: nowrap; transform: translateY(-100%); }
 .map-tip b { color: #f3e6c4; font: 600 .9333rem/1.2 var(--f-display); letter-spacing: .03em; }
 .map-tip:empty { display: none !important; }
@@ -128,12 +144,15 @@
 .mw-acts { display: flex; flex-wrap: wrap; gap: .5333rem; padding: .8rem 1.6rem .4rem 1.8667rem; }
 .sys-win .gov-line .portrait { width: 3.0667rem !important; height: 3.7333rem !important; }
 /* a fleet's token in a row, a station, a region's colour */
-.fl-pic { display: grid; place-items: center; width: 3.6rem; height: 2.5333rem; background: radial-gradient(circle at 50% 55%, #1a2030, #07090d 75%); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.45); }
-.fl-pic svg { width: 1.6rem; height: 1.6rem; filter: drop-shadow(0 1px 1px #000); } .fl-pic path { fill: var(--fc); stroke: #06080c; stroke-width: 1.4; stroke-linejoin: round; }
-.fl-pic.reported path { fill: rgba(6,8,12,.5); stroke: var(--fc); stroke-width: 1.7; } .fl-pic.moving { opacity: .75; }
+.fl-pic { display: grid; place-items: center; width: 3.0667rem; height: 3.0667rem; margin: 0 auto; border-radius: 50%; box-sizing: border-box;
+  background: radial-gradient(circle at 50% 38%, #232b3b, #07090d 76%) padding-box, linear-gradient(160deg, #c9a24a, #4a3510 50%, #8a6a2a) border-box; border: 2px solid transparent;
+  box-shadow: 0 0 0 1px #000, inset 0 1px 4px #000, 0 2px 4px rgba(0,0,0,.6); }
+.fl-pic svg { width: 1.6rem; height: 1.6rem; margin-top: -2px; filter: drop-shadow(0 1px 1px #000); } .fl-pic .b { fill: var(--fc); stroke: #06080c; stroke-width: 1.4; stroke-linejoin: round; } .fl-pic .f { fill: rgba(255,255,255,.3); }
+.fl-pic.reported .b { fill: rgba(6,8,12,.55); stroke: var(--fc); stroke-width: 1.7; } .fl-pic.reported .f { display: none; } .fl-pic.moving svg { opacity: .75; }
 .fl-doing { white-space: normal; font-size: .8667rem; color: var(--ink-dim); margin-top: .2rem; }
 .st-pic { display: grid; place-items: center; width: 3.6rem; height: 2.5333rem; background: radial-gradient(circle at 50% 55%, #1a2030, #07090d 75%); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.45); }
-.rg-pic { display: block; width: 3.6rem; height: 2.5333rem; background: linear-gradient(135deg, color-mix(in srgb, var(--rc) 55%, #0b0e15), color-mix(in srgb, var(--rc) 22%, #07090d)); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.45), inset 0 1px 0 rgba(255,255,255,.12); }
+.rg-pic { display: block; width: 3.6rem; height: 2.5333rem; background-color: #070a10; background-position: center; background-size: contain; background-repeat: no-repeat; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.45), inset 0 1px 3px #000; }
+.gl-labels.regions-on .region-label { color: rgba(246,236,206,.86); text-shadow: 0 0 6px rgba(0,0,0,.95), 0 1px 2px #000; opacity: 1; }
 .region-row.free .ui-row-nm { color: #f0c8a8; }
 .ui-cell.warn { color: var(--warn); } .ui-cell.bad { color: var(--bad); } .ui-cell.bad b { margin-right: .2667rem; }
 
@@ -157,9 +176,9 @@
 .crumbs button.crumb:hover { color: var(--brass-hi); }
 .crumbs .crumb.here { color: var(--brass-hi); } .crumbs .sep { flex: none; } .crumbs .crumb.still { cursor: default; color: var(--ink-mute); } .crumbs .sep { color: var(--brass); width: .7333rem; height: .7333rem; }
 .crumbs .crumb.back { display: none; align-items: center; gap: .3333rem; } .crumbs .crumb.back .flip { transform: rotate(180deg); width: .7333rem; height: .7333rem; }
-@container crumbs (max-width: 40rem) { .crumbs .crumb-w { display: none; } }
-@container crumbs (max-width: 33rem) { .crumbs .region { display: none; } }
-@container crumbs (max-width: 25rem) { .crumbs .reach, .crumbs .crumb.sys:not(.here) + .sep, .crumbs .crumb.sys:not(.here) { display: none; } .crumbs .crumb.back { display: inline-flex; } }
+@container crumbs (max-width: 46rem) { .crumbs .crumb-w { display: none; } }
+@container crumbs (max-width: 40rem) { .crumbs .region { display: none; } }
+@container crumbs (max-width: 27rem) { .crumbs .reach, .crumbs .crumb.sys:not(.here) + .sep, .crumbs .crumb.sys:not(.here) { display: none; } .crumbs .crumb.back { display: inline-flex; } }
 /* the world strip docks at the foot of the free map, left of the console, inside the free map (it is shown only while no window is
    open); its facts wrap onto a second row rather than run over anything */
 .gs-shell.game .galaxy .world-strip { position: absolute; left: auto; right: calc(var(--edge, 8px) + var(--cs-w) + 1rem); bottom: 1.2rem; transform: none; z-index: 24; width: max-content;
@@ -172,8 +191,15 @@
 .minimap.away { display: none; }
 /* the legend, opened from the console: a framed strip over the free map's foot */
 .gs-shell.game .galaxy .legend { left: calc(var(--free-l) + 12px); bottom: calc(var(--edge) + 4px); max-width: min(46rem, calc(100vw - var(--free-l) - var(--cs-w) - 150px)); z-index: 22; display: flex; flex-wrap: wrap; align-items: center; gap: .4rem 1rem;
-  padding: .6rem .9rem; font: 500 .8667rem/1.3 var(--f-ui); color: var(--ink-dim); background: linear-gradient(180deg, rgba(24,28,38,.96), rgba(10,12,17,.96)); border: 0; border-radius: 0;
-  box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.55), var(--sh-drop); }
+  padding: .45rem .8rem; font: 500 .8667rem/1.3 var(--f-ui); color: var(--ink-dim); background: linear-gradient(180deg, rgba(24,28,38,.97), rgba(10,12,17,.97));
+  border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; border-image-outset: 6px; border-radius: 0; box-shadow: var(--sh-drop); }
+.gs-shell.game.legend-on .galaxy .legend { left: auto; right: var(--edge); bottom: calc(var(--edge) + var(--cs-h) + 14px); width: min(27rem, calc(100vw - var(--free-l) - 2 * var(--edge) - 12px)); max-width: none; z-index: 31;
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem 1rem; padding: .7rem .9rem .75rem; }
+.gs-shell.game.legend-on .galaxy .legend .lg-h, .gs-shell.game.legend-on .galaxy .legend .hint, .gs-shell.game.legend-on .galaxy .legend .muted { grid-column: 1 / -1; }
+.gs-shell.game.legend-on .galaxy .legend .lg-h { padding-bottom: .3rem; border-bottom: 1px solid rgba(201,162,74,.3); }
+/* on a short screen the outliner comes down to the console, and the map's layer lies under it: the legend stands beside the console
+   instead, clear of End Year, its foot on the console's */
+@media (max-height: 900px) { .gs-shell.game.legend-on .galaxy .legend { right: calc(var(--edge) + var(--cs-w) + 64px); bottom: var(--edge); width: min(27rem, calc(100vw - var(--free-l) - var(--cs-w) - 2 * var(--edge) - 80px)); } }
 .galaxy .legend > span { display: inline-flex; align-items: center; gap: .3rem; } .galaxy .legend .icon { width: .9333rem; height: .9333rem; }
 .galaxy .legend .lg-h { font: 600 .8rem/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
 .galaxy .legend .hint { color: var(--brass-hi); flex-basis: 100%; } .galaxy .legend .muted { color: var(--ink-mute); flex-basis: 100%; }
@@ -194,3 +220,28 @@
 /* round 3: the breadcrumb stays inside the free map (between the docked window and the outliner) and under the alerts row, which now
    keeps to one line: it is clipped to the free map, centred only when it fits, and its crumbs step out by the container's width */
 .gs-shell.game .galaxy .crumbs { top: calc(var(--top) + 3.9rem); overflow: hidden; justify-content: safe center; }
+
+/* ==== the system window's The world tab (docs/VISUAL_SYSTEM.md 4.3, 4.7): who holds the world and what it is, as figures with their
+   icons; the chief cities, the lanes and the ground as rows with their pictures, not tables of label and value ==== */
+.mw-figs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem 1.0667rem; padding: .7333rem 1.6rem .8667rem 1.8667rem; border-bottom: 1px solid rgba(255,255,255,.05); }
+.mw-fig { display: flex; align-items: center; gap: .6rem; min-width: 0; cursor: help; }
+.mw-fig > svg { flex: none; }
+.mw-fv { display: flex; flex-direction: column; gap: .1333rem; min-width: 0; }
+.mw-fv b { font: 600 1rem/1.15 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums lining-nums; }
+.mw-fv small { font: 500 .8333rem/1.15 var(--f-ui); color: var(--ink-mute); }
+.mw-fig.warn b { color: var(--warn); } .mw-fig.hold b { color: var(--brass-ink); }
+.mw-cpic { display: block; width: 3.6rem; height: 2.5333rem; background: center / cover no-repeat #0a0d14; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.55), 0 2px 4px #000; }
+.mw-cpic.none { display: grid; place-items: center; background: radial-gradient(circle at 50% 45%, #1a2030, #07090d 76%); }
+.mw-city.great .ui-row-nm { color: var(--brass-hi); }
+.sys-win .city-kind { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); } .sys-win .city-kind.great { color: var(--brass-ink); }
+.mw-city .ui-row-sub .sigil { vertical-align: -2px; margin-right: .3rem; }
+.mw-lane .ui-row-sub .own { display: inline-block; width: .6rem; height: .6rem; margin-right: .45rem; box-shadow: 0 0 0 1px #000; }
+.mw-lane .mw-chev { opacity: .55; margin-left: .2rem; } .mw-lane:hover .mw-chev { opacity: 1; }
+.mw-lane .ui-cell { min-width: 0; }
+.mw-ck { display: inline-block; width: .6rem; height: .6rem; transform: rotate(45deg); box-shadow: 0 0 0 1px var(--brass); } .mw-ck.big { width: 1rem; height: 1rem; box-shadow: 0 0 0 2px var(--brass), 0 0 8px rgba(201,162,74,.4); }
+.mw-well { display: grid; place-items: center; width: 3.6rem; height: 2.5333rem; background: radial-gradient(circle at 50% 45%, #1a2030, #07090d 76%); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.45), inset 0 1px 3px #000; }
+.mw-dep .ui-cell small { color: var(--ink-mute); font-weight: 500; margin-left: .2rem; }
+.sys-win .mw-globe .ui-globe { margin: 0 auto; }
+/* an empty state's glyph is faint (4.17) */
+.gs-shell .sys-win .ui-empty > svg.icon { opacity: .3; }
+@media (max-width: 1500px) { .mw-figs { column-gap: .8rem; padding-left: 1.6rem; } }

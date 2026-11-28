@@ -315,11 +315,11 @@ public sealed partial class NationSystem
     {
         if (!n.AtWar) return "";
         int score = WarScore(n, d); string best = Best(n, d); int sues = SuesAt(n, d);
-        string next = Terms.SkipWhile(t => t != best).Skip(1).FirstOrDefault() is { } better ? $" At {Needs(n, better):+0;-0;0}: {TermsName(better)}." : "";
+        string next = Terms.SkipWhile(t => t != best).Skip(1).FirstOrDefault() is { } better ? $" At {Needs(n, better):+0;−0;0}: {TermsName(better)}." : "";
         string stubborn = Stubborn(n) > 0 ? $" ({(Great(n) ? "One of the great" : "A warlike ruler")} asks {Stubborn(n)} points more.)" : "";
         string win = n.OnMap && Decisive(w, n, d) ? "it can be made a client" : $"it sues, and pays tribute for {SubduedTurns} years{(n.OnMap ? ", or is made a client if it is beaten decisively" : "")}";
         string lose = n.OnMap ? (Holds(w, n) ? "the war is lost and what it holds is ceded" : $"the war is lost and the Reach pays it tribute for {PaidYears} years") : "the chair buys peace";
-        return $"War score {score:+0;-0;0} (the tally is {n.ScoreReach} to {n.ScoreNation}; {sues} ahead wins it, {d.Threshold} behind loses it). Negotiated now: {TermsName(best)}.{next}{stubborn} Won at +100: {win}. Lost at -100: {lose}.";
+        return $"War score {score:+0;−0;0} (the tally is {n.ScoreReach} to {n.ScoreNation}; {sues} ahead wins it, {d.Threshold} behind loses it). Negotiated now: {TermsName(best)}.{next}{stubborn} Won at +100: {win}. Lost at −100: {lose}.";
     }
 
     /// <summary>A client's year: it pays the chair, and half as much again to its patron. It throws the treaty off under one of the

@@ -554,7 +554,7 @@ function sheetCanvas(o) {
   const c = document.createElement('canvas'); c.width = 512; c.height = 300; const ctx = c.getContext('2d');
   ctx.fillStyle = '#efe3c4'; ctx.fillRect(0, 0, 512, 300); ctx.strokeStyle = '#6b4a22'; ctx.lineWidth = 2; ctx.strokeRect(8, 8, 496, 284);
   ctx.fillStyle = '#3a2410'; ctx.font = '600 22px Cinzel, serif'; ctx.textAlign = 'left'; ctx.fillText('RECORD OF SERVICE', 22, 40);
-  ctx.font = '17px Alegreya, serif'; ctx.fillText((o.track || '') + ' · ' + (o.rank || ''), 22, 66); ctx.fillText('Ambition: ' + (o.ambition || '—'), 22, 90);
+  ctx.font = '17px Alegreya, serif'; ctx.fillText((o.track || '') + ' · ' + (o.rank || ''), 22, 66); ctx.fillText('Ambition: ' + (o.ambition || 'none'), 22, 90);
   const skills = (o.skills || []).slice(0, 7); skills.forEach((sk, i) => { const y = 118 + i * 24; ctx.fillStyle = '#3a2410'; ctx.font = '15px Alegreya, serif'; ctx.fillText(sk.name, 22, y + 12); ctx.fillStyle = '#d8c9a4'; ctx.fillRect(150, y, 330, 12); ctx.fillStyle = o.accent || '#c9a24a'; ctx.fillRect(150, y, 330 * Math.min(1, (sk.value || 0) / 5), 12); });
   if (!skills.length) { ctx.fillStyle = '#5a3a18'; ctx.font = 'italic 16px Alegreya, serif'; ctx.fillText('Untrained.', 22, 130); }
   return c;

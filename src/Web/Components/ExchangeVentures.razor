@@ -26,7 +26,7 @@
     {
         var raw = w.Business(b.Id); string bid0 = b.Id;
         <div class="vcard ex-venture @(raw is { LosingYears: > 0 } ? "distress" : "")" data-venture="@b.Id">
-            <Row Name="@b.Name" SubText="@($"{b.KindName} · level {b.Level} of {b.MaxLevel}{(b.SystemName != null ? $" · {b.SystemName}" : "")}{(b.CompanyName != null ? $" · held by {b.CompanyName}" : "")}")" Tip="@($"Pays {(b.Yield == "—" ? "nothing" : b.Yield)}{(b.Charter != null ? $"; charter {b.Charter}" : "")}")">
+            <Row Name="@b.Name" SubText="@($"{b.KindName} · level {b.Level} of {b.MaxLevel}{(b.SystemName != null ? $" · {b.SystemName}" : "")}{(b.CompanyName != null ? $" · held by {b.CompanyName}" : "")}")" Tip="@($"Pays {(b.Yield.Length == 0 ? "nothing" : b.Yield)}{(b.Charter != null ? $"; charter {b.Charter}" : "")}")">
                 <Picture>@if (raw != null && G.WorkPicture(raw.Kind) is { } art) { <span class="ui-thumb"><img src="@art" alt="" loading="eager" decoding="async" /></span> } else { <span class="ui-thumb hs-thumb-none"><Icon Name="factory" Tone="brass" Size="20" /></span> }</Picture>
                 <Cells>
                     <Cell Icon="credits" Value="@(HouseScreen.Sg(b.Earnings) + " a year")" Class="@(b.Earnings > 0 ? "ui-up" : "ui-down")" Tip="What it earns a year at this year's prices" />
@@ -35,7 +35,7 @@
                 <Action><Plate Label="Expand" Icon="upgrade" Small="true" Locked="@(b.Expand.Refusal != null)" Disabled="@(b.Expand.Refusal != null)" ShowNeed="false" Need="@(b.Expand.Refusal ?? "")" Tip="@b.Expand.Label" OnClick="() => G.Execute(new ExpandBusinessCommand(pid, bid0, c.Businesses))" /></Action>
             </Row>
             <div class="ex-under">
-                <p class="hs-note ex-pays">@(b.Yield == "—" ? "Yields nothing this year" : "Pays " + b.Yield)@(b.Charter != null ? $" · charter {b.Charter}" : "")</p>
+                <p class="hs-note ex-pays">@(b.Yield.Length == 0 ? "Yields nothing this year" : "Pays " + b.Yield)@(b.Charter != null ? $" · charter {b.Charter}" : "")</p>
                 @if (vs != null && raw is { LosingYears: > 0 } failing)
                 {
                     var noProp = vs.PropRefusal(w, w.House(w.Protagonist!.HouseId), failing);

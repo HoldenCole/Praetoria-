@@ -12,7 +12,7 @@
     var kin = w.LivingCharacters().Where(k => k.HouseId == house.Id && k.Id != pid && k.Age >= DynastySystem.AgeOfMajority).OrderBy(k => k.Id, StringComparer.Ordinal).ToList();
 }
 <section class="panel household council court hs-court" data-court-panel>
-    <p class="ui-lede hs-lede" data-court>@HouseScreen.Bold($"Seven small positions that belong to the house, {house.Court.Count} of them filled. They go with you whatever you rise to, and stay if you fall.")</p>
+    <p class="ui-lede hs-lede" data-court>@HouseScreen.Bold($"{house.Court.Count} of {CourtSystem.Positions.Length} posts filled. They belong to the house and not to any rank: they go with you whatever you rise to, and stay if you fall.")</p>
     <Section Title="The house's court" Count="@($"{house.Court.Count} of {CourtSystem.Positions.Length}")" Info="Seven small positions that belong to the house and not to any rank or office it holds: they go with you whatever you rise to, and stay if you fall. Each is held by one of the commons sworn to the house, who is paid, or by one of the family, who is not. Nothing has to be filled.">
         <Right><span class="court-sum" data-court-sum="@house.Court.Count" title="@($"{house.Court.Count} of {CourtSystem.Positions.Length} filled.{(wageLaw != null ? $" {wageLaw.Name}: {wageNow?.Name ?? "unset"}, set in the Laws window." : "")}")">Wages <b>@Money.Coin(paid)</b> a year</span></Right>
         <ChildContent>
@@ -23,9 +23,11 @@
             <Row Name="@CourtSystem.Name(role)" Tip="@(CourtSystem.Does(role) + (r == null ? "\n" + Without(role) : ""))">
                 <Picture>
                     @if (r != null) { <Portrait Id="@(r.KinId.Length > 0 ? r.KinId : r.Id)" Name="@r.Name" Sex="@r.Sex" Age="@r.Age" Accent="@house.AccentColor" Size="46" Height="56" Opens="@(r.KinId.Length > 0)" /> }
-                    else { <Portrait Size="46" Height="56" EmptyGlyph="@Glyph(role)" Name="@($"{CourtSystem.Name(role)}: empty")" /> }
+                    else { <Portrait Size="46" Height="46" EmptyGlyph="@Glyph(role)" Name="@($"{CourtSystem.Name(role)}: empty")" /> }
                 </Picture>
-                <Sub>@if (r != null) { <span><b>@r.Name</b>, @r.Age · @(r.KinId.Length > 0 ? "of the family" : "of the commons") · @Years(w.Turn - r.Since) in the place</span> } else { <span class="hs-state">Empty</span> }</Sub>
+                @* an empty post says what its absence costs the house (docs/VISUAL_SYSTEM.md 4.13: no word repeated down the list); the hatched
+                   plate and the Appoint select say it is empty *@
+                <Sub>@if (r != null) { <span><b>@r.Name</b>, @r.Age · @(r.KinId.Length > 0 ? "of the family" : "of the commons") · @Years(w.Turn - r.Since) in the place</span> } else { <span class="hs-state" data-post-empty="@role">@Lacks(role)</span> }</Sub>
                 <Cells>
                     @if (r != null)
                     {
@@ -51,14 +53,14 @@
                     }
                 </Action>
             </Row>
-            <div class="hs-post-body">
             @if (r != null)
             {
+            <div class="hs-post-body">
                 @if (r.UnpaidYears > 0) { <WarnStrip Icon="credits" Lead="Unpaid." Bad="true">They have gone unpaid for @Counted.Years(r.UnpaidYears).</WarnStrip> }
                 <p class="hs-says"><Icon Name="sprout" Tone="good" Size="15" />@Worth(role, skill)</p>
                 @if (r.From.Length > 0) { <p class="hs-note">@Sentence(r.From)</p> }
-            }
             </div>
+            }
         </div>
     }
         </ChildContent>
@@ -102,6 +104,18 @@
         CourtSystem.DuelMaster => "Each year the least practised of the young is drilled, and may be the better with a pistol or a line of battle for it.",
         CourtSystem.Shipwright => $"{CourtSystem.ShipwrightPctPerSkill * s}% of the materials of every hull laid down come back, and fleets in port gain {s} readiness a year.",
         CourtSystem.Ceremonies => $"The old blood think {(s >= 4 ? 2 : 1)} the better of the house each year, and a wedding of the house adds to its legitimacy.",
+        _ => ""
+    };
+    /// <summary>What the house goes without while the post is empty, short enough for a row's one line (Without, in the tooltip, says it whole).</summary>
+    private static string Lacks(string role) => role switch
+    {
+        CourtSystem.Tutor => "Each child is taught by a paid tutor, one at a time",
+        CourtSystem.Nurse => "The mothers of the house nurse their own",
+        CourtSystem.Physician => "The sick pay a physician from their own purse",
+        CourtSystem.Guard => "Nobody stands between the house and a knife",
+        CourtSystem.DuelMaster => "The young learn arms where they can",
+        CourtSystem.Shipwright => "The yards run themselves",
+        CourtSystem.Ceremonies => "Weddings and feasts go to whoever is to hand",
         _ => ""
     };
     private static string Without(string role) => role switch

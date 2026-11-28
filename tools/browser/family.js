@@ -18,7 +18,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
-  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
+  // what this script takes from the treasury can end the year short, and End Year then asks first (ConfirmBox): end it anyway
+  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.evaluate(() => { const y = document.querySelector('.confirm-box [data-confirm="yes"]'); if (y) y.click(); }); await page.waitForTimeout(50); } await closeWindows(); };
   // find the screen each panel lives on
   const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; const tabs = await page.evaluate(() => document.querySelectorAll('.screen.window .ex-tabs .rung, .screen.window .cw-tabs .rung, .screen.window .ui-tab').length); for (let i = 1; i < tabs; i++) { await page.evaluate(k => document.querySelectorAll('.screen.window .ex-tabs .rung, .screen.window .cw-tabs .rung, .screen.window .ui-tab')[k].click(), i); await page.waitForTimeout(300); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } } return ''; };
   const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s + ' button')].find(e => !e.disabled && e.innerText.trim().toLowerCase().startsWith(t.toLowerCase())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : ''; }, [sel, text]);
@@ -34,7 +35,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('give: ' + (await press('.panel.wealth .purse-row', 'Give 5') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('lend: ' + (await press('.panel.wealth .purse-row', 'Lend') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('dowries: ' + (await press('.panel.wealth', 'From my own purse first') || 'NO SUCH BUTTON')); await page.waitForTimeout(300);
-  console.log('owed: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .pill')].map(e => e.innerText).filter(x => /owes you/.test(x)).join(' | ')));
+  console.log('owed: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .pill')].map(e => e.innerText).filter(x => /owes you/i.test(x)).join(' | ')));
   await shot('.panel.wealth', 'family-wealth');
   const eduOn = await find('.panel.education'); console.log('education panel on: ' + (eduOn || 'NOT FOUND'));
   t = await text('.panel.education'); console.log('education: ' + (/NaN|undefined|Exception|@\(/.test(t) ? 'SUSPICIOUS TEXT' : 'ok'));
@@ -48,7 +49,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await shot('.panel.education', 'family-education');
   for (let y = 0; y < years; y++) await endTurn();
   await find('.panel.wealth'); await page.waitForTimeout(300);
-  console.log('after ' + years + ' years, owed: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .pill')].map(e => e.innerText).filter(x => /owes you/.test(x)).join(' | ') || 'nothing'));
+  console.log('after ' + years + ' years, owed: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .pill')].map(e => e.innerText).filter(x => /owes you/i.test(x)).join(' | ') || 'nothing'));
   await rail('Chronicle'); await page.waitForTimeout(600);
   console.log('chronicle: ' + await page.evaluate(() => (document.body.innerText || '').split('\n').map(x => x.trim()).filter(x => /credits of their own|lends |paid back the last|turns to |their own affair|takes .* in hand|under their wing|has learned something/i.test(x)).slice(0, 8).map(x => x.slice(0, 200)).join('\n   ')));
   console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e));

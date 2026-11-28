@@ -27,7 +27,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await closeWindows(); await rail('You'); await wtab('A life'); await page.waitForTimeout(700);
   const text = await page.evaluate(() => (document.querySelector('.panel.life') || {}).innerText || 'NO PANEL');
   console.log('panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + await who() + ' · ' + await life());
-  console.log('a season away: ' + await press('Season away')); await page.waitForTimeout(300); console.log('  ' + await life());
+  console.log('a season away: ' + (await press('Season away') || 'refused: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.life button')].find(e => e.innerText.trim().startsWith('Season away')); return b ? (b.title || '').split('\n').pop() : 'no button'; }))); await page.waitForTimeout(300); console.log('  ' + await life());
   await page.screenshot({ path: shots + '/life-begin.png' });
   if (await press('Step down')) { await page.waitForTimeout(300); console.log('laid the house down: ' + await press('Yes, lay it down')); await page.waitForTimeout(800); await closeWindows(); await rail('You'); await wtab('A life'); await page.waitForTimeout(500); console.log('  now playing ' + await who() + ' · ' + await life()); }
   else console.log('may not lay the house down yet');
@@ -35,7 +35,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   await rail('You'); await wtab('A life'); await page.waitForTimeout(600);
   console.log('after ' + years + ' years: ' + await who() + ' · ' + await life());
   console.log('written: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.life .deed')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' | ')));
-  console.log('ties: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.life .ac-fact')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 110)).join(' || ')));
+  // the old ties are rows of faces with a line for each kind (.ac-fact); with none, the section folds to its empty line
+  console.log('ties: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.life .ac-fact, .panel.life .ui-empty')].filter(e => /old (friends|enemies)|old ties/i.test(e.textContent)).map(e => e.textContent.replace(/\s+/g, ' ').trim().slice(0, 110)).join(' || ')));
   const box = await page.evaluate(() => { const r = document.querySelector('.panel.life').getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 900) }; });
   await page.screenshot({ path: shots + '/life-panel.png', clip: box });
   await rail('Dynasty'); await wtab('The dead'); await wtab('Health'); await page.waitForTimeout(600);   // the tab is named Health while nobody of the house has died

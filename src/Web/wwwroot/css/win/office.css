@@ -9,7 +9,7 @@
 .docked-win:has(.office-room) .win-bar { display: none; }
 .docked-win .win-body:has(.office-room) { padding: 0; overflow: hidden; display: flex; -webkit-mask-image: none; mask-image: none; }
 
-.office-room { position: relative; flex: 1 1 auto; align-self: stretch; min-height: 0; overflow: hidden; container-type: size; background: #06080c; --pw: clamp(18rem, 27cqw, 21.3333rem); }
+.office-room { position: relative; flex: 1 1 auto; align-self: stretch; min-height: 0; overflow: hidden; container-type: size; background: #06080c; --pw: clamp(19.4667rem, 34.5cqw, 23rem); }
 .or-stage { position: absolute; left: 50%; top: 50%; width: min(100cqw, 100cqh * 1.2121); height: min(100cqh, 100cqw / 1.2121); transform: translate(-50%, -50%); container-type: size; }
 .or-paint { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; user-select: none;
   filter: brightness(1.05) contrast(1.05) saturate(1.02); }
@@ -76,7 +76,6 @@
 .or-seat { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2rem .6rem; margin-top: .3333rem; }
 .or-seat b { font: 600 1.2rem/1.1 var(--f-display); letter-spacing: .03em; color: #f5e9c9; text-shadow: 0 1px 4px #000; }
 .or-seat span { font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); text-shadow: 0 1px 3px #000; }
-.or-pick { grid-column: 2; justify-self: start; } .or-pick .ui-select-btn { min-width: 11.3333rem; height: 1.8667rem; font-size: .8667rem; }
 
 /* ---- the room's panel: one framed part on its right (the medium frame over a leather body cut to its chamfer) ---- */
 .or-panel { position: absolute; z-index: 6; right: 1.4rem; bottom: 1.4rem; width: var(--pw); max-height: calc(100% - 5.8rem); display: flex; filter: drop-shadow(0 10px 24px rgba(0,0,0,.7)); --c: 9px; }
@@ -129,3 +128,31 @@
 /* the clamp cuts at the padding box: the space between lines is margin, so no half of a third line shows under the second */
 .or-lines .line { padding-top: 0; padding-bottom: 0; margin: .4rem 0; } .or-lines .line::before { top: .5rem; }
 .or-lines .line:not(:last-child) { padding-bottom: 0; box-shadow: 0 .4rem 0 -1px transparent; }
+
+/* ---- which room: a small brass roundel beside the room's name opens a framed menu (the painting keeps no web control) ---- */
+.or-kick { display: flex; align-items: center; gap: .5333rem; }
+.or-room { position: relative; display: inline-flex; letter-spacing: 0; text-transform: none; }
+.or-roundel { width: 1.6rem; height: 1.6rem; padding: 0; display: grid; place-items: center; border-radius: 50%; cursor: pointer; border: 0;
+  background: radial-gradient(circle at 50% 38%, #2a3142, #10141c 70%); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.75), inset 0 1px 0 rgba(255,255,255,.12), 0 2px 4px rgba(0,0,0,.7); transition: box-shadow .12s; }
+.or-roundel .icon { width: .9333rem; height: .9333rem; }
+.or-roundel:hover, .or-room.open .or-roundel { box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--brass-hi), 0 0 8px rgba(246,226,160,.45), inset 0 1px 0 rgba(255,255,255,.12); }
+.or-room-menu { left: -.4rem; min-width: 15rem; font-weight: 400; }
+.or-room-menu button { font: 400 .9333rem/1 var(--f-ui); color: var(--ink); letter-spacing: 0; text-transform: none; }
+
+/* ---- the panel (docs/VISUAL_SYSTEM.md 4.18): the name on one line in mixed-case Cinzel, the age with the rank, the traits as their
+   own glyphs and words with no boxes, the ambition as a label over its value, a news line up to three lines (the whole in its tooltip) ---- */
+.game .win-body .or-who h2, .or-who h2 { font-size: 1.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.or-traits { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .3333rem .8rem; padding-top: .8rem; padding-bottom: .4rem; }
+.or-traits .trait { height: auto; padding: .1333rem 0 .1333rem .5333rem; gap: .4667rem; background: none; box-shadow: inset 2px 0 0 #7fa8d6 !important; font: 500 .9333rem/1.2 var(--f-ui); border-radius: 0; }
+.or-traits .trait.apt { box-shadow: inset 2px 0 0 #8cc47e !important; }
+.or-traits .trait .icon { width: 1.0667rem; height: 1.0667rem; flex: none; }
+.or-kv.stack { grid-template-columns: 1fr; row-gap: .2667rem; }
+.or-kv.stack > b { text-align: left; font: 600 1rem/1.3 var(--f-ui); color: var(--brass-hi); padding-left: 1.4667rem; }
+.or-lines .line { -webkit-line-clamp: 3; }
+
+/* ---- the room's width: wider than the other windows (it is a room, not a list), but never so wide that less than a third of the screen
+   stays map (docs/VISUAL_SYSTEM.md 3.10); the shell's free rectangle for the alerts follows the room's own edge. The shell gives every
+   wide window a fixed 250px of free map (app.css, --free-l): a local variant here until the shell measures the window. ---- */
+.gs-shell.game .screen.window.wide[data-screen="office"] { width: min(980px, calc(100vw - var(--rail) - var(--ol-w) - 260px), calc(66vw - var(--rail))); }
+.gs-shell.game.in-window:has(.screen.window.wide[data-screen="office"]) { --free-l: calc(var(--rail) + 4px + min(980px, calc(100vw - var(--rail) - var(--ol-w) - 260px), calc(66vw - var(--rail)))); }
+@container (max-width: 54rem) { .game .win-body .or-who h2, .or-who h2 { font-size: 1.0667rem; } .or-who { gap: .6667rem; } }

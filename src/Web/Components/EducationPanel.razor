@@ -9,9 +9,13 @@
     int atLessons = young.Count(c => c.Age >= EducationSystem.SchoolAge);
     string Best(Character x) => x.Skills.Count(kv => kv.Value > 0) == 0 ? "nothing yet" : string.Join(", ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(4).Select(kv => $"{kv.Key} {kv.Value}"));
 }
-@* Upbringing and learning (docs/EDUCATION.md) on the Dynasty window: each child as a face, their bent, what they learned and what they
-   learn this year, what they think of you for it, and their course and tutor as joined plates; then the grown, what they study, and
-   what you may ask of them. "panel education", its .suit and .suit-who blocks and the data-course and data-tutor plates are what
+@* Upbringing and learning (docs/EDUCATION.md) on the Dynasty window, as rows (docs/VISUAL_SYSTEM.md 4.7) on the one row grid in both
+   sections, so the faces and names line up. A child at their lessons is one row: the face, the name and age, one line of what they
+   show a bent for and have learned, and at the right two figures: this year's lesson (its glyph, the points it gains, how far toward
+   the next step) and what they think of you; under the name, their course and their tutor as two short ladders of plates with no
+   label (the meaning is in each plate's tooltip). A grown relative is one row: the face, the name and age, their two best skills, what
+   they study as a short meter toward as far as they can reach, and the two selects (4.12) for what to ask them to study and the
+   teacher they are paid. "panel education", its .suit rows and .suit-who lines and the data-course and data-tutor plates are what
    tools/browser reads. *@
 <div class="panel education dy-edu">
     <p class="ui-lede dy-lede">@LawsScreen.Bold($"{(atLessons == 0 ? "No child of the house is at their lessons" : $"{atLessons} {(atLessons == 1 ? "child is" : "children are")} at their lessons")}{(bill > 0 ? $", and teachers cost the house {Money.Show(bill)} a year" : "")}. Nobody has to be managed: a child is brought up toward what they show a bent for, and a grown person studies what they choose.")</p>
@@ -22,40 +26,38 @@
         string cid = c.Id;
         if (c.Age < EducationSystem.SchoolAge)
         {
-            <Row Wrap="true" Name="@c.Name" SubText="@($"{c.Age} · too young for lessons. They begin at {EducationSystem.SchoolAge}.")" Class="suit dy-young">
+            <Row Name="@c.Name" Class="suit dy-up dy-young" Tip="@($"{c.Name}, {c.Age}: too young for lessons. They begin at {EducationSystem.SchoolAge}.")">
                 <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
+                <NameExtra><small class="dy-age">@c.Age</small></NameExtra>
+                <Sub><span class="suit-who">Too young for lessons: they begin at @EducationSystem.SchoolAge.</span></Sub>
             </Row>
             continue;
         }
-        string bent = EducationSystem.BentGroup(c); var lesson = EducationSystem.Lesson(w, c);
-        <div class="suit dy-blk">
-            <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" />
-            <div class="dy-blk-body">
-                <div class="suit-who"><span class="dy-blk-nm">@c.Name</span> <span class="dy-blk-sub">@c.Age · shows a bent for @EducationSystem.GroupName(bent)@(c.Flags.Contains(HouseholdSystem.Ward) ? " · your ward" : "")</span>
-                    <div class="dy-blk-sub">Has learned: @Best(c). This year: @lesson.skill, <b class="ui-up">+@lesson.points</b> point@(lesson.points == 1 ? "" : "s") toward the next step (@c.Learning.GetValueOrDefault(lesson.skill) of @EducationSystem.Need(c.Skill(lesson.skill)) so far).</div>
-                </div>
-                @if (lesson.against) { <div class="dy-blk-sub ui-down">Set against their bent: they learn a third as fast, and hold it against you a little more each year.</div> }
-                @if (c.Id != pid)
-                {
-                    var raised = EducationSystem.Raised(w, c, w.Protagonist!); int thinks = w.GetRelationship(c.Id, pid)?.Disposition ?? 0; int sum = raised.Sum(x => x.by);
-                    <div class="dy-blk-sub" data-child-thinks="@thinks" title="@($"What a child thinks of you follows how they are raised: a point a year when they are brought up as their own bent runs, a point more for a tutor, a point lost each year they are set against it. Upbringing alone takes it no higher than {EducationSystem.RaisedCap}.")">Thinks <b class="@(thinks >= 20 ? "ui-up" : thinks < 0 ? "ui-down" : "")">@thinks.ToString("+0;−0")</b> of you. @(raised.Count == 0 ? (thinks >= EducationSystem.RaisedCap ? "An upbringing can make them think no better of you than this." : "") : "This year's upbringing: " + string.Join(", ", raised.Select(x => (x.by > 0 ? "+" : "−") + Math.Abs(x.by) + " " + x.why)) + (raised.Count > 1 ? " (" + sum.ToString("+0;−0") + " in all)" : "") + ".")</div>
-                }
-                @if (c.Flags.Contains(EducationSystem.ProdigyChar)) { <div class="dy-blk-sub ui-up">Far ahead of their years.</div> }
-                <div class="you-acts dy-acts suit-acts">
-                    <span class="you-lbl">Course</span>
-                    <span class="ui-seg dy-seg">
-                        <button class="@(c.Upbringing.Length == 0 ? "on" : "")" data-course="" title="Their own bent" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, string.Empty))">Their bent</button>
-                        @foreach (var g in EducationSystem.Groups) { string grp = g; <button class="@(c.Upbringing == g ? "on" : "")" data-course="@grp" title="@(g == bent ? "their bent" : "against their bent")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, grp))">@CharacterScreen.Cap(EducationSystem.GroupName(g))</button> }
-                    </span>
-                </div>
-                <div class="you-acts dy-acts">
-                    <span class="you-lbl">Tutor</span>
-                    <span class="ui-seg dy-seg">
-                    @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="@(c.Tutor == t ? "on" : "")" data-tutor="@t" disabled="@(no != null)" title="@(no != null ? LifePanel.Say(no) : TutorTip(t))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@LearningPanel.TutorLabel(t)</button> }
-                    </span>
-                </div>
-            </div>
-        </div>
+        string bent = EducationSystem.BentGroup(c); var lesson = EducationSystem.Lesson(w, c); int have = c.Learning.GetValueOrDefault(lesson.skill), need = EducationSystem.Need(c.Skill(lesson.skill));
+        bool ward = c.Flags.Contains(HouseholdSystem.Ward), prodigy = c.Flags.Contains(EducationSystem.ProdigyChar);
+        string learned = $"Has learned: {Best(c)}.", thisYear = $"This year: {lesson.skill}, +{lesson.points} point{(lesson.points == 1 ? "" : "s")} toward the next step ({have} of {need} so far).";
+        var raised = EducationSystem.Raised(w, c, w.Protagonist!); int thinks = w.GetRelationship(c.Id, pid)?.Disposition ?? 0; int sum = raised.Sum(x => x.by);
+        string thinksLine = $"Thinks {thinks.ToString("+0;−0")} of you. " + (raised.Count == 0 ? (thinks >= EducationSystem.RaisedCap ? "An upbringing can make them think no better of you than this." : "") : "This year's upbringing: " + string.Join(", ", raised.Select(x => (x.by > 0 ? "+" : "−") + Math.Abs(x.by) + " " + x.why)) + (raised.Count > 1 ? " (" + sum.ToString("+0;−0") + " in all)" : "") + ".");
+        <Row Name="@c.Name" Class="@("suit dy-up acts-under" + (lesson.against ? " against" : ""))" Tip="@($"{c.Name}, {c.Age}: shows a bent for {EducationSystem.GroupName(bent)}{(ward ? ", your ward" : "")}.\n{learned}\n{thisYear}" + (lesson.against ? "\nSet against their bent: they learn a third as fast, and hold it against you a little more each year." : "") + (prodigy ? "\nFar ahead of their years." : ""))" data-child="@cid">
+            <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
+            <NameExtra><small class="dy-age">@c.Age</small>@if (lesson.against) { <span class="dy-tag warn" title="Set against their bent: they learn a third as fast, and hold it against you a little more each year.">Against their bent</span> }@if (prodigy) { <span class="dy-tag good" title="Far ahead of their years.">Far ahead</span> }</NameExtra>
+            <Sub><span class="suit-who">A bent for @EducationSystem.GroupName(bent)@(ward ? " · your ward" : "") · @(c.Skills.Any(kv => kv.Value > 0) ? BestShort(c) : "nothing learned yet")</span></Sub>
+            <Cells>
+                <span class="ui-cell dy-lesson" title="@($"[{CharacterScreen.SkillIcon(lesson.skill)}] This year's lesson\n{thisYear}\n{learned}")"><Icon Name="@CharacterScreen.SkillIcon(lesson.skill)" Tone="@(lesson.against ? "ember" : "ivory")" Size="17" /><b class="ui-up">+@lesson.points</b><small>@have/@need</small></span>
+                <span class="ui-cell dy-thinks" data-child-thinks="@thinks" title="@($"[heart-beats] What they think of you\n{thinksLine}\nWhat a child thinks of you follows how they are raised: a point a year when they are brought up as their own bent runs, a point more for a tutor, a point lost each year they are set against it. Upbringing alone takes it no higher than {EducationSystem.RaisedCap}.")"><Icon Name="heart-beats" Tone="@(thinks < 0 ? "ember" : thinks >= 20 ? "good" : "ivory")" Size="17" /><b class="@(thinks >= 20 ? "ui-up" : thinks < 0 ? "ui-down" : "")">@thinks.ToString("+0;−0")</b></span>
+            </Cells>
+            <Action><span class="dy-up-ctl suit-acts">
+                <span class="ui-seg dy-seg dy-course" role="radiogroup" title="Their course: what they are brought up toward">
+                    <i class="dy-seg-l" aria-hidden="true"><Icon Name="open-book" Tone="brass" Size="14" /></i>
+                    <button class="@(c.Upbringing.Length == 0 ? "on" : "")" data-course="" title="Their own bent" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, string.Empty))">Their bent</button>
+                    @foreach (var g in EducationSystem.Groups) { string grp = g; <button class="@(c.Upbringing == g ? "on" : "")" data-course="@grp" title="@(g == bent ? "their bent" : "against their bent")" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Upbringing, cid, grp))"><span class="lg">@CharacterScreen.Cap(EducationSystem.GroupName(g))</span><span class="sm">@CharacterScreen.Cap(EducationSystem.GroupName(g).Replace("the ", ""))</span></button> }
+                </span>
+                <span class="ui-seg dy-seg dy-tutors" role="radiogroup" title="Their tutor, paid from the house treasury">
+                    <i class="dy-seg-l" aria-hidden="true"><Icon Name="public-speaker" Tone="brass" Size="14" /></i>
+                    @foreach (int t in Tutors) { int lv = t; var no = new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()).Refusal(G.Ctx); <button class="@(c.Tutor == t ? "on" : "")" data-tutor="@t" disabled="@(no != null)" title="@(no != null ? LifePanel.Say(no) : TutorTip(t))" @onclick="() => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, lv.ToString()))">@if (t == 0) { <span class="lg">No tutor</span><span class="sm">None</span> } else { @TutorWord(t) }</button> }
+                </span>
+            </span></Action>
+        </Row>
     }
     </Section>
 
@@ -64,9 +66,6 @@
         <Section Title="The grown" Count="@grown.Count.ToString()" Info="What they study is their own choice. You may ask, and they may say no; one who would refuse may do it for a price out of your own purse, or for a word said for them. A teacher is yours to pay for, from the house treasury.">
             <Right>@if (grown.Count > 6) { <Link Label="@(_all ? "Show fewer" : $"Show all {grown.Count}")" OnClick="() => _all = !_all" /> }</Right>
             <ChildContent>
-            @* one row a grown relative (docs/VISUAL_SYSTEM.md 4.7): the face, the name, what they are best at and what they learn, and one
-               Select (4.12) "Study…" whose options are the skills worth asking, each with its price as a dim note, and the teachers of the
-               house; the teacher they are paid as a second, small select *@
             @foreach (var c in grown.Take(_all ? 40 : 6))
             {
                 string cid = c.Id; var practice = EducationSystem.Practice(w, c);
@@ -84,22 +83,33 @@
                     opts.Add(new Select.Option("word:" + sk, CharacterScreen.Cap(sk) + ", a word for them", new EducationCommand(pid, EducationCommand.AskAndSpeak, cid, sk).Refusal(G.Ctx) is { } nw ? "cannot: " + LifePanel.Say(nw) : EducationSystem.FavourPrice(w, p, c, sk) + " influence"));
                 }
                 foreach (var t in teachers) opts.Add(new Select.Option("teach:" + t.Id, "Have " + First(t.Name) + " teach them " + EducationSystem.Lesson(t, c), "a step every third year", t.Id, t.Sex, t.Age, house.AccentColor));
-                <div class="suit dy-blk dy-grown-row" data-grown="@cid">
-                    <Row Name="@c.Name" Wrap="true" Tip="@($"Best at: {Best(c)}" + (under.Length > 0 ? "\n" + under : ""))">
-                        <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
-                        <Sub>@c.Age · @BestShort(c) · @(c.Study.Length > 0 ? $"studying {c.Study} ({c.Skill(c.Study)}, can reach {EducationSystem.Ceiling(c, c.Study)})" : "has not settled on a study")@(practice.Count > 0 ? " · learning " + string.Join(", ", practice.Select(x => x.skill).Distinct()) + " by their work" : "")</Sub>
-                        <Action><span class="hs-acts dy-study suit-acts">
-                            <span class="you-lbl visually-hidden">Ask them to study</span>
-                            <Select Value="" Placeholder="Study…" Tip="Ask them to study something, or have one of the house teach them. Each choice carries its price." Options="@opts" OnChange="v => AskStudy(cid, v)" />
-                            <Select Value="@c.Tutor.ToString()" Class="dy-tutor" Tip="@($"Their teacher, paid from the house treasury. {TutorTip(c.Tutor)}")" Options="@Tutors.Select(t => new Select.Option(t.ToString(), t == 0 ? "No teacher" : t == 1 ? "A good teacher" : "The best teacher", t == 0 ? "" : Money.Show(EducationSystem.TutorCost(t)) + " a year")).ToList()" OnChange="v => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, v))" />
-                        </span></Action>
-                    </Row>
-                    @if (under.Length > 0 && mentor is { Alive: true } && mentor.HouseId == house.Id && mentor.Id != pid)
-                    {
-                        var noThanks = new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty).Refusal(G.Ctx);
-                        <div class="hs-note dy-under">@under <Plate Label="@("Thank " + First(mentor.Name))" Small="true" CostIcon="credits" CostText="@Money.Show(EducationSystem.ThanksCredits)" Locked="@(noThanks != null)" Disabled="@(noThanks != null)" Need="@LifePanel.Say(noThanks)" ShowNeed="false" Tip="@ThankTip" OnClick="() => G.Execute(new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty))" /></div>
-                    }
-                </div>
+                int lvl = c.Study.Length > 0 ? c.Skill(c.Study) : 0, top = c.Study.Length > 0 ? EducationSystem.Ceiling(c, c.Study) : 0;
+                string studyLine = c.Study.Length > 0 ? $"Studying {c.Study}: {lvl} now, can reach {top}." : "Has not settled on a study.";
+                string workLine = practice.Count > 0 ? "Learning " + string.Join(", ", practice.Select(x => x.skill).Distinct()) + " by their work." : "";
+                <Row Name="@c.Name" Class="suit dy-up dy-grown-row" Tip="@($"Best at: {Best(c)}\n{studyLine}" + (workLine.Length > 0 ? "\n" + workLine : "") + (under.Length > 0 ? "\n" + under : ""))" data-grown="@cid">
+                    <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
+                    <NameExtra><small class="dy-age">@c.Age</small></NameExtra>
+                    <Sub><span class="suit-who">@BestShort(c)</span></Sub>
+                    <Cells>
+                        @if (c.Study.Length > 0)
+                        {
+                            <span class="dy-studying" title="@($"[{CharacterScreen.SkillIcon(c.Study)}] {CharacterScreen.Cap(c.Study)}\n{studyLine}")"><Icon Name="@CharacterScreen.SkillIcon(c.Study)" Tone="brass" Size="17" />
+                                <span class="dy-studying-t"><em>@CharacterScreen.Cap(c.Study)</em><span class="ui-trk"><i class="ui-fill" style="width:@Pct(lvl * 10);--mc:#c9a24a"></i><i class="ui-tick" style="left:@Pct(top * 10)"></i></span></span><b>@lvl<small>/@top</small></b></span>
+                        }
+                        else if (practice.Count > 0) { <span class="dy-studying none work" title="@($"{studyLine}\n{workLine}")"><Icon Name="@CharacterScreen.SkillIcon(practice[0].skill)" Tone="ivory" Size="17" /><em>@CharacterScreen.Cap(practice[0].skill)<span class="lg"> by their work</span></em></span> }
+                        else { <span class="dy-studying none" title="@studyLine"><Icon Name="open-book" Tone="ivory" Size="17" /><em>No study</em></span> }
+                    </Cells>
+                    <Action><span class="hs-acts dy-study suit-acts">
+                        <span class="you-lbl visually-hidden">Ask them to study</span>
+                        <Select Value="" Placeholder="Set study" Tip="Ask them to study something, or have one of the house teach them. Each choice carries its price." Options="@opts" OnChange="v => AskStudy(cid, v)" />
+                        <Select Value="@c.Tutor.ToString()" Class="dy-tutor" Tip="@($"Their teacher, paid from the house treasury. {TutorTip(c.Tutor)}")" Options="@Tutors.Select(t => new Select.Option(t.ToString(), t == 0 ? "No teacher" : t == 1 ? "A good teacher" : "The best teacher", t == 0 ? "" : Money.Show(EducationSystem.TutorCost(t)) + " a year")).ToList()" OnChange="v => G.Execute(new EducationCommand(pid, EducationCommand.Tutor, cid, v))" />
+                    </span></Action>
+                </Row>
+                @if (under.Length > 0 && mentor is { Alive: true } && mentor.HouseId == house.Id && mentor.Id != pid)
+                {
+                    var noThanks = new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty).Refusal(G.Ctx);
+                    <div class="hs-note dy-under">@under <Plate Label="@("Thank " + First(mentor.Name))" Small="true" CostIcon="credits" CostText="@Money.Show(EducationSystem.ThanksCredits)" Locked="@(noThanks != null)" Disabled="@(noThanks != null)" Need="@LifePanel.Say(noThanks)" ShowNeed="false" Tip="@ThankTip" OnClick="() => G.Execute(new EducationCommand(pid, EducationCommand.Thank, cid, string.Empty))" /></div>
+                }
             }
             </ChildContent>
         </Section>
@@ -116,8 +126,11 @@
         if (kind != null) G.Execute(new EducationCommand(pid, kind, cid, arg));
     }
     /// <summary>Their two best skills as a figure: "Tactics 4 · Law 3".</summary>
-    private static string BestShort(Character x) => x.Skills.Count(kv => kv.Value > 0) == 0 ? "–" : string.Join(" · ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(2).Select(kv => $"{CharacterScreen.Cap(kv.Key)} {kv.Value}"));
+    private static string BestShort(Character x) => x.Skills.Count(kv => kv.Value > 0) == 0 ? "no skill yet" : string.Join(" · ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(2).Select(kv => $"{CharacterScreen.Cap(kv.Key)} {kv.Value}"));
     private static readonly int[] Tutors = { 0, 1, 2 };
+    /// <summary>A tutor's plate in a child's row: one word, the fee in its tooltip.</summary>
+    private static string TutorWord(int t) => t == 0 ? "No tutor" : t == 1 ? "Good" : "The best";
+    private static string Pct(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%";
     private const string AskYes = "They would do it for the asking.";
     private const string AskNo = "They would refuse, and think the less of you for asking.";
     private const string PayTip = "They name a price, you pay it out of your own purse, and they turn to it. A bargain: nobody thinks the worse of anybody.";

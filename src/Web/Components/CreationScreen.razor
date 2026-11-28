@@ -55,7 +55,7 @@
                     <span class="fr-plate-sub">@(sco.Era == "imperium" ? "The Imperium" : "The Republic")@if (hard is { } h) { <b class="fr-hard @h.tone" data-hardness="@id">@h.word</b> }</span>
                 </button>
             }
-            <button class="scenario custom fr-plate @(_custom ? "selected" : "")" data-scenario="custom" title="Make the person, the face, the house, what it holds and the family. Standard keeps it fair; Free lets you make anyone at all.&#10;Any age, either era, every dial, a fair budget or none." @onclick="PickCustom">
+            <button class="scenario custom fr-plate @(_custom ? "selected" : "")" data-scenario="custom" title="@("Make the person, the face, the house, what it holds and the family. Standard keeps it fair; Free lets you make anyone at all.\nAny age, either era, every dial, a fair budget or none.")" @onclick="PickCustom">
                 <span class="fr-plate-pic own"><i class="fr-plate-bg"></i><img src="img/scenes/own.webp" alt="" loading="eager" decoding="async" /><i class="fr-plate-band"></i><span class="fr-age any"><small>Age</small>16<i>to</i>80</span></span>
                 <span class="sc-name">A character of your own</span>
                 <span class="fr-plate-sub">Either era<b class="fr-hard">every dial</b></span>

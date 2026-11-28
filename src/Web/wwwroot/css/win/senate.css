@@ -387,6 +387,11 @@ p.sn-say { margin: .2667rem 0; }
 .sn-mrow.sn-ent { display: block; padding: 0; border: 0; background: none; margin: 0; }
 .sn-mrow .ui-row { cursor: pointer; }
 .sn-mrow .sn-medal { width: 2.6667rem; height: 2.6667rem; margin: 0 auto; }
+/* the glyph sits inside its ring at about 60% of the medallion; every motion row keeps one rhythm: its name and at most two lines of
+   what it does (the whole of it in the row's tooltip) */
+.sn-mrow .sn-medal .icon { width: 1.6rem; height: 1.6rem; }
+.sn-mrow .ui-row.sn-mr { min-height: 4.5333rem; }
+.sn-mrow .ui-row.sn-mr .ui-row-sub { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .sn-mrow .sn-orderbar { display: none; }
 .sn-mrow.open .sn-orderbar { display: flex; flex-direction: column; gap: .4rem; margin: 0 var(--sn-gut-r, 1.6rem) .6667rem calc(var(--sn-gut-l, 1.8667rem) + 3.6rem + .9333rem); padding: .6rem .8rem;
   background: var(--raised); box-shadow: inset 0 1px 0 rgba(201,162,74,.35), inset 2px 0 0 var(--brass); }
@@ -404,8 +409,11 @@ p.sn-say { margin: .2667rem 0; }
 .sn-duty-ch:hover:not(:disabled)::before { content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: .2rem; background: linear-gradient(#f6e2a0, #a5813a); }
 .sn-duty-ch.locked { cursor: default; background: linear-gradient(#1a1f2a, #11141b); } .sn-duty-ch.locked .n { background: #2a2f39; color: #a9adb6; }
 .sn-committee { margin-top: .4rem; }
-/* no vote is shown chosen until one is declared; how the house leans meanwhile is a faint hatch on that option */
-.sn-vote .ui-seg button.leans { background: repeating-linear-gradient(135deg, rgba(201,162,74,.16) 0 3px, transparent 3px 7px), linear-gradient(#262e40, #161b27); color: var(--ink); }
+/* no vote is shown chosen until one is declared; how the house leans meanwhile is a dotted brass underline on that option and a small
+   "leans" beside its label (the hatch is kept for empty wells and posts only) */
+.sn-vote .ui-seg button.leans { color: var(--ink); grid-auto-flow: column; column-gap: .4rem; }
+.sn-vote .ui-seg button.leans .sn-vl { text-decoration: underline dotted var(--brass); text-decoration-thickness: 2px; text-underline-offset: .2667rem; }
+.sn-vote .sn-leancap { font: italic 500 .8rem/1 var(--f-ui); color: var(--brass-ink); letter-spacing: .02em; }
 /* the weight in each estate: named segments in toned house colours (2.2: 0.8 saturation, 0.88 value), the rest one grey segment */
 .sn-sphere .sphere-bar.sn-wbar, .sn-wbar { display: flex; height: 1.2rem; overflow: hidden; background: var(--well); box-shadow: var(--sh-inset); }
 .sn-sphere .sphere-bar.sn-wbar i, .sn-wbar i { opacity: 1; position: relative; display: flex; align-items: center; min-width: 0; height: 100%; overflow: hidden; font-style: normal;
@@ -452,3 +460,31 @@ p.sn-say { margin: .2667rem 0; }
 .sn-duty-ch:hover:not(:disabled) { background: linear-gradient(90deg, rgba(201,162,74,.10), rgba(255,255,255,.02)) !important; }
 .sn-duty-ch:hover:not(:disabled)::before { left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
 .sn-duty-ch .req { grid-column: 2 / -1; font-weight: 500; color: var(--ink-dim); }
+
+/* ---- the Orders tab's facts as rows (4.7), on the orders' own grid: the glyph tile (or the arms of the house named) in the same
+   column as the three orders' tiles, the name, one line of what it says, then its figure or its one action ---- */
+.sn-prows .ui-row.sn-pr, .sn-peace .ui-row.sn-pr { grid-template-columns: var(--sn-ic) minmax(0, 1fr) auto auto; column-gap: .8667rem; min-height: 3.6rem;
+  padding: .5333rem var(--sn-gr) .5333rem var(--sn-gl); }
+.sn-prows .ui-row.sn-pr > div:first-child, .sn-peace .ui-row.sn-pr > div:first-child { display: grid; place-items: center; }
+.sn-pr .sn-ic { margin-top: 0; }
+.sn-pr .ui-row-sub { max-width: 40rem; }
+.sn-pr.off .ui-row-nm { color: var(--ink-dim); }
+.sn-pr .sn-arms { width: var(--sn-ic); height: var(--sn-ic); display: grid; place-items: center; }
+.sn-pr .sn-pfig { display: inline-flex; align-items: baseline; gap: .3333rem; white-space: nowrap; }
+.sn-pr .sn-pfig b { font: 600 1.2rem/1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; color: var(--ink); } .sn-pr .sn-pfig small { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); }
+.sn-pr .sn-sway { display: inline-flex; align-items: center; gap: .3333rem; height: 1.8667rem; padding: 0 .5333rem 0 .3333rem; background: #07090d; box-shadow: var(--sh-inset); cursor: help; white-space: nowrap; }
+.sn-pr .sn-sway b { font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; }
+.sn-pr .sn-sway.more { font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); padding-left: .5333rem; }
+.sn-pr .ui-cols { gap: .4rem; flex-wrap: wrap; justify-content: flex-end; }
+.sn-pr.sn-client { min-height: 3.0667rem; }
+.sn-pr.acts-under > div:nth-child(4) > span { align-items: center; }
+.sn-prows [data-ask-above] + [data-ask-above] .ui-row, .sn-prows > div > .ui-row { border-bottom: 1px solid rgba(255,255,255,.05); }
+/* Patronage with nobody: the empty state (4.17), its glyph in the tiles' column */
+.sn-win .ui-empty.sn-pempty { padding: .8rem var(--sn-gr) .8rem var(--sn-gl); gap: .8667rem; border-bottom: 1px solid rgba(255,255,255,.05); }
+.sn-win .ui-empty.sn-pempty > .icon { width: var(--sn-ic); height: var(--sn-ic); }
+/* the peace of the Reach (Breaking away): a row with the way to a great war as its meter; .ac-fact is what breakaway.js reads */
+.sn-win .ac-fact.sn-peace { display: block; padding: 0; border: 0; font-size: inherit; }
+.sn-peace .ui-row.sn-pr { align-items: start; }
+.sn-peace .ui-row.sn-pr > div:first-child { padding-top: .1333rem; }
+.sn-peace .sn-peacem { width: 11.2rem; padding-top: .2rem; } .sn-peace .sn-peacem .ui-meter { grid-template-columns: 5.0667rem 1fr 1.6rem; cursor: help; }
+@container sn (max-width: 39rem) { .sn-peace .sn-peacem { width: 8rem; } .sn-peace .sn-peacem .ui-meter { grid-template-columns: 1fr 1.6rem; } .sn-peace .sn-peacem .ui-meter-l { display: none; } }

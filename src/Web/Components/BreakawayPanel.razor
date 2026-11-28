@@ -40,7 +40,7 @@
         {
             int will = PolitySystem.Will(w, own), share = PolitySystem.Share(w, own), lead = PolitySystem.Standing(w, own), years = w.Turn - own.WarSince;
             ownWar = "The Reach has not accepted it. " + string.Join(", ", own.Foes.Select(id => w.House(id)?.Name ?? id)) + " are at war to bring it back, " + Counted.Years(years) + " now. "
-                + "Its houses hold " + share + "% of the region (lose it below " + PolitySystem.LostShare + "% and the state is finished). The war stands at " + (lead > 0 ? "+" : "") + lead + ". "
+                + "Its houses hold " + share + "% of the region (lose it below " + PolitySystem.LostShare + "% and the state is finished). The war stands at " + (lead > 0 ? "+" + lead : Counted.Figure(lead)) + ". "
                 + (will <= 0 ? "The Reach has no will left for it" : "The Reach's will for it is " + will + ", and falls by one every " + PolitySystem.TemperFallsEvery + " years")
                 + ": hold more than half the region for " + PolitySystem.WinYears + " years and outlast or beat them, and they make peace.";
         }
@@ -52,8 +52,13 @@
     </Section>
     @if (peace.Length > 0)
     {
-        <div class="sn-fact ac-fact sn-peace"><span>The peace of the Reach</span><p>@peace</p></div>
-        @if (!warOver && !greatWar) { <div class="sn-legit"><Meter Label="Toward war" Value="@near" Max="100" Color="@(near < 15 ? "#a5813a" : near < 50 ? "#e3a64a" : "#b8452f")" Tip="@($"{near} in a hundred of the way to a great war")" /></div> }
+        @* a row (4.7): the glyph, "The peace of the Reach", what holds it or what pushes it, and the way to a great war as its meter *@
+        <div class="ac-fact sn-peace">
+            <Row Name="The peace of the Reach" SubText="@peace" Wrap="true" Class="sn-pr">
+                <Picture><span class="sn-ic @(near >= 50 ? "bad" : "")"><Icon Name="@(warOver ? "laurels" : near < 15 ? "dove" : "threat")" Tone="@(near >= 50 ? "ember" : near < 15 ? "good" : "brass")" Size="22" /></span></Picture>
+                <Cells>@if (!warOver && !greatWar) { <span class="sn-peacem"><Meter Label="Toward war" Value="@near" Max="100" Color="@(near < 15 ? "#a5813a" : near < 50 ? "#e3a64a" : "#b8452f")" Tip="@($"{near} in a hundred of the way to a great war")" /></span> }</Cells>
+            </Row>
+        </div>
     }
     @if (pastLine.Length > 0) { <p class="sn-say sn-pad ui-dim">@pastLine</p> }
     @if (own == null && !greatWar)

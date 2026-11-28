@@ -131,3 +131,10 @@
 .ex-sale .ui-order .vbuy { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .4rem .5333rem; margin: 0; padding: 0; border: 0; background: none; }
 .ex-order-warn { white-space: normal; max-width: 26rem; }
 .ex-claims, .ex-sale { margin-top: .2667rem; }
+
+/* For sale in the Reach (2026-11-28 mend): a long venture name takes a second line rather than an ellipsis, and the order bar is always
+   the same two lines, the venture's name over its plates, whichever venture is picked, so it never jumps from one shape to another */
+.ex-sale .ui-table td:first-child { white-space: normal; line-height: 1.25; padding-top: .3333rem; padding-bottom: .3333rem; }
+.ex-sale .ui-table td.ex-td-l { white-space: nowrap; }
+.ex-sale .ui-order .ui-order-nm { flex: 1 0 100%; white-space: normal; line-height: 1.25; }
+.ex-sale .ui-order .ui-order-sp { display: none; }

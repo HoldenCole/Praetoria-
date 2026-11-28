@@ -19,8 +19,9 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
-  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
+  // the year is on the date plate of the top bar (data-turn); the old "Turn N" text is kept as a fallback (as in play.js)
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.evaluate(() => { const y = document.querySelector('.confirm-box [data-confirm="yes"]'); if (y) y.click(); }); await page.waitForTimeout(50); } await closeWindows(); };   // a year that would end short asks first: end it anyway
   // find the screen each panel lives on
   const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } return ''; };
   const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s + ' button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.trim() : ''; }, [sel, text]);
@@ -60,9 +61,11 @@ require('fs').mkdirSync(shots, { recursive: true });
     await page.screenshot({ path: file }); rows.push({ n, ...m });
     console.log(n.padEnd(12) + ' empty ' + String(m.emptyPct).padStart(3) + '% · words ' + String(m.words).padStart(4) + ' · numbers ' + String(m.numbers).padStart(3) + ' · buttons ' + String(m.buttons).padStart(3) + ' · charts ' + String(m.charts).padStart(2) + ' · panels ' + String(m.panels).padStart(2) + ' · runs to ' + m.pages + ' screens');
     // the tabs inside a screen are screens too
-    const tabs = await page.evaluate(() => [...document.querySelectorAll('.ex-tabs button, .tabs button')].map(e => e.innerText.trim()).filter(Boolean));
+    // the window's tabs are the shared Tabs part (docs/VISUAL_SYSTEM.md 4.4, buttons with data-tab); the old rungs as a fallback
+    const TABS = '.screen.window .ui-tabs .ui-tab, .ex-tabs button, .tabs button';
+    const tabs = await page.evaluate(q => [...document.querySelectorAll(q)].map(e => e.innerText.replace(/\s+/g, ' ').trim()).filter(Boolean), TABS);
     for (let t = 1; t < tabs.length && t < 5; t++) {
-      await page.evaluate(i => { const b = [...document.querySelectorAll('.ex-tabs button, .tabs button')][i]; if (b) b.click(); }, t); await page.waitForTimeout(700);
+      await page.evaluate(([i, q]) => { const b = [...document.querySelectorAll(q)][i]; if (b) b.click(); }, [t, TABS]); await page.waitForTimeout(700);
       const mt = await measure(); const f2 = shots + '/audit-' + n.toLowerCase().replace(/[^a-z]+/g, '-') + '-tab' + t + '.png'; await page.screenshot({ path: f2 });
       console.log(('  ' + tabs[t].slice(0, 26)).padEnd(30) + ' empty ' + String(mt.emptyPct).padStart(3) + '% · words ' + String(mt.words).padStart(4) + ' · numbers ' + String(mt.numbers).padStart(3) + ' · buttons ' + String(mt.buttons).padStart(3) + ' · charts ' + String(mt.charts).padStart(2) + ' · runs to ' + mt.pages + ' screens');
     }
@@ -72,8 +75,8 @@ require('fs').mkdirSync(shots, { recursive: true });
     const alerts = await page.evaluate(() => [...document.querySelectorAll('.ol-alert')].map(e => e.innerText.trim()));
     for (let i = 0; i < alerts.length; i++) {
       await page.evaluate(k => { const b = document.querySelectorAll('.ol-alert')[k]; if (b) b.click(); }, i); await page.waitForTimeout(500); await closeWindows();
-      const at = await page.evaluate(() => ({ rail: (document.querySelector('.rail-btn.active, .rail-btn.here, .rail-btn.on') || {}).innerText || '?', tab: (document.querySelector('.ex-tabs .rung.here') || {}).innerText || '' }));
-      console.log('alert: ' + alerts[i].slice(0, 60).padEnd(62) + ' -> ' + at.rail.trim() + (at.tab ? ' · ' + at.tab.trim() : ''));
+      const at = await page.evaluate(() => ({ rail: (document.querySelector('.rail-btn.active, .rail-btn.here, .rail-btn.on') || {}).innerText || '?', tab: (document.querySelector('.screen.window .ui-tabs .ui-tab.on, .ex-tabs .rung.here') || {}).innerText || '' }));
+      console.log('alert: ' + alerts[i].slice(0, 60).padEnd(62) + ' -> ' + at.rail.trim() + (at.tab ? ' · ' + at.tab.replace(/\s+/g, ' ').trim() : ''));
     }
   }
   console.log('console errors: ' + (errors.length ? errors.slice(0, 5).join(' || ') : 'none'));

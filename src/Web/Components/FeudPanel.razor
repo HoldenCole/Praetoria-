@@ -67,7 +67,7 @@
             <div class="you-blk owe">
                 <div class="you-blk-hd">
                     <span class="you-blk-ic"><Icon Name="threat" Tone="brass" Size="20" /></span>
-                    <div><b>@f.VictimName</b> of @Name(f.WrongedId), @Years(f)<div class="you-blk-sub"><span class="ui-warn-t">Held against @(FeudSystem.Blamed(w, f)?.Name ?? "your house")</span></div></div>
+                    <div><b>@f.VictimName</b> of @Name(f.WrongedId), @Years(f)<div class="you-blk-sub"><span class="ui-warn-t">Held against @(FeudSystem.Blamed(w, f) is { } blamed ? (blamed.Id == p.Id ? "you" : blamed.Name) : "your house")</span></div></div>
                     @if (wh != null) { <span class="you-arms" title="@wh.Name"><Sigil HouseId="@wh.Id" Accent="@wh.AccentColor" Size="22" /></span> }
                 </div>
                 <p class="you-note">They vote against what your house moves, and nobody of theirs will marry one of yours. Sooner or later they come: with a challenge, a price, or a knife for one of your kin.</p>
@@ -86,7 +86,7 @@
                 }
                 else
                 {
-                    <div class="you-acts"><Plate Label="Offer the price" Icon="credits" Small="true" CostText="@Money.Show(f.Price)" Locked="@(offer != null)" Disabled="@(offer != null)" Need="@LifePanel.Say(offer)" ShowNeed="false" Tip="@($"[credits] Offer the price\nOffer {Money.Credits(f.Price)} for their dead. Most heads take it. The vengeful, the cruel and the proud do not. It can be offered once.")" OnClick="() => Do(f, FeudCommand.Offer)" /></div>
+                    <div class="you-acts"><Plate Label="Offer the price" Icon="credits" Small="true" CostIcon="credits" CostText="@Money.Show(f.Price)" Locked="@(offer != null)" Disabled="@(offer != null)" Need="@LifePanel.Say(offer)" Tip="@($"[credits] Offer the price\nOffer {Money.Credits(f.Price)} for their dead. Most heads take it. The vengeful, the cruel and the proud do not. It can be offered once.")" OnClick="() => Do(f, FeudCommand.Offer)" /></div>
                 }
             </div>
         }

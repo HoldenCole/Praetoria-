@@ -34,7 +34,7 @@ else
                     <td><Spark Values="c.History" Color="@(c.ChangePct >= 0 ? "#8cc47e" : "#e0553f")" /></td>
                     <td title="@($"Earned {Money.Show(c.Earnings)} last year and declared {Money.Show(c.Dividend)}")">@Money.Show(c.Dividend) <small class="ui-mute">@c.YieldPct%</small></td>
                     <td>@c.Float<small class="ui-mute">/@c.Shares</small></td>
-                    <td title="@(c.Held > 0 ? $"worth {Money.Credits(c.HeldValue)}" : "")">@if (c.Held > 0) { <b>@c.Held</b> <small class="ui-mute">@(c.Held * 100 / Math.Max(1, c.Shares))%</small> } else { <span class="ui-mute" title="You hold none">–</span> }</td>
+                    <td title="@(c.Held > 0 ? $"worth {Money.Credits(c.HeldValue)}" : "")">@if (c.Held > 0) { <b>@c.Held</b> <small class="ui-mute">@(c.Held * 100 / Math.Max(1, c.Shares))%</small> } else { <span class="ui-mute" title="You hold none">·</span> }</td>
                 </tr>
             }
             </ChildContent>

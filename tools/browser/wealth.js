@@ -20,7 +20,9 @@ require('fs').mkdirSync(shots, { recursive: true });
   const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung, .screen.window .ui-tab')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (t) t.click(); }, name); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
-  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
+  // the treasury this script draws on can end the year short, and End Year then asks first (ConfirmBox): it ends the year anyway
+  let short = 0;
+  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; if (await page.evaluate(() => { const y = document.querySelector('.confirm-box [data-confirm="yes"]'); if (y) y.click(); return !!y; })) short++; await page.waitForTimeout(50); } await closeWindows(); };
   const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => !e.disabled && e.innerText.trim().toLowerCase().startsWith(t.toLowerCase())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').slice(0, 50) : ''; }, text);
   const head = () => page.evaluate(() => ((document.querySelector('.panel.wealth [data-purse-head]') || document.querySelector('.panel.wealth h3') || {}).innerText || 'NO PANEL').replace(/\s+/g, ' '));
   await closeWindows(); await rail('House'); await tab('Purse'); await page.waitForTimeout(700);
@@ -38,13 +40,14 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('estate: ' + (await press('Shared out') || 'could not')); await page.waitForTimeout(300);
   console.log('now: ' + await head()); await page.locator('.screen.window').screenshot({ path: shots + '/wealth-begin.png', timeout: 180000 });
   for (let y = 0; y < years; y++) { await endTurn(); await rail('House'); await tab('Purse'); await page.waitForTimeout(300); }
-  console.log('after ' + years + ' years: ' + await head());
+  console.log('after ' + years + ' years (turn ' + await turnNo() + (short ? ', ' + short + ' of them ended short when asked' : '') + '): ' + await head());
   // the treasury of a poor start does not hold a shrine at once: try again with the years' income
   for (let i = 0; i < 6; i++) { await press('take 5'); await page.waitForTimeout(300); }
   console.log('made to order, later: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(400);
   // shares in the head's own name: buy one of whatever is offered, and say what the panel then shows (docs/WEALTH.md)
   for (let i = 0; i < 4; i++) { await press('take 5'); await page.waitForTimeout(300); }
-  const offer = await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => /buy for yourself/i.test(e.innerText)); if (!row) return 'NO ROW'; const bs = [...row.querySelectorAll('button')].filter(e => /^Buy/.test(e.innerText.trim())); const b = bs.find(e => !e.disabled); if (b) b.click(); return b ? (b.closest('.ui-row').querySelector('.ui-row-nm').innerText + ' · ' + b.innerText).replace(/\s+/g, ' ') : 'nothing affordable: ' + (bs[0] ? bs[0].title : 'no company listed'); });
+  // shares of your own are one table with one order bar (docs/VISUAL_SYSTEM.md 4.13): pick each offered company in turn and press Buy on the bar
+  const offer = await page.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)); const box = document.querySelector('.panel.wealth [data-buy-own]'); if (!box) return 'NO TABLE'; let first = ''; for (const tr of [...box.querySelectorAll('tbody tr')]) { tr.click(); await wait(250); const b = [...box.querySelectorAll('.ui-order button')].find(e => /^Buy/.test(e.innerText.trim())); if (!b) continue; if (!first) first = b.title; if (!b.disabled) { b.click(); return (tr.querySelector('td').innerText + ' · ' + b.innerText).replace(/\s+/g, ' '); } } return 'nothing affordable: ' + (first || 'no company listed'); });
   await page.waitForTimeout(400);
   console.log('own shares, bought: ' + offer);
   console.log('own shares, held: ' + await page.evaluate(() => { const sec = document.querySelector('.panel.wealth [data-purse-sec="shares"]'); return sec ? [...sec.querySelectorAll('.purse-row, .ui-empty')].map(n => n.innerText.replace(/\s+/g, ' ').slice(0, 160)).join(' || ') || 'NOTHING HELD' : 'NO SECTION'; }));
