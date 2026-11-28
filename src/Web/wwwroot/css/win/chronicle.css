@@ -40,11 +40,11 @@
 /* ---- a year: its section band, then its lines as rows; your house's lines first, with a brass bar and full ink ---- */
 .cr-n { font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
 .cr-rows { padding: .2667rem 1.4667rem .4rem 1.8667rem; }
-.cr-row.chron-line { position: relative; display: grid; grid-template-columns: 2.2667rem minmax(0, 1fr); column-gap: .8rem; align-items: center; min-height: 2.9333rem; padding: .3333rem .5333rem .3333rem .6667rem;
+/* the picture column holds a person's portrait plate (4.15: 40 by 48, the house band at its foot, the dead in greyscale with the ribbon),
+   a house's arms, or the kind's glyph in a medallion */
+.cr-row.chron-line { position: relative; display: grid; grid-template-columns: 2.6667rem minmax(0, 1fr); column-gap: .9333rem; align-items: center; min-height: 3.4667rem; padding: .3333rem .5333rem .3333rem .6667rem;
   border-bottom: 1px solid rgba(255,255,255,.05); }
-.cr-row .cr-pic { display: grid; place-items: center; width: 2.2667rem; min-height: 1.6rem; }
-.cr-row .cr-pic.chip .portrait { width: 2rem !important; height: 2rem !important; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.45); }
-.cr-row .cr-pic.chip .portrait::after, .cr-row .cr-pic.chip .portrait .pf-band { display: none; }
+.cr-row .cr-pic { display: grid; place-items: center; width: 2.6667rem; min-height: 1.6rem; }
 .cr-row .cr-ic { width: 2rem; height: 2rem; border-radius: 50%; background: radial-gradient(circle at 45% 35%, #232733, #0c0e13 75%); box-shadow: 0 0 0 1px #000, 0 0 0 1.5px rgba(201,162,74,.3); }
 .cr-row .cr-ic .icon { width: 1.1333rem; height: 1.1333rem; }
 .cr-row .cr-k { display: grid; place-items: center; opacity: .55; } .cr-row .cr-k .icon { width: .9333rem; height: .9333rem; }
