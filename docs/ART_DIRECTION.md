@@ -322,16 +322,16 @@ without scrolling, everything else behind tabs, rows and not cards. Every window
 
 | window | state | what it is now |
 |---|---|---|
-| You | done | Laid out as CK3 lays out a character: a large portrait; beside it the name, the house and ancestry, the station, and the people closest (wife or husband, heir, children) as small portraits; a row of traits, each with its meaning in the tooltip; the best skills as large figures; a strip of rank, health, renown and strain; then tabs: A life, Family, Relations, Learning, Record. |
+| You | done | Laid out as CK3 lays out a character: a large portrait; beside it the name, the house and ancestry, the station, and the people closest (wife or husband, heir, children) as small portraits; a row of traits as tiles, each with its meaning in the tooltip, and the ambition in gold; the skills, health, renown and strain as figures on a plinth; then tabs: A life, Family, Relations, Learning. |
 | Dynasty | done | The line's headline and figures, then tabs: The tree (with whoever is picked on it and the succession), Marriages, Ambitions, Upbringing, The dead. |
-| House | done | Five tabs: The estate (the worlds alone), The ledger (where the coin comes from, the stores, the wealth of the houses), Ventures, The household, Purses and the will. |
+| House | done | Six tabs: Estate (the worlds, the land held under other houses, what the land yields), Ledger (the last year as a signed waterfall, the stores, the lenders), Household, Council, Court, and Purse (purses, the will and heirlooms, seat and land). |
 | Houses | done | The standings as one full-width table; a row opens that house's own page, with a way back. The side-by-side detail that overlapped the table is gone. |
-| Military | done | A normal-width window, so the map it is about stays in view. Tabs: Your fleets (with the wars and the campaign), What is near, The navies, The general and the Senate, Beyond the Reach. |
-| Laws | done | Tabs: The estates, The laws in your gift, The law of the Reach. |
-| Worlds | done | Tabs: The worlds (a region chosen from a list, not a wall of buttons), The regions. |
-| Senate | done | A normal-width window. The chamber itself leads (the seats by party, then what is before it); moving a motion and the consulship are tabs of their own beside offices and parties, your duties, the ladder and courts, and the orders. |
+| Military | done | A normal-width window, so the map it is about stays in view. Tabs: Fleets (with the wars and the campaign), Near, General (the general and the Senate), Beyond (the nations beyond the Reach, each a row that opens). |
+| Laws | done | Tabs: Estates, Your laws (each law a ladder of its options, the one in force in gold), The Reach, Edicts. |
+| Worlds | done | Tabs: Worlds (a region chosen from a list, not a wall of buttons), Regions (each with its arms), Cities. |
+| Senate | done | A normal-width window. The chamber itself leads (the seats by party, then what is before it); then Motions, Offices (and the parties), Duties, Ladder (the offices and the courts) and Orders. |
 | Exchange | done | The goods table is one row a good: what moves a price is in the row's tooltip, and written under the row only when the good is dear, cheap, short or moving. Favours for coin is one line at the foot, not a panel. |
-| Chronicle | done | Tabs for whose record to read: all that was written, of your house, of the Reach. A year is one list, your house's lines first and marked; the span of years is chosen from a list or by clicking the timeline. |
+| Chronicle | done | Tabs for whose record to read: This year, All, Your house, The Reach. A year is one list, your house's lines first and marked; the span of years is chosen from a list or by clicking the timeline. |
 | Office | done | A painted room, the owner's choice of 2026-11-27 ("I like having some actual rooms"): one painting for each register (the head's study, a naval ready room, a counting house, a jurist's study; `tools/art/rooms.py`, `img/rooms/`, **AI-generated** with the same open model as the portraits and the event paintings, held to their plan by two ControlNets of the same licence), shown whole at its own shape; the year's visitors stand on its floor as framed plates with brass name plates, its letters lie sealed on the desk, the lamps breathe and the stars drift past the window; the room's panel is one framed part on its right. The old 3D room (`js/office.js`) is kept, unused, until the owner has seen this one. |
 
 An empty section folds to one line and loses its heading (Military at peace says so in a sentence, not under "Wars"
@@ -340,9 +340,11 @@ which scroll and by how much, and any section that is a heading over nothing.
 
 ### Not done yet
 
-See docs/GAPS.md, "The look". The windows were converted by rule (what was a card is now an entry), not redesigned
-one by one: several still read as long pages and want tabs. Tooltips are the game's own and may hold one another (docs/WEB_CLIENT.md, "Tooltips"). The Academy and the
-character creation pages have not been through the pass. Traits, skills and offices are still words, not icons.
+Every window and tab above is rebuilt on one visual system (docs/VISUAL_SYSTEM.md), and the traits, skills and offices
+have their icons. What still differs from that spec is listed in docs/VISUAL_SYSTEM.md, section 15: the character creator,
+the Workshop and the Upbringing of grown kin are still forms in places; the Academy has not had the last pass; the event's
+outcome has no painting; Regions mode tints nothing on the map. Tooltips are the game's own and may hold one another
+(docs/WEB_CLIENT.md, "Tooltips").
 
 ### The rule for pictures of things (the owner, 2026-11-20)
 
