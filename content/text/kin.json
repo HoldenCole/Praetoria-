@@ -110,7 +110,7 @@
     {
       "id": "you_were_wrong_about_them",
       "title": "You Were Wrong About {kid.Him}",
-      "body": "{kid.Rel}, {kid.first}, has what {kid.he} wanted, by the road you said was the wrong one. {kid.He} has come to tell you {kid.himself}, and has not said a word about what you said then. {kid.He} does not need to.",
+      "body": "{kid.name} has what {kid.he} wanted, by the road you said was the wrong one. {kid.He} has come to tell you {kid.himself}, and has not said a word about what you said then. {kid.He} does not need to.",
       "choices": {
         "say_you_were_wrong": "Say you were wrong.",
         "raise_a_cup": "Raise a cup to {kid.him}, and say nothing of the rest.",

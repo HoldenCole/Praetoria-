@@ -188,6 +188,7 @@ claim"), so the verb after the word still agrees.
 text, and, outside the events, in every string of prose in `/content` (`ContentValidator.ValidateFiles`:
 any string with a space in it, and every glossary `term`; `//` comments are not read). The same words are
 refused in the strings of the screens (`tests/ProseTests.cs` reads `src/Core/Presentation` and `src/Web`).
+
 | refused | why, and what to write |
 |---|---|
 | the same `{role.name}` twice in one string | the full name once, then `{role.first}` or a pronoun token |

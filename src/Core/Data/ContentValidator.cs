@@ -13,8 +13,11 @@ public sealed record ContentIssue(string Severity, string Where, string Message)
 
 /// <summary>
 /// Lints the loaded content (BuildSpec §7 "Content validation tool"): every event-logic id has
-/// matching text, every choice has prose, no orphan text, and prose role-tokens reference roles
-/// the event actually declares. Designed to run in CI so authoring/AI text mistakes fail fast,
+/// matching text, every choice has prose, no orphan text, prose role-tokens reference roles
+/// the event actually declares, and the prose reads as written for the game (docs/CONTENT_GUIDE.md,
+/// "What the check refuses"): no person named twice in a line, no "stress", no county the Republic
+/// would read, no "of age" for a death, no American spelling; <see cref="ValidateFiles"/> reads the
+/// rest of /content for the same slips. Designed to run in CI so authoring/AI text mistakes fail fast,
 /// long before they reach a player. Returns issues rather than throwing so a tool can list them all.
 /// </summary>
 public static class ContentValidator
