@@ -169,13 +169,18 @@
     }
     else if (_view == "council") { <CouncilPanel /> }
     else if (_view == "court") { <CourtPanel /> }
-    else if (_view == "purse") { <WealthPanel /> }
+    else if (_view == "purse") { <WealthPanel Part="@_purse" OnPart="v => _purse = v" OnGo="OnGo" /> }
     else if (_view == "ledger")
     {
         <p class="ui-lede hs-lede @storyTone">@Bold(gross == 0 ? (spend > 0 ? $"The house takes in nothing, and spends {Money.Show(spend)} a year." : "The house takes in nothing and spends nothing.") : $"The house takes in {Money.Show(gross)} a year and spends {Money.Show(spend)}{(spend > gross ? $", {Money.Show(spend - gross)} more than it takes in" : $", {100 * spend / gross}% of it")}{(drain != null ? $", the most on {drain.Source}" : "")}.")</p>
         @if (lg != null)
         {
-            <Section Title="Coin in and out" Count="@lg.Lines.Count(l => l.Delta.Credits != 0).ToString()" Info="Credits a year, largest first: what each world, venture, fleet, loan and office of the house brings in (gold, to the right of the line) or costs (red, to the left). Hover a line for everything in it.">
+            var outs = HouseAccounts.Outgoings(w, c.Holdings, house, G.Turn!.Economy); var outTotal = HouseAccounts.Total(outs); int yearEnd = house.Treasury.Credits + lg.Net.Credits - outTotal.Credits;
+            var lastRulings = w.Judgments.Where(j => j.Turn == w.Turn - 1).ToList(); var suits = LadderSystem.SuitsNaming(w, house.Id).ToList();
+            int ledMax = Math.Max(maxAbs, outs.Select(o => o.cost.Credits).DefaultIfEmpty(0).Max());
+            @* the year in one signed ledger (docs/VISUAL_SYSTEM.md 4.10): every standing line, what is left, then what goes out this year only, and
+               at its foot what the treasury holds at the year's end if nothing else is done (the old "This year" section, folded in) *@
+            <Section Title="Coin in and out" Count="@lg.Lines.Count(l => l.Delta.Credits != 0).ToString()" Info="Credits a year, largest first: what each world, venture, fleet, loan and office of the house brings in (gold, to the right of the line) or costs (red, to the left). Hover a line for everything in it. Under what is left: what else goes out this year that is not a standing cost (it ends when the work does), and what the treasury will hold at the year's end if nothing else is done. Suits in the courts that name the house are heard at the year's end.">
                 <Right><span>The house clears <b class="@(net > 0 ? "ui-up" : net < 0 ? "ui-down" : "")">@Sg(net)</b></span></Right>
                 <ChildContent>
                 <div class="hs-led">
@@ -183,34 +188,31 @@
                     {
                         int v = l.Delta.Credits;
                         <span class="hs-led-src" title="@($"{Cap(l.Source)}: {Delta(l.Delta)}")"><Icon Name="@LineIcon(l.Kind)" Tone="ivory" Size="15" /><span class="hs-led-t">@LedLabel(l.Source)</span></span>
-                        <span class="hs-led-neg">@if (v < 0) { <i style="width:@Pc(100.0 * -v / maxAbs)"></i> }</span>
-                        <span class="hs-led-pos">@if (v > 0) { <i style="width:@Pc(100.0 * v / maxAbs)"></i> }</span>
+                        <span class="hs-led-neg">@if (v < 0) { <i style="width:@Pc(100.0 * -v / ledMax)"></i> }</span>
+                        <span class="hs-led-pos">@if (v > 0) { <i style="width:@Pc(100.0 * v / ledMax)"></i> }</span>
                         <span class="hs-led-amt @(v > 0 ? "ui-up" : v < 0 ? "ui-down" : "ui-mute")">@Sg(v)</span>
                     }
                     <span class="hs-led-src net">What is left</span>
-                    <span class="hs-led-neg">@if (net < 0) { <i style="width:@Pc(Math.Min(100.0, 100.0 * -net / maxAbs))"></i> }</span>
-                    <span class="hs-led-pos">@if (net > 0) { <i style="width:@Pc(Math.Min(100.0, 100.0 * net / maxAbs))"></i> }</span>
+                    <span class="hs-led-neg netbar">@if (net < 0) { <i style="width:@Pc(Math.Min(100.0, 100.0 * -net / ledMax))"></i> }</span>
+                    <span class="hs-led-pos netbar">@if (net > 0) { <i style="width:@Pc(Math.Min(100.0, 100.0 * net / ledMax))"></i> }</span>
                     <span class="hs-led-amt net @(net > 0 ? "ui-up" : net < 0 ? "ui-down" : "ui-mute")">@Sg(net)</span>
+                    @if (outs.Count > 0)
+                    {
+                        <span class="hs-led-cap" data-outgoings="@outTotal.Credits">This year only</span>
+                        @foreach (var o in outs)
+                        {
+                            int v = o.cost.Credits;
+                            <span class="hs-led-src once" title="@($"{Cap(o.what)}: −{CourtProjection.Bundle(o.cost)}, this year only")"><Icon Name="hourglass" Tone="ivory" Size="15" /><span class="hs-led-t">@Cap(o.what)</span></span>
+                            <span class="hs-led-neg">@if (v > 0) { <i class="once" style="width:@Pc(Math.Min(100.0, 100.0 * v / ledMax))"></i> }</span>
+                            <span class="hs-led-pos"></span>
+                            <span class="hs-led-amt ui-down">@(Resource.All.All(k => k == Resource.Credits || o.cost.Get(k) == 0) ? Sg(-v) : "−" + CourtProjection.Bundle(o.cost))</span>
+                        }
+                    }
+                    <span class="hs-led-src end @(yearEnd < 0 ? "bad" : "")" data-yearend="@yearEnd" title="@($"What the treasury will hold at the year's end if nothing else is done: what it holds now, the year's net and what goes out this year only. It holds {Money.Held(house.Treasury)} now{(w.Protagonist!.Purse > 0 ? ", and your own purse " + Money.Show(w.Protagonist.Purse) : "")}.")"><Icon Name="credits" Tone="brass" Size="15" /><span class="hs-led-t">At the year's end</span></span>
+                    <span class="hs-led-end-n">it holds @Money.Held(house.Treasury) now</span>
+                    <span class="hs-led-amt end @(yearEnd < 0 ? "ui-down" : "")">@Money.Show(yearEnd)</span>
                 </div>
                 @if (Goods(lg.Net) is { Length: > 0 } goods) { <p class="hs-note">And in goods, each year: @goods</p> }
-                </ChildContent>
-            </Section>
-
-            var outs = HouseAccounts.Outgoings(w, c.Holdings, house, G.Turn!.Economy); var outTotal = HouseAccounts.Total(outs); int yearEnd = house.Treasury.Credits + lg.Net.Credits - outTotal.Credits;
-            var lastRulings = w.Judgments.Where(j => j.Turn == w.Turn - 1).ToList(); var suits = LadderSystem.SuitsNaming(w, house.Id).ToList();
-            <Section Title="This year" Info="What the treasury will hold at the year's end if nothing else is done: what it holds now, the year's net, and what else is going out this year that is not a standing cost (it ends when the work does). Suits in the courts that name the house are heard at the year's end.">
-                <Right><span>Year's end <b class="@(yearEnd < 0 ? "ui-down" : "")">@Money.Show(yearEnd)</b></span></Right>
-                <ChildContent>
-                @if (outs.Count > 0)
-                {
-                    <div class="hs-outs" data-outgoings="@outTotal.Credits">
-                        @foreach (var o in outs) { <div class="hs-kv"><span class="hs-k">@Cap(o.what)</span><b class="hs-v ui-down">−@CourtProjection.Bundle(o.cost)</b></div> }
-                    </div>
-                }
-                <div class="hs-kv hs-total @(yearEnd < 0 ? "bad" : "")" data-yearend="@yearEnd">
-                    <span class="hs-k">The treasury at the year's end, if nothing else is done</span>
-                    <span class="hs-v"><b class="@(yearEnd < 0 ? "ui-down" : "")">@Money.Show(yearEnd) credits</b> <small class="ui-mute">it holds @Money.Held(house.Treasury) now@(w.Protagonist!.Purse > 0 ? ", and your own purse " + Money.Show(w.Protagonist.Purse) : "")</small></span>
-                </div>
                 @foreach (var su in suits)
                 {
                     bool forUs = su.RightId == house.Id;
@@ -229,13 +231,25 @@
 
             @if (YearInBrief.Accounts(w, Resource.Credits) is { } acc)
             {
+                @* last year as one signed waterfall (4.10): where the treasury opened, each thing that moved it as a bar from where the last
+                   left it, and where it closed; the scale runs from nought (or the lowest it went) to the highest *@
+                var steps = new List<(string what, string says, int from, int to, string kind)> { ("Opened the year at", "What the treasury held as the year began", 0, acc.open, "open") };
+                int run = acc.open; foreach (var a in acc.lines) { steps.Add((a.What, a.Says, run, run + a.By, a.By > 0 ? "up" : a.By < 0 ? "down" : "nil")); run += a.By; }
+                steps.Add(("Closed the year at", "What the treasury held as the year ended", 0, acc.close, "close"));
+                int lo = Math.Min(0, steps.Min(x => Math.Min(x.from, x.to))), hi = Math.Max(1, steps.Max(x => Math.Max(x.from, x.to))); double span = Math.Max(1, hi - lo);
                 <div data-last-year>
-                <Section Title="Last year" Info="Last year's accounts: what the treasury opened the year at, the three things that moved it, and what it closed at. The lines add up to the change; hover each for what is in it.">
+                <Section Title="Last year" Info="Last year's accounts: what the treasury opened the year at, the three things that moved it, and what it closed at. Each bar starts where the one above it ended; the lines add up to the change. Hover each for what is in it.">
                     <Right><span>@Money.Show(acc.open) to <b>@Money.Show(acc.close)</b> <b class="@(acc.close - acc.open >= 0 ? "ui-up" : "ui-down")">(@(acc.close - acc.open >= 0 ? "+" : "−")@Money.Show(Math.Abs(acc.close - acc.open)))</b></span></Right>
                     <ChildContent>
-                    <div class="hs-kv"><span class="hs-k">Opened the year at</span><b class="hs-v">@Money.Show(acc.open)</b></div>
-                    @foreach (var a in acc.lines) { <div class="hs-kv" title="@a.Says"><span class="hs-k">@a.What</span><b class="hs-v @(a.By > 0 ? "ui-up" : a.By < 0 ? "ui-down" : "")">@(a.By > 0 ? "+" : a.By < 0 ? "−" : "")@Money.Show(Math.Abs(a.By))</b></div> }
-                    <div class="hs-kv hs-total"><span class="hs-k">Closed the year at</span><b class="hs-v">@Money.Show(acc.close)</b></div>
+                    <div class="hs-fall">
+                    @foreach (var st in steps)
+                    {
+                        int by = st.to - st.from; double left = 100.0 * (Math.Min(st.from, st.to) - lo) / span, width = 100.0 * Math.Abs(by) / span;
+                        <span class="hs-fall-l @st.kind" title="@st.says">@st.what</span>
+                        <span class="hs-fall-t">@if (lo < 0) { <i class="hs-fall-zero" style="left:@Pc(100.0 * -lo / span)"></i> }<i class="hs-fall-b @st.kind" style="left:@Pc(left);width:@Pc(Math.Max(width, 0.6))"></i></span>
+                        <span class="hs-fall-v @st.kind @(st.kind == "up" ? "ui-up" : st.kind == "down" ? "ui-down" : st.kind == "nil" ? "ui-mute" : "")">@(st.kind is "open" or "close" ? Money.Show(st.to) : (by > 0 ? "+" : by < 0 ? "−" : "") + Money.Show(Math.Abs(by)))</span>
+                    }
+                    </div>
                     <p class="hs-note">The same for the goods: @string.Join("; ", new[] { Resource.Materials, Resource.Manpower, Resource.Helium3 }.Select(r => YearInBrief.Accounts(w, r) is { } g ? $"{Resource.Label(r).ToLowerInvariant()} {g.open} to {g.close}" : "").Where(x => x.Length > 0)).</p>
                     </ChildContent>
                 </Section>
@@ -243,7 +257,7 @@
             }
 
             var fin = c.Businesses.Finance; int instal = Lending.InstalmentOf(w, house, fin); var lenders = Lending.Lenders(w, house.Id, c.Businesses); string? stayed = EdictSystem.Stay(w) is { } stay ? $"nothing falls due while {EdictSystem.Lower(stay.Name)} stands, until year {stay.Until}" : null;
-            <Section Title="Debt and lenders" Count="@(lg.Debt > 0 ? "1" : "")" Info="One lender at a time. What is owed is the sum and its interest together, paid off by the year; a year the treasury cannot find the instalment it goes below nought, and a house two years below nought is sold up for its creditors. Paying sooner saves no interest: it shortens the years and ends the instalments.">
+            <Section Title="Debt and lenders" Count="@(lg.Debt > 0 ? "1" : "")" Info="One lender at a time. What is owed is the sum and its interest together, paid off by the year; a year the treasury cannot find the instalment it goes below nought, and a house two years below nought is sold up for its creditors. Paying sooner saves no interest: it shortens the years and ends the instalments. Click a lender to put it in the order bar, with the sum and what it would cost.">
                 <Right>@if (lg.Debt > 0) { <span>Owes <b class="ui-down">@Money.Show(lg.Debt)</b></span> } else { <span>Nothing owed</span> }</Right>
                 <ChildContent>
                 @if (lg.Debt > 0)
@@ -263,30 +277,38 @@
                         }
                     </div>
                 }
-                <div data-borrow>
+                @* each lender one row: its name, its terms as the line under it, or why it will not lend; the row picked docks the sum, All and
+                   Borrow in one order bar under them (4.13), with what the loan would cost *@
+                @{ var lpick = lenders.FirstOrDefault(x => x.LenderId == _lender) ?? lenders.FirstOrDefault(x => x.Refusal == null && Lending.Room(w, house, x) >= Lending.Step) ?? lenders.FirstOrDefault(); }
+                <div data-borrow class="hs-lenders">
                 @foreach (var lt in lenders)
                 {
-                    string lid = lt.LenderId; int room = Lending.Room(w, house, lt);
-                    int amt = Math.Clamp(_borrow.GetValueOrDefault(lid, Math.Min(room, fin.LoanPrincipal)) / Lending.Step * Lending.Step, Math.Min(Lending.Step, room), Math.Max(Lending.Step, room));
-                    var take = new TakeLoanCommand(pid, c.Businesses, lid, amt); var takeNo = take.Refusal(G.Ctx);
-                    int owedNew = Lending.Owed(w, amt, lt.RatePct, lid, house.Id), owedAll = (house.LenderId == lid ? house.Debt : 0) + owedNew, instNew = Lending.Instalment(fin, owedAll);
-                    bool can = lt.Refusal == null && room >= Lending.Step;
-                    <div class="hs-lender @(lt.Refusal != null ? "off" : "")" data-lender="@(lid.Length == 0 ? "counting-houses" : lid)" title="@lt.Why">
-                        <div class="hs-lender-hd">
-                            <span class="hs-lender-nm"><Icon Name="treasury_pool" Tone="@(can ? "brass" : "ivory")" Size="18" /><b>@Cap(lt.Lender)</b></span>
-                            <span class="hs-lender-sub">up to @Money.Show(lt.Limit) credits · @lt.RatePct in the hundred@(house.LenderId == lid && house.Debt > 0 ? $" · you owe it {Money.Show(house.Debt)}, so {Money.Show(room)} more" : "")</span>
-                        </div>
-                        @if (lt.Refusal != null) { <div class="hs-lender-no ui-warn-t">@Cap(lt.Refusal).</div> }
-                        else if (room < Lending.Step) { <div class="hs-lender-no ui-warn-t">It will lend you no more until some of what is owed is paid.</div> }
-                        else
+                    string lid = lt.LenderId; int room = Lending.Room(w, house, lt); bool can = lt.Refusal == null && room >= Lending.Step; bool on = lpick == lt;
+                    string terms = $"Up to {Money.Show(lt.Limit)} credits at {lt.RatePct} in the hundred{(house.LenderId == lid && house.Debt > 0 ? $"; you owe it {Money.Show(house.Debt)}, so {Money.Show(room)} more" : "")}";
+                    <Row Class="@($"hs-lender {(can ? "" : "off")}")" Name="@Cap(lt.Lender)" On="on" OnClick="() => _lender = lid" Tip="@($"{lt.Why}\nkey: Click to put it in the order bar")" data-lender="@(lid.Length == 0 ? "counting-houses" : lid)">
+                        <Picture><span class="ui-medal hs-medal @(can ? "" : "dim")"><Icon Name="treasury_pool" Tone="@(can ? "brass" : "ivory")" Size="22" /></span></Picture>
+                        <Sub>@if (lt.Refusal != null) { <span class="ui-warn-t">@Cap(lt.Refusal)</span> } else if (room < Lending.Step) { <span class="ui-warn-t">It will lend you no more until some of what is owed is paid</span> } else { @terms }</Sub>
+                        <Cells><Cell Icon="credits" Value="@Money.Show(Math.Max(0, room))" Tip="As much as it will lend you now" /></Cells>
+                    </Row>
+                }
+                @if (lpick != null)
+                {
+                    string lid = lpick.LenderId; int room = Lending.Room(w, house, lpick); bool can = lpick.Refusal == null && room >= Lending.Step;
+                    int amt = Math.Clamp(_borrow.GetValueOrDefault(lid, Math.Min(room, fin.LoanPrincipal)) / Lending.Step * Lending.Step, Math.Min(Lending.Step, Math.Max(Lending.Step, room)), Math.Max(Lending.Step, room));
+                    var take = new TakeLoanCommand(pid, c.Businesses, lid, amt); var takeNo = can ? take.Refusal(G.Ctx) : (lpick.Refusal is { } r0 ? Cap(r0) : "It will lend you no more until some of what is owed is paid");
+                    int owedNew = Lending.Owed(w, amt, lpick.RatePct, lid, house.Id), owedAll = (house.LenderId == lid ? house.Debt : 0) + owedNew, instNew = Lending.Instalment(fin, owedAll);
+                    <div class="ui-order hs-loan-bar" data-lender-bar="@(lid.Length == 0 ? "counting-houses" : lid)">
+                        <span class="ui-order-nm"><Icon Name="treasury_pool" Tone="brass" Size="18" />@Cap(lpick.Lender)</span>
+                        <span class="ui-order-sp"></span>
+                        @if (can)
                         {
-                            <div class="hs-acts">
-                                <Stepper Value="amt" Min="Lending.Step" Max="room" Step="Lending.Step" Format="v => Money.Show(v)" FewerLabel="Less" FewerTip="@($"−{Money.Show(Lending.Step)}")" MoreTip="@($"+{Money.Show(Lending.Step)}")" Class="hs-step" data-amount="@amt" OnChange="v => _borrow[lid] = v" />
-                                <Plate Label="@($"All {Money.Show(room)}")" Small="true" Disabled="@(amt >= room)" Tip="As much as it will lend" OnClick="() => _borrow[lid] = room" />
-                                <Plate Label="@($"Borrow {Money.Show(amt)}")" Icon="credits" IconTone="brass" Small="true" Locked="@(takeNo != null)" Disabled="@(takeNo != null)" ShowNeed="false" Need="@(takeNo ?? "")" Tip="@lt.Why" data-take-loan="1" OnClick="() => G.Execute(take)" />
-                                <span class="hs-terms" data-loan-terms>owe @Money.Show(owedNew) for it@(owedAll != owedNew ? $" ({Money.Show(owedAll)} in all)" : ""): @Money.Show(instNew) a year for @Counted.Years(Lending.Years(owedAll, instNew))</span>
-                            </div>
+                            <Stepper Value="amt" Min="Lending.Step" Max="room" Step="Lending.Step" Format="v => Money.Show(v)" FewerLabel="Less" FewerTip="@($"−{Money.Show(Lending.Step)}")" MoreTip="@($"+{Money.Show(Lending.Step)}")" Class="hs-step" data-amount="@amt" OnChange="v => _borrow[lid] = v" />
+                            <Plate Label="All" Small="true" Disabled="@(amt >= room)" Tip="@($"As much as it will lend: {Money.Show(room)}")" OnClick="() => _borrow[lid] = room" />
                         }
+                        <Plate Label="@(can ? $"Borrow {Money.Show(amt)}" : "Borrow")" Icon="credits" IconTone="brass" Locked="@(takeNo != null)" Disabled="@(takeNo != null)" ShowNeed="false" Need="@(takeNo ?? "")" Tip="@lpick.Why" data-take-loan="1" OnClick="() => G.Execute(take)" />
+                        @* what the loan would come to, under the controls: the whole owed, the instalment and the years; or why it will not lend *@
+                        @if (can) { <span class="hs-terms" data-loan-terms>You would owe @Money.Show(owedNew) for it@(owedAll != owedNew ? $", {Money.Show(owedAll)} in all" : ""): @Money.Show(instNew) a year for @Counted.Years(Lending.Years(owedAll, instNew)).</span> }
+                        else { <span class="ui-need hs-terms">@takeNo</span> }
                     </div>
                 }
                 </div>
@@ -625,6 +647,10 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private string? _focus, _build, _appoint; private string _view = "estate";
+    /// <summary>The part of the Purse tab shown (WealthPanel): "purses", "will" or "seat".</summary>
+    private string _purse = "purses";
+    /// <summary>The lender picked in the Ledger's order bar ("" is the counting-houses).</summary>
+    private string? _lender;
     private void Pick(string k) => _view = k;
     /// <summary>A tab's old hook (data-tab-council and the rest), kept beside the shared data-tab.</summary>
     private static IReadOnlyDictionary<string, object> Hook(string name) => new Dictionary<string, object> { [name] = true };
@@ -642,6 +668,7 @@
     {
         var parts = tab.Split(':'); string t = parts[0];
         _view = t switch { "riches" or "seat" or "will" => "purse", "ventures" or "domain" => "estate", "estate" or "ledger" or "household" or "council" or "court" or "purse" => t, _ => _view };
+        if (t is "riches" or "seat") _purse = "seat"; else if (t == "will") _purse = "will";
         if (parts.Length > 1 && _view == "household") _focus = parts[1];
     }
     /// <summary>A province's painting by what it is given to, where one was painted for that subject (docs/ART_DIRECTION.md: a picture matches its subject or none ships).</summary>

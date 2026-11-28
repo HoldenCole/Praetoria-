@@ -17,29 +17,29 @@
     string estateFirst = Money.Credits(WealthSystem.EstatePrice), estateMore = Money.Show(WealthSystem.EstateDearer), estatePays = Money.Credits(WealthSystem.EstatePays);
 }
 <div class="rich-house hs-rich" data-rich-house>
-    @* the second half of the Purse tab under its own heading: a part title in Cinzel on a gilt rule, the treasury at the right *@
-    <div class="hs-part" title="Four things the treasury can be spent on that are for the house's people and its name, and not for a return">
-        <h3 class="hs-part-t">Seat and estates</h3><span class="hs-part-r"><Icon Name="credits" Tone="brass" Size="16" />The treasury holds <b>@Money.Held(house.Treasury)</b></span>
-    </div>
-
     <div data-rich-estates="@settled.Count">
     <Section Title="Land for the family" Count="@settled.Count.ToString()" Info="@($"Bought from the treasury and settled on one person, child or grown. It brings them {estatePays} a year for life into their own purse (a child's is kept for them until they are of age), it is theirs to leave, and they and whoever they are married to think the better of you. The first costs {estateFirst} at the standard setting, about fifteen years' purchase; each further one on the same person {estateMore} more; {WealthSystem.EstatesAPerson} is the most. Land settled on a son or daughter counts {WealthSystem.EstateMatch} with a family asked for a match, to {WealthSystem.EstateMatchMost}.")"
              IsEmpty="@(kin.Count == 0)" EmptyLine="Nobody of the house but you." EmptyIcon="castle">
         <Right><span>Brings <b>@estatePays</b> a year</span></Right>
         <ChildContent>
-        @{ var refusals = kin.Take(_allKin ? 40 : 6).Select(c => new EndowCommand(pid, c.Id).Refusal(G.Ctx)).ToList(); string? allNo = refusals.Count > 1 && refusals.All(r => r != null && r == refusals[0]) ? refusals[0] : null; }
-        @if (allNo != null) { <p class="hs-note hs-need" data-endow-all-no><Icon Name="padlock" Tone="ember" Size="14" />@LawsScreen.Say(allNo).</p> }
-        @foreach (var c in kin.Take(_allKin ? 40 : 6))
-        {
-            string cid = c.Id; int held = WealthSystem.EstatesHeld(w, c.Id), cost = WealthSystem.EstateCost(w, c); var no = new EndowCommand(pid, cid).Refusal(G.Ctx);
-            string gives = "Brings them " + estatePays + " a year: " + (WealthSystem.EstatePays * 100.0 / cost).ToString("F1") + " in the hundred on its price. They think " + WealthSystem.EstateRegard + " the better of you.";
-            <Row Class="rich-row" Name="@c.Name" SubText="@($"{c.Age}{(c.Age < WealthSystem.Adult ? ", a child" : "")} · {(held == 0 ? "holds no land" : "holds " + Counted.Of(held, "estate"))}")">
-                <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
-                <Cells>@if (allNo != null) { <Cell Icon="credits" Value="@Money.Show(cost)" Tip="@($"What land settled on {c.Name} would cost. {gives}")" /> }</Cells>
-                <Action>@if (allNo == null) { <Plate Label="Settle land" Icon="castle" Small="true" CostIcon="credits" CostText="@Money.Show(cost)" data-endow="@cid" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@gives" OnClick="() => G.Execute(new EndowCommand(pid, cid))" /> }</Action>
-            </Row>
+        @{
+            // one row for every person (docs/VISUAL_SYSTEM.md 4.12): who it is for in a select whose options carry each one's price and
+            // what they hold, and one Settle plate; the price is the same for everyone until one already holds land
+            var refusals = kin.Select(c => new EndowCommand(pid, c.Id).Refusal(G.Ctx)).ToList(); string? allNo = refusals.Count > 1 && refusals.All(r => r != null && r == refusals[0]) ? refusals[0] : null;
+            string landFor = _land.Length > 0 && kin.Any(k => k.Id == _land) ? _land : (kin.FirstOrDefault(k => new EndowCommand(pid, k.Id).Refusal(G.Ctx) == null) ?? kin.FirstOrDefault())?.Id ?? "";
+            var lw = w.Char(landFor); int lcost = lw != null ? WealthSystem.EstateCost(w, lw) : 0; var lno = lw != null ? new EndowCommand(pid, landFor).Refusal(G.Ctx) : "there is nobody to settle it on";
+            string gives = lw == null ? "" : "Brings " + (lw.Id == pid ? "you " : "them ") + estatePays + " a year: " + (WealthSystem.EstatePays * 100.0 / Math.Max(1, lcost)).ToString("F1") + " in the hundred on its price. They think " + WealthSystem.EstateRegard + " the better of you.";
         }
-        @if (kin.Count > 6) { <p class="hs-note"><Link data-rich-more="kin" OnClick="() => _allKin = !_allKin" Label='@(_allKin ? "Show fewer" : "Show all " + kin.Count)' /></p> }
+        @if (allNo != null) { <p class="hs-note hs-need" data-endow-all-no><Icon Name="padlock" Tone="ember" Size="14" />@LawsScreen.Say(allNo).</p> }
+        <Row Class="rich-row hs-pick-row" Name="Settle land" SubText="@(settled.Count == 0 ? "On one of the house, for life: nobody holds any yet" : $"On one of the house, for life: {Counted.Of(settled.Count, "estate")} settled so far")" Tip="@gives">
+            <Picture><span class="ui-medal hs-medal"><Icon Name="castle" Tone="ivory" Size="22" /></span></Picture>
+            <Action><span class="hs-acts">
+                <Select Value="@landFor" Class="hs-who" Tip="Who the land is settled on"
+                        Options="@kin.Select(c => { int held = WealthSystem.EstatesHeld(w, c.Id); var no = new EndowCommand(pid, c.Id).Refusal(G.Ctx); return new Select.Option(c.Id, c.Name, $"{c.Age}{(c.Age < WealthSystem.Adult ? ", a child" : "")} · {Money.Show(WealthSystem.EstateCost(w, c))} · {(held == 0 ? "holds no land" : "holds " + Counted.Of(held, "estate"))}{(no != null && allNo == null ? " · cannot: " + LawsScreen.Say(no) : "")}", c.Id, c.Sex, c.Age, house.AccentColor); }).ToList()"
+                        OnChange="v => _land = v" />
+                <Plate Label="Settle land" Icon="castle" Small="true" CostIcon="credits" CostText="@Money.Show(lcost)" data-endow="@landFor" Locked="@(lno != null)" Disabled="@(lno != null)" ShowNeed="false" Need="@(lno ?? "")" Tip="@($"Settle land on {lw?.Name ?? "nobody"}. {gives}")" OnClick="() => G.Execute(new EndowCommand(pid, landFor))" />
+            </span></Action>
+        </Row>
         @if (settled.Count > 0) { <p class="hs-note" data-rich-settled>Settled so far: @string.Join("; ", settled.Select(h => h.Name + ", " + (w.Char(h.HolderId)?.Name ?? "nobody") + "'s")).</p> }
         </ChildContent>
     </Section>
@@ -84,26 +84,30 @@
 
     <div data-rich-town-houses="@townHouses.Count">
     <Section Title="A house at the capital" Count="@townHouses.Count.ToString()" Info="@($"For you or one grown person of the house, bought once: {WealthSystem.TownHouseYears} years of what that person takes in a year, and never less than {Money.Show(WealthSystem.TownHouseLeast)}. It is theirs. While they hold it they are at the capital: {WealthSystem.TownHouseVotes} more votes at any count they stand in, and you are told how that count stands before it is held. They think {WealthSystem.TownHouseRegard} the better of you for it, {WealthSystem.TownHousePurseRegard} if the money was your own.")">
-        @foreach (var c in grown.Take(_allGrown ? 40 : 6))
-        {
-            string cid = c.Id; bool has = WealthSystem.AtTheCapital(w, c.Id); int cost = WealthSystem.TownHouseCost(w, c);
-            var noT = new TownHouseCommand(pid, cid, false).Refusal(G.Ctx); var noP = new TownHouseCommand(pid, cid, true).Refusal(G.Ctx);
-            string takes = (c.Id == pid ? "You take in " : "Takes in ") + Money.Show(WealthSystem.YearlyIncome(w, c)) + " a year of " + (c.Id == pid ? "your" : "their") + " own.";
-            <Row Class="rich-row acts-under" Name="@(c.Id == pid ? "You" : c.Name)" SubText="@takes" Tip="@takes">
-                <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
-                <NameExtra>@if (has) { <span class="hs-tag gold">has a house at the capital</span> }</NameExtra>
-                <Action>
-                    @if (!has)
-                    {
-                        <span class="hs-acts">
-                            <Plate Label="From the treasury" Icon="family-house" Small="true" CostIcon="credits" CostText="@Money.Show(cost)" data-town-house="@cid" Locked="@(noT != null)" Disabled="@(noT != null)" ShowNeed="false" Need="@(noT ?? "")" Tip="@TreasuryTip" OnClick="() => G.Execute(new TownHouseCommand(pid, cid, false))" />
-                            <Plate Label="From your purse" Small="true" data-town-house-purse="@cid" Locked="@(noP != null)" Disabled="@(noP != null)" ShowNeed="false" Need="@(noP ?? "")" Tip="@PurseTip" OnClick="() => G.Execute(new TownHouseCommand(pid, cid, true))" />
-                        </span>
-                    }
-                </Action>
-            </Row>
+        @{
+            // who has one, as a line; one row to buy one more: whom it is for in a select (each option carries its price), then the treasury's
+            // plate and your purse's
+            var have = grown.Where(c => WealthSystem.AtTheCapital(w, c.Id)).ToList(); var lack = grown.Where(c => !WealthSystem.AtTheCapital(w, c.Id)).ToList();
+            string thFor = _town.Length > 0 && lack.Any(k => k.Id == _town) ? _town : lack.FirstOrDefault()?.Id ?? "";
+            var tw = w.Char(thFor); int tcost = tw != null ? WealthSystem.TownHouseCost(w, tw) : 0;
+            var noT = tw != null ? new TownHouseCommand(pid, thFor, false).Refusal(G.Ctx) : "everyone of the house who is grown has one"; var noP = tw != null ? new TownHouseCommand(pid, thFor, true).Refusal(G.Ctx) : noT;
+            string takes = tw == null ? "" : (tw.Id == pid ? "You take in " : tw.Name + " takes in ") + Money.Show(WealthSystem.YearlyIncome(w, tw)) + " a year of " + (tw.Id == pid ? "your" : "their") + " own.";
         }
-        @if (grown.Count > 6) { <p class="hs-note"><Link data-rich-more="grown" OnClick="() => _allGrown = !_allGrown" Label='@(_allGrown ? "Show fewer" : "Show all " + grown.Count)' /></p> }
+        <Row Class="rich-row acts-under hs-town-row" Name="Buy a house at the capital" SubText="@(have.Count == 0 ? "Nobody of the house has one yet" : "At the capital: " + string.Join(", ", have.Select(c => c.Id == pid ? "you" : c.Name)))" Tip="@takes">
+            <Picture><span class="ui-medal hs-medal @(have.Count > 0 ? "lit" : "")"><Icon Name="family-house" Tone="@(have.Count > 0 ? "brass" : "ivory")" Size="22" /></span></Picture>
+            <Action>
+                @if (tw != null)
+                {
+                    <span class="hs-acts">
+                        <Select Value="@thFor" Class="hs-who" Tip="Whom it is for"
+                                Options="@lack.Select(c => new Select.Option(c.Id, c.Id == pid ? "You" : c.Name, $"{Money.Show(WealthSystem.TownHouseCost(w, c))} · takes in {Money.Show(WealthSystem.YearlyIncome(w, c))} a year", c.Id, c.Sex, c.Age, house.AccentColor)).ToList()"
+                                OnChange="v => _town = v" />
+                        <Plate Label="From the treasury" Small="true" CostIcon="credits" CostText="@Money.Show(tcost)" data-town-house="@thFor" Locked="@(noT != null)" Disabled="@(noT != null)" ShowNeed="false" Need="@(noT ?? "")" Tip="@($"{TreasuryTip} {takes}")" OnClick="() => G.Execute(new TownHouseCommand(pid, thFor, false))" />
+                        <Plate Label="From your purse" Small="true" data-town-house-purse="@thFor" Locked="@(noP != null)" Disabled="@(noP != null)" ShowNeed="false" Need="@(noP ?? "")" Tip="@PurseTip" OnClick="() => G.Execute(new TownHouseCommand(pid, thFor, true))" />
+                    </span>
+                }
+            </Action>
+        </Row>
     </Section>
     </div>
 
@@ -135,7 +139,7 @@
 
 @code {
     private string _site = "";
-    private bool _allKin, _allGrown;
+    private string _land = "", _town = "";
     private const string TreasuryTip = "Out of the house's treasury. It is theirs for good, and goes as their own things go.";
     private const string PurseTip = "Out of your own purse. They will remember whose money it was.";
     private static readonly string SizesSay = string.Join(", ", LadderSystem.CampaignSizes.Select(s => s + " " + Money.Show(LadderSystem.CampaignCost(s)) + " for " + LadderSystem.CampaignVotes(s) + " votes")) + ".";
