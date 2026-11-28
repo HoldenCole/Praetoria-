@@ -503,7 +503,7 @@
                 }
                 <div class="sn-acts sn-pad sn-stand">
                     <Plate Label="@(el.AmConsul ? ConsulIs(c.Offices) : StandWord(c.Offices, el.Standing))" Icon="podium" Locked="@(el.StandRefusal != null)" Disabled="@(el.StandRefusal != null)" Tip="@(el.StandRefusal ?? StandSays(c.Offices))" CostIcon="@(el.AmConsul || el.Standing ? "" : "public-speaker")" CostText="@(el.AmConsul || el.Standing ? "" : ElectionSystem.StandInfluence.ToString())" OnClick="() => G.Execute(new StandForConsulCommand(pid, c.Offices))" />
-                    @if (el.StandRefusal != null) { <span class="sn-no">@Cap(el.StandRefusal)</span> }
+                    @if (el.StandRefusal != null) { <span class="sn-no">@(Cap(el.StandRefusal.TrimEnd('.')) + ".")</span> }
                 </div>
                 @if (el.AmConsul)
                 {

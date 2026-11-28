@@ -709,7 +709,7 @@
     private readonly Dictionary<string, string> _classOf = new(); private readonly HashSet<string> _withCap = new();
     /* the one drawer open under each fleet: rename, admiral, captain, hulls, hire or merge */
     private readonly Dictionary<string, string> _drawer = new();
-    private void Toggle(string fleetId, string what) { if (_drawer.GetValueOrDefault(fleetId) == what) _drawer.Remove(fleetId); else _drawer[fleetId] = what; }
+    private void Toggle(string fleetId, string what) { if (_drawer.GetValueOrDefault(fleetId) == what) _drawer.Remove(fleetId); else _drawer[fleetId] = what; _ordersFor = null; }   // the menu closes on what it opened, so it does not stand over the drawer
     private void Pick(string key) => _view = key;
     /// <summary>The fleet whose Orders menu is open.</summary>
     private string? _ordersFor;

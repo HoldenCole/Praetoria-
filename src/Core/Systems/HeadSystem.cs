@@ -79,14 +79,14 @@ public static class HeadSystem
             if (head.Id != h.HeadId)
             {
                 h.HeadId = head.Id;
-                if (had) { w.Log($"{head.Name} now leads House {h.Name}, as the eldest of it."); Passed(w, h, old, head, $"{head.Name} now leads House {h.Name}, as the eldest of it."); }
+                if (had) { w.Log($"{head.Name} now leads {h.Name}, as the eldest of it."); Passed(w, h, old, head, $"{head.Name} now leads {h.Name}, as the eldest of it."); }
                 continue;
             }
             if (Challenger(w, h, head) is not { } ch || Hash($"{h.Id}:{w.Turn}:head") / 11 % ChallengeOneIn != 0) continue;
             h.HeadId = ch.who.Id; w.WorldCounters[ChallengesKey] = w.Counter(ChallengesKey) + 1;
             string line = ch.why == "stands well above them in rank"
-                ? $"{head.Name} stands aside as head of House {h.Name}: {ch.who.Name} stands well above them in rank, and the house would have it so."
-                : $"{head.Name} stands aside as head of House {h.Name}: {ch.why}, and {ch.who.Name} leads it now.";
+                ? $"{head.Name} stands aside as head of {h.Name}: {ch.who.Name} stands well above them in rank, and the house would have it so."
+                : $"{head.Name} stands aside as head of {h.Name}: {ch.why}, and {ch.who.Name} leads it now.";
             w.Log(line); Passed(w, h, head, ch.who, line);
         }
     }

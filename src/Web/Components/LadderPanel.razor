@@ -147,7 +147,7 @@
                     @if (myStand == null)
                     {
                         <div class="sn-acts suit-acts">
-                            <Plate Label="@("Stand for " + rung.Name.ToLowerInvariant())" Small="true" Icon="stairs-goal" Locked="@(stand != null)" Disabled="@(stand != null)" Tip="@(stand ?? "Your name goes down for the next election")" CostIcon="public-speaker" CostText="@LadderSystem.StandInfluence.ToString()" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices))" />
+                            <Plate Label="@("Stand for " + rung.Name.ToLowerInvariant())" Small="true" Icon="stairs-goal" Locked="@(stand != null)" Disabled="@(stand != null)" Tip="@(stand != null ? Cap(You(stand)) + "." : "Your name goes down for the next election")" CostIcon="public-speaker" CostText="@LadderSystem.StandInfluence.ToString()" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Stand, pid, rid, offices))" />
                             @if (stand != null) { <span class="sn-no">@Cap(You(stand)).</span> }
                         </div>
                     }

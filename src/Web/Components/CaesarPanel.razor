@@ -84,7 +84,7 @@
         @if (general == null) { if (!atTheGate) { <EmptyState Icon="laurels" Text="Nobody of the house commands a fleet. A name is made in command: appoint someone, or take a fleet yourself." /> } }   @* home for a triumph, the gate above says who and why *@
         else
         {
-            <Section Title="The general" Info="@($"The general is the one of the house the crews know. Sway comes of victories in command, rank in the service, triumphs and renown: {(swayWhy.Length > 0 ? swayWhy : "no victories yet")}. At {CaesarSystem.RecallSway} the Senate may order the general home; at {CaesarSystem.FearedSway} the general is feared. A triumph asks {CaesarSystem.TriumphLaurels} victories since the last.")">
+            <Section Title="The general" data-caesar-general="1" Info="@($"The general is the one of the house the crews know. Sway comes of victories in command, rank in the service, triumphs and renown: {(swayWhy.Length > 0 ? swayWhy : "no victories yet")}. At {CaesarSystem.RecallSway} the Senate may order the general home; at {CaesarSystem.FearedSway} the general is feared. A triumph asks {CaesarSystem.TriumphLaurels} victories since the last.")">
                 <div class="mc-general">
                     <Portrait Id="@general.Id" Name="@general.Name" Sex="@general.Sex" Age="@general.Age" Alive="@general.Alive" Accent="@house.AccentColor" Size="46" Height="56" />
                     <div class="mc-gt">

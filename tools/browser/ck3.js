@@ -14,8 +14,8 @@ const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 2 }); page.setDefaultTimeout(60000);
+  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-rasterization'] });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 2) }); page.setDefaultTimeout(180000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -42,11 +42,14 @@ require('fs').mkdirSync(shots, { recursive: true });
   await closeWindows();
 
   // 1. a command by service, on the Military window
-  await rail('Military'); await page.waitForTimeout(800); await tab('A command by service');
-  const panel = await text('.screen.window'); console.log('service tab: ' + suspicious(panel) + ' · ' + panel.slice(0, 200));
+  // the Service tab is hidden while no command by service is held, asked or open to be sought (docs/VISUAL_SYSTEM.md 4.4: empty tabs are hidden)
+  await rail('Military'); await page.waitForTimeout(800);
+  const hasService = await page.evaluate(() => !!document.querySelector('.screen.window .ui-tab[data-tab="service"]'));
+  await tab('A command by service');
+  const panel = await text('.screen.window'); console.log('service tab: ' + (hasService ? suspicious(panel) + ' · ' + panel.slice(0, 200) : 'not shown: nothing of the house is held, asked or open to be sought by service, so the tab is hidden'));
   const seek = await page.evaluate(() => [...document.querySelectorAll('[data-seek-command]')].map(b => b.innerText.trim() + ' to ' + b.getAttribute('data-seek-command') + (b.disabled ? ' (no: ' + (b.title || '').slice(0, 90) + ')' : ' (yes)')));
-  console.log('offers of service: ' + (seek.length ? seek.join('; ') : 'none: ' + await text('[data-service-none="takers"]')));
-  await shotOf('.screen.window', 'ck3-service.png');
+  console.log('offers of service: ' + (seek.length ? seek.join('; ') : 'none: ' + (hasService ? await text('[data-service-none="takers"]') : 'nobody would take it (the tab is hidden)')));
+  if (hasService) await shotOf('.screen.window', 'ck3-service.png');
   const sought = await page.evaluate(() => { const b = [...document.querySelectorAll('[data-seek-command]')].find(e => !e.disabled); if (b) { b.click(); return b.getAttribute('data-seek-command'); } return ''; });
   if (sought) { await page.waitForTimeout(700); await confirm(); console.log('offered service to ' + sought + ': held now: ' + await page.evaluate(() => [...document.querySelectorAll('[data-service-held]')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 200)).join(' | ') || 'none')); await shotOf('.screen.window', 'ck3-service-taken.png'); }
   await closeWindows();

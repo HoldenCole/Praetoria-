@@ -11,8 +11,8 @@ const years = parseInt(process.argv[3] || '7', 10);
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1900 } }); page.setDefaultTimeout(60000);
+  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-rasterization'] });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1900 }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 1) }); page.setDefaultTimeout(180000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -22,9 +22,10 @@ require('fs').mkdirSync(shots, { recursive: true });
   const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   const standing = async () => { await rail('Senate'); await page.waitForTimeout(400); await page.evaluate(() => { const t = document.querySelector('.ui-tab[data-tab="ladder"]'); if (t) { t.click(); return; } const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('The ladder')); if (b) b.click(); }); await page.waitForTimeout(500); };
-  const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.cursus button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.trim() : ''; }, text);
+  const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.cursus button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : ''; }, text);
   const rungs = () => page.evaluate(() => [...document.querySelectorAll('.panel.cursus .rung-row')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 330)).join('\n   '));
-  const head = () => page.evaluate(() => { const el = document.querySelector('.panel.cursus'); return el ? el.querySelector('h3').innerText.replace(/\s+/g, ' ') + ' · ' + ((el.querySelector('.muted.small') || {}).innerText || '').replace(/\s+/g, ' ').slice(-70) : 'NO PANEL'; });
+  // the section's title, then the lede with the next election (data-next-election) and the band's note at the right
+  const head = () => page.evaluate(() => { const el = document.querySelector('.panel.cursus'); if (!el) return 'NO PANEL'; const h = el.querySelector('h3'); const lede = el.querySelector('[data-next-election]') || el.querySelector('.ui-sec-r'); return (h ? h.innerText : 'NO HEADING').replace(/\s+/g, ' ') + ' · ' + ((lede || {}).innerText || '').replace(/\s+/g, ' ').slice(-140); });
   const shot = async name => { const box = await page.evaluate(() => { const el = document.querySelector('.panel.cursus'); if (!el) return null; el.scrollIntoView({ block: 'start' }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1100) }; }); if (box) await page.screenshot({ path: shots + '/' + name + '.png', clip: box }); };
 
   await closeWindows(); await standing();
@@ -48,7 +49,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const waiting = await work(); console.log('business: ' + (waiting || 'none waiting'));
   await shot('ladder-business');
   if (waiting) {
-    const did = await page.evaluate(() => { const b = document.querySelector('.panel.cursus .office-work button:not([disabled])'); if (b) b.click(); return b ? b.innerText.trim() : ''; });
+    const did = await page.evaluate(() => { const b = document.querySelector('.panel.cursus .office-work button:not([disabled])'); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : ''; });
     await page.waitForTimeout(500); console.log('decided: ' + (did || 'NOTHING COULD BE PRESSED') + ' · then: ' + (await work() || 'the business is done for the year'));
   }
   console.log('what the others did: ' + await page.evaluate(() => { const d = document.querySelector('.panel.cursus details'); if (!d) return 'NOT SHOWN'; d.open = true; return d.innerText.replace(/\s+/g, ' ').slice(0, 700); }));

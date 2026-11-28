@@ -337,7 +337,7 @@ public sealed class PolitySystem
         if (chair != null && Economy.HeadOf(w, chair) is { } ch && Economy.HeadOf(w, house) is { } hh) { var r = w.Relationship(ch.Id, hh.Id); r.Disposition = Math.Clamp(r.Disposition - 30, -100, 100); }
         string who = Economy.HeadOf(w, house)?.Name ?? house.Name;
         w.Log($"{house.Name} DECLARES {region.Name} INDEPENDENT of {(w.IsImperium ? "the throne" : "the Senate")}: {p.Name}, {FormName(form)}, with {who} as its {RulerStyle(form, Economy.HeadOf(w, house))}."
-            + (backers.Count > 0 ? $" {string.Join(", ", backers.Select(b => b.Name))} go with it." : ""));
+            + (backers.Count > 0 ? $" {string.Join(", ", backers.Select(b => b.Name))} {(backers.Count == 1 ? "goes" : "go")} with it." : ""));
         if (house.Id == mine) Mark(w, DeclaredFlag); else Mark(w, OtherBreaksFlag);
         if (temper <= 0)
         {
@@ -414,7 +414,7 @@ public sealed class PolitySystem
             w.Log($"{house.Name} goes over to {p.Name} in the middle of its war, and is at war with the Reach from today."); return true;
         }
         p.Regions.Add(regionId);
-        w.Log($"{house.Name} takes {region.Name} out of the Reach and into {p.Name}." + (backers.Count > 0 ? $" {string.Join(", ", backers.Select(b => b.Name))} go with it." : ""));
+        w.Log($"{house.Name} takes {region.Name} out of the Reach and into {p.Name}." + (backers.Count > 0 ? $" {string.Join(", ", backers.Select(b => b.Name))} {(backers.Count == 1 ? "goes" : "go")} with it." : ""));
         if (temper <= 0) { w.Log("The Reach does not answer with a fleet. The treaty stands, and the maps are redrawn."); return false; }
         // the Reach calls it a breach of the treaty, and what it named in that treaty is at war with it again
         p.Temper = temper; p.TreatyUntil = 0; Mark(w, BreachFlag);

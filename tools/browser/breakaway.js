@@ -10,8 +10,8 @@ const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1900 } }); page.setDefaultTimeout(60000);
+  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-rasterization'] });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1900 }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 1) }); page.setDefaultTimeout(180000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -21,7 +21,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   const standing = async () => { await rail('Senate'); await page.waitForTimeout(400); await page.evaluate(() => { const t = document.querySelector('.ui-tab[data-tab="orders"]'); if (t) { t.click(); return; } const b = [...document.querySelectorAll('button')].find(e => e.innerText.includes('The orders')); if (b) b.click(); }); await page.waitForTimeout(500); };
-  const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.breakaway button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.trim() : ''; }, text);
+  const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.breakaway button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : ''; }, text);
   const panel = () => page.evaluate(() => { const el = document.querySelector('.panel.breakaway'); return el ? el.innerText.replace(/\s+/g, ' ').slice(0, 1400) : 'NO PANEL'; });
   const rows = () => page.evaluate(() => [...document.querySelectorAll('.panel.breakaway .rung-row')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 420)).join('\n   '));
   const shot = async name => { const box = await page.evaluate(() => { const el = document.querySelector('.panel.breakaway'); if (!el) return null; el.scrollIntoView({ block: 'start' }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1100) }; }); if (box) await page.screenshot({ path: shots + '/' + name + '.png', clip: box }); };
@@ -53,8 +53,9 @@ require('fs').mkdirSync(shots, { recursive: true });
   await standing();
   console.log('after ' + years + ' years: ' + await panel());
   await shot('breakaway-after');
-  await rail('Galaxy'); await page.waitForTimeout(2500);
+  await page.evaluate(() => { const el = document.querySelector('[data-close-window]'); if (el) el.click(); }); await page.waitForTimeout(2500);   // back to the map: the docked window's close (the rail has no Galaxy socket)
   console.log('map: ' + await page.evaluate(() => [...document.querySelectorAll('.region-label .rs.state, .region-row.free')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 120)).slice(0, 3).join(' | ')));
+  await page.mouse.move(1598, 640); await page.waitForTimeout(400);   // the pointer off the console, so no tooltip of its own stands in the picture
   await page.screenshot({ path: shots + '/breakaway-map.png' });
   await rail('Chronicle'); await page.waitForTimeout(600);
   console.log('chronicle: ' + await page.evaluate(() => (document.body.innerText || '').split('\n').map(t => t.trim()).filter(t => /INDEPENDENT|does not answer with a fleet|will not have it|makes peace with|is no more|War of the Reach/i.test(t)).slice(0, 6).map(t => t.slice(0, 240)).join('\n   ')));
