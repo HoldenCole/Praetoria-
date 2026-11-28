@@ -44,7 +44,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {child.name} put the books away and go where {child.name}'s own head was already going. The tutor was relieved. So was {child.name}."
+              "text": "{self.name} let {child.name} put the books away and go where {child.his} own head was already going. The tutor was relieved. So was {child.first}."
             }
           ]
         },
@@ -65,7 +65,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that a child does not choose their lessons, and {child.name} went back to them. {child.name} learned something. It was not quite what was on the page."
+              "text": "{self.name} said that a child does not choose their lessons, and {child.name} went back to them. {child.He} learned something. It was not quite what was on the page."
             }
           ]
         },
@@ -189,7 +189,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let it be known what {child.name} could do, and had {child.name} do it for guests. The house's name was spoken of. {child.name} began to hate dinners."
+              "text": "{self.name} let it be known what {child.name} could do, and had {child.him} do it for guests. The house's name was spoken of. {child.first} began to hate dinners."
             }
           ]
         }
@@ -322,7 +322,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} set out, once, what the house would want of its people in ten years, and left it there. {kin.name} did not change their mind. They did not forget the conversation either."
+              "text": "{self.name} set out, once, what the house would want of its people in ten years, and left it there. {kin.name} did not change {kin.his} mind. {kin.He} did not forget the conversation either."
             }
           ]
         },
@@ -342,7 +342,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked what {kin.name} was studying, and offered to pay for somebody good in it. It was not what {self.name} had wanted. It was taken as it was meant."
+              "text": "{self.name} asked what {kin.name} was studying, and offered to pay for somebody good in it. It was not what {self.he} had wanted. It was taken as it was meant."
             }
           ],
           "requires": [
@@ -401,7 +401,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} thanked {kin.name} at table, by name, for what they had made of a younger one of the house. {kin.name} said it was nothing and was plainly pleased."
+              "text": "{self.name} thanked {kin.name} at table, by name, for what {kin.he} had made of a younger one of the house. {kin.first} said it was nothing and was plainly pleased."
             }
           ]
         },
@@ -444,7 +444,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took it as no more than one of the house owes the house. {kin.name} had not expected thanks. They had noticed there were none."
+              "text": "{self.name} took it as no more than one of the house owes the house. {kin.name} had not expected thanks. {kin.He} had noticed there were none."
             }
           ]
         }

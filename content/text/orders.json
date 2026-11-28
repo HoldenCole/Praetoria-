@@ -3,7 +3,7 @@
     {
       "id": "a_seat_by_the_purse",
       "title": "A Seat by the Purse",
-      "body": "The census has enrolled the house. It holds no land that carries a seat and its head is no judge, but it paid the fee and its books were found sufficient. {self.name} may now move motions and stand for office. The roll does not record how a seat was come by. The chamber remembers.",
+      "body": "The census has enrolled the house. It holds no land that carries a seat and its head is no judge, but it paid the fee and its books were found sufficient. You may now move motions and stand for office. The roll does not record how a seat was come by. The chamber remembers.",
       "choices": {
         "take_the_seat_quietly": "Take the seat and say nothing.",
         "give_a_dinner_for_it": "Mark it with a dinner."
@@ -60,10 +60,10 @@
     {
       "id": "a_client_goes",
       "title": "A Client Goes",
-      "body": "A house that was the client of {self.name} is a client no longer. It has grown richer than its patron could stay ahead of, or the house's own purse ran too low to keep it.",
+      "body": "A house that was your client is a client no longer. It has grown richer than its patron could stay ahead of, or the house's own purse ran too low to keep it.",
       "choices": {
         "let_him_go": "Let the tie lapse.",
-        "remind_him": "Remind him, before witnesses, who paid his debts."
+        "remind_him": "Remind the house, before witnesses, who paid its debts."
       }
     },
     {
@@ -123,7 +123,7 @@
     {
       "id": "first_of_the_name",
       "title": "The First of the Name",
-      "body": "{self.name} sits in a consul's chair, and no one of the name has sat there before. The old families have a phrase for such a man. They are using it more quietly than they did.",
+      "body": "You sit in a consul's chair, and no one of the name has sat there before. The old families have a phrase for such a person. They are using it more quietly than they did.",
       "choices": {
         "thank_the_voters": "Thank the voters, by name.",
         "remember_the_sneers": "Look along the front bench."
@@ -151,7 +151,7 @@
     {
       "id": "the_patron_noticed",
       "title": "The Patron Noticed",
-      "body": "The Senate has voted on a matter that touched the house's patron, and {self.name} voted the other way. A patron does not count votes; a patron's steward does, and reports. The house's standing with its protector is lower this morning than it was yesterday.",
+      "body": "The Senate has voted on a matter that touched the house's patron, and you voted the other way. A patron does not count votes; a patron's steward does, and reports. The house's standing with its protector is lower this morning than it was yesterday.",
       "choices": {
         "explain_yourself": "Call on the patron and explain.",
         "stand_by_it": "Stand by the vote.",
@@ -161,7 +161,7 @@
     {
       "id": "the_patron_is_pleased",
       "title": "As the Patron Wished",
-      "body": "The Senate has voted on a matter that touched the house's patron, and {self.name} voted as a client should. It has been noticed, in the way such things are: without a word.",
+      "body": "The Senate has voted on a matter that touched the house's patron, and you voted as a client should. It has been noticed, in the way such things are: without a word.",
       "choices": {
         "say_nothing": "Say nothing.",
         "mention_a_need": "Mention a need of the house's own."

@@ -53,7 +53,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said in the Senate that {holder.name} of {holder.house} had been given a hard thing to carry and should be helped to carry it. {holder.name} will remember who said so first."
+              "text": "{self.name} said in the Senate that {holder.name} of {holder.house} had been given a hard thing to carry and should be helped to carry it. {holder.first} will remember who said so first."
             }
           ]
         },
@@ -197,7 +197,7 @@
             },
             {
               "type": "log",
-              "text": "The day came on which {self.name} was to lay down the powers. {self.name} let it go by. There is still work to do, and it is always possible to believe that."
+              "text": "The day came on which {self.name} was to lay down the powers. {self.He} let it go by. There is still work to do, and it is always possible to believe that."
             }
           ]
         }
@@ -243,7 +243,7 @@
             },
             {
               "type": "log",
-              "text": "A delegation of the Senate came to ask {self.name} when the powers would be returned. {self.name} received them standing, with officers in the room, and they left without an answer."
+              "text": "A delegation of the Senate came to ask {self.name} when the powers would be returned. {self.He} received them standing, with officers in the room, and they left without an answer."
             }
           ]
         },
@@ -262,7 +262,7 @@
             },
             {
               "type": "log",
-              "text": "A delegation of the Senate came to ask {self.name} when the powers would be returned. {self.name} told them: at the year's end. It was later than it should have been, and it will be remembered as late."
+              "text": "A delegation of the Senate came to ask {self.name} when the powers would be returned. {self.He} told them: at the year's end. It was later than it should have been, and it will be remembered as late."
             }
           ]
         }

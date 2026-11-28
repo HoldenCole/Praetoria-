@@ -144,7 +144,7 @@
             },
             {
               "type": "log",
-              "text": "The head of the new client house came to {self.name}'s door at first light, as clients do. {self.name} received them in the hall, not the yard."
+              "text": "The head of the new client house came to {self.name}'s door at first light, as clients do. {self.He} received them in the hall, not the yard."
             }
           ]
         },
@@ -237,7 +237,7 @@
             },
             {
               "type": "log",
-              "text": "The patron asked a small thing of {self.name}: a loan to a third house, on easy terms. {self.name} obliged. The patron noticed."
+              "text": "The patron asked a small thing of {self.name}: a loan to a third house, on easy terms. {self.He} obliged. The patron noticed."
             }
           ],
           "requires": [
@@ -254,7 +254,7 @@
           "effects": [
             {
               "type": "log",
-              "text": "The patron asked a small thing of {self.name}, and {self.name} pleaded an empty purse. It was believed, this once."
+              "text": "The patron asked a small thing of {self.name}, and {self.he} pleaded an empty purse. It was believed, this once."
             }
           ]
         },
@@ -322,7 +322,7 @@
             },
             {
               "type": "log",
-              "text": "A client came to {self.name} with a lawsuit they could not afford, and {self.name} paid the advocate. The client's house owes the house a vote for it: its vote on the house's next motion is not in doubt, unless that motion strikes at it."
+              "text": "A client came to {self.name} with a lawsuit they could not afford, and {self.he} paid the advocate. The client's house owes the house a vote for it: its vote on the house's next motion is not in doubt, unless that motion strikes at it."
             }
           ],
           "requires": [
@@ -412,7 +412,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} reminded the departing client, before witnesses, whose coin had paid his debts. He went all the same. The witnesses stayed."
+              "text": "{self.name} reminded the departing client, before witnesses, whose coin had paid its debts. It went all the same. The witnesses stayed."
             }
           ],
           "requires": [
@@ -586,7 +586,7 @@
             },
             {
               "type": "log",
-              "text": "The house is now great in the Senate: when {self.name} rises, the chamber quiets. {self.name} rose seldom, which is why."
+              "text": "The house is now great in the Senate: when {self.name} rises, the chamber quiets. {self.He} rose seldom, which is why."
             }
           ]
         },
@@ -698,7 +698,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} was asked in the chamber what a house wants with a party, a fleet and a bank. {self.name} said the house wanted nothing it did not already have. The chamber did not sleep well."
+              "text": "{self.name} was asked in the chamber what a house wants with a party, a fleet and a bank. {self.He} said the house wanted nothing it did not already have. The chamber did not sleep well."
             }
           ]
         }
@@ -815,7 +815,7 @@
           "effects": [
             {
               "type": "log",
-              "text": "An old name remarked at dinner, in {self.name}'s hearing, that one used to know every family in the chamber. {self.name} passed the salt."
+              "text": "An old name remarked at dinner, in {self.name}'s hearing, that one used to know every family in the chamber. {self.He} passed the salt."
             }
           ]
         },
@@ -829,7 +829,7 @@
             },
             {
               "type": "log",
-              "text": "An old name asked {self.name} where the family was from. {self.name} said from the same place as the old name's mortgage, and named the interest."
+              "text": "An old name asked {self.name} where the family was from. {self.He} said from the same place as the old name's mortgage, and named the interest."
             }
           ]
         },

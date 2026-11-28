@@ -113,7 +113,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} walked in {kin.name}'s procession with the rest of the house, a few steps behind. {kin.name} saw it, and will not forget who came."
+              "text": "{self.name} walked in {kin.name}'s procession with the rest of the house, a few steps behind. {kin.first} saw it, and will not forget who came."
             }
           ]
         },
@@ -334,7 +334,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} that the house keeps the law, and that a command laid down can be taken up again. {kin.name} heard it as it was meant, and did not thank {self.name} for it."
+              "text": "{self.name} told {kin.name} that the house keeps the law, and that a command laid down can be taken up again. {kin.first} heard it as it was meant, and did not thank {self.him} for it."
             }
           ]
         },
@@ -369,7 +369,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} it was {kin.name}'s command and {kin.name}'s name, and listened to what {kin.name} thought of doing."
+              "text": "{self.name} told {kin.name} it was {kin.his} command and {kin.his} name, and listened to what {kin.he} thought of doing."
             }
           ]
         }
@@ -559,7 +559,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} left the capital before the speeches and went home. The war had been against people {self.name} had dined with."
+              "text": "{self.name} left the capital before the speeches and went home. The war had been against people {self.he} had dined with."
             }
           ]
         }
@@ -805,7 +805,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} that a commander the crews will follow is worth three who must give orders twice. {kin.name} had wondered how it would be taken."
+              "text": "{self.name} told {kin.name} that a commander the crews will follow is worth three who must give orders twice. {kin.first} had wondered how it would be taken."
             }
           ]
         },
@@ -844,7 +844,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave {kin.name} a freer hand with the fleet. {kin.name} was pleased. So, when they heard, were the crews."
+              "text": "{self.name} gave {kin.name} a freer hand with the fleet. {kin.first} was pleased. So, when they heard, were the crews."
             }
           ]
         }
@@ -976,7 +976,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} went to some trouble to be of use to {general.name}: an introduction, a contract, a word in the right place. {general.name} is the kind who remembers."
+              "text": "{self.name} went to some trouble to be of use to {general.name}: an introduction, a contract, a word in the right place. {general.first} is the kind who remembers."
             }
           ]
         },
@@ -1001,7 +1001,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told the chamber plainly what a commander like {general.name} becomes if nobody is watching. {general.name} heard of it the same evening."
+              "text": "{self.name} told the chamber plainly what a commander like {general.name} becomes if nobody is watching. {general.first} heard of it the same evening."
             }
           ]
         },

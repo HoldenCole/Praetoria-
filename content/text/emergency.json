@@ -3,9 +3,9 @@
     {
       "id": "emergency_powers_voted",
       "title": "Emergency Powers",
-      "body": "The Senate has voted {holder.name} of {holder.house} its emergency powers. For three years the other consul's veto is set aside, no election will be held, the Senate will lean toward whatever {holder.name} moves, and money can be levied from every house without a vote. It was done lawfully, because the Reach is in danger. Everyone in the chamber knows how such things have ended elsewhere.",
+      "body": "The Senate has voted {holder.name} of {holder.house} its emergency powers. For three years the other consul's veto is set aside, no election will be held, the Senate will lean toward whatever {holder.first} moves, and money can be levied from every house without a vote. It was done lawfully, because the Reach is in danger. Everyone in the chamber knows how such things have ended elsewhere.",
       "choices": {
-        "stand_with_them": "Say they should be helped to carry it.",
+        "stand_with_them": "Say {holder.he} should be helped to carry it.",
         "warn_the_senate": "Say what three years has a way of becoming.",
         "keep_counsel": "Say nothing on the floor."
       }

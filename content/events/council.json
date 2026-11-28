@@ -103,7 +103,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {watched.name} plainly what was being said in their own household, and by whom. {watched.name} did not ask how {self.name} knew."
+              "text": "{self.name} told {watched.name} plainly what was being said in {watched.his} own household, and by whom. {watched.first} did not ask how {self.first} knew."
             }
           ]
         }
@@ -293,7 +293,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not waste the new warmth of {host.name}: there was a vote coming, and {host.name} was asked for it before the wine was cold. {host.house} owes your house a vote."
+              "text": "{self.name} did not waste the new warmth of {host.name}: there was a vote coming, and {host.he} was asked for it before the wine was cold. {host.house} owes {self.house} a vote."
             }
           ]
         },
@@ -447,7 +447,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let the matter of {host.name} lie. {our_envoy.name} had expected to be defended, and noticed that they were not."
+              "text": "{self.name} let the matter of {host.name} lie. {our_envoy.name} had expected to be defended, and noticed that {our_envoy.he} was not."
             }
           ]
         }
@@ -526,7 +526,7 @@
             },
             {
               "type": "log",
-              "text": "It was {self.name}'s house that had won, and {self.name} let the benches understand whose judgment had chosen the ground. {advocate.name} heard about it."
+              "text": "It was {self.name}'s house that had won, and {self.he} let the benches understand whose judgment had chosen the ground. {advocate.name} heard about it."
             }
           ]
         },

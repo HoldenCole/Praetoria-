@@ -23,7 +23,7 @@
     {
       "id": "the_price_asked",
       "title": "The Price of Blood",
-      "body": "{asker.name} of {asker.house} has come about their dead. They do not ask for blood. They name a sum, as their grandfathers would have, and say that if it is paid there is an end of it.",
+      "body": "{asker.name} of {asker.house} has come about {asker.his} dead. {asker.He} does not ask for blood. {asker.He} names a sum, as {asker.his} grandfathers would have, and says that if it is paid there is an end of it.",
       "choices": {
         "pay_it": "Pay it, and have an end.",
         "refuse_it": "Refuse. To pay is to admit it."
@@ -41,7 +41,7 @@
     {
       "id": "called_out",
       "title": "Called Out",
-      "body": "{challenger.name} of {challenger.house} has called you out by name for their dead: one against one, in the open, before witnesses. If you go, it ends on that ground whoever leaves it. If you do not, everyone will know that you did not, and what they do next will be on you.",
+      "body": "{challenger.name} of {challenger.house} has called you out by name for {challenger.his} dead: one against one, in the open, before witnesses. If you go, it ends on that ground whoever leaves it. If you do not, everyone will know that you did not, and what they do next will be on you.",
       "choices": {
         "take_the_field": "Name the ground.",
         "do_not_come": "Do not come."
@@ -53,7 +53,7 @@
       "body": "{kin.name} has come to you again about the dead. It has been years. The other house walks about as it pleases, and yours is beginning to be spoken of as a house that can be struck.",
       "choices": {
         "promise_it": "It will be answered. You give your word.",
-        "times_change": "Tell them that times change."
+        "times_change": "Tell {kin.him} that times change."
       }
     },
     {

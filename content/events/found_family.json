@@ -61,7 +61,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took {child.name} into the house. Nobody had asked {self.name} to, which was rather the point."
+              "text": "{self.name} took {child.name} into the house. Nobody had asked {self.him} to, which was rather the point."
             }
           ]
         },
@@ -145,7 +145,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {ward.name} that there had never been a question of it: this was {ward.name}'s house. {ward.name} did not trust themselves to answer."
+              "text": "{self.name} told {ward.name} that there had never been a question of it: this was {ward.his} house. {ward.first} did not trust {ward.himself} to answer."
             }
           ]
         },
@@ -188,7 +188,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} nodded and said it was sensible of {ward.name} to stay. {ward.name} had hoped for more than sensible."
+              "text": "{self.name} nodded and said it was sensible of {ward.name} to stay. {ward.first} had hoped for more than sensible."
             }
           ]
         }
@@ -243,7 +243,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had {steward.name} out of the counting-room within the hour and recovered what could be recovered. The work is {self.name}'s again."
+              "text": "{self.name} had {steward.name} out of the counting-room within the hour and recovered what could be recovered. The work is {self.first}'s again."
             }
           ]
         },
@@ -370,7 +370,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had {member.name} seated with the household, below the family. It was correct. {member.name} understood exactly what it meant."
+              "text": "{self.name} had {member.name} seated with the household, below the family. It was correct. {member.first} understood exactly what it meant."
             }
           ]
         },
@@ -385,7 +385,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {member.name} to sit where they liked. {member.name} chose a place near the door, the first night, and nearer the family every night after."
+              "text": "{self.name} told {member.name} to sit where {member.he} liked. {member.first} chose a place near the door, the first night, and nearer the family every night after."
             }
           ]
         }
@@ -442,7 +442,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said in company that {protege.name} would go further than {self.name} had. It cost a little to say. {protege.name} heard of it within the day."
+              "text": "{self.name} said in company that {protege.name} would go further than {self.first} had. It cost a little to say. {protege.first} heard of it within the day."
             }
           ]
         },
@@ -463,7 +463,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {protege.name} that being noticed was not the same as being good, and doubled the work. {protege.name} resented it and was better for it."
+              "text": "{self.name} told {protege.name} that being noticed was not the same as being good, and doubled the work. {protege.first} resented it and was better for it."
             }
           ]
         },
@@ -507,7 +507,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had been somebody's pupil. From now on {self.name} would be judged as their own."
+              "text": "{self.name} had been somebody's pupil. From now on {self.he} would be judged on {self.his} own."
             }
           ]
         },
@@ -590,7 +590,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said it was well done and asked to be introduced. {kin.name} had half expected to be asked why they had not come to the head first."
+              "text": "{self.name} said it was well done and asked to be introduced. {kin.name} had half expected to be asked why {kin.he} had not come to the head first."
             }
           ]
         },
@@ -619,7 +619,7 @@
           "effects": [
             {
               "type": "log",
-              "text": "{self.name} said nothing about it at all. {kin.name}'s career is {kin.name}'s."
+              "text": "{self.name} said nothing about it at all. {kin.name}'s career is {kin.his} own."
             }
           ]
         }
