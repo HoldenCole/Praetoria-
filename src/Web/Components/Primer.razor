@@ -41,22 +41,33 @@
         }
         else if (_tab is "glossary" or "primer")
         {
-            var found = c.Academy.Find(_find);
-            <div class="hb-find"><input type="search" placeholder="Find a word: legitimacy, bench, purse…" @bind="_find" @bind:event="oninput" data-hb-find aria-label="Find a word" />
+            @* the glossary as a codex (docs/VISUAL_SYSTEM.md 4.7): the words as rows at the left, by kind, each with its meaning in its
+               tooltip; the one picked (the first found, until another is) is read at the right in full, with where it is seen *@
+            var found = c.Academy.Find(_find); var pick = found.FirstOrDefault(t => t.Id == _pick) ?? found.FirstOrDefault();
+            <div class="hb-find"><Icon Name="spyglass" Tone="brass" Size="16" /><input type="search" placeholder="Find a word: legitimacy, bench, purse…" @bind="_find" @bind:event="oninput" data-hb-find aria-label="Find a word" />
                 <span class="muted small">@found.Count of @c.Academy.Glossary.Count</span></div>
-            <div class="hb-scroll" data-hb-terms>
-                @if (found.Count == 0) { <div class="muted">No word in the glossary matches that. Try a shorter one.</div> }
-                @foreach (var grp in found.GroupBy(t => t.Group))
-                {
-                    <h4>@grp.Key</h4>
-                    <dl>
+            <div class="hb-codex">
+                <div class="hb-scroll hb-list" data-hb-terms role="listbox" aria-label="The words">
+                    @if (found.Count == 0) { <div class="muted">No word in the glossary matches that. Try a shorter one.</div> }
+                    @foreach (var grp in found.GroupBy(t => t.Group))
+                    {
+                        <h4>@grp.Key</h4>
                         @foreach (var t in grp)
                         {
-                            <dt data-term="@t.Id">@t.Term @if (t.Where.Length > 0 && OnGo.HasDelegate) { <button class="opt inline tiny" title="Close this and open the window where it is seen" @onclick="() => Open(t.Where)">@Place(t.Where) <Icon Name="chev" Tone="brass" Size="9" /></button> }</dt>
-                            <dd>@t.Means</dd>
+                            string tid = t.Id;
+                            <button class="hb-term @(pick?.Id == t.Id ? "on" : "")" data-term="@t.Id" role="option" aria-selected="@(pick?.Id == t.Id ? "true" : "false")" title="@($"{t.Term}\n{t.Means}")" @onclick="() => _pick = tid">@t.Term</button>
                         }
-                    </dl>
-                }
+                    }
+                </div>
+                <div class="hb-def" aria-live="polite">
+                    @if (pick != null)
+                    {
+                        <div class="ui-kick">@pick.Group</div>
+                        <h3 class="hb-def-t">@pick.Term</h3>
+                        <p class="hb-def-p">@pick.Means</p>
+                        @if (pick.Where.Length > 0 && OnGo.HasDelegate) { <button class="ui-btn sm hb-go" title="Close this and open the window where it is seen" @onclick="() => Open(pick.Where)">Seen in @Place(pick.Where)<Icon Name="chev" Tone="brass" Size="11" /></button> }
+                    }
+                </div>
             </div>
         }
         else
@@ -80,7 +91,7 @@
     [Parameter] public EventCallback<string> OnGo { get; set; }
     /// <summary>The tab to open on: the primer on a first run, the glossary when asked for by name.</summary>
     [Parameter] public string Start { get; set; } = "primer";
-    private int _i; private string _tab = "primer", _find = "";
+    private int _i; private string _tab = "primer", _find = ""; private string? _pick;
     protected override void OnInitialized() => _tab = Start is "glossary" or "lectures" ? Start : "primer";
     private async Task Open(string where) { await OnClose.InvokeAsync(); await OnGo.InvokeAsync(where); }
     private static string Place(string where) => where switch

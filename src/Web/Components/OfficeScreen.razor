@@ -66,10 +66,20 @@
     <div class="or-place">
         <span class="ui-medal sm"><Icon Name="desk" Tone="brass" Size="18" /></span>
         <div class="or-place-t">
-            <div class="ui-kick">Office · @Rooms[room]</div>
+            <div class="ui-kick or-kick">Office · @Rooms[room]
+                @* which room: a small brass roundel that opens a framed menu, so no web control sits on the painting (docs/VISUAL_SYSTEM.md 4.12) *@
+                <span class="or-room @(_rooms ? "open" : "")" @onfocusout="RoomBlur">
+                    <button class="or-roundel" data-room-pick aria-haspopup="listbox" aria-expanded="@(_rooms ? "true" : "false")" title="@($"[cog] Which room\nThe Office is {(chosen.Length == 0 ? "the room of your calling" : "a room you chose")}: {Rooms[room].ToLowerInvariant()}. Choose another, or the one of your calling.\nkey: Click to choose")" @onclick="() => _rooms = !_rooms"><Icon Name="cog" Tone="brass" Size="14" /></button>
+                    @if (_rooms)
+                    {
+                        <span class="ui-menu or-room-menu" role="listbox">
+                            @foreach (var o in RoomOptions(register)) { var k = o.Key; <button class="@(k == chosen ? "on" : "")" role="option" aria-selected="@(k == chosen ? "true" : "false")" @onclick="() => { _rooms = false; Choose(k); }">@o.Text@if (o.Note.Length > 0) { <small>@o.Note</small> }</button> }
+                        </span>
+                    }
+                </span>
+            </div>
             <div class="or-seat"><b>@(seat?.Name ?? "A borrowed room")</b><span>@where</span></div>
         </div>
-        <Select Options="RoomOptions(register)" Value="@chosen" OnChange="Choose" Tip="Which room the Office is: by your calling, or one you choose" Class="or-pick" />
     </div>
 
     @* the room's panel: one framed part on its right *@
@@ -78,18 +88,19 @@
             <div class="or-who">
                 <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Accent="@house.AccentColor" Size="58" Height="70" />
                 <div class="or-who-t">
-                    <h2>@p.Name</h2>
-                    <div class="sub" title="@($"{m.Character.RankName} of {house.Name} · {m.Character.TitleName} · age {p.Age}")">@m.Character.RankName · @m.Character.TitleName · @p.Age</div>
+                    <h2 title="@p.Name">@p.Name</h2>
+                    <div class="sub" title="@($"{m.Character.RankName} of {house.Name} · {m.Character.TitleName} · age {p.Age}")">@m.Character.RankName at @p.Age · @m.Character.TitleName</div>
                 </div>
             </div>
             @if (m.Character.Nature.Count + m.Character.Aptitude.Count > 0)
             {
+                @* the traits as icon and word (docs/VISUAL_SYSTEM.md 8.5), each its own glyph; nature on a steel-blue mark, aptitude on a green one *@
                 <div class="or-traits">
-                    @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@($"{TraitName(t)}\n{TraitDesc(t)}")"><Icon Name="heart-organ" Tone="brass" Size="14" />@TraitName(t)</span> }
-                    @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@($"{TraitName(t)}\n{TraitDesc(t)}")"><Icon Name="upgrade" Tone="good" Size="14" />@TraitName(t)</span> }
+                    @foreach (var t in m.Character.Nature) { <span class="trait nature" title="@($"[{CharacterScreen.TraitIcon(TraitName(t))}] {TraitName(t)}\n{TraitDesc(t)}")"><Icon Name="@CharacterScreen.TraitIcon(TraitName(t))" Tone="steel" Size="16" />@TraitName(t)</span> }
+                    @foreach (var t in m.Character.Aptitude) { <span class="trait apt" title="@($"[{CharacterScreen.TraitIcon(TraitName(t))}] {TraitName(t)}\n{TraitDesc(t)}")"><Icon Name="@CharacterScreen.TraitIcon(TraitName(t))" Tone="good" Size="16" />@TraitName(t)</span> }
                 </div>
             }
-            <div class="or-kv"><span><Icon Name="ambition" Tone="brass" Size="15" />Ambition</span><b>@m.Character.AmbitionName</b></div>
+            <div class="or-kv stack"><span><Icon Name="@CharacterScreen.AmbitionIcon(p.Ambition)" Tone="brass" Size="15" />Ambition</span><b>@m.Character.AmbitionName</b></div>
             @if (m.Character.Background != null) { <div class="or-kv"><span><Icon Name="scroll-quill" Tone="ivory" Size="15" />Background</span><b>@m.Character.Background</b></div> }
             <div class="or-kv"><span><Icon Name="brain" Tone="@(p.Stress >= 70 ? "ember" : "ivory")" Size="15" />Strain</span><b class="@(p.Stress >= 70 ? "ui-warn-t" : "")">@p.Stress@(m.Character.Broken ? " · broken" : "")</b></div>
             @if (top.Count > 0)
@@ -97,7 +108,7 @@
                 <div class="or-figs">@foreach (var k in top) { <span class="or-fig" title="@($"{Cap(k.Key)} {k.Value}\n{SkillWords.For(k.Key)}")"><Icon Name="@ChoiceStakes.SkillIcon(k.Key)" Tone="ivory" Size="24" /><b>@k.Value</b></span> }</div>
             }
             <Section Title="Since last year" Count="@(sinceAll.Count > 0 ? sinceAll.Count.ToString() : "")" IsEmpty="@(since.Count == 0)" EmptyLine="Nothing of note." EmptyIcon="turn">
-                <div class="or-lines">@foreach (var h in since) { <div class="line" title="@h.Text">@h.Text</div> }</div>
+                <div class="or-lines">@foreach (var h in since) { <div class="line" title="@h.Text">@Clause(h.Text)</div> }</div>
                 @if (sinceMore > 0) { <div class="or-more"><Link Label="@($"and {sinceMore} more")" Tip="The rest of the year's news, kept in the Chronicle under This year" OnClick='() => OnGo.InvokeAsync("chronicle:now")' /></div> }
             </Section>
             @if (m.GreatCrisis is { } gc)
@@ -123,6 +134,8 @@
     [Parameter] public EventCallback<BriefingCard> OnOpenReport { get; set; }
     [Parameter] public EventCallback<string> OnGo { get; set; }
     private const int MaxVisitors = 5;
+    private bool _rooms;
+    private async Task RoomBlur() { await Task.Delay(150); if (_rooms) { _rooms = false; StateHasChanged(); } }
 
     /// <summary>The four rooms, one for each register (img/rooms/<key>.webp, painted by tools/art/rooms.py).</summary>
     private static readonly Dictionary<string, string> Rooms = new() { ["study"] = "The study", ["naval"] = "The ready room", ["stewardship"] = "The counting house", ["law"] = "The jurist's study" };
@@ -182,6 +195,16 @@
     private static string F(double v) => v.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
     /// <summary>A number in [0, 1) from two integers, the same on every draw: where a mote of dust is, and how it moves.</summary>
     private static double Hash(int i, int salt) { uint h = (uint)(i * 374761393 + salt * 668265263); h = (h ^ (h >> 13)) * 1274126177; h ^= h >> 16; return (h % 10000) / 10000.0; }
+    /// <summary>A news line short enough for the panel, ended at a sentence or a clause, never in the middle of one: the first sentence,
+    /// and if that is still long, up to its last colon or semicolon. The whole line is the tooltip.</summary>
+    private static string Clause(string text)
+    {
+        const int Room = 118; if (text.Length <= Room) return text;
+        int stop = text.IndexOf(". ", StringComparison.Ordinal); string first = stop > 0 ? text[..(stop + 1)] : text;
+        if (first.Length <= Room) return first;
+        int cut = Math.Max(first.LastIndexOf(':', Room), first.LastIndexOf(';', Room));
+        return cut > 30 ? first[..cut].TrimEnd() + "." : first;
+    }
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..].Replace('_', ' ');
     private string TraitName(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Name ?? id;
     private string TraitDesc(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Description ?? "";

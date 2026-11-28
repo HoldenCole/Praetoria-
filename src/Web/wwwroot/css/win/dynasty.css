@@ -183,13 +183,61 @@ table.prospects th.sortable { cursor: pointer; text-decoration: underline dotted
 table.prospects th.sortable.here { color: var(--gold, #d8b25a); text-decoration: none; }
 .dyn-win table.prospects th.sortable { text-decoration: none; }
 
-/* the grown, one row each with a Study select and a teacher select (docs/VISUAL_SYSTEM.md 4.7, 4.12) */
-.dy-grown-row { display: block; padding: 0; border: 0; background: none; }
-.dy-grown-row .dy-study { flex-wrap: nowrap; }
-.dy-grown-row .dy-study .ui-select-btn { min-width: 7.4667rem; justify-content: space-between; }
-.dy-grown-row .dy-tutor .ui-select-btn { min-width: 6rem; }
-.dy-grown-row .dy-best { font: 600 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
-.dy-grown-row .dy-under { display: flex; align-items: center; gap: .6667rem; margin-top: -.2667rem; }
+/* ---- Upbringing (docs/VISUAL_SYSTEM.md 4.7): the young and the grown as rows on the one grid, so faces and names line up in both
+   sections. A child: the name and age, one line of their bent and what they know, two figures at the right (the lesson, what they
+   think of you), and under the name the course and the tutor as two short ladders of plates with a glyph and no label. A grown one:
+   their best skills, what they study as a short meter to what they can reach, and the two selects stacked at the right. ---- */
+.dyn-win .panel .ui-row.dy-up { --ui-row-gl: var(--yg-l); --ui-row-gr: var(--yg-r); grid-template-columns: 3.0667rem minmax(0, 1fr) auto auto; padding: .5333rem var(--yg-r) .5333rem var(--yg-l); border-top: 0; min-height: 4.4rem; }
+.dy-up .ui-row-nm { display: flex; align-items: baseline; gap: .5333rem; }
+.dy-up .dy-age { font: 500 .9333rem/1 var(--f-ui); color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+.dy-up .ui-row-nm .dy-tag { align-self: center; height: 1.3333rem; }
+.dy-up .suit-who { display: inline; font-size: inherit; gap: 0; }
+.dy-up .ui-cols { gap: 1.2rem; }
+.dy-up .ui-cell b { font: 600 1rem/1 var(--f-ui); } .dy-up .ui-cell small { margin-left: .1333rem; color: var(--ink-mute); font-weight: 500; }
+.dy-up .ui-cell[title] { cursor: help; }
+.dy-up .ui-cell b.ui-up { color: var(--good); } .dy-up .ui-cell b.ui-down { color: var(--bad); }
+.dy-up.against::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--warn); }
+/* the child's two ladders, side by side under the name: a brass glyph at the head of each in place of a label */
+.dyn-win .ui-row.dy-up.acts-under > div:nth-child(4) > span.dy-up-ctl { display: flex; flex-wrap: wrap; gap: .4rem .8rem; margin: 0; }
+.dy-up-ctl .ui-seg { align-items: stretch; }
+.dy-up-ctl .ui-seg button { height: 1.7333rem; padding: 0 .5333rem; font-size: .8667rem; }
+.dy-seg-l { display: grid; place-items: center; width: 1.7333rem; background: #090b10; box-shadow: inset 0 1px 2px #000; border-right: 1px solid #000; cursor: help; }
+.dy-seg-l .icon { width: .9333rem; height: .9333rem; }
+/* a grown relative: the study as a short meter to what they can reach, then the two selects stacked */
+.dy-studying { display: grid; grid-template-columns: auto 6.4rem auto; align-items: center; column-gap: .5333rem; cursor: help; }
+.dy-studying-t { display: flex; flex-direction: column; gap: .2667rem; min-width: 0; }
+.dy-studying em { font: 500 .8667rem/1 var(--f-ui); font-style: normal; color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dy-studying .ui-trk { position: relative; display: block; height: .4rem; }
+.dy-studying > b { font: 600 1rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); } .dy-studying > b small { font-size: .8rem; color: var(--ink-mute); font-weight: 500; }
+.dy-studying.none { grid-template-columns: auto auto; } .dy-studying.none em { color: var(--ink-mute); font-style: italic; }
+.dy-grown-row .dy-study { display: flex; flex-direction: column; align-items: stretch; gap: .2667rem; margin: 0; }
+.dy-grown-row .dy-study .ui-select-btn { height: 1.7333rem; min-width: 8.5333rem; justify-content: space-between; font-size: .8667rem; }
 .dy-grown-row .ui-menu { right: 0; left: auto; min-width: 20rem; }
+.dyn-win .dy-under { display: flex; align-items: center; gap: .6667rem; margin: 0; padding: .1333rem var(--yg-r) .5333rem calc(var(--yg-l) + 3.0667rem + .9333rem); font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); border-bottom: 1px solid rgba(255,255,255,.05); }
+.dyn-win .ui-row.dy-up:has(+ .dy-under) { border-bottom: 0; }
+@container dw (max-width: 44rem) {
+  .dy-up-ctl .dy-seg-l { display: none; }
+  .dy-up .ui-cols { gap: .8rem; }
+  .dy-studying { grid-template-columns: auto 4.8rem auto; }
+}
 .visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .dy-hrow-who em { font-style: normal; font-weight: 600; }
+
+/* ---- a match to make: "for whom" is the table's first header row, a raised strip over the table with the ladder of the house's free;
+   the rules are in the band's "i" and the column heads' tooltips (4.5, 4.6) ---- */
+.dyn-win .dy-for-row { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem .8rem; margin: .5333rem var(--yg-r) 0 var(--yg-l); padding: .4667rem .6667rem;
+  background: linear-gradient(#171c27, #121620); box-shadow: inset 0 1px 0 rgba(201,162,74,.3); }
+.dy-for-l { display: inline-flex; align-items: center; gap: .4rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); cursor: help; }
+.dy-for-l .icon { width: 1rem; height: 1rem; }
+.dyn-win .dy-for-row + .dy-table, .dyn-win .dy-for-row + .dy-strip + .dy-table { margin-top: 0; }
+.dyn-win .dy-for-row + .dy-strip { margin-top: 0; margin-bottom: 0; }
+.dyn-win .dy-match + .suit-head.dy-note { padding-top: .8rem; }
+.dyn-win thead[data-prospect-legend] { cursor: help; }
+/* a ladder's words shrink where the window is narrow, so the two ladders keep to one line under the name */
+.dy-up-ctl .sm { display: none; }
+@container dw (max-width: 44rem) {
+  .dy-up-ctl .lg { display: none; } .dy-up-ctl .sm { display: inline; }
+  .dy-up-ctl .ui-seg button { padding: 0 .4333rem; }
+  .dyn-win .ui-row.dy-up.acts-under > div:nth-child(4) > span.dy-up-ctl { gap: .4rem .6rem; }
+}
+@container dw (max-width: 44rem) { .dy-studying.work .lg { display: none; } }

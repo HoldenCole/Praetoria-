@@ -53,17 +53,24 @@
             </span>
         </Facts>
     </WindowHeader>
-    <Tabs Items="tabs" Active="@_tab" OnPick="t => _tab = t" Class="ws-tabs" />
+    @* the tab row carries one plate at its right, "Start from", that opens a framed menu: the ready-made characters, the dice, and a
+       character saved to a file or loaded from one (the menu is always in the page and shown when opened, so a script can press it) *@
+    <div class="ws-tabrow">
+        <Tabs Items="tabs" Active="@_tab" OnPick="t => _tab = t" Class="ws-tabs" />
+        <div class="ws-start ws-row @(_start ? "open" : "")" data-start-from @onfocusout="StartBlur">
+            <button class="ui-btn sm ws-start-btn" aria-haspopup="menu" aria-expanded="@(_start ? "true" : "false")" title="Start from a ready-made character, throw the dice, or save or load a character file" @onclick="() => _start = !_start"><Icon Name="rolling-dices" Tone="ivory" Size="16" />Start from<Icon Name="chev" Tone="brass" Size="11" /></button>
+            <div class="ui-menu ws-start-menu" role="menu">
+                <span class="ws-start-l">A ready-made character</span>
+                @foreach (var (name, blurb, _) in CharacterWorkshop.Presets(content)) { var n = name; <button class="chip" role="menuitem" title="@blurb" @onclick="async () => { _start = false; await UsePreset(n); }"><Icon Name="roman-toga" Tone="ivory" Size="15" />@name</button> }
+                <i class="ws-start-div"></i>
+                <button class="chip" role="menuitem" title="a character by the dice, within this mode's rules" @onclick="async () => { _start = false; await Randomise(); }"><Icon Name="rolling-dices" Tone="ivory" Size="15" />Throw the dice</button>
+                <button class="chip" role="menuitem" title="save this character as a small file" @onclick="async () => { _start = false; await SaveFile(); }"><Icon Name="save" Tone="ivory" Size="15" />Save to a file</button>
+                <label class="chip file" role="menuitem" title="load a character file saved earlier"><Icon Name="export" Tone="ivory" Size="15" />Load a file <InputFile OnChange="LoadFile" accept=".json" /></label>
+            </div>
+        </div>
+    </div>
 
     <div class="ui-wbody fades fr-body ws-body">
-        <div class="ws-row fr-tools">
-            <span class="fr-tools-l">Start from</span>
-            @foreach (var (name, blurb, _) in CharacterWorkshop.Presets(content)) { var n = name; <button class="chip" title="@blurb" @onclick="() => UsePreset(n)">@name</button> }
-            <i class="fr-tools-div"></i>
-            <button class="chip" title="a character by the dice, within this mode's rules" @onclick="Randomise"><Icon Name="rolling-dices" Tone="ivory" Size="14" />Throw the dice</button>
-            <button class="chip" title="save this character as a small file" @onclick="SaveFile"><Icon Name="save" Tone="ivory" Size="14" />Save to a file</button>
-            <label class="chip file" title="load a character file saved earlier"><Icon Name="export" Tone="ivory" Size="14" />Load a file <InputFile OnChange="LoadFile" accept=".json" /></label>
-        </div>
         @if (_fileError != null) { <p class="error fr-err">@_fileError</p> }
 
     @if (_tab == "person")
@@ -90,7 +97,6 @@
             </div>
         </Section>
         <Section Title="Where they come from" Count="@content.Backgrounds.Defs.Count.ToString()" Info="A background: it moves the house's standing and purse, and gives them a little of what that life teaches.">
-            <p class="fr-note">A background: it moves the house's standing and purse, and gives them a little of what that life teaches.</p>
             <div class="chips fr-picks" data-backgrounds="@content.Backgrounds.Defs.Count">
                 <button class="chip @(c.Background.Length == 0 ? "on" : "")" title="No background: only what you set on these pages." @onclick="() => { c.Background = string.Empty; Changed(); }"><Icon Name="close" Tone="@(c.Background.Length == 0 ? "brass" : "ivory")" Size="14" />None</button>
                 @foreach (var b in content.Backgrounds.Defs) { var bid = b.Id; bool on = c.Background == bid; <button class="chip @(on ? "on" : "")" data-background="@bid" title="@b.Description" @onclick="() => { c.Background = bid; Changed(); }"><Icon Name="@BackgroundIcon(bid)" Tone="@(on ? "brass" : "ivory")" Size="18" />@b.Name</button> }
@@ -100,17 +106,15 @@
                 <p class="fr-says hint" data-background-says><Icon Name="@BackgroundIcon(bgd.Id)" Tone="brass" Size="18" /><span>@bgd.Description <b>@BackgroundGives(bgd)</b> @(free ? "" : BackgroundPrice(bgd))</span></p>
             }
         </Section>
-        <Section Title="Nature" Count="@($"{c.Nature.Count} of {lim.MaxNature}")" Info="How they are, and what costs them sleep.">
+        <Section Title="Nature" Count="@($"{c.Nature.Count} of {lim.MaxNature}")" Info="@($"Up to {lim.MaxNature}: how they are, and what costs them sleep.")">
             <Right>@if (c.Nature.Count >= lim.MaxNature) { <span>you have @lim.MaxNature: un-pick one to change</span> }</Right>
             <ChildContent>
-                <p class="fr-note">Up to @lim.MaxNature: how they are, and what costs them sleep.</p>
                 <div class="chips fr-picks">@foreach (var t in content.Traits.Nature) { var tid = t.Id; bool on = c.Nature.Contains(tid); bool nFull = !on && c.Nature.Count >= lim.MaxNature; <button class="chip tn @(on ? "on" : "") @(nFull ? "full" : "")" disabled="@nFull" title="@(nFull ? $"Up to {lim.MaxNature}: un-pick one first. {t.Description}" : t.Description)" @onclick="() => Toggle(c.Nature, tid, lim.MaxNature)"><Icon Name="@TraitIcon(tid)" Tone="@(on ? "brass" : "ivory")" Size="18" />@t.Name</button> }</div>
             </ChildContent>
         </Section>
-        <Section Title="Aptitude" Count="@($"{c.Aptitude.Count} of {lim.MaxAptitude}")" Info="What they are good at. Four points each.">
+        <Section Title="Aptitude" Count="@($"{c.Aptitude.Count} of {lim.MaxAptitude}")" Info="@($"What they are good at. Up to {lim.MaxAptitude}, four points each.")">
             <Right>@if (c.Aptitude.Count >= lim.MaxAptitude) { <span>you have @lim.MaxAptitude: un-pick one to change</span> }</Right>
             <ChildContent>
-                <p class="fr-note">Up to @lim.MaxAptitude, four points each.</p>
                 <div class="chips fr-picks">@foreach (var t in content.Traits.Aptitude) { var tid = t.Id; bool on = c.Aptitude.Contains(tid); bool aFull = !on && c.Aptitude.Count >= lim.MaxAptitude; <button class="chip ta @(on ? "on" : "") @(aFull ? "full" : "")" disabled="@aFull" title="@(aFull ? $"Up to {lim.MaxAptitude}: un-pick one first. {t.Description}" : t.Description)" @onclick="() => Toggle(c.Aptitude, tid, lim.MaxAptitude)"><Icon Name="@TraitIcon(tid)" Tone="@(on ? "brass" : "ivory")" Size="18" />@t.Name</button> }</div>
             </ChildContent>
         </Section>
@@ -242,7 +246,7 @@
                and why a standard start may not take it (docs/CHARACTER.md, "The creator's map") */
             var sites = CharacterWorkshop.Sites(c, content, blank);
             double minX = sites.Min(s => s.X), maxX = sites.Max(s => s.X), minY = sites.Min(s => s.Y), maxY = sites.Max(s => s.Y);
-            double spanX = Math.Max(1, maxX - minX), spanY = Math.Max(1, maxY - minY); const double MapW = 640, MapH = 380, Pad = 22;
+            double spanX = Math.Max(1, maxX - minX), spanY = Math.Max(1, maxY - minY);
             Func<double, string> px = x => (Pad + (x - minX) / spanX * (MapW - 2 * Pad)).ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
             Func<double, string> py = y => (Pad + (y - minY) / spanY * (MapH - 2 * Pad)).ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
             var byId = sites.ToDictionary(s => s.SystemId); bool full = c.Worlds.Count >= lim.MaxWorlds;
@@ -254,39 +258,71 @@
             <ChildContent>
         <p class="ui-lede ws-map-lede">Point at a world for what it is and whose; click one to take it or give it up. A world in a house's colour is held; a plain star is unclaimed.</p>
         <div class="ws-map-wrap">
-            @* the picker in the map's own look (docs/VISUAL_SYSTEM.md 7): a soft tint of each holder's colour round its worlds, your own in gold,
-               lanes as hairlines, stars as a core in a halo, names with a dark halo *@
-            <svg class="ws-map" viewBox="0 0 640 380" role="img" aria-label="The map of the Reach: choose the worlds the house starts with" data-start-map="@sites.Count">
+            @* the picker in the map's own parts (docs/VISUAL_SYSTEM.md 7.2, 7.3): every world's cell (the nearest-system split), each held
+               cell in its holder's toned colour with the holder's line just inside its border, your own in gold; the Reach as one pale
+               wash with its ivory edge, the nations beyond hatched; lanes as hairlines; stars lit by class; names in Plex 600 on a soft
+               backing with the holder's underline (laid over the map in HTML, so they keep their size at every width) *@
+            @{ var vor = Cells(sites, MapW, MapH, Pad, minX, minY, spanX, spanY); string you = "@you";
+               string Realm(StartSite x) => c.Worlds.Contains(x.SystemId) ? you : x.HolderId;
+               string Col(string realm) => realm == you ? "#e9b949" : tint.TryGetValue(realm, out var tc0) ? tc0 : "#8c9bb8";
+               var realms = sites.Select(Realm).Where(r => r.Length > 0).Distinct().OrderBy(r => r == you ? 1 : 0).ThenBy(r => r, StringComparer.Ordinal).ToList(); }
+            <div class="ws-mapbox">
+            <svg class="ws-map" viewBox="0 0 640 380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The map of the Reach: choose the worlds the house starts with" data-start-map="@sites.Count">
                 <defs>
-                    <radialGradient id="ws-halo"><stop offset="0" stop-color="#fff6dc" stop-opacity=".9" /><stop offset=".35" stop-color="#ffe1a0" stop-opacity=".35" /><stop offset="1" stop-color="#ffe1a0" stop-opacity="0" /></radialGradient>
-                    <filter id="ws-soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9" /></filter>
+                    @for (int k = 0; k < StarTones.Length; k++) { <radialGradient id="@($"ws-star{k}")"><stop offset="0" stop-color="@StarTones[k]" stop-opacity=".95" /><stop offset=".28" stop-color="@StarTones[k]" stop-opacity=".42" /><stop offset="1" stop-color="@StarTones[k]" stop-opacity="0" /></radialGradient> }
+                    <filter id="ws-field" x="0" y="0" width="640" height="380" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="13" result="b" />
+                        <feComponentTransfer in="b"><feFuncA type="linear" slope="24" intercept="-7" /></feComponentTransfer>
+                    </filter>
+                    <filter id="ws-edge" x="0" y="0" width="640" height="380" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="13" result="b" />
+                        <feComponentTransfer in="b" result="shape"><feFuncA type="linear" slope="24" intercept="-7" /></feComponentTransfer>
+                        <feMorphology in="shape" operator="erode" radius=".9" result="inner" />
+                        <feComposite in="shape" in2="inner" operator="out" result="ring" />
+                        <feGaussianBlur in="ring" stdDeviation="2.6" result="soft" />
+                        <feComposite in="soft" in2="shape" operator="in" result="glow" />
+                        <feFlood flood-color="#e3d3a4" flood-opacity=".16" /><feComposite in2="glow" operator="in" result="glowc" />
+                        <feFlood flood-color="#e3d3a4" flood-opacity=".85" /><feComposite in2="ring" operator="in" result="edge" />
+                        <feMerge><feMergeNode in="glowc" /><feMergeNode in="edge" /></feMerge>
+                    </filter>
+                    <mask id="ws-reach-m" maskUnits="userSpaceOnUse" x="0" y="0" width="640" height="380"><g filter="url(#ws-field)" fill="#fff">@foreach (var s in sites.Where(x => x.Ring != Praetoria.Core.Galaxy.Ring.Beyond)) { <circle cx="@px(s.X)" cy="@py(s.Y)" r="37" /> }</g></mask>
+                    <mask id="ws-beyond-m" maskUnits="userSpaceOnUse" x="0" y="0" width="640" height="380"><g filter="url(#ws-field)" fill="#fff">@foreach (var s in sites.Where(x => x.Ring == Praetoria.Core.Galaxy.Ring.Beyond)) { <circle cx="@px(s.X)" cy="@py(s.Y)" r="37" /> }</g></mask>
+                    <pattern id="ws-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#9e7e9e" fill-opacity=".07" /><line x1="0" y1="0" x2="0" y2="7" stroke="#c9b8d8" stroke-opacity=".16" stroke-width="1" /></pattern>
+                    @for (int r = 0; r < realms.Count; r++) { var rr = realms[r]; <clipPath id="@($"ws-cl{r}")"><path d="@string.Concat(vor.Where(v => Realm(sites[v.Site]) == rr).Select(v => Poly(v.Pts)))" /></clipPath> }
                 </defs>
-                <g filter="url(#ws-soft)" class="ws-terr">
-                @foreach (var s in sites.Where(s => s.HolderId.Length > 0 || c.Worlds.Contains(s.SystemId)))
-                {
-                    bool mine = c.Worlds.Contains(s.SystemId); string tone = mine ? "#E9B949" : tint.TryGetValue(s.HolderId, out var tc) ? tc : "#8a93a6";
-                    <circle cx="@px(s.X)" cy="@py(s.Y)" r="@(mine ? 30 : 24)" fill="@tone" fill-opacity="@(mine ? ".42" : ".26")" />
-                }
+                <g class="ws-terr" mask="url(#ws-reach-m)">
+                    <rect width="640" height="380" fill="#e3d3a4" fill-opacity=".045" />
+                    @foreach (var v in vor.Where(v => Realm(sites[v.Site]).Length > 0 && sites[v.Site].Ring != Praetoria.Core.Galaxy.Ring.Beyond)) { var rl = Realm(sites[v.Site]); <path class="ws-cell @(rl == you ? "mine" : "")" d="@Poly(v.Pts)" fill="@Tone(Col(rl))" /> }
+                    @for (int r = 0; r < realms.Count; r++) { var rr = realms[r]; string edges = Borders(vor, sites, Realm, rr); if (edges.Length > 0) { <path class="ws-seam @(rr == you ? "mine" : "")" d="@edges" stroke="@(rr == you ? "#f0c661" : Col(rr))" clip-path="@($"url(#ws-cl{r})")" /> } }
+                    @foreach (var v in vor) { <path class="ws-cellline" d="@Poly(v.Pts)" /> }
                 </g>
+                <g class="ws-beyond" mask="url(#ws-beyond-m)"><rect width="640" height="380" fill="url(#ws-hatch)" /></g>
+                <g class="ws-reach-edge" filter="url(#ws-edge)">@foreach (var s in sites.Where(x => x.Ring != Praetoria.Core.Galaxy.Ring.Beyond)) { <circle cx="@px(s.X)" cy="@py(s.Y)" r="37" /> }</g>
                 @foreach (var l in blank.Galaxy.Lanes)
                 {
-                    if (byId.TryGetValue(l.A, out var la) && byId.TryGetValue(l.B, out var lb)) { <line class="ws-lane" x1="@px(la.X)" y1="@py(la.Y)" x2="@px(lb.X)" y2="@py(lb.Y)" /> }
+                    if (byId.TryGetValue(l.A, out var la) && byId.TryGetValue(l.B, out var lb)) { <line class="ws-lane @(c.Worlds.Contains(la.SystemId) || c.Worlds.Contains(lb.SystemId) ? "mine" : "")" x1="@px(la.X)" y1="@py(la.Y)" x2="@px(lb.X)" y2="@py(lb.Y)" /> }
                 }
                 @foreach (var s in sites)
                 {
-                    var sid = s.SystemId; bool mine = c.Worlds.Contains(sid); bool can = mine || (s.Refusal == null && !full);
-                    string fill = mine ? (c.Accent.Length > 0 ? c.Accent : "#E6C77A") : s.HolderId.Length > 0 ? (tint.TryGetValue(s.HolderId, out var hc) ? hc : "#8a93a6") : "none";
-                    <g class="ws-site @(mine ? "mine" : "") @(can ? "" : "no") @(s.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "beyond" : "")" data-site="@sid" data-site-can="@(can ? 1 : 0)"
+                    var sid = s.SystemId; bool mine = c.Worlds.Contains(sid); bool can = mine || (s.Refusal == null && !full); int cls = StarClass(sid); bool cap = blank.Galaxy.Capital == sid;
+                    <g class="ws-site @(mine ? "mine" : "") @(can ? "" : "no") @(s.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "beyond" : "") @(_site == sid ? "here" : "")" data-site="@sid" data-site-can="@(can ? 1 : 0)"
                        @onclick="() => { _site = sid; if (can) ToggleWorld(sid, lim.MaxWorlds); Changed(); }" @onmouseover="() => { if (_site != sid) { _site = sid; } }">
                         <circle class="hit" cx="@px(s.X)" cy="@py(s.Y)" r="12" />
-                        @if (mine) { <circle class="ring" cx="@px(s.X)" cy="@py(s.Y)" r="9.5" /> }
-                        <circle class="halo" cx="@px(s.X)" cy="@py(s.Y)" r="@(blank.Galaxy.Capital == sid ? "15" : "11")" fill="url(#ws-halo)" />
-                        <circle class="dot" cx="@px(s.X)" cy="@py(s.Y)" r="@(blank.Galaxy.Capital == sid ? "4.5" : "3.2")" fill="@(mine ? "#fff0bc" : "#f4f0ff")" stroke="@(fill == "none" ? "#05070c" : fill)" stroke-width="1.6" />
-                        @if (mine || blank.Galaxy.Capital == sid || _site == sid) { @((MarkupString)$"<text x=\"{px(s.X)}\" y=\"{py(s.Y - spanY * 0.045)}\" text-anchor=\"middle\">{System.Net.WebUtility.HtmlEncode(s.Name)}</text>") }
+                        <circle class="halo" cx="@px(s.X)" cy="@py(s.Y)" r="@(cap ? "15" : "12")" fill="@($"url(#ws-star{cls})")" />
+                        @if (mine) { <circle class="ring" cx="@px(s.X)" cy="@py(s.Y)" r="6.2" /> }
+                        <circle class="dot" cx="@px(s.X)" cy="@py(s.Y)" r="@(cap ? "3.6" : "2.8")" fill="@StarCore[cls]" />
                         <title>@SiteLine(s)</title>
                     </g>
                 }
             </svg>
+            <div class="ws-labels" aria-hidden="true">
+                @foreach (var s in sites.Where(x => c.Worlds.Contains(x.SystemId) || blank.Galaxy.Capital == x.SystemId || _site == x.SystemId))
+                {
+                    var rl = Realm(s);
+                    <span class="ws-lbl @(rl == you ? "mine" : "") @(_site == s.SystemId ? "here" : "")" style="left:@Pct(PX(s.X, minX, spanX) / MapW * 100);top:@Pct(PY(s.Y, minY, spanY) / MapH * 100);--hc:@(rl.Length == 0 ? "transparent" : rl == you ? "#f0c661" : Col(rl))">@s.Name</span>
+                }
+            </div>
+            </div>
             <div class="ws-site-card" data-site-card="@(shown?.SystemId ?? "")">
                 @if (shown is { } sh)
                 {
@@ -382,7 +418,6 @@
         <Section Title="Father and mother" Info="@($"Living and of the house, or names in the chronicle. {CharacterWorkshop.ParentCost} points each.")">
             <Right><span>@CharacterWorkshop.ParentCost points each</span></Right>
             <ChildContent>
-        <p class="fr-note">Living and of the house, or names in the chronicle.</p>
         <div data-parents>
         @foreach (var (who, label) in new[] { ("father", "Father"), ("mother", "Mother") })
         {
@@ -438,7 +473,8 @@
     [Parameter] public RenderFragment? Rules { get; set; }
     /// <summary>The creator's foot: the gold plate that begins the saga, and any error; beside what still stands in the way.</summary>
     [Parameter] public RenderFragment? Foot { get; set; }
-    private string _tab = "person"; private string? _fileError; private int _dice = 1;
+    private string _tab = "person"; private string? _fileError; private int _dice = 1; private bool _start;
+    private async Task StartBlur() { await Task.Delay(200); if (_start) { _start = false; StateHasChanged(); } }
     // the same lists js/portrait.js draws from, for the swatches
     private static readonly string[] Skins = { "#f1d5bf", "#e6c2a3", "#d4a883", "#c08c67", "#a0694a", "#7a4a32", "#5a3524" };
     private static readonly string[] Hairs = { "#1a1512", "#2e2118", "#4a2f1c", "#6b4a2a", "#8a6a3a", "#b08a4a", "#d2b06a", "#3a3a3f", "#7a2a1e" };
@@ -483,6 +519,70 @@
 
     /// <summary>The world the pointer is on in the creator's map, or the last one clicked.</summary>
     private string? _site;
+
+    /* ---- the creator's map: the same parts as the map (docs/VISUAL_SYSTEM.md 7.2, 7.3), drawn in an SVG of 640 by 380 ---- */
+    private const double MapW = 640, MapH = 380, Pad = 22;
+    private static double PX(double x, double minX, double spanX) => Pad + (x - minX) / spanX * (MapW - 2 * Pad);
+    private static double PY(double y, double minY, double spanY) => Pad + (y - minY) / spanY * (MapH - 2 * Pad);
+    private static string Pct(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%";
+    private static string N(double v) => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+    /// <summary>The star's class, as js/space.js reckons it (the same hash), so a star wears the same light here as on the map.</summary>
+    private static int StarClass(string id) { uint h = 2166136261; foreach (char ch in id) { h ^= ch; h *= 16777619; } return new[] { 0, 1, 1, 2, 2, 2, 3, 3, 4 }[h % 9]; }
+    private static readonly string[] StarTones = { "#a9c4ff", "#f4f0ff", "#ffe1a0", "#ffb978", "#ff9478" };
+    private static readonly string[] StarCore = { "#e4edff", "#ffffff", "#fff4dc", "#ffe2c4", "#ffd4c8" };
+    /// <summary>A colour toned for anything larger than a mark (docs/VISUAL_SYSTEM.md 2.2): saturation times 0.8, value times 0.88.</summary>
+    private static string Tone(string hex)
+    {
+        var h = hex.TrimStart('#'); if (h.Length != 6) return hex;
+        double r = Convert.ToInt32(h[..2], 16) / 255.0, g = Convert.ToInt32(h[2..4], 16) / 255.0, b = Convert.ToInt32(h[4..], 16) / 255.0;
+        double mx = Math.Max(r, Math.Max(g, b)), mn = Math.Min(r, Math.Min(g, b)), d = mx - mn, hue = 0;
+        if (d > 0) hue = mx == r ? ((g - b) / d % 6 + 6) % 6 : mx == g ? (b - r) / d + 2 : (r - g) / d + 4;
+        double sat = (mx > 0 ? d / mx : 0) * .8, val = mx * .88, c = val * sat, x = c * (1 - Math.Abs(hue % 2 - 1)), m = val - c;
+        var (rr, gg, bb) = (int)hue switch { 0 => (c, x, 0.0), 1 => (x, c, 0.0), 2 => (0.0, c, x), 3 => (0.0, x, c), 4 => (x, 0.0, c), _ => (c, 0.0, x) };
+        return $"#{(int)Math.Round((rr + m) * 255):x2}{(int)Math.Round((gg + m) * 255):x2}{(int)Math.Round((bb + m) * 255):x2}";
+    }
+    /// <summary>A world's cell: every point of the frame nearer to it than to any other world. Each corner carries the world across the
+    /// edge that runs from it to the next corner (-1 for the frame), so a realm's border can be drawn without the lines inside it.</summary>
+    private sealed record Cell(int Site, List<(double x, double y, int nb)> Pts);
+    private static (string key, List<Cell> cells)? _cells;
+    private static List<Cell> Cells(IReadOnlyList<StartSite> sites, double w, double h, double pad, double minX, double minY, double spanX, double spanY)
+    {
+        string key = sites.Count + ":" + string.Concat(sites.Take(4).Select(x => x.SystemId)) + ":" + N(minX) + ":" + N(spanX) + ":" + N(minY) + ":" + N(spanY);
+        if (_cells is { } cached && cached.key == key) return cached.cells;
+        var pts = sites.Select(x => (x: PX(x.X, minX, spanX), y: PY(x.Y, minY, spanY))).ToList(); var cells = new List<Cell>();
+        for (int i = 0; i < pts.Count; i++)
+        {
+            var poly = new List<(double x, double y, int nb)> { (0, 0, -1), (w, 0, -1), (w, h, -1), (0, h, -1) };
+            for (int j = 0; j < pts.Count && poly.Count > 2; j++) if (j != i) poly = Clip(poly, pts[i], pts[j], j);
+            cells.Add(new Cell(i, poly));
+        }
+        _cells = (key, cells); return cells;
+    }
+    /// <summary>The part of a convex polygon nearer to a than to b (one step of the cut that makes a cell).</summary>
+    private static List<(double x, double y, int nb)> Clip(List<(double x, double y, int nb)> poly, (double x, double y) a, (double x, double y) b, int nb)
+    {
+        double mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y; double F((double x, double y, int nb) p) => (p.x - mx) * dx + (p.y - my) * dy;
+        var outp = new List<(double x, double y, int nb)>(poly.Count + 1);
+        for (int k = 0; k < poly.Count; k++)
+        {
+            var p = poly[k]; var q = poly[(k + 1) % poly.Count]; double fp = F(p), fq = F(q);
+            if (fp <= 0) { outp.Add(p); if (fq > 0) { double t = fp / (fp - fq); outp.Add((p.x + t * (q.x - p.x), p.y + t * (q.y - p.y), nb)); } }
+            else if (fq <= 0) { double t = fp / (fp - fq); outp.Add((p.x + t * (q.x - p.x), p.y + t * (q.y - p.y), p.nb)); }
+        }
+        return outp;
+    }
+    private static string Poly(List<(double x, double y, int nb)> pts) => pts.Count < 3 ? "" : "M" + string.Join("L", pts.Select(p => N(p.x) + " " + N(p.y))) + "Z";
+    /// <summary>The edges of a realm's cells that face another realm (or no one): its border, without the lines between its own worlds.</summary>
+    private static string Borders(List<Cell> cells, IReadOnlyList<StartSite> sites, Func<StartSite, string> realm, string who)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (var cell in cells)
+        {
+            if (realm(sites[cell.Site]) != who) continue; var p = cell.Pts;
+            for (int k = 0; k < p.Count; k++) { var e = p[k]; if (e.nb < 0 || realm(sites[e.nb]) == who) continue; var f = p[(k + 1) % p.Count]; sb.Append('M').Append(N(e.x)).Append(' ').Append(N(e.y)).Append('L').Append(N(f.x)).Append(' ').Append(N(f.y)); }
+        }
+        return sb.ToString();
+    }
     /// <summary>One line on a world, for a tooltip: what the card beside the map says at length.</summary>
     private static string SiteLine(StartSite s) =>
         s.Name + ": " + s.Kind + " · " + s.Region + " · " + (s.HolderName.Length > 0 ? "held by " + s.HolderName : "unclaimed")

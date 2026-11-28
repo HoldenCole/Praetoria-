@@ -57,6 +57,8 @@
             @if (_tab == "term")
             {
                 <p class="ui-lede">@if (open > 0) { <text><b>@Counted.Matters(open)</b> @(open == 1 ? "waits" : "wait") for you at the door. </text> } else { <text>Nothing waits at the door. </text> }You are reading <b>@(reading?.Name ?? "nothing")</b> this term@(a.FinalTerm ? ", the last before the board commissions you." : $", with {Counted.Terms(termsLeft)} after it.")</p>
+                <div class="ac-cols">
+                <div class="ac-col">
                 <Section Title="This term" Count="@m.Briefing.Count.ToString()" Info="Answer what comes, choose what to read, then end the term. A report left unanswered at the term's end is set aside."
                          IsEmpty="@(m.Briefing.Count == 0)" EmptyLine="A quiet term. Nothing comes to your door." EmptyIcon="wax-seal">
                     <Right><span>answer what comes, choose what to read, then end the term</span></Right>
@@ -75,27 +77,6 @@
                     </ChildContent>
                 </Section>
 
-                <Section Title="The timetable" Count="@a.Subjects.Count.ToString()" Info="One subject a term: a point of the skill, and marks toward the order of merit. Click a subject to read it this term.">
-                    <Right><span>one subject a term: a point of the skill, and marks</span></Right>
-                    <ChildContent>
-                    @foreach (var grp in a.Subjects.GroupBy(s => s.Track))
-                    {
-                        <div class="ac-track"><Icon Name="@Workshop.TrackIcon(grp.Key)" Tone="brass" Size="16" /><span>leads to @grp.First().TrackName</span><i></i></div>
-                        @foreach (var s in grp)
-                        {
-                            <button class="ac-subject @(s.Reading ? "here" : "")" title="@s.Description" @onclick="() => G.Execute(new ChooseStudyCommand(pid, s.Id, c.Academy))">
-                                <Icon Name="@Workshop.SkillIcon(s.Skill)" Tone="@(s.Reading ? "brass" : "ivory")" Size="22" />
-                                <span class="nm"><b>@s.Name</b><span class="k">@s.Skill @s.Level</span></span>
-                                <span class="ac-marks">@(s.Marks > 0 ? $"{s.Marks} marks" : "unread")</span>
-                                <span class="ac-next ui-up">+@s.NextMarks this term</span>
-                                @if (s.Reading) { <span class="ac-tag">reading</span> } else { <span class="ac-tag off"></span> }
-                            </button>
-                        }
-                    }
-                    @if (reading != null) { <p class="ac-note">@reading.Description</p> }
-                    </ChildContent>
-                </Section>
-
                 @if (a.FinalTerm)
                 {
                     <Section Title="The commissioning board" Count="@a.Services.Count.ToString()" Info="Ask for a service, or let the board place you where you read most.">
@@ -107,13 +88,39 @@
                             <button class="ac-service @(on ? "here" : "")" title="@($"Ask the board for {s.Name}")" @onclick="() => G.Execute(new ChooseServiceCommand(pid, s.Track))">
                                 <Icon Name="@Workshop.TrackIcon(s.Track)" Tone="@(on ? "brass" : "ivory")" Size="24" />
                                 <span class="nm"><b>@Cap(s.Name)</b><span class="k">you pass out as @s.FirstRank</span></span>
-                                <span class="ac-marks">@s.Marks marks read</span>
+                                <span class="ui-cell ac-marks" title="Marks read toward this service"><Icon Name="open-book" Tone="ivory" Size="16" />@s.Marks</span>
                                 @if (s.Recommended) { <span class="ac-tag">the board's choice</span> } else { <span class="ac-tag off"></span> }
                             </button>
                         }
                         </ChildContent>
                     </Section>
                 }
+                </div>
+                <div class="ac-col">
+                <Section Title="The timetable" Count="@a.Subjects.Count.ToString()" Info="One subject a term: a point of the skill, and marks toward the order of merit. Click a subject to read it this term. The figures at the right of each are the marks read in it so far, and the marks it would give this term.">
+                    <Right><span>one subject a term</span></Right>
+                    <ChildContent>
+                    @* a subject a row (docs/VISUAL_SYSTEM.md 4.7): its glyph, its name and skill, and at the right its figures as icon-and-number
+                       cells (the marks read so far, and what this term would add in green); the one read this term has the brass bar *@
+                    @foreach (var grp in a.Subjects.GroupBy(s => s.Track))
+                    {
+                        <div class="ac-track"><Icon Name="@Workshop.TrackIcon(grp.Key)" Tone="brass" Size="16" /><span>leads to @grp.First().TrackName</span><i></i></div>
+                        @foreach (var s in grp)
+                        {
+                            <button class="ac-subject @(s.Reading ? "here" : "")" title="@($"[{Workshop.SkillIcon(s.Skill)}] {s.Name}{(s.Reading ? ": reading this term" : "")}\n{s.Description}\n{(s.Marks > 0 ? $"{s.Marks} marks read in it so far" : "Unread: no marks in it yet")}; +{s.NextMarks} this term{(s.Reading ? "" : " if you read it")}.\nkey: Click to read it this term")" @onclick="() => G.Execute(new ChooseStudyCommand(pid, s.Id, c.Academy))">
+                                <Icon Name="@Workshop.SkillIcon(s.Skill)" Tone="@(s.Reading ? "brass" : "ivory")" Size="22" />
+                                <span class="nm"><b>@s.Name</b><span class="k">@Cap(s.Skill) @s.Level@if (s.Reading) { <em> · reading this term</em> }</span></span>
+                                <span class="ui-cell ac-marks @(s.Marks > 0 ? "" : "none")"><Icon Name="open-book" Tone="@(s.Marks > 0 ? "ivory" : "steel")" Size="16" />@(s.Marks > 0 ? s.Marks.ToString() : "unread")</span>
+                                <span class="ui-cell ac-next"><b class="ui-up">+@s.NextMarks</b></span>
+                            </button>
+                        }
+                    }
+                    @if (reading != null) { <p class="ac-note">@reading.Description</p> }
+                    </ChildContent>
+                </Section>
+                </div>
+                </div>
+
             }
             else if (_tab == "lectures")
             {
@@ -152,10 +159,12 @@
                     {
                         @if (f.Text.Count(ch => ch == ';') >= 3)
                         {
-                            /* a list run on with semicolons (the law of the Reach) is set out as rows: each law and its setting */
+                            /* a list run on with semicolons (the law of the Reach) is set out as rows: each law its own glyph (the Laws window's),
+                               its name, and its setting as a chip beside the name */
                             <div class="ac-fact ac-row lawlist"><span>@f.Heading</span></div>
                             <div class="ac-laws">@foreach (var part in f.Text.TrimEnd('.').Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-                            { var kv = part.Split(':', 2, StringSplitOptions.TrimEntries); <div class="ac-law"><Icon Name="scales" Tone="brass" Size="14" /><span>@(kv.Length == 2 ? Cap(kv[0]) : Cap(part))</span>@if (kv.Length == 2) { <b>@kv[1]</b> } else { <b></b> }</div> }</div>
+                            { var kv = part.Split(':', 2, StringSplitOptions.TrimEntries); var ld = c.Policies.Laws.FirstOrDefault(l => string.Equals(l.Name, kv[0], StringComparison.OrdinalIgnoreCase)); string lname = kv.Length == 2 ? Cap(kv[0]) : Cap(part);
+                              <div class="ac-law" title="@($"[{(ld != null ? LawsScreen.LawIcon(ld.Id, ld.Category) : "scales")}] {lname}{(kv.Length == 2 ? ": " + kv[1] : "")}" + (ld?.Description is { Length: > 0 } ldd ? "\n" + ldd : ""))"><Icon Name="@(ld != null ? LawsScreen.LawIcon(ld.Id, ld.Category) : "scales")" Tone="brass" Size="18" /><span>@lname</span>@if (kv.Length == 2) { <b class="ac-chip">@kv[1]</b> }</div> }</div>
                         }
                         else { <div class="ac-fact ac-row"><span>@f.Heading</span><p>@f.Text</p></div> }
                     }
