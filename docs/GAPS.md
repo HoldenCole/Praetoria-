@@ -13,6 +13,12 @@ Last updated 2026-11-17 (known stories played against the game, R1 to R20 mapped
 
 2026-11-26: local law, edicts and ten more Acts of the Senate built, reviewed and measured (docs/LAWS_REVIEW.md, section 6); what they leave thin is Y1 to Y10 under "Laws". Then, on the owner's answer, a house that breaks away is bound only by its own laws (docs/BREAKAWAY.md; Y1 closed, Y11 mapped). The same day Y1 closed on the owner's rule (a house that has broken away is bound only by its own laws, docs/BREAKAWAY.md), and Y11 mapped. Then the first three ideas from docs/IDEAS_FROM_MODS.md built, reviewed and measured: a command by service (Q15a and R1a closed, docs/MILITARY.md), friends and enemies handed down at a succession (docs/LIFE.md; V10 in part), and striking a relative from the line, casting them out, and the suit of the undutiful will (R18a closed, docs/HOUSEHOLD.md). Then three ideas from docs/IDEAS_FROM_IMPERATOR.md: a triumph had at the gate and leave to stand in absence (Q15 closed), a charge against the powerful (C7a and L11a closed) and foreign gold in the Senate (N11a closed); C10, C11, L14 and N31 mapped.
 
+> **Found by a review against Steam (2026-11-28):** four critics played the finished build from four angles and a ranker
+> and a skeptic checked their findings: what keeps the game from feeling like a professional game off Steam, ranked in
+> the order a new player meets it, with the order of work, in `docs/STEAM_REVIEW.md`. Most of it is presentation and
+> writing, not missing systems (sound, the words, events that misfire and repeat, big moments as a line, teaching by
+> reading, no goal on screen). It is not repeated in this register.
+>
 > **Found in mods (2026-11-26):** about two hundred Crusader Kings III mods read for mechanics worth building in the
 > Reach, each checked against what the game has, ranked in `docs/IDEAS_FROM_MODS.md`. The first ten close rows of the
 > worklist (Q15, R1, R5, R16, R18, E3, R3, B17, V10); the list is not repeated in this register.
