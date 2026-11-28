@@ -198,11 +198,27 @@ public static class Goals
         if (tc.Economy?.Forecast(w, house.Id, tc.Fleets) is not { } fc) return null;
         var outs = HouseAccounts.Outgoings(w, content.Holdings, house, tc.Economy);
         int net = fc.Credits - HouseAccounts.Total(outs).Credits;
-        if (net >= 0) return null;
         // the drains: the ledger's costs this year and what goes out
         var drains = tc.Economy.Compute(w, house.Id, tc.Fleets).Lines.Where(l => l.Delta.Credits < 0).Select(l => (l.Source, -l.Delta.Credits))
-            .Concat(outs.Where(o => o.cost.Credits > 0).Select(o => (o.what, o.cost.Credits)));
-        return Ruin(net, house.Treasury.Credits, drains, p.Purse);
+            .Concat(outs.Where(o => o.cost.Credits > 0).Select(o => (o.what, o.cost.Credits))).ToList();
+        // what the forecast sees first; failing that, a treasury that has fallen year on year for reasons it cannot see
+        return Ruin(net, house.Treasury.Credits, drains, p.Purse) ?? Falling(TreasuryTrend.Ends(w), house.Treasury.Credits, drains, p.Purse);
+    }
+
+    /// <summary>The warning from the years behind: the treasury fell at each of the last two years' ends, and at that pace it runs
+    /// out within <see cref="RuinYears"/> years. <paramref name="ends"/> are the treasury at the last years' ends, oldest first.</summary>
+    public static RuinWarning? Falling(IReadOnlyList<int> ends, int have, IEnumerable<(string what, int cost)> drains, int purse)
+    {
+        if (ends.Count < 3) return null;
+        int a = ends[^3], b = ends[^2], c = ends[^1];
+        if (!(a > b && b > c)) return null;
+        int pace = (a - c + 1) / 2;   // the fall a year, on average
+        var warn = Ruin(-pace, have, drains, purse);
+        if (warn == null) return null;
+        string says = $"The treasury has fallen two years running, from {Money.Credits(a)} to {Money.Credits(b)} to {Money.Credits(c)}. "
+            + (have - pace < 0 ? "At that pace it will not last the year." : $"At that pace it runs out within {Counted.Of(warn.Years + 1, "year")}.")
+            + " Suits lost, answers that cost and raids are not in the yearly forecast; the Chronicle has each year's.";
+        return warn with { Says = says };
     }
 
     /// <summary>The warning from the figures: the year's change, the treasury, what drains it, and the head's own purse.</summary>

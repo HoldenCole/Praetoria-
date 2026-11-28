@@ -139,5 +139,27 @@ public class GoalTests
         var (_, tc) = Start("the_old_lion");
         Assert.Equal("master_the_senate", tc.World.Protagonist!.Ambition);
     }
+    [Fact]
+    public void A_treasury_that_falls_two_years_running_warns_at_its_own_pace_even_when_the_forecast_is_good()
+    {
+        var w = Goals.Falling(new[] { 47, 34, 21 }, 21, Array.Empty<(string, int)>(), 0);
+        Assert.NotNull(w);
+        Assert.Contains("fallen two years running, from 4,700 credits to 3,400 credits to 2,100 credits", w!.Says);
+        Assert.Contains("runs out within 2 years", w.Says);
+        Assert.Equal(2, w.WaysOut.Count);
+        Assert.Null(Goals.Falling(new[] { 10, 20, 30 }, 30, Array.Empty<(string, int)>(), 0));   // rising
+        Assert.Null(Goals.Falling(new[] { 30, 20 }, 20, Array.Empty<(string, int)>(), 0));       // two years are not yet a trend
+        Assert.Null(Goals.Falling(new[] { 100, 90, 80 }, 80, Array.Empty<(string, int)>(), 0));  // falling, but eight years from empty
+    }
+
+    [Fact]
+    public void The_treasury_is_kept_at_each_years_end_three_years_back()
+    {
+        var (_, tc) = Start("the_new_man");
+        var w = tc.World; var house = w.House(w.Protagonist!.HouseId)!;
+        Assert.Empty(TreasuryTrend.Ends(w));
+        foreach (int t in new[] { 50, 40, 30, 20 }) { house.Treasury.Credits = t; TreasuryTrend.Record(w); }
+        Assert.Equal(new[] { 40, 30, 20 }, TreasuryTrend.Ends(w));
+    }
 }
 

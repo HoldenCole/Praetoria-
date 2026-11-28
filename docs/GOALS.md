@@ -50,6 +50,13 @@ the two largest drains by name, and two ways out that fit them, each a button to
 Where fewer than two fit, the head's own purse is offered first (if it holds anything), then selling stores on the Exchange,
 then borrowing. End Year still asks before a year that would end below nought (docs/PLAYTHROUGH.md 6).
 
+The forecast cannot see what the year's events cost: suits lost, answers that cost, raids. So the treasury at each year's end
+is kept three years back (`TreasuryTrend`, world counters `treasury_end:1` to `:3`), and when the forecast gives no warning but
+the treasury has fallen at each of the last two years' ends, and would run out within three years at that pace, the band says
+so instead ("The treasury has fallen two years running, from 4,700 credits to 3,400 credits to 2,100 credits. At that pace it
+runs out within 2 years."), with the same ways out. The New Man's ten years in the review, 4,700 down to 980 mostly by suits
+lost, is the case it is for.
+
 ## A fallen house (`FallenHouse`, content/events/fallen.json)
 
 At each year's end the player's house holding no world where it held one a year before raises the flag
@@ -65,11 +72,13 @@ down at the end of the year after.
 `tests/GoalTests.cs`: every written start has a goal with steps in its first year; The New Man's goal gives way to his
 ambition once the house is seated; the Old Lion's goal is over once the seat passes and says whether every world was kept; a
 world saved before the start was kept shows the ambition; no aim at the Academy; the warning's figures, words and ways out;
-no warning while the treasury lasts three years or grows; the fallen-house flag is raised for the year after and only then,
+no warning while the treasury lasts three years or grows; a treasury falling two years running warns at its own pace, and the
+yearly record keeps three years; the fallen-house flag is raised for the year after and only then,
 and the report is eligible while it stands.
 
 ## Not done
 
 - No reward when a goal is reached beyond the plate turning to the ambition and saying it was done.
 - No dynasty score charted against the other houses, and no optional end year with a final ranking.
-- The warning reads this year's forecast only; it does not yet see a war's cost coming or a loan falling due.
+- The warning does not name what drained the treasury in the years behind (the Chronicle has each year's), and it does not see
+  a war's cost coming or a loan falling due.
