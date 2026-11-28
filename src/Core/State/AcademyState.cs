@@ -48,4 +48,50 @@ public sealed class AcademyState
     public int Place { get; set; }
     public int Of { get; set; }
     public bool IsImperium => Register == "imperium";
+
+    // ---- the report cards (docs/ACADEMY.md, "The report card") ----
+    /// <summary>Where the cadet and the year stood as this term opened: what its report card is measured from.</summary>
+    public TermOpening? Opening { get; set; }
+    /// <summary>A report card for each term, written as it closes: what moved the cadet's place in the order of merit.</summary>
+    public List<TermReport> Reports { get; set; } = new();
+}
+
+/// <summary>The order of merit as a term opened: the cadet's score, place and standing, and every classmate's score.</summary>
+public sealed class TermOpening
+{
+    public int Score { get; set; }
+    public int Place { get; set; }
+    public int Standing { get; set; }
+    /// <summary>The cadet's Standard as the term opened (the Institute), to say whether the banner taken that term was theirs.</summary>
+    public string Standard { get; set; } = "";
+    public Dictionary<string, int> Scores { get; set; } = new();
+}
+
+/// <summary>A term's report card: what the cadet read and what it gave, how their standing moved, the score and the place before and after,
+/// what the rest of the year gained, who passed whom, and under the Imperium the banner taken that term.</summary>
+public sealed class TermReport
+{
+    public int Term { get; set; }
+    /// <summary>The subject read (a subject id) and the marks it gave.</summary>
+    public string Subject { get; set; } = "";
+    public int Marks { get; set; }
+    public int StandingFrom { get; set; }
+    public int StandingTo { get; set; }
+    public int ScoreFrom { get; set; }
+    public int ScoreTo { get; set; }
+    public int PlaceFrom { get; set; }
+    public int PlaceTo { get; set; }
+    public int Of { get; set; }
+    /// <summary>What the other cadets of the year gained this term: the least, the most, and on average.</summary>
+    public int YearLow { get; set; }
+    public int YearHigh { get; set; }
+    public int YearMean { get; set; }
+    /// <summary>Classmates who were ahead and are now behind, and those who were behind (or level) and are now ahead.</summary>
+    public int Passed { get; set; }
+    public int PassedBy { get; set; }
+    /// <summary>The Standard that took a banner this term and the one that lost it (the Institute), or empty.</summary>
+    public string BannerTaker { get; set; } = "";
+    public string BannerLost { get; set; } = "";
+    /// <summary>The banner taken was the cadet's own.</summary>
+    public bool BannerYours { get; set; }
 }

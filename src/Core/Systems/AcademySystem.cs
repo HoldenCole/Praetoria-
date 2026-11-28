@@ -79,6 +79,7 @@ public sealed partial class AcademySystem
         if (a.Term == 0) Muster(w);
         a.Term += 1;
         w.PoolsFor(w.ProtagonistId).Regenerate();
+        a.Opening = new TermOpening { Score = ScoreOf(w), Place = Place(w), Standing = w.Counter(StandingKey), Standard = a.Standard, Scores = new Dictionary<string, int>(a.Scores) };   // the report card's starting line
     }
 
     /// <summary>The subject the cadet reads this term: the one chosen, else the first of the track the house put them down for.</summary>
@@ -95,13 +96,14 @@ public sealed partial class AcademySystem
     /// the Imperium), and after the last term the year passes out.</summary>
     public void EndTerm(World w)
     {
-        var a = w.Academy!; var p = w.Protagonist!;
+        var a = w.Academy!; var p = w.Protagonist!; string read = ""; int got = 0;
         if (FocusOf(w) is { } subject)
         {
             int marks = MarksFor(p, subject);
             a.Marks[subject.Id] = a.Marks.GetValueOrDefault(subject.Id) + marks;
             p.Skills[subject.Skill] = p.Skill(subject.Skill) + 1;
             w.Log($"{p.Name} reads {subject.Name} this term: {marks} marks, and {subject.Skill} {p.Skill(subject.Skill)}.");
+            read = subject.Id; got = marks;
         }
         foreach (var id in a.Cohort)
         {
@@ -112,8 +114,35 @@ public sealed partial class AcademySystem
                         ?? (_cat.Subjects.Count > 0 ? _cat.Subjects[(int)(Hash("apt:" + id) % (uint)_cat.Subjects.Count)].Skill : "discipline");
             c.Skills[skill] = c.Skill(skill) + 1;
         }
+        int fallen = a.Fallen.Count;
         if (a.IsImperium) WarOfTheStandards(w);
+        WriteReport(w, read, got, fallen);
         if (a.Term >= a.Terms) Graduate(w);
+    }
+
+    /// <summary>The term's report card (docs/ACADEMY.md, "The report card"): measured from where the term opened, after the marks, the
+    /// classmates' gains and the war of the Standards, so it says what moved the cadet's place and by how much.</summary>
+    private static void WriteReport(World w, string read, int marks, int fallenBefore)
+    {
+        var a = w.Academy!; var open = a.Opening; if (open == null) return;
+        int me0 = open.Score, me1 = ScoreOf(w);
+        var gains = new List<int>(); int passed = 0, passedBy = 0;
+        foreach (var id in a.Cohort)
+        {
+            if (w.Char(id) is not { Alive: true } || !open.Scores.TryGetValue(id, out int s0)) continue;
+            int s1 = a.Scores.GetValueOrDefault(id); gains.Add(s1 - s0);
+            bool wasAhead = s0 > me0, nowAhead = s1 > me1;
+            if (wasAhead && !nowAhead) passed++; else if (!wasAhead && nowAhead) passedBy++;
+        }
+        string lost = a.Fallen.Count > fallenBefore ? a.Fallen[^1] : "";
+        string taker = lost.Length == 0 ? "" : a.StandardStrength.Where(k => !a.Fallen.Contains(k.Key)).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).Select(k => k.Key).FirstOrDefault() ?? "";
+        a.Reports.Add(new TermReport
+        {
+            Term = a.Term, Subject = read, Marks = marks, StandingFrom = open.Standing, StandingTo = w.Counter(StandingKey), ScoreFrom = me0, ScoreTo = me1,
+            PlaceFrom = open.Place, PlaceTo = Place(w), Of = 1 + a.Cohort.Count(id => w.Char(id) is { Alive: true }),
+            YearLow = gains.Count > 0 ? gains.Min() : 0, YearHigh = gains.Count > 0 ? gains.Max() : 0, YearMean = gains.Count > 0 ? (int)Math.Round(gains.Average()) : 0,
+            Passed = passed, PassedBy = passedBy, BannerTaker = taker, BannerLost = lost, BannerYours = lost.Length > 0 && lost == open.Standard
+        });
     }
 
     /// <summary>The cadet's score for the order of merit: standing in the cohort, twice, and every mark of the year.</summary>

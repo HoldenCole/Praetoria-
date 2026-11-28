@@ -242,6 +242,10 @@ public sealed class World
     /// <summary>True while the cadet is at the Academy: the world does not turn and only the Academy's own business may be done.</summary>
     [JsonIgnore] public bool InAcademy => Academy is { Active: true };
 
+    /// <summary>The first years' list of a first game (docs/ACADEMY.md, "The first years"): what the player has done and opened, kept
+    /// with the saga so a loaded game remembers it. Null in a saga that is no one's first.</summary>
+    public FirstSteps? FirstSteps { get; set; }
+
     /// <summary>The foreign nations beyond the Reach as they stand (docs/FOREIGN_NATIONS.md): strength, regard, wars and tribute. Off the map.</summary>
     public List<Nation> Nations { get; set; } = new();
     /// <summary>Gold the nations have sent the Reach's senators before a war vote, kept twenty years (docs/BEYOND.md, "Foreign gold in the Senate").</summary>
