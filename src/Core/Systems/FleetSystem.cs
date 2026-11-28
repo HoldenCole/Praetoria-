@@ -804,7 +804,7 @@ public sealed class FleetSystem
         if (b == w.Protagonist?.HouseId)
         {
             var theirHead = w.House(a) is { } ah ? Economy.HeadOf(w, ah) : null; int regard = theirHead != null ? w.GetRelationship(theirHead.Id, w.ProtagonistId)?.Disposition ?? 0 : 0;
-            string why = FeudSystem.Between(w, a, b) ? "there is blood between the houses" : regard <= -20 ? $"{theirHead?.Name} thinks ill of you ({regard})" : StrengthOf(w, a) > StrengthOf(w, b) * 2 ? "it has the hulls and you have not" : "it wants what you hold";
+            string why = FeudSystem.Between(w, a, b) ? "there is blood between the houses" : regard <= -20 ? $"{theirHead?.Name} thinks ill of you ({Counted.Figure(regard)})" : StrengthOf(w, a) > StrengthOf(w, b) * 2 ? "it has the hulls and you have not" : "it wants what you hold";
             w.Tell("warn", $"{w.House(a)?.Name ?? a} has declared war on your house: {Counted.Hulls(StrengthOf(w, a))} to your {StrengthOf(w, b)}. Why: {why}", "military", a);
             w.Wars[^1].Why = why; w.WorldFlags.Add(DeclaredOnMeFlag); w.WorldCounters["mark:" + DeclaredOnMeFlag] = w.Turn;   // and a report comes of it while it is news
         }

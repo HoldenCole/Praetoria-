@@ -37,6 +37,21 @@ public static class Binder
 
         foreach (var role in def.Roles)
         {
+            // the dead fill a role only when it asks for them (a funeral names whom it buries): drawn from the house's funerals, the
+            // most recent first, and without the dice, so the year's draw is what it was before the role was added
+            if (role.Constraints.Any(k => k is BuriedCondition b && b.Role == role.Name))
+            {
+                Character? buried = null;
+                for (int i = world.Funerals.Count - 1; i >= 0 && buried == null; i--)
+                {
+                    var c = world.Char(world.Funerals[i].PersonId);
+                    if (c == null || c.Alive || used.Contains(c.Id)) continue;
+                    if (AllHold(role.Constraints, new EvalContext(world, binding.With(role.Name, c.Id), rng))) buried = c;
+                }
+                if (buried == null) return null;
+                binding = binding.With(role.Name, buried.Id); used.Add(buried.Id);
+                continue;
+            }
             // Deterministic candidate order (by Id), filtered by the role's constraints
             // evaluated with the candidate provisionally bound to this role.
             var candidates = new List<Character>();

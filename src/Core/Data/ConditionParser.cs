@@ -99,6 +99,8 @@ public static class ConditionParser
                 return new EventFiredCondition(Str(el, "event"), Bool(el, "value", true));
             case "inLine":
                 return new InLineCondition(Str(el, "role"), OptStr(el, "vsRole", "self"), Bool(el, "value", true));
+            case "buried":
+                return new BuriedCondition(Str(el, "role"), Int(el, "years", 1));
 
             default:
                 throw new ContentException($"Unknown condition type '{type}'.");

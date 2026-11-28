@@ -13,9 +13,12 @@ namespace Praetoria.Core.Presentation;
 public static class ReportFacts
 {
     public const string EnvoyReport = "the_envoy_of_peace";
-    public static string For(World w, EventDef def, ContentDatabase content)
+    /// <param name="binding">Who the report is about, when the caller has it: a report that names one of the house's dead (a role
+    /// bound by <see cref="BuriedCondition"/>) says what was said over them.</param>
+    public static string For(World w, EventDef def, ContentDatabase content, Binding? binding = null)
     {
         var mine = w.Protagonist?.HouseId; if (mine == null) return "";
+        if (binding != null && SaidOver(w, def, binding) is { Length: > 0 } eulogy) return eulogy;
         var flags = def.Conditions.OfType<WorldFlagCondition>().Where(c => c.Value).Select(c => c.Flag).ToHashSet();
         string Nm(string id) => w.House(id)?.Name ?? id;
         if (def.Id == EnvoyReport)
@@ -91,6 +94,15 @@ public static class ReportFacts
             string me = Nm(mine);
             return w.History.LastOrDefault(h => h.Text.StartsWith("By the terms of the peace") && h.Text.Contains(me))?.Text ?? "";
         }
+        return "";
+    }
+
+    /// <summary>What was said over the dead a report names (docs/LIFE.md, "A funeral"): the eulogy, made from what they did.</summary>
+    private static string SaidOver(World w, EventDef def, Binding binding)
+    {
+        foreach (var role in def.Roles.Where(r => r.Constraints.Any(k => k is BuriedCondition b && b.Role == r.Name)))
+            if (binding.TryGet(role.Name, out var id) && w.Funerals.LastOrDefault(f => f.PersonId == id) is { Lines.Count: > 0 } f)
+                return "What was said at the graveside: " + string.Join(" ", f.Lines);
         return "";
     }
 }

@@ -426,7 +426,7 @@ public static class CourtProjection
             }).ToList();
             briefing.Add(new BriefingCard(item, TextRenderer.Substitute(text?.Title ?? fired.Def.Id, ectx), fired.Def.Tier.ToString().ToUpperInvariant(),
                 fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.Body) ? "" : TextRenderer.Substitute(text!.Body, ectx), item.Resolved, choices)
-                { Facts = ReportFacts.For(w, fired.Def, content), Answer = item.Resolved && item.ChosenId.Length > 0 ? (text != null && text.Choices.TryGetValue(item.ChosenId, out var answered) ? TextRenderer.Substitute(answered, ectx) : item.ChosenId) : "" });
+                { Facts = ReportFacts.For(w, fired.Def, content, fired.Binding), Answer = item.Resolved && item.ChosenId.Length > 0 ? (text != null && text.Choices.TryGetValue(item.ChosenId, out var answered) ? TextRenderer.Substitute(answered, ectx) : item.ChosenId) : "" });
         }
 
         var members = house.Members.Select(w.Char).Where(c => c != null && c!.Id != p.Id).Select(c => c!)

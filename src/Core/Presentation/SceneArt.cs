@@ -57,6 +57,23 @@ public static class SceneArt
         ("dispatch", new[] { "letter", "word of", "sends word", "rumbling", "partition", "treaty" }),
     };
 
+    /// <summary>The painting behind a moment of the year (<see cref="YearMoments"/>, docs/VISUAL_SYSTEM.md, "The year's moments"): the
+    /// funeral for a death and the seat passing, the family for a birth and for one come of age, the feast for a wedding, the battle
+    /// for a war declared and a siege, the world for one lost, the square in unrest for the seat, the Senate for a rank, the court
+    /// for a suit or a charge.</summary>
+    public static string ForMoment(string kind) => kind switch
+    {
+        YearMoments.Succession or YearMoments.Death => "funeral",
+        YearMoments.Birth or YearMoments.OfAge => "family",
+        YearMoments.Marriage => "feast",
+        YearMoments.War or YearMoments.Siege => "battle",
+        YearMoments.WorldLost => "world",
+        YearMoments.SeatLost => "unrest",
+        YearMoments.RankLost => "senate",
+        YearMoments.Suit => "court",
+        _ => "dispatch",
+    };
+
     /// <summary>The painting for an event: the one its author named, else by the words of its id and title.</summary>
     public static string For(EventDef def, string title) =>
         !string.IsNullOrEmpty(def.Scene) ? def.Scene : For(def.Id, title);
