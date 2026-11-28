@@ -53,11 +53,11 @@
     {
       "id": "a_death_in_the_house",
       "title": "A Death in the House",
-      "body": "One of the house is dead, and the house must bury them. What was said over them is written in the book. How it is done is for {self.name} to decide, and will be remembered by everyone who was there.",
+      "body": "{dead.name} is dead, and the house must bury its own. What was said at the graveside is written below, and in the book. How it is done is yours to decide, and everyone who was there will remember it.",
       "choices": {
         "a_funeral_the_city_sees": "A funeral the city will see.",
         "the_family_only": "The family only.",
-        "as_the_dead_would_have_wanted": "As the dead would have wanted."
+        "as_the_dead_would_have_wanted": "As {dead.name} would have wanted."
       }
     },
     {

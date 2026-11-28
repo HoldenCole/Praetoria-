@@ -78,6 +78,7 @@ else
     var m = G.Court(); var alerts = Alerts.For(G.World!, G.Content!, m, G.Turn!.Progression);
     var unanswered = m.Briefing.Count(b => !b.Resolved);
     bool front = _openReport != null || _succession != null || _primer || _saves || _settings || (_brief && G.World is { InAcademy: false, IsDynastyDead: false }) || G.ProfileId != null || _passingOut;
+    front |= _cards.Count > 0;   // the year's moments stand in front too: the toasts' clock waits for them
     @* The game shell (docs/VISUAL_SYSTEM.md 3): the map is the screen. Everything else sits at its edges: the top bar, the rail of
        sockets down the left with the house's standard at its foot, one window docked beside it, the alerts row and the toasts over
        the free map, the outliner on the right and the console in the bottom-right corner with End Year on its rim. *@
@@ -192,6 +193,11 @@ else
         @if (_succession != null)
         {
             <SuccessionInterstitial Record="_succession" OnClose="CloseSuccession" />
+        }
+        @if (_cards.Count > 0 && _succession == null && (m.EpilogueText == null || _epilogueDismissed) && G.World is { IsDynastyDead: false } mw)
+        {
+            @* the year's moments (docs/WEB_CLIENT.md, "After End Year"): one card at a time, after the seat passing and a saga's turning, before the year in brief *@
+            <MomentCard Moment="_cards[0]" Year="@(mw.Turn - 1)" At="@(_cardsOf - _cards.Count + 1)" Of="_cardsOf" OnClose="NextCard" />
         }
         @if (_brief && !_primer && _succession == null && _openReport == null && G.World is { InAcademy: false, IsDynastyDead: false })
         {
@@ -326,6 +332,10 @@ else
         // turning takes them for "Play on" (the end of the line has no year after it, so no key acts behind it)
         if (_passingOut && G.Academy() is { Graduated: true }) { if (key is "Enter" or "Escape") { _passingOut = false; StateHasChanged(); } return; }
         if (G.Court() is { EpilogueText: not null } ep && !_epilogueDismissed) { if ((key is "Enter" or "Escape") && !ep.DynastyDead) { _epilogueDismissed = true; StateHasChanged(); } return; }
+        // and so do the year's moments (MomentCard): the card in front takes Enter or Escape to close it, a profile opened from its faces
+        // closing first; the seat passing, the first of them, takes Enter as well as Escape
+        if (_cards.Count > 0 && _succession == null) { if (G.ProfileId != null) { if (key == "Escape") G.CloseProfile(); } else if (key is "Enter" or "Escape") NextCard(); StateHasChanged(); return; }
+        if (_succession != null && G.ProfileId == null && key == "Enter") { CloseSuccession(); StateHasChanged(); return; }
         if (_settings) { if (key == "Escape") _settings = false; else return; }   // the settings are in front
         else if (_saves) { if (key == "Escape") _saves = false; else return; }   // the saves window is in front
         else if (_primer) { if (key is "Escape" or "?") await ClosePrimer(); else return; }   // the handbook is in front: it takes Escape, and no key reaches the desk behind it
@@ -439,6 +449,7 @@ else
         _brief = _briefEvery && !cadet && G.World is { InAcademy: false, IsDynastyDead: false } bw && YearInBrief.For(bw, G.Content!).Count > 0;
         var first = G.Court().Briefing.FirstOrDefault(b => !b.Resolved);
         if (first != null && _screen == "office" && G.World?.InAcademy != true && !_passingOut && !_brief) _openReport = first;    // the first visitor steps forward (not at the Academy: the term's page comes first)
+        QueueCards(cadet);   // the year's moments open first, one at a time: the year in brief and the first visitor wait for them
         using (Praetoria.Core.Diagnostics.Perf.Time("client:autosave to the browser")) await Autosave();
         if (Praetoria.Core.Diagnostics.Perf.Enabled)
         {
@@ -448,6 +459,23 @@ else
         }
     }
     private long _perfRender;
+
+    /* The year's moments (docs/WEB_CLIENT.md, "After End Year"; Core's YearMoments): the heaviest three of the year just ended, a death in
+       the main line first, open one at a time before the year in brief. The seat passing is among them and the succession screen stages
+       it. While they stand, the year in brief and the first visitor are held, and given back when the last card closes. */
+    private List<Moment> _cards = new(); private int _cardsOf; private bool _briefAfter; private BriefingCard? _visitorAfter;
+    private void QueueCards(bool cadet)
+    {
+        _cards = !cadet && !_passingOut && G.World is { InAcademy: false, IsDynastyDead: false } w ? YearMoments.Cards(w, G.Content!).Where(m => !(m.Staged && _succession != null)).ToList() : new();
+        _cardsOf = _cards.Count; if (_cards.Count == 0) return;
+        _briefAfter = _brief; _brief = false; _visitorAfter = _openReport; _openReport = null;
+    }
+    private void NextCard()
+    {
+        if (_cards.Count > 0) _cards.RemoveAt(0);
+        if (_cards.Count > 0) return;
+        _cardsOf = 0; _brief = _briefAfter; _briefAfter = false; _openReport = _visitorAfter; _visitorAfter = null;
+    }
 
     /// <summary>The settings this browser keeps (docs/WEB_CLIENT.md, "Settings"): read at the start and whenever one is changed.</summary>
     private async Task ReadSettings()

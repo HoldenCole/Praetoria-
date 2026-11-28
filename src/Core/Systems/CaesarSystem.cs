@@ -515,7 +515,7 @@ public sealed class CaesarSystem
         {
             g.Flags.Remove(CaesarChar);
             w.Log($"{g.Name} does not wait for the Senate's officers.");
-            DynastySystem.Die(w, g.Id, "by their own hand, before the Senate's officers came");
+            DynastySystem.Die(w, g.Id, $"by {(g.Sex == "female" ? "her" : g.Sex == "male" ? "his" : "their")} own hand, before the Senate's officers came");
         }
     }
 

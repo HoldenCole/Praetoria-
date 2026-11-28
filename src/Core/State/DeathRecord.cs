@@ -17,6 +17,8 @@ public sealed class DeathRecord
     public int Age { get; set; }
     /// <summary>How they died, in a few words: "in battle at Cinder Gate", "by a knife", "of age". Empty where nothing is known.</summary>
     public string How { get; set; } = "";
+    /// <summary>They stood first in the line to the head when they died (the year's moments say "your heir is dead").</summary>
+    public bool Heir { get; set; }
     public List<DeathPost> Posts { get; set; } = new();
     /// <summary>What they had, and whose it is now: one line each.</summary>
     public List<string> Passed { get; set; } = new();

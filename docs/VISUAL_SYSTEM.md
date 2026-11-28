@@ -15,7 +15,7 @@ Where the system lives in the client (the foundation, 2026-11-27; the windows an
 
 - **Tokens, the shell and the shared parts**: `src/Web/wwwroot/css/app.css` (section 2's tokens on `:root`, then the old names the
   windows not yet rebuilt still use, pointed at them). Each window's own rules: `src/Web/wwwroot/css/win/<name>.css` (laws, house,
-  exchange, you, dynasty, houses, senate, military, worlds, system, event, succession, chronicle, office, creation, academy, map),
+  exchange, you, dynasty, houses, senate, military, worlds, system, event, succession, moment, chronicle, office, creation, academy, map),
   linked from `index.html` after `app.css`, so a window's rule wins over a shared one of the same weight.
 - **The shared window parts**: `src/Web/Components/Ui/` (WindowFrame, WindowHeader with its plinth, Tabs, Section, Row and Cell,
   Meter, Plate, Link, Segmented, Select, Check, Stepper, WarnStrip, EmptyState, Globe, Slots, DataTable with its order bar and
@@ -686,7 +686,28 @@ code-drawn faces are not shown anywhere again. The owner chooses between two (do
   items in Cinzel 20px, scenarios as framed portrait plates with the year in large numerals.
 - **Succession**: the funeral painting full-bleed, the old head at 140px in greyscale with the ribbon, the heir at 220px
   in the window frame, "The seat passes" in Cinzel 40px between laurel sprays, what is inherited as an icon row, one gold
-  plate.
+  plate. It is the first of the year's moments when the head has died.
+- **The year's moments** (2026-11-28; `MomentCard.razor`, `css/win/moment.css`; what each says is `Presentation/YearMoments.cs`):
+  the biggest moments of a life in the player's line are staged, not listed. A dynasty game lives on births, marriages and
+  deaths, and they used to be rows of the year in brief under a stale line about an illness. Each card is built from the
+  succession screen's parts: its painting full-bleed (`SceneArt.ForMoment`: the funeral for a death, the family for a birth
+  or a coming of age, the feast for a wedding, the battle for a war declared or a siege, the world for one lost, the square
+  in unrest for the seat, the Senate for a rank, the court for a suit or a charge; a death's painting is taken down to the
+  funeral's greys); the kicker with the year between laurel sprays ("In mourning · Year XII", four words at most); the title
+  in Cinzel 40px over a gilt rule ("Your son and heir is dead", "A daughter is born", "You are married", "House Vey declares
+  war"); the cast: the one it is about in the large plate at the heir's size (the dead greyscale with the black ribbon, the
+  newborn, the one come of age, the head of the house that declares war), or the couple side by side with a brass glyph
+  between them, and the family around as plates at four tenths of it on the same foot line, the parents at each side of a
+  newborn, those at the bier at each side of the dead, each named with their tie to you ("you", "your wife", "your son's
+  wife"); where the other side has no face, its arms as a seal; one line of prose in Alegreya 18.5px on a soft band between
+  two gilt hairlines, with a red hairline under it for ill news (rule 4: red on rims, never on the words); and one gold plate
+  whose verb fits the moment ("Mourn him", "Welcome her", "Raise a glass", "Mark the day", "To arms", "Bear it", "Make
+  ready"), with "1 of 2" beside it when there are more. At most three a year, by weight, a death in the main line first; the
+  rest stay lines. The year in brief then opens with its worst news first, in a band with a red rim and a faint red light
+  (`YearInBrief.Worst`, three lines at most), each grave row with a 2px red bar; the other sections follow as before. The
+  funeral report names whom it buries, and the event window stands them in its painting in grey, named by their tie to you.
+  Pictures: `tools/browser/moments.js` (`shots/moments-death.png`, `moments-birth.png`, `moments-brief-band.png`,
+  `moments-funeral.png`, each also at 1366 by 768).
 - **System view and world view**: the standard painted header and plinth; no stretched sprite.
 - **The creator**: the same window parts at 1080px, with a house colour picker that offers the house list (2.2) and gold.
 

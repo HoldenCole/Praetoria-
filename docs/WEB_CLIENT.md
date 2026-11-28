@@ -60,7 +60,7 @@ played in it; the page reads them before the game starts, so the title is alread
 | setting | what it does |
 |---|---|
 | Text size | Small, Normal, Large, Larger: the root size is 13.5, 15, 16.5 or 18 pixels. Every size in the stylesheet is in `rem`, and so are the widths of the rail, the windows and the outliner, so the layout grows with the words. The map does not change. |
-| Enter ends the year | On by default. On, Enter first opens each unanswered report that can be answered, one at a time and once each, and with none left it ends the year (a click on End Year still sets the unanswered ones aside). With a report open it does nothing. While a box is open over the game (the question asked before something that cannot be taken back, or what came of an answer) no key reaches the game behind it: the question takes Esc for its "no" and wants a click for its "yes", and what came of an answer takes Enter or Esc. Off, a year ends only by the End Year medallion. |
+| Enter ends the year | On by default. On, Enter first opens each unanswered report that can be answered, one at a time and once each, and with none left it ends the year (a click on End Year still sets the unanswered ones aside). With a report open it does nothing. While a box is open over the game (the question asked before something that cannot be taken back, or what came of an answer) no key reaches the game behind it: the question takes Esc for its "no" and wants a click for its "yes", and what came of an answer takes Enter or Esc. So do the cards that stand in front of a year (the seat passing, the year's moments: see "After End Year"): Enter or Esc closes each. Off, a year ends only by the End Year medallion. |
 | Number keys open windows | On by default, in the order of the rail. |
 | Show rail labels | Off by default. On, each socket of the rail carries its window's name under it (the name shows beside a socket on hover either way). Kept as `railLabels`. |
 | The year in brief | Every year, or only when asked (the same choice the card itself offers). |
@@ -75,6 +75,33 @@ loses its second line (docs/VISUAL_SYSTEM.md 2.4). Before this the stores ran ov
 
 The title has three more buttons for the same reason (the newcomer looked there first): **Saved sagas**, **Options**, and
 **Glossary and lectures** (the handbook without the primer, which speaks to the head of a house and needs a saga).
+
+## After End Year
+
+Built 2026-11-28 (docs/VISUAL_SYSTEM.md, "The year's moments"). A year's turn can kill the head's wife, give the heir a
+daughter and bring a war, and all three used to arrive as rows of the year in brief. Now what stands in front of the desk
+after End Year comes in this order, each waiting for the one before it to close:
+
+1. **The seat passes**, if the head died or a sworn house took up the banner (`SuccessionInterstitial`). Its gold plate,
+   Enter or Esc closes it.
+2. **The year's moments** (`MomentCard`; Core's `YearMoments.Cards`): the heaviest moments of the year just ended for the
+   player's line, a death in the main line first, one card at a time and three at most a year, the seat passing counted
+   among them. The kinds: a death of the head, the spouse, the heir, a child, a parent or a sibling; a birth to the head,
+   a child of the head or the heir; a wedding of the head or a child; a child or the heir come of age; a war declared on
+   the house; a siege laid on one of its worlds; a world or the seat lost; a rank lost; a suit or a charge brought against
+   it. Each card has one gold plate; Enter or Esc closes it too, and no key reaches the desk behind it (a profile opened
+   from a face on it closes first, on Esc). The rest of the year's moments are lines of the year in brief.
+3. **The year in brief** (`YearBrief`), when it is set to open each year: the worst news of the year first, in a red band,
+   then the sections. Each moment is a line in it too, so nothing the cards said is lost when they close; a line the year
+   made untrue (that someone is ill, when they died in the same year) is left out.
+4. **The first visitor**, on the Office: the first unanswered report steps forward, as before.
+
+The year in brief and the first visitor are held while the cards stand, and given back when the last one closes
+(`Index.razor`, `QueueCards` and `NextCard`). At the Academy, in the year a cadet passes out, and when the line has ended
+there are no cards. The cards are drawn from what the year recorded (the deaths, the funerals, the news, the marriages,
+the wars' accounts, the sieges, the docket, and the house's rank as each year opened); `tests/YearMomentsTests.cs` holds
+them, and `tools/browser/moments.js` plays a start until a death and a birth have come and checks the order, the names and
+the faces in a browser.
 
 ## The map when the browser takes its graphics away
 
@@ -181,6 +208,7 @@ crop of their painting, fleets, holdings, the council's count; it folds to its h
 the bottom-right (your seat, fit, the map's modes, the legend, the minimap with its caption) with **End Year** on its rim.
 Reports open as event windows with the cast's portraits; the first visitor steps forward when a turn begins.
 
+- `Components/MomentCard.razor`: a moment of the year, staged as a card before the year in brief (see "After End Year").
 - `Pages/Index.razor` — the shell and its state: current screen, open report, succession interstitial, epilogue; the rail,
   the docked-window host, the console and End Year.
 - `Components/TopBar.razor`, `Outliner.razor`, `AlertsRow.razor`, `Toasts.razor`, `EventWindow.razor` — the frame;

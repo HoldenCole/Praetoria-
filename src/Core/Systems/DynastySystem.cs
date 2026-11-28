@@ -269,7 +269,7 @@ public sealed class DynastySystem
             double chance = c.Age >= MortalityAge ? DeathProbability(c.Age) * LifeSystem.DeathFactor(c) : LifeSystem.EarlyDeath(c);
             if (chance <= 0) continue;   // young and well ⇒ no roll, no RNG
             if (rng.NextDouble() < chance)
-                Die(world, id, c.Age >= MortalityAge ? "of age" : "of what ailed them");
+                Die(world, id, c.Age >= MortalityAge ? "of age" : c.Sex == "female" ? "of what ailed her" : c.Sex == "male" ? "of what ailed him" : "of what ailed them");
         }
     }
 
@@ -423,22 +423,25 @@ public sealed class DynastySystem
     {
         var c = world.Char(id);
         if (c is not { Alive: true }) return;
+        bool heir = world.Protagonist is { } head0 && head0.Id != c.Id && c.HouseId == head0.HouseId && FindHeir(world, head0)?.Id == c.Id;   // read while they still stand in the line
         c.Alive = false;
         world.Log($"{c.Name} dies at {c.Age}.");
         if (world.Protagonist is { } mine && c.HouseId == mine.HouseId && c.Id != mine.Id)
         {
             /* the death as a report: what it left empty, each with the place it is filled, and what they had and whose it is now */
-            var rec = new DeathRecord { Turn = world.Turn, PersonId = c.Id, Name = c.Name, Age = c.Age, How = how.Length > 0 ? how : c.Age >= 60 ? "of age" : "" };
+            var rec = new DeathRecord { Turn = world.Turn, PersonId = c.Id, Name = c.Name, Age = c.Age, How = how.Length > 0 ? how : c.Age >= 60 ? "of age" : "", Heir = heir };
             foreach (var h in world.Holdings.Values.Where(h => h.GovernorId == c.Id).OrderBy(h => h.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the governing of " + h.Name, Target = "galaxy:" + h.SystemId });
             foreach (var f in world.Fleets.Values.Where(f => f.AdmiralId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the command of " + f.Name, Target = "military:deck" });
             foreach (var f in world.Fleets.Values.Where(f => f.CaptainId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the captaincy of " + f.Name, Target = "military:deck" });
             if (world.House(mine.HouseId) is { } hh) foreach (var d in hh.Duties.Where(d => d.HolderId == c.Id)) rec.Posts.Add(new DeathPost { What = "the place of " + d.Role, Target = "house:household" });
-            foreach (var m in world.Magistrates.Where(m => m.CharacterId == c.Id)) rec.Posts.Add(new DeathPost { What = "an office of the Reach they held", Target = "senate:ladder" });
-            string head = mine.Name;
-            if (c.Purse > 0) rec.Passed.Add($"Their purse of {Money.Credits(c.Purse)} comes to {head}."); else if (c.Purse < 0) rec.Passed.Add($"They owed {Money.Credits(-c.Purse)}, and the house's treasury pays it.");
-            var things = WealthSystem.HeldBy(world, c.Id).Select(i => i.Name).ToList(); if (things.Count > 0) rec.Passed.Add($"{char.ToUpperInvariant(string.Join(", ", things)[0])}{string.Join(", ", things)[1..]} {(things.Count == 1 ? "comes" : "come")} to {head}.");
-            var own = world.Businesses.Values.Where(b => b.HeldById == c.Id).Select(b => b.Name).ToList(); if (own.Count > 0) rec.Passed.Add($"What was their own is the house's again: {string.Join(", ", own)}.");
-            if (c.LentHead > 0) rec.Passed.Add($"{head} owed them {Money.Credits(c.LentHead)}, which is paid out of {head}'s purse as far as it goes and then forgotten.");
+            // said to the head who reads it, of a named person by their sex (docs/VISUAL_SYSTEM.md 1, rule 9): "her purse comes to you"
+            string he = c.Sex == "female" ? "she" : c.Sex == "male" ? "he" : "they", him = c.Sex == "female" ? "her" : c.Sex == "male" ? "him" : "them", his = c.Sex == "female" ? "her" : c.Sex == "male" ? "his" : "their";
+            string He = char.ToUpperInvariant(he[0]) + he[1..], His = char.ToUpperInvariant(his[0]) + his[1..];
+            foreach (var m in world.Magistrates.Where(m => m.CharacterId == c.Id)) rec.Posts.Add(new DeathPost { What = $"an office of the Reach {he} held", Target = "senate:ladder" });
+            if (c.Purse > 0) rec.Passed.Add($"{His} purse of {Money.Credits(c.Purse)} comes to you."); else if (c.Purse < 0) rec.Passed.Add($"{He} owed {Money.Credits(-c.Purse)}, and the house's treasury pays it.");
+            var things = WealthSystem.HeldBy(world, c.Id).Select(i => i.Name).ToList(); if (things.Count > 0) rec.Passed.Add($"{char.ToUpperInvariant(string.Join(", ", things)[0])}{string.Join(", ", things)[1..]} {(things.Count == 1 ? "comes" : "come")} to you.");
+            var own = world.Businesses.Values.Where(b => b.HeldById == c.Id).Select(b => b.Name).ToList(); if (own.Count > 0) rec.Passed.Add($"What was {his} own is the house's again: {string.Join(", ", own)}.");
+            if (c.LentHead > 0) rec.Passed.Add($"You owed {him} {Money.Credits(c.LentHead)}, which is paid out of your purse as far as it goes and then forgotten.");
             world.Deaths.Add(rec); while (world.Deaths.Count > 20) world.Deaths.RemoveAt(0);
             world.Tell("warn", $"{c.Name} of your house has died at {c.Age}{(rec.How.Length > 0 ? ", " + rec.How : "")}" + (rec.Posts.Count > 0 ? ". Left empty: " + string.Join(", ", rec.Posts.Select(x => x.What)) : ""), "dynasty", c.Id);
         }

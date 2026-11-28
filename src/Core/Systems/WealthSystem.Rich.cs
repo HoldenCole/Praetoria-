@@ -131,7 +131,7 @@ public static partial class WealthSystem
             if (world == null || world.OwnerId != h.Id)
             {
                 LegitimacyBook.Move(w, h, -SeatLostLegitimacy * h.SeatGrade, LegitimacyBook.Land, "The house's seat was lost with its world"); h.SeatGrade = 0; h.SeatHoldingId = ""; w.WorldCounters.Remove(SeatShutKey(h.Id));
-                if (h.Id == mine) { w.Tell("warn", $"The {name} of your house stood on {world?.Name ?? "a world that is gone"}, and is lost with it", "house:purse"); w.Log($"The {name} of {h.Name} stood on {world?.Name ?? "a world that is gone"}. It is lost with the world, and the house is thought the less of."); }
+                if (h.Id == mine) { w.Tell("warn", $"The {name} of your house stood on {world?.Name ?? "a world that is gone"}, and is lost with it", "house:purse", world?.Id ?? ""); w.Log($"The {name} of {h.Name} stood on {world?.Name ?? "a world that is gone"}. It is lost with the world, and the house is thought the less of."); }
                 continue;
             }
             int keep = SeatKeep(h.SeatGrade);

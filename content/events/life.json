@@ -352,6 +352,24 @@
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
+      "roles": [
+        {
+          "name": "dead",
+          "when": [
+            {
+              "type": "buried",
+              "role": "dead",
+              "years": 2
+            },
+            {
+              "type": "charFlag",
+              "role": "dead",
+              "flag": "mourned",
+              "value": false
+            }
+          ]
+        }
+      ],
       "when": [
         {
           "type": "worldFlag",
@@ -382,8 +400,14 @@
               "delta": 2
             },
             {
+              "type": "setCharFlag",
+              "role": "dead",
+              "flag": "mourned",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "The house buried its dead with every honour, and the city came to watch. It was what a great house does."
+              "text": "The house buried {dead.name} with every honour, and the city came to watch. It was what a great house does."
             }
           ]
         },
@@ -396,8 +420,14 @@
               "delta": -3
             },
             {
+              "type": "setCharFlag",
+              "role": "dead",
+              "flag": "mourned",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "The house buried its dead with the family and nobody else. The things said were said by people who meant them."
+              "text": "The house buried {dead.name} with the family and nobody else. The things said were said by people who meant them."
             }
           ]
         },
@@ -415,8 +445,14 @@
               "delta": 1
             },
             {
+              "type": "setCharFlag",
+              "role": "dead",
+              "flag": "mourned",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "{self.name} had it done as the dead had once said they wanted, down to the music. It was noticed by those who had known them."
+              "text": "{self.name} had it done as {dead.name} had once asked, down to the music. It was noticed by everyone who had known {dead.name}."
             }
           ]
         }

@@ -109,6 +109,12 @@ File names don't matter to the engine (it loads every `*.json` in each dir); gro
   "vsRole": "self" }` binds someone outranking you.
 - **If any role can't bind, the event is ineligible** — it simply won't fire. This is a feature: an
   event about a rival only happens when a rival exists.
+- Roles bind the living. The one exception is a role with a `buried` condition on itself: it binds one of
+  the player's house who has died and been buried (a funeral is kept for each, docs/LIFE.md), the most
+  recent first and without the dice, so a funeral can name whom it buries (`a_death_in_the_house`:
+  `{dead.name} is dead`). Pair it with a `charFlag` the choices set (`mourned`) so the same death is not
+  reported twice. The event window shows such a role's face in grey with the black ribbon, and the
+  report's facts are what was said at the graveside.
 
 ### Choices
 - `requires` gates *visibility-as-enabled*: a failing requirement shows the choice **disabled** (the
@@ -186,6 +192,7 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `claim` | `role`(default `self`), `title`, `present:bool` | does the house hold a claim to this title? (GDD §13) |
 | `eventFired` | `event`, `value:bool` | has an event already fired this run? |
 | `inLine` | `role`, `vsRole`(default `self`), `value:bool` | does `role` stand in the line of succession to `vsRole`: of the same house, and not struck from the line unless nobody else is left? (docs/HOUSEHOLD.md, "Struck from the line") |
+| `buried` | `role`, `years`(default 1) | is `role` one of the player's house who died and was buried in the last `years` years? The only condition that binds the dead (see Roles & binding) |
 
 `resource` ∈ `credits, materials, manpower, influence, exotics`.
 `sphere` ∈ `navy, treasury, senate`.
@@ -785,7 +792,7 @@ TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self o
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
 FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags
-CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age sex counter resource sphere title claim fleetStrength atWar bloc eventFired inLine
+CONDITIONS all any not const worldFlag charFlag relationship bond skill trait rank track era turn age sex counter resource sphere title claim fleetStrength atWar bloc eventFired inLine buried
 EVENT KEYS id tier weight repeatable roles when choices ambitions
 FLEETS     incursions · ships_raised · fleets_raised counters · incursion:<house> flags   (system-written, §19)
 WAR        battles · battles_won · battles_lost · conquests · wars_declared counters · battle_fought · conquest_made · holding_lost · at_war:<house> flags · suing_for_peace char flag

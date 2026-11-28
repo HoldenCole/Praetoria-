@@ -217,6 +217,22 @@ public sealed class InLineCondition : ICondition
     }
 }
 
+/// <summary>One of the player's house who died and was buried in the last <see cref="Years"/> years (docs/LIFE.md, "A funeral"): the
+/// only way a role binds the dead. The Binder draws such a role from the house's funerals, the most recent first and without the
+/// dice, so a report about a funeral names whom it buries. JSON: { "type": "buried", "role": "dead", "years": 1 }.</summary>
+public sealed class BuriedCondition : ICondition
+{
+    public string Role { get; }
+    public int Years { get; }
+    public BuriedCondition(string role, int years) { Role = role; Years = years; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); if (c is not { Alive: false }) return false;
+        int since = ctx.World.Turn - Years;
+        return ctx.World.Funerals.Any(f => f.PersonId == c.Id && f.Turn >= since);
+    }
+}
+
 /// <summary>Has an event already fired this run? JSON: { "type": "eventFired", "event": "id", "value": true }.</summary>
 public sealed class EventFiredCondition : ICondition
 {

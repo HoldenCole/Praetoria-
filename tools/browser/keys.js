@@ -29,8 +29,9 @@ const seeded = require('./address')();
   await page.click('.scenario:has-text("The Old Lion")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 120000 });
   await page.waitForTimeout(2500);
   const turn = () => page.$eval('[data-turn]', e => +e.dataset.turn);
+  // the year's moments (a card, or the seat passing) stand before the year in brief and take Enter as it does: read as part of it here
   const state = () => page.evaluate(() => ({ ev: !!document.querySelector('.ev-win'), outcome: !!document.querySelector('[data-outcome]'), ask: !!document.querySelector('[data-confirm]'),
-    brief: !!document.querySelector('[data-year-brief]'), open: +(document.querySelector('button.endturn .cnt')?.dataset.n || 0), focus: document.activeElement?.className || document.activeElement?.tagName }));
+    brief: !!document.querySelector('[data-year-brief], [data-moment], .epilogue.succession'), open: +(document.querySelector('button.endturn .cnt')?.dataset.n || 0), focus: document.activeElement?.className || document.activeElement?.tagName }));
   const press = async k => { await page.keyboard.press(k); await page.waitForTimeout(900); };
   const t0 = await turn(); let st = await state(); out.push(`start: year ${t0} ${JSON.stringify(st)}`);
   if (st.brief) { await press('Enter'); st = await state(); }
@@ -48,8 +49,9 @@ const seeded = require('./address')();
   check(sawOutcomeEnter, 'the walk met at least one outcome box');
   check(endedAt > 0, `the year ended by Enter once the reports were done (after ${steps} steps), now year ${await turn()}`);
 
-  // the question box: Enter does nothing, Esc says no
-  st = await state(); if (st.brief) { await press('Enter'); }
+  // the question box: Enter does nothing, Esc says no (first Enter closes each of the year's cards and the year in brief, one by one)
+  const clear = async () => { for (let i = 0; i < 8 && (await state()).brief; i++) await press('Enter'); };
+  await clear();
   const t1 = await turn();
   st = await state(); if (st.ev) await press('Escape');
   await page.click('[data-menu]'); await page.waitForTimeout(600);
@@ -59,7 +61,7 @@ const seeded = require('./address')();
   await press('Escape'); st = await state(); check(!st.ask && !!(await page.$('.gs-shell')) && (await turn()) === t1, 'Esc on the question answers no: still in the saga, same year');
 
   // a mouse click on End Year, then Enter: one year, not two
-  st = await state(); if (st.brief) await press('Enter');
+  await clear();
   const t2 = await turn();
   await page.click('button.endturn'); await page.waitForTimeout(2500);
   st = await state();
