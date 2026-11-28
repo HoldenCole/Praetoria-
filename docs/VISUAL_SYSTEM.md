@@ -336,6 +336,16 @@ its rim (brass: a decision, not a danger). Enter opens each unanswered report in
   `clamp(150px, 28vh, 352px)` (215px here), so the window is about 620px tall for three two-line choices.
 - 1280 by 720, and 125% and 150% OS scaling: checked by `tools/browser` (section 13).
 
+### 3.11 The aim
+A plate at the top left of the free map, under the top bar, on the map only (a docked window never covers it): 22rem wide,
+dark steel in a 1px brass line with an inner hairline, the windows' shadow. At its left a 44px medal whose brass ring fills
+with the aim's progress (green once it is reached), with laurels in it; the medal folds the plate to itself and the title.
+Then the kicker ("Your aim · year 3 of 10" for a start's goal, "Your ambition" after), the title in Cinzel 16px, the steps
+as small diamonds (filled brass when done and struck through; the next one lit), and under a brass hairline where the next
+step stands and a "Go there" plate. When the treasury will run out within three years a band with an ember edge says how
+fast, where the money goes, and two ways out, each a plate to its window. The alerts row starts after the plate.
+(docs/GOALS.md; `GoalPlate.razor`, `css/win/goal.css`.)
+
 ## 4. Window parts
 
 ### 4.1 The frame and the body

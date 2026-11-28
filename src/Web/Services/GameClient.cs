@@ -319,9 +319,16 @@ public sealed class GameClient
     // Between one action and the next the world does not change, so the projection is built once and pure questions the screens
     // ask (Senate weights, law tables) are memoised (ReadCache). Every method here that changes the world calls Changing() first
     // and Settled() after; nothing else in the client may change it.
-    private CourtModel? _court; private AcademyModel? _academy; private bool _academyBuilt;
-    private void Changing() { ReadCache.Close(); _court = null; _academy = null; _academyBuilt = false; }
-    private void Settled() { _court = null; _academy = null; _academyBuilt = false; if (Turn != null) ReadCache.Open(); }
+    private CourtModel? _court; private AcademyModel? _academy; private bool _academyBuilt; private Goal? _goal; private bool _goalBuilt;
+    private void Changing() { ReadCache.Close(); _court = null; _academy = null; _academyBuilt = false; _goal = null; _goalBuilt = false; }
+    private void Settled() { _court = null; _academy = null; _academyBuilt = false; _goal = null; _goalBuilt = false; if (Turn != null) ReadCache.Open(); }
+    /// <summary>The goal under the top bar (docs/GOALS.md), built once for each state of the world.</summary>
+    public Goal? Goal()
+    {
+        if (Turn == null || Content == null) return null;
+        if (!_goalBuilt) { _goal = Goals.For(Turn, Content); _goalBuilt = true; }
+        return _goal;
+    }
 
     public CourtModel Court()
     {

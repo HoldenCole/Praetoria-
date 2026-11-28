@@ -325,6 +325,7 @@ public sealed class TurnController
         using (Perf.Time("end:family")) { _family.Tick(World); }          // kin with wills of their own (GDD §18) — RNG-free
         using (Perf.Time("end:disown")) { DisownSystem.Tick(World); }    // struck from the line, cast out, and the undutiful will (docs/HOUSEHOLD.md) — RNG-free
         using (Perf.Time("end:houses")) { HouseSystem.Tick(World); }      // names that have lost everything pass out of the rolls (GDD §13) — RNG-free
+        FallenHouse.Tick(World);   // the player's house has lost its last world: a report says so next year (docs/GOALS.md) — RNG-free
         EdictSystem.EndWithIssuers(World);   // an edict whose issuer has left the position this year (an election, a seat, the powers, a death) ends with it (docs/EDICTS.md); RNG-free
         LegitimacyBook.CloseYear(World);   // what moved each house's legitimacy this year is entered, and adds up (docs/TITLES.md) — RNG-free
 

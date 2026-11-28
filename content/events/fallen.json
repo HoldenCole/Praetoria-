@@ -1,0 +1,38 @@
+{
+  "//": "A house that loses its last world (docs/GOALS.md, \"A fallen house\"): said plainly, the year after, with the ways back the game already has. FallenHouse raises the flag at the year's end and marks it as news.",
+  "events": [
+    {
+      "id": "the_last_world_lost",
+      "tier": "setpiece",
+      "weight": 80,
+      "repeatable": true,
+      "when": [
+        { "type": "worldFlag", "flag": "the_last_world_lost", "value": true }
+      ],
+      "choices": [
+        {
+          "id": "swear_to_hold_land_again",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": 4 },
+            { "type": "adjustLegitimacy", "role": "self", "delta": 2 },
+            { "type": "log", "text": "{self.name} swore before the household that the house would hold land again, and the household believed it." }
+          ]
+        },
+        {
+          "id": "say_nothing_and_work",
+          "effects": [
+            { "type": "log", "text": "The house lost its last world and said nothing of it. Its head went back to work the next morning." }
+          ]
+        },
+        {
+          "id": "a_house_is_its_people",
+          "effects": [
+            { "type": "adjustStress", "role": "self", "delta": -4 },
+            { "type": "adjustLegitimacy", "role": "self", "delta": -3 },
+            { "type": "log", "text": "{self.name} told the household that a house is its people and not its worlds. Some of the Reach said so too, and more said otherwise." }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -140,6 +140,8 @@ else
             </main>
         }
         <AlertsRow Items="alerts" OnGo="Go" Year="@G.World!.Turn" MaxBadges="@(_screen == "galaxy" ? 10 : WideScreens.Contains(_screen) ? 4 : 6)" />
+        @* the goal under the top bar (docs/GOALS.md): on the map only, so it never sits under a docked window *@
+        @if (_screen == "galaxy") { <GoalPlate Goal="@G.Goal()" Year="@G.World!.Turn" OnGo="Go" /> }
         <Toasts Notes="Notes()" Paused="front" Hidden="@(_brief && G.World is { InAcademy: false, IsDynastyDead: false })" OnGo="Go" />
         <Outliner Model="m" OnOpenReport="OpenReport" OnGo="Go" Folded="@(_screen != "galaxy" || _narrow)" />
         @* the console (3.8): the map tools, the map modes as joined sockets, the legend; the minimap and its caption (the mode, and the

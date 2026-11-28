@@ -12,6 +12,10 @@ public sealed class World
 {
     public int Turn { get; set; }
 
+    /// <summary>The start this saga began from (a scenario's id, such as "the_new_man"), kept so a saved game knows it; "" in a
+    /// world saved before it was kept. The goal under the top bar reads it (docs/GOALS.md); nothing in the rules does.</summary>
+    public string Start { get; set; } = "";
+
     /// <summary>Serialised RNG position (BuildSpec §1.5). Restored into an IRng on load.</summary>
     public ulong RngState { get; set; }
     /// <summary>Set only inside a save made in the middle of a year: the year's reports as they stood, so that loading it opens the same

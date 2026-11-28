@@ -84,6 +84,13 @@ public static class WorldBuilder
         if (world.Protagonist == null)
             throw new ContentException($"Scenario protagonist '{scenario.ProtagonistId}' is not among its characters.");
 
+        // what the start began with, for the goal under the top bar (docs/GOALS.md): its id, and the rank and worlds of the player's house
+        world.Start = scenario.Id;
+        if (world.House(world.Protagonist.HouseId) is { } own)
+        {
+            world.WorldCounters[Presentation.Goals.StartRankKey] = Progression.Title.RankOf(own.Title);
+            world.WorldCounters[Presentation.Goals.StartWorldsKey] = Presentation.Goals.WorldsHeld(world, own.Id);
+        }
         Presentation.Palette.AssignHouses(world);   // one bright palette for every house (docs/ART_DIRECTION.md)
         if (scenario.Academy) Systems.AcademySystem.Enter(world);   // the run opens with the Academy year (docs/ACADEMY.md)
         Systems.LadderSystem.Seed(world);   // those of an age and rank to have climbed some of the ladder have climbed it (docs/LADDER.md)
