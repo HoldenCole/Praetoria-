@@ -250,10 +250,10 @@ async function theAcademy(browser) {
   await page.click('.ac [data-tab="lectures"]'); await page.waitForTimeout(600);
   const folded = await page.evaluate(() => { const l = document.querySelector('.ac-lesson.now'); if (!l) return null; const s = l.querySelector('[data-lecture-summary]').innerText; return { sentences: s.split(/(?<=\.)\s+/).length, full: !!l.querySelector('[data-lecture-full]') }; });
   check(folded && folded.sentences >= 2 && folded.sentences <= 3 && !folded.full, 'academy: this term\'s lecture is folded to ' + (folded ? folded.sentences : '?') + ' sentences');
-  await page.screenshot({ path: `${shots}/firststeps-academy-lecture.png` });
+  await page.mouse.move(1590, 990); await page.screenshot({ path: `${shots}/firststeps-academy-lecture.png` });
   await page.click('.ac-lesson.now [data-read-more]'); await page.waitForTimeout(500);
   check(await page.$('.ac-lesson.now [data-lecture-full]') !== null, 'academy: Read more gives the whole lecture');
-  await page.screenshot({ path: `${shots}/firststeps-academy-readmore.png` });
+  await page.mouse.move(1590, 990); await page.screenshot({ path: `${shots}/firststeps-academy-readmore.png` });
   for (let term = 1; term <= 4; term++) {
     await page.click('.ac [data-tab="term"]'); await page.waitForTimeout(400);
     // answer every report of the term with its first open answer
@@ -264,7 +264,7 @@ async function theAcademy(browser) {
     if (term > 1) {
       const card = await page.$('[data-term-report] ~ .ac-card, .ac-card[data-term-card]');
       check(card !== null, `academy: term ${term} opens on the report card of term ${term - 1}`);
-      if (term === 2) await page.screenshot({ path: `${shots}/firststeps-academy-report.png` });
+      if (term === 2) { await page.mouse.move(1590, 990); await page.waitForTimeout(300); await page.screenshot({ path: `${shots}/firststeps-academy-report.png` }); }
     }
     await page.click('.ac-end'); await page.waitForTimeout(1500);
     await page.evaluate(() => { const y = document.querySelector('.confirm-box [data-confirm="yes"]'); if (y) y.click(); }); await page.waitForTimeout(800);

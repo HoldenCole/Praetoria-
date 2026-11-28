@@ -147,6 +147,12 @@ was gone when the box closed, is the list: it points at it and lists its steps a
 
 **Rail labels** are on by themselves in a first game for its first three years (`labelYears`), unless the player has chosen in Options.
 
+Checked in a browser by `tools/browser/firststeps.js` (docs/WEB_CLIENT.md, "The first years"). Pictures, from its run, in
+`tools/browser/shots/`: `firststeps-list.jpg` (The Old Lion's list, the rail labelled), `firststeps-newman.jpg` (The New Man's coin step
+lit on the Exchange), `firststeps-showme.jpg` (Show me lighting a world's Build, the list folded to what is left),
+`firststeps-primer.jpg` (the primer pointing at the treasury), `firststeps-academy-lecture.jpg` (a lecture folded) and
+`firststeps-academy-report.jpg` (a term's report card).
+
 ## The handbook: the primer, the glossary, the lectures
 
 Built 2026-11-21 from the playthroughs (docs/PLAYTHROUGH.md, "A first game": N48, N80). The `?` in the top bar (and the
