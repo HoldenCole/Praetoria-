@@ -86,6 +86,26 @@ public class ProseTests
     }
 
     [Fact]
+    public void The_petition_and_the_first_morning_read_as_written_in_the_old_lions_house()
+    {
+        // the review's own cases: Corvin is Aurel's son and heir, not "kin, of your own blood", and he is he; the first morning names the cadet once
+        var root = ContentLocator.FindContentDir();
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(root, "the_old_lion"), 1);
+        var ctx = new EvalContext(w, new Binding(w.ProtagonistId).With("petitioner", "corvin_castellan"), TestContent.Rng(), Content);
+        string body = TextRenderer.Substitute(Content.Text("the_petition")!.Body, ctx);
+        Assert.StartsWith("Your son and heir, Corvin, comes before you", body);
+        Assert.Contains("He seeks your recognition of his claim to a legateship", body);
+        Assert.Contains("To raise him is to bind him and to arm him", body);
+        Assert.DoesNotContain("They", body); Assert.DoesNotContain("{", body);
+        Assert.Equal("Recognise the claim. Buy a loyalty; create a rival. Eyes open.", TextRenderer.Substitute(Content.Text("the_petition")!.Choices["recognize"], ctx));
+        var log = Content.Event("the_petition")!.Choice("recognize")!.Effects.OfType<LogEffect>().Single().Text;
+        Assert.Equal("Aurel Castellan recognised the claim of Corvin Castellan of House Castellan to a legateship of his own.", TextRenderer.Substitute(log, ctx).Split(" A title")[0]);
+        var morning = Content.Event("first_formation")!.Choice("measure_them")!.Effects.OfType<LogEffect>().Single().Text;
+        w.Protagonist!.Name = "Iria Solenne"; w.Protagonist.Sex = "female";
+        Assert.Equal("Iria Solenne said nothing on the first morning, and watched everyone. By noon, she knew who would break.", TextRenderer.Substitute(morning, ctx));
+    }
+
+    [Fact]
     public void The_given_name_is_the_first_word_of_the_name()
     {
         Assert.Equal("Iria", TextRenderer.First("Iria Solenne"));
