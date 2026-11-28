@@ -59,7 +59,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {kin.name} understand whose house had stood behind them. {kin.name} understood. The moment was a little smaller for it."
+              "text": "{self.name} let {kin.name} understand whose house had stood behind {kin.him}. {kin.first} understood. The moment was a little smaller for it."
             }
           ]
         },
@@ -74,7 +74,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked {kin.name} what came next. {kin.name} had not thought. It was plain they would start thinking soon."
+              "text": "{self.name} asked {kin.name} what came next. {kin.first} had not thought. It was plain {kin.he} would start thinking soon."
             }
           ]
         }
@@ -131,7 +131,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took {kin.name}'s part at last, and spent some credit doing it. It was late. {kin.name} took it all the same."
+              "text": "{self.name} took {kin.name}'s part at last, and spent some credit doing it. It was late. {kin.first} took it all the same."
             }
           ]
         },
@@ -146,7 +146,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} that it was time to want something that could be had. {kin.name} thanked {self.name} for the advice in a voice with nothing in it."
+              "text": "{self.name} told {kin.name} that it was time to want something that could be had. {kin.first} thanked {self.him} for the advice in a voice with nothing in it."
             }
           ]
         },
@@ -209,7 +209,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wished {kin.name} luck with it and asked to be shown the place when it was running. {kin.name} had hoped to be asked."
+              "text": "{self.name} wished {kin.name} luck with it and asked to be shown the place when it was running. {kin.first} had hoped to be asked."
             }
           ]
         },
@@ -229,7 +229,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had the steward go over {kin.name}'s arrangements. The steward found two things to put right. {kin.name} did not enjoy being found right about the rest."
+              "text": "{self.name} had the steward go over {kin.name}'s arrangements. The steward found two things to put right. {kin.first} did not enjoy being found right about the rest."
             }
           ]
         },
@@ -238,7 +238,7 @@
           "effects": [
             {
               "type": "log",
-              "text": "{self.name} left {kin.name} to it. It is {kin.name}'s to make work, or not."
+              "text": "{self.name} left {kin.name} to it. It is {kin.hers} to make work, or not."
             }
           ]
         }
@@ -383,7 +383,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let it be seen that {first.name} had the head of the house behind them. {second.name} saw it as clearly as anyone."
+              "text": "{self.name} let it be seen that {first.name} had the head of the house behind {first.him}. {second.name} saw it as clearly as anyone."
             }
           ]
         },
@@ -404,7 +404,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let it be seen that {second.name} had the head of the house behind them. {first.name} saw it as clearly as anyone."
+              "text": "{self.name} let it be seen that {second.name} had the head of the house behind {second.him}. {first.name} saw it as clearly as anyone."
             }
           ]
         },
@@ -512,7 +512,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} went and sat with {kin.name} for an evening and did not once say what should have been done differently. {kin.name} will not forget that."
+              "text": "{self.name} went and sat with {kin.name} for an evening and did not once say what should have been done differently. {kin.first} will not forget that."
             }
           ]
         },
@@ -537,7 +537,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} where it had been lost and why. It was accurate. It was also the last thing {kin.name} wanted to hear that week."
+              "text": "{self.name} told {kin.name} where it had been lost and why. It was accurate. It was also the last thing {kin.first} wanted to hear that week."
             }
           ]
         },

@@ -102,7 +102,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told the household what a rising board is: this year's hopes priced as if they were next year's earnings. Nobody thanked {self.name} for it."
+              "text": "{self.name} told the household what a rising board is: this year's hopes priced as if they were next year's earnings. Nobody thanked {self.him} for it."
             }
           ]
         },
@@ -198,7 +198,7 @@
             },
             {
               "type": "log",
-              "text": "Another house now held more than half of a company {self.name} had directed. {self.name} sent the new board the keys and a civil note. The shares the house still held would go on paying."
+              "text": "Another house now held more than half of a company {self.name} had directed. {self.He} sent the new board the keys and a civil note. The shares the house still held would go on paying."
             }
           ]
         },
@@ -280,7 +280,7 @@
           "effects": [
             {
               "type": "log",
-              "text": "A rival house now holds a tenth or more of a company {self.name} directs. It is on the public register. {self.name} had the register read aloud each quarter after that."
+              "text": "A rival house now holds a tenth or more of a company {self.name} directs. It is on the public register. {self.He} had the register read aloud each quarter after that."
             }
           ]
         },

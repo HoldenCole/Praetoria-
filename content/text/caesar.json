@@ -3,7 +3,7 @@
     {
       "id": "the_senates_triumph",
       "title": "The Triumph",
-      "body": "The Senate has voted it. For one day the capital belongs to {self.name}: the route is cleared, the crews are in their best, and the crowd along the way has been waiting since before light. How a general rides on this day is remembered longer than the battles were.",
+      "body": "The Senate has voted it. For one day the capital belongs to you: the route is cleared, the crews are in their best, and the crowd along the way has been waiting since before light. How a general rides on this day is remembered longer than the battles were.",
       "choices": {
         "ride_as_one_who_served": "Ride as one who served.",
         "give_the_city_a_day": "Give the city a day to remember.",
@@ -13,11 +13,11 @@
     {
       "id": "a_kinsmans_triumph",
       "title": "A Triumph in the House",
-      "body": "The Senate has voted a triumph to {kin.name}. It is {kin.name}'s victories it honours and {kin.name}'s name the crowd is shouting, and the crews who march behind know exactly whom they followed. The house is raised by it. The house's head is not the one being cheered.",
+      "body": "The Senate has voted a triumph to {kin.name}. It is {kin.his} victories it honours and {kin.his} name the crowd is shouting, and the crews who march behind know exactly whom they followed. The house is raised by it. The house's head is not the one being cheered.",
       "choices": {
         "walk_behind_them": "Walk in the procession, behind.",
         "remind_the_city_whose_house": "Remind the city whose house it is.",
-        "let_them_have_the_day": "Let them have the day."
+        "let_them_have_the_day": "Let {kin.him} have the day."
       }
     },
     {
@@ -33,7 +33,7 @@
     {
       "id": "the_recall",
       "title": "The Recall",
-      "body": "The order has come under the Senate's seal: {self.name} is to lay down the command and return to the capital to answer to the chamber. It gives a date. It does not say what the questions will be. The command is {self.name}'s until it is laid down, and the crews know it.",
+      "body": "The order has come under the Senate's seal: you are to lay down the command and return to the capital to answer to the chamber. It gives a date. It does not say what the questions will be. The command is yours until it is laid down, and the crews know it.",
       "choices": {
         "read_it_to_the_officers": "Read it to the officers.",
         "write_to_friends_in_the_capital": "Write to friends in the capital.",
@@ -43,17 +43,17 @@
     {
       "id": "a_kinsman_recalled",
       "title": "They Have Recalled One of Yours",
-      "body": "The Senate has ordered {kin.name} to lay down the command and come home. {kin.name} has sent the order on to the head of the house, with a short note that asks nothing and means a great deal. The crews are {kin.name}'s. The fleets are the house's. What the house does next is {self.name}'s to say.",
+      "body": "The Senate has ordered {kin.name} to lay down the command and come home. {kin.first} has sent the order on to the head of the house, with a short note that asks nothing and means a great deal. The crews are {kin.hers}. The fleets are the house's. What the house does next is yours to say.",
       "choices": {
         "counsel_obedience": "Counsel obedience.",
-        "say_the_house_is_behind_them": "Say the house is behind them.",
-        "say_it_is_theirs_to_weigh": "Say it is theirs to weigh."
+        "say_the_house_is_behind_them": "Say the house is behind {kin.him}.",
+        "say_it_is_theirs_to_weigh": "Say it is {kin.hers} to weigh."
       }
     },
     {
       "id": "the_line_is_crossed",
       "title": "The Line Is Crossed",
-      "body": "It is done. The fleet has left the station the law allowed it and is on the lanes to the capital, and by the Senate's own statute everyone aboard is now an enemy of the Reach. There is no order that can recall this. It ends on the capital's orbit with the Republic finished, or it ends with {self.name} dead.",
+      "body": "It is done. The fleet has left the station the law allowed it and is on the lanes to the capital, and by the Senate's own statute everyone aboard is now an enemy of the Reach. There is no order that can recall this. It ends on the capital's orbit with the Republic finished, or it ends with you dead.",
       "choices": {
         "speak_to_the_crews": "Speak to the crews.",
         "write_to_the_senate_once_more": "Write to the Senate once more.",
@@ -63,7 +63,7 @@
     {
       "id": "a_general_marches",
       "title": "A General Marches on the Capital",
-      "body": "A general has crossed the line with the fleets that follow him and is on the lanes to the capital. The Senate has named a house to carry its war. Every house in the Reach is being asked the same question this week, and silence is also an answer: for the general, for the Senate, or aside. It will be remembered either way.",
+      "body": "A general has crossed the line with the fleets that follow, and is on the lanes to the capital. The Senate has named a house to carry its war. Every house in the Reach is being asked the same question this week, and silence is also an answer: for the general, for the Senate, or aside. It will be remembered either way.",
       "choices": {
         "call_the_house_together": "Call the house together.",
         "put_the_fleets_in_order": "Put the fleets in order.",
@@ -73,7 +73,7 @@
     {
       "id": "the_republic_saved",
       "title": "The Republic Stands",
-      "body": "The march is over. The general who crossed the line is dead and the fleets that followed him are scattered or have come back to their oaths. {self.house} stood with the Senate when it was not certain the Senate would stand at all. The chamber is in session again, and remembers who did what.",
+      "body": "The march is over. The general who crossed the line is dead and the fleets that followed are scattered or have come back to their oaths. {self.house} stood with the Senate when it was not certain the Senate would stand at all. The chamber is in session again, and remembers who did what.",
       "choices": {
         "take_the_thanks": "Take the Senate's thanks.",
         "ask_what_it_is_worth": "Ask what it is worth.",
@@ -93,7 +93,7 @@
     {
       "id": "the_throne_is_yours",
       "title": "The Capital Is Yours",
-      "body": "The fleet holds the capital's orbit and there is nobody left to dispute it. The Senate is waiting in its chamber to be told what it is to be now. Everything the Republic was is in {self.name}'s hands this morning, and so is everyone who fought to keep it.",
+      "body": "The fleet holds the capital's orbit and there is nobody left to dispute it. The Senate is waiting in its chamber to be told what it is to be now. Everything the Republic was is in your hands this morning, and so is everyone who fought to keep it.",
       "choices": {
         "clemency": "Clemency, for everyone.",
         "settle_accounts": "Settle accounts.",
@@ -112,12 +112,12 @@
     },
     {
       "id": "the_crews_are_theirs",
-      "title": "The Crews Are Theirs",
-      "body": "It is said aboard the house's fleets, and now ashore as well, that the crews under {kin.name} would follow {kin.name} anywhere. They are paid by {self.house} and they sail under its colours. Asked whose they are, they give the commander's name.",
+      "title": "The Crews Are {kin.Hers}",
+      "body": "It is said aboard the house's fleets, and now ashore as well, that the crews under {kin.name} would follow {kin.him} anywhere. They are paid by {self.house} and they sail under its colours. Asked whose they are, they give the commander's name.",
       "choices": {
         "be_glad_of_it": "Be glad of it.",
         "keep_an_eye_on_it": "Keep an eye on it.",
-        "give_them_more_to_do": "Give them more to do."
+        "give_them_more_to_do": "Give {kin.him} more to do."
       }
     },
     {
@@ -133,9 +133,9 @@
     {
       "id": "a_name_on_every_lip",
       "title": "A Name on Every Lip",
-      "body": "{general.name} of {general.house} has won too often for it to be luck, has been voted a triumph, and is liked: by the crews, who would follow, and by people who have never met a general in their lives. The Reach has many good commanders. It very rarely has one of these. If the Republic were ever in real trouble, it is {general.name} they would send for, or {general.name} they would have to stop.",
+      "body": "{general.name} of {general.house} has won too often for it to be luck, has been voted a triumph, and is liked: by the crews, who would follow, and by people who have never met a general in their lives. The Reach has many good commanders. It very rarely has one of these. If the Republic were ever in real trouble, it is {general.first} they would send for, or {general.first} they would have to stop.",
       "choices": {
-        "make_a_friend_of_them": "Make a friend of them.",
+        "make_a_friend_of_them": "Make a friend of {general.him}.",
         "warn_the_senate": "Warn the Senate.",
         "watch_and_wait": "Watch, and wait."
       }

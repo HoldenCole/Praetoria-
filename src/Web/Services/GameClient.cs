@@ -266,7 +266,7 @@ public sealed class GameClient
             {
                 var changed = Praetoria.Core.Money.Changed(before, house.Treasury);
                 if (house.Legitimacy != legit) changed.Add("legitimacy " + (house.Legitimacy > legit ? "+" : "−") + Math.Abs(house.Legitimacy - legit));
-                if (me != null && me.Stress != stress) changed.Add("stress " + (me.Stress > stress ? "+" : "−") + Math.Abs(me.Stress - stress));
+                if (me != null && me.Stress != stress) changed.Add("strain " + (me.Stress > stress ? "+" : "−") + Math.Abs(me.Stress - stress));
                 if (changed.Count > 0) lines.Add(string.Join(" · ", changed));
             }
             lines.AddRange(World.History.Skip(told).Select(h => h.Text).Where(t => !string.IsNullOrWhiteSpace(t)).Distinct().Take(4));
@@ -290,7 +290,7 @@ public sealed class GameClient
         if (house != null && before != null) changed.AddRange(Praetoria.Core.Money.Changed(before, house.Treasury));
         if (pools != null) foreach (var (name, was, now) in new[] { ("influence this year", pi, pools.Influence), ("treasury this year", pt, pools.Treasury), ("agents this year", pa, pools.Agents) }) if (now != was) changed.Add((now > was ? "+" : "−") + Math.Abs(now - was) + " " + name);
         if (house != null && house.Legitimacy != legit) changed.Add("legitimacy " + (house.Legitimacy > legit ? "+" : "−") + Math.Abs(house.Legitimacy - legit));
-        if (me != null && me.Stress != stress) changed.Add("stress " + (me.Stress > stress ? "+" : "−") + Math.Abs(me.Stress - stress));
+        if (me != null && me.Stress != stress) changed.Add("strain " + (me.Stress > stress ? "+" : "−") + Math.Abs(me.Stress - stress));
         var lines = new List<string>(); if (changed.Count > 0) lines.Add(string.Join(" · ", changed));
         lines.AddRange(World.History.Skip(told).Select(h => h.Text).Where(t => !string.IsNullOrWhiteSpace(t)).Distinct().Take(4));
         Told = new Outcome(title, chose, lines.Count > 0 ? lines : new List<string> { "Nothing that can be counted changed by it. What it changed between people will show in time." });

@@ -32,7 +32,7 @@
     {
       "id": "the_board_changes_hands",
       "title": "The Board Changes Hands",
-      "body": "Another house now holds more than half the shares of a company {self.name} directed. The ventures answer to its board from today. The house keeps whatever shares it still holds, and their dividend.",
+      "body": "Another house now holds more than half the shares of a company you directed. The ventures answer to its board from today. The house keeps whatever shares it still holds, and their dividend.",
       "choices": {
         "concede_with_grace": "Send the keys and a civil note.",
         "call_it_theft": "Call it theft, in public."
@@ -41,7 +41,7 @@
     {
       "id": "a_company_taken",
       "title": "A Company Taken",
-      "body": "The house now holds more than half of a company another house founded. Its ventures are {self.name}'s to direct, its cash the board's to spend, and its founder a minority holder in what was theirs.",
+      "body": "The house now holds more than half of a company another house founded. Its ventures are yours to direct, its cash the board's to spend, and its founder a minority holder in what was theirs.",
       "choices": {
         "keep_its_people": "Keep its people. Change only the signature.",
         "put_in_your_own": "Put the house's own people on the board."
@@ -50,7 +50,7 @@
     {
       "id": "a_stake_in_your_company",
       "title": "A Name on the Register",
-      "body": "A rival house now holds a tenth or more of a company {self.name} directs. A stake that size is public. It may be an investment. It may be the first tenth of six.",
+      "body": "A rival house now holds a tenth or more of a company you direct. A stake that size is public. It may be an investment. It may be the first tenth of six.",
       "choices": {
         "watch_them": "Have the register read each quarter.",
         "ask_what_they_want": "Ask their factor to dinner."

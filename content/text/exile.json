@@ -4,7 +4,7 @@
     {
       "id": "the_road_abroad",
       "title": "The Road Abroad",
-      "body": "The charge will not be heard now. {self.name} has left the Reach before the verdict, with what was in their own purse and a few of the household, for a court that has agreed to take them in. The house is still theirs. Everything else is not, until the Senate says otherwise.",
+      "body": "The charge will not be heard now. You have left the Reach before the verdict, with what was in your own purse and a few of the household, for a court that has agreed to take you in. The house is still yours. Everything else is not, until the Senate says otherwise.",
       "choices": {
         "keep_the_house_by_letter": "Run the house by letter, every week.",
         "live_quietly": "Live quietly, and wait.",

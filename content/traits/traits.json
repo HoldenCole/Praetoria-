@@ -18,13 +18,13 @@
     },
     {
       "id": "Honorable",
-      "name": "Honorable",
-      "description": "Keeps oaths and the rules of the game; breaking one spikes stress."
+      "name": "Honourable",
+      "description": "Keeps oaths and the rules of the game; breaking one brings strain."
     },
     {
       "id": "Just",
       "name": "Just",
-      "description": "Weighs fairness over advantage; pays stress to do right when wrong would be easier."
+      "description": "Weighs fairness over advantage; bears strain to do right when wrong would be easier."
     },
     {
       "id": "Loyal",
@@ -34,7 +34,7 @@
     {
       "id": "Proud",
       "name": "Proud",
-      "description": "Will not be slighted; defends standing even at cost; struggles to yield or apologize."
+      "description": "Will not be slighted; defends standing even at cost; struggles to yield or apologise."
     },
     {
       "id": "Ruthless",
@@ -128,7 +128,7 @@
     {
       "id": "outshine_all_rivals",
       "name": "Outshine All Rivals",
-      "description": "Being recognized as the best, relative to peers."
+      "description": "Being recognised as the best, relative to peers."
     },
     {
       "id": "restore_house_fortunes",

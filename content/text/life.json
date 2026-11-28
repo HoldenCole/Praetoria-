@@ -3,7 +3,7 @@
     {
       "id": "the_wound",
       "title": "The Wound",
-      "body": "It will heal, the physicians say, and it will always show. {self.name} has looked at it in the glass. A person is not quite the same afterwards: slower on one side, and aware for the first time of having a body that can be broken.",
+      "body": "It will heal, the physicians say, and it will always show. You have looked at it in the glass. A person is not quite the same afterwards: slower on one side, and aware for the first time of having a body that can be broken.",
       "choices": {
         "carry_on_as_before": "Carry on as before, and be seen to.",
         "take_the_time_it_needs": "Take the time it needs.",
@@ -13,7 +13,7 @@
     {
       "id": "the_physicians_verdict",
       "title": "The Physicians' Verdict",
-      "body": "They are careful how they put it. {self.name} is not dying, they say; {self.name} is simply not going to get better. The strength that was there last year is not coming back. There is time. It would be wise to use it.",
+      "body": "They are careful how they put it. You are not dying, they say; you are simply not going to get better. The strength that was there last year is not coming back. There is time. It would be wise to use it.",
       "choices": {
         "put_the_house_in_order": "Put the house in order.",
         "tell_no_one": "Tell no one.",
@@ -23,17 +23,17 @@
     {
       "id": "an_old_friend",
       "title": "An Old Friend",
-      "body": "{friend.name} of {friend.house} is in the city and has sent word, the way {friend.name} always does: no title, no business, a time and a place. They have known each other longer than either has held any office. There are not many people {self.name} can say that of.",
+      "body": "{friend.name} of {friend.house} is in the city and has sent word, the way {friend.he} always does: no title, no business, a time and a place. You have known each other longer than either of you has held any office. There are not many people you can say that of.",
       "choices": {
         "an_evening_of_it": "Make an evening of it.",
-        "ask_what_they_hear": "Ask what they are hearing.",
+        "ask_what_they_hear": "Ask what {friend.he} is hearing.",
         "ask_a_favour": "Ask a favour."
       }
     },
     {
       "id": "a_friend_is_buried",
       "title": "A Friend Is Buried",
-      "body": "The news came by an ordinary messenger on an ordinary day. They had been friends for longer than {self.name} has been most of the things {self.name} is. The house goes on around {self.name} as if nothing had happened.",
+      "body": "The news came by an ordinary messenger on an ordinary day. You had been friends for longer than you have been most of the things you are. The house goes on around you as if nothing had happened.",
       "choices": {
         "speak_at_the_grave": "Speak at the grave.",
         "go_and_say_nothing": "Go, and say nothing.",
@@ -43,7 +43,7 @@
     {
       "id": "the_enemy_is_dead",
       "title": "The Enemy Is Dead",
-      "body": "For years there was someone whose first thought on hearing {self.name}'s name was how to do {self.name} harm. That person is dead, of nothing {self.name} did. A part of how {self.name} has arranged a life was arranged against them.",
+      "body": "For years there was someone whose first thought on hearing your name was how to do you harm. That person is dead, of nothing you did. A part of how you have arranged a life was arranged against them.",
       "choices": {
         "feel_nothing": "Feel nothing, and go on.",
         "send_a_wreath": "Send a wreath.",
@@ -63,11 +63,11 @@
     {
       "id": "the_elder_at_the_table",
       "title": "The Elder at the Table",
-      "body": "{elder.name} laid the house down and has not quite laid it down. At dinner {elder.name} has an opinion on the matter before {self.name}, and the household has turned to hear it before {self.name} has spoken. {elder.name} ran this house for a long time.",
+      "body": "{elder.Rel}, {elder.first}, laid the house down and has not quite laid it down. At dinner {elder.he} has an opinion on the matter before you, and the household has turned to hear it before you have spoken. {elder.first} ran this house for a long time.",
       "choices": {
-        "ask_their_counsel": "Ask their counsel.",
+        "ask_their_counsel": "Ask {elder.his} counsel.",
         "decide_it_yourself": "Decide it yourself.",
-        "let_them_tell_it_their_way": "Let them tell it their way."
+        "let_them_tell_it_their_way": "Let {elder.him} tell it {elder.his} way."
       }
     },
     {

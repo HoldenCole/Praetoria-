@@ -45,7 +45,7 @@ public class ChoiceStakeItemsTests
         Assert.Contains(other.Name + " thinks better of you", rg.Words);
         // the words of the string say the same things
         string said = ChoiceStakes.Of(choice, ectx, me);
-        Assert.Contains("−600 credits", said); Assert.Contains("stress +10", said); Assert.Contains("a step up in the service", said);
+        Assert.Contains("−600 credits", said); Assert.Contains("strain +10", said); Assert.Contains("a step up in the service", said);
     }
 
     [Fact]

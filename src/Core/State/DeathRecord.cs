@@ -15,7 +15,7 @@ public sealed class DeathRecord
     public string PersonId { get; set; } = "";
     public string Name { get; set; } = "";
     public int Age { get; set; }
-    /// <summary>How they died, in a few words: "in battle at Cinder Gate", "by a knife", "of age". Empty where nothing is known.</summary>
+    /// <summary>How they died, in a few words: "in battle at Cinder Gate", "by a knife", "of old age". Empty where nothing is known: a death by an event's hand says nothing of age.</summary>
     public string How { get; set; } = "";
     /// <summary>They stood first in the line to the head when they died (the year's moments say "your heir is dead").</summary>
     public bool Heir { get; set; }

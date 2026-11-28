@@ -30,6 +30,10 @@ public static class ProfileProjection
 {
     public const int DeedsShown = 6, SkillsShown = 6;
 
+    /// <summary>A trait as the player reads it: its name in /content/traits ("Honourable"), not its locked id ("Honorable").</summary>
+    public static string TraitName(ContentDatabase content, string id) =>
+        content.Traits.Nature.Concat(content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Name ?? id;
+
     /// <summary>A word for a regard, from hatred to devotion.</summary>
     public static string RegardWord(int d) => d >= 60 ? "devoted" : d >= 30 ? "a friend" : d >= 10 ? "well disposed" : d > -10 ? "indifferent" : d > -30 ? "cool" : d > -60 ? "hostile" : "an enemy";
 
@@ -81,8 +85,8 @@ public static class ProfileProjection
             yours = new ProfileRegard(fromMe?.Disposition ?? 0, RegardWord(fromMe?.Disposition ?? 0), Bond(fromMe), Array.Empty<string>());
         }
 
-        var nature = c.NatureTraits.OrderBy(t => t, StringComparer.Ordinal).Select(t => new ProfileTrait(t, content.Traits.Nature.FirstOrDefault(d => d.Id == t || d.Name == t)?.Description ?? "")).ToList();
-        var aptitude = c.AptitudeTraits.OrderBy(t => t, StringComparer.Ordinal).Select(t => new ProfileTrait(t, content.Traits.Aptitude.FirstOrDefault(d => d.Id == t || d.Name == t)?.Description ?? "")).ToList();
+        var nature = c.NatureTraits.OrderBy(t => t, StringComparer.Ordinal).Select(t => new ProfileTrait(TraitName(content, t), content.Traits.Nature.FirstOrDefault(d => d.Id == t || d.Name == t)?.Description ?? "")).ToList();
+        var aptitude = c.AptitudeTraits.OrderBy(t => t, StringComparer.Ordinal).Select(t => new ProfileTrait(TraitName(content, t), content.Traits.Aptitude.FirstOrDefault(d => d.Id == t || d.Name == t)?.Description ?? "")).ToList();
         var marks = new List<string>();   // what a life has left on them, and what state they are in
         if (c.Life is { Wounds: > 0 } life) marks.Add(life.Wounds == 1 ? "wounded once" : $"wounded {life.Wounds} times");
         if (c.Stress >= 70) marks.Add("under great strain"); else if (c.Stress >= 40) marks.Add("strained");

@@ -223,7 +223,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put the captains' names in the dispatch before their own. The wardroom will follow {self.name} anywhere now."
+              "text": "{self.name} put the captains' names in the dispatch before {self.his} own. The wardroom will follow {self.him} anywhere now."
             }
           ]
         },
@@ -1096,7 +1096,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} spent the season with the fleet and let the Senate wonder. The wardroom would follow {self.name} anywhere; the chamber knows it."
+              "text": "{self.name} spent the season with the fleet and let the Senate wonder. The wardroom would follow {self.him} anywhere; the chamber knows it."
             }
           ]
         },
@@ -1110,7 +1110,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} stayed above the talk of swords and chambers. The talk went on without {self.name}, which is not the same as stopping."
+              "text": "{self.name} stayed above the talk of swords and chambers. The talk went on without {self.him}, which is not the same as stopping."
             }
           ]
         }

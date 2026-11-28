@@ -18,7 +18,7 @@ internal static class Commands
     public static int Validate()
     {
         var content = LoadContent();
-        var issues = ContentValidator.Validate(content);
+        var issues = ContentValidator.Validate(content).Concat(ContentValidator.ValidateFiles(ContentLocator.FindContentDir())).ToList();
 
         int errors = issues.Count(i => i.Severity == "error");
         foreach (var issue in issues) Console.WriteLine(issue);

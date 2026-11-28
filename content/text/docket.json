@@ -4,7 +4,7 @@
     {
       "id": "your_suit_is_upheld",
       "title": "Your Suit Is Upheld",
-      "body": "The praetor has found for the house in the suit {self.name} brought, and {defendant.name}'s house has paid what the court set. Nobody made {self.name} go to law. The Reach has seen that the choice was sound, and it has seen who was made to pay.",
+      "body": "The praetor has found for the house in the suit you brought, and {defendant.name}'s house has paid what the court set. Nobody made you go to law. The Reach has seen that the choice was sound, and it has seen who was made to pay.",
       "choices": {
         "take_what_the_court_gave": "Take what the court gave, and say no more.",
         "send_part_of_it_back": "Send 300 credits of it back, with a civil letter.",
@@ -14,21 +14,21 @@
     {
       "id": "your_suit_is_thrown_out",
       "title": "Your Suit Is Thrown Out",
-      "body": "The praetor has found against the house in the suit {self.name} brought, and the house has paid {defendant.name}'s house what turned on it, besides the fee. A house that is sued and loses is unlucky. A house that sues and loses chose it, and the benches are waiting to see how {self.name} takes it.",
+      "body": "The praetor has found against the house in the suit you brought, and the house has paid {defendant.name}'s house what turned on it, besides the fee. A house that is sued and loses is unlucky. A house that sues and loses chose it, and the benches are waiting to see how you take it.",
       "choices": {
         "pay_and_let_it_lie": "Pay, and let it lie.",
-        "go_and_say_it_is_ended": "Call on them, and say it is ended.",
+        "go_and_say_it_is_ended": "Call on {defendant.him}, and say it is ended.",
         "say_it_will_be_brought_again": "Say there will be other years, and other benches."
       }
     },
     {
       "id": "a_charge_admitted",
       "title": "A Charge Admitted",
-      "body": "The charge against {admitted.name} will not be heard. {self.name} admitted it for the house and paid the fine, and the accuser has nothing left to bring. {admitted.name} was not asked whether they would rather have stood in court and answered it, and has not said.",
+      "body": "The charge against {admitted.name} will not be heard. You admitted it for the house and paid the fine, and the accuser has nothing left to bring. {admitted.first} was not asked whether {admitted.he} would rather have stood in court and answered it, and has not said.",
       "choices": {
-        "stand_beside_them": "Walk into the Senate beside them.",
-        "let_them_carry_it": "The house has paid. The rest is theirs to carry.",
-        "tell_them_what_it_cost": "Tell them, in private, what it cost."
+        "stand_beside_them": "Walk into the Senate beside {admitted.him}.",
+        "let_them_carry_it": "The house has paid. The rest is {admitted.hers} to carry.",
+        "tell_them_what_it_cost": "Tell {admitted.him}, in private, what it cost."
       }
     }
   ]

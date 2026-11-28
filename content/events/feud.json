@@ -83,7 +83,7 @@
             },
             {
               "type": "log",
-              "text": "The house waited for {self.name} to say what would be done about {blamed.name} of {blamed.house}. {self.name} said nothing, and the house drew its own conclusions."
+              "text": "The house waited for {self.name} to say what would be done about {blamed.name} of {blamed.house}. {self.He} said nothing, and the house drew its own conclusions."
             }
           ]
         }
@@ -193,7 +193,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {asker.name} of {asker.house} that the price would be paid. To pay is to say whose doing it was. {self.name} said it."
+              "text": "{self.name} told {asker.name} of {asker.house} that the price would be paid. To pay is to say whose doing it was. {self.He} said it."
             }
           ]
         },
@@ -347,7 +347,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not answer {challenger.name} of {challenger.house}. It will be said that {self.name} would not come, because it is true."
+              "text": "{self.name} did not answer {challenger.name} of {challenger.house}. It will be said that {self.he} would not come, because it is true."
             }
           ]
         }
@@ -402,7 +402,7 @@
             },
             {
               "type": "log",
-              "text": "{kin.name} asked {self.name}, not for the first time, what was being done about the dead. {self.name} promised it would be answered. That is now a second debt."
+              "text": "{kin.name} asked {self.name}, not for the first time, what was being done about the dead. {self.He} promised it would be answered. That is now a second debt."
             }
           ]
         },
@@ -422,7 +422,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} that houses which answer every death end with nobody left to answer for them. {kin.name} did not think that was the point."
+              "text": "{self.name} told {kin.name} that houses which answer every death end with nobody left to answer for them. {kin.first} did not think that was the point."
             }
           ]
         }

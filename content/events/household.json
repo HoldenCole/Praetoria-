@@ -50,7 +50,7 @@
             },
             {
               "type": "log",
-              "text": "The regent, {regent.name}, spoke for the house this season, and the house let them. A child who learns to be advised well will one day be advised badly and know the difference."
+              "text": "The regent, {regent.name}, spoke for the house this season, and the house let {regent.him}. A child who learns to be advised well will one day be advised badly and know the difference."
             }
           ]
         },
@@ -191,7 +191,7 @@
             },
             {
               "type": "log",
-              "text": "{heir.name} came of age and {self.name} sent them to the Academy, as the house's heirs have always gone, to be broken and remade among the children of rivals."
+              "text": "{heir.name} came of age and {self.name} sent {heir.him} to the Academy, as the house's heirs have always gone, to be broken and remade among the children of rivals."
             }
           ]
         },
@@ -256,7 +256,7 @@
             },
             {
               "type": "log",
-              "text": "{heir.name} came of age and {self.name} gave them a ship. The household called it early. {heir.name} did not."
+              "text": "{heir.name} came of age and {self.name} gave {heir.him} a ship. The household called it early. {heir.first} did not."
             }
           ]
         }
@@ -311,7 +311,7 @@
             },
             {
               "type": "log",
-              "text": "{grandee.name} of {grandee.house} let a remark fall about {self.name}'s grandparents. {self.name} let it lie and worked, which the old blood never learns to answer."
+              "text": "{grandee.name} of {grandee.house} let a remark fall about {self.name}'s grandparents. {self.first} let it lie and worked, which the old blood never learns to answer."
             }
           ]
         },
@@ -446,7 +446,7 @@
             },
             {
               "type": "log",
-              "text": "Someone had reached for {self.name}'s blood and missed. {self.name} sent the children away that week, to cousins, to fosterage, to names that were not the house's, and slept no better for it."
+              "text": "Someone had reached for {self.name}'s blood and missed. {self.He} sent the children away that week, to cousins, to fosterage, to names that were not the house's, and slept no better for it."
             }
           ]
         },
@@ -549,7 +549,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said nothing in public about the attempt. In private, {self.name} began to arrange {plotter.name}'s."
+              "text": "{self.name} said nothing in public about the attempt. In private, {self.he} began to arrange {plotter.name}'s."
             }
           ]
         }
@@ -872,7 +872,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} struck {traitor.name}'s name from the rolls of the house. The claim they carried away did not care."
+              "text": "{self.name} struck {traitor.name}'s name from the rolls of the house. The claim {traitor.he} carried away did not care."
             }
           ]
         },

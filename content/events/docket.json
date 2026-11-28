@@ -264,7 +264,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} walked into the Senate beside {admitted.name} on the day the fine was paid, and sat by them. Some thought the worse of the house for it. {admitted.name} did not forget who had been there."
+              "text": "{self.name} walked into the Senate beside {admitted.name} on the day the fine was paid, and sat by {admitted.him}. Some thought the worse of the house for it. {admitted.first} did not forget who had been there."
             }
           ]
         },
@@ -284,7 +284,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid the fine and let {admitted.name} carry the rest alone. The house had answered for it in money. The name on the record was theirs."
+              "text": "{self.name} paid the fine and let {admitted.name} carry the rest alone. The house had answered for it in money. The name on the record was {admitted.hers}."
             }
           ]
         },
@@ -309,7 +309,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {admitted.name}, in private and at some length, what the house had paid and why. {admitted.name} listened. There was not much to say back."
+              "text": "{self.name} told {admitted.name}, in private and at some length, what the house had paid and why. {admitted.first} listened. There was not much to say back."
             }
           ]
         }

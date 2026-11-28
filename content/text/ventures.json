@@ -33,7 +33,7 @@
     {
       "id": "buyout_offer",
       "title": "An Offer for Shares",
-      "body": "An envoy who will not name his principals offers a sum in good credits for a third of the house's ventures. The sum is generous. The terms are vague in the way that only expensive lawyers can make them. {self.name} has until the envoy's ship leaves orbit to decide whether the house sells.",
+      "body": "An envoy who will not name any principals offers a sum in good credits for a third of the house's ventures. The sum is generous. The terms are vague in the way that only expensive lawyers can make them. You have until the envoy's ship leaves orbit to decide whether the house sells.",
       "choices": {
         "take_the_shares": "Take the coin. Read the conditions later.",
         "refuse": "Send the envoy away. The house is not for sale."

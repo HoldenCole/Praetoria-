@@ -11,7 +11,7 @@
       ] },
     { "id": "garrison", "name": "The garrison", "cost": 1, "cooldown": 4,
       "description": "Whether soldiers of the house are kept on this world, and who rules it. Troops billeted on the households keep the peace and are hated for it; under martial rule the commander's word is the law, the squares are quiet and the markets are empty.",
-      "model": "The Quartering Acts of 1765 and 1774 billeted the king's troops on the American colonies; the rule of the Major-Generals, 1655 to 1657, put the counties of England under soldiers.",
+      "model": "The Quartering Acts of 1765 and 1774 billeted the king's troops on the American colonies; the rule of the Major-Generals, 1655 to 1657, put the shires of England under soldiers.",
       "options": [
         { "id": "none", "name": "No garrison", "short": "no garrison", "default": true },
         { "id": "quartered", "name": "A garrison quartered", "short": "a garrison", "effects": { "unrest_drift": -2, "manpower_per_world": -1, "prosperity_drift": -1 }, "opinions": { "officers": 5, "commons": -10 } },

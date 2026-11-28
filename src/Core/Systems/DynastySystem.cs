@@ -269,7 +269,7 @@ public sealed class DynastySystem
             double chance = c.Age >= MortalityAge ? DeathProbability(c.Age) * LifeSystem.DeathFactor(c) : LifeSystem.EarlyDeath(c);
             if (chance <= 0) continue;   // young and well ⇒ no roll, no RNG
             if (rng.NextDouble() < chance)
-                Die(world, id, c.Age >= MortalityAge ? "of age" : c.Sex == "female" ? "of what ailed her" : c.Sex == "male" ? "of what ailed him" : "of what ailed them");
+                Die(world, id, c.Age >= MortalityAge ? "of old age" : c.Sex == "female" ? "of what ailed her" : c.Sex == "male" ? "of what ailed him" : "of what ailed them");
         }
     }
 
@@ -429,7 +429,7 @@ public sealed class DynastySystem
         if (world.Protagonist is { } mine && c.HouseId == mine.HouseId && c.Id != mine.Id)
         {
             /* the death as a report: what it left empty, each with the place it is filled, and what they had and whose it is now */
-            var rec = new DeathRecord { Turn = world.Turn, PersonId = c.Id, Name = c.Name, Age = c.Age, How = how.Length > 0 ? how : c.Age >= 60 ? "of age" : "", Heir = heir };
+            var rec = new DeathRecord { Turn = world.Turn, PersonId = c.Id, Name = c.Name, Age = c.Age, How = how, Heir = heir };   // an unknown cause stays unsaid (a death by an event's hand is not "of old age")
             foreach (var h in world.Holdings.Values.Where(h => h.GovernorId == c.Id).OrderBy(h => h.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the governing of " + h.Name, Target = "galaxy:" + h.SystemId });
             foreach (var f in world.Fleets.Values.Where(f => f.AdmiralId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the command of " + f.Name, Target = "military:deck" });
             foreach (var f in world.Fleets.Values.Where(f => f.CaptainId == c.Id).OrderBy(f => f.Id, StringComparer.Ordinal)) rec.Posts.Add(new DeathPost { What = "the captaincy of " + f.Name, Target = "military:deck" });

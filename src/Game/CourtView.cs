@@ -104,7 +104,7 @@ public partial class CourtView : HBoxContainer
         if (m.Character.Aptitude.Count > 0) v.AddChild(CourtTheme.Body($"Aptitude: {string.Join(", ", m.Character.Aptitude)}", ink, 13));
         v.AddChild(CourtTheme.Body($"Ambition: {m.Character.AmbitionName}", ink, 13));
         if (m.Character.Background != null) v.AddChild(CourtTheme.Muted($"Origin: {m.Character.Background}", era, 12));
-        v.AddChild(CourtTheme.Body($"Stress {m.Character.Stress}/100{(m.Character.Broken ? "  — BROKEN" : "")}", m.Character.Stress >= 70 || m.Character.Broken ? CourtTheme.Danger : ink, 13));
+        v.AddChild(CourtTheme.Body($"Strain {m.Character.Stress}/100{(m.Character.Broken ? "  — BROKEN" : "")}", m.Character.Stress >= 70 || m.Character.Broken ? CourtTheme.Danger : ink, 13));
         if (m.Character.Regency) v.AddChild(CourtTheme.Body("A regent rules in the heir's name.", CourtTheme.Danger, 13));
 
         _left.AddChild(Panel(era, true, out var pv));

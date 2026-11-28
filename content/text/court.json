@@ -47,7 +47,7 @@
       "body": "The duel master has had {pupil.name} in the yard at first light every day for a year, and says there is something there now: not a duellist, perhaps, but somebody who will not die of surprise.",
       "choices": {
         "praise_them": "Watch a morning's drill, and say it was well done.",
-        "ask_for_more": "Tell the duel master they are being let off lightly.",
+        "ask_for_more": "Tell the duel master {pupil.he} is being let off lightly.",
         "leave_them_to_it": "Stay away from the yard."
       }
     },

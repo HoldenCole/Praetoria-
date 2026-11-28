@@ -227,7 +227,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} joined {friend.name}'s study circle and was running it within a fortnight. {friend.name} of {friend.house} did not seem to mind."
+              "text": "{self.name} joined {friend.name}'s study circle and was running it within a fortnight. {friend.first} did not seem to mind."
             }
           ]
         },
@@ -696,7 +696,7 @@
             },
             {
               "type": "log",
-              "text": "Someone had moved every stick of furniture in {target.name}'s study onto the chapel roof, arranged exactly as it had been. {self.name} carried the desk. {target.name} of {target.house} was not amused until the following term."
+              "text": "Someone had moved every stick of furniture in {target.name}'s study onto the chapel roof, arranged exactly as it had been. {self.name} carried the desk. {target.first} was not amused until the following term."
             }
           ]
         },
@@ -717,7 +717,7 @@
             },
             {
               "type": "log",
-              "text": "The plan was {target.name}'s furniture and the chapel roof. {self.name} talked the others out of it, and never told {target.name} of {target.house}, who found out anyway."
+              "text": "The plan was {target.name}'s furniture and the chapel roof. {self.name} talked the others out of it, and never told {target.first}, who found out anyway."
             }
           ]
         },
@@ -784,7 +784,7 @@
             },
             {
               "type": "log",
-              "text": "The senior tutor offered {self.name} an hour a week on the tactical table. {self.name} took it, and lost every game until the last three."
+              "text": "The senior tutor offered {self.name} an hour a week on the tactical table. {self.He} took it, and lost every game until the last three."
             }
           ]
         },
@@ -804,7 +804,7 @@
             },
             {
               "type": "log",
-              "text": "The senior tutor offered {self.name} an hour a week on the Senate's Acts. {self.name} took it, and began to read the docket for pleasure."
+              "text": "The senior tutor offered {self.name} an hour a week on the Senate's Acts. {self.He} took it, and began to read the docket for pleasure."
             }
           ]
         },
@@ -824,7 +824,7 @@
             },
             {
               "type": "log",
-              "text": "The senior tutor offered {self.name} an hour a week on the exchange. {self.name} took it, and stopped being surprised by prices."
+              "text": "The senior tutor offered {self.name} an hour a week on the exchange. {self.He} took it, and stopped being surprised by prices."
             }
           ]
         },
@@ -995,7 +995,7 @@
             },
             {
               "type": "log",
-              "text": "The war game: two fleets of counters on the great table and the whole year watching. {self.name} took the van, pressed {rival.name}'s line where it bent, and broke it. Nobody was hurt but {rival.name}'s marks."
+              "text": "The war game: two fleets of counters on the great table and the whole year watching. {self.name} took the van, pressed {rival.name}'s line where it bent, and broke it. Nobody was hurt but {rival.first}'s marks."
             }
           ]
         },
@@ -1054,7 +1054,7 @@
             },
             {
               "type": "log",
-              "text": "The war game turned on a ruling. The umpire gave it against {self.name}, wrongly, and {self.name} accepted it and played on. {rival.name} of {rival.house} said afterward that it had been wrong."
+              "text": "The war game turned on a ruling. The umpire gave it against {self.name}, wrongly, and {self.he} accepted it and played on. {rival.name} of {rival.house} said afterwards that it had been wrong."
             }
           ]
         }
@@ -1103,7 +1103,7 @@
             },
             {
               "type": "log",
-              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes a week before the papers. {self.name} handed them over and did not ask for them back until after."
+              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes a week before the papers. {self.first} handed them over and did not ask for them back until after."
             }
           ]
         },
@@ -1134,7 +1134,7 @@
             },
             {
               "type": "log",
-              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes. {self.name} said: come at eight, bring coffee. They went through all of it twice."
+              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes. {self.first} said: come at eight, bring coffee. They went through all of it twice."
             }
           ]
         },
@@ -1149,7 +1149,7 @@
             },
             {
               "type": "log",
-              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes a week before the papers. {self.name} said no. It was a fair answer and it cost what fair answers cost."
+              "text": "{friend.name} of {friend.house} asked for {self.name}'s notes a week before the papers. {self.first} said no. It was a fair answer and it cost what fair answers cost."
             }
           ]
         }
@@ -1308,7 +1308,7 @@
             },
             {
               "type": "log",
-              "text": "On the last evening {rival.name} of {rival.house} crossed the hall. {self.name} nodded, and {rival.name} nodded back, and that was understood by both to be a good deal."
+              "text": "On the last evening {rival.name} of {rival.house} crossed the hall. {self.name} nodded, and {rival.first} nodded back, and that was understood by both to be a good deal."
             }
           ]
         },

@@ -44,7 +44,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had {debtor.name} in and went through the figures one by one. It was an unpleasant hour. {debtor.name} came out of it chastened, and a little more careful."
+              "text": "{self.name} had {debtor.name} in and went through the figures one by one. It was an unpleasant hour. {debtor.first} came out of it chastened, and a little more careful."
             }
           ]
         },
@@ -79,7 +79,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that {debtor.name} was grown and the debt was {debtor.name}'s own. Which was true, for as long as the creditors agreed."
+              "text": "{self.name} said that {debtor.name} was grown and the debt was {debtor.his} own. Which was true, for as long as the creditors agreed."
             }
           ]
         }
@@ -122,7 +122,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} thanked {giver.name} at the family's table, by name and by sum. {giver.name} went red and was pleased for a month."
+              "text": "{self.name} thanked {giver.name} at the family's table, by name and by sum. {giver.first} went red and was pleased for a month."
             }
           ]
         },
@@ -150,7 +150,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wrote the sum down as a debt of the house to {giver.name}, to be repaid. {giver.name} said there was no need. {self.name} said there was."
+              "text": "{self.name} wrote the sum down as a debt of the house to {giver.name}, to be repaid. {giver.first} said there was no need. {self.first} said there was."
             }
           ]
         },
@@ -216,7 +216,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} the house could not afford more, and showed the ledger. {kin.name} looked at what {self.name} was wearing and said nothing."
+              "text": "{self.name} told {kin.name} the house could not afford more, and showed the ledger. {kin.first} looked at what {self.first} was wearing and said nothing."
             }
           ]
         },
@@ -244,7 +244,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave {kin.name} something on the spot and said the allowance would be looked at. {kin.name} did not believe the second part but was glad of the first."
+              "text": "{self.name} gave {kin.name} something on the spot and said the allowance would be looked at. {kin.first} did not believe the second part but was glad of the first."
             }
           ]
         },
@@ -312,7 +312,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that the dead had the right to do as they pleased with their own, and that {legatee.name} was welcome to it. It cost {self.name} something to say."
+              "text": "{self.name} said that the dead had the right to do as they pleased with their own, and that {legatee.name} was welcome to it. It cost {self.him} something to say."
             }
           ]
         },
@@ -332,7 +332,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put it to {legatee.name} that a house's money belonged with the house. {legatee.name} handed some of it over, and the rest of their goodwill with it."
+              "text": "{self.name} put it to {legatee.name} that a house's money belonged with the house. {legatee.first} handed some of it over, and the rest of {legatee.his} goodwill with it."
             }
           ]
         },
@@ -346,7 +346,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said nothing at the reading. {self.name} has a long memory."
+              "text": "{self.name} said nothing at the reading. {self.He} has a long memory."
             }
           ]
         }
@@ -472,7 +472,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} the debt was done with and was not to be mentioned again. {kin.name} did not mention it. Something eased."
+              "text": "{self.name} told {kin.name} the debt was done with and was not to be mentioned again. {kin.first} did not mention it. Something eased."
             }
           ]
         },
@@ -492,7 +492,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said, without heat, that the money was still owed and that {self.name} had not forgotten. {kin.name} said they had not forgotten either."
+              "text": "{self.name} said, without heat, that the money was still owed and that {self.he} had not forgotten. {kin.name} said {kin.he} had not forgotten either."
             }
           ]
         },
@@ -562,7 +562,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} named a day by which it would be paid, in front of {kin.name} and one other. Having said it aloud, {self.name} will have to do it."
+              "text": "{self.name} named a day by which it would be paid, in front of {kin.name} and one other. Having said it aloud, {self.he} will have to do it."
             }
           ]
         },
@@ -577,7 +577,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that the money had gone where all of the house's money goes, and that {kin.name} had eaten at the table it paid for. {kin.name} did not argue. They will not lend again."
+              "text": "{self.name} said that the money had gone where all of the house's money goes, and that {kin.name} had eaten at the table it paid for. {kin.first} did not argue. {kin.He} will not lend again."
             }
           ]
         },
@@ -592,7 +592,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} waited for {kin.name} to raise it. {kin.name} did not, which is not the same as having forgotten."
+              "text": "{self.name} waited for {kin.name} to raise it. {kin.He} did not, which is not the same as having forgotten."
             }
           ]
         }
@@ -734,7 +734,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that the head of a house binds and unbinds what is the house's, and that there was nothing more to say. Nobody said more. It was noted outside the house that {self.name} is not a person who explains."
+              "text": "{self.name} said that the head of a house binds and unbinds what is the house's, and that there was nothing more to say. Nobody said more. It was noted outside the house that {self.he} is not a person who explains."
             }
           ]
         },
@@ -752,7 +752,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave their word that the entail would be made again when the house was on its feet. A word of that kind is cheap on the day and is remembered every year after."
+              "text": "{self.name} gave {self.his} word that the entail would be made again when the house was on its feet. A word of that kind is cheap on the day and is remembered every year after."
             }
           ]
         }
@@ -796,7 +796,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that {kin.name} had taken it and {kin.name} should keep it. It flies from their flagship now."
+              "text": "{self.name} said that {kin.name} had taken it and should keep it. It flies from {kin.his} flagship now."
             }
           ]
         },
@@ -892,7 +892,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wrote to {giver.name} in their own hand. It cost nothing, and it was noticed."
+              "text": "{self.name} wrote to {giver.name} in {self.his} own hand. It cost nothing, and it was noticed."
             }
           ]
         },
@@ -1096,7 +1096,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that {asker.name} could have it for what it was worth to them. {asker.name} paid, and did not say thank you."
+              "text": "{self.name} said that {asker.name} could have it for what it was worth to {asker.him}. {asker.first} paid, and did not say thank you."
             }
           ]
         },
@@ -1191,7 +1191,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put the house's money beside {kin.name}'s, so that it was finished properly. It is still {kin.name}'s, and everyone knows who began it."
+              "text": "{self.name} put the house's money beside {kin.name}'s, so that it was finished properly. It is still {kin.hers}, and everyone knows who began it."
             }
           ]
         },
@@ -1206,7 +1206,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that a thing in the house's name should be the house's to give. {kin.name} heard it out, and kept the deed in their own name."
+              "text": "{self.name} said that a thing in the house's name should be the house's to give. {kin.name} heard it out, and kept the deed in {kin.his} own name."
             }
           ]
         }

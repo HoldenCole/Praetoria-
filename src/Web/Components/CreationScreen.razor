@@ -332,7 +332,7 @@
         if (b.Nature.Count > 0) parts.Add("nature +" + string.Join(", ", b.Nature));
         if (b.Aptitude.Count > 0) parts.Add("aptitude +" + string.Join(", ", b.Aptitude));
         if (b.Skills.Count > 0) parts.Add(string.Join(", ", b.Skills.Select(s => $"{s.Key} {Signed(s.Value)}")));
-        if (b.Stress != 0) parts.Add($"stress {Signed(b.Stress)}");
+        if (b.Stress != 0) parts.Add($"strain {Signed(b.Stress)}");
         return parts.Count == 0 ? "" : ": " + string.Join(" · ", parts);
     }
     private static string Signed(int n) => (n > 0 ? "+" : "") + Counted.Figure(n);

@@ -3,7 +3,7 @@
     {
       "id": "out_of_the_line",
       "title": "Out of the Line",
-      "body": "Your fleet has won the day, and the dispatches all say the same thing: {officer.name} did not wait for the signal. They took their ships out of the line, round the enemy's flank, and the enemy broke. It won the battle. It was also against orders, and the whole fleet saw it. What you write now is what the Reach will read.",
+      "body": "Your fleet has won the day, and the dispatches all say the same thing: {officer.name} did not wait for the signal. {officer.He} took {officer.his} ships out of the line, round the enemy's flank, and the enemy broke. It won the battle. It was also against orders, and the whole fleet saw it. What you write now is what the Reach will read.",
       "choices": {
         "name_them": "Name {officer.name} in the dispatch.",
         "promote_them": "Promote {officer.name} (1 influence).",
@@ -14,7 +14,7 @@
     {
       "id": "ran_from_the_battle",
       "title": "The Officer Who Ran",
-      "body": "The battle is lost, and the reports agree on one thing. Before the line broke, {officer.name} pulled their ships out of it and made for home. The line broke after. Whether it would have held if they had stayed, nobody can say; the crews are already saying it would.",
+      "body": "The battle is lost, and the reports agree on one thing. Before the line broke, {officer.name} pulled {officer.his} ships out of it and made for home. The line broke after. Whether it would have held if {officer.he} had stayed, nobody can say; the crews are already saying it would.",
       "choices": {
         "strip_them": "Dress {officer.name} down before the fleet.",
         "cover_for_them": "Write the report so the line broke somewhere else.",
@@ -24,84 +24,84 @@
     {
       "id": "a_laurel_at_the_peace",
       "title": "A Laurel at the Peace",
-      "body": "The war is over, and the Senate is drawing up its list of those who served. Each house puts its own names forward. {officer.name} is owed something for the war, and everyone in the house knows it, {officer.name} most of all.",
+      "body": "The war is over, and the Senate is drawing up its list of those who served. Each house puts its own names forward. {officer.name} is owed something for the war, and everyone in the house knows it, {officer.first} most of all.",
       "choices": {
         "name_them_to_the_senate": "Put {officer.name}'s name to the Senate (1 influence).",
-        "a_purse": "Give them a purse from the house (300 credits).",
-        "thank_them": "Thank them, and no more."
+        "a_purse": "Give {officer.him} a purse from the house (300 credits).",
+        "thank_them": "Thank {officer.him}, and no more."
       }
     },
     {
       "id": "the_other_dispatch",
       "title": "The Other Dispatch",
-      "body": "The war is over, and {officer.name} has written their own account of the battle. It does not say what yours said. Whatever has passed between you since, they have not forgotten what was said of them then. It is being copied and read in the city, in the wardrooms and in the Senate's corridors, and people are asking you which one is true.",
+      "body": "The war is over, and {officer.name} has written {officer.his} own account of the battle. It does not say what yours said. Whatever has passed between you since, {officer.he} has not forgotten what was said of {officer.him} then. It is being copied and read in the city, in the wardrooms and in the Senate's corridors, and people are asking you which one is true.",
       "choices": {
         "answer_it": "Answer it in the Senate (1 influence).",
         "make_amends": "Make it up with {officer.name}.",
-        "pay_for_silence": "Pay for their silence (400 credits).",
+        "pay_for_silence": "Pay for {officer.his} silence (400 credits).",
         "let_it_stand": "Let it stand."
       }
     },
     {
       "id": "a_place_in_the_fleet",
       "title": "A Place in the Fleet",
-      "body": "{kin.name} is young, and the war is all anyone in the house talks about. They have come to ask you for a place aboard the house's fleet. They have it all worked out: what they will do, who they will serve under. They have not worked out what you will feel when the reports come in.",
+      "body": "{kin.Rel}, {kin.first}, is young, and the war is all anyone in the house talks about. {kin.He} has come to ask you for a place aboard the house's fleet. {kin.He} has it all worked out: what {kin.he} will do, who {kin.he} will serve under. {kin.He} has not worked out what you will feel when the reports come in.",
       "choices": {
-        "send_them": "Send {kin.name} aboard the house's fleet. A battle lost may cost them.",
-        "take_them_on_your_staff": "Take {kin.name} onto your own staff. A battle lost may cost them.",
-        "a_safe_post": "Find them a post at the yards (1 influence).",
+        "send_them": "Send {kin.first} aboard the house's fleet. A battle lost may cost {kin.him}.",
+        "take_them_on_your_staff": "Take {kin.first} onto your own staff. A battle lost may cost {kin.him}.",
+        "a_safe_post": "Find {kin.him} a post at the yards (1 influence).",
         "forbid_it": "Forbid it."
       }
     },
     {
       "id": "blooded_in_battle",
       "title": "Blooded in Battle",
-      "body": "The house's fleet has been in action, and {kin.name} was in it. They came through. What they say of it is short, and they do not say it the way they did when they went.",
+      "body": "The house's fleet has been in action, and {kin.rel}, {kin.first}, was in it. {kin.He} came through. What {kin.he} says of it is short, and {kin.he} does not say it the way {kin.he} did when {kin.he} went.",
       "choices": {
-        "a_step_up": "Ask the Admiralty to give {kin.name} a step. They stay with the fleet.",
-        "bring_them_home": "Bring {kin.name} home now they have seen it.",
-        "leave_them_with_the_fleet": "Leave them with the fleet. A battle lost may still cost them."
+        "a_step_up": "Ask the Admiralty to give {kin.first} a step. {kin.He} stays with the fleet.",
+        "bring_them_home": "Bring {kin.first} home now {kin.he} has seen it.",
+        "leave_them_with_the_fleet": "Leave {kin.him} with the fleet. A battle lost may still cost {kin.him}."
       }
     },
     {
       "id": "wounded_aboard_the_fleet",
       "title": "Wounded Aboard the Fleet",
-      "body": "The house's fleet has lost a battle, and {kin.name}, whom you sent to the front, is among the wounded. The dispatch is short. It says they are asking to stay at their post, and that the fleet's surgeons have more wounded than they can see to.",
+      "body": "The house's fleet has lost a battle, and {kin.name}, whom you sent to the front, is among the wounded. The dispatch is short. It says {kin.he} is asking to stay at {kin.his} post, and that the fleet's surgeons have more wounded than they can see to.",
       "choices": {
-        "bring_them_home_to_mend": "Bring {kin.name} home to mend. They will not thank you for it.",
-        "send_the_house_physician": "Send the house's own physician out to them (300 credits). They stay with the fleet.",
-        "leave_them_to_the_surgeons": "Leave them to the fleet's surgeons, like everyone else's. A battle lost may cost them again."
+        "bring_them_home_to_mend": "Bring {kin.first} home to mend. {kin.He} will not thank you for it.",
+        "send_the_house_physician": "Send the house's own physician out to {kin.him} (300 credits). {kin.He} stays with the fleet.",
+        "leave_them_to_the_surgeons": "Leave {kin.him} to the fleet's surgeons, like everyone else's. A battle lost may cost {kin.him} again."
       }
     },
     {
       "id": "kin_home_from_the_war",
       "title": "Home From the War",
-      "body": "The war is over, and {kin.name} is home. They went out young and eager, and they have come back thinner and quieter, with the habits of the fleet and nothing yet to put them to. The house is glad to have them. What {kin.name} wants from you now, they have not said.",
+      "body": "The war is over, and {kin.rel}, {kin.first}, is home. {kin.He} went out young and eager, and has come back thinner and quieter, with the habits of the fleet and nothing yet to put them to. The house is glad to have {kin.him}. What {kin.he} wants from you now, {kin.he} has not said.",
       "choices": {
-        "a_feast_for_them": "Give a feast for their homecoming (400 credits).",
-        "a_place_in_the_service": "Ask the Admiralty to give them a step (1 influence).",
-        "let_them_be": "Let them be, and ask nothing.",
-        "ask_what_they_saw": "Ask them what they saw, all of it. It will not be easy for them."
+        "a_feast_for_them": "Give a feast for {kin.his} homecoming (400 credits).",
+        "a_place_in_the_service": "Ask the Admiralty to give {kin.him} a step (1 influence).",
+        "let_them_be": "Let {kin.him} be, and ask nothing.",
+        "ask_what_they_saw": "Ask {kin.him} what {kin.he} saw, all of it. It will not be easy for {kin.him}."
       }
     },
     {
       "id": "taken_in_battle",
       "title": "Taken in Battle",
-      "body": "Among those pulled from the wrecks of {prisoner.house}'s line is {prisoner.name}, {prisoner.rankName}, who commanded one of their ships. They are held under guard aboard the house's flagship. {prisoner.house} will want them back, and will remember how they came home.",
+      "body": "Among those pulled from the wrecks of {prisoner.house}'s line is {prisoner.name}, {prisoner.rankName}, who commanded one of its ships. {prisoner.He} is held under guard aboard the house's flagship. {prisoner.house} will want {prisoner.him} back, and will remember how {prisoner.he} came home.",
       "choices": {
         "ransom_them": "Ransom {prisoner.name} back to {prisoner.house} for 400 credits.",
-        "exchange_them": "Exchange them for your own crews they hold.",
-        "parole_them": "Let them go on their word not to fight you again in this war.",
+        "exchange_them": "Exchange {prisoner.him} for your own crews {prisoner.house} holds.",
+        "parole_them": "Let {prisoner.him} go on {prisoner.his} word not to fight you again in this war.",
         "parade_them": "Parade {prisoner.name} through your capital."
       }
     },
     {
       "id": "the_parole_broken",
       "title": "The Parole Broken in the Line",
-      "body": "{parolee.name} gave you their word not to fight you again in this war, and you let them go on it. {parolee.house} has given them a fleet, and it is in the line against yours.",
+      "body": "{parolee.name} gave you {parolee.his} word not to fight you again in this war, and you let {parolee.him} go on it. {parolee.house} has given {parolee.him} a fleet, and it is in the line against yours.",
       "choices": {
         "denounce_them": "Denounce {parolee.name} in the Senate (1 influence).",
-        "send_a_herald": "Send a herald to say it to their face.",
+        "send_a_herald": "Send a herald to say it to {parolee.his} face.",
         "let_it_go": "Let it go: it is a war."
       }
     },
@@ -119,21 +119,21 @@
     {
       "id": "a_parley_before_the_guns",
       "title": "A Parley Before the Fleets Meet",
-      "body": "{foe.name} of {foe.house} has a fleet a year out from yours, under way and coming. Their herald is aboard the house's flagship with a request: before the guns, will you meet them? Commanders have talked before battles for as long as there have been battles. Sometimes there is no battle afterwards.",
+      "body": "{foe.name} of {foe.house} has a fleet a year out from yours, under way and coming. {foe.His} herald is aboard the house's flagship with a request: before the guns, will you meet {foe.him}? Commanders have talked before battles for as long as there have been battles. Sometimes there is no battle afterwards.",
       "choices": {
         "offer_a_white_peace": "Offer a white peace: nothing changes hands.",
-        "meet_under_a_truce": "Meet under a flag of truce, and fight when they come. The wardroom will not like it.",
-        "count_their_ships": "Use the parley to count their ships. Their fleet will fight the worse for it.",
+        "meet_under_a_truce": "Meet under a flag of truce, and fight when the fleets close. The wardroom will not like it.",
+        "count_their_ships": "Use the parley to count {foe.his} ships. {foe.His} fleet will fight the worse for it.",
         "send_the_herald_back": "Send the herald back unheard. The wardroom will cheer it."
       }
     },
     {
       "id": "plunder_on_the_exchange",
       "title": "Plunder on the Exchange",
-      "body": "{sacker.house}'s fleet is home from beyond the rim. It sacked a world out there and came back with its holds full, and {sacker.name} is selling what it carried: metals, stores, worked things from a world that is not theirs. Plunder sells fast and cheap. {sacker.name} has sent word that {sacker.house} will sail again, and has room for a partner.",
+      "body": "{sacker.house}'s fleet is home from beyond the rim. It sacked a world out there and came back with its holds full, and {sacker.name} is selling what it carried: metals, stores, worked things from a world that was never the house's. Plunder sells fast and cheap. {sacker.first} has sent word that {sacker.house} will sail again, and has room for a partner.",
       "choices": {
         "buy_from_the_plunder": "Buy from the plunder (500 credits): two lots of metals and a crate of exotics, at half what the Exchange asks.",
-        "put_money_into_the_next_raid": "Put money into their next raid (300 credits).",
+        "put_money_into_the_next_raid": "Put money into {sacker.his} next raid (300 credits).",
         "call_for_a_tax_on_plunder": "Ask the Senate for a tax on plunder (1 influence).",
         "have_nothing_to_do_with_it": "Have nothing to do with it."
       }

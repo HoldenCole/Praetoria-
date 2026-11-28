@@ -1183,7 +1183,7 @@ public partial class VotePromisesTests
         Assert.Equal(merit + 2, LadderSystem.Merit(Bastien(h)));   // a point of oratory, counted twice
         Session(g); Session(h);
         Assert.True(AtTheCount(h, Bastien(h)) >= AtTheCount(g, Bastien(g)) + 2, $"{AtTheCount(h, Bastien(h))} against {AtTheCount(g, Bastien(g))}");
-        Assert.Contains(h.W.History, x => x.Text.Contains("They will speak better at the count for it."));
+        Assert.Contains(h.W.History, x => x.Text.Contains("will speak better at the count for it."));
     }
 
     // ------------------------------------------------------------------ the count read again: the_one_who_won_the_office/demand_a_recount

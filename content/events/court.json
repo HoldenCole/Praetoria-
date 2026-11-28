@@ -433,7 +433,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told the duel master that {pupil.name} was being let off lightly. The next month's bruises were {self.name}'s doing, and {pupil.name} knew it."
+              "text": "{self.name} told the duel master that {pupil.name} was being let off lightly. The next month's bruises were {self.first}'s doing, and {pupil.first} knew it."
             }
           ]
         },

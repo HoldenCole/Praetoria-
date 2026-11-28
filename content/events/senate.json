@@ -12,7 +12,7 @@
           "effects": [ { "type": "setCharFlag", "role": "whip", "flag": "owes_you_a_vote", "value": true }, { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": 3 },
             { "type": "log", "text": "{self.name} wanted no coin from {whip.name}, and promised the house's vote for the motion of {whip.house} for a favour to be named later. The whip agreed; whips always do. {whip.house} owes your house a favour." } ] },
         { "id": "show_them_the_door", "effects": [ { "type": "adjustRelationship", "from": "whip", "to": "self", "delta": -10 }, { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
-            { "type": "log", "text": "{self.name} showed {whip.name} the door with the purse still in their hand. The vote stays the house's own." } ] }
+            { "type": "log", "text": "{self.name} showed {whip.name} the door with the purse still in {whip.his} hand. The vote stays the house's own." } ] }
       ]
     },
     {
@@ -69,7 +69,7 @@
       "roles": [ { "name": "clerk", "when": [ { "type": "rank", "role": "clerk", "op": "gte", "value": 1 } ] } ],
       "choices": [
         { "id": "sound_the_estates", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
-            { "type": "log", "text": "{self.name} spent the evening with the estates' men, asking what the Act would cost whom. By the vote {self.name} knew the chamber better than the clerk did." } ] },
+            { "type": "log", "text": "{self.name} spent the evening with the estates' agents, asking what the Act would cost whom. By the vote {self.he} knew the chamber better than the clerk did." } ] },
         { "id": "let_it_run", "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
             { "type": "log", "text": "{self.name} let the Act run its course. A house that leaves the Reach's law to the Reach is thought steady, if not ambitious." } ] }
       ]
@@ -124,9 +124,9 @@
       "when": [ { "type": "worldFlag", "flag": "motion_passed_mine" } ],
       "choices": [
         { "id": "press_the_advantage", "cost": { "influence": 1 }, "effects": [ { "type": "adjustCounter", "key": "senate_influence", "delta": 1 },
-            { "type": "log", "text": "{self.name}'s motion carried, and {self.name} spent the evening making sure every house knew whose it had been." } ] },
+            { "type": "log", "text": "{self.name}'s motion carried, and {self.he} spent the evening making sure every house knew whose it had been." } ] },
         { "id": "be_gracious", "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
-            { "type": "log", "text": "{self.name}'s motion carried. {self.name} thanked the houses that opposed it for the quality of their opposition." } ] }
+            { "type": "log", "text": "{self.name}'s motion carried. {self.He} thanked the houses that opposed it for the quality of their opposition." } ] }
       ]
     }
   ]
