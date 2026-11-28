@@ -111,7 +111,7 @@ public class ProseTests
         Assert.Equal("Iria", TextRenderer.First("Iria Solenne"));
         Assert.Equal("Scion", TextRenderer.First("Scion"));
         var w = Family();
-        Assert.Equal("Iria Solenne", Say(w, "x", "corvin", "{x.name}").Replace("Corvin Castellan", "Iria Solenne"));
+        Assert.Equal("Corvin of House Castellan, Corvin Castellan", Say(w, "x", "corvin", "{x.first} of {x.house}, {x.name}"));
         Assert.Equal("{x.nonesuch} {y.first}", Say(w, "x", "corvin", "{x.nonesuch} {y.first}"));   // left for the validator to report
     }
 
