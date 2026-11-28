@@ -294,7 +294,7 @@
     private static string Plain(string name) => name.StartsWith("The ") ? "the " + name[4..] : name;
     public static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     /// <summary>A refusal from the rules, as the player reads it: a capital, and no dash.</summary>
-    public static string Say(string refusal) => Cap(refusal.Replace(" — ", ", ").TrimEnd('.'));
+    public static string Say(string refusal) => Cap(refusal.Replace(" \u2014 ", ", ").TrimEnd('.'));
     private static string Pc(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%";
     /// <summary>The lede in Alegreya italic with its numbers in bold roman figures (docs/VISUAL_SYSTEM.md 4.5).</summary>
     public static MarkupString Bold(string s) => new(System.Text.RegularExpressions.Regex.Replace(System.Net.WebUtility.HtmlEncode(Minus(s)), @"(?<![\w&#])([+−-]?\d[\d,.]*)(?![\w;])", "<b>$1</b>"));

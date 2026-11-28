@@ -25,7 +25,7 @@
     string yearly = heir != null && w.Pools.TryGetValue(heir.Id, out var hp0) ? "\nEach year: " + hp0.InfluenceRegen + " influence, " + Counted.TreasuryActions(hp0.TreasuryRegen) + " and " + Counted.Agents(hp0.AgentsRegen) + " " + Counted.Come(hp0.AgentsRegen) + " back each year, as for every new head. The last head's reach was their own, and does not pass with the name." : "";
     string passTip = "What passes with the name: " + rank + " · " + Counted.Worlds(worlds) + " · " + Counted.Hulls(hulls) + " · " + credits + " credits · legitimacy " + (house?.Legitimacy ?? 0) + "\n" + lost + yearly;
     string goTip = "The year goes on under the new head.\nYour screen: " + RoleTheme.Describe(heir?.CareerTrack ?? "");
-    string rankTip = "[crown] Rank — " + rank + ". The house's title passes with the name.";
+    string rankTip = "[crown] Rank\n" + (rank.Length > 0 ? char.ToUpperInvariant(rank[0]) + rank[1..] + ". " : "") + "The house's title passes with the name.";
 }
 <div class="overlay succ-veil" data-succession="@r.Generation">
     <div class="succ-art" style="background-image:url('img/scenes/@(scene).webp')" aria-hidden="true"></div>

@@ -9,7 +9,8 @@
     var recall = w.Recalls.FirstOrDefault(r => r.HouseId == house.Id); var cw = w.CivilWar;
     bool atTheGate = TriumphSystem.HomeFor(w, house.Id).Count > 0;   /* one of the house is home for a triumph (docs/CAESAR.md) */
     var fleets = w.Fleets.Values.Where(f => (f.OwnerId == house.Id && !f.Office || ServiceSystem.CommandedBy(w, f, house.Id)) && f.AdmiralId.Length > 0).OrderByDescending(f => f.Devotion).ThenBy(f => f.Id, StringComparer.Ordinal).ToList();   /* and those one of the house commands by service (docs/MILITARY.md) */
-    var watched = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && CaesarSystem.Sway(w, x.g) >= 30)
+    /* only a house of the Reach can be recalled: a nation's ruler beyond it, or a state that has left it, is not watched here */
+    var watched = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id)).Select(h => (h, g: CaesarSystem.GeneralOf(w, h))).Where(x => x.g != null && CaesarSystem.Sway(w, x.g) >= 30)
         .OrderByDescending(x => CaesarSystem.Sway(w, x.g!)).ThenBy(x => x.h.Id, StringComparer.Ordinal).Take(3).ToList();
     string? noTriumph = w.IsImperium ? null : new ProposeMotionCommand(pid, "triumph", house.Id, G.Turn.Senate).Refusal(G.Ctx);
     string? noCross = new CaesarCommand(pid, CaesarCommand.Cross, "", cz).Refusal(G.Ctx);

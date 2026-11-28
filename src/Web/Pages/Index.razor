@@ -147,17 +147,17 @@ else
         <div class="console" data-console>
             <div class="cs-body"></div>
             <div class="cs-tools">
-                <button class="tool" data-map="home" title="[position-marker] Your seat — the map goes back to your house's seat" @onclick='() => MapDo("home")'><Icon Name="position-marker" Tone="ivory" Size="18" /></button>
-                <button class="tool" data-map="fit" title="[expand] The whole Reach — every system in the view; inside a system, the whole system" @onclick='() => MapDo("fit")'><Icon Name="expand" Tone="ivory" Size="18" /></button>
+                <button class="tool" data-map="home" title="@("[position-marker] Your seat\nThe map goes back to your house's seat")" @onclick='() => MapDo("home")'><Icon Name="position-marker" Tone="ivory" Size="18" /></button>
+                <button class="tool" data-map="fit" title="@("[expand] The whole Reach\nEvery system in the view; inside a system, the whole system")" @onclick='() => MapDo("fit")'><Icon Name="expand" Tone="ivory" Size="18" /></button>
                 <span class="gap"></span>
                 <span class="modes">
-                    <button class="tool @(_mode == "realms" ? "on" : "")" data-mode="realms" title="[world] Realms — the map from far off: the Reach as one, each nation beyond it and each state that has left it in its own colour, and their names" @onclick='() => MapDo("realms")'><Icon Name="world" Tone="ivory" Size="18" /></button>
-                    <button class="tool @(_mode == "houses" || _mode == "systems" ? "on" : "")" data-mode="houses" title="[flying-flag] Houses — the middle distance: every world in its holder's colour, your own land in gold" @onclick='() => MapDo("houses")'><Icon Name="flying-flag" Tone="ivory" Size="18" /></button>
-                    <button class="tool @(_mode == "regions" ? "on" : "")" data-mode="regions" title="[region] Regions — the regions of the Reach, who rules each and what lies in it" @onclick='() => MapDo("regions")'><Icon Name="region" Tone="ivory" Size="18" /></button>
-                    <button class="tool @(_mode == "supply" ? "on" : "")" data-mode="supply" title="[fuel-tank] Supply — where your fleets are fed: a world of yours within reach, a depot or your campaign's target. Beyond it the map is hatched in ember, and a fleet there loses supply each year." @onclick='() => MapDo("supply")'><Icon Name="fuel-tank" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "realms" ? "on" : "")" data-mode="realms" title="@("[world] Realms\nThe map from far off: the Reach as one, each nation beyond it and each state that has left it in its own colour, and their names")" @onclick='() => MapDo("realms")'><Icon Name="world" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "houses" || _mode == "systems" ? "on" : "")" data-mode="houses" title="@("[flying-flag] Houses\nThe middle distance: every world in its holder's colour, your own land in gold")" @onclick='() => MapDo("houses")'><Icon Name="flying-flag" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "regions" ? "on" : "")" data-mode="regions" title="@("[region] Regions\nThe regions of the Reach, who rules each and what lies in it")" @onclick='() => MapDo("regions")'><Icon Name="region" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "supply" ? "on" : "")" data-mode="supply" title="@("[fuel-tank] Supply\nWhere your fleets are fed: a world of yours within reach, a depot or your campaign's target. Beyond it the map is hatched in ember, and a fleet there loses supply each year.")" @onclick='() => MapDo("supply")'><Icon Name="fuel-tank" Tone="ivory" Size="18" /></button>
                 </span>
                 <span class="gap"></span>
-                <button class="tool @(_legend ? "on" : "")" data-map="legend" aria-pressed="@_legend" title="[info] The legend — what the marks on the map mean. The map zooms on the wheel, and on Page Up and Page Down." @onclick="() => _legend = !_legend"><Icon Name="info" Tone="ivory" Size="18" /></button>
+                <button class="tool @(_legend ? "on" : "")" data-map="legend" aria-pressed="@_legend" title="@("[info] The legend\nWhat the marks on the map mean. The map zooms on the wheel, and on Page Up and Page Down.")" @onclick="() => _legend = !_legend"><Icon Name="info" Tone="ivory" Size="18" /></button>
             </div>
             <div class="mm"><canvas @ref="_mini" width="278" height="146" title="The whole Reach: click to travel there"></canvas></div>
             <div class="cap"><b>@ModeName</b><span data-near></span></div>
@@ -166,7 +166,7 @@ else
         @if (!m.DynastyDead)
         {
             <div class="endturn-dock">
-                <button class="endturn" title="@((unanswered > 0 ? $"[hourglass] End the year — {Counted.Reports(unanswered)} still unanswered: ending the year sets them aside." : "[hourglass] End the year — the year ends and the next begins.") + "\nkey: Press [Enter] to end the year")" @onclick="EndTurn">
+                <button class="endturn" title="@((unanswered > 0 ? $"[hourglass] End the year\n{Counted.Reports(unanswered)} still unanswered: ending the year sets them aside." : "[hourglass] End the year\nThe year ends and the next begins.") + "\nkey: Press [Enter] to end the year")" @onclick="EndTurn">
                     <i class="ring" aria-hidden="true"></i><span class="med"><Icon Name="hourglass" Tone="dark" Size="44" /></span><span class="rib">End Year</span>
                     @if (unanswered > 0) { <span class="cnt" data-n="@unanswered" aria-label="@Counted.Reports(unanswered) unanswered"></span> }
                 </button>

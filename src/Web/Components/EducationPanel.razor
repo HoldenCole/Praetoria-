@@ -116,7 +116,7 @@
         if (kind != null) G.Execute(new EducationCommand(pid, kind, cid, arg));
     }
     /// <summary>Their two best skills as a figure: "Tactics 4 · Law 3".</summary>
-    private static string BestShort(Character x) => x.Skills.Count(kv => kv.Value > 0) == 0 ? "–" : string.Join(" · ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(2).Select(kv => $"{CharacterScreen.Cap(kv.Key)} {kv.Value}"));
+    private static string BestShort(Character x) => x.Skills.Count(kv => kv.Value > 0) == 0 ? "no skill yet" : string.Join(" · ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(2).Select(kv => $"{CharacterScreen.Cap(kv.Key)} {kv.Value}"));
     private static readonly int[] Tutors = { 0, 1, 2 };
     private const string AskYes = "They would do it for the asking.";
     private const string AskNo = "They would refuse, and think the less of you for asking.";

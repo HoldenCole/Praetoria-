@@ -293,7 +293,7 @@
                     <div class="ws-site-head"><Globe Class="@SiteGlobe(sh.Kind)" Size="40" Ringed="@c.Worlds.Contains(sh.SystemId)" /><div><b>@sh.Name</b><span class="ui-dim">@sh.Kind · @sh.Region · the @(sh.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "space beyond the Reach" : sh.Ring)</span></div></div>
                     <div class="ws-site-facts">
                     <div class="kv"><span>Held by</span><b>@(sh.HolderName.Length > 0 ? sh.HolderName : "no one: unclaimed")</b></div>
-                    <div class="kv"><span>Brings a year</span><b>@(CourtProjection.Bundle(sh.Yield).Length > 0 ? CourtProjection.Bundle(sh.Yield) : "nothing as it stands")</b></div>
+                    <div class="kv"><span>Brings a year</span><b>@(!sh.Yield.IsEmpty() ? CourtProjection.Bundle(sh.Yield) : "nothing as it stands")</b></div>
                     <div class="kv"><span>In the ground</span><b>@(sh.Deposits.Count > 0 ? string.Join(", ", sh.Deposits) : "nothing strategic")@(sh.Belt > 0 ? " · a belt of " + sh.Belt + " claim" + (sh.Belt == 1 ? "" : "s") : "")</b></div>
                     <div class="kv"><span>Lanes out</span><b>@sh.Lanes@(sh.BesideANation ? " · one leads into a nation's space" : "")</b></div>
                     <div class="kv" title="Raiders on the lanes of its region, of 100: it taxes every ledger there and feeds risings"><span>Lawlessness of the region</span><b>@sh.Lawlessness</b></div>
@@ -311,7 +311,7 @@
             {
                 var sid = s.SystemId; bool mine = c.Worlds.Contains(sid);
                 <button class="chip world @(mine ? "on" : "")" disabled="@(!mine && (s.Refusal != null || full))" title="@SiteLine(s)" @onclick="() => { _site = sid; ToggleWorld(sid, lim.MaxWorlds); }">
-                    <b>@s.Name</b> <span class="ui-dim">@s.Kind · @(s.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "a nation's" : s.HolderName.Length > 0 ? s.HolderName.Replace("House ", "") : "unclaimed")@(CourtProjection.Bundle(s.Yield).Length > 0 ? " · " + CourtProjection.Bundle(s.Yield) : "")@(!mine && s.Refusal != null ? " · not for this start" : "")</span></button>
+                    <b>@s.Name</b> <span class="ui-dim">@s.Kind · @(s.Ring == Praetoria.Core.Galaxy.Ring.Beyond ? "a nation's" : s.HolderName.Length > 0 ? s.HolderName.Replace("House ", "") : "unclaimed")@(!s.Yield.IsEmpty() ? " · " + CourtProjection.Bundle(s.Yield) : "")@(!mine && s.Refusal != null ? " · not for this start" : "")</span></button>
             }
         </div>
         </details>
@@ -335,7 +335,7 @@
                 <span class="ui-dim">at</span>
                 <select class="fr-sel" value="@v.System" @onchange="e => { v.System = Text(e); Changed(); }">@foreach (var s in systems) { <option value="@s.Id">@s.Name</option> }</select>
                 <button class="chip tiny" title="Remove this venture" @onclick="() => { c.Ventures.RemoveAt(k); Changed(); }">Remove</button>
-                @if (content.Businesses.Def(v.Kind) is { } vd) { <div class="fr-note sub" data-venture-says>@vd.Description @(CourtProjection.Bundle(vd.Yield).Length > 0 ? "Brings " + CourtProjection.Bundle(vd.Yield) + " a year at its first level." : "")@(vd.RequiresBelt ? " Needs a belt in the system." : "")@(vd.RequiresDeposit != null ? $" Needs {Resource.A(vd.RequiresDeposit)} deposit there." : "")@(vd.RequiresOwnWorld ? " Needs a world of your own there." : "")</div> }
+                @if (content.Businesses.Def(v.Kind) is { } vd) { <div class="fr-note sub" data-venture-says>@vd.Description @(!vd.Yield.IsEmpty() ? "Brings " + CourtProjection.Bundle(vd.Yield) + " a year at its first level." : "")@(vd.RequiresBelt ? " Needs a belt in the system." : "")@(vd.RequiresDeposit != null ? $" Needs {Resource.A(vd.RequiresDeposit)} deposit there." : "")@(vd.RequiresOwnWorld ? " Needs a world of your own there." : "")</div> }
             </div>
         }
         <div class="fr-add"><button class="chip" disabled="@(c.Ventures.Count >= lim.MaxVentures)" @onclick="AddVenture"><Icon Name="plus" Tone="ivory" Size="12" />Add a venture</button></div>
@@ -486,7 +486,7 @@
     /// <summary>One line on a world, for a tooltip: what the card beside the map says at length.</summary>
     private static string SiteLine(StartSite s) =>
         s.Name + ": " + s.Kind + " · " + s.Region + " · " + (s.HolderName.Length > 0 ? "held by " + s.HolderName : "unclaimed")
-        + (CourtProjection.Bundle(s.Yield).Length > 0 ? " · brings " + CourtProjection.Bundle(s.Yield) + " a year" : "")
+        + (!s.Yield.IsEmpty() ? " · brings " + CourtProjection.Bundle(s.Yield) + " a year" : "")
         + (s.Deposits.Count > 0 ? " · " + string.Join(", ", s.Deposits) + " in the ground" : "") + " · " + s.Lanes + " lane" + (s.Lanes == 1 ? "" : "s")
         + (s.BesideANation ? " · beside a nation's space" : "") + (s.Refusal != null ? " · not for this start: " + s.Refusal : "");
     private static string WorldTip(World w, Praetoria.Core.Galaxy.StarSystem s) => s.PlanetClass + " · " + (w.Galaxy!.Regions.FirstOrDefault(r => r.Id == s.RegionId)?.Name ?? "") + (w.Galaxy.Capital == s.Id ? " · the capital" : "");
@@ -522,7 +522,7 @@
     private static string BackgroundGives(BackgroundDef b)
     {
         var parts = new List<string>(); if (b.Legitimacy != 0) parts.Add($"legitimacy {Sgn(b.Legitimacy)}");
-        string purse = CourtProjection.Bundle(b.Treasury); if (purse.Length > 0) parts.Add(purse);
+        if (!b.Treasury.IsEmpty()) parts.Add(CourtProjection.Bundle(b.Treasury));
         foreach (var t in b.Nature.Concat(b.Aptitude)) parts.Add(t); foreach (var kv in b.Skills.OrderBy(kv => kv.Key, StringComparer.Ordinal)) parts.Add($"{kv.Key} {Sgn(kv.Value)}");
         if (b.Stress > 0) parts.Add($"strain {Sgn(b.Stress)}");
         return string.Join(" · ", parts) + ".";

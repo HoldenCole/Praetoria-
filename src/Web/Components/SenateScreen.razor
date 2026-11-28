@@ -337,7 +337,7 @@
                                 else { <Plate Label="@(picked ? "Close" : "Move")" Small="true" Icon="scroll-quill" Stop="true" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" Tip="@(picked ? "Put it away" : "Choose what it is about, then move it")" OnClick="() => _pickMotion = picked ? null : prk" /> }
                             </Action>
                         </Row>
-                        @if (pr.TargetType == "none" && !pr.NeedsLaw && pr.Refusal != null) { <div class="sn-mneed"><Icon Name="padlock" Tone="ember" Size="13" />@Cap(pr.Refusal)</div> }
+                        @if (pr.TargetType == "none" && !pr.NeedsLaw && pr.Refusal != null) { <div class="sn-mneed"><Icon Name="padlock" Tone="ember" Size="13" />@(Cap(pr.Refusal.TrimEnd('.')) + ".")</div> }
                         <div class="sn-orderbar">
                         @if (fare.Length > 0) { <div class="sn-note" data-motion-fare="@pr.KindId"><Icon Name="vote" Tone="brass" Size="15" /><span>@fare</span></div> }
                         <div class="sn-form">
@@ -356,7 +356,7 @@
                             }
                             <Plate Label="Move it" Small="true" Icon="scroll-quill" Locked="@(!CanMoveAct(pr))" Disabled="@(!CanMoveAct(pr))" Tip="@(ActRefusal(pr) ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveAct(prk)" />
                         }
-                        else if (pr.TargetType == "none") { <Plate Label="Move it" Small="true" Icon="scroll-quill" Locked="@(pr.Refusal != null)" Disabled="@(pr.Refusal != null)" Tip="@(pr.Refusal ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveNone(prk)" /> @if (pr.Refusal != null) { <span class="sn-no">@Cap(pr.Refusal)</span> } }
+                        else if (pr.TargetType == "none") { <Plate Label="Move it" Small="true" Icon="scroll-quill" Locked="@(pr.Refusal != null)" Disabled="@(pr.Refusal != null)" Tip="@(pr.Refusal ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveNone(prk)" /> @if (pr.Refusal != null) { <span class="sn-no">@(Cap(pr.Refusal.TrimEnd('.')) + ".")</span> } }
                         else
                         {
                             <span class="sn-selwrap"><select class="sel" @onchange="e => SetTarget(pr.KindId, e)">
@@ -370,7 +370,7 @@
                                     @foreach (var o in pr.Offices) { <option value="@o.Id">@o.Name</option> }
                                 </select><Icon Name="chev" Tone="brass" Size="12" /></span>
                             }
-                            { string? tno = TargetRefusal(pr); <Plate Label="Move it" Small="true" Icon="scroll-quill" Locked="@(tno != null)" Disabled="@(tno != null)" Tip="@(tno ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveTarget(prk)" /> @if (tno != null && !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId))) { <span class="sn-no" data-motion-no>@Cap(tno)</span> } }
+                            { string? tno = TargetRefusal(pr); <Plate Label="Move it" Small="true" Icon="scroll-quill" Locked="@(tno != null)" Disabled="@(tno != null)" Tip="@(tno ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveTarget(prk)" /> @if (tno != null && !string.IsNullOrEmpty(_target.GetValueOrDefault(pr.KindId))) { <span class="sn-no" data-motion-no>@(Cap(tno.TrimEnd('.')) + ".")</span> } }
                         }
                         </div>
                         @if (pr.NeedsLaw && ActLaw(pr) is { } al2)

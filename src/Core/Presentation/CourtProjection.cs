@@ -303,7 +303,7 @@ public static class CourtProjection
                 var bids = vs == null || b.CompanyId.Length > 0 ? new List<VentureBid>() : vs.Bidders(w, b).Take(3).Select(x => new VentureBid(x.house.Id, x.house.Name, x.house.AccentColor, x.bid, w.PlanetHolder(b.SystemId) == x.house.Id)).ToList();
                 bool enlarging = ProjectSystem.Underway(w, house.Id, Project.Expansion, b.Kind, b.Id);
                 string expandCost = def.BuildTurns > 1 ? $"{Bundle(def.ExpandCost)} over {def.BuildTurns} years" : Bundle(def.ExpandCost);
-                businessCards.Add(new BusinessCard(b.Id, b.Name, def.Name, w.Galaxy?.System(b.SystemId)?.Name, b.Level, def.MaxLevel, delta.IsEmpty() ? "—" : Bundle(delta),
+                businessCards.Add(new BusinessCard(b.Id, b.Name, def.Name, w.Galaxy?.System(b.SystemId)?.Name, b.Level, def.MaxLevel, delta.IsEmpty() ? "" : Bundle(delta),
                     holder != null && holder != house.Id && def.Charter > 0 ? $"{Money.Credits(def.Charter * b.Level)} a year to {w.House(holder)?.Name}" : null, value,
                     new Option("expand", b.Level >= def.MaxLevel ? "At its height" : enlarging ? "Being enlarged" : $"Expand to level {b.Level + 1}  ({expandCost})", new ExpandBusinessCommand(p.Id, b.Id, bc).Refusal(ctx)),
                     new Option("sell", $"Sell on the open market for {Money.Credits(vs != null ? vs.MarketPrice(w, b) : value)}", vs == null ? "no market for ventures" : new SellVentureCommand(p.Id, b.Id, "", vs).Refusal(ctx)),
@@ -520,7 +520,7 @@ public static class CourtProjection
                 .Select(h => new ReclaimOption(h.Id, h.Name, w.House(h.OwnerId)!.Name, ReclaimFreeholdCommand.Price(w, h, house.Id), new ReclaimFreeholdCommand(p.Id, h.Id).Refusal(ctx))).ToList(),
             w.Galaxy is { Capital.Length: > 0 } cg ? new CapitalCard(cg.System(cg.Capital)?.Name ?? cg.Capital, RegionSystem.CapitalHolder(w)?.Id, RegionSystem.CapitalHolder(w)?.Name, RegionSystem.CapitalHolder(w)?.Id == house.Id) : null,
             new Option("petition_fief", $"Petition {PetitionFiefCommand.Grantor(w, house.Id)?.Name ?? (w.IsImperium ? "the court" : "the chair")} for a {(w.IsImperium ? "fief" : "prefecture")}  (3 influence)", new PetitionFiefCommand(p.Id).Refusal(ctx)),
-            Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var bc = new BuyGoodCommand(p.Id, r, 3, content.Trade); var q = bc.Quote(w); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the market  ({(q.Credits > 0 ? Money.Show(q.Credits) : "—")} credits)", q.Refusal); }).ToList(),
+            Resource.Strategic.Where(r => r != Resource.Isotopes).Select(r => { var bc = new BuyGoodCommand(p.Id, r, 3, content.Trade); var q = bc.Quote(w); return new Option("procure_" + r, $"Buy 3 {Resource.Label(r)} on the market" + (q.Credits > 0 ? $"  ({Money.Show(q.Credits)} credits)" : ""), q.Refusal); }).ToList(),
             Economy.Deposits(w, house.Id).OrderBy(x => x, StringComparer.Ordinal).ToList(),
             BuildSenate(w, p, house, tc.Senate, ctx, tc.Fleets),
             BuildChancery(w, p, house, content.Policies, ctx), Military: BuildMilitary(w, p, house, tc.Fleets, content.Fleets, ctx, content.Nations, tc.Senate), Market: BuildMarket(w, p, house, content, tc), Assets: BuildAssets(w, p, house, content, tc, ctx), Exchange: BuildExchange(w, p, house, content, tc));
@@ -543,10 +543,13 @@ public static class CourtProjection
         if (def.SpikeCredits > 0) parts.Add($"{Money.Signed(def.SpikeCredits)} a level for each good whose price is spiking");
         return string.Join(" · ", parts);
     }
+    /// <summary>What an empty bundle says: a word, never a dash standing for nothing (the owner's style, docs/VISUAL_SYSTEM.md rule 9).</summary>
+    public const string Nothing = "nothing";
+    /// <summary>A bundle in words ("1,200 credits, 3 materials"), or <see cref="Nothing"/> when it holds nothing.</summary>
     public static string Bundle(Resources r)
     {
         var parts = Resource.All.Where(k => r.Get(k) != 0).Select(k => $"{Money.Of(k, r.Get(k))} {Resource.Label(k)}").ToList();
-        return parts.Count == 0 ? "—" : string.Join(", ", parts);
+        return parts.Count == 0 ? Nothing : string.Join(", ", parts);
     }
 
     /// <summary>The docket and the history with every house's stance, and the motions the player could move with their legal targets.</summary>

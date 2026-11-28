@@ -316,7 +316,7 @@
                                     var q = new BuyGoodCommand(pid, name, 3, c.Trade).Quote(w);
                                     <Plate Label="Buy 3" Icon="@name" IconTone="@ResTone(name)" CostIcon="credits" CostText="@(q.Credits > 0 ? Money.Show(q.Credits) : "")" Small="true" Locked="@(po.Refusal != null)" Disabled="@(po.Refusal != null)" ShowNeed="false" Need="@(po.Refusal ?? "")" Tip="@($"Buy 3 {Resource.Label(name)} on the market at once, for {(q.Credits > 0 ? Money.Show(q.Credits) : "nothing")} credits")" data-procure="@name" OnClick="() => G.Execute(new BuyGoodCommand(pid, name, 3, c.Trade))" />
                                 }
-                                else { <span class="ui-mute">–</span> }</td>
+                                else { <span class="ui-mute">·</span> }</td>
                             }
                         </tr>
                     }

@@ -228,5 +228,5 @@ public static class Alerts
     }
 
     /// <summary>The owner's style for anything a player reads (docs/VISUAL_SYSTEM.md 1.9): no em dashes.</summary>
-    public static string Plain(string s) => s.Replace(" — ", ": ").Replace("—", ", ");
+    public static string Plain(string s) => s.Replace(" \u2014 ", ": ").Replace("\u2014", ", ");
 }

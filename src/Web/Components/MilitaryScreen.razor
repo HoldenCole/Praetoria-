@@ -67,6 +67,7 @@
     int net = m.Ledger?.Net.Credits ?? 0; int gross = Math.Max(1, net + upkeep); int upkeepPct = Math.Clamp(100 * upkeep / gross, 0, 100);
     var firstBattle = mil?.Brief.FirstOrDefault(); int odds = firstBattle == null ? 0 : (int)Math.Round(100 * firstBattle.OurPower / Math.Max(0.01, firstBattle.OurPower + firstBattle.TheirPower));
     var coldest = w.Houses.Values.Where(h => h.Id != house.Id && h.Id != PirateSystem.HouseId && Economy.HeadOf(w, h) != null).OrderBy(h => RegardOf(h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).FirstOrDefault();
+    string abroadTip = m.Wars.Count == 0 && warAbroad != null ? "\nAt war with " + warAbroad.Name + ", beyond the Reach, since year " + warAbroad.WarSince + "." : "";
     string story, storyTone;
     if (m.Fleets.Count == 0) { story = "No hull flies your colours. Lay one down at a world with a shipyard, on the House screen."; storyTone = "warn"; }
     else if (firstBattle != null)
@@ -80,6 +81,12 @@
         var war0 = m.Wars[0]; var wr0 = w.Wars.First(x => x.Between(house.Id, war0.EnemyHouseId)); int sa = wr0.Score(house.Id), sb = wr0.Score(war0.EnemyHouseId);
         story = $"At war with {war0.EnemyName} since year {war0.Since}. The score stands {sa} to {sb}; they have about {Counted.Hulls(war0.EnemyHulls)} to your {ours}." + (war0.TheyAreSuing ? " They are suing for peace." : "") + (m.Wars.Count > 1 ? $" And {Counted.OtherWars(m.Wars.Count - 1)}." : "");
         storyTone = sa >= sb ? "warn" : "bad";
+    }
+    else if (warAbroad != null)
+    {
+        int abroad = nations.Count(n => n.AtWar);
+        story = $"At war beyond the Reach with {warAbroad.Name} since year {warAbroad.WarSince}. The war score stands {warAbroad.ScoreReach} to {warAbroad.ScoreNation}; your {Counted.Hulls(ours)} are in commission{laidSays}." + (abroad > 1 ? $" And {Counted.OtherWars(abroad - 1)} beyond the Reach." : "");
+        storyTone = warAbroad.ScoreReach >= warAbroad.ScoreNation ? "warn" : "bad";
     }
     else if (anyDanger && danger.j.d <= 2) { story = $"{Who(danger.f!)}: {Counted.Hulls(danger.f!.Strength)} {JumpWord(danger.j.d)} {danger.j.from}. You have {ours}."; storyTone = "warn"; }
     else { story = $"At peace. Your {Counted.Hulls(ours)} in commission{laidSays} make the {Ordinal(navyRank)} navy of {navies}" + (anyDanger ? $"; the nearest hostile sail is {danger.j.d} jumps off." : "; nothing hostile sails within three jumps of your worlds."); storyTone = "good"; }
@@ -127,7 +134,7 @@
     <WindowHeader Scene="@(atWar ? "battle" : "shipyard")" Kicker="@("Military · navy of " + house.Name)" Title="The Command Deck" Glyph="eagle-emblem" Figures="figures" Class="mil-head">
         <Facts>
             <span class="@conditionTone" title="@($"[heart-beats] {condition}\nReadiness {avgReady}, loyalty {avgLoyal}, supply {avgSupply} on average.")"><Icon Name="checked-shield" Tone="ivory" Size="16" />@condition</span>
-            <span class="@(m.Wars.Count > 0 || warAbroad != null ? "bad" : "")" title="The wars your house is in and how each stands. At peace, the house whose head thinks worst of yours.@(coldest != null && m.Wars.Count == 0 ? $"\n{coldest.Name} thinks worst of you ({Signed(RegardOf(coldest.Id))})" : "")"><Icon Name="@(m.Wars.Count > 0 ? "crossed-sabres" : "dove")" Tone="ivory" Size="16" />@(m.Wars.Count == 0 ? (warAbroad != null ? "War beyond the Reach" : "At peace") : m.Wars.Count == 1 ? "At war with " + m.Wars[0].EnemyName : Counted.Wars(m.Wars.Count))</span>
+            <span class="@(m.Wars.Count > 0 || warAbroad != null ? "bad" : "")" title="The wars your house is in and how each stands. At peace, the house whose head thinks worst of yours.@(abroadTip + (coldest != null && m.Wars.Count == 0 ? $"\n{coldest.Name} thinks worst of you ({Signed(RegardOf(coldest.Id))})" : ""))"><Icon Name="@(m.Wars.Count > 0 ? "crossed-sabres" : "dove")" Tone="ivory" Size="16" />@(m.Wars.Count == 0 ? (warAbroad != null ? "War beyond the Reach" : "At peace") : m.Wars.Count == 1 ? "At war with " + m.Wars[0].EnemyName : Counted.Wars(m.Wars.Count))</span>
             <span class="@(!anyDanger ? "" : danger.j.d <= 1 ? "bad" : "warn")" title="The nearest fleet of raiders or of a house you are at war with, counted in jumps from the nearest world of yours."><Icon Name="@(anyDanger ? "threat" : "checked-shield")" Tone="@(anyDanger ? "ember" : "good")" Size="16" />@(anyDanger ? $"{Who(danger.f!)}, {JumpWord(danger.j.d)} {danger.j.from}" : "Nothing hostile near")</span>
         </Facts>
     </WindowHeader>

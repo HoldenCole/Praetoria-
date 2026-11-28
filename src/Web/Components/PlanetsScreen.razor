@@ -162,7 +162,7 @@
                         <div class="ww-row" title="@($"[ringed-planet] {n.Name}\nClick for what is there; again to fold it")" @onclick="() => _focus = open ? null : sid">
                             <span class="wl-pic"><Globe Class="@n.PlanetClass" Size="40" Ringed="@n.IsPlayerTerritory" />@if (n.Capital) { <i class="wl-crown" title="The capital"><Icon Name="crown" Tone="brass" Size="15" /></i> }</span>
                             <div class="ww-id">
-                                <div class="ww-nm"><b>@n.Name</b>@if (n.Chokepoint) { <span class="ww-choke" title="[position-marker] A chokepoint\nIts holder takes tolls, and an enemy fleet cannot pass while one of the holder's sits here"><Icon Name="position-marker" Tone="brass" Size="15" /><span class="visually-hidden">chokepoint</span></span> }@if (n.Rebellion > 0) { <span class="wl-st bad">in revolt</span> }</div>
+                                <div class="ww-nm"><b>@n.Name</b>@if (n.Chokepoint) { <span class="ww-choke" title="@("[position-marker] A chokepoint\nIts holder takes tolls, and an enemy fleet cannot pass while one of the holder's sits here")"><Icon Name="position-marker" Tone="brass" Size="15" /><span class="visually-hidden">chokepoint</span></span> }@if (n.Rebellion > 0) { <span class="wl-st bad">in revolt</span> }</div>
                                 <div class="ww-sub">@Cap(n.PlanetClass) world · @if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="14" /><span class="@(n.IsPlayerTerritory ? "wl-own" : "")">@(n.IsPlayerTerritory ? "yours" : owner.Name)</span> } else { <span class="ui-mute">nobody's</span> }</div>
                             </div>
                             <div class="ww-cells">

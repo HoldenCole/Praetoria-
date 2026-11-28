@@ -565,6 +565,24 @@ public class ChargeAgainstThePowerfulTests
     }
 
     [Fact]
+    public void Your_charge_proved_against_one_who_commands_names_the_house_that_must_lay_it_down()
+    {
+        var (tc, w, me, mine, ctx) = Start(); var o = Others(w, mine); var them = o[0]; them.Title = Praetoria.Core.Progression.Title.Count;
+        var head = Economy.HeadOf(w, them)!; var d = Deed(w, head); Judge(w, o[1]);
+        foreach (var x in w.Fleets.Values.Where(x => x.OwnerId == them.Id)) x.AdmiralId = "";
+        Legion(w, them, head);
+        Assert.True(Do(tc, ctx, new ProsecutionCommand(me.Id, ProsecutionCommand.Prosecute, d.Id, Offices)));
+        var c = Assert.Single(w.Indictments); Assert.Equal(mine.Id, c.AccuserId);
+        Year(tc, w);
+        Assert.Equal(LadderSystem.Proved, c.Outcome); Assert.Equal(ChargeSystem.LayDown, c.Sentence);
+        string says = ChargeSystem.ConvictedSays(w, c, head);
+        Assert.Equal($"{head.Name} of {them.Name} is convicted while in command. {them.Name} must lay the command down by the end of year {c.AnswerBy}, or cross the line. "
+            + $"Left alone, the court's officers take it and {them.Name} loses {ChargeSystem.TakenLegitimacy} legitimacy.", says);
+        Assert.Contains(w.News, n => n.Text == says);                                                                                  // the house that brought it is told whose command it is
+        Assert.DoesNotContain(w.News, n => n.Text.Contains("the house crosses") || n.Text.Contains("the house loses"));
+    }
+
+    [Fact]
     public void The_answers_and_the_news_say_you_to_the_player()
     {
         // the player is the general, with too few hulls behind them: the refusal says "you"
