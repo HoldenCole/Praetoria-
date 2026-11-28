@@ -1,34 +1,54 @@
+@preservewhitespace true
 @using Praetoria.Core.Systems
 @inject GameClient G
 @implements IDisposable
+@* The three orders on the Senate window (docs/ORDERS.md; docs/VISUAL_SYSTEM.md 4.6, 4.10): each order a meter row with its tier, the
+   house's rank and what its score is made of; then the house's voice, its weight in the chamber, its sway and its patronage as rows of
+   a label and a sentence, with the asks of those above it as plates. *@
 @{
     var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!; var os = G.Turn!.Orders; var senate = G.Turn!.Senate;
     var door = senate.Door(w, house); var swayed = OrderSystem.Swayed(w, house); var clients = OrderSystem.ClientsOf(w, house.Id).ToList(); var patron = w.House(house.PatronId);
     int great = OrderSystem.All.Count(o => OrderSystem.Tier(house, o) >= 2);
     var enroll = os.EnrollRefusal(w, house, door != null);
 }
-<section class="panel orders">
-    <h3><Icon Name="houses" Size="13" /> The three orders <span class="muted">@(house.Calling.Length > 0 ? OrderSystem.CallingName(house.Calling) : "a house of no order yet")@(house.Origin == "new" ? " · a new name" : house.Origin == "old" ? " · an old name" : "")@(great >= 3 ? " · great in all three" : great == 2 ? " · great in two" : "")</span></h3>
+<section class="panel orders sn-panel">
+    <p class="ui-lede sn-lede">@SenateScreen.Bold($"Your house is {OrderSystem.TierName(OrderSystem.Tier(house, OrderSystem.Senate))} in the Senate, {OrderSystem.TierName(OrderSystem.Tier(house, OrderSystem.Arms))} in Arms and {OrderSystem.TierName(OrderSystem.Tier(house, OrderSystem.Commerce))} in Commerce, " + (door switch { "land" => "and is heard by land.", "the bench" => "and is heard by the bench.", "the purse" => "and is heard by the purse.", "the sword" => "and is heard by the sword.", _ => "and has no voice in the chamber." }) + (patron != null ? $" It is the client of {patron.Name}." : clients.Count > 0 ? $" It keeps {Counted.Clients(clients.Count)}." : ""))</p>
+    <Section Title="The three orders" Info="A house's standing in the three orders of the Republic: the Senate, Arms and Commerce. Each is a score out of 100; at each tier the house counts for more in the chamber and may keep more clients.">
+        <Right><span>@(house.Calling.Length > 0 ? OrderSystem.CallingName(house.Calling) : "a house of no order yet")@(house.Origin == "new" ? " · a new name" : house.Origin == "old" ? " · an old name" : "")@(great >= 3 ? " · great in all three" : great == 2 ? " · great in two" : "")</span></Right>
+    </Section>
     @foreach (var o in OrderSystem.All)
     {
         var (score, parts) = os.Measure(w, house, o); int tier = OrderSystem.Tier(score); int next = OrderSystem.NextAt(score);
         int rank = 1 + w.Houses.Values.Count(h => h.Id != PirateSystem.HouseId && h.Id != house.Id && h.Order(o) > score);
-        <div class="order-row @(house.Calling == o ? "calling" : "")">
-            <div class="gauge" title="@string.Join(" · ", parts.Select(p => $"{p.what} +{p.points}"))"><span>@Cap(OrderSystem.Name(o))</span><i><b style="width:@score%" class="@(tier >= 2 ? "high" : tier == 1 ? "" : "low")"></b></i><em>@score</em></div>
-            <div class="muted small"><b class="@(tier >= 2 ? "good" : "")">@OrderSystem.TierName(tier)</b> · @Ordinal(rank) among the houses@(next > 0 ? $" · {OrderSystem.TierName(tier + 1)} at {next}" : "")@(parts.Count > 0 ? " · " + string.Join(", ", parts.Take(3).Select(p => $"{p.what} +{p.points}")) : " · nothing yet")</div>
+        <div class="sn-order order-row @(house.Calling == o ? "calling" : "")" title="@string.Join(" · ", parts.Select(p => $"{p.what} +{p.points}"))">
+            <span class="sn-ic @(tier >= 2 ? "mine" : "")"><Icon Name="@OrderIcon(o)" Tone="@(tier >= 2 ? "brass" : "ivory")" Size="22" /></span>
+            <div class="sn-order-main">
+                <div class="sn-order-l1"><span class="sn-order-nm"><b class="sn-nm">@Cap(OrderSystem.Name(o))</b>@if (house.Calling == o) { <span class="sn-tag mine sn-calling" title="The order the house is called to">Calling</span> }</span>
+                    <span class="ui-trk sn-gauge"><i class="ui-fill" style="width:@SenateScreen.Pc(score);--mc:@(tier >= 2 ? "#c9a24a" : tier == 1 ? "#a5813a" : "#6f5020")"></i>@if (next > 0) { <i class="ui-tick" style="left:@SenateScreen.Pc(next)"></i> }</span>
+                    <span class="sn-order-v"><b>@score</b><small>/100</small></span></div>
+                <div class="sn-sub2"><b class="@(tier >= 2 ? "ui-up" : "")">@Cap(OrderSystem.TierName(tier))</b> · @Ordinal(rank) among the houses@(next > 0 ? $" · {OrderSystem.TierName(tier + 1)} at {next}" : "")@(parts.Count > 0 ? " · " + string.Join(", ", parts.Take(3).Select(p => $"{p.what} +{p.points}")) : " · nothing yet")</div>
+            </div>
         </div>
     }
-    <div class="ac-fact"><span>Your voice</span><p>@(door switch { "land" => "By land: the rank the house holds.", "the bench" => "By the bench: its head is a magistrate.", "the purse" => "By the purse: enrolled by the census.", "the sword" => "By the sword: a house great in arms is heard.", _ => "None. The house has its votes in every count, but no voice: it may not move a motion. Its people may still stand for any office the ladder opens to them. A voice comes by land of rank, by the bench (a Judge at the head of the house), by the sword (a name great in arms) or by the purse (enrolment by the census, below)." })</p></div>
-    @if (door == null && !w.IsImperium) { <button class="opt" disabled="@(enroll != null)" title="@(enroll ?? "the fee goes to the chair; the house may move motions and stand for office from then on")" @onclick="() => G.Execute(new EnrollCommand(pid, os, c.Titles))">Enrol by the census · @Money.Show(OrderSystem.CensusFee) credits</button> }
-    <div class="ac-fact"><span>In the chamber</span><p>Standing adds @Counted.Seats(OrderSystem.WeightOf(w, house)) to the house's voice: one for each step in Arms and in Commerce, and one for every two clients.</p></div>
-    <div class="ac-fact"><span>Sway</span><p>@(swayed.Count == 0 ? "No house leans your way because it depends on you. Debtors, clients, holders of your companies' shares and fleets that burn fuel you corner all do." : $"{Counted.Houses(swayed.Count)} lean your way on what you move, on a post for you, and against what is aimed at you: " + string.Join("; ", swayed.Take(6).Select(x => $"{x.house.Name} (+{x.lean}: {string.Join(", ", x.why)})")) + (swayed.Count > 6 ? "; and more" : "") + ".")</p></div>
-    @if (house.Corners.Count > 0) { <div class="ac-fact" data-makes-quarter><span>Makes a quarter</span><p>The house brings up a quarter or more of all the @string.Join(" and ", house.Corners.Select(g => Resource.Label(g))) the Reach makes in a year. That is a maker's share, and counts toward Commerce; it is not a corner in the market, which is held in store (the Exchange, Goods).</p></div> }
+    <Section Title="Voice and patronage" Info="A house with a voice may move motions; a house without one still votes. A patron gives coin and backing for your vote; clients vote with you." Class="sn-sub-sec" />
+    <div class="sn-fact ac-fact" title="@(door == null ? "The house has its votes in every count, but no voice: it may not move a motion. Its people may still stand for any office the ladder opens to them. A voice comes by land of rank, by the bench (a Judge at the head of the house), by the sword (a name great in arms) or by the purse (enrolment by the census)." : null)"><span>Your voice</span><p>@(door switch { "land" => "By land: the rank the house holds.", "the bench" => "By the bench: its head is a magistrate.", "the purse" => "By the purse: enrolled by the census.", "the sword" => "By the sword: a house great in arms is heard.", _ => "None: the house votes, but may not move a motion." })
+        @if (door == null && !w.IsImperium) { <span class="sn-acts"><Plate Label="Enrol by the census" Small="true" Icon="scroll-quill" Locked="@(enroll != null)" Disabled="@(enroll != null)" Tip="@(enroll ?? "The fee goes to the chair; the house may move motions and stand for office from then on")" CostIcon="credits" CostText="@Money.Show(OrderSystem.CensusFee)" OnClick="() => G.Execute(new EnrollCommand(pid, os, c.Titles))" /></span> }</p></div>
+    <div class="sn-fact ac-fact"><span>In the chamber</span><p>Standing adds @Counted.Seats(OrderSystem.WeightOf(w, house)) to the house's voice: one for each step in Arms and in Commerce, and one for every two clients.</p></div>
+    <div class="sn-fact ac-fact" title="@(swayed.Count == 0 ? "Debtors, clients, holders of your companies' shares and fleets that burn fuel you corner all lean your way." : string.Join("\n", swayed.Select(x => $"{x.house.Name}: +{x.lean} ({string.Join(", ", x.why)})")))"><span>Sway</span><p>@(swayed.Count == 0 ? "No house leans your way because it depends on you." : $"{Counted.Houses(swayed.Count)} lean your way: " + string.Join(", ", swayed.Take(4).Select(x => $"{x.house.Name} +{x.lean}")) + (swayed.Count > 4 ? ", and more" : "") + ".")</p></div>
+    @if (house.Corners.Count > 0) { <div class="sn-fact ac-fact" data-makes-quarter><span>Makes a quarter</span><p>The house brings up a quarter or more of all the @string.Join(" and ", house.Corners.Select(g => Resource.Label(g))) the Reach makes in a year. That is a maker's share, and counts toward Commerce; it is not a corner in the market, which is held in store (the Exchange, Goods).</p></div> }
     @if (!w.IsImperium)
     {
-        <div class="ac-fact"><span>Patronage</span><p>
+        <div class="sn-fact ac-fact"><span>Patronage</span><p>
             @if (patron != null) { <text>The house is the client of <b>@patron.Name</b>: 100 credits a year, its backing in the chamber, and your vote expected at the election. </text> }
             else if (clients.Count > 0) { <text>The house keeps @clients.Count of @Counted.Clients(OrderSystem.ClientCap(house)): @string.Join(", ", clients.Select(x => x.Name)). They vote for you at an election and lean your way in the chamber. </text> }
             else { <text>No patron and no clients. Take a needy house as a client, or seek a greater house's protection, on the Houses screen. The house could keep @OrderSystem.ClientCap(house). </text> }
+            @if (patron != null || clients.Count > 0)
+            {
+                <span class="sn-acts">
+                    @if (patron != null) { <Plate Label="@("Leave " + patron.Name + "'s protection")" Small="true" Tip="Its head will not forgive it quickly" OnClick="() => G.Execute(new ClientCommand(pid, ClientCommand.Leave, string.Empty, os))" /> }
+                    @foreach (var cl in clients) { var cid = cl.Id; <Plate Label="@("Turn " + cl.Name + " away")" Small="true" Tip="@($"{cl.Name} is no longer your client: it no longer votes for you or leans your way")" OnClick="() => G.Execute(new ClientCommand(pid, ClientCommand.Release, cid, os))" /> }
+                </span>
+            }
         </p></div>
         @foreach (var (ab, asWhat) in AskAbove.Above(w, house.Id))
         {
@@ -36,13 +56,13 @@
             string abId = ab.Id; int abRegard = AskAbove.RegardOf(w, ab, house);
             var coin = new AskAboveCommand(pid, abId, AskAbove.Coin, c.Offices, senate); string? coinNo = coin.Refusal(G.Ctx);
             var backing = new AskAboveCommand(pid, abId, AskAbove.Backing, c.Offices, senate); string? backNo = backing.Refusal(G.Ctx);
-            <div class="ac-fact" data-ask-above="@abId"><span>Ask @ab.Name</span><p>@Cap(asWhat). Its head thinks <b class="@(abRegard >= AskAbove.AskAt ? "good" : "warn")">@abRegard.ToString("+0;-0")</b> of you and hears a request at @AskAbove.AskAt.ToString("+0;-0"). What is given is a favour owed: you settle it by voting for the next motion that house moves.
-                <button class="opt inline tiny" data-ask-coin disabled="@(coinNo != null)" title="@(coinNo ?? coin.Says(w))" @onclick='() => G.Ask("Ask " + ab.Name + " for coin?", coin.Says(w), "Ask", () => G.Execute(coin))'>For coin · @Money.Show(AskAbove.CoinOf(ab)) credits</button>
-                <button class="opt inline tiny" data-ask-backing disabled="@(backNo != null)" title="@(backNo ?? backing.Says(w))" @onclick='() => G.Ask("Ask " + ab.Name + " for its backing?", backing.Says(w), "Ask", () => G.Execute(backing))'>For its backing for consul</button>
-                <span class="muted small">To have it move a motion for you: Senate, Move a motion.</span></p></div>
+            <div class="sn-fact ac-fact" data-ask-above="@abId"><span>Ask @ab.Name</span><p>@Cap(asWhat). Its head thinks <b class="@(abRegard >= AskAbove.AskAt ? "ui-up" : "ui-warn-t")">@SenateScreen.Signed(abRegard)</b> of you and hears a request at @SenateScreen.Signed(AskAbove.AskAt). What is given is a favour owed: you settle it by voting for the next motion that house moves.
+                <span class="sn-acts">
+                    <Plate Label="For coin" Small="true" Icon="credits" Locked="@(coinNo != null)" Disabled="@(coinNo != null)" Tip="@(coinNo ?? coin.Says(w))" CostIcon="credits" CostText="@Money.Show(AskAbove.CoinOf(ab))" OnClick='() => G.Ask("Ask " + ab.Name + " for coin?", coin.Says(w), "Ask", () => G.Execute(coin))' data-ask-coin="1" />
+                    <Plate Label="For its backing for consul" Small="true" Icon="podium" Locked="@(backNo != null)" Disabled="@(backNo != null)" Tip="@(backNo ?? backing.Says(w))" OnClick='() => G.Ask("Ask " + ab.Name + " for its backing?", backing.Says(w), "Ask", () => G.Execute(backing))' data-ask-backing="1" />
+                    <span class="ui-mute">To have it move a motion for you: Senate, Motions.</span>
+                </span></p></div>
         }
-        @if (patron != null) { <button class="opt inline tiny" title="its head will not forgive it quickly" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Leave, string.Empty, os))">Leave @patron.Name's protection</button> }
-        @foreach (var cl in clients) { var cid = cl.Id; <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Release, cid, os))">Turn @cl.Name away</button> }
     }
 </section>
 
@@ -55,4 +75,5 @@
 
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Ordinal(int n) => n + (n % 100 is 11 or 12 or 13 ? "th" : (n % 10) switch { 1 => "st", 2 => "nd", 3 => "rd", _ => "th" });
+    private static string OrderIcon(string o) => o switch { OrderSystem.Arms => "crossed-sabres", OrderSystem.Commerce => "coins-pile", _ => "greek-temple" };
 }

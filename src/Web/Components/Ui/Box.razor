@@ -1,0 +1,40 @@
+@* A box over the dimmed map (docs/VISUAL_SYSTEM.md 4.1, 6): the window frame over a leather body, a head with the box's glyph in a
+   brass medallion, a kicker and the title in Cinzel over a gilt rule, the body (it scrolls when it must, under the brass bar), a foot
+   for the box's buttons, and the close roundel. The year in brief, the handbook, the saves, the settings and the shell's own cards
+   (the line's end, passing out of the Academy) are boxes. The close carries .box-x, not .win-close, so the scripts in tools/browser
+   that close the windows in front do not close a box they did not open. Attributes (data-*) go on the veil. *@
+<div class="overlay box-veil @(Class.Length > 0 ? Class : "")" @attributes="Attrs" @onclick="Veil">
+    <section class="ui-win box @(BoxClass.Length > 0 ? BoxClass : "")" style="@(Width.Length > 0 ? "width:" + Width : "")" role="dialog" aria-modal="true" aria-label="@Title" @onclick:stopPropagation="true">
+        <div class="ui-win-body">
+            <header class="box-head">
+                @if (Glyph.Length > 0) { <span class="ui-medal sm"><Icon Name="@Glyph" Tone="brass" Size="20" /></span> }
+                <div class="box-tt">
+                    @if (Kicker.Length > 0) { <div class="ui-kick">@Kicker</div> }
+                    @if (Title.Length > 0) { <h2 class="box-title">@Title</h2> }
+                </div>
+                @Head
+            </header>
+            <div class="box-body">@ChildContent</div>
+            @if (Foot != null) { <footer class="box-foot">@Foot</footer> }
+        </div>
+        <i class="ui-win-frame" aria-hidden="true"></i>
+        @if (OnClose.HasDelegate) { <button class="ui-round ui-close box-x" title="Close (Esc)" aria-label="Close" @onclick="OnClose"><Icon Name="close" Tone="ivory" Size="13" /></button> }
+    </section>
+</div>
+@code {
+    [Parameter] public string Kicker { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Glyph { get; set; } = "";
+    /// <summary>The box's width (a CSS length); the default is the stylesheet's.</summary>
+    [Parameter] public string Width { get; set; } = "";
+    [Parameter] public RenderFragment? Head { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Foot { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    /// <summary>A click on the dimmed map around the box closes it (as Esc does) when this is set.</summary>
+    [Parameter] public bool CloseOnVeil { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string BoxClass { get; set; } = "";
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+    private Task Veil() => CloseOnVeil && OnClose.HasDelegate ? OnClose.InvokeAsync() : Task.CompletedTask;
+}

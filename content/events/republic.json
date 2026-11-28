@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_hustings",
+      "scene": "senate",
       "tier": "situation",
       "weight": 10,
       "repeatable": true,
@@ -180,6 +181,7 @@
     },
     {
       "id": "the_veto_falls",
+      "scene": "senate",
       "tier": "situation",
       "weight": 9,
       "repeatable": true,
@@ -244,6 +246,7 @@
     },
     {
       "id": "the_term_ends",
+      "scene": "senate",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,

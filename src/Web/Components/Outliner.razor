@@ -1,189 +1,111 @@
 @inject GameClient G
+@* The outliner (docs/VISUAL_SYSTEM.md 3.7): on the right over the map, no slab behind it. Each section is a head strip of brushed
+   steel (a brass chevron that turns when folded, an icon, small capitals, the count at the right, in warn colour when something is
+   missing) over rows with their own dark backing. Reports carry a crop of the event's painting, the title, a state line and a brass
+   wax seal while unanswered; fleets their token; holdings a small lit globe. Empty sections are hidden. With a window open (or
+   under 1500px) only Reports stays open and the rest fold to their heads; a click on a head opens or folds it. The alerts that
+   used to stand here are the alerts row (AlertsRow) under the top bar. It stops above the console. *@
 @{
     var m = Model; var w = G.World!; var house = w.House(w.Protagonist!.HouseId)!;
-    var open = m.Briefing.Where(b => !b.Resolved).ToList();
-    var alerts = new List<(string cls, string text, string? go)>();
-    /* the council is not on the screen all the time (the owner, 2026-11-22: "it doesn't need to show admiral, chancellor, and steward
-       off to the right all the time because that's confusing"). A seat speaks here only when it warns; all six, with who holds each
-       and what they did, are under House, the Household. */
-    foreach (var seat in m.Advisors.Where(a => a.Urgent)) alerts.Add(("warn", seat.Seat + ": " + seat.Line.Split(". ")[0].TrimEnd('.'), "house:council"));
-    if (m.Treasury.Insolvent) alerts.Add(("warn", $"Insolvent: {Money.Held(house.Treasury)} credits" + (w.Protagonist!.Purse > 0 ? $". Your own purse holds {Money.Show(w.Protagonist.Purse)}: it can be put into the treasury" : ""), w.Protagonist!.Purse > 0 ? "house:purse" : "house:ledger"));
-    foreach (var bt in w.Battles.Where(b => b.Turn == w.Turn - 1 && b.Involves(w.Protagonist!.HouseId)).Take(3)) alerts.Add((bt.WinnerId == w.Protagonist!.HouseId ? "good" : "warn", $"{(bt.WinnerId == w.Protagonist!.HouseId ? "Won" : "Lost")}: the battle of {bt.Place} ({Counted.Hulls(bt.AttackerHulls)} against {bt.DefenderHulls})", "military:battles"));
-    foreach (var ask in w.ServiceAsks.Where(a => a.Turn >= w.Turn - 1).Take(2)) alerts.Add(("info", ServiceSystem.AskSays(w, ask).TrimEnd('.'), "military:service"));   /* a command by service, asked of the head (docs/MILITARY.md) */
-    // what a player should not have to find by looking (docs/PLAYTHROUGH.md, "New alerts where there are none")
-    if (house.Treasury.Manpower <= 0 && m.Fleets.Count + m.Holdings.Count > 0) alerts.Add(("warn", "Manpower is at nought: no new hull can be crewed and no levy raised until it recovers", "house:ledger"));
-    foreach (var ng in w.HoldingsOf(house.Id).Where(x => x.IsPlanet && w.Char(x.GovernorId) is not { Alive: true }).Take(2)) alerts.Add(("warn", ng.Name + " has no governor: name one, or it goes ungoverned", "galaxy:" + ng.SystemId));
-    if (m.Standing is { NextTitle: not null } st && st.Paths.FirstOrDefault(pp => pp.Available) is { } open1) alerts.Add(("good", "You could rise to " + st.NextTitle + " now: " + open1.Label.ToLowerInvariant(), "senate:offices"));
-    foreach (var (wh, wi) in w.Holdings.Values.Where(x => x.OwnerId == house.Id).SelectMany(x => x.Provinces.Select((pv, i) => (x, i))).Where(t => t.x.Provinces[t.i].Withheld && t.x.Provinces[t.i].HolderId != house.Id).Take(2))
-        alerts.Add(("warn", (w.House(wh.Provinces[wi].HolderId)?.Name ?? "A house") + " is withholding the dues of " + wh.Provinces[wi].Name, "galaxy:" + wh.SystemId));
-    foreach (var nw in w.NewsNow().Reverse().Take(8)) alerts.Add((nw.Tone, nw.Text, nw.SubjectId.Length > 0 && nw.Target == "dynasty" ? "dynasty:tree:" + nw.SubjectId : nw.SubjectId.Length > 0 && nw.Target == "houses" ? "houses:" + nw.SubjectId : nw.Target));
-    if (w.Protagonist?.HouseId is { } suedHouse)
-    {
-        foreach (var su in LadderSystem.SuitsNaming(w, suedHouse))
-            alerts.Add((su.RightId == suedHouse ? "info" : "warn", (LadderSystem.PlaintiffOf(w, su) == suedHouse ? $"Your suit against {w.House(LadderSystem.OtherIn(su, suedHouse))?.Name}" : $"{w.House(LadderSystem.OtherIn(su, suedHouse))?.Name} sues your house") + $" over {LadderSystem.MatterOf(su)}: {Money.Credits(LadderSystem.StakeOf(su))}, heard {LadderSystem.HeardSays(w, su.Turn)}", "senate:ladder"));
-        foreach (var ch in LadderSystem.ChargesOn(w, suedHouse)) alerts.Add(("warn", $"{w.House(ch.AccuserId)?.Name} charges {w.Char(ch.AccusedId)?.Name}: heard {LadderSystem.HeardSays(w, ch.Turn)}" + (LadderSystem.PleaderOf(w, ch) == null ? ", and nobody is to answer it" : ""), "senate:ladder"));
-        foreach (var jr in w.Judgments.Where(j => j.Turn == w.Turn - 1 && !(j.Kind == "charge" && j.Judge.Length == 0))) alerts.Add((jr.WinnerId == suedHouse ? "good" : "warn", jr.WinnerId == suedHouse ? $"The court found for you: {w.House(jr.LoserId)?.Name} paid {Money.Credits(jr.Sum)}" : $"The court found against you: you paid {w.House(jr.WinnerId)?.Name} {Money.Credits(jr.Sum)}", "senate:ladder"));
-    }
-    foreach (var war in m.Wars) alerts.Add(("warn", $"At war with {war.EnemyName}{(war.TheyAreSuing ? " — they sue for peace" : "")}", "military"));
-    foreach (var sg in m.Sieges.Where(s => s.Ours)) alerts.Add(("warn", $"{sg.HoldingName} besieged by {sg.BesiegerName} ({sg.Turns}/{sg.Required})", "galaxy:" + (w.Holdings.Values.FirstOrDefault(x => x.Name == sg.HoldingName)?.SystemId ?? "")));
-    foreach (var h in m.Household.Where(h => h.Actions.Any(a => a.Id == "defiant"))) alerts.Add(("warn", $"{h.Name} is defiant", "house:household"));
-    if (m.Character.Regency) alerts.Add(("info", "A regent rules in your name", "dynasty"));
-    if (w.HasFlag("pirates_near")) alerts.Add(("warn", "Raiders within a lane of your worlds", "military:near"));
-    if (w.HasFlag("raided")) alerts.Add(("warn", "Your shipping was plundered", "military:near"));
-    if (w.HasFlag("fuel_short")) alerts.Add(("warn", "The tanks are dry: the fleet cannot sail until helium-3 is bought or skimmed" + (w.Protagonist!.Purse > 0 && house.Treasury.Credits < 6 ? $" (your own purse holds {Money.Show(w.Protagonist.Purse)})" : ""), "exchange:goods"));
-    string NationName(string prefix) => w.WorldFlags.Where(f => f.StartsWith(prefix)).Select(f => G.Content!.Nations.Def(f[prefix.Length..])?.Name ?? f[prefix.Length..]).FirstOrDefault() ?? "a nation beyond the Reach";
-    if (w.HasFlag("foreign_war_declared")) alerts.Add(("warn", $"The Senate has made war on {NationName("foreign_war:")} — fleets may be sent", "military:abroad"));
-    else if (w.HasFlag("foreign_war") && NationSystem.AtWar(w) is { WarOf.Length: > 0 } own) alerts.Add((own.Defied ? "warn" : "info", own.WarOf == w.Protagonist?.HouseId ? $"Your house is at war with {NationName("foreign_war:")} on its own account{(own.Defied ? ", against a peace the Senate voted" : ": the Senate voted nothing")}" : $"{w.House(own.WarOf)?.Name ?? own.WarOf} is at war with {NationName("foreign_war:")} on its own account{(own.Defied ? ", against a peace the Senate voted" : "")}: no other house is", "military:abroad"));
-    else if (w.HasFlag("foreign_war")) alerts.Add(("info", $"The Reach is at war with {NationName("foreign_war:")}{(w.HasFlag("expedition_away") ? " — your fleet is in their space" : " — send a fleet, or let others win the triumph")}", "military:abroad"));
-    if (w.HasFlag("peace_awaits_us")) alerts.Add(("warn", "The Senate has voted peace beyond the Reach, and waits on your answer: come home, or fight on", "military:abroad"));
-    if (w.HasFlag("expedition_victory")) alerts.Add(("good", "Your fleet beat them in their own space", "military:abroad"));
-    if (w.HasFlag("expedition_defeat")) alerts.Add(("warn", "Your fleet was beaten beyond the Reach", "military:abroad"));
-    if (w.HasFlag("expedition_lost")) alerts.Add(("warn", "Your expedition is broken and limping home", "military:abroad"));
-    if (w.HasFlag("expedition_returned")) alerts.Add(("good", "Your fleet is home from beyond the Reach", "military:abroad"));
-    if (w.HasFlag("triumph")) alerts.Add(("good", $"The triumph is yours — {NationName("nation_subdued:")} pays tribute", "military:abroad"));
-    else if (w.HasFlag("nation_subdued")) alerts.Add(("good", $"{NationName("nation_subdued:")} sues for peace and pays tribute", "military:abroad"));
-    if (w.HasFlag("war_lost_abroad")) alerts.Add(("warn", "The war abroad is lost — the chair buys peace", "military:abroad"));
-    if (w.HasFlag("raided_by_nation")) alerts.Add(("warn", $"Raiders of {NationName("raided_by:")} fell on your world", "military:abroad"));
-    if (w.HasFlag("nation_freed")) alerts.Add(("info", "A tributary's treaty is done; its tribute stops", "military:abroad"));
-    foreach (var f in w.WorldFlags.Where(f => f.StartsWith("price_spike:")).Take(2)) { var gd = G.Content!.Market.Good(f["price_spike:".Length..]); var gs = w.Market?.Good(gd?.Id ?? ""); if (gd != null && gs != null) alerts.Add(("info", $"{gd.Name} dear on the Exchange: {gs.Cause}", "exchange:goods")); }
-    if (w.HasFlag("market_crash")) alerts.Add(("warn", "The Exchange has fallen a tenth in a year", "exchange:shares"));
-    if (w.HasFlag(Praetoria.Core.Systems.VentureSystem.FailingFlag)) alerts.Add(("warn", "A venture of yours has gone two years without a profit: one more and it is wound up", "exchange:ventures"));
-    if (w.HasFlag(Praetoria.Core.Systems.VentureSystem.FailedFlag)) alerts.Add(("warn", "A venture of yours has failed and been wound up", "exchange:ventures"));
-    if (w.HasFlag("takeover_of_mine")) alerts.Add(("warn", "Another house has taken control of a company you directed", "exchange:shares"));
-    if (w.HasFlag("stake_in_mine")) alerts.Add(("info", "A rival holds a tenth or more of a company you direct", "exchange:shares"));
-    if (w.HasFlag("dividend_cut")) alerts.Add(("info", "A company you hold has passed its dividend", "exchange:shares"));
-    if (w.HasFlag("bonds_offered")) alerts.Add(("info", "The Reach is selling war bonds", "exchange:shares"));
-    if (w.HasFlag("shares_seized_mine")) alerts.Add(("warn", "The throne has declared your shares forfeit", "exchange:shares"));
-    if (w.HasFlag("venture_offered") && (m.Assets?.Offers.Count ?? 1) > 0) alerts.Add(("info", "A venture is offered to you — the offer stands for the year", "exchange:ventures"));
-    if (w.HasFlag("project_stalled")) alerts.Add(("warn", "A building site has stalled: the year's instalment was not met", "exchange:projects"));
-    if (w.HasFlag("project_done")) alerts.Add(("good", "A project of yours is finished", "exchange:projects"));
-    if (w.HasFlag("first_refusal_taken")) alerts.Add(("info", "The world's holder matched your price and took the venture first", "exchange:ventures"));
-    // an alert goes when the thing is done (docs/PLAYTHROUGH.md): these stand only while a motion is open that you have not declared on
-    var undeclared = w.Motions.Where(x => x.Open && !x.Votes.ContainsKey(house.Id)).ToList();
-    if (undeclared.Any(x => x.TargetId == house.Id && x.ProposerHouseId != house.Id)) alerts.Add(("warn", "A motion against your house is before the Senate, and you have not declared", "senate:chamber"));
-    else if (undeclared.Any(SenateSystem.IsPetition)) alerts.Add(("info", "An estate petitions the Senate, and you have not declared: its regard in every house rides on the vote", "senate:chamber"));
-    else if (undeclared.Any(x => x.Kind == "act")) alerts.Add(("info", "An Act of the Senate is before the chamber, and you have not declared: the law of the Reach rides on it", "senate:chamber"));
-    else if (undeclared.Count > 0) alerts.Add(("info", undeclared.Count == 1 ? "A motion is before the Senate, and you have not declared" : undeclared.Count + " motions are before the Senate that you have not declared on", "senate:chamber"));
-    if (w.Motions.Any(x => x.Open && x.ProposedTurn < w.Turn && !x.Votes.ContainsKey(w.Protagonist!.HouseId))) alerts.Add(("warn", "A motion is decided at the end of this turn and your vote is undeclared", "senate:chamber"));
-    if (w.HasFlag("election_near")) alerts.Add(("info", "The consuls are elected at the turn's end — stand, or see who the parties put up", "senate:consuls"));
-    if (w.HasFlag("consul_elected")) alerts.Add(("good", "You are elected consul", "senate:consuls"));
-    if (w.HasFlag("consul_lost")) alerts.Add(("info", "Your consulship has ended", "senate:consuls"));
-    if (w.HasFlag("vetoed_mine")) alerts.Add(("warn", "A consul has vetoed your motion", "senate:chamber"));
-    if (w.HasFlag("petition_refused")) alerts.Add(("warn", "The Senate turned a petition away — the estate's worlds stir", "laws:estates"));
-    if (w.HasFlag("petition_carried")) alerts.Add(("good", "The Senate heard a petition — the estate's regard rises", "laws:estates"));
-    if (w.HasFlag("embargoed")) alerts.Add(("warn", "The Senate's embargo closes the exchanges to you", "senate:chamber"));
-    if (w.HasFlag("office_granted")) alerts.Add(("good", "The Senate has commissioned you to an office", "senate:offices"));
-    if (w.HasFlag("office_lost")) alerts.Add(("warn", w.HasFlag("treason") ? "Stripped of office for treason" : "Relieved of office by the Senate", "senate:offices"));
-    foreach (var sd in w.SeatDemands.Where(x => x.AgainstId == w.Protagonist?.HouseId)) alerts.Add(("warn", (w.House(sd.ById)?.Name ?? "A house") + " asks you to give up " + (w.Holding(sd.HoldingId) is { } sh ? ProvinceSystem.What(sh, sd.Province) : "a seat") + ": step down, or stand. To stand, or to leave it unanswered, is war with them", "galaxy:" + (w.Holding(sd.HoldingId)?.SystemId ?? "")));
-    if (w.Protagonist?.HouseId is { } myHouse) foreach (var (ph, pi) in w.ProvincesOf(myHouse).Where(x => x.i < x.h.Provinces.Count && x.h.Provinces[x.i].Dues >= ProvinceSystem.Heavy && !x.h.Provinces[x.i].Withheld).Take(1)) alerts.Add(("info", (w.House(ph.OwnerId)?.Name ?? "A house") + " asks heavy dues of " + ph.Provinces[pi].Name, "galaxy:" + ph.SystemId));
-    foreach (var f in w.WorldFlags.Where(f => f.StartsWith("office_vacant:")).Take(1)) alerts.Add(("info", "An office of the Reach stands vacant", "senate:offices"));
-    if (w.HasFlag("faction_against_me")) alerts.Add(("warn", "A bench's leader has moved against you — the whole bench will follow", "senate:chamber"));
-    if (w.HasFlag("faction_formed")) alerts.Add(("info", "A bench has formed with you on it", "senate:chamber"));
-    if (w.HasFlag("faction_dissolved")) alerts.Add(("info", "Your bench has broken", "senate:chamber"));
-    foreach (var f in w.WorldFlags.Where(f => f.StartsWith("estate_hostile:")).Take(2)) alerts.Add(("warn", $"{G.Content!.Policies.Estate(f["estate_hostile:".Length..])?.Name ?? f} are hostile to the house", "laws:estates"));
-    if (w.HasFlag("governor_revolt")) alerts.Add(("warn", "A governor has declared a world for themselves", "worlds"));
-    if (w.HasFlag("freehold_of_ours")) alerts.Add(("info", "A world of yours is a free hold — buy it back or take it", "galaxy:" + (m.Reclaims?.FirstOrDefault() is { } fr ? w.Holding(fr.HoldingId)?.SystemId ?? "" : "")));
-    if (w.HasFlag("capital_taken")) alerts.Add(("good", "You hold the capital", "senate"));
-    // the military depth (docs/MILITARY.md): battles about to be joined, crews and supply, the campaign, the Achilles name
-    foreach (var sys in w.Fleets.Values.Where(f => f.OwnerId == house.Id && !f.Moving).Select(f => f.SystemId).Distinct().Where(sid => w.Fleets.Values.Any(e => !e.Moving && e.SystemId == sid && e.OwnerId != house.Id && w.AtWar(house.Id, e.OwnerId))).Take(2))
-    {
-        var enemy = w.Fleets.Values.First(e => !e.Moving && e.SystemId == sys && e.OwnerId != house.Id && w.AtWar(house.Id, e.OwnerId));
-        alerts.Add(("warn", $"Battle at {w.Galaxy?.System(sys)?.Name ?? sys} at the turn's end — {w.House(enemy.OwnerId)?.Name ?? "the enemy"} in the sky; set your stance", "galaxy:" + sys));
-    }
-    if (w.HasFlag("fleet_mutinous")) alerts.Add(("warn", "A fleet has mutinied — hulls are deserting", "military"));
-    else if (w.HasFlag("fleet_restive")) alerts.Add(("warn", "A fleet's crews are restive and will not sail", "military"));
-    if (w.HasFlag("out_of_supply")) alerts.Add(("warn", "A fleet is out of supply — hulls will desert", "military"));
-    else if (w.HasFlag("supply_low")) alerts.Add(("info", "A fleet is running short of supply", "military"));
-    if (w.HasFlag("campaign_over")) alerts.Add(("info", "The campaign is over — the fleet is recalled", "military"));
-    if (w.HasFlag("became_achilles")) alerts.Add(("good", "The Reach speaks your name as it speaks of Achilles", "military"));
-    if (w.HasFlag("hulls_captured")) alerts.Add(("good", "Prize crews have taken enemy hulls", "military"));
-    if (w.HasFlag("capital_lost")) alerts.Add(("warn", "The capital is lost", "senate"));
-    if (w.HasFlag("rebellion")) alerts.Add(("warn", "A world of yours is in revolt", "galaxy:" + (w.HoldingsOf(house.Id).FirstOrDefault(x => x.InRebellion)?.SystemId ?? "")));
-    // the next rank is within reach: said the year it becomes so, and while it stays so (docs/PLAYTHROUGH.md, Medium, The Senate)
-    if (G.Turn?.Progression is { } prog && prog.NextTitle(w, house.Id) is { } nextRank && prog.OpenRoads(w, w.ProtagonistId) is { Count: > 0 } roads) alerts.Add(("good", RankWithinReach(nextRank.NameIn(w.Era), roads, prog.Voted(nextRank)), "senate"));
-    if (w.HasFlag("fief_granted")) alerts.Add(("good", w.IsImperium ? "You have been granted a fief" : "You have been entrusted with a world", "worlds"));
-    foreach (var f in w.WorldFlags.Where(f => f.StartsWith("house_fell:"))) alerts.Add(("info", $"{f["house_fell:".Length..]} has passed out of the rolls", "houses"));
-    if (m.GreatCrisis is { Stage: not null, Resolved: false } gc) alerts.Add(("info", $"{gc.Name}: {gc.Stage}", "houses"));
-    if (!w.Characters.Values.Any(c => c.Alive && c.HouseId == house.Id && c.Id != w.ProtagonistId)) alerts.Add(("warn", "No heir — the line hangs by a thread", "dynasty"));
-    foreach (var su in w.Courtships.Where(x => x.Incoming)) alerts.Add(("info", $"{w.Char(su.SuitorId)?.Name} asks for {w.Char(su.TargetId)?.Name}'s hand: answer it", "dynasty:marriages"));
-    foreach (var su in w.Courtships.Where(x => !x.Incoming && !x.Betrothed && x.SuitorId == w.ProtagonistId && x.RivalId.Length > 0 && x.RivalStanding > Praetoria.Core.Systems.CourtshipSystem.Standing(w, x))) alerts.Add(("warn", $"A rival is ahead in the suit for {w.Char(su.TargetId)?.Name}", "dynasty:marriages"));
-    if (w.Courtships.Any(x => !x.Incoming && !x.Betrothed && x.SuitorId == w.ProtagonistId && x.ActedTurn < w.Turn)) alerts.Add(("info", "Your suit waits on this year's attention", "dynasty:marriages"));
-    foreach (var su in w.Courtships.Where(x => !x.Incoming && x.Own && x.SuitorId != w.ProtagonistId && x.AskingSince >= 0 && !x.Forbidden)) alerts.Add(("info", $"{w.Char(su.SuitorId)?.Name} asks your leave to marry {w.Char(su.TargetId)?.Name}", "dynasty:marriages"));
-    if (w.HasFlag(Praetoria.Core.Systems.EducationSystem.ResistsFlag)) alerts.Add(("info", "A child of the house is set against their bent", "dynasty:upbringing"));
-    foreach (var ask in Praetoria.Core.Systems.AmbitionSystem.Members(w, house).Where(x => x.Pursuit is { Request.Length: > 0 })) alerts.Add(("info", $"{ask.Name} {Praetoria.Core.Systems.AmbitionSystem.RequestSays(w, ask)}", "dynasty:ambitions"));
-    if (w.Protagonist is { } sitter && Praetoria.Core.Systems.LadderSystem.DutyOf(w, sitter.Id, Praetoria.Core.Systems.LadderSystem.Hearing, Praetoria.Core.Systems.LadderSystem.Appeal) is { } benchWork)
-        alerts.Add(("warn", benchWork.Kind == Praetoria.Core.Systems.LadderSystem.Appeal ? "An appeal waits before your bench" : "A hearing waits before your bench", "senate:duties"));
-    if (w.Protagonist is { } holder && Praetoria.Core.Systems.LadderSystem.DutyOf(w, holder.Id, Praetoria.Core.Systems.LadderSystem.Charge) is { } chargeWork)
-        alerts.Add(("warn", "The year's charge of your office waits on you: " + (G.Content!.Offices.Def(chargeWork.RungId)?.Name ?? "an office of the Reach"), "senate:duties"));
-    if (w.Protagonist is { } ranker && Praetoria.Core.Systems.LadderSystem.DutyOf(w, ranker.Id, Praetoria.Core.Systems.LadderSystem.Desk, Praetoria.Core.Systems.LadderSystem.Posting, Praetoria.Core.Systems.LadderSystem.Brief, Praetoria.Core.Systems.LadderSystem.Ledgers, Praetoria.Core.Systems.LadderSystem.Watch) is { } rankWork)
-        alerts.Add(("info", rankWork.Kind switch { Praetoria.Core.Systems.LadderSystem.Desk => "The year's returns are on your desk", Praetoria.Core.Systems.LadderSystem.Posting => "You have a year ashore to spend", Praetoria.Core.Systems.LadderSystem.Brief => "A brief has come to you", Praetoria.Core.Systems.LadderSystem.Ledgers => "The year's ledgers are yours to keep", _ => "Your year as a junior officer is yours to spend" }, "senate:duties"));
-    if (w.Protagonist is { } senator && Praetoria.Core.Systems.LadderSystem.DutyOf(w, senator.Id, Praetoria.Core.Systems.LadderSystem.SeatKind) != null)
-        alerts.Add(("info", "Your year in the Senate is not yet spent", "senate:duties"));
-    if (w.Protagonist is { } officer && Praetoria.Core.Systems.LadderSystem.BusinessOf(w, officer.Id) is { } officeWork)
-        alerts.Add(("warn", officeWork.Kind == Praetoria.Core.Systems.LadderSystem.Case ? "A case waits for your ruling as praetor" : officeWork.Kind == Praetoria.Core.Systems.LadderSystem.Works ? "The works wait on you as aedile" : "The year's accounts wait on you as quaestor", "senate:ladder"));
-    if (Praetoria.Core.Systems.LadderSystem.Active(w, G.Content!.Offices) && Praetoria.Core.Systems.LadderSystem.CountIn(w, G.Content.Offices) <= 2 && w.Protagonist is { } cand && !w.Candidacies.Any(x => x.CharacterId == cand.Id) && Praetoria.Core.Systems.LadderSystem.Next(w, G.Content.Offices, cand) is { } nextRung)
-        alerts.Add(("info", $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is {(Praetoria.Core.Systems.LadderSystem.CountIn(w, G.Content.Offices) is var cin && cin == 0 ? "at the end of this year" : "in " + Counted.Years(cin) + "")}", "senate:ladder"));
-    if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.WarFlag)) alerts.Add(("warn", "Your state is at war for its independence: hold the region", "senate:orders"));
-    else if (w.HasFlag(Praetoria.Core.Systems.PolitySystem.RefuseFlag)) alerts.Add(("warn", "You fought the one who now holds the throne, and you hold a region: you need not kneel", "senate:orders"));
-    if (w.Protagonist is { } laureate && Praetoria.Core.Systems.TriumphSystem.Waiting(w, laureate.Id) != null)
-        alerts.Add(("warn", "The Senate has voted you a triumph: come home for it, or decline it and keep the fleet", "military"));
-    if (w.Recalls.FirstOrDefault(r => r.HouseId == w.Protagonist?.HouseId) is { } recall)
-        alerts.Add(("warn", $"The Senate has ordered {(recall.CharacterId == w.ProtagonistId ? "you" : w.Char(recall.CharacterId)?.Name)} home by year {recall.Deadline}: answer it", "military"));
-    if (w.CivilWar is { } civil && w.Protagonist is { } cme)
-    {
-        if (civil.HouseId == cme.HouseId) alerts.Add(("warn", $"Your house has crossed the line: hold the capital's orbit or break the Senate's fleets", "military"));
-        else if (!civil.Declared.ContainsKey(cme.HouseId)) alerts.Add(("warn", $"{w.Char(civil.GeneralId)?.Name} marches on the capital: declare for a side, or stand aside", "military"));
-    }
-    else if (w.HasFlag(Praetoria.Core.Systems.CaesarSystem.GreatNameFlag) && w.Characters.Values.FirstOrDefault(c => c.Alive && c.Flags.Contains(Praetoria.Core.Systems.CaesarSystem.GreatNameChar)) is { } rising)
-        alerts.Add(("warn", $"{rising.Name} of {w.House(rising.HouseId)?.Name} is a commander of the first rank, and loved: the Reach has few of these", "military"));
-    else if (w.HasFlag(Praetoria.Core.Systems.CaesarSystem.LaurelsFlag)) alerts.Add(("info", "The house's general has the victories for a triumph: move it in the Senate", "senate:move"));
-    if (w.Protagonist is { } self && self.Health < Praetoria.Core.Systems.LifeSystem.Sound) alerts.Add(("warn", self.Health < Praetoria.Core.Systems.LifeSystem.Frail ? "Your health is failing" : "You are ailing", "you"));
-    if (w.Protagonist is { } sick && sick.Flags.Contains(Praetoria.Core.Systems.LifeSystem.IllChar)) alerts.Add(("warn", "You are ill", "you:life"));
-    if (w.HasFlag(Praetoria.Core.Systems.WealthSystem.DebtFlag)) alerts.Add(("warn", "One of the house is in debt", "house:purse"));
-    foreach (var pe in house.Petitions) alerts.Add(("info", $"{w.Char(pe.PersonId)?.Name} asks for a place in your household", "house:household"));
-    if (house.Duties.Any(du => w.Char(du.HolderId)?.Flags.Contains(Praetoria.Core.Systems.HouseholdSystem.SkimmingChar) == true)) alerts.Add(("warn", "The steward's accounts do not add up", "house:household"));
-    if (house.Court.Any(r => r.UnpaidYears > 0)) alerts.Add(("warn", "The household's wages are unpaid", "house:court"));
-    if (w.MarriageOf(w.ProtagonistId) is { Estranged: true }) alerts.Add(("warn", "You and your spouse live apart", "dynasty:marriages"));
-    if (m.Crises != null) foreach (var c in m.Crises.Active) alerts.Add(("warn", $"Crisis: {c.Name} (severity {c.Severity})", "senate:offices"));
+    int unanswered = m.Briefing.Count(b => !b.Resolved);
+    var underOthers = w.ProvincesOf(house.Id).Where(x => x.h.OwnerId != house.Id).ToList();
+    int filled = m.Advisors.Count(a => !a.Vacant);
 }
-<aside class="outliner">
-    <section class="ol-block">
-        <h4><Icon Name="report" Size="13" /> Reports <span class="count">@open.Count</span></h4>
-        @if (m.Briefing.Count == 0) { <div class="ol-empty">A quiet turn. No one waits at your door.</div> }
-        @foreach (var b in m.Briefing)
-        {
-            <button class="ol-report @b.Tier.ToLowerInvariant() @(b.Resolved ? "done" : "")" @onclick="() => OnOpenReport.InvokeAsync(b)">
-                <span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span>
-                <span class="title">@b.Title</span>
-                @if (b.Resolved) { <span class="tick">✓</span> }
+<aside class="outliner @(Folded ? "folded" : "")">
+    @if (m.Briefing.Count > 0)
+    {
+        <section class="ol-sec @(Open("reports") ? "" : "shut")" data-ol="reports">
+            @Head("reports", "report", "Reports", unanswered.ToString(), false, "The year's reports: who waits at your door and what came. Each is answered in its own window; left unanswered at the year's end, it lapses.")
+            @if (Open("reports"))
+            {
+                var seen = new Dictionary<string, int>();
+                @foreach (var b in m.Briefing)
+                {
+                    string scene = SceneArt.For(b.Item.Fired.Def, b.Title);
+                    // two reports on one painting show different parts of it, so the column of crops still tells them apart
+                    int nth = seen.TryGetValue(scene, out var k) ? k : 0; seen[scene] = nth + 1;
+                    string pos = CropAt[nth % CropAt.Length];
+                    bool lapses = b.Setpiece || b.Tier == "AMBIENT";
+                    <button class="ol-row ol-report rep @b.Tier.ToLowerInvariant() @(b.Resolved ? "done" : "")" data-report title="@(b.Resolved ? "Answered: open it again to read what was said" : lapses ? "Open this report. Left unanswered, it lapses at the year's end." : "Open this report. Answer it before the year ends.")" @onclick="() => OnOpenReport.InvokeAsync(b)">
+                        <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="eager" decoding="async" style="object-position:@pos" /></span>
+                        <span class="nm"><span class="title">@b.Title</span><span class="k">@if (!b.Resolved && lapses) { <Icon Name="hourglass" Tone="ember" Size="13" /> }@(b.Resolved ? "Answered" : lapses ? "Lapses at year's end" : "Answer this year")</span></span>
+                        @if (b.Resolved) { <Icon Name="check" Tone="good" Size="14" Class="tick" /> }
+                        else { <Icon Name="wax-seal" Tone="brass" Size="20" Class="wseal" /> }
+                    </button>
+                }
+            }
+        </section>
+    }
+    @if (m.Fleets.Count > 0)
+    {
+        <section class="ol-sec @(Open("fleets") ? "" : "shut")" data-ol="fleets">
+            @Head("fleets", "fleet", "Fleets", m.Fleets.Count.ToString(), false, "Your fleets. Pick one and the map goes to it; the next world you click shows the way there.")
+            @if (Open("fleets"))
+            {
+                @foreach (var f in m.Fleets)
+                {
+                    <button class="ol-row" data-ol-fleet="@f.Id" title="@($"Pick this fleet: the map goes to it, and the next world you click shows the way there\n{Counted.Hulls(f.Strength)} · {(f.Moving ? "bound for " + f.Destination : "at " + f.Where)}")" @onclick='() => OnGo.InvokeAsync("fleet:" + f.Id)'>
+                        <svg class="tok" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20 L12 3 L21 20 L12 15 Z" fill="@m.HouseAccent" stroke="#000" stroke-width="1.4" stroke-linejoin="round" /><path d="M12 3 L12 15 L3 20 Z" fill="#fff" opacity=".22" /></svg>
+                        <span class="nm">@f.Name</span><span class="m">@(f.Moving ? "bound for " + f.Destination : Counted.Hulls(f.Strength))</span>
+                    </button>
+                }
+            }
+        </section>
+    }
+    @if (m.Holdings.Count + underOthers.Count > 0)
+    {
+        <section class="ol-sec @(Open("holdings") ? "" : "shut")" data-ol="holdings">
+            @Head("holdings", "planet", "Holdings", (m.Holdings.Count + underOthers.Count).ToString(), false, "The worlds and provinces the house holds. Click one and the map goes to it.")
+            @if (Open("holdings"))
+            {
+                @foreach (var h in m.Holdings)
+                {
+                    var hold = w.Holding(h.Id); string cls = hold != null ? w.Galaxy?.System(hold.SystemId)?.PlanetClass ?? "terran" : "terran";
+                    <button class="ol-row" title="@($"{h.Name}: {Labels.Sentence(h.SpecName)}{(h.Unrest >= 50 ? ", restless" : "")}{(h.Besieged ? ", besieged" : "")}. Click and the map goes to it.")" @onclick='() => OnGo.InvokeAsync("galaxy:" + (hold?.SystemId ?? ""))'>
+                        <Globe Class="@cls" Size="18" Ringed="false" />
+                        <span class="nm">@h.Name</span><span class="m @(h.Besieged || h.Unrest >= 50 ? "warn" : "")">@(h.Besieged ? "Besieged" : h.Unrest >= 50 ? "Restless" : Labels.Sentence(h.SpecName))</span>
+                    </button>
+                }
+                @foreach (var (uh, ui) in underOthers)
+                {
+                    string usys = uh.SystemId; string ucls = w.Galaxy?.System(usys)?.PlanetClass ?? "terran";
+                    <button class="ol-row" data-ol-province title="@($"A province you hold under another house, for life: {uh.Provinces[ui].Name}, on {uh.Name}, under {w.House(uh.OwnerId)?.Name}")" @onclick='() => OnGo.InvokeAsync("galaxy:" + usys)'>
+                        <Globe Class="@ucls" Size="18" Ringed="false" />
+                        <span class="nm">@uh.Provinces[ui].Name</span><span class="m">Province</span>
+                    </button>
+                }
+            }
+        </section>
+    }
+    @if (m.Advisors.Count > 0)
+    {
+        <section class="ol-sec shut" data-ol="council">
+            <button class="ol-head" data-ol-council title="The posts of the house's council: who holds each, what they did this year, and what you have told them." @onclick='() => OnGo.InvokeAsync("house:council")'>
+                <i class="chev"></i><Icon Name="round-table" Tone="ivory" Size="16" /><span class="t">Council</span><span class="n @(filled < m.Advisors.Count ? "warn" : "")">@filled of @m.Advisors.Count</span>
             </button>
-        }
-    </section>
-    <section class="ol-block">
-        <h4><Icon Name="alert" Size="13" /> Alerts <span class="count">@alerts.Count</span></h4>
-        @if (alerts.Count == 0) { <div class="ol-empty">Nothing presses.</div> }
-        @foreach (var a in alerts) { <button class="ol-alert @a.cls" @onclick='() => OnGo.InvokeAsync(a.go ?? "office")'>@a.text</button> }
-        <button class="ol-row ol-council" data-ol-council title="The six posts of the house's council: who holds each, what they did this year, and what you have told them." @onclick='() => OnGo.InvokeAsync("house:council")'><b>The council</b> <span class="muted">@m.Advisors.Count(a => !a.Vacant) of @m.Advisors.Count posts filled ▸</span></button>
-    </section>
-    <section class="ol-block">
-        <h4><Icon Name="fleet" Size="13" /> Fleets <span class="count">@m.Fleets.Count</span></h4>
-        @foreach (var f in m.Fleets) { <button class="ol-row" title="Pick this fleet: the map goes to it, and the next world you click shows the way there" @onclick='() => OnGo.InvokeAsync("fleet:" + f.Id)'><b>@f.Name</b> <span class="muted">@f.Strength hulls · @(f.Moving ? $"→ {f.Destination}" : f.Where)</span></button> }
-    </section>
-    <section class="ol-block">
-        <h4><Icon Name="planet" Size="13" /> Holdings <span class="count">@m.Holdings.Count</span></h4>
-        @foreach (var h in m.Holdings) { <button class="ol-row" @onclick='() => OnGo.InvokeAsync("galaxy:" + (w.Holding(h.Id)?.SystemId ?? ""))'><b>@h.Name</b> <span class="muted">@h.SpecName@(h.Unrest >= 50 ? " · restless" : "")@(h.Besieged ? " · besieged" : "")</span></button> }
-        @foreach (var (uh, ui) in w.ProvincesOf(house.Id).Where(x => x.h.OwnerId != house.Id)) { string usys = uh.SystemId; <button class="ol-row" data-ol-province title="A province you hold under another house, for life" @onclick='() => OnGo.InvokeAsync("galaxy:" + usys)'><b>@uh.Provinces[ui].Name</b> <span class="muted">province on @uh.Name · under @(w.House(uh.OwnerId)?.Name)</span></button> }
-    </section>
+        </section>
+    }
 </aside>
 
 @code {
-    /* "The rank of Legate is within reach: by petition, the house's standing being enough, or by force, the house having the ships" */
-    private static string RankWithinReach(string rank, List<string> roads, bool voted = false)
-    {
-        var says = roads.Select(r => r == "petition" ? (voted ? "by petition to the Senate, which votes on it: the house has the standing, and the land or the seats" : "by petition, the house's standing being enough") : r == "claim" ? "by the claim the house holds" : "by force, the house having the ships");
-        return "The rank of " + rank + " is within reach: " + string.Join(", or ", says);
-    }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<BriefingCard> OnOpenReport { get; set; }
     [Parameter] public EventCallback<string> OnGo { get; set; }
+    /// <summary>A window is open, or the screen is under 1500px: every section but Reports shows only its head until it is opened.</summary>
+    [Parameter] public bool Folded { get; set; }
+
+    /// <summary>What the player opened or folded: kept apart for the map at rest and for when a window is open.</summary>
+    private readonly Dictionary<string, bool> _open = new();
+    /// <summary>Where the crop of a painting looks, for the first, second, third report on the same painting.</summary>
+    private static readonly string[] CropAt = { "50% 45%", "18% 70%", "84% 30%", "30% 20%", "70% 80%" };
+    private string Key(string section) => Folded && section != "reports" ? section + ":folded" : section;
+    private bool Open(string section) => _open.TryGetValue(Key(section), out var o) ? o : !Folded || section == "reports";
+    private void Toggle(string section) => _open[Key(section)] = !Open(section);
+
+    private RenderFragment Head(string section, string icon, string title, string count, bool warn, string tip) => __builder =>
+    {
+        <button class="ol-head" aria-expanded="@Open(section)" title="@tip" @onclick="() => Toggle(section)">
+            <i class="chev"></i><Icon Name="@icon" Tone="ivory" Size="16" /><span class="t">@title</span><span class="n @(warn ? "warn" : "")">@count</span>
+        </button>
+    };
 }

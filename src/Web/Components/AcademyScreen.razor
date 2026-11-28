@@ -1,5 +1,11 @@
 @inject GameClient G
 @using Praetoria.Core.Presentation
+@* The Academy year (docs/ACADEMY.md; docs/VISUAL_SYSTEM.md 5.3): one framed window over the night, built of the shared parts. The hall
+   at its head (the Institute's colonnade under the Imperium), the school's glyph in a brass medallion, the term as the kicker, the cadet
+   and what they read as the facts, and five figures on the plinth: the place in the order of merit, standing, marks, strain and the
+   terms to go. Five tabs, each a page of sections and rows: this term (the reports at the door, the timetable, the commissioning
+   board), the lecture hall, the Reach (the state of it, the houses that matter, your house), the year (the order of merit, the
+   Standards) and what has happened so far. The one gold plate, the end of the term, waits at the window's foot on every tab. *@
 @{
     var a = Academy; var m = Court; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
     bool imperium = a.Register == "imperium"; bool full = a.Tutorial != "brief";   /* the full course until the cadet says otherwise: one who has not answered yet is a first-timer, not an old hand */
@@ -10,168 +16,247 @@
     var termLessons = a.Lessons.Where(l => l.Term == a.Term).ToList(); var earlier = a.Lessons.Where(l => l.Term < a.Term).ToList(); var later = a.Lessons.Where(l => l.Term > a.Term).ToList();
     var focus = _focus != null ? a.Cohort.FirstOrDefault(x => x.Id == _focus) : null;
     var asked = a.Services.FirstOrDefault(s => s.Asked) ?? a.Services.FirstOrDefault(s => s.Recommended);
+    int termsLeft = a.Terms - a.Term; int marks = a.Subjects.Sum(s => s.Marks);
+    var mineStd = imperium ? a.Standards.FirstOrDefault(s => s.Yours) : null;
+    var figures = new List<WindowHeader.Figure>
+    {
+        new("trophy", AcademySystem.Ordinal(a.Place), "Order of merit", a.Place <= 3 ? "brass" : "ivory", Of: a.Of.ToString(),
+            Tip: $"[trophy] The order of merit\nYou stand {AcademySystem.Ordinal(a.Place)} of the {a.Of} cadets of the year, on {a.Score} marks. The order is read out when the year passes out, and is remembered."),
+        new("laurels", Signed(a.Standing), "Standing", a.Standing < 0 ? "ember" : "ivory", Tip: "[laurels] Standing\nWhat the instructors and the year think of you, from what you have done and said. It weighs in the order of merit."),
+        new("open-book", marks.ToString(), "Marks read", "ivory", Tip: $"[open-book] Marks read\nThe marks of every subject you have read so far.{(reading != null ? $" This term: {reading.Name}." : "")}"),
+        new("brain", p.Stress.ToString(), "Strain", p.Stress >= 70 ? "ember" : "ivory", Tip: "[brain] Strain\nThe weight of the year on you. At 70 and more it begins to tell."),
+        new("hourglass", termsLeft.ToString(), termsLeft == 1 ? "Term to go" : "Terms to go", "brass", Of: a.Terms.ToString(), Tip: $"[hourglass] Term {a.Term} of {a.Terms}: {a.TermName}\n{(a.FinalTerm ? "The last term: at its end you pass out and the world begins." : $"{Counted.Terms(termsLeft)} {Counted.Remain(termsLeft)} after this one.")}")
+    };
+    var tabs = new List<Tabs.Tab>
+    {
+        new("term", "This term", "scroll-quill", open > 0 ? open.ToString() : "", open > 0, Tip: "The reports at your door, the timetable, and at the last term the commissioning board"),
+        new("lectures", "Lectures", "open-book", full ? termLessons.Count.ToString() : "", Tip: "The lecture hall: this term's lectures and the ones before"),
+        new("reach", "The Reach", "greek-temple", Tip: "The state of the Reach the year you enter, the houses that matter, and your house"),
+        new("year", "The year", "three-friends", a.Cohort.Count.ToString(), Tip: imperium ? "The order of merit and the Standards: click a cadet" : "The order of merit: click a cadet"),
+        new("record", "So far", "scroll-unfurled", a.Record.Count > 0 ? a.Record.Count.ToString() : "", Tip: "The year so far, as it was written")
+    };
 }
-<div class="dash academy @(imperium ? "institute" : "")" style="--accent:@house.AccentColor">
-    <header class="dash-head">
-        <div class="dh-title"><Icon Name="@(imperium ? "war" : "honor")" Size="18" /> <b>@a.SchoolName</b>
-            <span class="muted">Term @a.Term of @a.Terms · @a.TermName · cadet @p.Name of @house.Name, @p.Age</span>
-            <span class="ac-tools"><button class="btn sm" @onclick="OnSave">Save</button><button class="btn sm ghost" @onclick="OnQuit">Quit</button></span></div>
-        <div class="dh-stats">
-            <div class="stat"><span>Order of merit</span><b>@AcademySystem.Ordinal(a.Place) <i class="muted">of @a.Of</i></b></div>
-            <div class="stat @(a.Standing < 0 ? "warn" : "")"><span>Standing</span><b>@(a.Standing >= 0 ? "+" : "")@a.Standing</b></div>
-            <div class="stat"><span>Reading</span><b>@(reading?.Name ?? "nothing")</b></div>
-            <div class="stat @(p.Stress >= 70 ? "warn" : "")"><span>Stress</span><b>@p.Stress</b></div>
-            @if (imperium && a.Standards.FirstOrDefault(s => s.Yours) is { } mine) { <div class="stat"><span>Your Standard</span><b style="color:@mine.Accent">@Cap(mine.Name)@(mine.Captain ? " · captain" : "")</b></div> }
-            <div class="stat"><span>Outside the gates</span><b class="muted">the world waits</b></div>
-        </div>
-    </header>
-
-    <div class="dash-grid academy-grid">
-        @* ---------------- this term ---------------- *@
-        <section class="panel">
-            <h3><Icon Name="report" Size="13" /> This term <span class="muted">answer what comes, choose what to read, then end the term</span></h3>
-            @if (m.Briefing.Count == 0) { <div class="muted">A quiet term. Nothing comes to your door.</div> }
-            @foreach (var b in m.Briefing)
+<div class="academy ac @(imperium ? "institute" : "")" style="--accent:@house.AccentColor" data-academy-tab="@_tab">
+    <WindowFrame Class="ac-win" BodyClass="ac-body" FootClass="ac-foot">
+        <Header>
+            <WindowHeader Scene="@(imperium ? "senate" : "audience")" Kicker="@($"Term {a.Term} of {a.Terms} · {a.TermName}")" Title="@a.SchoolName" Glyph="@(imperium ? "eagle-emblem" : "open-book")" Figures="figures" Class="ac-head">
+                <Facts>
+                    <span><Icon Name="roman-toga" Tone="ivory" Size="16" />Cadet <b>@p.Name</b> of @house.Name, @p.Age</span>
+                    <span title="@(reading?.Description ?? "Nothing is read this term: choose a subject on This term")"><Icon Name="@(reading != null ? Workshop.SkillIcon(reading.Skill) : "open-book")" Tone="ivory" Size="16" />Reading <b>@(reading?.Name ?? "nothing")</b></span>
+                    @if (mineStd != null) { <span title="@mineStd.Motto"><i class="ac-std" style="background:@mineStd.Accent"></i>Your Standard <b style="color:@mineStd.Accent">@Cap(mineStd.Name)@(mineStd.Captain ? " · captain" : "")</b></span> }
+                    <span class="ui-dim"><Icon Name="ringed-planet" Tone="steel" Size="16" />Outside the gates the world waits</span>
+                </Facts>
+            </WindowHeader>
+            <span class="ac-tools">
+                <button class="ui-btn sm" title="Save the year as it stands" @onclick="OnSave"><Icon Name="save" Tone="ivory" Size="14" />Save</button>
+                <button class="ui-btn sm" title="Leave to the title screen" @onclick="OnQuit"><Icon Name="quit" Tone="ivory" Size="14" />Quit</button>
+            </span>
+        </Header>
+        <TabRow><Tabs Items="tabs" Active="@_tab" OnPick="t => _tab = t" /></TabRow>
+        <ChildContent>
+            @if (_tab == "term")
             {
-                <button class="ac-report @(b.Resolved ? "done" : "") @(b.Setpiece ? "setpiece" : "")" @onclick="() => OnOpenReport.InvokeAsync(b)">
-                    <span class="glyph">@(b.Resolved ? "✓" : b.Setpiece ? "✦" : "◆")</span><b>@b.Title</b><span class="muted small">@(b.Resolved ? "answered" : "waiting for you")</span>
-                </button>
-            }
-
-            <h4>The timetable <span class="muted">one subject a term: a point of the skill, and marks toward the order of merit</span></h4>
-            @foreach (var grp in a.Subjects.GroupBy(s => s.Track))
-            {
-                <div class="ac-track"><span class="muted small">leads to @grp.First().TrackName</span>
-                    @foreach (var s in grp)
+                <p class="ui-lede">@if (open > 0) { <text><b>@Counted.Matters(open)</b> @(open == 1 ? "waits" : "wait") for you at the door. </text> } else { <text>Nothing waits at the door. </text> }You are reading <b>@(reading?.Name ?? "nothing")</b> this term@(a.FinalTerm ? ", the last before the board commissions you." : $", with {Counted.Terms(termsLeft)} after it.")</p>
+                <Section Title="This term" Count="@m.Briefing.Count.ToString()" Info="Answer what comes, choose what to read, then end the term. A report left unanswered at the term's end is set aside."
+                         IsEmpty="@(m.Briefing.Count == 0)" EmptyLine="A quiet term. Nothing comes to your door." EmptyIcon="wax-seal">
+                    <Right><span>answer what comes, choose what to read, then end the term</span></Right>
+                    <ChildContent>
+                    @foreach (var b in m.Briefing)
                     {
-                        <button class="ac-subject @(s.Reading ? "here" : "")" title="@s.Description" @onclick="() => G.Execute(new ChooseStudyCommand(pid, s.Id, c.Academy))">
-                            <b>@s.Name</b><span class="muted small">@s.Skill @s.Level</span>
-                            <span class="ac-marks">@(s.Marks > 0 ? $"{s.Marks} marks" : "unread")<i class="muted"> · +@s.NextMarks this term</i></span>
+                        string scene = SceneArt.For(b.Item.Fired.Def, b.Title);
+                        <button class="ac-report @(b.Resolved ? "done" : "") @(b.Setpiece ? "setpiece" : "")" title="@(b.Resolved ? "Answered: open it again to read what was said" : "Open this report")" @onclick="() => OnOpenReport.InvokeAsync(b)">
+                            <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="eager" decoding="async" /></span>
+                            <span class="nm"><b>@b.Title</b><span class="k">@(b.Resolved ? "answered" : b.Setpiece ? "a turning point · waiting for you" : "waiting for you")</span></span>
+                            @if (b.Resolved) { <Icon Name="check" Tone="good" Size="16" /> }
+                            else if (b.Setpiece) { <Icon Name="laurels" Tone="brass" Size="22" /> }
+                            else { <Icon Name="wax-seal" Tone="brass" Size="22" /> }
                         </button>
                     }
-                </div>
-            }
-            @if (reading != null) { <div class="muted small">@reading.Description</div> }
+                    </ChildContent>
+                </Section>
 
-            @if (a.FinalTerm)
-            {
-                <h4>The commissioning board <span class="muted">ask for a service, or let the board place you where you read most</span></h4>
-                <div class="ac-services">
-                    @foreach (var s in a.Services)
+                <Section Title="The timetable" Count="@a.Subjects.Count.ToString()" Info="One subject a term: a point of the skill, and marks toward the order of merit. Click a subject to read it this term.">
+                    <Right><span>one subject a term: a point of the skill, and marks</span></Right>
+                    <ChildContent>
+                    @foreach (var grp in a.Subjects.GroupBy(s => s.Track))
                     {
-                        <button class="ac-service @(asked?.Track == s.Track ? "here" : "")" @onclick="() => G.Execute(new ChooseServiceCommand(pid, s.Track))">
-                            <b>@Cap(s.Name)</b><span class="muted small">you pass out as @s.FirstRank</span><span class="muted small">@s.Marks marks read@(s.Recommended ? " · the board's choice" : "")</span>
-                        </button>
+                        <div class="ac-track"><Icon Name="@Workshop.TrackIcon(grp.Key)" Tone="brass" Size="16" /><span>leads to @grp.First().TrackName</span><i></i></div>
+                        @foreach (var s in grp)
+                        {
+                            <button class="ac-subject @(s.Reading ? "here" : "")" title="@s.Description" @onclick="() => G.Execute(new ChooseStudyCommand(pid, s.Id, c.Academy))">
+                                <Icon Name="@Workshop.SkillIcon(s.Skill)" Tone="@(s.Reading ? "brass" : "ivory")" Size="22" />
+                                <span class="nm"><b>@s.Name</b><span class="k">@s.Skill @s.Level</span></span>
+                                <span class="ac-marks">@(s.Marks > 0 ? $"{s.Marks} marks" : "unread")</span>
+                                <span class="ac-next ui-up">+@s.NextMarks this term</span>
+                                @if (s.Reading) { <span class="ac-tag">reading</span> } else { <span class="ac-tag off"></span> }
+                            </button>
+                        }
                     }
-                </div>
-            }
-            <div class="ac-end">
-                <button class="btn primary big" @onclick="OnEndTerm" title="@(open > 0 ? $"{Counted.Matters(open)} unanswered: ending the term sets them aside" : "")">@(a.FinalTerm ? "Pass out ▸" : "End the term ▸")@if (open > 0) { <span class="badge">@open</span> }</button>
-                <span class="muted small">@(a.FinalTerm ? $"You leave at seventeen, commissioned into {(asked != null ? asked.Name : "the service")}. The world begins." : $"{Counted.Terms(a.Terms - a.Term)} {Counted.Remain(a.Terms - a.Term)} after this one.")</span>
-            </div>
-        </section>
+                    @if (reading != null) { <p class="ac-note">@reading.Description</p> }
+                    </ChildContent>
+                </Section>
 
-        @* ---------------- the lecture hall and the orientation ---------------- *@
-        <section class="panel">
-            <h3><Icon Name="chronicle" Size="13" /> The lecture hall
-                <span class="muted">@(full ? "every lesson in full" : "the short course")</span>
-                <button class="opt inline tiny" @onclick="ToggleTutorial">@(full ? "I know this: brief me only" : "Teach me in full")</button></h3>
-            @if (full)
-            {
-                @foreach (var l in termLessons)
+                @if (a.FinalTerm)
                 {
-                    <details class="ac-lesson" open><summary><b>@l.Title</b> <span class="muted small">this term's lecture</span></summary>
-                        @foreach (var para in l.Paragraphs) { <p>@para</p> }
-                    </details>
+                    <Section Title="The commissioning board" Count="@a.Services.Count.ToString()" Info="Ask for a service, or let the board place you where you read most.">
+                        <Right><span>ask for a service, or let the board place you</span></Right>
+                        <ChildContent>
+                        @foreach (var s in a.Services)
+                        {
+                            bool on = asked?.Track == s.Track;
+                            <button class="ac-service @(on ? "here" : "")" title="@($"Ask the board for {s.Name}")" @onclick="() => G.Execute(new ChooseServiceCommand(pid, s.Track))">
+                                <Icon Name="@Workshop.TrackIcon(s.Track)" Tone="@(on ? "brass" : "ivory")" Size="24" />
+                                <span class="nm"><b>@Cap(s.Name)</b><span class="k">you pass out as @s.FirstRank</span></span>
+                                <span class="ac-marks">@s.Marks marks read</span>
+                                @if (s.Recommended) { <span class="ac-tag">the board's choice</span> } else { <span class="ac-tag off"></span> }
+                            </button>
+                        }
+                        </ChildContent>
+                    </Section>
                 }
-                @foreach (var l in earlier) { <details class="ac-lesson"><summary>@l.Title <span class="muted small">term @l.Term</span></summary>@foreach (var para in l.Paragraphs) { <p>@para</p> }</details> }
-                @if (later.Count > 0) { <div class="muted small">Still to come: @string.Join(" · ", later.Select(l => l.Title)).</div> }
             }
-            else
+            else if (_tab == "lectures")
             {
-                <div class="muted small">The short course, as you asked: one line a lecture; open any for the whole of it.</div>
-                @foreach (var l in a.Lessons) { <details class="ac-lesson brief"><summary><b>@l.Title</b> <span class="muted">@l.Brief</span></summary>@foreach (var para in l.Paragraphs) { <p>@para</p> }</details> }
+                <p class="ui-lede">@(full ? "Every lesson in full: this term's lectures open, the earlier ones folded." : "The short course, as you asked: one line a lecture; open any for the whole of it.")</p>
+                <Section Title="The lecture hall" Count="@a.Lessons.Count.ToString()" Info="The full course teaches how all of the Reach works, a little each term. The short course gives one line a lecture, for one who knows the Reach already.">
+                    <Right>
+                        <span class="ui-seg" role="radiogroup">
+                            <button class="@(full ? "on" : "")" role="radio" aria-checked="@(full ? "true" : "false")" title="Teach me in full" @onclick="() => SetTutorial(true)">In full</button>
+                            <button class="@(full ? "" : "on")" role="radio" aria-checked="@(full ? "false" : "true")" title="I know this: brief me only" @onclick="() => SetTutorial(false)">Brief me only</button>
+                        </span>
+                    </Right>
+                    <ChildContent>
+                    @if (full)
+                    {
+                        @foreach (var l in termLessons)
+                        {
+                            <details class="ac-lesson now" open><summary><Icon Name="chev" Tone="brass" Size="11" /><b>@l.Title</b><span class="k">this term's lecture</span></summary>
+                                <div class="ac-prose">@foreach (var para in l.Paragraphs) { <p>@para</p> }</div>
+                            </details>
+                        }
+                        @foreach (var l in earlier) { <details class="ac-lesson"><summary><Icon Name="chev" Tone="brass" Size="11" /><b>@l.Title</b><span class="k">term @l.Term</span></summary><div class="ac-prose">@foreach (var para in l.Paragraphs) { <p>@para</p> }</div></details> }
+                        @if (later.Count > 0) { <p class="ac-note">Still to come: @string.Join(", ", later.Select(l => l.Title)).</p> }
+                    }
+                    else
+                    {
+                        @foreach (var l in a.Lessons) { <details class="ac-lesson brief"><summary><Icon Name="chev" Tone="brass" Size="11" /><b>@l.Title</b><span class="k">@l.Brief</span></summary><div class="ac-prose">@foreach (var para in l.Paragraphs) { <p>@para</p> }</div></details> }
+                    }
+                    </ChildContent>
+                </Section>
             }
-
-            <h4>The state of the Reach <span class="muted">as it stands the year you enter</span></h4>
-            @foreach (var f in a.Politics) { <div class="ac-fact"><span>@f.Heading</span><p>@f.Text</p></div> }
-
-            <h4>The houses that matter <span class="muted">by seats in the Senate</span></h4>
-            <table class="standings ac-houses">
-                <thead><tr><th>House</th><th>Rank</th><th>Head</th><th>Party</th><th>Seats</th><th>Worlds</th><th>Hulls</th><th>Toward you</th></tr></thead>
-                <tbody>
-                @foreach (var h in a.Houses)
-                {
-                    <tr>
-                        <td class="hn"><Sigil HouseId="@h.Id" Accent="@h.Accent" Size="14" /> <b>@h.Name</b>@if (h.Chair) { <span class="tier small opulent">the chair</span> }</td>
-                        <td class="muted small">@h.Style</td>
-                        <td class="small">@h.HeadName <span class="muted">@h.HeadRank</span></td>
-                        <td><span class="pill small" style="border-color:@h.PartyAccent;color:@h.PartyAccent">@h.Party.Replace("The ", "")</span></td>
-                        <td>@h.Weight</td><td>@h.Worlds</td><td>@h.Hulls</td>
-                        <td><span class="pill small @(h.Disposition < -20 ? "warn" : h.Disposition > 20 ? "good" : "")">@(h.Disposition >= 0 ? "+" : "")@h.Disposition</span></td>
-                    </tr>
-                }
-                </tbody>
-            </table>
-            <h4>Your house <span class="muted">@house.Name</span></h4>
-            @foreach (var f in a.YourHouse) { <div class="kv"><span>@f.Heading</span><b>@f.Text</b></div> }
-        </section>
-
-        @* ---------------- the year ---------------- *@
-        <aside class="dash-side">
-            @if (focus != null)
+            else if (_tab == "reach")
             {
-                <section class="panel">
-                    <div class="seat-card">
-                        <Portrait Id="@focus.Id" Name="@focus.Name" Sex="@focus.Sex" Age="@focus.Age" Alive="@focus.Alive" Accent="@focus.Accent" Size="56" />
-                        <div class="sc-body">
-                            <div class="sc-name">@focus.Name <span class="muted">of @focus.HouseName · @focus.Age</span></div>
-                            <div class="muted small">a @focus.HouseStyle's house@(focus.StandardName != null ? $" · {focus.StandardName}" : "")@(focus.Alive ? "" : " · did not come back")</div>
-                            @if (!focus.You) { <div class="muted small"><span class="@(focus.Disposition < -20 ? "warn" : focus.Disposition > 20 ? "good" : "")">@(focus.Disposition >= 0 ? "+" : "")@Counted.Figure(focus.Disposition) toward you</span>@(focus.Bond.Length > 0 ? $" · {focus.Bond}" : "")</div> }
-                            <div class="muted small">@(focus.BestAt.Length > 0 ? "best at " + focus.BestAt : "untried")</div>
-                            <div class="muted small">@(focus.You ? "You." : "You will sit beside this house in the Senate for the rest of your life.")</div>
-                        </div>
-                        <button class="win-close" @onclick="() => _focus = null">✕</button>
-                    </div>
-                </section>
+                <p class="ui-lede">The Reach as it stands the year you enter: who sits in the Senate, and how the houses think of yours.</p>
+                <Section Title="The state of the Reach" Count="@a.Politics.Count.ToString()" Info="As it stands the year you enter.">
+                    @foreach (var f in a.Politics)
+                    {
+                        @if (f.Text.Count(ch => ch == ';') >= 3)
+                        {
+                            /* a list run on with semicolons (the law of the Reach) is set out as rows: each law and its setting */
+                            <div class="ac-fact ac-row lawlist"><span>@f.Heading</span></div>
+                            <div class="ac-laws">@foreach (var part in f.Text.TrimEnd('.').Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                            { var kv = part.Split(':', 2, StringSplitOptions.TrimEntries); <div class="ac-law"><Icon Name="scales" Tone="brass" Size="14" /><span>@(kv.Length == 2 ? Cap(kv[0]) : Cap(part))</span>@if (kv.Length == 2) { <b>@kv[1]</b> } else { <b></b> }</div> }</div>
+                        }
+                        else { <div class="ac-fact ac-row"><span>@f.Heading</span><p>@f.Text</p></div> }
+                    }
+                </Section>
+                <Section Title="The houses that matter" Count="@a.Houses.Count.ToString()" Info="By seats in the Senate. Toward you is what the house's head thinks of yours, from −100 to +100.">
+                    <Right><span>by seats in the Senate</span></Right>
+                    <ChildContent>
+                    <DataTable Class="ac-houses">
+                        <Head><th>House</th><th>Rank</th><th>Head</th><th>Party</th><th class="n">Seats</th><th class="n">Worlds</th><th class="n">Hulls</th><th class="n">Toward you</th></Head>
+                        <ChildContent>
+                        @foreach (var h in a.Houses)
+                        {
+                            <tr class="@(h.Yours ? "on" : "")">
+                                <td class="hn"><Sigil HouseId="@h.Id" Accent="@h.Accent" Size="18" /> <b>@h.Name</b>@if (h.Chair) { <span class="ac-tag">the chair</span> }</td>
+                                <td class="ui-dim">@h.Style</td>
+                                <td>@h.HeadName <span class="ui-dim">@h.HeadRank</span></td>
+                                <td><span class="ac-party" style="--pc:@h.PartyAccent"><i></i>@h.Party.Replace("The ", "")</span></td>
+                                <td class="n">@h.Weight</td><td class="n">@h.Worlds</td><td class="n">@h.Hulls</td>
+                                <td class="n"><b class="@(h.Disposition < -20 ? "ui-down" : h.Disposition > 20 ? "ui-up" : "")">@Signed(h.Disposition)</b></td>
+                            </tr>
+                        }
+                        </ChildContent>
+                    </DataTable>
+                    </ChildContent>
+                </Section>
+                <Section Title="Your house" Count="@a.YourHouse.Count.ToString()" Info="@($"{house.Name}, as the orientation tells it.")">
+                    <Right><span>@house.Name</span></Right>
+                    <ChildContent>
+                    @foreach (var f in a.YourHouse) { <div class="kv ac-kv"><span>@f.Heading</span><b>@f.Text</b></div> }
+                    </ChildContent>
+                </Section>
             }
-            <section class="panel">
-                <h3><Icon Name="you" Size="13" /> The year <span class="muted">the order of merit · click a cadet</span></h3>
-                <table class="standings ac-merit">
-                    <tbody>
+            else if (_tab == "year")
+            {
+                <p class="ui-lede">You stand <b>@AcademySystem.Ordinal(a.Place)</b> of <b>@a.Of</b> on <b>@a.Score</b> marks.@if (a.InstructorName != null) { @($" {(imperium ? "Chief proctor" : "Senior instructor")}: {a.InstructorName}, {a.InstructorNote}.") }</p>
+                <Section Title="The order of merit" Count="@a.Cohort.Count.ToString()" Info="The cadets of the year by marks. Click a cadet for who they are and what they think of you; you will sit beside their houses in the Senate for the rest of your life.">
+                    <Right><span>click a cadet</span></Right>
+                    <ChildContent>
+                    <div class="ac-merit">
+                    <div class="ac-cadet head" aria-hidden="true"><span></span><span></span><span>Cadet</span><span class="r">Marks</span><span>Toward you</span><span></span></div>
                     @{ int place = 0; }
                     @foreach (var k in a.Cohort)
                     {
                         if (k.Alive) place++;
-                        <tr class="@(k.You ? "mine" : "") @(k.Id == _focus ? "here" : "") @(k.Alive ? "" : "gone")" @onclick="() => _focus = k.Id">
-                            <td class="muted small">@(k.Alive ? place.ToString() : "†")</td>
-                            <td class="hn"><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@k.Accent" Size="22" /> <b>@k.Name</b>@if (k.StandardAccent != null) { <i class="ac-std" style="background:@k.StandardAccent" title="@k.StandardName"></i> }</td>
-                            <td><span class="mbar"><i style="width:@(100 * k.Score / maxScore)%; background:@k.Accent"></i></span>@k.Score</td>
-                            <td>@if (!k.You) { <span class="pill small @(k.Disposition < -20 ? "warn" : k.Disposition > 20 ? "good" : "")">@(k.Disposition >= 0 ? "+" : "")@k.Disposition@(k.Bond.Length > 0 ? " · " + k.Bond : "")</span> }@foreach (var f in k.Marks) { <span class="pill small warn">@f</span> }</td>
-                        </tr>
+                        bool isFocus = k.Id == _focus;
+                        <div class="ac-cadet @(k.You ? "mine" : "") @(isFocus ? "on" : "") @(k.Alive ? "" : "gone")" @onclick="() => _focus = isFocus ? null : k.Id">
+                            <span class="ac-place">@if (k.Alive) { @place } else { <Icon Name="candle-light" Tone="ivory" Size="14" /> }</span>
+                            <Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@k.Accent" Size="46" Height="56" Opens="false" />
+                            <span class="nm"><b>@k.Name</b>@if (k.StandardAccent != null) { <i class="ac-std" style="background:@k.StandardAccent" title="@k.StandardName"></i> }<span class="k">of @k.HouseName</span></span>
+                            <span class="ac-score"><span class="ui-trk"><i class="ui-fill" style="width:@(100 * k.Score / maxScore)%;--mc:@k.Accent"></i></span><b>@k.Score</b></span>
+                            <span class="ac-disp" title="@(k.You ? "You" : $"What {k.Name} thinks of you, from −100 to +100")">@if (!k.You) { <Icon Name="shaking-hands" Tone="@(k.Disposition < -20 ? "ember" : k.Disposition > 20 ? "good" : "ivory")" Size="16" /><b class="@(k.Disposition < -20 ? "ui-down" : k.Disposition > 20 ? "ui-up" : "")">@Signed(k.Disposition)</b>@if (k.Bond.Length > 0) { <span class="k">@k.Bond</span> } } else { <span class="ac-tag">you</span> }</span>
+                            <span class="ac-flags">@foreach (var f in k.Marks) { <span class="ac-tag warn">@f</span> }</span>
+                        </div>
+                        @if (isFocus)
+                        {
+                            <div class="ac-focus seat-card">
+                                <Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@k.Accent" Size="64" Height="78" Opens="false" />
+                                <div class="sc-body">
+                                    <div class="sc-name"><b>@k.Name</b> <span class="ui-dim">of @k.HouseName · @k.Age</span></div>
+                                    <div>a @k.HouseStyle's house@(k.StandardName != null ? $" · {k.StandardName}" : "")@(k.Alive ? "" : " · did not come back")</div>
+                                    @if (!k.You) { <div><b class="@(k.Disposition < -20 ? "ui-down" : k.Disposition > 20 ? "ui-up" : "")">@Signed(k.Disposition) toward you</b>@(k.Bond.Length > 0 ? $" · {k.Bond}" : "")</div> }
+                                    <div class="ui-dim">@(k.BestAt.Length > 0 ? "best at " + k.BestAt : "untried")</div>
+                                    <div class="ui-dim">@(k.You ? "You." : "You will sit beside this house in the Senate for the rest of your life.")</div>
+                                </div>
+                                <button class="ui-round ac-x" title="Close" aria-label="Close" @onclick="() => _focus = null" @onclick:stopPropagation="true"><Icon Name="close" Tone="ivory" Size="11" /></button>
+                            </div>
+                        }
                     }
-                    </tbody>
-                </table>
-                @if (a.InstructorName != null) { <div class="muted small">@(imperium ? "Chief proctor" : "Senior instructor"): @a.InstructorName, @a.InstructorNote.</div> }
-            </section>
-            @if (imperium)
-            {
-                <section class="panel">
-                    <h3><Icon Name="war" Size="13" /> The Standards <span class="muted">the last banner standing wins the Institute</span></h3>
-                    @foreach (var s in a.Standards)
-                    {
-                        <div class="navy-row @(s.Fallen ? "gone" : "") @(s.Yours ? "mine" : "")"><i class="ac-std" style="background:@s.Accent"></i> <span>@Cap(s.Name)@(s.Yours ? " · yours" : "")@(s.Fallen ? " · banner taken" : "")</span><span class="bar"><i style="width:@(100 * s.Strength / maxStd)%; background:@s.Accent"></i></span><b>@s.Strength</b></div>
-                    }
-                    <div class="muted small">Each Standard gains a little a term; yours gains what your choices win it. After the second and third terms the weakest loses its banner to the strongest. Some cadets do not come back from the night exercises.</div>
-                </section>
+                    </div>
+                    </ChildContent>
+                </Section>
+                @if (imperium)
+                {
+                    <Section Title="The Standards" Count="@a.Standards.Count.ToString()" Info="Each Standard gains a little a term; yours gains what your choices win it. After the second and third terms the weakest loses its banner to the strongest. Some cadets do not come back from the night exercises.">
+                        <Right><span>the last banner standing wins the Institute</span></Right>
+                        <ChildContent>
+                        @foreach (var s in a.Standards)
+                        {
+                            <div class="ac-standard @(s.Fallen ? "gone" : "") @(s.Yours ? "mine" : "")" title="@s.Motto">
+                                <i class="ac-std" style="background:@s.Accent"></i>
+                                <span class="nm"><b>@Cap(s.Name)</b><span class="k">@(s.Yours ? "yours" : "")@(s.Fallen ? (s.Yours ? " · " : "") + "banner taken" : "")</span></span>
+                                <span class="ac-score"><span class="ui-trk"><i class="ui-fill" style="width:@(100 * s.Strength / maxStd)%;--mc:@s.Accent"></i></span><b>@s.Strength</b></span>
+                            </div>
+                        }
+                        <p class="ac-note">Each Standard gains a little a term; yours gains what your choices win it. After the second and third terms the weakest loses its banner to the strongest. Some cadets do not come back from the night exercises.</p>
+                        </ChildContent>
+                    </Section>
+                }
             }
-            <section class="panel">
-                <h3><Icon Name="chronicle" Size="13" /> The year so far</h3>
-                @if (a.Record.Count == 0) { <div class="muted">The first morning has not yet come.</div> }
-                @foreach (var line in a.Record) { <div class="line small">@line</div> }
-            </section>
-        </aside>
-    </div>
+            else
+            {
+                <Section Title="The year so far" Count="@a.Record.Count.ToString()" IsEmpty="@(a.Record.Count == 0)" EmptyLine="The first morning has not yet come." EmptyIcon="scroll-unfurled">
+                    @foreach (var line in a.Record) { <div class="line ac-line">@line</div> }
+                </Section>
+            }
+        </ChildContent>
+        <Foot>
+                <span class="ac-foot-t">@(a.FinalTerm ? $"You leave at seventeen, commissioned into {(asked != null ? asked.Name : "the service")}. The world begins." : $"{Counted.Terms(termsLeft)} {Counted.Remain(termsLeft)} after this one.")</span>
+                <button class="ui-btn primary ac-end" @onclick="OnEndTerm" title="@(open > 0 ? $"{Counted.Matters(open)} unanswered: ending the term sets them aside" : a.FinalTerm ? "Pass out of the Academy and begin" : "End the term")">@(a.FinalTerm ? "Pass out" : "End the term")<Icon Name="chev" Tone="dark" Size="13" />@if (open > 0) { <span class="ac-badge">@open</span> }</button>
+        </Foot>
+    </WindowFrame>
 </div>
 
 @code {
@@ -182,6 +267,9 @@
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnQuit { get; set; }
     private string? _focus;
+    private string _tab = "term";
+    private void SetTutorial(bool full) { bool now = G.World!.Academy!.Tutorial != "brief"; if (now != full) ToggleTutorial(); }
     private void ToggleTutorial() => G.Execute(new SetTutorialCommand(G.World!.ProtagonistId, G.World!.Academy!.Tutorial != "brief" ? "brief" : "full"));
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Signed(int n) => (n > 0 ? "+" : "") + Counted.Figure(n);
 }

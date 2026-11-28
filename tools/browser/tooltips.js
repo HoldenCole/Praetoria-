@@ -1,5 +1,6 @@
 // Tooltips and the map, checked in a real browser (docs/WEB_CLIENT.md, "Tooltips"; docs/GALAXY.md, "The chart at three distances").
 //   node tooltips.js [shots-dir]        the published game must be served on :8112 (or PRAETORIA_URL)
+// The map's note on a star is its own framed tooltip (.gtip.map-gtip, js/space.js), kept apart from the game's (js/tips.js).
 // Fails (exit 1) if a tooltip does not open inside another, if one leaves the screen, if the map's own note stays up after the pointer
 // has left its star, or if the page logs an error.
 const { chromium } = require('playwright'); const path = require('path');
@@ -11,7 +12,7 @@ const { chromium } = require('playwright'); const path = require('path');
   await page.goto(process.env.PRAETORIA_URL || 'http://localhost:8112/', { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 120000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) { } });
   await page.click('.scenario:has-text("The Old Lion")'); await page.click('button.begin'); await page.waitForSelector('.topbar', { timeout: 120000 }); await page.waitForTimeout(4000);
-  const tips = () => page.evaluate(() => [...document.querySelectorAll('.gtip')].map(t => { const r = t.getBoundingClientRect(); return { level: +t.dataset.level, head: t.innerText.slice(0, 40), terms: t.querySelectorAll('.term').length, in: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight }; }));
+  const tips = () => page.evaluate(() => [...document.querySelectorAll('.gtip:not(.map-gtip)')].map(t => { const r = t.getBoundingClientRect(); return { level: +t.dataset.level, head: t.innerText.slice(0, 40), terms: t.querySelectorAll('.term').length, in: r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight }; }));
   need(await page.evaluate(() => window.praetoriaTips && praetoriaTips.terms() > 50 && praetoriaTips.placed()), 'the glossary is read and Floating UI is loaded');
 
   // a tooltip, a tooltip inside it, and one inside that
@@ -27,11 +28,12 @@ const { chromium } = require('playwright'); const path = require('path');
   await page.mouse.move(800, 600, { steps: 4 }); await page.waitForTimeout(400);
 
   // the map: its own note goes when the pointer leaves the star, and the chart from far off
-  const note = () => page.evaluate(() => [...document.querySelectorAll('.map-tip')].filter(e => e.style.display !== 'none' && e.innerText.trim().length > 0).length);
+  const note = () => page.evaluate(() => [...document.querySelectorAll('.map-tip, .map-gtip')].filter(e => e.style.display !== 'none' && e.innerText.trim().length > 0).length);
   const star = await page.evaluate(() => { const l = document.querySelector('.sys-label.mine'); if (!l) return null; const r = l.getBoundingClientRect(); return [r.left + r.width / 2, r.top - 40]; });
   if (star) { await page.mouse.move(star[0], star[1], { steps: 5 }); await page.waitForTimeout(500); const shown = await note(); await page.mouse.move(1450, 420, { steps: 6 }); await page.waitForTimeout(500); need(shown >= 0 && (await note()) === 0, 'the map\'s note on a star goes when the pointer moves onto the list'); }
   await page.screenshot({ path: path.join(out, 'map-near.png') });
-  await page.click('.map-tools button[title*="whole"], .map-tools button:has-text("▣")'); await page.waitForTimeout(3500); await page.mouse.move(820, 130); await page.waitForTimeout(300);
+  // the whole Reach: the console's fit plate (docs/VISUAL_SYSTEM.md 3.8), or the map's own button where the console is not drawn
+  await page.click('.console [data-map="fit"]:visible, .map-tools button[title*="whole"]:visible'); await page.waitForTimeout(3500); await page.mouse.move(820, 130); await page.waitForTimeout(300);
   await page.screenshot({ path: path.join(out, 'map-far.png') });
   await page.evaluate(() => praetoriaSpace.select('anvils_rest')); await page.waitForTimeout(1200); await page.click('button:has-text("Go into the system")'); await page.waitForTimeout(3500); await page.mouse.move(900, 900);
   await page.screenshot({ path: path.join(out, 'map-system.png') });

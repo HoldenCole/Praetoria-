@@ -1,5 +1,5 @@
 {
-  "//": "ECHOES — consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly. FLEETS: the_unfamiliar_sails (an incursion into your space — reads the engine `incursions` counter) and the_review_of_the_fleet (gates on fleetStrength). WAR: the_butchers_bill (reads engine flag battle_fought and clears it), the_conquered_world (reads conquest_made), the_lost_world (reads holding_lost). the_envoy_of_peace: an enemy head flagged suing_for_peace (engine) asks for terms. the_great_work (reads megastructure_raised). ENDGAME: the_proclamation (reads imperium_proclaimed / throne_seized). BLOODY EVENT: the_wedding_feast (a gala that turns to slaughter — uses kill).",
+  "//": "ECHOES, consequences for earlier choices whose flags had no reader. Consumes: debt_to_crown (the_crowns_due), anomaly_hoarded/anomaly_studied (the_anomaly_stirs), oath_sworn_academy (the_oath_remembered), coalition_broken (the_coalitions_remnant), reconciled (the_old_wound_healed), sabotaged (what_the_sabotage_taught), wed (the_household), and the engine-written `broken` stress flag (the_breaking_point). Every event here clears the flag it reads so chains end cleanly. FLEETS: the_unfamiliar_sails (an incursion into your space, reads the engine `incursions` counter) and the_review_of_the_fleet (gates on fleetStrength). WAR: the_butchers_bill (reads engine flag battle_fought and clears it), the_conquered_world (reads conquest_made), the_lost_world (reads holding_lost). the_envoy_of_peace: an enemy head flagged suing_for_peace (engine) asks for terms. the_great_work (reads megastructure_raised). ENDGAME: the_proclamation (reads imperium_proclaimed / throne_seized). BLOODY EVENT: the_wedding_feast (a gala that turns to slaughter, uses kill).",
   "events": [
     {
       "id": "the_crowns_due",
@@ -85,7 +85,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid {era:the chair's due|the crown's due} in the only coin a poor house has — a year of service at {sovereign.name}'s disposal, unglamorous and unrefusable. The debt is cleared. The year is gone. The standing it bought will outlast both."
+              "text": "{self.name} paid {era:the chair's due|the crown's due} in the only coin a poor house has, a year of service at {sovereign.name}'s disposal, unglamorous and unrefusable. The debt is cleared. The year is gone. The standing it bought will outlast both."
             }
           ]
         },
@@ -146,6 +146,7 @@
     },
     {
       "id": "the_anomaly_stirs",
+      "scene": "world",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -203,7 +204,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} went back to the thing from the worthless rock and gave it the attention it had been waiting for. It yielded. It yielded more than it should have — the kind of result that makes a careful mind wonder what else has been waiting, and where."
+              "text": "{self.name} went back to the thing from the worthless rock and gave it the attention it had been waiting for. It yielded. It yielded more than it should have, the kind of result that makes a careful mind wonder what else has been waiting, and where."
             }
           ]
         },
@@ -249,6 +250,7 @@
     },
     {
       "id": "the_oath_remembered",
+      "scene": "court",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -325,7 +327,7 @@
             },
             {
               "type": "log",
-              "text": "{comrade.name} needed the oath more than {self.name} did this year, and {self.name} stood for them at a cost — publicly, expensively, the way oaths are meant to be kept. The cohort that watched the swearing has long since scattered. The ones who hear of this will understand what it was."
+              "text": "{comrade.name} needed the oath more than {self.name} did this year, and {self.name} stood for them at a cost, publicly, expensively, the way oaths are meant to be kept. The cohort that watched the swearing has long since scattered. The ones who hear of this will understand what it was."
             }
           ]
         },
@@ -463,6 +465,7 @@
     },
     {
       "id": "the_old_wound_healed",
+      "scene": "family",
       "tier": "ambient",
       "weight": 3,
       "repeatable": false,
@@ -541,6 +544,7 @@
     },
     {
       "id": "what_the_sabotage_taught",
+      "scene": "intrigue",
       "tier": "ambient",
       "weight": 3,
       "repeatable": false,
@@ -576,7 +580,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} never again left a locker, a ledger, or a back unwatched. The spoiled kit at the academy had taught a lesson, and {self.name} had learned it thoroughly — perhaps too thoroughly."
+              "text": "{self.name} never again left a locker, a ledger, or a back unwatched. The spoiled kit at the academy had taught a lesson, and {self.name} had learned it thoroughly, perhaps too thoroughly."
             }
           ]
         },
@@ -718,7 +722,7 @@
             },
             {
               "type": "log",
-              "text": "Something in {self.name} gave way, and then — slowly, privately, with no one permitted to see — was put back. Not the same shape as before. Stronger along the crack."
+              "text": "Something in {self.name} gave way, and then, slowly, privately, with no one permitted to see, was put back. Not the same shape as before. Stronger along the crack."
             }
           ]
         },
@@ -794,7 +798,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} withdrew — from {era:the Senate|the court}, the ledgers, the thousand demands — and let the house run itself for a season. It ran badly. {self.name} came back able to run it."
+              "text": "{self.name} withdrew, from {era:the Senate|the court}, the ledgers, the thousand demands, and let the house run itself for a season. It ran badly. {self.name} came back able to run it."
             }
           ]
         }
@@ -802,6 +806,7 @@
     },
     {
       "id": "the_unfamiliar_sails",
+      "scene": "steppe",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -977,6 +982,7 @@
     },
     {
       "id": "the_butchers_bill",
+      "scene": "funeral",
       "tier": "situation",
       "weight": 5,
       "repeatable": true,
@@ -1084,7 +1090,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sat with the battle reports until the shape of the thing was clear — what had worked, what had been luck, what would not be allowed to happen twice."
+              "text": "{self.name} sat with the battle reports until the shape of the thing was clear, what had worked, what had been luck, what would not be allowed to happen twice."
             }
           ]
         }
@@ -1538,6 +1544,7 @@
     },
     {
       "id": "the_great_work",
+      "scene": "world",
       "tier": "setpiece",
       "weight": 5,
       "repeatable": true,
@@ -1619,7 +1626,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} opened the great work to the Reach — toll-free lanes, light for every world in reach of it. The treasury groaned. The towns did not stop talking about it for a generation."
+              "text": "{self.name} opened the great work to the Reach, toll-free lanes, light for every world in reach of it. The treasury groaned. The towns did not stop talking about it for a generation."
             }
           ]
         },
@@ -1655,6 +1662,7 @@
     },
     {
       "id": "the_proclamation",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,
@@ -1848,7 +1856,7 @@
             },
             {
               "type": "log",
-              "text": "The first act of the new reign was to convene a Senate and give the houses — {grandee.name}'s among them — a chamber in which to lose their arguments lawfully. Power shared is power that lasts; power shared is also power that argues back."
+              "text": "The first act of the new reign was to convene a Senate and give the houses, {grandee.name}'s among them, a chamber in which to lose their arguments lawfully. Power shared is power that lasts; power shared is also power that argues back."
             }
           ]
         }

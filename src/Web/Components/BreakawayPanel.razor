@@ -1,6 +1,10 @@
+@preservewhitespace true
 @using Praetoria.Core.Systems
 @inject GameClient G
 @implements IDisposable
+@* Breaking away, on the Senate window's Orders (docs/BREAKAWAY.md; docs/VISUAL_SYSTEM.md 4.6, 4.7): the peace of the Reach as a line and a
+   meter, stirring the camps, then each region the house holds as an entry: what it controls, whether the Reach would fight, whether it
+   could stand alone, and the houses there with their faces and the plates to work them; the form to declare as, and the states gone. *@
 @{
     var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!; var ps = G.Turn!.Polities; var gc = G.Turn.GreatCrisis;
     var own = PolitySystem.Of(w, house.Id); var others = w.Polities.Where(x => x != own).OrderBy(x => x.Since).ToList();
@@ -42,62 +46,78 @@
         }
     }
 }
-<section class="panel breakaway">
-    <h3><Icon Name="galaxy" Size="13" /> Breaking away</h3>
-    @if (peace.Length > 0) { <div class="ac-fact"><span>The peace of the Reach</span><p>@peace</p></div> }
-    @if (pastLine.Length > 0) { <div class="muted small">@pastLine</div> }
+<section class="panel breakaway sn-panel">
+    <Section Title="Breaking away" Info="@($"A house that controls a region may take it out of {(w.IsImperium ? "the Imperium" : "the Republic")} and found a state of its own: a republic, a republic under one hand, or a kingdom. It must hold a quarter of the region's worlds itself, and three in five with the houses there that would follow it. Whether the Reach fights for it depends on its temper. You may also declare with what you have and fight for as long as you can.")">
+        <Right>@if (!greatWar && !warOver) { <span title="How far the Reach is on the way to a great war, in a hundred">@near in a hundred to a great war</span> } else if (greatWar) { <span class="ui-down">the great war, year @(warYears + 1)</span> }</Right>
+    </Section>
+    @if (peace.Length > 0)
+    {
+        <div class="sn-fact ac-fact sn-peace"><span>The peace of the Reach</span><p>@peace</p></div>
+        @if (!warOver && !greatWar) { <div class="sn-legit"><Meter Label="Toward war" Value="@near" Max="100" Color="@(near < 15 ? "#a5813a" : near < 50 ? "#e3a64a" : "#b8452f")" Tip="@($"{near} in a hundred of the way to a great war")" /></div> }
+    }
+    @if (pastLine.Length > 0) { <p class="sn-say sn-pad ui-dim">@pastLine</p> }
     @if (own == null && !greatWar)
     {
-        <div class="suit-acts">
-            <button class="opt inline tiny" disabled="@(noStir != null)" title="@(noStir ?? StirTip)" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, string.Empty, string.Empty, ps))">Stir the camps · @PolitySystem.StirInfluence influence, @Money.Show(PolitySystem.StirCredits) credits</button>
-            @if (stirLine.Length > 0) { <span class="muted small">@stirLine</span> }
+        <div class="sn-acts sn-pad suit-acts">
+            <Plate Label="Stir the camps" Small="true" Icon="cowled" Locked="@(noStir != null)" Disabled="@(noStir != null)" Tip="@(noStir ?? StirTip)" OnClick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, string.Empty, string.Empty, ps))"><Cost><Icon Name="public-speaker" Tone="brass" Size="14" />@PolitySystem.StirInfluence <Icon Name="credits" Tone="brass" Size="14" />@Money.Show(PolitySystem.StirCredits)</Cost></Plate>
+            @if (stirLine.Length > 0) { <span class="sn-say ui-warn-t">@stirLine</span> }
+            @if (noStir != null) { <span class="sn-no">@Cap(noStir)</span> }
         </div>
         @if (noStir == null && great.Count > 0)
         {
-            <div class="suit-acts">
-                <span class="muted small">Or set them against one house:</span>
-                @foreach (var g in great) { string gid = g.Id; <button class="opt inline tiny" title="@StirAgainstTip" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, gid, string.Empty, ps))">@g.Name</button> }
+            <div class="sn-acts sn-pad suit-acts">
+                <span class="sn-lbl">Or set them against one house</span>
+                @{ var against = great.FirstOrDefault(x => x.Id == _against) ?? great[0]; string gid = against.Id; }
+                <Select Value="@gid" Options="@great.Select(x => new Select.Option(x.Id, x.Name)).ToList()" OnChange="v => _against = v" Class="sn-pledge-sel" />
+                <Plate Label="Stir against them" Small="true" Icon="cowled" Tip="@StirAgainstTip" OnClick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.Stir, gid, string.Empty, ps))" data-stir-against="@gid" />
             </div>
         }
     }
     @if (own != null)
     {
-        <div class="small">@ownLine</div>
-        @if (ownWar.Length > 0) { <div class="caesar-recall"><b>A war of independence.</b> <div class="muted small">@ownWar</div></div> }
-        else { <div class="muted small">@treatyLine</div> }
+        <p class="sn-say sn-pad">@ownLine</p>
+        @if (ownWar.Length > 0) { <div class="ui-wstrip bad sn-strip caesar-recall"><Icon Name="war" Tone="ember" Size="18" /><span class="ui-wstrip-t"><b>A war of independence.</b> @ownWar</span></div> }
+        else { <p class="sn-say sn-pad ui-dim">@treatyLine</p> }
         @if (own.HeadHouseId == house.Id)
         {
-            <div class="suit-acts">
-                @if (_confirm == RejoinKey) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Rejoin, string.Empty, string.Empty, ps)); }">Yes: take the state back into the Reach</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
-                else { <button class="opt inline" title="@RejoinTip" @onclick="() => _confirm = RejoinKey">Rejoin the Reach</button> }
+            <div class="sn-acts sn-pad suit-acts">
+                @if (_confirm == RejoinKey) { <Plate Label="Yes: take the state back into the Reach" Small="true" Class="sn-veto" Tip="@RejoinTip" OnClick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Rejoin, string.Empty, string.Empty, ps)); }" /> <Plate Label="No" Small="true" Tip="Keep the state" OnClick="() => _confirm = string.Empty" /> }
+                else { <Plate Label="Rejoin the Reach" Small="true" Icon="greek-temple" Tip="@RejoinTip" OnClick="() => _confirm = RejoinKey" /> }
             </div>
             @foreach (var h in court)
             {
                 string hid = h.Id; int regard = PolitySystem.Regard(w, h, house);
                 string? noWord = new WorkHouseCommand(pid, hid, PolitySystem.Word, ps).Refusal(G.Ctx); string? noGift = new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps).Refusal(G.Ctx);
-                string cLine = h.Name + " is of the Reach and holds worlds in your state or beside it (regard " + regard + "; at " + PolitySystem.GoesOverRegard + ", and no friend of the capital, it may come over).";
-                <div class="suit-acts">
-                    <span class="small">@cLine</span>
-                    <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? CourtTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))">A quiet word · @PolitySystem.WordInfluence influence</button>
-                    <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? CourtTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @Money.Show(PolitySystem.GiftCredits) credits</button>
+                string cLine = h.Name + " is of the Reach and holds worlds in your state or beside it (regard " + Counted.Figure(regard) + "; at " + PolitySystem.GoesOverRegard + ", and no friend of the capital, it may come over).";
+                <div class="sn-hrow suit-acts">
+                    <Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="20" />
+                    <span class="sn-say">@cLine</span>
+                    <span class="sn-acts">
+                        <Plate Label="A quiet word" Small="true" Locked="@(noWord != null)" Disabled="@(noWord != null)" Tip="@(noWord ?? CourtTip)" CostIcon="public-speaker" CostText="@PolitySystem.WordInfluence.ToString()" OnClick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))" />
+                        <Plate Label="A gift" Small="true" Locked="@(noGift != null)" Disabled="@(noGift != null)" Tip="@(noGift ?? CourtTip)" CostIcon="credits" CostText="@Money.Show(PolitySystem.GiftCredits)" OnClick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))" />
+                    </span>
                 </div>
             }
         }
         else
         {
-            <div class="suit-acts">
-                @if (_confirm == LeaveKey) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Leave, string.Empty, string.Empty, ps)); }">Yes: leave it, and go back to the Reach</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
-                else { <button class="opt inline" disabled="@(noLeave != null)" title="@(noLeave ?? LeaveTip)" @onclick="() => _confirm = LeaveKey">Leave the state</button> }
+            <div class="sn-acts sn-pad suit-acts">
+                @if (_confirm == LeaveKey) { <Plate Label="Yes: leave it, and go back to the Reach" Small="true" Class="sn-veto" Tip="@LeaveTip" OnClick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Leave, string.Empty, string.Empty, ps)); }" /> <Plate Label="No" Small="true" Tip="Stay in the state" OnClick="() => _confirm = string.Empty" /> }
+                else { <Plate Label="Leave the state" Small="true" Locked="@(noLeave != null)" Disabled="@(noLeave != null)" Tip="@(noLeave ?? LeaveTip)" OnClick="() => _confirm = LeaveKey" /> }
             </div>
         }
-        @if (promisedLine.Length > 0) { <div class="muted small">@promisedLine</div> }
+        @if (promisedLine.Length > 0) { <p class="sn-say sn-pad ui-dim">@promisedLine</p> }
     }
     else
     {
-        <div class="muted small">A house that controls a region may take it out of @(w.IsImperium ? "the Imperium" : "the Republic") and found a state of its own: a republic, a republic under one hand, or a kingdom. It must hold a quarter of the region's worlds itself, and three in five with the houses there that would follow it. Whether the Reach fights for it depends on its temper. You may also declare with what you have and fight for as long as you can.</div>
-        @if (greatWar) { <div class="caesar-recall"><b>The great war.</b> <div class="muted small">@warLine</div>
-            <div class="suit-acts"><button class="opt inline" disabled="@(noPartition != null)" title="@(noPartition ?? PartitionTip)" @onclick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.SeekPartition, string.Empty, string.Empty, ps))">Let it be known you would take a region as the price of peace</button></div></div> }
-        @if (regions.Count == 0) { <div class="muted small">The house holds no world.</div> }
+        @if (greatWar)
+        {
+            <div class="ui-wstrip bad sn-strip caesar-recall"><Icon Name="war" Tone="ember" Size="18" />
+                <span class="ui-wstrip-t"><b>The great war.</b> @warLine</span>
+                <Plate Label="Take a region as the price" Small="true" Locked="@(noPartition != null)" Disabled="@(noPartition != null)" Tip="@((noPartition ?? PartitionTip) + " Let it be known you would take a region as the price of peace.")" OnClick="() => G.Execute(new SecessionCommand(pid, SecessionCommand.SeekPartition, string.Empty, string.Empty, ps))" />
+            </div>
+        }
+        @if (regions.Count == 0) { <p class="sn-say sn-pad ui-dim">The house holds no world.</p> }
         @foreach (var r in regions.Take(4))
         {
             string rid = r.Id; var (mine, with, total, backers) = PolitySystem.Control(w, house, r.Id); var (temper, why) = ps.Temper(w, house, r.Id);
@@ -106,77 +126,92 @@
             var alone = ps.StandAlone(w, house, r.Id);
             var here = PolitySystem.Neighbours(w, house).Where(h => w.Holdings.Values.Any(x => x.IsPlanet && x.OwnerId == h.Id && w.Galaxy!.System(x.SystemId)?.RegionId == rid)).ToList();
             string temperLine = (temper <= 0 ? "The Reach would let it go" : "The Reach would fight for it (will " + temper + ")") + (why.Count > 0 ? ": " + string.Join("; ", why) + "." : ".");
-            <div class="rung-row">
-                <div><b>@r.Name</b> <span class="muted small">@r.Ring</span></div>
-                <div class="small">@holdLine</div>
-                <div class="muted small">@temperLine</div>
-                @foreach (var t in alone.tests) { <div class="gate-row"><span class="pill small @(t.ok ? GoodPill : string.Empty)">@(t.ok ? Yes : No)</span> <b>@t.name</b> <span class="muted small">@t.says</span></div> }
-                @foreach (var h in here)
-                {
-                    string hid = h.Id; bool joins = PolitySystem.Joins(w, h, house); int regard = PolitySystem.Regard(w, h, house);
-                    string? noWord = new WorkHouseCommand(pid, hid, PolitySystem.Word, ps).Refusal(G.Ctx); string? noGift = new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps).Refusal(G.Ctx);
-                    bool bound = PolitySystem.Bound(w, h, house), cowed = PolitySystem.Cowed(w, h, house), promised = PolitySystem.IsPromised(w, h, house); int need = PolitySystem.JoinRegard - (bound ? PolitySystem.MarriageEases : 0);
-                    string? noPromise = new WorkHouseCommand(pid, hid, PolitySystem.Promise, ps).Refusal(G.Ctx); string? noThreat = new WorkHouseCommand(pid, hid, PolitySystem.Threat, ps).Refusal(G.Ctx);
-                    string hLine = h.Name + (joins ? " would follow you" : " would not follow you") + " (regard " + regard + " of " + need + (bound ? ", bound to you by a marriage" : "") + (cowed ? ", afraid of you" : "") + (promised ? ", promised a place" : "") + ").";
-                    <div class="suit-acts">
-                        <span class="small">@hLine</span>
-                        <button class="opt inline tiny" disabled="@(noWord != null)" title="@(noWord ?? WordTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))">A quiet word · @PolitySystem.WordInfluence influence</button>
-                        <button class="opt inline tiny" disabled="@(noGift != null)" title="@(noGift ?? GiftTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))">A gift · @Money.Show(PolitySystem.GiftCredits) credits</button>
-                        <button class="opt inline tiny" disabled="@(noPromise != null)" title="@(noPromise ?? PromiseTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Promise, ps))">Promise a place</button>
-                        <button class="opt inline tiny" disabled="@(noThreat != null)" title="@(noThreat ?? ThreatTip)" @onclick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Threat, ps))">Threaten</button>
+            <div class="sn-ent rung-row" data-region="@rid">
+                <span class="sn-ic"><Icon Name="region" Tone="ivory" Size="22" /></span>
+                <div class="sn-ent-main">
+                    <div class="sn-hd"><b class="sn-nm">@r.Name</b><span class="sn-sub">@r.Ring</span><span class="sn-fig" title="Worlds you hold of the region's"><Icon Name="ringed-planet" Tone="ivory" Size="15" />@mine<small>/@total</small></span></div>
+                    <div class="sn-tx">@holdLine</div>
+                    <div class="sn-tx @(temper <= 0 ? "ui-dim" : "ui-warn-t")">@temperLine</div>
+                    @if (alone.tests.Count > 0)
+                    {
+                        <div class="sn-tests">
+                            @foreach (var t in alone.tests) { <div class="gate-row sn-test pip @(t.ok ? "met" : "warn")" title="@($"{(t.ok ? Yes : No)}: {t.name}. {Cap(t.says)}")"><span class="pill small @(t.ok ? GoodPill : "bad")"><Icon Name="@(t.ok ? "check" : "close")" Tone="@(t.ok ? "good" : "ember")" Size="12" /></span><b>@t.name</b><span class="sn-test-says">@t.says</span></div> }
+                        </div>
+                    }
+                    @foreach (var h in here)
+                    {
+                        string hid = h.Id; bool joins = PolitySystem.Joins(w, h, house); int regard = PolitySystem.Regard(w, h, house);
+                        string? noWord = new WorkHouseCommand(pid, hid, PolitySystem.Word, ps).Refusal(G.Ctx); string? noGift = new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps).Refusal(G.Ctx);
+                        bool bound = PolitySystem.Bound(w, h, house), cowed = PolitySystem.Cowed(w, h, house), promised = PolitySystem.IsPromised(w, h, house); int need = PolitySystem.JoinRegard - (bound ? PolitySystem.MarriageEases : 0);
+                        string? noPromise = new WorkHouseCommand(pid, hid, PolitySystem.Promise, ps).Refusal(G.Ctx); string? noThreat = new WorkHouseCommand(pid, hid, PolitySystem.Threat, ps).Refusal(G.Ctx);
+                        string hLine = h.Name + (joins ? " would follow you" : " would not follow you") + " (regard " + Counted.Figure(regard) + " of " + need + (bound ? ", bound to you by a marriage" : "") + (cowed ? ", afraid of you" : "") + (promised ? ", promised a place" : "") + ").";
+                        <div class="sn-hrow suit-acts">
+                            <Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="20" />
+                            <span class="sn-say @(joins ? "ui-up" : "")">@hLine</span>
+                            <span class="sn-acts">
+                                <Plate Label="A quiet word" Small="true" Locked="@(noWord != null)" Disabled="@(noWord != null)" Tip="@(noWord ?? WordTip)" CostIcon="public-speaker" CostText="@PolitySystem.WordInfluence.ToString()" OnClick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Word, ps))" />
+                                <Plate Label="A gift" Small="true" Locked="@(noGift != null)" Disabled="@(noGift != null)" Tip="@(noGift ?? GiftTip)" CostIcon="credits" CostText="@Money.Show(PolitySystem.GiftCredits)" OnClick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Gift, ps))" />
+                                <Plate Label="Promise a place" Small="true" Locked="@(noPromise != null)" Disabled="@(noPromise != null)" Tip="@(noPromise ?? PromiseTip)" OnClick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Promise, ps))" />
+                                <Plate Label="Threaten" Small="true" Locked="@(noThreat != null)" Disabled="@(noThreat != null)" Tip="@(noThreat ?? ThreatTip)" OnClick="() => G.Execute(new WorkHouseCommand(pid, hid, PolitySystem.Threat, ps))" />
+                            </span>
+                        </div>
+                    }
+                    @foreach (var st in others.Where(o => o.Recognised > 0 && o.Regions.Any(x => PolitySystem.Borders(w, x, rid))))
+                    {
+                        string stid = st.Id; string? noTake = new SecessionCommand(pid, SecessionCommand.Join, rid, stid, ps).Refusal(G.Ctx); string takeLabel = "Take " + r.Name + " into " + st.Name; string key = rid + ">" + stid;
+                        <div class="sn-acts suit-acts">
+                            @if (_confirm == key) { <Plate Label="@("Yes: " + takeLabel)" Small="true" Class="sn-veto" Tip="@TakeTip" OnClick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Join, rid, stid, ps)); }" /> <Plate Label="No" Small="true" Tip="Not now" OnClick="() => _confirm = string.Empty" /> }
+                            else { <Plate Label="@takeLabel" Small="true" Locked="@(noTake != null)" Disabled="@(noTake != null)" Tip="@(noTake ?? TakeTip)" OnClick="() => _confirm = key" /> }
+                            @if (noTake != null) { <span class="sn-no">@Cap(noTake).</span> }
+                        </div>
+                    }
+                    <div class="sn-acts suit-acts">
+                        @if (_confirm == rid) { <Plate Label="@("Yes: declare " + PolitySystem.NameFor(_form, r.Name))" Small="true" Class="sn-veto" Tip="@DeclareTip" OnClick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Declare, rid, _form, ps)); }" /> <Plate Label="No" Small="true" Tip="Not now" OnClick="() => _confirm = string.Empty" /> }
+                        else { <Plate Label="Declare independence" Small="true" Icon="flying-flag" Locked="@(no != null)" Disabled="@(no != null)" Tip="@(no ?? DeclareTip)" OnClick="() => _confirm = rid" /> }
+                        @if (no != null) { <span class="sn-no">@Cap(no).</span> }
                     </div>
-                }
-                @foreach (var st in others.Where(o => o.Recognised > 0 && o.Regions.Any(x => PolitySystem.Borders(w, x, rid))))
-                {
-                    string stid = st.Id; string? noTake = new SecessionCommand(pid, SecessionCommand.Join, rid, stid, ps).Refusal(G.Ctx); string takeLabel = "Take " + r.Name + " into " + st.Name; string key = rid + ">" + stid;
-                    <div class="suit-acts">
-                        @if (_confirm == key) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Join, rid, stid, ps)); }">Yes: @takeLabel</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
-                        else { <button class="opt inline" disabled="@(noTake != null)" title="@(noTake ?? TakeTip)" @onclick="() => _confirm = key">@takeLabel</button> }
-                        @if (noTake != null) { <span class="muted small">@Cap(noTake).</span> }
-                    </div>
-                }
-                <div class="suit-acts">
-                    @if (_confirm == rid) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Declare, rid, _form, ps)); }">Yes: declare @PolitySystem.NameFor(_form, r.Name)</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
-                    else { <button class="opt inline" disabled="@(no != null)" title="@(no ?? DeclareTip)" @onclick="() => _confirm = rid">Declare independence</button> }
-                    @if (no != null) { <span class="muted small">@Cap(no).</span> }
                 </div>
             </div>
         }
         @if (regions.Count > 0)
         {
-            <div class="suit-acts">
-                <span class="muted small">As:</span>
-                @foreach (var f in PolitySystem.Forms) { string form = f; <button class="opt inline tiny @(_form == form ? Chosen : string.Empty)" @onclick="() => _form = form">@Cap(PolitySystem.FormName(form))</button> }
+            <div class="sn-acts sn-pad suit-acts sn-forms">
+                <span class="ui-seg-l">As:</span>
+                <span class="ui-seg">@foreach (var f in PolitySystem.Forms) { string form = f; <button class="@(_form == form ? Chosen : string.Empty)" title="@($"Declare the state as {PolitySystem.FormName(form)}")" @onclick="() => _form = form">@Cap(PolitySystem.FormName(form))</button> }</span>
             </div>
         }
     }
     @if (others.Count > 0)
     {
-        <div class="hh-head"><b>States that have left the Reach</b></div>
-        @foreach (var o in others.Where(PolitySystem.IsFreeHold))
-        {
-            var world = w.HoldingsOf(o.HeadHouseId).FirstOrDefault(h => h.IsPlanet); string was = world != null && w.House(world.FormerOwnerId) is { } old ? ", once " + old.Name + "'s" : "";
-            <div class="small">@(Cap(o.Name))@was, a free hold since year @o.Since: @(o.Recognised == 0 ? "sworn to no one, and named in no treaty yet" : w.Turn < o.TreatyUntil ? "named in a treaty that holds until year " + o.TreatyUntil : "its treaty run out"). Its old holder may buy it back or take it; the Senate does not go back for one world.</div>
-        }
-        @foreach (var o in others.Where(x => !PolitySystem.IsFreeHold(x)))
-        {
-            string line = Cap(o.Name) + ", " + PolitySystem.FormName(o.Form) + " under " + (w.House(o.HeadHouseId)?.Name ?? o.HeadHouseId) + ", since year " + o.Since
-                + (o.Recognised == 0 ? ", still fighting for it" : w.Turn < o.TreatyUntil ? ", under treaty until year " + o.TreatyUntil : ", its treaty run out") + ". A motion to go back for it is moved on the Senate screen.";
-            <div class="small">@line</div>
-            @if (own == null)
+        <Section Title="States that have left" Count="@others.Count.ToString()" Info="States that have left the Reach: free holds of one world, and states under a ruler. A motion to go back for one is moved in the Senate, under Motions." Class="sn-sub-sec">
+            @foreach (var o in others.Where(PolitySystem.IsFreeHold))
             {
-                string oid = o.Id; string? noGo = new SecessionCommand(pid, SecessionCommand.Join, string.Empty, oid, ps).Refusal(G.Ctx); string goKey = "go>" + oid;
-                <div class="suit-acts">
-                    @if (_confirm == goKey) { <button class="opt inline veto" @onclick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Join, string.Empty, oid, ps)); }">Yes: go over to @o.Name</button> <button class="opt inline" @onclick="() => _confirm = string.Empty">No</button> }
-                    else { <button class="opt inline tiny" disabled="@(noGo != null)" title="@(noGo ?? GoOverTip)" @onclick="() => _confirm = goKey">Go over to it</button> }
-                    @if (noGo != null) { <span class="muted small">@Cap(noGo).</span> }
+                var world = w.HoldingsOf(o.HeadHouseId).FirstOrDefault(h => h.IsPlanet); string was = world != null && w.House(world.FormerOwnerId) is { } old ? ", once " + old.Name + "'s" : "";
+                <div class="sn-hrow"><Sigil HouseId="@o.HeadHouseId" Accent="@(w.House(o.HeadHouseId)?.AccentColor ?? "#888")" Size="20" /><span class="sn-say">@(Cap(o.Name))@was, a free hold since year @o.Since: @(o.Recognised == 0 ? "sworn to no one, and named in no treaty yet" : w.Turn < o.TreatyUntil ? "named in a treaty that holds until year " + o.TreatyUntil : "its treaty run out"). Its old holder may buy it back or take it; the Senate does not go back for one world.</span></div>
+            }
+            @foreach (var o in others.Where(x => !PolitySystem.IsFreeHold(x)))
+            {
+                string line = Cap(o.Name) + ", " + PolitySystem.FormName(o.Form) + " under " + (w.House(o.HeadHouseId)?.Name ?? o.HeadHouseId) + ", since year " + o.Since
+                    + (o.Recognised == 0 ? ", still fighting for it" : w.Turn < o.TreatyUntil ? ", under treaty until year " + o.TreatyUntil : ", its treaty run out") + ". A motion to go back for it is moved on the Senate screen.";
+                <div class="sn-hrow"><Sigil HouseId="@o.HeadHouseId" Accent="@(w.House(o.HeadHouseId)?.AccentColor ?? "#888")" Size="20" /><span class="sn-say">@line</span>
+                @if (own == null)
+                {
+                    string oid = o.Id; string? noGo = new SecessionCommand(pid, SecessionCommand.Join, string.Empty, oid, ps).Refusal(G.Ctx); string goKey = "go>" + oid;
+                    <span class="sn-acts suit-acts">
+                        @if (_confirm == goKey) { <Plate Label="@("Yes: go over to " + o.Name)" Small="true" Class="sn-veto" Tip="@GoOverTip" OnClick="() => { _confirm = string.Empty; G.Execute(new SecessionCommand(pid, SecessionCommand.Join, string.Empty, oid, ps)); }" /> <Plate Label="No" Small="true" Tip="Not now" OnClick="() => _confirm = string.Empty" /> }
+                        else { <Plate Label="Go over to it" Small="true" Locked="@(noGo != null)" Disabled="@(noGo != null)" Tip="@(noGo ?? GoOverTip)" OnClick="() => _confirm = goKey" /> }
+                        @if (noGo != null) { <span class="sn-no">@Cap(noGo).</span> }
+                    </span>
+                }
                 </div>
             }
-        }
+        </Section>
     }
 </section>
 
 @code {
+    /// <summary>The great house the camps would be set against, as chosen in the select.</summary>
+    private string? _against;
     private string _form = PolitySystem.Republic, _confirm = "";
     private const string RejoinKey = "@rejoin", LeaveKey = "@leave";
     private const string LeaveTip = "Your house goes back to the Reach with its worlds and takes its seat in the Senate again. The state's ruler will not forgive it; the capital will be glad of it.";

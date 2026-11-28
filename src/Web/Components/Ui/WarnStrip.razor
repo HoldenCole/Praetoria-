@@ -1,0 +1,22 @@
+@* A warn strip (docs/VISUAL_SYSTEM.md 4.9): one thing that needs doing. A warn rule at the left, a faint wash, an icon, one sentence
+   with its lead in bold ("No governor.") and the way to do it as a small plate at the right. Bad makes it the danger red. Where the
+   player has no way to do it here, Note says so in place of the plate ("Theirs to fill"). Any other attribute (a data-* hook for the
+   scripts) lands on the strip. *@
+<div class="ui-wstrip @(Bad ? " bad" : "") @(Class.Length > 0 ? " " + Class : "")" @attributes="Attrs">
+    <Icon Name="@Icon" Tone="@(Bad ? "ember" : "brass")" Size="18" />
+    <span class="ui-wstrip-t">@if (Lead.Length > 0) { <b>@Lead</b>@(" ") }@ChildContent</span>
+    @if (Action != null) { @Action }
+    else if (Note.Length > 0) { <span class="ui-wstrip-note" title="@(NoteTip.Length > 0 ? NoteTip : null)">@Note</span> }
+</div>
+@code {
+    [Parameter] public string Icon { get; set; } = "office-chair";
+    [Parameter] public string Lead { get; set; } = "";
+    [Parameter] public bool Bad { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Action { get; set; }
+    /// <summary>When there is nothing the player can do here: a short dim note at the right, in place of the plate.</summary>
+    [Parameter] public string Note { get; set; } = "";
+    [Parameter] public string NoteTip { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+}

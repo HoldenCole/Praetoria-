@@ -196,6 +196,7 @@
     },
     {
       "id": "the_accounts_do_not_add_up",
+      "scene": "market",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -302,6 +303,7 @@
     },
     {
       "id": "a_place_at_the_table",
+      "scene": "family",
       "tier": "situation",
       "weight": 8,
       "repeatable": false,
@@ -391,6 +393,7 @@
     },
     {
       "id": "the_protege_is_noticed",
+      "scene": "family",
       "tier": "situation",
       "weight": 9,
       "repeatable": true,
@@ -477,6 +480,7 @@
     },
     {
       "id": "the_wing_withdrawn",
+      "scene": "family",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,

@@ -33,7 +33,7 @@
     {
       "id": "word_of_a_defeat_abroad",
       "title": "Word of a Defeat",
-      "body": "A dispatch, late and short: the fleet of {self.house} was beaten in the enemy's space. Hulls lost; the tally turned against the Reach; the admiral alive, or not — the dispatch is unclear. The chamber will ask.",
+      "body": "A dispatch, late and short: the fleet of {self.house} was beaten in the enemy's space. Hulls lost; the tally turned against the Reach; the admiral alive, or not, the dispatch is unclear. The chamber will ask.",
       "choices": {
         "stand_by_the_admiral": "Stand by the admiral.",
         "relieve_the_admiral_in_words": "Call it a commander's failing.",

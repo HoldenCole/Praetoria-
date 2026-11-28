@@ -1,0 +1,39 @@
+{
+ "room": "study",
+ "image": "study.webp",
+ "size": [
+  1280,
+  1056
+ ],
+ "floor": {
+  "y": [
+   0.79,
+   0.99
+  ],
+  "x": [
+   0.06,
+   0.94
+  ]
+ },
+ "desk": {
+  "x": [
+   0.29,
+   0.71
+  ],
+  "y": [
+   0.615,
+   0.66
+  ]
+ },
+ "window": {
+  "x": [
+   0.385,
+   0.615
+  ],
+  "y": [
+   0.085,
+   0.6
+  ]
+ },
+ "note": "fractions of the picture, x from the left and y from the top: floor is where visitors stand, desk the top where letters lie. Painted at the Office's shape (about 1100 x 900): show it whole. AI-generated: see tools/art/rooms.py"
+}

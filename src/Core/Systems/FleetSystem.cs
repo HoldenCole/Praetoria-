@@ -428,14 +428,14 @@ public sealed class FleetSystem
         var sys = w.Galaxy!.System(f.SystemId);
         if (f.OwnerId == PirateSystem.HouseId)   // raiders roam every turn; the chronicle hears of them only when they reach someone's world
         {
-            if (owner != null && w.PlanetHolder(f.SystemId) == owner) w.Log($"{f.Name} prowl {sys?.Name ?? f.SystemId} — {w.House(owner)?.Name ?? owner}'s world lies under their guns.");
+            if (owner != null && w.PlanetHolder(f.SystemId) == owner) w.Log($"{f.Name} prowl {sys?.Name ?? f.SystemId}, {w.House(owner)?.Name ?? owner}'s world lies under their guns.");
             return;
         }
         if (owner != null && owner != f.OwnerId)
         {
             w.WorldCounters[IncursionsCounter] = w.Counter(IncursionsCounter) + 1;
             w.WorldFlags.Add(IncursionFlag(owner));
-            w.Log($"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} arrives at {sys?.Name ?? f.SystemId} — {w.House(owner)?.Name ?? owner}'s space.");
+            w.Log($"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} arrives at {sys?.Name ?? f.SystemId}, in {w.House(owner)?.Name ?? owner}'s space.");
             if (owner == w.Protagonist?.HouseId) w.Tell(w.AtWar(owner, f.OwnerId) ? "warn" : "info", $"{f.Name} of {w.House(f.OwnerId)?.Name ?? f.OwnerId} ({Counted.Hulls(f.Strength)}) has come into your space at {sys?.Name ?? f.SystemId}" + (w.AtWar(owner, f.OwnerId) ? ": you are at war with it" : ". You are not at war with it"), "galaxy:" + f.SystemId, f.OwnerId);
         }
         else w.Log($"{f.Name} arrives at {sys?.Name ?? f.SystemId}.");
@@ -867,7 +867,7 @@ public sealed class FleetSystem
         var sys = w.Galaxy!.System(systemId)?.Name ?? systemId;
         w.Log($"Battle of {sys}: {w.House(winner)?.Name ?? winner} defeats {w.House(loser)?.Name ?? loser} " +
               $"({w.House(attacker)?.Name ?? attacker} attacking, {w.House(defender)?.Name ?? defender} holding). " +
-              $"Hulls lost — {w.House(attacker)?.Name ?? attacker} {(attackerWins ? winnerLosses : loserLosses)}, {w.House(defender)?.Name ?? defender} {(attackerWins ? loserLosses : winnerLosses)}.");
+              $"Hulls lost: {w.House(attacker)?.Name ?? attacker} {(attackerWins ? winnerLosses : loserLosses)}, {w.House(defender)?.Name ?? defender} {(attackerWins ? loserLosses : winnerLosses)}.");
         w.Battles.Add(new BattleRecord { Turn = w.Turn, SystemId = systemId, Place = sys, AttackerId = attacker, DefenderId = defender, WinnerId = winner, AttackerHulls = hullsA, DefenderHulls = hullsD,
             AttackerLost = attackerWins ? winnerLosses : loserLosses, DefenderLost = attackerWins ? loserLosses : winnerLosses, AttackerPower = Math.Round(pa, 1), DefenderPower = Math.Round(pd, 1), Notes = notes });
         if (w.Battles.Count > 60) w.Battles.RemoveRange(0, w.Battles.Count - 60);

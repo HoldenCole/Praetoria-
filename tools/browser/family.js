@@ -17,18 +17,20 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   // find the screen each panel lives on
-  const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; const tabs = await page.evaluate(() => document.querySelectorAll('.ex-tabs .rung').length); for (let i = 1; i < tabs; i++) { await page.evaluate(k => document.querySelectorAll('.ex-tabs .rung')[k].click(), i); await page.waitForTimeout(300); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } } return ''; };
-  const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s + ' button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.trim() : ''; }, [sel, text]);
+  const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; const tabs = await page.evaluate(() => document.querySelectorAll('.screen.window .ex-tabs .rung, .screen.window .cw-tabs .rung, .screen.window .ui-tab').length); for (let i = 1; i < tabs; i++) { await page.evaluate(k => document.querySelectorAll('.screen.window .ex-tabs .rung, .screen.window .cw-tabs .rung, .screen.window .ui-tab')[k].click(), i); await page.waitForTimeout(300); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } } return ''; };
+  const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s + ' button')].find(e => !e.disabled && e.innerText.trim().toLowerCase().startsWith(t.toLowerCase())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : ''; }, [sel, text]);
   const text = sel => page.evaluate(s => { const el = document.querySelector(s); return el ? el.innerText.replace(/\s+/g, ' ') : 'NO PANEL'; }, sel);
-  const shot = async (sel, name) => { const box = await page.evaluate(s => { const el = document.querySelector(s); if (!el) return null; el.scrollIntoView({ block: 'start' }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1300) }; }, sel); if (box) await page.screenshot({ path: shots + '/' + name + '.png', clip: box }); };
+  const shot = async (sel, name) => { const box = await page.evaluate(s => { const el = document.querySelector(s); if (!el) return null; el.scrollIntoView({ block: 'start' }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1300) }; }, sel); if (box) await page.screenshot({ path: shots + '/' + name + '.png', clip: box, timeout: 180000 }); };
 
   await closeWindows();
   const wealthOn = await find('.panel.wealth'); console.log('wealth panel on: ' + (wealthOn || 'NOT FOUND'));
   let t = await text('.panel.wealth'); console.log('wealth: ' + (/NaN|undefined|Exception|@\(/.test(t) ? 'SUSPICIOUS TEXT' : 'ok') + ' · purse rows ' + await page.evaluate(() => document.querySelectorAll('.panel.wealth .purse-row').length));
-  console.log('take from the treasury: ' + (await press('.panel.wealth', 'take 20') || await press('.panel.wealth', 'take 5') || 'nothing pressed')); await page.waitForTimeout(300);
+  // the sum to move is on a joined stepper (docs/VISUAL_SYSTEM.md 4.12): raise it to 2,000 so there is enough to give and then lend
+  for (let i = 0; i < 3; i++) { await page.evaluate(() => { const b = document.querySelector('.panel.wealth .ui-step-wrap button[aria-label="More"]'); if (b && !b.disabled) b.click(); }); await page.waitForTimeout(150); }
+  console.log('take from the treasury: ' + (await press('.panel.wealth', 'take 2') || await press('.panel.wealth', 'take 5') || 'nothing pressed')); await page.waitForTimeout(300);
   console.log('give: ' + (await press('.panel.wealth .purse-row', 'Give 5') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('lend: ' + (await press('.panel.wealth .purse-row', 'Lend') || 'REFUSED OR NONE')); await page.waitForTimeout(300);
   console.log('dowries: ' + (await press('.panel.wealth', 'From my own purse first') || 'NO SUCH BUTTON')); await page.waitForTimeout(300);
@@ -36,8 +38,12 @@ require('fs').mkdirSync(shots, { recursive: true });
   await shot('.panel.wealth', 'family-wealth');
   const eduOn = await find('.panel.education'); console.log('education panel on: ' + (eduOn || 'NOT FOUND'));
   t = await text('.panel.education'); console.log('education: ' + (/NaN|undefined|Exception|@\(/.test(t) ? 'SUSPICIOUS TEXT' : 'ok'));
-  const asked = await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.education .suit-acts')].find(r => r.innerText.includes('Ask them to study')); if (!row) return 'NO ASK ROW'; const b = [...row.querySelectorAll('button')].find(e => !e.disabled); if (b) b.click(); return b ? b.innerText.trim() + ' (' + (b.getAttribute('title') || '') + ')' : 'nothing could be asked'; });
+  // a grown relative is a row with a Study select (docs/VISUAL_SYSTEM.md 4.12): open it and take the first thing they may be asked
+  const openStudy = () => page.evaluate(() => { const b = document.querySelector('.panel.education .dy-study .ui-select:not(.dy-tutor) .ui-select-btn'); if (b) b.click(); return !!b; });
+  await openStudy(); await page.waitForTimeout(300);
+  const asked = await page.evaluate(() => { const m = document.querySelector('.panel.education .dy-study .ui-menu'); if (!m) return 'NO ASK ROW'; const b = [...m.querySelectorAll('button')].find(e => !/cannot/.test(e.innerText) && !/^Have /.test(e.innerText.trim())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : 'nothing could be asked'; });
   console.log('asked to study: ' + asked); await page.waitForTimeout(400);
+  await openStudy(); await page.waitForTimeout(300);
   console.log('teach: ' + (await press('.panel.education', 'Have ') || 'nobody has anything to teach another')); await page.waitForTimeout(300);
   await shot('.panel.education', 'family-education');
   for (let y = 0; y < years; y++) await endTurn();

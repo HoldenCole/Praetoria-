@@ -42,7 +42,7 @@ public class FactionTests
         Assert.Equal(4, w.Factions.Count); Assert.All(w.Factions, f => Assert.True(f.Members.Count >= 2, f.Name));
         Assert.Equal("sword", FactionSystem.Of(w, "drake")!.PartyId); Assert.Equal("factors", FactionSystem.Of(w, "sato")!.PartyId);
         Assert.All(w.Houses.Values.Where(h => h.Id != PirateSystem.HouseId), h => Assert.NotNull(FactionSystem.Of(w, h.Id)));   // every house is seated
-        Assert.Equal("#FFD60A", FactionSystem.Of(w, "drake")!.Accent); Assert.Contains("officers", FactionSystem.Of(w, "drake")!.Estates); Assert.Equal("common_levy", FactionSystem.Of(w, "drake")!.Laws["levy_of_the_reach"]);
+        Assert.Equal("#8C9BB8", FactionSystem.Of(w, "drake")!.Accent); Assert.Contains("officers", FactionSystem.Of(w, "drake")!.Estates); Assert.Equal("common_levy", FactionSystem.Of(w, "drake")!.Laws["levy_of_the_reach"]);
         // votes still leave affinity, but no fifth bench forms of itself
         for (int i = 0; i < 3; i++) Decided(w, senate, ("drake", 1), ("sato", 1), ("ferro", 1), ("corwin", -1), ("vega", -1), ("aurelian", 1));
         Assert.Equal(3, FactionSystem.Affinity(w, "drake", "sato")); Assert.Equal(4, w.Factions.Count);

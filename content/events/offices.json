@@ -2,7 +2,7 @@
   "//": "THE OFFICES OF THE REACH (GDD §8 'the gap between office-power and house-power'). These read OfficeSystem's flags: office_granted / office_lost / treason (one turn), holds_office:<id> while held, office_vacant:<id> while empty. The Admiral's temptation is the design's classic arc: the fleet is the state's, the guns are in your hand.",
   "events": [
     {
-      "id": "the_commission", "tier": "setpiece", "weight": 12, "repeatable": true,
+      "id": "the_commission", "scene": "senate", "tier": "setpiece", "weight": 12, "repeatable": true,
       "when": [ { "type": "worldFlag", "flag": "office_granted" } ],
       "choices": [
         { "id": "swear_it_gladly", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
@@ -35,7 +35,7 @@
       ]
     },
     {
-      "id": "the_treasurers_books", "tier": "situation", "weight": 7, "repeatable": true,
+      "id": "the_treasurers_books", "scene": "market", "tier": "situation", "weight": 7, "repeatable": true,
       "when": [ { "type": "worldFlag", "flag": "holds_office:treasurer" }, { "type": "turn", "op": "gte", "value": 3 } ],
       "choices": [
         { "id": "keep_them_honest", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 }, { "type": "adjustCounter", "key": "treasury_influence", "delta": 1 },

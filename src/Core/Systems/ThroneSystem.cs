@@ -25,7 +25,7 @@ public static partial class ThroneSystem
     {
         var h = w.House(houseId);
         if (h == null) return "no house";
-        if (w.Era == "imperium" || Emperor(w) != null) return "a throne already stands — it must be seized";
+        if (w.Era == "imperium" || Emperor(w) != null) return "a throne already stands; it must be seized";
         if (titles.RankOf(h.Title) < titles.RankOf(Title.Archduke)) return $"only {(w.IsImperium ? "an Archduke" : "the First Citizen")} may proclaim";
         int bar = titles.ById(Title.Emperor)?.LegitimacyRequirement ?? 95;
         if (h.Legitimacy < bar) return $"the Reach will not accept it below legitimacy {bar}";
@@ -111,6 +111,6 @@ public static partial class ThroneSystem
         var who = byCharacterId != null ? w.Char(byCharacterId)?.Name : null;
         w.Log(seized
             ? $"{who ?? h.Name} SEIZES THE THRONE. {(former != null ? former.Name + " is cast down. " : "")}{(flipped ? "The Republic ends; the Imperium begins, in blood." : "The Imperium has a new master.")}"
-            : $"{who ?? h.Name} PROCLAIMS THE IMPERIUM, and the houses of the Reach — some gladly, some not — kneel. An era ends.");
+            : $"{who ?? h.Name} PROCLAIMS THE IMPERIUM, and the houses of the Reach, some gladly, some not, kneel. An era ends.");
     }
 }

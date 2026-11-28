@@ -13,40 +13,65 @@
     var pools = G.Turn.PlayerPools;
     var ledgerTip = G.Turn.Economy == null ? "" : string.Join("\n", G.Turn.Economy.Compute(w, house.Id, G.Turn.Fleets).Lines.Take(12).Select(l => l.Source + ": " + string.Join(", ", Resource.All.Where(k => l.Delta.Get(k) != 0).Select(k => Money.SignedOf(k, l.Delta.Get(k)) + " " + k))));
 }
-<header class="topbar" style="--accent:@house.AccentColor">
+@* The top bar (docs/VISUAL_SYSTEM.md 3.1, 3.2): brushed steel on a brass trim. The ruler's portrait stands over the rail's corner
+   with the house's wax seal; then the arms, the house's name and the head's rank; three recessed wells (the treasury, the strategic
+   three, the year's pools) split by brass studs, each stock an icon, a figure and the year's change, its breakdown in the tooltip;
+   at the right Undo, the date plate (the year in Roman numerals, the era and the generation; it opens the year in brief) and the
+   menu roundel (Save, Saves, Export, Options, Help, Quit; Esc opens it). Under 1500px, or at the larger text size, the strategic
+   well and the pools fold into one "pools" plate that opens them below it, the yearly changes go to the tooltips, and the date
+   plate loses its second line. *@
+<header class="topbar @(MenuOpen ? "menu-open" : "") @(_more ? "more-open" : "")" style="--accent:@house.AccentColor">
+    <div class="tb-ruler">
+        <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="70" Height="88" />
+        <i class="tb-seal"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="28" Mode="seal" /></i>
+    </div>
+    <div class="tb-arms"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="26" /></div>
     <div class="tb-house" title="@house.Name · @(G.Content!.Titles.NameOf(house.Title, G.World!.Era))">
-        <span class="tb-ruler"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="52" /><i class="tb-sigil"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="20" /></i></span>
-        <div><div class="tb-name">@house.Name</div><div class="tb-sub">@(G.Content!.Titles.NameOf(house.Title, G.World!.Era)) · <span title="Legitimacy, from 0 to 100: how rightful the Reach holds your house's place to be. It is asked for at every step up in rank, and it falls when the house is caught doing what it should not.">legitimacy @house.Legitimacy</span></div></div>
+        <div class="tb-name">@house.Name</div>
+        <div class="tb-sub">@(G.Content!.Titles.NameOf(house.Title, G.World!.Era)) · <span title="Legitimacy, from 0 to 100: how rightful the Reach holds your house's place to be. It is asked for at every step up in rank, and it falls when the house is caught doing what it should not.">Legitimacy <b>@house.Legitimacy</b></span></div>
     </div>
-    <div class="tb-res" title="@(ledgerTip + outTip)">
-        @Res("credits", t.Credits, fc?.Credits, "Credits — the one you run out of. Upkeep, hulls, bribes. The small figure is what the year will add or take, the shares of what is being built counted.", Money.Held(t))
-        <span class="res purse" title="@purseTip" data-purse="@p.Purse"><small class="pl">purse</small><b>@Money.Show(p.Purse)</b></span>
-        @Res("materials", t.Materials, fc?.Materials, "Materials — building and shipbuilding.")
-        @Res("manpower", t.Manpower, fc?.Manpower, $"Manpower: {t.Manpower} of the {muster} your worlds can muster: {Census.Say(Census.CitizensOf(w, house.Id))} citizens, reckoned on the rules' scale of their people{(cityMuster > 0 ? $", and {cityMuster} more for their garrison and breadbasket cities" : "")}, and never fewer than {Economy.MusterFloor}. A point of manpower is about a thousand trained hands. It crews hulls, founds colonies and can be put to work as a gang to hasten what is building. It is not sold." + (t.Manpower > muster ? $" You hold more than they can keep: a quarter of the excess stands down each year." : t.Manpower == muster ? " It is full: it grows only as your worlds' people do." : ""))
-        <span class="res cap muted" data-muster="@muster" title="What your worlds can muster">/ @muster</span>
-        @Res("influence", t.Influence, fc?.Influence, "Clout: the house's political capital in store. Seats and standing earn it; decrees and the Exchange spend it. It is not this year's influence (at the right), which is how much you can act in the Senate this year.")
-        @Res("exotics", t.Exotics, fc?.Exotics, "Exotics — rare finds; sell dear or study them.")
+    <div class="well tb-res" title="@(ledgerTip + outTip)">
+        @Res("credits", "brass", t.Credits, fc?.Credits, "[credits] Credits — the one you run out of. Upkeep, hulls, bribes. The small figure is what the year will add or take, the shares of what is being built counted.", Money.Held(t))
+        <span class="res purse" title="@purseTip" data-purse="@p.Purse"><Icon Name="swap-bag" Tone="brass" Size="21" /><span class="v">@Money.Show(p.Purse)</span></span>
+        @Res("materials", "steel", t.Materials, fc?.Materials, "[materials] Materials — building and shipbuilding.")
+        @Res("manpower", "ivory", t.Manpower, fc?.Manpower, $"[manpower] Manpower — {t.Manpower} of the {muster} your worlds can muster: {Census.Say(Census.CitizensOf(w, house.Id))} citizens, reckoned on the rules' scale of their people{(cityMuster > 0 ? $", and {cityMuster} more for their garrison and breadbasket cities" : "")}, and never fewer than {Economy.MusterFloor}. A point of manpower is about a thousand trained hands. It crews hulls, founds colonies and can be put to work as a gang to hasten what is building. It is not sold." + (t.Manpower > muster ? $" You hold more than they can keep: a quarter of the excess stands down each year." : t.Manpower == muster ? " It is full: it grows only as your worlds' people do." : ""), null, muster)
+        @Res("laurels", "ivory", t.Influence, fc?.Influence, "[laurels] Clout — the house's political capital in store. Seats and standing earn it; decrees and the Exchange spend it. It is not this year's influence (at the right), which is how much you can act in the Senate this year.", null, null, "influence")
+        @Res("exotics", "steel", t.Exotics, fc?.Exotics, "[exotics] Exotics — rare finds; sell dear or study them.")
     </div>
-    <div class="tb-res strat @(w.HasFlag("fuel_short") ? "dry" : "")" title="The strategic three — dug or skimmed only where the galaxy put them. Helium-3 fuels the fleet (three hulls burn one a turn); rare earths build the heavy hulls and the clever buildings; isotopes arm battleships and bastions and are never on the open market.">
-        @Res("helium3", t.Helium3, fc?.Helium3, w.HasFlag("fuel_short") ? "Helium-3 — THE TANKS ARE DRY: the fleet rides at anchor." : "Helium-3 — fusion fuel; the fleet burns it every turn.")
-        @Res("rare_earths", t.RareEarths, fc?.RareEarths, "Rare earths — drives, sensors, electronics; cruisers, carriers, foundries.")
-        @Res("isotopes", t.Isotopes, fc?.Isotopes, "Isotopes — weapons-grade; battleships, bastion guns, arsenals. Never sold on the open market.")
+    <div class="tb-pools-wrap">
+    <button class="tb-more-btn" data-pools title="The strategic three and the year's pools: what you can do this year" aria-expanded="@_more" @onclick="TogglePools"><Icon Name="helium3" Tone="steel" Size="18" /><Icon Name="public-speaker" Tone="ivory" Size="18" /><span>Pools</span><Icon Name="chev" Tone="brass" Size="10" Class="tb-chev" /></button>
+    <div class="tb-more">
+        <i class="stud"></i>
+        <div class="well tb-res strat @(w.HasFlag("fuel_short") ? "dry" : "")" title="The strategic three — dug or skimmed only where the galaxy put them. Helium-3 fuels the fleet (three hulls burn one a turn); rare earths build the heavy hulls and the clever buildings; isotopes arm battleships and bastions and are never on the open market.">
+            @Res("helium3", "steel", t.Helium3, fc?.Helium3, w.HasFlag("fuel_short") ? "[helium3] Helium-3 — the tanks are dry: the fleet rides at anchor." : "[helium3] Helium-3 — fusion fuel; the fleet burns it every turn.")
+            @Res("rare_earths", "ivory", t.RareEarths, fc?.RareEarths, "[rare_earths] Rare earths — drives, sensors, electronics; cruisers, carriers, foundries.")
+            @Res("isotopes", "ember", t.Isotopes, fc?.Isotopes, "[isotopes] Isotopes — weapons-grade; battleships, bastion guns, arsenals. Never sold on the open market.")
+        </div>
+        <i class="stud"></i>
+        <div class="well tb-pools" title="What you can do this year: treasury actions, influence and agents. Reading is free; acting spends them, and they come back each year.">
+            <span class="res pool inf" title="Influence this year: what you can do in politics before the year ends. Every button that says 'N influence' spends this. It comes back each year, and is not the clout the house keeps in store (at the left)."><Icon Name="public-speaker" Tone="ivory" Size="21" /><span class="v">@pools.Influence</span></span>
+            <span class="res pool tre" title="Treasury actions this year: orders that take the house's officers (a build, a fleet order). They come back each year."><Icon Name="scroll-quill" Tone="ivory" Size="21" /><span class="v">@pools.Treasury</span></span>
+            <span class="res pool agt" title="Agents this year: people you can send on quiet business. They come back each year."><Icon Name="cowled" Tone="ivory" Size="21" /><span class="v">@pools.Agents</span></span>
+        </div>
     </div>
-    <div class="tb-pools" title="What you can do this year: treasury actions, influence and agents. Reading is free; acting spends them, and they come back each year.">
-        <span class="pool inf" title="Influence this year: what you can do in politics before the year ends. Every button that says 'N influence' spends this. It comes back each year, and is not the clout the house keeps in store (at the left)."><Icon Name="influence_pool" Size="14" />@pools.Influence</span>
-        <span class="pool tre" title="Treasury actions this year: orders that take the house's officers (a build, a fleet order). They come back each year."><Icon Name="treasury_pool" Size="14" />@pools.Treasury</span>
-        <span class="pool agt" title="Agents this year: people you can send on quiet business. They come back each year."><Icon Name="agents_pool" Size="14" />@pools.Agents</span>
     </div>
     <div class="tb-right">
-        <div class="tb-era">@(w.Era == "imperium" ? "The Imperium" : "The Republic")</div>
-        <div class="tb-turn" @onclick="OnBrief" title="Click for the last year in brief. Each turn is a year. A generation is one head of the house: when the head dies or steps down and an heir takes the seat, the next generation begins. This is year @w.Turn of the saga, under its @Nth(w.Counter("generation") + 1) head."><Icon Name="turn" Size="13" /> Year @w.Turn · @Nth(w.Counter("generation") + 1) head</div>
-        @if (G.CanUndo) { <button class="btn ghost sm" data-undo title="@("Take back the last thing you did this year: " + G.UndoWhat + ". " + (G.UndoSteps > 1 ? "Press again for the one before it (" + G.UndoSteps + " in all). " : "") + "Nothing can be taken back once the year has ended, and the same act done again comes out the same.")" @onclick="OnUndo">Undo</button> }
-        <button class="btn ghost sm" data-save title="Save the game as it stands now, with what you have done this year. It is also kept by itself as each year opens." @onclick="OnSave">@(SavedFlash ? "Saved ✓" : "Save")</button>
-        <button class="btn ghost sm" data-saves title="The saved sagas in this browser: the running one and three you can keep, to load or to save over" @onclick="OnSaves">Saves</button>
-        <button class="btn ghost sm" title="Download the save as a file" @onclick="OnExport">Export</button>
-        <button class="btn ghost sm" data-settings title="Settings: the size of the text, which keys act, the yearly brief" @onclick="OnSettings">Options</button>
-        <button class="btn ghost sm" title="The primer, the glossary of the words the screens use, and the Academy's lectures (key ?)" @onclick="OnPrimer">?</button>
-        <button class="btn ghost sm" title="Leave to the title screen. The saga is saved as it stands first." @onclick="OnQuit">Quit</button>
+        <button class="ui-round tb-undo" data-undo disabled="@(!G.CanUndo)" title="@(G.CanUndo ? "Undo — take back the last thing you did this year: " + G.UndoWhat + ". " + (G.UndoSteps > 1 ? "Press again for the one before it (" + G.UndoSteps + " in all). " : "") + "Nothing can be taken back once the year has ended, and the same act done again comes out the same." : "Undo — nothing done this year to take back. Nothing can be taken back once the year has ended.")" aria-label="Undo" @onclick="OnUndo"><Icon Name="anticlockwise-rotation" Tone="ivory" Size="15" /></button>
+        <button class="dateplate" data-turn="@w.Turn" @onclick="OnBrief" title="@($"[sundial] Year {w.Turn} of the saga\nClick for the last year in brief. Each turn is a year. A generation is one head of the house: when the head dies or steps down and an heir takes the seat, the next generation begins. This is year {w.Turn}, under the saga's {Nth(w.Counter("generation") + 1)} head.")">
+            <span class="lau l"><svg class="icon ico" viewBox="0 0 230 512" aria-hidden="true"><use href="#i-laurels" width="512" height="512" /></svg></span>
+            <span class="lau r"><svg class="icon ico" viewBox="0 0 230 512" aria-hidden="true"><use href="#i-laurels" width="512" height="512" /></svg></span>
+            <span class="y">Year @Roman(w.Turn)</span>
+            <span class="e">@(w.Era == "imperium" ? "The Imperium" : "The Republic") · @Ordinal(w.Counter("generation") + 1) head</span>
+        </button>
+        <button class="ui-round big tb-menu" data-menu title="The game menu: save, the saved sagas, export, options, help and quit (Esc)" aria-label="Menu" aria-expanded="@MenuOpen" @onclick="OnMenu"><Icon Name="cog" Tone="brass" Size="18" /></button>
+        <nav class="tb-pop" aria-label="The game menu">
+            <button class="tb-item" data-save title="Save the game as it stands now, with what you have done this year. It is also kept by itself as each year opens." @onclick="() => Pick(OnSave)"><Icon Name="save" Tone="ivory" Size="16" /><span>@(SavedFlash ? "Saved" : "Save")</span>@if (SavedFlash) { <Icon Name="check" Tone="good" Size="12" /> }</button>
+            <button class="tb-item" data-saves title="The saved sagas in this browser: the running one and three you can keep, to load or to save over" @onclick="() => Pick(OnSaves)"><Icon Name="scroll-unfurled" Tone="ivory" Size="16" /><span>Saves</span></button>
+            <button class="tb-item" title="Download the save as a file" @onclick="() => Pick(OnExport)"><Icon Name="export" Tone="ivory" Size="16" /><span>Export</span></button>
+            <button class="tb-item" data-settings title="Settings: the size of the text, which keys act, the yearly brief, the labels of the rail" @onclick="() => Pick(OnSettings)"><Icon Name="cog" Tone="ivory" Size="16" /><span>Options</span></button>
+            <button class="tb-item" data-help title="The primer, the glossary of the words the screens use, and the Academy's lectures (key ?)" @onclick="() => Pick(OnPrimer)"><Icon Name="open-book" Tone="ivory" Size="16" /><span>Help</span></button>
+            <button class="tb-item" data-quit title="Leave to the title screen. The saga is saved as it stands first." @onclick="() => Pick(OnQuit)"><Icon Name="quit" Tone="ivory" Size="16" /><span>Quit</span></button>
+        </nav>
     </div>
 </header>
 
@@ -60,13 +85,39 @@
     [Parameter] public EventCallback OnPrimer { get; set; }
     [Parameter] public EventCallback OnBrief { get; set; }
     [Parameter] public bool SavedFlash { get; set; }
+    /// <summary>Whether the game menu is open: the shell holds it, so Esc can open it and close it.</summary>
+    [Parameter] public bool MenuOpen { get; set; }
+    [Parameter] public EventCallback OnMenu { get; set; }
+    /// <summary>The folded pools plate is open (a narrow screen or the larger text): the strategic three and the year's pools below it.</summary>
+    private bool _more;
+    private bool _menuWas;
+    /// <summary>One popover at a time: opening the pools closes the game menu, and opening the menu closes the pools.</summary>
+    private async Task TogglePools() { _more = !_more; if (_more && MenuOpen) await OnMenu.InvokeAsync(); }
+    protected override void OnParametersSet() { if (MenuOpen && !_menuWas) _more = false; _menuWas = MenuOpen; }
+    /// <summary>A choice from the menu: the menu closes (if it was open) and the choice is made.</summary>
+    private async Task Pick(EventCallback what) { if (MenuOpen) await OnMenu.InvokeAsync(); await what.InvokeAsync(); }
 
     private static string Nth(int n) => n % 100 is 11 or 12 or 13 ? n + "th" : (n % 10) switch { 1 => n + "st", 2 => n + "nd", 3 => n + "rd", _ => n + "th" };
-    private static RenderFragment Res(string name, int value, int? delta, string tip, string? held = null) => __builder =>
+    /// <summary>The generation as a word on the date plate: "second head", up to the twelfth; past it, the figure.</summary>
+    private static string Ordinal(int n) => n >= 1 && n <= 12 ? new[] { "first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth", "eleventh", "twelfth" }[n - 1] : Nth(n);
+    /// <summary>The year in Roman numerals, on the date plate only (docs/VISUAL_SYSTEM.md 3.1).</summary>
+    public static string Roman(int n)
     {
-        <span class="res" title="@tip">
-            <Icon Name="@name" Size="16" Class="ri" /><b>@(held ?? Money.Of(name, value))</b>
-            @if (delta != null && delta != 0) { <small class="@(delta > 0 ? "up" : "down")">@Money.SignedOf(name, delta.Value)</small> }
+        if (n <= 0 || n >= 4000) return n.ToString();
+        var parts = new (int v, string s)[] { (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"), (100, "C"), (90, "XC"), (50, "L"), (40, "XL"), (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I") };
+        var sb = new System.Text.StringBuilder(); foreach (var (v, s) in parts) while (n >= v) { sb.Append(s); n -= v; }
+        return sb.ToString();
+    }
+    /// <summary>A yearly change with its sign, the true minus for a loss (docs/WEB_CLIENT.md, "Words").</summary>
+    private static string Signed(string name, int d) => d > 0 ? "+" + Money.Of(name, d) : d < 0 ? "−" + Money.Of(name, -d) : "0";
+    /// <summary>A stock in a well: its glyph in its ramp, the figure, the year's change (and a cap as "41/85"); the change is also in the
+    /// tooltip, for the folded bar that drops it.</summary>
+    private static RenderFragment Res(string icon, string tone, int value, int? delta, string tip, string? held = null, int? cap = null, string? money = null) => __builder =>
+    {
+        string name = money ?? icon; bool moves = delta != null && delta != 0;
+        <span class="res" title="@(tip + (moves ? "\nThis year: " + Signed(name, delta!.Value) : ""))" data-muster="@cap">
+            <Icon Name="@icon" Tone="@tone" Size="21" /><span class="v">@(held ?? Money.Of(name, value))@if (cap != null) { <small>/@cap</small> }</span>
+            @if (moves) { <small class="d @(delta > 0 ? "up" : "down")">@Signed(name, delta!.Value)</small> }
         </span>
     };
 }

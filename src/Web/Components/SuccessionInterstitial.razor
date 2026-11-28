@@ -1,4 +1,10 @@
 @inject GameClient G
+@* The seat passes (docs/VISUAL_SYSTEM.md 10, "Succession"): the funeral painting full-bleed (a living head who yields, or a sworn house
+   taking up the banner, stands in the audience hall instead); "The seat passes" in Cinzel between laurel sprays; the old head at 140px
+   (greyscale with the black ribbon when dead), the heir at 220px in the window frame; what passes with the name as an icon row; what
+   does not, what the new head can do in a year, who they are, what changes on the screen, a minority, the friends and enemies handed
+   down, as rows; what was written of it as a quote; one gold plate. The scripts know it by .overlay, .epilogue.succession, the gold
+   .btn.primary and the data-* attributes on its rows. *@
 @{
     var w = G.World!; var c = G.Content!; var r = Record; var heir = w.Char(r.HeirId); var old = r.DeceasedId.Length > 0 ? w.Char(r.DeceasedId) : null;
     var house = heir != null ? w.House(heir.HouseId) : null; string accent = house?.AccentColor ?? "#888";
@@ -11,42 +17,83 @@
     var ties = heir != null ? w.InheritedTies.Where(t => t.HeirId == heir.Id && t.ToId == heir.Id && t.Turn == r.Turn).ToList() : new List<InheritedTie>();
     var handed = heir != null && old != null && ties.Count > 0 ? InheritedRegard.Summary(w, old, heir, ties) : (FriendsTitle: string.Empty, Friends: string.Empty, EnemiesTitle: string.Empty, Enemies: string.Empty);
     int friendsN = ties.Count(t => t.Kind is InheritedRegard.Friend or InheritedRegard.Unseen), enemiesN = ties.Count(t => t.Kind is InheritedRegard.Enemy or InheritedRegard.Vengeful or InheritedRegard.LetGo);
+    string title = r.Cause == "abdication" ? "The seat yields" : r.Cause == "adoption" ? "A sworn house takes up the banner" : "The seat passes";
+    string scene = r.Cause == "death" ? "funeral" : "audience";
+    string rank = house != null ? c.Titles.NameOf(house.Title, G.World!.Era) : "";
+    string credits = house != null ? Money.Held(house.Treasury) : Money.Show(0);
+    string lost = (oldRank.Length > 0 ? "Lost: the " + oldRank + "'s career. " : "Lost: ") + "The heir begins again" + (heirRank.Length > 0 ? " as " + heirRank : "") + (heir?.CareerTrack is { Length: > 0 } tr ? " on the " + tr + " track" : "") + ".";
+    string yearly = heir != null && w.Pools.TryGetValue(heir.Id, out var hp0) ? "\nEach year: " + hp0.InfluenceRegen + " influence, " + Counted.TreasuryActions(hp0.TreasuryRegen) + " and " + Counted.Agents(hp0.AgentsRegen) + " " + Counted.Come(hp0.AgentsRegen) + " back each year, as for every new head. The last head's reach was their own, and does not pass with the name." : "";
+    string passTip = "What passes with the name: " + rank + " · " + Counted.Worlds(worlds) + " · " + Counted.Hulls(hulls) + " · " + credits + " credits · legitimacy " + (house?.Legitimacy ?? 0) + "\n" + lost + yearly;
+    string goTip = "The year goes on under the new head.\nYour screen: " + RoleTheme.Describe(heir?.CareerTrack ?? "");
+    string rankTip = "[crown] Rank — " + rank + ". The house's title passes with the name.";
 }
-<div class="overlay">
-    <div class="epilogue succession wide" style="--accent:@accent">
-        <div class="tier"><span class="glyph">✦</span> GENERATION @r.Generation</div>
-        <h2>@(r.Cause == "abdication" ? "The seat yields" : r.Cause == "adoption" ? "A sworn house takes up the banner" : "The seat passes")</h2>
-        <div class="succ-cast">
-            @if (old != null)
-            {
-                <div class="cast"><Portrait Id="@old.Id" Name="@old.Name" Sex="@old.Sex" Age="@old.Age" Alive="@old.Alive" Accent="@accent" Size="88" />
-                    <div class="cast-name">@old.Name</div><div class="cast-sub">@(r.Cause == "abdication" ? "yields at" : "dies at") @r.DeceasedAge@(oldRank.Length > 0 ? $" · {oldRank}" : "")</div></div>
-                <div class="succ-arrow">→</div>
-            }
-            @if (heir != null)
-            {
-                <div class="cast"><Portrait Id="@heir.Id" Name="@heir.Name" Sex="@heir.Sex" Age="@heir.Age" Accent="@accent" Size="88" />
-                    <div class="cast-name">@heir.Name</div><div class="cast-sub">takes the seat at @heir.Age@(heirRank.Length > 0 ? $" · {heirRank}" : "")</div></div>
-            }
+<div class="overlay succ-veil" data-succession="@r.Generation">
+    <div class="succ-art" style="background-image:url('img/scenes/@(scene).webp')" aria-hidden="true"></div>
+    <div class="epilogue succession wide succ-stage" style="--accent:@accent" role="dialog" aria-modal="true" aria-label="@title">
+        <div class="succ-kick"><i class="ln"></i>@Laurel(false)<span>Generation @r.Generation@(house != null ? " · " + house.Name : "")</span>@Laurel(true)<i class="ln r"></i></div>
+        <h2 class="succ-title @(title.Length > 18 ? "long" : "")">@title</h2>
+        <div class="succ-rule"></div>
+        <div class="succ-main">
+            <div class="succ-left">
+            <div class="succ-cast">
+                @if (old != null)
+                {
+                    <div class="succ-who old">
+                        <Portrait Id="@old.Id" Name="@old.Name" Sex="@old.Sex" Age="@old.Age" Alive="@old.Alive" Accent="@accent" Size="140" Height="174" />
+                        <b>@old.Name</b><span>@(r.Cause == "abdication" ? "yields at" : "dies at") @r.DeceasedAge@(oldRank.Length > 0 ? $" · {oldRank}" : "")</span>
+                    </div>
+                    <div class="succ-arrow" aria-hidden="true"><Icon Name="chev" Tone="brass" Size="22" /><Icon Name="chev" Tone="brass" Size="22" /></div>
+                }
+                @if (heir != null)
+                {
+                    <div class="succ-who heir">
+                        <Portrait Id="@heir.Id" Name="@heir.Name" Sex="@heir.Sex" Age="@heir.Age" Accent="@accent" Size="220" Height="274" />
+                        <b>@heir.Name</b><span>takes the seat at @heir.Age@(heirRank.Length > 0 ? $" · {heirRank}" : "")</span>
+                    </div>
+                }
+            </div>
+            @* what is lost and what comes each year are in the plinth's tooltip; what changes on the screen is in the gold plate's (5 rows at most beside the cast) *@
+            <div class="succ-pass" data-pools-after="@(yearly.Length > 0 ? "1" : null)" title="@passTip">
+                <div class="succ-sub">What passes with the name</div>
+                <div class="succ-plinth">
+                    <div class="succ-fig" title="@rankTip"><Icon Name="crown" Tone="brass" Size="24" /><span><b>@rank</b><small>Rank</small></span></div>
+                    <div class="succ-fig"><Icon Name="ringed-planet" Tone="ivory" Size="24" /><span><b>@worlds</b><small>@(worlds == 1 ? "World" : "Worlds")</small></span></div>
+                    <div class="succ-fig"><Icon Name="fleet" Tone="steel" Size="24" /><span><b>@hulls</b><small>@(hulls == 1 ? "Hull" : "Hulls")</small></span></div>
+                    <div class="succ-fig"><Icon Name="credits" Tone="brass" Size="24" /><span><b>@credits</b><small>Credits</small></span></div>
+                    <div class="succ-fig"><Icon Name="legitimacy" Tone="ivory" Size="24" /><span><b>@(house?.Legitimacy ?? 0)</b><small>Legitimacy</small></span></div>
+                </div>
+            </div>
+            </div>
+            <div class="succ-side">
+                <div class="succ-grid">
+                    @if (heir != null && (heir.NatureTraits.Count > 0 || heir.Ambition.Length > 0)) { <div class="succ-row"><span class="pic face"><Portrait Id="@heir.Id" Name="@heir.Name" Sex="@heir.Sex" Age="@heir.Age" Accent="@accent" Size="30" Height="36" Opens="false" /></span><span class="tx"><span class="k">The heir</span><span class="v">@string.Join(" · ", heir.NatureTraits.Concat(heir.AptitudeTraits))@(heir.Ambition.Length > 0 ? $" · wants to {heir.Ambition.Replace('_', ' ')}" : "")</span></span></div> }
+                    @if (regent != null) { <div class="succ-row warn"><span class="pic face"><Portrait Id="@regent.Id" Name="@regent.Name" Sex="@regent.Sex" Age="@regent.Age" Accent="@accent" Size="30" Height="36" Opens="false" /></span><span class="tx"><span class="k">A regent</span><span class="v">@regent.Name rules as regent until @heir!.Name comes of age at @DynastySystem.AgeOfMajority.</span></span></div> }
+                    @if (handed.Friends.Length > 0) { <div class="succ-row good" data-inherited-friends="@friendsN" title="@handed.FriendsTitle"><span class="pic faces">@Faces(ties.Where(t => t.Kind is InheritedRegard.Friend or InheritedRegard.Unseen))</span><span class="tx"><span class="k">Friends</span><span class="v">@handed.Friends</span></span></div> }
+                    @if (handed.Enemies.Length > 0) { <div class="succ-row warn" data-inherited-enemies="@enemiesN" title="@handed.EnemiesTitle"><span class="pic faces">@Faces(ties.Where(t => t.Kind is InheritedRegard.Enemy or InheritedRegard.Vengeful or InheritedRegard.LetGo))</span><span class="tx"><span class="k">Enemies</span><span class="v">@handed.Enemies</span></span></div> }
+                </div>
+                @if (lines.Count > 0)
+                {
+                    <div class="succ-lines"><div class="qh">What was written</div>@foreach (var l in lines) { <div class="ln">@l</div> }</div>
+                }
+            </div>
         </div>
-        <div class="succ-grid">
-            <div><span class="muted">What passes with the name</span><b>@(house != null ? c.Titles.NameOf(house.Title, G.World!.Era) : "") · @Counted.Worlds(worlds) · @Counted.Hulls(hulls) · @(house != null ? Money.Held(house.Treasury) : Money.Show(0)) credits · legitimacy @(house?.Legitimacy ?? 0)</b></div>
-            <div><span class="muted">What does not</span><b>@(oldRank.Length > 0 ? $"The {oldRank}'s career. " : "")The heir begins again@(heirRank.Length > 0 ? $" as {heirRank}" : "")@(heir?.CareerTrack is { Length: > 0 } t ? $" on the {t} track" : "").</b></div>
-            @if (heir != null && G.World!.Pools.TryGetValue(heir.Id, out var hp))
-            {
-                <div data-pools-after="1"><span class="muted">What you can do in a year</span><b>@hp.InfluenceRegen influence, @Counted.TreasuryActions(hp.TreasuryRegen) and @Counted.Agents(hp.AgentsRegen) @Counted.Come(hp.AgentsRegen) back each year, as for every new head. The last head's reach was their own, and does not pass with the name.</b></div>
-            }
-            @if (heir != null && (heir.NatureTraits.Count > 0 || heir.Ambition.Length > 0)) { <div><span class="muted">Who they are</span><b>@string.Join(" · ", heir.NatureTraits.Concat(heir.AptitudeTraits))@(heir.Ambition.Length > 0 ? $" · wants to {heir.Ambition.Replace('_', ' ')}" : "")</b></div> }
-            <div><span class="muted">What changes on your screen</span><b>@RoleTheme.Describe(heir?.CareerTrack ?? "")</b></div>
-            @if (regent != null) { <div class="warn"><span class="muted">A minority</span><b>@regent.Name rules as regent until @heir!.Name comes of age at @DynastySystem.AgeOfMajority.</b></div> }
-            @if (handed.Friends.Length > 0) { <div data-inherited-friends="@friendsN"><span class="muted">@handed.FriendsTitle</span><b>@handed.Friends</b></div> }
-            @if (handed.Enemies.Length > 0) { <div class="warn" data-inherited-enemies="@enemiesN"><span class="muted">@handed.EnemiesTitle</span><b>@handed.Enemies</b></div> }
-        </div>
-        @if (lines.Count > 0) { <div class="succ-lines">@foreach (var l in lines) { <div class="muted small">@l</div> }</div> }
-        <div class="row"><button class="btn primary" @onclick="OnClose">Take up the name</button></div>
+        <div class="row succ-foot"><button class="btn primary ui-btn succ-go" title="@goTip" @onclick="OnClose"><Icon Name="laurels" Tone="dark" Size="16" />Take up the name</button></div>
     </div>
 </div>
 @code {
     [Parameter, EditorRequired] public SuccessionRecord Record { get; set; } = default!;
     [Parameter] public EventCallback OnClose { get; set; }
+    /// <summary>Up to three faces of those a tie came down from, overlapped as one picture.</summary>
+    private RenderFragment Faces(IEnumerable<InheritedTie> ts) => __builder =>
+    {
+        foreach (var p in ts.Select(t => G.World!.Char(t.FromId)).Where(p => p != null).DistinctBy(p => p!.Id).Take(3))
+        {
+            <Portrait Id="@p!.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@(G.World!.House(p.HouseId)?.AccentColor ?? "#888")" Size="30" Height="36" Opens="false" />
+        }
+    };
+    /// <summary>Half of Lorc's laurels, the spray each side of the kicker.</summary>
+    private static RenderFragment Laurel(bool flip) => __builder =>
+    {
+        <svg class="icon ico brass succ-ls @(flip ? "flip" : "")" viewBox="0 0 230 512" aria-hidden="true"><use href="#i-@Icons.Key("laurels")" /></svg>
+    };
 }

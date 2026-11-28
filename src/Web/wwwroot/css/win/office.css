@@ -1,0 +1,131 @@
+/* The Office, a painted room (docs/VISUAL_SYSTEM.md 9; the owner, 2026-11-27: "I like having some actual rooms"). Loaded after app.css,
+   so a rule here wins over a shared rule of the same weight. Only OfficeScreen.razor uses the classes below (or-*, .office-room).
+
+   The room fills the Office's place in the shell: the wide docked window, as tall as the painting's own shape (1280 by 1056, 1.2121 to
+   1) makes it at that width, so the painting is shown whole and never stretched and the map shows below it; where the screen is too
+   short for that, the window stops at the foot of the screen and the painting is framed smaller in it (letterboxed). Everything placed in it is placed in fractions of the
+   painting (the JSON beside each picture), on a stage of the painting's shape, so it stays where it was painted at every size. */
+.gs-shell.game .screen.window.wide[data-screen="office"] { aspect-ratio: 1280 / 1056; height: auto; }
+.docked-win:has(.office-room) .win-bar { display: none; }
+.docked-win .win-body:has(.office-room) { padding: 0; overflow: hidden; display: flex; -webkit-mask-image: none; mask-image: none; }
+
+.office-room { position: relative; flex: 1 1 auto; align-self: stretch; min-height: 0; overflow: hidden; container-type: size; background: #06080c; --pw: clamp(18rem, 27cqw, 21.3333rem); }
+.or-stage { position: absolute; left: 50%; top: 50%; width: min(100cqw, 100cqh * 1.2121); height: min(100cqh, 100cqw / 1.2121); transform: translate(-50%, -50%); container-type: size; }
+.or-paint { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; user-select: none;
+  filter: brightness(1.05) contrast(1.05) saturate(1.02); }
+/* the era warms the room under the Imperium */
+.office-room[data-era="imperium"] .or-paint { filter: brightness(1.06) contrast(1.07) saturate(1.1) sepia(.08); }
+/* a shade along the top for the place plate, and along the right for the panel */
+.or-stage::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(6,8,12,.55), rgba(6,8,12,0) 16%), linear-gradient(270deg, rgba(6,8,12,.5), rgba(6,8,12,0) 34%), radial-gradient(ellipse at 50% 55%, transparent 60%, rgba(0,0,0,.35)); }
+
+/* ---- the life of the room ---- */
+/* the stars drift past the window: two layers of small lights, screened onto the painted glass, slower the further */
+.or-stars { position: absolute; overflow: hidden; pointer-events: none; mix-blend-mode: screen; opacity: .75;
+  -webkit-mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%); mask-image: radial-gradient(ellipse 50% 50% at 50% 50%, #000 62%, transparent 100%); }
+.or-stars i { position: absolute; inset: 0; background-repeat: repeat; animation: or-drift 110s linear infinite;
+  background-image: radial-gradient(1.3px 1.3px at 14px 22px, rgba(255,255,255,.95), transparent), radial-gradient(1px 1px at 61px 87px, rgba(220,230,255,.8), transparent),
+    radial-gradient(1px 1px at 103px 41px, rgba(255,240,220,.75), transparent), radial-gradient(1.4px 1.4px at 128px 119px, rgba(255,255,255,.9), transparent),
+    radial-gradient(.9px .9px at 37px 131px, rgba(200,215,255,.7), transparent);
+  background-size: 140px 140px; }
+.or-stars i + i { animation-duration: 190s; opacity: .6; background-size: 90px 90px;
+  background-image: radial-gradient(.8px .8px at 20px 60px, rgba(255,255,255,.8), transparent), radial-gradient(.8px .8px at 70px 15px, rgba(210,220,255,.7), transparent); }
+@keyframes or-drift { from { background-position: 0 0; } to { background-position: -140px 18px; } }
+/* the lamps breathe */
+.or-glow { position: absolute; width: 34cqh; height: 26cqh; transform: translate(-50%, -50%); pointer-events: none; mix-blend-mode: screen;
+  background: radial-gradient(ellipse at center, rgba(255,204,120,.34), rgba(255,170,80,.12) 38%, rgba(255,150,60,0) 70%); animation: or-breathe var(--d, 5.5s) ease-in-out infinite alternate; }
+@keyframes or-breathe { from { opacity: .5; } 45% { opacity: .92; } to { opacity: .72; } }
+/* dust turns in the light */
+.or-dust { position: absolute; pointer-events: none; -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 75%, #000 35%, transparent 78%); mask-image: radial-gradient(ellipse 60% 70% at 50% 75%, #000 35%, transparent 78%); }
+.or-dust i { position: absolute; width: var(--s, 2px); height: var(--s, 2px); border-radius: 50%; background: rgba(255,230,180,.8); box-shadow: 0 0 4px rgba(255,210,140,.7);
+  opacity: 0; animation: or-mote var(--d, 12s) ease-in-out var(--l, 0s) infinite; }
+@keyframes or-mote { 0% { transform: translate(0, 0); opacity: 0; } 18% { opacity: .85; } 50% { transform: translate(1.4cqh, -3.2cqh); opacity: .55; } 82% { opacity: .7; } 100% { transform: translate(-.8cqh, -6.4cqh); opacity: 0; } }
+
+/* ---- the year's letters on the desk: sealed in brass while unanswered, open once answered ---- */
+.or-letter { position: absolute; z-index: 2; width: max(4.2667rem, 8.4cqh); height: max(2.8rem, 5.4cqh); padding: 0; border: 0; background: none; cursor: pointer; transform: translate(-50%, -50%) rotate(var(--r, 0deg));
+  display: grid; place-items: center; transition: transform .15s ease-out, filter .15s; filter: drop-shadow(0 2px 2px rgba(0,0,0,.75)); }
+.or-letter .env { position: absolute; inset: 0; background: linear-gradient(170deg, #f0e3c2, #d3bf92 70%, #b8a271); box-shadow: inset 0 0 0 1px rgba(90,64,24,.55), inset 0 1px 0 rgba(255,255,255,.5); }
+.or-letter.sealed .env::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to bottom right, transparent 49%, rgba(90,64,24,.45) 50%, transparent 52%), linear-gradient(to bottom left, transparent 49%, rgba(90,64,24,.45) 50%, transparent 52%); background-size: 100% 100%; clip-path: polygon(0 0, 100% 0, 50% 62%); }
+.or-letter.opened .env { background: linear-gradient(170deg, #f6eedb, #e1d2ae 70%, #cbb88c); opacity: .82; }
+.or-letter.opened .env::before { content: ""; position: absolute; left: 14%; right: 14%; top: 26%; height: 1px; background: rgba(90,64,24,.45); box-shadow: 0 .55cqh 0 rgba(90,64,24,.35), 0 1.1cqh 0 rgba(90,64,24,.3); }
+.or-letter > .icon { position: relative; width: max(1.4667rem, 3cqh); height: max(1.4667rem, 3cqh); filter: drop-shadow(0 1px 1px rgba(0,0,0,.8)); }
+.or-letter.setpiece.sealed .env { box-shadow: inset 0 0 0 1px rgba(90,64,24,.55), inset 0 1px 0 rgba(255,255,255,.5), 0 0 0 1px rgba(201,162,74,.8); }
+.or-letter:hover, .or-letter:focus-visible { outline: 0; z-index: 3; transform: translate(-50%, -62%) rotate(var(--r, 0deg)) scale(1.12); filter: drop-shadow(0 4px 6px rgba(0,0,0,.8)) drop-shadow(0 0 8px rgba(246,226,160,.55)); }
+
+/* ---- today's visitors, standing on the floor: framed plates, their names on brass plates ---- */
+.or-floor { position: absolute; z-index: 4; display: flex; align-items: flex-end; justify-content: space-evenly; gap: 1.4cqh; right: max(4%, calc(var(--pw) + 2.4rem)) !important; pointer-events: none; }
+.or-visitor { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0; max-width: 26cqh; padding: 0; border: 0; background: none; cursor: pointer; pointer-events: auto; color: inherit;
+  transition: transform .18s ease-out; animation: or-arrive .5s ease-out both; }
+.or-visitor:nth-child(2) { animation-delay: .08s; } .or-visitor:nth-child(3) { animation-delay: .16s; } .or-visitor:nth-child(4) { animation-delay: .24s; } .or-visitor:nth-child(5) { animation-delay: .32s; }
+@keyframes or-arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.or-visitor .nm, .or-visitor .biz { pointer-events: none; }   /* the visitor's own tooltip (their business); the plate inside carries no title of its own (Portrait Titled) */
+.or-visitor .portrait { width: 12.2cqh !important; height: 15.2cqh !important; min-width: 74px; min-height: 92px; filter: drop-shadow(0 10px 14px rgba(0,0,0,.7)); transition: filter .18s; }
+.or-visitor::after { content: ""; position: absolute; left: 10%; right: 10%; bottom: -.4rem; height: .8rem; border-radius: 50%; background: radial-gradient(ellipse, rgba(0,0,0,.6), transparent 70%); z-index: -1; }
+.or-visitor .nm { position: relative; margin-top: .4rem; padding: .3rem .6667rem .2667rem; max-width: 100%; font: 600 .8667rem/1.1 var(--f-display); letter-spacing: .03em; color: #1d1506; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(#f3dd9a, #c9a24a 55%, #8f6c2a); box-shadow: 0 0 0 1px #000, inset 0 1px 0 rgba(255,255,255,.55), 0 2px 4px rgba(0,0,0,.7); text-shadow: 0 1px 0 rgba(255,240,200,.45); }
+.or-visitor .biz { margin-top: .3333rem; max-width: 100%; padding: .1333rem .4rem; font: italic 400 .8667rem/1.2 var(--f-ui); color: #efe4c8; text-align: center; background: rgba(6,8,12,.62); text-shadow: 0 1px 2px #000;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.or-visitor:hover, .or-visitor:focus-visible { outline: 0; transform: translateY(-4px); }
+.or-visitor:hover .portrait, .or-visitor:focus-visible .portrait { filter: drop-shadow(0 10px 14px rgba(0,0,0,.7)) drop-shadow(0 0 10px rgba(246,226,160,.55)); }
+.or-empty { align-self: center; margin-bottom: 4cqh; padding: .4rem .9rem; font: italic 400 1.0667rem/1.3 var(--f-prose); color: #e3d9c0; background: rgba(6,8,12,.6); text-shadow: 0 1px 3px #000; }
+
+/* ---- where the room is: the place plate at its top left, with the choice of room ---- */
+.or-place { position: absolute; z-index: 5; left: 1.6rem; top: 1.4rem; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .6rem .8rem; padding: .5333rem 1.2rem .5333rem .6rem; max-width: calc(100% - var(--pw) - 4.8rem);
+  background: linear-gradient(90deg, rgba(8,10,15,.86), rgba(8,10,15,.7) 75%, rgba(8,10,15,0)); }
+.or-place-t { min-width: 0; }
+.or-seat { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2rem .6rem; margin-top: .3333rem; }
+.or-seat b { font: 600 1.2rem/1.1 var(--f-display); letter-spacing: .03em; color: #f5e9c9; text-shadow: 0 1px 4px #000; }
+.or-seat span { font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); text-shadow: 0 1px 3px #000; }
+.or-pick { grid-column: 2; justify-self: start; } .or-pick .ui-select-btn { min-width: 11.3333rem; height: 1.8667rem; font-size: .8667rem; }
+
+/* ---- the room's panel: one framed part on its right (the medium frame over a leather body cut to its chamfer) ---- */
+.or-panel { position: absolute; z-index: 6; right: 1.4rem; bottom: 1.4rem; width: var(--pw); max-height: calc(100% - 5.8rem); display: flex; filter: drop-shadow(0 10px 24px rgba(0,0,0,.7)); --c: 9px; }
+.or-panel-body { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 1.0667rem 0 1.2rem;
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)), calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
+  background: linear-gradient(rgba(14,17,23,.62), rgba(14,17,23,.62)), var(--tex-leather); background-color: rgba(14,17,23,.9); scrollbar-width: thin; scrollbar-color: #c9a24a #05070a;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 32px), transparent); mask-image: linear-gradient(#000 calc(100% - 32px), transparent); }
+.or-panel-frame { position: absolute; inset: 0; border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; pointer-events: none; }
+.or-who { display: flex; align-items: center; gap: .8rem; padding: 0 1.2rem 0 1.3333rem; }
+.or-who-t { min-width: 0; }
+.game .win-body .or-who h2, .or-who h2 { margin: 0; font: 600 1.3333rem/1.1 var(--f-display); letter-spacing: .03em; color: #f5e9c9; text-transform: none; }
+.or-who .sub { margin-top: .3333rem; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); }
+.or-traits { display: flex; flex-wrap: wrap; gap: .3333rem; padding: .6667rem 1.2rem .3333rem 1.3333rem; }
+.or-traits .trait { display: inline-flex; align-items: center; height: 1.6rem; padding: 0 .5333rem 0 .6rem; font: 500 .8667rem/1 var(--f-ui); font-style: normal; color: var(--ink); background: rgba(4,6,9,.75);
+  border: 0; border-radius: 2px; box-shadow: inset 3px 0 0 #7fa8d6, inset 0 1px 2px #000, 0 0 0 1px rgba(255,255,255,.06); cursor: help; }
+.or-traits .trait.apt { box-shadow: inset 3px 0 0 #8cc47e, inset 0 1px 2px #000, 0 0 0 1px rgba(255,255,255,.06); }
+.or-kv { display: grid; grid-template-columns: 7rem minmax(0, 1fr); column-gap: .6667rem; align-items: start; padding: .4rem 1.2rem .4rem 1.3333rem; border-bottom: 1px solid rgba(255,255,255,.05); }
+.or-kv > span { display: inline-flex; align-items: center; gap: .4667rem; font: 500 .8667rem/1.3 var(--f-ui); color: var(--ink-mute); }
+.or-kv > span .icon { width: 1rem; height: 1rem; flex: none; }
+.or-kv > b { font: 600 .9333rem/1.3 var(--f-ui); color: var(--ink); text-align: right; }
+.or-kv.sk { grid-template-columns: 1fr; row-gap: .3333rem; }
+.or-kv.sk > b { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .2667rem .8rem; font-weight: 500; text-align: left; }
+.or-sk { display: inline-flex; align-items: center; gap: .2667rem; white-space: nowrap; cursor: help; } .or-sk .icon { width: .9333rem; height: .9333rem; }
+.or-panel .ui-sec { margin-top: .9333rem; }
+.or-lines { padding: .2667rem 1.2rem 0 1.3333rem; }
+.or-lines .line { position: relative; padding: .4rem 0 .4rem .9333rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); border-bottom: 1px solid rgba(255,255,255,.05); }
+.or-lines .line::before { content: ""; position: absolute; left: .1333rem; top: .9rem; width: .3333rem; height: .3333rem; transform: rotate(45deg); background: var(--brass-mid); }
+.or-panel .ui-empty { padding: .6rem 1.2rem .2rem 1.3333rem; }
+.or-great { padding: .2667rem 0 0; }
+.or-great .ui-meter { padding: .4rem 1.2rem .4rem 1.3333rem; }
+.or-panel .ui-sec.resolved h3 { color: var(--ink-mute); }
+.or-more { margin: .8rem 1.2rem 0 1.3333rem; font: italic 400 .9333rem/1.35 var(--f-prose); color: var(--ink-dim); }
+
+@media (prefers-reduced-motion: reduce) {
+  .or-stars i, .or-glow, .or-dust i, .or-visitor { animation: none; } .or-dust i { opacity: .5; } .or-glow { opacity: .75; }
+}
+
+/* the panel kept narrow and low, clear of the room's window; traits as tiles, skills as plinth figures, news one line each */
+.or-traits { display: grid; grid-template-columns: 1fr 1fr; gap: .3333rem; }
+.or-traits .trait { gap: .3333rem; justify-content: flex-start; border-radius: 2px; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(201,162,74,.28) !important; }
+.or-figs { display: flex; justify-content: space-around; gap: .4rem; padding: .6rem 1.2rem .2rem 1.3333rem; }
+.or-fig { display: inline-flex; align-items: center; gap: .3333rem; cursor: help; } .or-fig b { font: 600 1.1333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); }
+/* a line wraps to two lines, then the rest is in its tooltip; four lines, then a link to the Chronicle, so the panel never scrolls */
+.or-lines .line { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: help; }
+.or-more { padding: .4rem 1.6rem 0 2.2667rem; }
+.or-panel .ui-sec { padding-right: 1.6rem; } .or-kv, .or-who, .or-traits, .or-lines, .or-figs { padding-right: 1.6rem; }
+.or-who h2 { overflow-wrap: anywhere; }
+.or-letter:hover::before { content: ""; position: absolute; inset: -.3333rem; border-radius: 3px; box-shadow: 0 0 0 2px rgba(246,226,160,.75); }
+.or-panel .or-great .ui-meter { grid-template-columns: 4.8rem minmax(4rem, 1fr) 3.6rem; }   /* the track keeps its room in the narrow panel */
+/* the clamp cuts at the padding box: the space between lines is margin, so no half of a third line shows under the second */
+.or-lines .line { padding-top: 0; padding-bottom: 0; margin: .4rem 0; } .or-lines .line::before { top: .5rem; }
+.or-lines .line:not(:last-child) { padding-bottom: 0; box-shadow: 0 .4rem 0 -1px transparent; }

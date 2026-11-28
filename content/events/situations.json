@@ -69,6 +69,7 @@
     },
     {
       "id": "the_act_falls",
+      "scene": "senate",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -198,6 +199,7 @@
     },
     {
       "id": "the_speakers_gavel",
+      "scene": "senate",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -262,6 +264,7 @@
     },
     {
       "id": "the_leaders_table",
+      "scene": "senate",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -470,6 +473,7 @@
     },
     {
       "id": "the_merchants_gift",
+      "scene": "market",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -544,6 +548,7 @@
     },
     {
       "id": "the_old_bloods_invitation",
+      "scene": "feast",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -601,6 +606,7 @@
     },
     {
       "id": "the_press_gang",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -677,6 +683,7 @@
     },
     {
       "id": "the_runaway",
+      "scene": "family",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -758,6 +765,7 @@
     },
     {
       "id": "the_barred_door",
+      "scene": "unrest",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -862,6 +870,7 @@
     },
     {
       "id": "the_ballot_box",
+      "scene": "senate",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -919,6 +928,7 @@
     },
     {
       "id": "the_iron_law_bites",
+      "scene": "court",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -993,6 +1003,7 @@
     },
     {
       "id": "the_marque_captains",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -1209,6 +1220,7 @@
     },
     {
       "id": "the_lost_province",
+      "scene": "world",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,
@@ -1280,6 +1292,7 @@
     },
     {
       "id": "the_free_march",
+      "scene": "steppe",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -1585,6 +1598,7 @@
     },
     {
       "id": "the_portrait",
+      "scene": "family",
       "tier": "ambient",
       "weight": 4,
       "repeatable": false,
@@ -1633,6 +1647,7 @@
     },
     {
       "id": "the_comet",
+      "scene": "world",
       "tier": "ambient",
       "weight": 4,
       "repeatable": false,
@@ -1684,6 +1699,7 @@
     },
     {
       "id": "the_old_retainer",
+      "scene": "family",
       "tier": "ambient",
       "weight": 4,
       "repeatable": false,

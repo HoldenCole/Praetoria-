@@ -20,6 +20,11 @@
         }
     </div>
 }
+else if (_parts)
+{
+    @* every shared window part on one sheet (docs/VISUAL_SYSTEM.md, the parts sheet): open the client with ?parts *@
+    <PartsSheet />
+}
 else if (G.Turn == null)
 {
     <CreationScreen HasAutosave="@_hasAutosave" SaveLabel="@_saveLabel" KeptSaves="@_keptSaves" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" OnSaves="() => _saves = true" OnSettings="() => _settings = true" OnHandbook="() => _primer = true" />
@@ -43,72 +48,130 @@ else if (G.World!.InAcademy && G.Academy() is { } am)
         }
         @if (am.Tutorial.Length == 0)
         {
-            <div class="overlay">
-                <div class="epilogue wide">
-                    <div class="tier"><span class="glyph">✦</span> @(am.Register == "imperium" ? "UNDER THE IMPERIUM" : "IN THE REPUBLIC") · AGE SIXTEEN</div>
-                    <h2>@am.SchoolName</h2>
+            @* the first morning at the Academy (docs/ACADEMY.md): a box over the hall, how the lectures are to be given *@
+            <Box BoxClass="epilogue-box ac-welcome" Glyph="@(am.Register == "imperium" ? "eagle-emblem" : "open-book")" Kicker="@((am.Register == "imperium" ? "Under the Imperium" : "In the Republic") + " · age sixteen")" Title="@am.SchoolName" Width="min(52rem, calc(100vw - 2rem))">
+                <ChildContent>
                     <p class="epi-text">@am.Blurb</p>
                     <p class="epi-text">@(_beenBefore ? "You have passed out of here before. The lectures can be the short course: the state of the Reach, the houses that matter, and who is in your year." : "If this is your first time in the Reach, the lectures will teach you how all of it works, a little each term: the Senate, the houses, the law, coin, fleets, and what lies beyond.")</p>
-                    <div class="row">
-                        <button class="btn @(_beenBefore ? "" : "primary")" @onclick='() => Teach("full")'>First time here: teach me everything</button>
-                        <button class="btn @(_beenBefore ? "primary" : "")" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
-                    </div>
-                    <div class="muted small">You can change this at any time in the lecture hall.</div>
-                </div>
-            </div>
+                </ChildContent>
+                <Foot>
+                    <p class="box-note muted small">You can change this at any time in the lecture hall.</p>
+                    <span class="box-acts">
+                        @if (_beenBefore)
+                        {
+                            <button class="btn" @onclick='() => Teach("full")'>First time here: teach me everything</button>
+                            <button class="btn primary" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
+                        }
+                        else
+                        {
+                            <button class="btn" @onclick='() => Teach("brief")'>I know the Reach: just brief me</button>
+                            <button class="btn primary" @onclick='() => Teach("full")'>First time here: teach me everything</button>
+                        }
+                    </span>
+                </Foot>
+            </Box>
         }
     </div>
 }
 else
 {
-    var m = G.Court();
-    @* The game shell (docs/ART_DIRECTION.md, "The shell"): the map is the screen. Everything else sits over it: a bar along the top, a
-       column of icons down the left, one window docked beside it, and an outliner on the right. *@
-    <div class="gs-shell game @(_screen == "galaxy" ? "on-map" : "in-window")" style="--accent:@m.HouseAccent" @ref="_shell" data-era="@m.Era" data-role="@RoleTheme.Of(G.World!)">
+    var m = G.Court(); var alerts = Alerts.For(G.World!, G.Content!, m, G.Turn!.Progression);
+    var unanswered = m.Briefing.Count(b => !b.Resolved);
+    bool front = _openReport != null || _succession != null || _primer || _saves || _settings || (_brief && G.World is { InAcademy: false, IsDynastyDead: false }) || G.ProfileId != null || _passingOut;
+    @* The game shell (docs/VISUAL_SYSTEM.md 3): the map is the screen. Everything else sits at its edges: the top bar, the rail of
+       sockets down the left with the house's standard at its foot, one window docked beside it, the alerts row and the toasts over
+       the free map, the outliner on the right and the console in the bottom-right corner with End Year on its rim. *@
+    <div class="gs-shell game @(_screen == "galaxy" ? "on-map" : "in-window") @(_set.RailLabels ? "rail-labels" : "") @(_set.Text == "larger" ? "tb-fold" : "") @(_legend ? "legend-on" : "")" style="--accent:@m.HouseAccent" @ref="_shell" data-era="@m.Era" data-role="@RoleTheme.Of(G.World!)">
         @if (G.World!.Galaxy != null) { <div class="map-layer"><GalaxyMap @ref="_map" OnPicked="MapPicked" /></div> }
-        <TopBar OnSave="SaveLocal" OnSaves="() => _saves = true" OnUndo="Undo" OnSettings="() => _settings = true" OnExport="Download" OnQuit="Abandon" OnPrimer="() => _primer = true" OnBrief="() => _brief = true" SavedFlash="@_savedFlash" />
-        <nav class="rail">
-            @{ int railAt = 0; }
-            @foreach (var (id, glyph, label) in Rail())
-            {
-                string railKey = railAt < RailKeys.Length ? RailKeys[railAt].ToString() : ""; railAt++;
-                <button class="rail-btn @(_screen == id ? "active" : "")" title="@(label + (railKey.Length > 0 && G.World?.InAcademy != true ? $" (key {railKey})" : ""))" @onclick="() => Go(id)" disabled="@(id == "galaxy" && G.World!.Galaxy == null)">
-                    <Icon Name="@(id == "character" ? "you" : id == "planets" ? "worlds" : id == "senate" ? "influence" : id == "academy" ? "military" : id == "laws" ? "throne" : id == "exchange" ? "trade_hub" : id)" Size="22" /><span class="rl">@label</span>
-                </button>
-            }
+        <TopBar OnSave="SaveLocal" OnSaves="() => _saves = true" OnUndo="Undo" OnSettings="() => _settings = true" OnExport="Download" OnQuit="Abandon" OnPrimer="() => _primer = true" OnBrief="() => _brief = true" SavedFlash="@_savedFlash" MenuOpen="@_menu" OnMenu="() => _menu = !_menu" />
+        @if (_menu) { <div class="menu-veil" @onclick="() => _menu = false"></div> }
+        @* the rail (3.3): sockets in groups split by a brass diamond, a pip by shape (a round brass pip for a decision, a notched ember
+           diamond for danger), the name beside a socket at once on hover (and under it with "Show rail labels"), the standard at the foot *@
+        <nav class="rail" aria-label="The windows">
+            <div class="rail-stack">
+                @{ int railAt = 0; var groups = RailGroups().ToList(); }
+                @for (int gi = 0; gi < groups.Count; gi++)
+                {
+                    if (gi > 0) { <i class="rail-div" aria-hidden="true"></i> }
+                    <div class="rail-grp">
+                        @foreach (var (id, icon, label) in groups[gi])
+                        {
+                            string railKey = railAt < RailKeys.Length ? RailKeys[railAt].ToString() : ""; railAt++;
+                            var (waiting, danger) = Waiting(id, alerts, unanswered);
+                            string says = label + (waiting > 0 ? " · " + waiting + " waiting" : "") + (railKey.Length > 0 && _set.NumberKeys ? " · key " + railKey : "");
+                            <button class="rail-btn sock @(_screen == id ? "active on" : "")" data-label="@says" aria-label="@says" data-rail="@id" @onclick="() => Go(id)">
+                                <Icon Name="@icon" Size="28" Tone="@(_screen == id ? "dark" : "ivory-hi")" /><span class="rl">@label</span>
+                                <span class="rlab" aria-hidden="true"><b>@label</b>@if (waiting > 0) { <i class="@(danger ? "danger" : "")">@waiting waiting</i> }@if (railKey.Length > 0 && _set.NumberKeys) { <kbd>@railKey</kbd> }</span>
+                                @if (waiting > 0) { <span class="pip @(danger ? "danger" : "")" data-n="@waiting" aria-hidden="true"></span> }
+                            </button>
+                        }
+                    </div>
+                }
+            </div>
+            <button class="rail-standard" data-standard title="@($"[flying-flag] {m.HouseName}\nThe standard of your house. Click to open the House window.")" @onclick='() => Go("house")'><Sigil HouseId="@G.World!.Protagonist!.HouseId" Accent="@m.HouseAccent" Size="64" Mode="standard" /></button>
         </nav>
         @if (_screen != "galaxy")
         {
-        <main class="screen window @(WideScreens.Contains(_screen) ? "wide" : "")" data-screen="@_screen">
-            <header class="win-bar"><h2>@(Screens.FirstOrDefault(s => s.id == _screen).label ?? _screen)</h2><button class="win-x" @onclick='() => Go("galaxy")' title="Close this window and return to the map (Esc)" aria-label="Close">×</button></header>
-            <div class="win-body">
-            @switch (_screen)
-            {
-                case "character": <CharacterScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "senate": <SenateScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "planets": <PlanetsScreen OnFocus="FocusSystem" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "house": <HouseScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "exchange": <ExchangeScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "laws": <LawsScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "military": <MilitaryScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "dynasty": <DynastyScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "houses": <HousesScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                case "chronicle": <ChronicleScreen /> break;
-                default: <OfficeScreen Model="m" OnOpenReport="OpenReport" /> break;
-            }
-            </div>
-        </main>
+            var label = Screens.FirstOrDefault(s => s.id == _screen).label ?? _screen; var glyph = Screens.FirstOrDefault(s => s.id == _screen).glyph ?? "desk";
+            @* the docked window (4.1): the frame over a leather body, the close roundel, one scrolling page that fades over its foot. A
+               window rebuilt on the shared parts draws its own WindowHeader inside it and the old title strip steps aside. *@
+            <main class="screen window docked-win @(WideScreens.Contains(_screen) ? "wide" : "")" data-screen="@_screen">
+                <div class="dw-body">
+                    <header class="win-bar"><span class="ui-medal sm"><Icon Name="@glyph" Tone="brass" Size="18" /></span><h2>@label</h2></header>
+                    <div class="win-body">
+                    @switch (_screen)
+                    {
+                        case "character": <CharacterScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "senate": <SenateScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "planets": <PlanetsScreen OnFocus="FocusSystem" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "house": <HouseScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "exchange": <ExchangeScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "laws": <LawsScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "military": <MilitaryScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "dynasty": <DynastyScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "houses": <HousesScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        case "chronicle": <ChronicleScreen Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        default: <OfficeScreen Model="m" OnOpenReport="OpenReport" OnGo="Go" /> break;
+                    }
+                    </div>
+                </div>
+                <i class="dw-frame" aria-hidden="true"></i>
+                <button class="ui-round dw-close" data-close-window title="Close this window and return to the map (Esc)" aria-label="Close" @onclick='() => Go("galaxy")'><Icon Name="close" Tone="ivory" Size="13" /></button>
+            </main>
         }
-        <Outliner Model="m" OnOpenReport="OpenReport" OnGo="Go" />
-        <div class="endturn-dock">
-            @if (G.LastNotice != null) { <span class="notice">@G.LastNotice</span> }
-            @if (_exportNote.Length > 0) { <span class="notice" data-export-note="1">@_exportNote</span> }
-            @if (!m.DynastyDead)
-            {
-                var open = m.Briefing.Count(b => !b.Resolved);
-                <button class="btn primary endturn" @onclick="EndTurn" title="@((open > 0 ? $"{Counted.Reports(open)} still unanswered: ending the year sets them aside. " : "The year ends and the next begins. ") + "Key: Enter.")">End Turn ▸@if (open > 0) { <span class="badge">@open</span> }</button>
-            }
+        <AlertsRow Items="alerts" OnGo="Go" Year="@G.World!.Turn" MaxBadges="@(_screen == "galaxy" ? 10 : WideScreens.Contains(_screen) ? 4 : 6)" />
+        <Toasts Notes="Notes()" Paused="front" Hidden="@(_brief && G.World is { InAcademy: false, IsDynastyDead: false })" OnGo="Go" />
+        <Outliner Model="m" OnOpenReport="OpenReport" OnGo="Go" Folded="@(_screen != "galaxy" || _narrow)" />
+        @* the console (3.8): the map tools, the map modes as joined sockets, the legend; the minimap and its caption (the mode, and the
+           system nearest the middle of the view); End Year on its rim (3.9) with the count of unanswered reports *@
+        <div class="console" data-console>
+            <div class="cs-body"></div>
+            <div class="cs-tools">
+                <button class="tool" data-map="home" title="[position-marker] Your seat — the map goes back to your house's seat" @onclick='() => MapDo("home")'><Icon Name="position-marker" Tone="ivory" Size="18" /></button>
+                <button class="tool" data-map="fit" title="[expand] The whole Reach — every system in the view; inside a system, the whole system" @onclick='() => MapDo("fit")'><Icon Name="expand" Tone="ivory" Size="18" /></button>
+                <span class="gap"></span>
+                <span class="modes">
+                    <button class="tool @(_mode == "realms" ? "on" : "")" data-mode="realms" title="[world] Realms — the map from far off: the Reach as one, each nation beyond it and each state that has left it in its own colour, and their names" @onclick='() => MapDo("realms")'><Icon Name="world" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "houses" || _mode == "systems" ? "on" : "")" data-mode="houses" title="[flying-flag] Houses — the middle distance: every world in its holder's colour, your own land in gold" @onclick='() => MapDo("houses")'><Icon Name="flying-flag" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "regions" ? "on" : "")" data-mode="regions" title="[region] Regions — the regions of the Reach, who rules each and what lies in it" @onclick='() => MapDo("regions")'><Icon Name="region" Tone="ivory" Size="18" /></button>
+                    <button class="tool @(_mode == "supply" ? "on" : "")" data-mode="supply" title="[fuel-tank] Supply — where your fleets are fed: a world of yours within reach, a depot or your campaign's target. Beyond it the map is hatched in ember, and a fleet there loses supply each year." @onclick='() => MapDo("supply")'><Icon Name="fuel-tank" Tone="ivory" Size="18" /></button>
+                </span>
+                <span class="gap"></span>
+                <button class="tool @(_legend ? "on" : "")" data-map="legend" aria-pressed="@_legend" title="[info] The legend — what the marks on the map mean. The map zooms on the wheel, and on Page Up and Page Down." @onclick="() => _legend = !_legend"><Icon Name="info" Tone="ivory" Size="18" /></button>
+            </div>
+            <div class="mm"><canvas @ref="_mini" width="278" height="146" title="The whole Reach: click to travel there"></canvas></div>
+            <div class="cap"><b>@ModeName</b><span data-near></span></div>
+            <i class="cs-frame" aria-hidden="true"></i>
         </div>
+        @if (!m.DynastyDead)
+        {
+            <div class="endturn-dock">
+                <button class="endturn" title="@((unanswered > 0 ? $"[hourglass] End the year — {Counted.Reports(unanswered)} still unanswered: ending the year sets them aside." : "[hourglass] End the year — the year ends and the next begins.") + "\nkey: Press [Enter] to end the year")" @onclick="EndTurn">
+                    <i class="ring" aria-hidden="true"></i><span class="med"><Icon Name="hourglass" Tone="dark" Size="44" /></span><span class="rib">End Year</span>
+                    @if (unanswered > 0) { <span class="cnt" data-n="@unanswered" aria-label="@Counted.Reports(unanswered) unanswered"></span> }
+                </button>
+            </div>
+        }
 
         @if (_openReport != null && m.Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item)) is { } card)
         {
@@ -116,16 +179,13 @@ else
         }
         @if (m.EpilogueText != null && !_epilogueDismissed)
         {
-            <div class="overlay">
-                <div class="epilogue">
-                    <h2>@(m.DynastyDead ? "The line ends" : "A saga's turning")</h2>
-                    <p class="epi-text">@m.EpilogueText</p>
-                    <div class="row">
-                        @if (!m.DynastyDead) { <button class="btn primary" @onclick="() => _epilogueDismissed = true">Play on</button> }
-                        <button class="btn" @onclick="Abandon">Back to the title</button>
-                    </div>
-                </div>
-            </div>
+            <Box BoxClass="epilogue-box" Glyph="@(m.DynastyDead ? "candle-light" : "laurels")" Kicker="@(m.DynastyDead ? "The end of the line" : "A turning point")" Title="@(m.DynastyDead ? "The line ends" : "A saga's turning")" Width="min(46rem, calc(100vw - 2rem))">
+                <ChildContent><p class="epi-text">@m.EpilogueText</p></ChildContent>
+                <Foot>
+                    <button class="btn" @onclick="Abandon">Back to the title</button>
+                    @if (!m.DynastyDead) { <button class="btn primary" @onclick="() => _epilogueDismissed = true">Play on</button> }
+                </Foot>
+            </Box>
         }
         @if (_succession != null)
         {
@@ -150,34 +210,59 @@ else
         <ProfileCard />
         @if (_passingOut && G.Academy() is { Graduated: true } grad)
         {
-            <div class="overlay">
-                <div class="epilogue wide">
-                    <div class="tier"><span class="glyph">✦</span> PASSING OUT · AGE SEVENTEEN</div>
-                    <h2>@AcademySystem.Ordinal(grad.Place) of @grad.Of</h2>
+            <Box BoxClass="epilogue-box" Glyph="laurels" Kicker="Passing out · age seventeen" Title="@($"{AcademySystem.Ordinal(grad.Place)} of {grad.Of}")" Width="min(46rem, calc(100vw - 2rem))">
+                <ChildContent>
                     <p class="epi-text">@G.World!.Protagonist!.Name passes out of @grad.SchoolName @(grad.Place == 1 ? "first of the year" : grad.Place <= Math.Max(1, grad.Of / 3) ? "with honours" : "in the body of the year") and is commissioned @grad.RankName in @grad.ServiceName.</p>
                     @if (grad.Friends.Count > 0) { <p class="epi-text">Friends made: @string.Join(", ", grad.Friends).</p> }
                     @if (grad.Rivals.Count > 0) { <p class="epi-text">And those who will remember you otherwise: @string.Join(", ", grad.Rivals).</p> }
                     <p class="epi-text">The gates open. From here a turn is a year, the house is yours to run, and everything the lectures described is real.</p>
-                    <div class="row"><button class="btn primary" @onclick="() => _passingOut = false">To the desk</button></div>
-                </div>
-            </div>
+                </ChildContent>
+                <Foot><button class="btn primary" @onclick="() => _passingOut = false">To the desk</button></Foot>
+            </Box>
         }
     </div>
 }
 <ConfirmBox />
 
 @code {
+    private bool _parts;
+    /// <summary>The windows: their id, their glyph (docs/VISUAL_SYSTEM.md 8.2) and their name. The Galaxy is the map itself, with no socket.</summary>
     private static readonly (string id, string glyph, string label)[] Screens =
     {
-        ("office", "", "Office"), ("character", "", "You"), ("galaxy", "", "Galaxy"), ("planets", "", "Worlds"), ("senate", "", "Senate"), ("house", "", "House"), ("exchange", "", "Exchange"),
-        ("laws", "", "Laws"), ("military", "", "Military"), ("dynasty", "", "Dynasty"), ("houses", "", "Houses"), ("chronicle", "", "Chronicle")
+        ("office", "desk", "Office"), ("character", "roman-toga", "You"), ("galaxy", "galaxy", "Galaxy"), ("planets", "ringed-planet", "Worlds"), ("senate", "greek-temple", "Senate"), ("house", "castle", "House"), ("exchange", "trade", "Exchange"),
+        ("laws", "scales", "Laws"), ("military", "eagle-emblem", "Military"), ("dynasty", "family-tree", "Dynasty"), ("houses", "flying-flag", "Houses"), ("chronicle", "scroll-unfurled", "Chronicle")
     };
+    /// <summary>The rail's groups (docs/VISUAL_SYSTEM.md 3.3): You, Dynasty, House / Worlds, Military, Exchange / Senate, Laws, Houses / Chronicle, Office.</summary>
+    private static readonly string[][] RailOrder = { new[] { "character", "dynasty", "house" }, new[] { "planets", "military", "exchange" }, new[] { "senate", "laws", "houses" }, new[] { "chronicle", "office" } };
     private string _screen = "galaxy";
     /// <summary>Screens whose window is the wide one: a chamber, a table of houses, a market.</summary>
-    private static readonly HashSet<string> WideScreens = new() { "houses", "office" };
+    private static readonly HashSet<string> WideScreens = new() { "office" };   // the Houses dock at the shared width (docs/VISUAL_SYSTEM.md 2.4)
     private void MapPicked() { if (_screen != "galaxy") { _screen = "galaxy"; StateHasChanged(); } }
-    /// <summary>The rail in the role register's order (GDD Art Direction): the Office, then the career's screens, then the rest.</summary>
-    private IEnumerable<(string id, string glyph, string label)> Rail() => G.World == null ? Screens : RoleTheme.OrderScreens(RoleTheme.Of(G.World), Screens, s => s.id);
+    /// <summary>The rail's groups in the role register's order: a register changes only the order (docs/VISUAL_SYSTEM.md 3.3), so the
+    /// screens its RoleTheme.Priority names stand first as a group of their own and the groups keep the rest.</summary>
+    private IEnumerable<List<(string id, string glyph, string label)>> RailGroups()
+    {
+        var pri = G.World == null ? Array.Empty<string>() : RoleTheme.Priority(RoleTheme.Of(G.World)).Where(id => Screens.Any(s => s.id == id && id != "galaxy")).ToArray();
+        (string, string, string) Of(string id) => Screens.First(s => s.id == id);
+        if (pri.Length > 0) yield return pri.Select(Of).ToList();
+        foreach (var g in RailOrder) { var rest = g.Where(id => !pri.Contains(id)).Select(Of).ToList(); if (rest.Count > 0) yield return rest; }
+    }
+    /// <summary>The rail in its order, for the number keys.</summary>
+    private IEnumerable<(string id, string glyph, string label)> Rail() => RailGroups().SelectMany(g => g);
+    /// <summary>What waits in a window, for its pip and its label: the alerts that open there and ask for a decision or warn of a
+    /// danger, and for the Office the reports unanswered. A danger among them makes the pip the notched ember diamond.</summary>
+    private static (int waiting, bool danger) Waiting(string id, IReadOnlyList<Alert> alerts, int unanswered)
+    {
+        if (id == "office") return (unanswered, false);
+        var mine = alerts.Where(a => a.Severity is Alerts.Danger or Alerts.Decision && WindowOf(a.Go) == id).ToList();
+        return (mine.Count, mine.Any(a => a.Severity == Alerts.Danger));
+    }
+    /// <summary>The window a place opens in: "senate:duties" is the Senate; a system on the map is Worlds; a fleet is Military.</summary>
+    private static string WindowOf(string go)
+    {
+        string s = go.Split(':')[0];
+        return s switch { "you" or "character" => "character", "worlds" or "planets" or "galaxy" => "planets", "fleet" => "military", _ => s };
+    }
     private bool _hasAutosave, _epilogueDismissed, _savedFlash; private string _saveLabel = "", _flashText = "Saved.", _exportNote = "";
     /// <summary>The Academy: this browser has graduated before (so the short course is offered first); the year just ended (so the passing-out card shows).</summary>
     private bool _beenBefore, _passingOut;
@@ -192,8 +277,28 @@ else
     private ElementReference _shell;
     private DotNetObjectReference<Index>? _self;
 
+    /* the shell's own state: the game menu, the legend, the map's mode (as the map reports it), a screen under 1500px wide */
+    private bool _menu, _legend, _narrow; private string _mode = "houses", _miniId = ""; private ElementReference _mini;
+    private string ModeName => _mode switch { "realms" => "Realms", "systems" => "Systems", "system" => "The system", "regions" => "Regions", "supply" => "Supply", _ => "Houses" };
+    /// <summary>A tool of the console: the map is moved by js/shell.js through the map's own script, never drawn by it.</summary>
+    private async Task MapDo(string what) { try { await JS.InvokeVoidAsync("praetoriaShell.map", what); } catch { } }
+    /// <summary>The map's mode, as the camera's distance makes it (js/shell.js): "realms" from far off, "houses", "systems" close to, "system" inside one.</summary>
+    [JSInvokable] public void MapMode(string mode) { if (mode != _mode) { _mode = mode; StateHasChanged(); } }
+    /// <summary>The screen is under 1500px wide: the outliner folds to its heads (docs/VISUAL_SYSTEM.md 3.10).</summary>
+    [JSInvokable] public void Narrow(bool narrow) { if (narrow != _narrow) { _narrow = narrow; StateHasChanged(); } }
+    /// <summary>The client's own notes, as toasts that hold while they stand: what was taken back or could not be done, a save, an export.</summary>
+    private List<Toasts.Note> Notes()
+    {
+        var n = new List<Toasts.Note>();
+        if (G.LastNotice != null) n.Add(new("anticlockwise-rotation", "Notice", G.LastNotice));
+        if (_savedFlash) n.Add(new("save", "Saved", _flashText));
+        if (_exportNote.Length > 0) n.Add(new("export", "Export", _exportNote, true));
+        return n;
+    }
+
     protected override async Task OnAfterRenderAsync(bool first)
     {
+        if (_mini.Id != null && _mini.Id != _miniId) { _miniId = _mini.Id; try { await JS.InvokeVoidAsync("praetoriaShell.watch", _self, _mini); } catch { } }
         if (_perfRender != 0) { Console.WriteLine($"PERF render after the turn: {System.Diagnostics.Stopwatch.GetElapsedTime(_perfRender).TotalMilliseconds:F0} ms"); _perfRender = 0; }
         if (G.Turn != null) await CheckPrimer();
         if (first) { _self = DotNetObjectReference.Create(this); try { await JS.InvokeVoidAsync("praetoria.keys", _self); } catch { } }
@@ -202,7 +307,8 @@ else
 
     /// <summary>The keys of the rail, in its order: the first nine windows by number, then 0, - and = for the rest.</summary>
     private const string RailKeys = "1234567890-=";
-    /// <summary>Keyboard: the rail's keys switch windows, Enter ends the turn (when no report is open), Escape closes a window, ? opens the primer.</summary>
+    /// <summary>Keyboard: the rail's keys switch windows (while a report is open, the digits pick its choices instead), Enter ends the turn
+    /// (when no report is open), Escape closes a window, ? opens the primer.</summary>
     [JSInvokable]
     public async Task Key(string key)
     {
@@ -210,11 +316,22 @@ else
         if (_settings) { if (key == "Escape") _settings = false; else return; }   // the settings are in front
         else if (_saves) { if (key == "Escape" && G.Asking == null) _saves = false; else return; }   // the saves window is in front
         else if (_primer) { if (key is "Escape" or "?") await ClosePrimer(); else return; }   // the handbook is in front: it takes Escape, and no key reaches the desk behind it
+        else if (key == "Escape" && _menu) _menu = false;   // the game menu is in front
         else if (key == "Escape" && _brief) _brief = false;
-        else if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else if (_screen == "galaxy" && _map?.Up() == true) { } else _screen = "galaxy"; }
+        // Escape closes what is in front, a step at a time; with nothing in front it opens the game menu (docs/VISUAL_SYSTEM.md 3.1)
+        else if (key == "Escape") { if (G.ProfileId != null) G.CloseProfile(); else if (_openReport != null || _succession != null) { _openReport = null; _succession = null; } else if (_screen == "galaxy" && _map?.Up() == true) { } else if (_screen != "galaxy") _screen = "galaxy"; else _menu = true; }
         else if (key == "Enter" && _brief) _brief = false;
         else if (key == "Enter" && _openReport == null && _succession == null) { if (!_set.EnterEnds) return; await EndTurn(); }
         else if (key == "?") _primer = !_primer;
+        // a report is open: the digits 1 to 9 pick its choices (docs/VISUAL_SYSTEM.md 6), and no digit reaches the rail behind it
+        else if ((_openReport != null || _succession != null) && key.Length == 1 && RailKeys.IndexOf(key[0]) >= 0)
+        {
+            if (_openReport == null || key[0] is < '1' or > '9') return;
+            var card = G.Court().Briefing.FirstOrDefault(b => ReferenceEquals(b.Item, _openReport.Item));
+            int n = key[0] - '0';
+            if (card == null || card.Resolved || n > card.Choices.Count || !card.Choices[n - 1].Available) return;
+            Choose((card, card.Choices[n - 1].Id));
+        }
         else if (_set.NumberKeys && key.Length == 1 && RailKeys.IndexOf(key[0]) is >= 0 and var i && G.World?.InAcademy != true) { var rail = Rail().ToList(); if (i < rail.Count) _screen = rail[i].id; }
         else return;
         StateHasChanged();
@@ -224,6 +341,7 @@ else
     {
         G.Changed += OnChanged;
         Praetoria.Core.Diagnostics.Perf.Enabled = Nav.Uri.Contains("perf");
+        _parts = new Uri(Nav.Uri).Query.Contains("parts");
         await G.LoadAsync();
         await ReadSaves(); await ReadSettings();
         try { _beenBefore = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.academy.graduated")); } catch { }

@@ -1,35 +1,81 @@
 @inject GameClient G
-@* The year in brief (docs/PLAYTHROUGH.md, Medium): what the year before did to your house, in one place, each line opening where it can be seen. *@
+@* The year in brief (docs/PLAYTHROUGH.md, Medium): what the year before did to your house, in one place, each line opening where it
+   can be seen. A window over the dimmed map (docs/VISUAL_SYSTEM.md 4.1, 4.2): the dispatch painting with the kicker and the title,
+   the year's stocks on the plinth as figures with their signed change, then a section band for each kind of thing and a row for
+   each line: the face of the one it is about (4.7, rule 6), or the occasion's painting when no one is named. The body fades over
+   its last 56px. In the foot, a small check for whether it opens at every year's start, and the one gold plate. *@
 @{
-    var w = G.World!; var lines = YearInBrief.For(w, G.Content!);
-    var groups = YearInBrief.Order.Select(k => (k, list: lines.Where(l => l.Kind == k).ToList())).Where(g => g.list.Count > 0).ToList();
+    var w = G.World!; var lines = YearInBrief.For(w, G.Content!); var house = w.House(w.Protagonist!.HouseId)!;
+    var groups = YearInBrief.Order.Select(k => (k, list: lines.Where(l => l.Kind == k && !(l.Kind == YearInBrief.Money && l.Target == "house:ledger" && l.Text.StartsWith("Over the year"))).ToList()))
+        .Where(g => g.list.Count > 0).ToList();
+    var moves = YearInBrief.Moves(w);
+    int year = w.Turn - 1;
 }
-<div class="overlay" data-year-brief>
-    <div class="epilogue primer wide brief">
-        <div class="tier"><span class="glyph">◆</span> YEAR @(w.Turn - 1) IN BRIEF</div>
-        <h2>What the year did to @(w.House(w.Protagonist!.HouseId)?.Name)</h2>
-        @if (groups.Count == 0) { <p class="epi-text">A quiet year. Nothing happened to the house that needs telling.</p> }
-        @foreach (var g in groups)
-        {
-            <div class="brief-group">
-                <h4>@g.k</h4>
-                @foreach (var l in g.list)
-                {
-                    string go = l.Target;
-                    <button class="brief-line @l.Tone" title="Open the place this can be seen" @onclick="() => OnGo.InvokeAsync(go)">@l.Text <span class="muted">▸</span></button>
-                }
-            </div>
-        }
-        <div class="row">
-            <button class="btn primary" data-brief-close @onclick="() => OnClose.InvokeAsync()">To year @w.Turn ▸</button>
-            <label class="brief-opt"><input type="checkbox" checked="@Every" @onchange="e => OnEvery.InvokeAsync(e.Value is true)" /><span>Show this at the start of every year</span></label>
-        </div>
-        <div class="muted small">It can be opened again from the year in the top bar.</div>
-    </div>
+<div class="overlay box-veil yb-veil" data-year-brief="1">
+    <WindowFrame Class="@("box brief yb" + (groups.Count == 0 ? " quiet" : ""))" Scrolls="@(groups.Count > 0)" role="dialog" aria-modal="true" aria-label="The year in brief">
+        <Header>
+            <WindowHeader Scene="dispatch" Glyph="sundial" Kicker="@(year >= 1 ? $"Year {Roman(year)} in brief" : "The year before in brief")" Title="@house.Name" Figures="Figures(w, house, moves)">
+                <Lede>@(groups.Count == 0 ? "The year before, and what it left in the stores." : "What the year did to the house. Each line opens where it can be seen.")</Lede>
+            </WindowHeader>
+        </Header>
+        <ChildContent>
+            @foreach (var g in groups)
+            {
+                <Section Title="@g.k" Count="@g.list.Count.ToString()" Class="yb-sec">
+                    @foreach (var l in g.list)
+                    {
+                        string go = l.Target; var c = l.PersonId.Length > 0 ? w.Char(l.PersonId) : null; var ch = c != null ? w.House(c.HouseId) : null;
+                        <Row Class="@($"yb-line brief-line {l.Tone}")" Wrap="true" Name="@l.Text" Tip="Open the place this can be seen" OnClick="() => OnGo.InvokeAsync(go)">
+                            <Picture>
+                                <span class="yb-pic">
+                                @if (c != null) { <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@(ch?.AccentColor ?? "#888")" Size="46" Height="56" Opens="false" Titled="false" /> }
+                                else { <span class="yb-crop"><img src="img/scenes/@(SceneOf(g.k, l)).webp" alt="" loading="eager" decoding="async" /></span> }
+                                @* a gain or a loss: a small badge on the picture, never a lone glyph at the row's end (it would read as Add) *@
+                                @if (l.Tone is "good" or "warn") { <span class="yb-badge @(l.Tone)" title="@(l.Tone == "good" ? "Good for the house" : "Bad for the house")"><Icon Name="@(l.Tone == "good" ? "plus" : "minus")" Tone="@(l.Tone == "good" ? "good" : "ember")" Size="12" Class="bl-mark" /></span> }
+                                </span>
+                            </Picture>
+                            <Cells><Icon Name="chev" Tone="brass" Size="12" Class="yb-open" /></Cells>
+                        </Row>
+                    }
+                </Section>
+            }
+            @if (groups.Count == 0)
+            {
+                <EmptyState Icon="sundial" Text="A quiet year. Nothing happened to the house that needs telling." />
+            }
+        </ChildContent>
+        <Foot>
+            <Check Class="brief-opt" Value="@Every" Label="At every year's start" Tip="Open the year in brief at the start of every year. It can be opened again at any time from the year in the top bar." OnChange="v => OnEvery.InvokeAsync(v)" />
+            <button class="btn primary ui-btn" data-brief-close title="Close the year in brief and go on into the year (Enter)" @onclick="() => OnClose.InvokeAsync()">To year @Roman(w.Turn) <Icon Name="chev" Tone="dark" Size="13" /></button>
+        </Foot>
+    </WindowFrame>
 </div>
 @code {
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    private static string Roman(int n) => TopBar.Roman(n);
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public bool Every { get; set; } = true;
     [Parameter] public EventCallback<bool> OnEvery { get; set; }
+
+    /// <summary>The year's stocks on the plinth: credits, materials, manpower and helium-3, where each stands and its signed change.</summary>
+    private static IReadOnlyList<WindowHeader.Figure> Figures(Praetoria.Core.State.World w, Praetoria.Core.State.House house, List<YearInBrief.StockMove> moves)
+    {
+        var list = new List<WindowHeader.Figure>();
+        foreach (var (r, label, tone) in new[] { (Resource.Credits, "Credits", "brass"), (Resource.Materials, "Materials", "steel"), (Resource.Manpower, "Manpower", "ivory"), (Resource.Helium3, "Helium-3", "steel") })
+        {
+            var m = moves.FirstOrDefault(x => x.Resource == r);
+            string now = r == Resource.Credits ? Praetoria.Core.Money.Held(house.Treasury) : Praetoria.Core.Money.Of(r, house.Treasury.Get(r));
+            string tip = m != null ? $"{Cap(m.Label)}: {m.Before} when the year opened, {m.After} now ({m.Change})" : $"{label}: {now}, as the year opened";
+            list.Add(new WindowHeader.Figure(r, now, label, tone, Delta: m?.Change ?? "", Tip: tip));
+        }
+        return list;
+    }
+
+    /// <summary>The occasion's painting when no one is named on the line.</summary>
+    private static string SceneOf(string kind, BriefLine l) => kind switch
+    {
+        YearInBrief.Family => "family", YearInBrief.War => "battle", YearInBrief.Senate => "senate", YearInBrief.Courts => "court",
+        YearInBrief.Works => "world", YearInBrief.Money => "market", _ => SceneArt.For(l.Target, l.Text) is var s && s != "audience" ? s : "dispatch",
+    };
 }

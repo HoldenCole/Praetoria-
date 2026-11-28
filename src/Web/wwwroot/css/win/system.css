@@ -1,0 +1,139 @@
+/* The system panel (docs/VISUAL_SYSTEM.md 10): the body of the map's system window. GalaxyMap draws the window itself (the frame, the
+   painted header with the holder's seal, the figures and the tabs); SystemPanel draws what is under the tabs: the development as a
+   meter, then each place of the system as a row with its lit globe, its marks drawn (a feature, a deposit, the building slots, the
+   site of a great work), opened in place for what stands there and what can be built. Loaded after app.css, so a rule here wins over
+   a shared rule of the same weight. Only SystemPanel uses the sysp- classes below. */
+
+/* ---- the panel, at the map window's width ---- */
+.sysp { --g-l: 1.4rem; --g-r: 1.2rem; display: flex; flex-direction: column; color: var(--ink); font: 400 .9333rem/1.4 var(--f-ui); }
+.sysp-lede { margin: .8rem var(--g-r) .2667rem var(--g-l); font: italic 400 1.0667rem/1.45 var(--f-prose); color: #e3d9c0; }
+
+/* ---- settling, a holder's note, the development ---- */
+.sysp-settle { margin: .6667rem var(--g-r) .4rem var(--g-l); display: flex; flex-direction: column; gap: .5333rem; align-items: flex-start; }
+.sysp-settle .empty-line { margin: 0; padding: 0; border: 0; background: none; font: italic 400 1rem/1.45 var(--f-prose); color: var(--ink-dim); }
+.sysp-settle .muted.small { font: 600 .8667rem/1.3 var(--f-ui); color: var(--warn); }
+.sysp-note { margin: .6667rem var(--g-r) .2667rem var(--g-l); font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.sysp-dev { display: flex; align-items: center; gap: .8rem; margin: .6667rem var(--g-r) 0 var(--g-l); padding: .5333rem 0; border: 0; border-top: 1px solid rgba(201,162,74,.35); cursor: help; }
+.sysp-dev .dv-level { flex: none; width: 2.4rem; height: 2.4rem; display: grid; place-items: center; font: 600 1.2rem/1 var(--f-display); color: var(--brass-hi); border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, #2a3142, #090b10 74%) padding-box, conic-gradient(from 210deg, #f0d996, #8a6a2a, #dcc07a, #5b4316, #f0d996) border-box; border: 2px solid transparent; box-shadow: 0 0 0 1px #000, inset 0 2px 4px rgba(0,0,0,.85); }
+.sysp-dev .dv-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .2667rem; }
+.sysp-dev .dv-l { display: flex; align-items: baseline; gap: .5333rem; font: 400 .8667rem/1.2 var(--f-ui); } .sysp-dev .dv-l b { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); }
+.sysp-dev .ui-meter { grid-template-columns: 1fr 3.4667rem; }
+.sysp-devnote { margin: 0 var(--g-r) .4rem var(--g-l); padding: 0; font: 400 .8667rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.sysp > .local-laws, .sysp > .ll, .sysp > section, .sysp > div.ll-block { margin-left: var(--g-l); margin-right: var(--g-r); }
+.sysp-claims { margin: .6667rem var(--g-r) .4rem var(--g-l); }
+.sysp-claims > .muted.small { font: 400 .8667rem/1.4 var(--f-ui); color: var(--ink-dim); margin-bottom: .4rem; }
+
+/* ---- the buttons, selects and folds of the panel, in the shared plates' look (4.11, 4.12) ---- */
+.game .sysp .opt { display: inline-flex; align-items: center; gap: .4rem; width: auto; height: 1.8667rem; margin: 0; padding: 0 .6667rem; font: 600 .8667rem/1 var(--f-ui); letter-spacing: 0; text-transform: none; color: #eae2cc; white-space: nowrap; cursor: pointer;
+  background: linear-gradient(#323b50, #1c2231); border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-plate); text-shadow: 0 1px 0 #000; }
+.game .sysp .opt:hover:not(:disabled) { color: #fff6dc; background: linear-gradient(#3a4560, #212839); border-color: #000; box-shadow: var(--sh-plate), 0 0 0 1px var(--brass-mid), 0 0 10px rgba(232,196,110,.18); }
+.game .sysp .opt:disabled { color: #b9b4a8; background: linear-gradient(#1d222d, #141821); cursor: not-allowed; opacity: 1; }
+.game .sysp .opt.on { color: var(--brass-hi); background: #0b0e14; box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass); }
+.game .sysp .opt.warn { box-shadow: var(--sh-plate), 0 0 0 1px rgba(224,85,63,.7); }
+.game .sysp .opt.inline.tiny { height: 1.7333rem; font-size: .8333rem; padding: 0 .5333rem; }
+.sysp select, .sysp .sysp-pick { height: 1.8667rem; max-width: 16rem; padding: 0 .5333rem; font: 500 .8667rem/1 var(--f-ui); color: var(--ink); background: linear-gradient(#262e40, #161b27); border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-plate), 0 0 0 1px var(--brass-mid); }
+.sysp .suit-acts, .sysp .row { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; margin: .4rem 0 0; }
+.sysp .muted.small { font-size: .8667rem; color: var(--ink-dim); }
+details.sysp-fold { margin: .4rem 0 0; }
+details.sysp-fold > summary { list-style: none; display: flex; align-items: center; gap: .4rem; cursor: pointer; padding: .4rem 0; border-bottom: 1px solid rgba(255,255,255,.06);
+  font: 600 .8rem/1.2 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); }
+details.sysp-fold > summary::-webkit-details-marker { display: none; }
+details.sysp-fold > summary::before { content: ""; width: .4rem; height: .4rem; border-right: 2px solid var(--brass); border-bottom: 2px solid var(--brass); transform: rotate(-45deg); margin: 0 .2rem 0 .1rem; transition: transform .12s; }
+details.sysp-fold[open] > summary::before { transform: rotate(45deg); }
+details.sysp-fold.now > summary { color: var(--brass-ink); }
+details.sysp-fold > summary .muted { letter-spacing: 0; text-transform: none; margin-left: .2rem; color: var(--ink-mute); font-weight: 500; }
+details.sysp-grant { display: block; margin-top: .4rem; } details.sysp-grant > summary { font: 600 .8667rem/1.3 var(--f-ui); color: var(--brass-ink); cursor: pointer; }
+details.sysp-grant select { max-width: 20rem; }
+
+/* ---- a place: one row, its lit globe and its marks ---- */
+.sysp-body { border-bottom: 1px solid rgba(255,255,255,.05); position: relative; }
+.sysp-body.open { background: linear-gradient(90deg, rgba(201,162,74,.07), rgba(255,255,255,.012)); }
+.sysp-body.open::before, .sysp-body:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.sysp-row { display: grid; grid-template-columns: 2.4rem minmax(0, 1fr) auto; align-items: center; column-gap: .6667rem; width: 100%; min-height: 3.0667rem; padding: .3333rem var(--g-r) .3333rem var(--g-l);
+  background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.sysp-row:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.015)); }
+.sysp-body.moon .sysp-row { padding-left: calc(var(--g-l) + 1.2rem); }
+.sysp-globe { width: 2.4rem; display: grid; place-items: center; }
+.sysp-sun { width: 1.8667rem; height: 1.8667rem; justify-self: center; border-radius: 50%; background: radial-gradient(circle at 45% 40%, #fffbe8 0, #ffe1a0 30%, #f0a94a 62%, rgba(240,140,60,0) 72%); box-shadow: 0 0 12px rgba(255,200,120,.7), 0 0 26px rgba(255,170,80,.35); }
+.sysp-row .sprite.deep { width: 1.8667rem; height: 1.8667rem; justify-self: center; border-radius: 50%; background: radial-gradient(circle at 50% 50%, rgba(140,170,230,.25), rgba(10,13,20,0) 70%), repeating-conic-gradient(from 20deg, rgba(200,215,245,.5) 0 2deg, transparent 2deg 45deg); }
+.sysp-name { min-width: 0; display: flex; flex-direction: column; gap: .1333rem; line-height: 1.2; }
+.sysp-name b { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sysp-name .muted { font: 400 .8333rem/1.25 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sysp-body.home > .sysp-row .sysp-name b { color: var(--brass-hi); }
+.sysp-marks { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; max-width: 13rem; }
+.sysp-marks .pill { margin: 0; height: 1.2rem; padding: 0 .4rem; border: 0; border-radius: 0; display: inline-flex; align-items: center; gap: .2rem; font: 600 .8rem/1 var(--f-ui); background: #07090d; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(255,255,255,.06); cursor: help; }
+.sysp-marks .pill.feat { color: var(--brass-ink); letter-spacing: .04em; max-width: 8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sysp-marks .pill.dep { color: var(--ink); } .sysp-marks .pill.dep .icon { width: .9333rem; height: .9333rem; }
+.sysp-slots { display: inline-flex; gap: 2px; cursor: help; }
+.sysp-slots i { width: .5333rem; height: .5333rem; display: inline-block; background: #06080c; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(165,129,58,.45); }
+.sysp-slots i.on { background: linear-gradient(135deg, #f3dfa6, #c9a24a 55%, #8a6a2a); box-shadow: 0 0 0 1px #000; }
+.sysp-slots i.up { background: repeating-linear-gradient(135deg, rgba(201,162,74,.6) 0 2px, transparent 2px 4px), #06080c; }
+.sysp-slots i.lock { opacity: .35; }
+.sysp-site { width: .6rem; height: .6rem; display: inline-block; transform: rotate(45deg); margin: 0 .2rem; background: #06080c; box-shadow: 0 0 0 1px rgba(165,129,58,.55); cursor: help; }
+.sysp-site.on { background: linear-gradient(135deg, #fbeab4, #d6ae55 55%, #8f6a26); box-shadow: 0 0 0 1px #000, 0 0 6px rgba(255,210,120,.6); }
+.sysp-site.up { background: repeating-linear-gradient(90deg, rgba(201,162,74,.7) 0 2px, transparent 2px 4px), #06080c; }
+.sysp-built { display: flex; flex-wrap: wrap; gap: .2667rem .5333rem; padding: 0 var(--g-r) .4rem calc(var(--g-l) + 3.0667rem); }
+.sysp-body.moon .sysp-built { padding-left: calc(var(--g-l) + 4.2667rem); }
+.sysp-built .built { font: 500 .8333rem/1.3 var(--f-ui); color: var(--brass-ink); padding-left: .4rem; box-shadow: inset 2px 0 0 rgba(201,162,74,.55); cursor: help; }
+.sysp-built .built.up { color: var(--ink-dim); box-shadow: inset 2px 0 0 rgba(201,162,74,.25); } .sysp-built .built.great { color: var(--brass-hi); box-shadow: inset 2px 0 0 var(--brass-hi); }
+
+/* ---- a place opened: what stands, what rises, what may be built ---- */
+.sysp-open { padding: .2667rem var(--g-r) .8rem calc(var(--g-l) + .4rem); }
+.sysp-desc { margin: .2667rem 0 .5333rem; font: italic 400 1rem/1.45 var(--f-prose); color: var(--ink-dim); }
+.sysp-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: .4rem; margin: .8rem 0 .2rem; padding: .4rem 0 .3333rem; border-top: 1px solid rgba(201,162,74,.45); border-bottom: 0;
+  font: 600 .8rem/1.2 var(--f-display); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
+.sysp-h .muted { font: 400 .8333rem/1.3 var(--f-ui); letter-spacing: 0; text-transform: none; color: var(--ink-dim); margin-left: 0; }
+.sysp-h.great, .sysp-h.prov { color: var(--brass-hi); }
+.sysp-parts { display: flex; flex-wrap: wrap; gap: .1333rem .8rem; margin: .2rem 0 .3333rem; font: 400 .8333rem/1.3 var(--f-ui); color: var(--ink-dim); } .sysp-parts b { color: var(--ink); font-weight: 600; }
+.sysp-work { display: flex; gap: .6667rem; align-items: flex-start; padding: .5333rem 0; border-top: 1px solid rgba(255,255,255,.05); }
+.sysp-work .sw-text { flex: 1 1 auto; min-width: 0; }
+.sw-art { flex: 0 0 auto; width: 4.2667rem; height: 2.8rem; object-fit: cover; border-radius: 1px; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.6), 0 2px 4px #000; background: #0a0d14; }
+.sw-art.none { display: block; background: repeating-linear-gradient(135deg, rgba(201,162,74,.08) 0 5px, transparent 5px 10px), #06080c; box-shadow: inset 0 1px 3px #000, 0 0 0 1px rgba(165,129,58,.3); }
+.sysp-work.mega .sw-art { box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--brass), 0 0 10px rgba(201,162,74,.25); }
+.sysp-work.stands .sw-art { width: 3.6rem; height: 2.4rem; } .sysp-work.stands.up .sw-art { filter: grayscale(.7) brightness(.7); }
+.sw-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2rem .4rem; } .sw-head b { font: 600 .9333rem/1.25 var(--f-ui); color: var(--ink); } .sw-head .muted.small { font-size: .8333rem; }
+.sysp-work.unique .sw-head b { color: var(--brass-ink); } .sysp-work.mega .sw-head b { color: var(--brass-hi); }
+.sysp-work .sw-text > .muted.small { font: 400 .8667rem/1.4 var(--f-ui); color: var(--ink-dim); margin-top: .1333rem; }
+.sw-does { margin: .1333rem 0; font: 400 .8667rem/1.4 var(--f-ui); color: var(--ink); }
+.sw-cost { display: flex; align-items: center; justify-content: space-between; gap: .5333rem; margin-top: .2667rem; font: 400 .8667rem/1.35 var(--f-ui); color: var(--ink-dim); }
+.sw-cost .opt { flex: 0 0 auto; }
+/* a refusal is a warn strip (4.9), not a bold amber paragraph: a 2px warn rule, a faint wash, the sentence at body size in ink */
+.sw-no { margin-top: .3333rem; padding: .3333rem .6667rem .3333rem .8rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); background: linear-gradient(90deg, rgba(227,166,74,.10), rgba(227,166,74,0) 80%); box-shadow: inset 2px 0 0 var(--warn); }
+.sw-pull { margin-top: .2667rem; text-align: right; }
+.sw-head .lvl { display: inline-flex; gap: 2px; margin: 0 .2rem; vertical-align: middle; cursor: help; } .sw-head .lvl i { width: .4rem; height: .6667rem; display: inline-block; transform: skewX(-12deg); background: #06080c; box-shadow: 0 0 0 1px rgba(165,129,58,.45); }
+.sw-head .lvl i.on { background: linear-gradient(#f3dfa6, #c9a24a); box-shadow: 0 0 0 1px #000; }
+.sysp-work.infra .lv { display: inline-flex; gap: .2rem; margin-left: .4rem; vertical-align: middle; cursor: help; }
+.sysp-work.infra .lv i { width: .6rem; height: .6rem; margin: 0 .0667rem; display: inline-block; transform: rotate(45deg); background: #06080c; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(165,129,58,.6); }
+.sysp-work.infra .lv i.on { background: linear-gradient(#f3dfa6, #c9a24a 55%, #8a6a2a); box-shadow: 0 0 0 1px #000; } .sysp-work.infra .lv i.up { background: repeating-linear-gradient(90deg, rgba(201,162,74,.6) 0 2px, transparent 2px 4px), #06080c; }
+.sysp.infra > .sysp-desc { margin: .8rem var(--g-r) .4rem var(--g-l); }
+.sysp.infra > .sysp-work { margin: 0 var(--g-r) 0 var(--g-l); }
+.sysp-cap { margin: .2rem 0 .1333rem; }
+.sysp-clear { padding: .3333rem 0; border-top: 1px solid rgba(255,255,255,.05); }
+
+/* ---- provinces and their cities (docs/PROVINCES.md, docs/CITIES.md) ---- */
+.sysp-over { margin: .2rem 0 .1333rem; }
+.sysp-prov { padding: .6667rem 0 .5333rem 0; margin-top: .2667rem; border-top: 1px solid rgba(255,255,255,.05); }
+.sysp-prov.mine { box-shadow: inset 2px 0 0 var(--brass); } .sysp-prov.war { box-shadow: inset 2px 0 0 var(--bad); }
+.sysp-prov .sw-head b { font: 600 .9333rem/1.25 var(--f-ui); }
+.sysp-prov .sw-head .sysp-slots { margin-left: .4rem; }
+.sysp-prov .sysp-work { padding-left: 0; }
+.sysp-built.prov { padding: .1333rem 0 .1333rem; }
+/* the province's chief city is a line under its name, not a box in a box */
+.sysp-city { margin: .2rem 0 .3333rem; padding: 0; background: none; box-shadow: none; cursor: help; }
+.sysp-city.great b { color: var(--brass-hi); }
+.sysp-city b { font: 600 .9333rem/1.25 var(--f-ui); color: var(--ink); }
+.sysp-city .city-kind { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); margin-left: .3333rem; } .sysp-city.great .city-kind { color: var(--brass-ink); }
+.sysp-owes { margin: .1333rem 0; } .sysp-owes .warnline { color: var(--warn); }
+.sysp-dues .seg { display: inline-flex; gap: 0; } .sysp-dues .seg .opt + .opt { margin-left: -1px; }
+.sysp-demand { margin-top: .4rem; padding: .5333rem .6667rem; border: 0; background: linear-gradient(90deg, rgba(224,85,63,.14), rgba(224,85,63,.03)); box-shadow: inset 2px 0 0 var(--bad), inset 0 0 0 1px rgba(224,85,63,.16); font: 400 .8667rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.sysp-demand b { color: var(--bad); } .sysp-demand .row { margin-top: .4rem; gap: .4rem; display: flex; flex-wrap: wrap; }
+/* the panel's parts are flex items of the map window's body: none may be wider than the window (LocalLawBlock among them) */
+.sysp > * { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.sysp > .local-laws { margin: .6rem var(--g-r) .4rem var(--g-l); max-width: calc(100% - var(--g-l) - var(--g-r)); }
+.sysp-cost { font: 400 .8667rem/1.35 var(--f-ui); color: var(--ink-dim); }
+
+.sysp-feat { display: inline-grid; place-items: center; cursor: help; }
+
+.sysp-pick { vertical-align: middle; margin: 0 .2667rem; } .sw-cost .sw-c { display: inline-flex; align-items: center; gap: .2rem; font: 600 .8667rem/1 var(--f-ui); color: var(--ink-dim); }
+.sysp-dues .ui-seg .opt { text-transform: none; }

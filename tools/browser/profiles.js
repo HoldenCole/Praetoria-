@@ -23,7 +23,7 @@ const out = process.env.PRAETORIA_SHOTS || '/tmp/praetoria-shots'; const title =
   const kin = await page.$('.profile .pk'); if (kin) { const before = await page.evaluate(() => document.querySelector('.profile h2').innerText); await kin.click(); await page.waitForTimeout(700);
     check(await page.evaluate(b => document.querySelector('.profile h2').innerText !== b, before), 'a relative did not open from the kin list'); await page.screenshot({ path: out + '/profile_kin.png' }); }
   await page.click('.profile-x'); await page.waitForTimeout(300); check(!(await page.$('.profile')), 'the profile did not close');
-  await rail('dynasty'); check(await page.evaluate(() => { const im = [...document.querySelectorAll('.tree image')]; return im.length > 0 && im.every(e => (e.getAttribute('href') || '').length > 10); }), 'the family tree has no faces'); await page.screenshot({ path: out + '/dynasty.png' });
+  await rail('dynasty'); check(await page.evaluate(() => { const im = [...document.querySelectorAll('.tree image, .tree img')]; return im.length > 0 && im.every(e => (e.getAttribute('href') || e.getAttribute('src') || '').length > 10); }), 'the family tree has no faces'); await page.screenshot({ path: out + '/dynasty.png' });
   await rail('houses'); await page.screenshot({ path: out + '/houses.png' });
   // someone of another house
   await page.evaluate(() => { const r = document.querySelectorAll('.standings tbody tr'); if (r.length > 1) r[1].click(); }); await page.waitForTimeout(700);   // a house's page opens from its row

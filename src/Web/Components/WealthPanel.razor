@@ -1,6 +1,10 @@
 @using Praetoria.Core.Systems
 @inject GameClient G
 @implements IDisposable
+@* Purses, heirlooms and the will (docs/WEALTH.md), on the House window's Purse tab, with the seat and estates under them
+   (RichHousePanel; docs/VISUAL_SYSTEM.md 5.1: "Seat and estates into Purse"). Sections and rows: your own purse, shares of your own,
+   the allowance, the family's purses (a face on each row, what they did with their money, and what you may give, lend or borrow),
+   heirlooms, the will, dowries and the estate. *@
 @{
     var w = G.World!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
     var members = WealthSystem.Members(w, house).Where(c => c.Id != pid).OrderBy(c => c.Purse).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
@@ -14,209 +18,280 @@
     var people = w.LivingCharacters().Where(c => c.HouseId == house.Id && c.Id != pid && c.Age >= 6).OrderByDescending(c => c.Age).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
     var spouse = DynastySystem.Spouse(w, p); if (spouse != null && !people.Contains(spouse)) people.Insert(0, spouse);
     int income = WealthSystem.Pay(p) + WealthSystem.EstateIncome(w, pid); int bill = WealthSystem.AllowanceBill(w, house);
-    int keep = HouseholdSystem.Keep(w, house); string keepLine = keep > 0 ? " · the household's keep " + Money.Show(keep) + " a year" : "";
+    int keep = HouseholdSystem.Keep(w, house); string keepLine = keep > 0 ? ", the household's keep " + Money.Show(keep) + " a year" : "";
 }
-<section class="panel wealth">
-    <h3><Icon Name="house" Size="13" /> Purses, heirlooms and the will <span class="muted">your own purse @Money.Show(p.Purse) · the allowance costs @Money.Show(bill) a year@(keepLine)</span></h3>
-    <div class="hh-cols">
-    <div>
-        <div class="hh-head"><b>Your own purse</b> <span class="muted small">@Money.Show(p.Purse) credits@(income > 0 ? $", and {Money.Show(income)} a year from your service and estates" : ""). It is yours, not the house's: it goes by your will, and the house's creditors cannot touch it.</span></div>
-        <div class="suit-acts"><span class="muted small">From the treasury</span>
-            @foreach (int a in Sums) { int amt = a; var no = new WealthCommand(pid, WealthCommand.Move, string.Empty, amt.ToString()).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? (house.Allowance == WealthSystem.Mean ? "the family, kept on a mean allowance, will notice" : ""))" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, amt.ToString()))">take @Money.Show(a)</button> }
-            <span class="muted small">Into it</span>
-            @foreach (int a in Sums) { int amt = a; var no = new WealthCommand(pid, WealthCommand.Move, string.Empty, (-amt).ToString()).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@no" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, (-amt).ToString()))">put @Money.Show(a)</button> }
-        </div>
-        <div class="suit-acts" data-purse-any="1"><span class="muted small" title="The house's books are kept in hundreds of credits, so a sum moved is a whole number of hundreds.">Or any sum</span>
-            <input type="number" min="100" step="100" class="qty" style="width:6rem" @bind="_moveCredits" @bind:event="oninput" />
-            @{ int moveSum = Math.Max(1, _moveCredits / Money.PerUnit); var noTake = new WealthCommand(pid, WealthCommand.Move, string.Empty, moveSum.ToString()).Refusal(G.Ctx); var noPut = new WealthCommand(pid, WealthCommand.Move, string.Empty, (-moveSum).ToString()).Refusal(G.Ctx); }
-            <button class="opt inline tiny" disabled="@(noTake != null)" title="@noTake" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, moveSum.ToString()))">take @Money.Show(moveSum) from the treasury</button>
-            <button class="opt inline tiny" disabled="@(noPut != null)" title="@noPut" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, (-moveSum).ToString()))">put @Money.Show(moveSum) into the treasury</button>
-        </div>
+<section class="panel wealth hs-purse">
+    <p class="ui-lede hs-lede" data-purse-head>@HouseScreen.Bold($"Your own purse holds {Money.Show(p.Purse)}{(income > 0 ? $", and takes in {Money.Show(income)} a year from your service and estates" : "")}. The allowance costs {Money.Show(bill)} a year{keepLine}.")</p>
 
-        @if (cs != null && cs.Open)
+    @* the purse and the allowance first (docs/VISUAL_SYSTEM.md 4.7): one row each, a joined stepper for the sum (4.12), never a free box *@
+    <div data-purse-sec="purse">
+    <Section Title="Your own purse" Info="It is yours, not the house's: it goes by your will, and the house's creditors cannot touch it. The house's books are kept in hundreds of credits, so a sum moved is a whole number of hundreds.">
+        <ChildContent>
+        @{ int moveSum = Math.Max(1, _move); var noTake = new WealthCommand(pid, WealthCommand.Move, string.Empty, moveSum.ToString()).Refusal(G.Ctx); var noPut = new WealthCommand(pid, WealthCommand.Move, string.Empty, (-moveSum).ToString()).Refusal(G.Ctx); }
+        <Row Name="Your purse" SubText="@(income > 0 ? $"Takes in {Money.Show(income)} a year from your service and estates" : "Takes in nothing of its own each year")" Class="hs-purse-row">
+            <Picture><span class="ui-medal hs-medal lit"><Icon Name="swap-bag" Tone="brass" Size="22" /></span></Picture>
+            <Cells><Cell Icon="swap-bag" Tone="brass" Value="@Money.Show(p.Purse)" Tip="@($"{Money.Credits(p.Purse)} in your own purse")" /><Cell Icon="credits" Value="@Money.Held(house.Treasury)" Tip="The house's treasury" /></Cells>
+        </Row>
+        <div class="hs-order" data-purse-any="1">
+            <Stepper Value="@_move" Min="1" Max="2000" Step="5" Format="@(v => Money.Show(v))" Label="Sum" FewerTip="@($"Less, by {Money.Show(5)}")" MoreTip="@($"More, by {Money.Show(5)}")" OnChange="v => _move = v" />
+            <Plate Label="@($"Take {Money.Show(moveSum)}")" Icon="receive-money" Locked="@(noTake != null)" Disabled="@(noTake != null)" ShowNeed="false" Need="@(noTake ?? "")" Tip="@(house.Allowance == WealthSystem.Mean ? $"Take {Money.Show(moveSum)} from the treasury into your purse. The family, kept on a mean allowance, will notice." : $"Take {Money.Show(moveSum)} from the treasury into your purse")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, moveSum.ToString()))" />
+            <Plate Label="@($"Put {Money.Show(moveSum)}")" Icon="credits" Locked="@(noPut != null)" Disabled="@(noPut != null)" ShowNeed="false" Need="@(noPut ?? "")" Tip="@($"Put {Money.Show(moveSum)} from your purse into the treasury")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Move, string.Empty, (-moveSum).ToString()))" />
+        </div>
+        </ChildContent>
+    </Section>
+    </div>
+
+    <div data-purse-sec="allowance">
+    <Section Title="The allowance" Info="@($"Every grown member's allowance, paid from the treasury each year. {WealthSystem.AllowanceSays(house.Allowance)}")">
+        <Row Name="What the house gives its own" SubText="@($"Costs {Money.Show(bill)} a year{keepLine}")" Class="hs-allow-row">
+            <Picture><span class="ui-medal hs-medal"><Icon Name="three-friends" Tone="ivory" Size="22" /></span></Picture>
+            <Action><Segmented Value="@house.Allowance" Options="@WealthSystem.Allowances.Select(a => (a, Cap(a), $"{WealthSystem.AllowanceSays(a)} {Money.Show(WealthSystem.AllowanceOf(a))} to each grown member a year.")).ToList()" Note="@(a => Money.Show(WealthSystem.AllowanceOf(a)))" OnChange="a => G.Execute(new WealthCommand(pid, WealthCommand.Allowance, string.Empty, a))" /></Action>
+        </Row>
+    </Section>
+    </div>
+
+    <div data-purse-sec="purses">
+    <Section Title="Their purses" Count="@members.Count.ToString()" Info="What they do with their own money is their own business. You may give or lend them some of yours, borrow of them, and pay what they owe when they cannot: the Money plate on a row opens the sum and what can be done with it. Left alone a debt grows; past a point the creditors come to the house."
+             IsEmpty="@(members.Count == 0)" EmptyLine="Nobody grown of the house but you." EmptyIcon="swap-bag">
+        @foreach (var c in members.Take(_all ? 40 : 7))
         {
-            <div class="hh-head"><b>Shares of your own</b> <span class="muted small">Bought out of your purse, in your name. What they pay goes into your purse, and they go by your will. They are not the house's, and what is taken from the house does not take them. They vote with the house's own shares, if it has any. One person may hold a tenth of a company.</span></div>
-            @if (myShares.Count == 0) { <div class="muted small">You hold none in your own name.</div> }
+            string cid = c.Id; bool debt = c.Purse < 0; bool open = _money == cid; int sum = Math.Max(1, _sums.GetValueOrDefault(cid, 5)); string sumS = sum.ToString();
+            var noGive = new WealthCommand(pid, WealthCommand.Gift, cid, sumS).Refusal(G.Ctx);
+            string owes = c.OwesHead > 0 ? "owes you " + Money.Show(c.OwesHead) + (w.Turn - c.OwesSince >= WealthSystem.LoanSoursAfter ? ", and it sits between you" : "") : "";
+            string iOwe = c.LentHead > 0 ? "you owe them " + Money.Show(c.LentHead) + (w.Turn - c.LentSince >= WealthSystem.LoanSoursAfter ? ", and they mind it" : "") : "";
+            <div class="purse-row @(open ? "open" : "")" data-purse="@c.Id">
+                <Row Name="@c.Name" Tip="@((c.LastSpend.Length > 0 ? c.LastSpend : "Nothing to note yet.") + OwnsLine(w, c))">
+                    <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
+                    <Sub>@(c.LastSpend.Length > 0 ? c.LastSpend : "–")@if (owes.Length > 0) { <span class="hs-tag warn pill" data-owe>@owes</span> }@if (iOwe.Length > 0) { <span class="hs-tag warn pill" data-owe>@iOwe</span> }@if (c.OwesKin > 0) { <span class="hs-tag pill">@("owes " + (w.Char(c.OwesKinId)?.Name ?? "one of the house") + " " + Money.Show(c.OwesKin))</span> }</Sub>
+                    <Cells><Cell Icon="swap-bag" Tone="@(debt ? "ember" : "brass")" Value="@(debt ? "−" + Money.Show(-c.Purse) : Money.Show(c.Purse))" Class="@(debt ? "ui-down" : c.Purse >= 15 ? "ui-up" : "")" Tip="@(debt ? $"Owes {Money.Show(-c.Purse)}" : $"{Money.Credits(c.Purse)} in their purse")" /></Cells>
+                    <Action><Plate Label="Money" Icon="swap-bag" Small="true" Class="@(open ? "on" : "")" Tip="@($"Give {c.Name.Split(' ')[0]} a sum of your own, lend it, borrow of them or settle what is owed: opens the sum and the ways")" OnClick="() => _money = open ? null : cid" /></Action>
+                </Row>
+                @* the ways, under the row when its Money plate is pressed: one stepper for the sum, then give, lend, at interest, borrow *@
+                <div class="hs-drawer">
+                    <Stepper Value="@sum" Min="1" Max="500" Step="5" Format="@(v => Money.Show(v))" Label="Sum" OnChange="v => _sums[cid] = v" />
+                    <Plate Label="@($"Give {Money.Show(sum)}")" Icon="receive-money" Small="true" Locked="@(noGive != null)" Disabled="@(noGive != null)" ShowNeed="false" Need="@(noGive ?? "")" Tip="@GiftTip" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Gift, cid, sumS))" />
+                    @if (c.OwesHead > 0) { <Plate Label="Forgive it" Small="true" Tip="@ForgiveTip" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Forgive, cid, string.Empty))" /> }
+                    else
+                    {
+                        var noLend = new WealthCommand(pid, WealthCommand.Lend, cid, sumS).Refusal(G.Ctx);
+                        <Plate Label="@($"Lend {Money.Show(sum)}")" Small="true" Locked="@(noLend != null)" Disabled="@(noLend != null)" ShowNeed="false" Need="@(noLend ?? "")" Tip="@LendTip" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Lend, cid, sumS))" />
+                        <Plate Label="@($"Lend {Money.Show(sum)} at interest")" Small="true" Locked="@(noLend != null)" Disabled="@(noLend != null)" ShowNeed="false" Need="@(noLend ?? "")" Tip="@InterestTip" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.LendAtInterest, cid, sumS))" />
+                    }
+                    @if (c.LentHead > 0)
+                    {
+                        var noPay = new WealthCommand(pid, WealthCommand.Repay, cid, string.Empty).Refusal(G.Ctx);
+                        <Plate Label="Pay them back" Small="true" Locked="@(noPay != null)" Disabled="@(noPay != null)" ShowNeed="false" Need="@(noPay ?? "")" Tip="@RepayTip" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Repay, cid, string.Empty))" />
+                    }
+                    else if (c.OwesHead == 0)
+                    {
+                        var noAsk = new WealthCommand(pid, WealthCommand.Borrow, cid, sumS).Refusal(G.Ctx); string askTip = noAsk == null && WealthSystem.BorrowOwed(c, sum) > sum ? "They would lend it, and want " + Money.Show(WealthSystem.BorrowOwed(c, sum)) + " back." : BorrowTip;
+                        <Plate Label="@($"Borrow {Money.Show(sum)}")" Small="true" Locked="@(noAsk != null)" Disabled="@(noAsk != null)" ShowNeed="false" Need="@(noAsk ?? "")" Tip="@askTip" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Borrow, cid, sumS))" />
+                    }
+                </div>
+                @if (debt)
+                {
+                    var t = new WealthCommand(pid, WealthCommand.Settle, cid, "treasury").Refusal(G.Ctx); var mp = new WealthCommand(pid, WealthCommand.Settle, cid, "purse").Refusal(G.Ctx);
+                    <WarnStrip Icon="swap-bag" Lead="In debt." Bad="true" Class="hs-under">
+                        <ChildContent>Left alone it grows; past @Money.Show(-WealthSystem.ScandalAt) the creditors come to the house.</ChildContent>
+                        <Action><span class="hs-acts">
+                            <Plate Label="Pay from the treasury" Small="true" Locked="@(t != null)" Disabled="@(t != null)" ShowNeed="false" Need="@(t ?? "")" Tip="The house pays what they owe" OnClick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Settle, cid, Treasury)))" />
+                            <Plate Label="Pay it yourself" Small="true" Locked="@(mp != null)" Disabled="@(mp != null)" ShowNeed="false" Need="@(mp ?? "")" Tip="They will remember it was your own money" OnClick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Settle, cid, Purse)))" />
+                        </span></Action>
+                    </WarnStrip>
+                }
+            </div>
+        }
+        @if (members.Count > 7) { <p class="hs-note"><Link Label="@(_all ? "Show fewer" : $"Show all {members.Count}")" OnClick="() => _all = !_all" /></p> }
+    </Section>
+    </div>
+
+    @if (cs != null && cs.Open)
+    {
+        <div data-purse-sec="shares">
+        <Section Title="Shares of your own" Count="@myShares.Count.ToString()" Info="Bought out of your purse, in your name. What they pay goes into your purse, and they go by your will. They are not the house's, and what is taken from the house does not take them. They vote with the house's own shares, if it has any. One person may hold a tenth of a company.">
+            @if (myShares.Count == 0) { <EmptyState Icon="coins-pile" Text="You hold none in your own name." /> }
             @foreach (var (co, n) in myShares)
             {
                 string coid = co.Id; int held = n; int pays = co.Shares > 0 ? co.LastDividend * n / co.Shares : 0;
                 var one = cs.QuotePrivateSell(w, p, co, 1); var all = cs.QuotePrivateSell(w, p, co, n);
                 <div class="purse-row own-share">
-                    <b>@co.Name</b> <span class="pill small good">@n share@(n == 1 ? "" : "s") · worth @Money.Show(n * co.Price)</span>
-                    <span class="muted small">@(pays > 0 ? $"pays you {Money.Show(pays)} a year" : "paid nothing last year")</span>
-                    <span class="suit-acts">
-                        <button class="opt inline tiny" disabled="@(one.Refusal != null)" title="@one.Refusal" @onclick="() => G.Execute(new PrivateSharesCommand(pid, coid, 1, false, cs))">Sell 1 · @Money.Show(one.Credits)</button>
-                        @if (n > 1) { <button class="opt inline tiny" disabled="@(all.Refusal != null)" title="@all.Refusal" @onclick="() => G.Execute(new PrivateSharesCommand(pid, coid, held, false, cs))">Sell all · @Money.Show(all.Credits)</button> }
-                    </span>
+                    <Row Name="@co.Name" SubText="@(pays > 0 ? $"pays you {Money.Show(pays)} a year" : "paid nothing last year")">
+                        <Picture><span class="ui-medal hs-medal"><Icon Name="coins-pile" Tone="brass" Size="22" /></span></Picture>
+                        <Cells><span class="ui-cell">@n<small>&nbsp;share@(n == 1 ? "" : "s")</small></span><Cell Icon="credits" Value="@Money.Show(n * co.Price)" Tip="What they are worth at today's price" /></Cells>
+                        <Action><span class="hs-acts">
+                            <Plate Label="Sell 1" Small="true" CostIcon="credits" CostText="@Money.Show(one.Credits)" Locked="@(one.Refusal != null)" Disabled="@(one.Refusal != null)" ShowNeed="false" Need="@(one.Refusal ?? "")" Tip="Sell one share, into your purse" OnClick="() => G.Execute(new PrivateSharesCommand(pid, coid, 1, false, cs))" />
+                            @if (n > 1) { <Plate Label="Sell all" Small="true" CostIcon="credits" CostText="@Money.Show(all.Credits)" Locked="@(all.Refusal != null)" Disabled="@(all.Refusal != null)" ShowNeed="false" Need="@(all.Refusal ?? "")" Tip="Sell them all, into your purse" OnClick="() => G.Execute(new PrivateSharesCommand(pid, coid, held, false, cs))" /> }
+                        </span></Action>
+                    </Row>
                 </div>
             }
-            <div class="suit-acts"><span class="muted small">Buy for yourself</span>
+            <div class="suit-acts hs-buy" data-buy-own>
+                <div class="hs-subhead">Buy for yourself</div>
                 @foreach (var co in offered)
                 {
-                    string coid = co.Id; var q1 = cs.QuotePrivateBuy(w, p, co, 1); var q5 = cs.QuotePrivateBuy(w, p, co, 5);
+                    string coid = co.Id; int lot = Math.Max(1, _lots.GetValueOrDefault(coid, 1)); var q = cs.QuotePrivateBuy(w, p, co, lot);
                     int yield = co.Price > 0 && co.Shares > 0 ? (int)Math.Round(co.LastDividend * 100.0 / (co.Price * co.Shares)) : 0;
-                    <button class="opt inline tiny" disabled="@(q1.Refusal != null)" title="@(q1.Refusal ?? $"{co.Name}: paid {yield}% of its price last year. One share, out of your purse.")" @onclick="() => G.Execute(new PrivateSharesCommand(pid, coid, 1, true, cs))">@co.Name · 1 for @(q1.Credits > 0 ? Money.Show(q1.Credits) : "—")</button>
-                    <button class="opt inline tiny" disabled="@(q5.Refusal != null)" title="@(q5.Refusal ?? "Five shares, out of your purse.")" @onclick="() => G.Execute(new PrivateSharesCommand(pid, coid, 5, true, cs))">5 for @(q5.Credits > 0 ? Money.Show(q5.Credits) : "—")</button>
+                    <Row Name="@co.Name" SubText="@($"{Money.Show(co.Price)} a share · paid {yield}% of its price last year")" Tip="@($"{co.Name}: paid {yield}% of its price last year. Shares bought here are yours, out of your purse.")">
+                        <Picture><span class="ui-medal hs-medal"><Icon Name="coins-pile" Tone="brass" Size="22" /></span></Picture>
+                        <Action><span class="hs-acts">
+                            <Plate Label="Buy" Small="true" CostIcon="swap-bag" CostText="@(q.Credits > 0 ? Money.Show(q.Credits) : "nothing")" Locked="@(q.Refusal != null)" Disabled="@(q.Refusal != null)" ShowNeed="false" Need="@(q.Refusal ?? "")" Tip="@($"{lot} share{(lot == 1 ? "" : "s")} of {co.Name}, out of your purse")" OnClick="() => G.Execute(new PrivateSharesCommand(pid, coid, lot, true, cs))" />
+                            <Stepper Value="@lot" Min="1" Max="50" Format="@(v => v + (v == 1 ? " share" : " shares"))" OnChange="v => _lots[coid] = v" />
+                        </span></Action>
+                    </Row>
                 }
-                @if (offered.Count == 0) { <span class="muted small">No company has shares on the float.</span> }
+                @if (offered.Count == 0) { <p class="hs-note">No company has shares on the float.</p> }
             </div>
-        }
-
-        <div class="hh-head"><b>What the house gives its own</b> <span class="muted small">Every grown member's allowance, paid from the treasury each year. @WealthSystem.AllowanceSays(house.Allowance)</span></div>
-        <div class="suit-acts">
-            @foreach (var a in WealthSystem.Allowances) { string pol = a; <button class="opt inline @(house.Allowance == a ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Allowance, string.Empty, pol))">@a · @Money.Show(WealthSystem.AllowanceOf(a)) each</button> }
+        </Section>
         </div>
+    }
 
-        <div class="hh-head"><b>Their purses</b> <span class="muted small">What they do with their own money is their own business. You may give or lend them some of yours, and pay what they owe when they cannot.</span></div>
-        @if (members.Count == 0) { <div class="muted small">Nobody grown of the house but you.</div> }
-        @foreach (var c in members.Take(_all ? 40 : 7))
-        {
-            string cid = c.Id; bool debt = c.Purse < 0;
-            <div class="purse-row">
-                <b>@c.Name</b> <span class="pill small @(debt ? "warn" : c.Purse >= 15 ? "good" : "")">@(debt ? $"owes {Money.Show(-c.Purse)}" : Money.Credits(c.Purse))</span>
-                <span class="muted small">@(c.LastSpend.Length > 0 ? c.LastSpend : "Nothing to note yet.")@OwnsLine(w, c)</span>
-                <span class="suit-acts">
-                    @foreach (int a in Gifts) { int amt = a; var no = new WealthCommand(pid, WealthCommand.Gift, cid, amt.ToString()).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? GiftTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Gift, cid, amt.ToString()))">Give @Money.Show(amt)</button> }
-                    @if (c.OwesHead > 0)
-                    {
-                        string owes = "owes you " + Money.Show(c.OwesHead) + (w.Turn - c.OwesSince >= WealthSystem.LoanSoursAfter ? ", and it sits between you" : "");
-                        <span class="pill small warn">@owes</span>
-                        <button class="opt inline tiny" title="@ForgiveTip" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Forgive, cid, string.Empty))">Forgive it</button>
-                    }
-                    else
-                    {
-                        var no = new WealthCommand(pid, WealthCommand.Lend, cid, LoanSum).Refusal(G.Ctx);
-                        <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? LendTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Lend, cid, LoanSum))">Lend @Money.Show(int.Parse(LoanSum))</button>
-                        <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? InterestTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.LendAtInterest, cid, LoanSum))">Lend @Money.Show(int.Parse(LoanSum)) at interest</button>
-                    }
-                    @if (c.LentHead > 0)
-                    {
-                        string iOwe = "you owe them " + Money.Show(c.LentHead) + (w.Turn - c.LentSince >= WealthSystem.LoanSoursAfter ? ", and they mind it" : ""); var noPay = new WealthCommand(pid, WealthCommand.Repay, cid, string.Empty).Refusal(G.Ctx);
-                        <span class="pill small warn">@iOwe</span>
-                        <button class="opt inline tiny" disabled="@(noPay != null)" title="@(noPay ?? RepayTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Repay, cid, string.Empty))">Pay them back</button>
-                    }
-                    else if (c.OwesHead == 0)
-                    {
-                        foreach (int sum in Borrows)
-                        {
-                            string amt = sum.ToString(); var noAsk = new WealthCommand(pid, WealthCommand.Borrow, cid, amt).Refusal(G.Ctx); string askTip = noAsk ?? (WealthSystem.BorrowOwed(c, sum) > sum ? "They would lend it, and want " + Money.Show(WealthSystem.BorrowOwed(c, sum)) + " back." : BorrowTip);
-                            <button class="opt inline tiny" disabled="@(noAsk != null)" title="@askTip" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Borrow, cid, amt))">Borrow @Money.Show(sum)</button>
-                        }
-                    }
-                    @if (c.OwesKin > 0) { string kinOwes = "owes " + (w.Char(c.OwesKinId)?.Name ?? "one of the house") + " " + Money.Show(c.OwesKin); <span class="pill small">@kinOwes</span> }
-                </span>
-                @if (debt)
-                {
-                    var t = new WealthCommand(pid, WealthCommand.Settle, cid, "treasury").Refusal(G.Ctx); var mp = new WealthCommand(pid, WealthCommand.Settle, cid, "purse").Refusal(G.Ctx);
-                    <span class="suit-acts">
-                        <button class="opt inline tiny" disabled="@(t != null)" title="@t" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Settle, cid, Treasury)))">Pay it from the treasury</button>
-                        <button class="opt inline tiny" disabled="@(mp != null)" title="@(mp ?? "they will remember it was your own money")" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Settle, cid, Purse)))">Pay it yourself</button>
-                        <span class="muted small">Left alone it grows; past @Money.Show(-WealthSystem.ScandalAt) the creditors come to the house.</span>
-                    </span>
-                }
-            </div>
-        }
-        @if (members.Count > 7) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show fewer" : $"Show all {members.Count}")</button> }
-    </div>
-    <div>
-        <div class="hh-head"><b>Heirlooms</b> <span class="muted small">They belong to a person, not to the house, unless the head entails them. Each does something for whoever holds it.</span></div>
-        @if (mine.Count == 0 && others.Count == 0) { <div class="muted small">Nothing has been handed down in this house. A new name has to make its own.</div> }
-        <div class="suit-acts"><span class="muted small">Have one made, out of your own purse</span>
-            @foreach (var kind in WealthSystem.Commissions) { string k = kind; var no = new WealthCommand(pid, WealthCommand.Commission, string.Empty, k).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? MadeTip(k))" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Commission, string.Empty, k))">A @k · @Money.Show(WealthSystem.CommissionCost(k))</button> }
-            <span class="muted small">A standard is taken in a battle by whoever commanded. Plate comes from another house at a wedding.</span>
+    <div data-purse-sec="heirlooms">
+    <Section Title="Heirlooms" Count="@((mine.Count + others.Count).ToString())" Info="They belong to a person, not to the house, unless the head entails them. Each does something for whoever holds it. A standard is taken in a battle by whoever commanded; plate comes from another house at a wedding. A thing given to the head of another house is a favour asked: that house leans your way on the next motion you bring, and the favour is spent; or call it in now for something else. Uncalled, it is forgotten after eight years.">
+        <ChildContent>
+        <div class="suit-acts hs-line">
+            <span class="hs-lbl">Have one made, out of your own purse</span>
+            @foreach (var kind in WealthSystem.Commissions) { string k = kind; var no = new WealthCommand(pid, WealthCommand.Commission, string.Empty, k).Refusal(G.Ctx); <Plate Label="@($"A {k} · {Money.Show(WealthSystem.CommissionCost(k))}")" Small="true" Icon="@(k == WealthSystem.Library ? "open-book" : "greek-temple")" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="@MadeTip(k)" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Commission, string.Empty, k))" /> }
         </div>
+        @if (mine.Count == 0 && others.Count == 0) { <EmptyState Icon="crown" Text="Nothing has been handed down in this house. A new name has to make its own." /> }
         @if (oweMe.Count + favoursIOwe.Count > 0)
         {
-            <div class="muted small">
-                @if (oweMe.Count > 0) { <span title="A thing given to the head of another house is a favour asked. That house leans your way on the next motion you bring, and the favour is spent. Or call it in now for something else. Uncalled, it is forgotten after eight years."><b>Owe you a favour:</b> </span>
-                    @foreach (var oh in oweMe)
-                    {
-                        string ohid = oh.Id; var noMoney = new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMoney).Refusal(G.Ctx); var noMatch = new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMatch).Refusal(G.Ctx);
-                        <span>@oh.Name </span>
-                        <button class="opt inline tiny" disabled="@(noMoney != null)" title="@(noMoney ?? "They pay it into the treasury, and owe you nothing more.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMoney))">Call it in for @Money.Show(WealthSystem.FavourCredits) credits</button>
-                        <button class="opt inline tiny" disabled="@(noMatch != null)" title="@(noMatch ?? "The family looks more kindly on the suit between your house and theirs.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMatch))">for their consent to the match</button>
-                    } }
-                @if (favoursIOwe.Count > 0) { <span title="You kept a gift that asked a favour. Vote for that house's next motion and the account is even; vote otherwise and its head will remember who kept the gift."><b>You owe a favour to:</b> @string.Join(", ", favoursIOwe.Select(h => h.Name)).</span> }
+            <div class="hs-favours" data-favours>
+                @if (oweMe.Count > 0)
+                {
+                    <div class="hs-line" title="A thing given to the head of another house is a favour asked. That house leans your way on the next motion you bring, and the favour is spent. Or call it in now for something else. Uncalled, it is forgotten after eight years.">
+                        <span class="hs-lbl"><Icon Name="charm" Tone="brass" Size="15" />Owe you a favour:</span>
+                        @foreach (var oh in oweMe)
+                        {
+                            string ohid = oh.Id; var noMoney = new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMoney).Refusal(G.Ctx); var noMatch = new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMatch).Refusal(G.Ctx);
+                            <span class="hs-fav-nm"><Sigil HouseId="@oh.Id" Accent="@oh.AccentColor" Size="16" />@oh.Name</span>
+                            <Plate Label="@($"Call it in for {Money.Show(WealthSystem.FavourCredits)} credits")" Small="true" Locked="@(noMoney != null)" Disabled="@(noMoney != null)" ShowNeed="false" Need="@(noMoney ?? "")" Tip="They pay it into the treasury, and owe you nothing more." OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMoney))" />
+                            <Plate Label="For their consent to the match" Small="true" Locked="@(noMatch != null)" Disabled="@(noMatch != null)" ShowNeed="false" Need="@(noMatch ?? "")" Tip="The family looks more kindly on the suit between your house and theirs." OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Favour, ohid, WealthSystem.ForMatch))" />
+                        }
+                    </div>
+                }
+                @if (favoursIOwe.Count > 0) { <p class="hs-note" title="You kept a gift that asked a favour. Vote for that house's next motion and the account is even; vote otherwise and its head will remember who kept the gift."><b>You owe a favour to:</b> @string.Join(", ", favoursIOwe.Select(h => h.Name)).</p> }
             </div>
         }
         @foreach (var item in mine)
         {
-            string iid = item.Id; var left = will != null && will.Items.TryGetValue(item.Id, out var toId) ? w.Char(toId) : null;
-            <div class="suit">
-                <b>@Cap(item.Name)</b> <span class="muted">yours · worth @Money.Show(item.Value) · @(item.Entailed ? "entailed: it goes with the house" : "left to " + (left?.Name ?? heir?.Name ?? "nobody yet"))</span>
-                <div class="muted small">@WealthSystem.Does(w, item)</div>
+            string iid = item.Id; var left = will != null && will.Items.TryGetValue(item.Id, out var toId) ? w.Char(toId) : null; bool open = _item == iid;
+            <div class="suit hs-item purse-item @(open ? "open" : "")" data-heirloom="@item.Id">
+                <Row Name="@Cap(item.Name)" SubText="@(item.Entailed ? "Entailed: it goes with the house" : "Yours, left to " + (left?.Name ?? heir?.Name ?? "nobody yet"))" Tip="@WealthSystem.Does(w, item)">
+                    <Picture><span class="ui-medal hs-medal @(item.Entailed ? "lit" : "")"><Icon Name="@ItemIcon(item.Kind)" Tone="brass" Size="22" /></span></Picture>
+                    <Cells><Cell Icon="credits" Value="@Money.Show(item.Value)" Tip="What it is worth" /></Cells>
+                    <Action><Plate Label="Dispose" Icon="crown" Small="true" Class="@(open ? "on" : "")" Tip="Entail it, pledge it, sell it, leave it or give it away: opens the ways" OnClick="() => _item = open ? null : iid" /></Action>
+                </Row>
                 @{ var noEntail = new WealthCommand(pid, WealthCommand.EntailItem, iid, string.Empty).Refusal(G.Ctx); var noBreak = new WealthCommand(pid, WealthCommand.BreakEntail, iid, string.Empty).Refusal(G.Ctx); }
+                <div class="hs-drawer col">
                 @if (item.Entailed)
                 {
-                    <div class="suit-acts">
-                        @if (_break == iid) { <button class="opt inline tiny veto" @onclick="() => { _break = null; G.Execute(new WealthCommand(pid, WealthCommand.BreakEntail, iid, string.Empty)); }">Yes, break the entail</button> <button class="opt inline tiny" @onclick="() => _break = null">No</button> }
-                        else { <button class="opt inline tiny" disabled="@(noBreak != null)" title="@(noBreak ?? BreakTip)" @onclick="() => _break = iid">Break the entail</button> }
+                    <div class="suit-acts hs-acts">
+                        @if (_break == iid) { <Plate Label="Yes, break the entail" Small="true" Class="hs-danger" Tip="@BreakTip" OnClick="() => { _break = null; G.Execute(new WealthCommand(pid, WealthCommand.BreakEntail, iid, string.Empty)); }" /> <Plate Label="No" Small="true" Tip="Leave it entailed" OnClick="() => _break = null" /> }
+                        else { <Plate Label="Break the entail" Small="true" Locked="@(noBreak != null)" Disabled="@(noBreak != null)" ShowNeed="false" Need="@(noBreak ?? "")" Tip="@BreakTip" OnClick="() => _break = iid" /> }
                     </div>
                 }
                 else
                 {
-                <div class="suit-acts"><button class="opt inline tiny" disabled="@(noEntail != null)" title="@(noEntail ?? EntailTip)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.EntailItem, iid, string.Empty))">Entail it</button>
-                    @if (G.Turn?.Ventures is { } pv) { bool pledged = house.PledgedId == iid; var noPledge = pv.PledgeRefusal(w, p, pledged ? string.Empty : iid); <button class="opt inline tiny @(pledged ? "here" : "")" disabled="@(noPledge != null)" title="@(noPledge ?? (pledged ? "Withdraw it." : "If the house is foreclosed on, its creditors take this first. A thing that is entailed can never be taken; one that is not can be, once there is no venture left."))" @onclick="() => G.Execute(new PledgeCommand(pid, pledged ? string.Empty : iid, pv))">@(pledged ? "Pledged to the creditors" : "Pledge it")</button> }</div>
-                <div class="suit-acts"><span class="muted small">Leave it to</span>
-                    <button class="opt inline tiny @(left == null ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, string.Empty))">the heir</button>
-                    @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny @(left?.Id == c.Id ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, cid))">@First(c.Name)</button> }
-                </div>
-                <div class="suit-acts"><span class="muted small">Give it now to</span>
-                    @foreach (var c in people.Take(6)) { string cid = c.Id; <button class="opt inline tiny" title="they will not forget it" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, cid))">@First(c.Name)</button> }
-                    @if (WealthSystem.IsSpoil(item) && w.House(item.FromHouseId) is { } lostBy && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) { string thid = theirHead.Id; <button class="opt inline tiny" title="@($"It was {lostBy.Name}'s. Sent home with nothing asked, {theirHead.Name} will think much better of you. While you keep it, they think a little worse of you each year.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, thid))">Send it home to @lostBy.Name.Replace("House ", "")</button> }
-                    @foreach (var hd in heads) { string hid = hd.Id; var wont = new WealthCommand(pid, WealthCommand.Give, iid, hid).Refusal(G.Ctx); <button class="opt inline tiny" disabled="@(wont != null)" title="@(wont ?? $"A gift to the head of {w.House(hd.HouseId)?.Name}. They will think much better of you for it, it is theirs for good, and their house owes you a favour: it leans your way on the next motion you bring.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, hid))">@First(hd.Name) of @(w.House(hd.HouseId)?.Name.Replace("House ", ""))</button> }
-                    @if (_confirm == iid) { <button class="opt inline tiny veto" @onclick="() => { _confirm = null; G.Execute(new WealthCommand(pid, WealthCommand.Sell, iid, string.Empty)); }">Yes, sell it</button> <button class="opt inline tiny" @onclick="() => _confirm = null">No</button> }
-                    else { <button class="opt inline tiny" title="@(item.OfHouseId == house.Id ? "The family has always had it: the house loses standing and your blood kin resent it." : "")" @onclick="() => _confirm = iid">Sell · @Money.Show(item.Value)</button> }
-                </div>
+                    <div class="suit-acts hs-acts">
+                        <Plate Label="Entail it" Small="true" Locked="@(noEntail != null)" Disabled="@(noEntail != null)" ShowNeed="false" Need="@(noEntail ?? "")" Tip="@EntailTip" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.EntailItem, iid, string.Empty))" />
+                        @if (G.Turn?.Ventures is { } pv) { bool pledged = house.PledgedId == iid; var noPledge = pv.PledgeRefusal(w, p, pledged ? string.Empty : iid); <Plate Label="@(pledged ? "Pledged" : "Pledge it")" Small="true" Class="@(pledged ? "down" : "")" Locked="@(noPledge != null)" Disabled="@(noPledge != null)" ShowNeed="false" Need="@(noPledge ?? "")" Tip="@(pledged ? "Pledged to the creditors. Withdraw it." : "If the house is foreclosed on, its creditors take this first. A thing that is entailed can never be taken; one that is not can be, once there is no venture left.")" OnClick="() => G.Execute(new PledgeCommand(pid, pledged ? string.Empty : iid, pv))" /> }
+                        @if (_confirm == iid) { <Plate Label="Yes, sell it" Small="true" Class="hs-danger" Tip="It is sold, and gone" OnClick="() => { _confirm = null; G.Execute(new WealthCommand(pid, WealthCommand.Sell, iid, string.Empty)); }" /> <Plate Label="No" Small="true" Tip="Keep it" OnClick="() => _confirm = null" /> }
+                        else { <Plate Label="Sell" Small="true" CostIcon="credits" CostText="@Money.Show(item.Value)" Tip="@(item.OfHouseId == house.Id ? "The family has always had it: the house loses standing and your blood kin resent it." : "Sell it for what it is worth")" OnClick="() => _confirm = iid" /> }
+                    </div>
+                    <div class="suit-acts hs-acts">
+                        <span class="hs-lbl">Leave it to</span>
+                        <Select Value="@(left?.Id ?? "")" Placeholder="the heir" Tip="Who has it when you die"
+                                Options="@(new[] { new Select.Option("", "the heir", heir != null ? heir.Name : "nobody yet") }.Concat(people.Take(8).Select(c => new Select.Option(c.Id, c.Name, c.Age + "", c.Id, c.Sex, c.Age, house.AccentColor))).ToList())"
+                                OnChange="v => G.Execute(new WealthCommand(pid, WealthCommand.Bequeath, iid, v))" />
+                    </div>
+                    <div class="suit-acts hs-acts">
+                        <span class="hs-lbl">Give it now to</span>
+                        @foreach (var c in people.Take(6)) { string cid = c.Id; <Plate Label="@First(c.Name)" Small="true" Tip="@($"To {c.Name}, now. They will not forget it.")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, cid))" /> }
+                        @if (WealthSystem.IsSpoil(item) && w.House(item.FromHouseId) is { } lostBy && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) { string thid = theirHead.Id; <Plate Label="@($"Send it home to {lostBy.Name.Replace("House ", "")}")" Small="true" Tip="@($"It was {lostBy.Name}'s. Sent home with nothing asked, {theirHead.Name} will think much better of you. While you keep it, they think a little worse of you each year.")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, thid))" /> }
+                        @foreach (var hd in heads) { string hid = hd.Id; var wont = new WealthCommand(pid, WealthCommand.Give, iid, hid).Refusal(G.Ctx); <Plate Label="@($"{First(hd.Name)} of {w.House(hd.HouseId)?.Name.Replace("House ", "")}")" Small="true" Locked="@(wont != null)" Disabled="@(wont != null)" ShowNeed="false" Need="@(wont ?? "")" Tip="@($"A gift to the head of {w.House(hd.HouseId)?.Name}. They will think much better of you for it, it is theirs for good, and their house owes you a favour: it leans your way on the next motion you bring.")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, hid))" /> }
+                    </div>
                 }
+                </div>
             </div>
         }
         @foreach (var item in flownElsewhere)
         {
             string lid = item.Id; var keeper = w.Char(item.HolderId); var no = new WealthCommand(pid, WealthCommand.Ransom, lid, string.Empty).Refusal(G.Ctx);
-            <div class="suit"><b>@Cap(item.Name)</b> <span class="muted">taken from your house, and held by @keeper?.Name of @(w.House(keeper?.HouseId ?? "")?.Name)</span>
-                <div class="suit-acts"><button class="opt inline tiny" disabled="@(no != null)" title="@(no ?? "Out of your own purse. It comes home as yours, with nothing owed. Beating them in battle would bring it home too.")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Ransom, lid, string.Empty))">Buy it home · @Money.Show(WealthSystem.RansomPrice(item))</button></div></div>
+            <div class="suit hs-item">
+                <Row Name="@Cap(item.Name)" SubText="@($"taken from your house, and held by {keeper?.Name} of {w.House(keeper?.HouseId ?? "")?.Name}")">
+                    <Picture><span class="ui-medal hs-medal"><Icon Name="@ItemIcon(item.Kind)" Tone="ember" Size="22" /></span></Picture>
+                    <Action><Plate Label="Buy it home" Small="true" CostIcon="swap-bag" CostText="@Money.Show(WealthSystem.RansomPrice(item))" Locked="@(no != null)" Disabled="@(no != null)" ShowNeed="false" Need="@(no ?? "")" Tip="Out of your own purse. It comes home as yours, with nothing owed. Beating them in battle would bring it home too." OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Ransom, lid, string.Empty))" /></Action>
+                </Row>
+            </div>
         }
-        @foreach (var item in others) { <div class="suit"><b>@Cap(item.Name)</b> <span class="muted">held by @w.Char(item.HolderId)?.Name · worth @Money.Show(item.Value)@(item.Entailed ? " · entailed" : "")</span><div class="muted small">@WealthSystem.Does(w, item)</div></div> }
-
-        <div class="hh-head"><b>Your will</b> <span class="muted small">The house goes to @(heir?.Name ?? "nobody: there is no heir") by @house.SuccessionLaw.Replace('_', ' '), whatever you write. Your purse and heirlooms go as you say.</span></div>
-        <div class="suit-acts"><span class="muted small">Of your purse</span>
-            <button class="opt inline tiny @(legatee == null ? "here" : "")" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Will, string.Empty, Zero))">all to the heir</button>
-            @foreach (int pct in Shares) { int sh = pct; <button class="opt inline tiny @(legatee != null && will!.SharePct == pct ? "here" : "")" disabled="@(_legatee == null && legatee == null)" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Will, _legatee ?? legatee!.Id, sh.ToString()))">@(pct == 100 ? "all" : pct == 50 ? "half" : "a quarter")</button> }
-            <span class="muted small">to</span>
-            @foreach (var c in people.Where(c => c.Id != heir?.Id).Take(7)) { string cid = c.Id; <button class="opt inline tiny @((_legatee ?? legatee?.Id) == c.Id ? "here" : "")" @onclick="() => _legatee = cid">@First(c.Name)</button> }
-        </div>
-        @if (_legatee == null && legatee == null) { <div class="muted small">Pick a name, then how much of the purse they are to have.</div> }
-        @if (legatee != null) { <div class="muted small">@(will!.SharePct == 100 ? "All" : will.SharePct == 50 ? "Half" : "A quarter") of your purse to <b>@legatee.Name</b>, the rest to the heir.@(will.SharePct >= 50 ? " The heir will not thank them for it." : "")</div> }
-        <div class="suit-acts" data-legacies><span class="muted small" title="Smaller legacies out of the purse, to as many as you like, so long as the will does not give away more than the whole. Each is reckoned on the purse as it stands the day you die.">And smaller legacies</span>
-            @foreach (var c in people.Where(c => c.Id != heir?.Id && c.Id != legatee?.Id).Take(7))
-            {
-                string cid = c.Id; int has = will?.Also.GetValueOrDefault(c.Id) ?? 0;
-                <span class="legacy"><b class="@(has > 0 ? "" : "muted")">@First(c.Name)</b>
-                    @foreach (int part in new[] { 10, 25 }) { int pt = part; var lno = has == part ? null : new WealthCommand(pid, WealthCommand.Legacy, cid, pt.ToString()).Refusal(G.Ctx);
-                        <button class="opt inline tiny @(has == part ? "here" : "")" disabled="@(lno != null)" title="@(lno ?? (has == part ? "Strike it out" : ""))" @onclick="() => G.Execute(new WealthCommand(pid, WealthCommand.Legacy, cid, has == pt ? Zero : pt.ToString()))">@(has == part ? "✓ " : "")@(part == 10 ? "a tenth" : "a quarter")</button> }
-                </span>
-            }
-        </div>
-        @if (will is { Also.Count: > 0 }) { int left = 100 - (legatee != null ? will.SharePct : 0) - will.Also.Values.Sum(); <div class="muted small">@string.Join("; ", will.Also.OrderBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => $"{(kv.Value == 10 ? "a tenth" : "a quarter")} to {w.Char(kv.Key)?.Name}")). The heir has what is left: @left parts in the hundred.</div> }
-
-        <div class="hh-head"><b>Dowries</b> <span class="muted small">When a daughter of the house marries with a dowry, whose money it is.</span></div>
-        <div class="suit-acts">
-            <button class="opt inline @(house.DowryFromPurse ? "" : "here")" title="@DowryTreasuryTip" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Dowries, string.Empty, Treasury)))">From the treasury</button>
-            <button class="opt inline @(house.DowryFromPurse ? "here" : "")" title="@DowryPurseTip" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Dowries, string.Empty, Purse)))">From my own purse first</button>
-        </div>
-
-        <div class="hh-head"><b>The estate</b> <span class="muted small">What becomes of the treasury when the head dies.</span></div>
-        <div class="suit-acts">
-            <button class="opt inline @(house.Inheritance == WealthSystem.Entail ? "here" : "")" title="the heir takes all of it; the other grown children resent being passed over" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Inheritance, string.Empty, WealthSystem.Entail)))">Kept whole</button>
-            <button class="opt inline @(house.Inheritance == WealthSystem.Portions ? "here" : "")" title="each other grown child of the head takes a tenth of the treasury; they mind less, and the house is poorer" @onclick="@(() => G.Execute(new WealthCommand(pid, WealthCommand.Inheritance, string.Empty, WealthSystem.Portions)))">Shared out in portions</button>
-        </div>
+        @foreach (var item in others)
+        {
+            <div class="suit hs-item">
+                <Row Name="@Cap(item.Name)" SubText="@WealthSystem.Does(w, item)" Tip="@WealthSystem.Does(w, item)">
+                    <Picture><span class="ui-medal hs-medal"><Icon Name="@ItemIcon(item.Kind)" Tone="ivory" Size="22" /></span></Picture>
+                    <NameExtra><span class="hs-tag">held by @w.Char(item.HolderId)?.Name@(item.Entailed ? ", entailed" : "")</span></NameExtra>
+                    <Cells><Cell Icon="credits" Value="@Money.Show(item.Value)" Tip="What it is worth" /></Cells>
+                </Row>
+            </div>
+        }
+        </ChildContent>
+    </Section>
     </div>
+
+    <div data-purse-sec="will">
+    <Section Title="Your will" Info="@($"The house goes to {(heir?.Name ?? "nobody: there is no heir")} by {house.SuccessionLaw.Replace('_', ' ')}, whatever you write. Your purse and heirlooms go as you say. Smaller legacies go out of the purse, to as many as you like, so long as the will does not give away more than the whole; each is reckoned on the purse as it stands the day you die.")">
+        <Right><span>The house to <b>@(heir?.Name ?? "nobody")</b></span></Right>
+        <ChildContent>
+        @{ var heirsOf = people.Where(c => c.Id != heir?.Id).Take(8).ToList(); int given = (legatee != null ? will!.SharePct : 0) + (will?.Also.Values.Sum() ?? 0); }
+        <p class="hs-note">@(given == 0 ? "All of your purse goes to the heir." : $"{given} parts in the hundred of your purse are left away; the heir has the rest, {100 - given}.")</p>
+        <div class="hs-will" data-legacies>
+        @foreach (var c in heirsOf)
+        {
+            string cid = c.Id; bool isLegatee = legatee?.Id == c.Id; int has = will?.Also.GetValueOrDefault(c.Id) ?? 0;
+            string now = isLegatee ? "w" + will!.SharePct : has > 0 ? "l" + has : "";
+            <Row Name="@c.Name" SubText="@(isLegatee ? (will!.SharePct == 100 ? "All of your purse" : will.SharePct == 50 ? "Half of your purse" : "A quarter of your purse") + (will.SharePct >= 50 ? ". The heir will not thank them for it." : "") : has > 0 ? (has == 10 ? "A tenth of your purse, as a legacy" : "A quarter of your purse, as a legacy") : "Nothing")" Class="hs-will-row">
+                <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
+                <Action><Select Value="@now" Placeholder="Bequeath" Tip="@($"What {First(c.Name)} has of your purse when you die. A legacy is reckoned on the purse as it stands that day.")"
+                                Options="@WillOptions(c, will)" OnChange="v => SetShare(cid, v, isLegatee, has)" /></Action>
+            </Row>
+        }
+        </div>
+        <div class="hs-kv">
+            <span class="hs-k" title="When a daughter of the house marries with a dowry, whose money it is"><Icon Name="charm" Tone="ivory" Size="16" />Dowries</span>
+            <span class="hs-v"><Segmented Value="@(house.DowryFromPurse ? Purse : Treasury)" Options="DowryOptions" OnChange="v => G.Execute(new WealthCommand(pid, WealthCommand.Dowries, string.Empty, v))" /></span>
+        </div>
+        <div class="hs-kv">
+            <span class="hs-k" title="What becomes of the treasury when the head dies"><Icon Name="castle" Tone="ivory" Size="16" />The estate</span>
+            <span class="hs-v"><Segmented Value="@house.Inheritance" Options="EstateOptions" OnChange="v => G.Execute(new WealthCommand(pid, WealthCommand.Inheritance, string.Empty, v))" /></span>
+        </div>
+        </ChildContent>
+    </Section>
     </div>
+
+    <RichHousePanel />
 </section>
 
 @code {
-    private bool _all; private string? _legatee, _confirm, _break;
+    private bool _all; private string? _legatee, _confirm, _break, _money, _item;
+    private int _move = 5;   // the sum to move between the treasury and your purse, in hundreds (docs/MONEY.md)
+    private readonly Dictionary<string, int> _sums = new(), _lots = new();
+    /// <summary>What a person may have of the purse by the will: a legacy (a tenth, a quarter) or the purse as the chief legatee (a
+    /// quarter, half, all); a legacy the will cannot hold beside the rest is shown with why.</summary>
+    private List<Select.Option> WillOptions(Character c, Will? will)
+    {
+        var pid = G.World!.ProtagonistId; var list = new List<Select.Option> { new("", "Nothing") };
+        foreach (int part in new[] { 10, 25 }) { var no = new WealthCommand(pid, WealthCommand.Legacy, c.Id, part.ToString()).Refusal(G.Ctx); list.Add(new("l" + part, part == 10 ? "A tenth, as a legacy" : "A quarter, as a legacy", no != null && will?.Also.GetValueOrDefault(c.Id) != part ? LawsScreen.Say(no) : "")); }
+        foreach (int pct in Shares) list.Add(new("w" + pct, pct == 100 ? "All, as legatee" : pct == 50 ? "Half, as legatee" : "A quarter, as legatee", "the rest to the heir"));
+        return list;
+    }
+    private void SetShare(string cid, string v, bool wasLegatee, int had)
+    {
+        var pid = G.World!.ProtagonistId;
+        if (v.StartsWith("w")) { if (had > 0) G.Execute(new WealthCommand(pid, WealthCommand.Legacy, cid, Zero)); G.Execute(new WealthCommand(pid, WealthCommand.Will, cid, v[1..])); return; }
+        if (wasLegatee) G.Execute(new WealthCommand(pid, WealthCommand.Will, string.Empty, Zero));
+        if (v.StartsWith("l")) G.Execute(new WealthCommand(pid, WealthCommand.Legacy, cid, v[1..]));
+        else if (had > 0) G.Execute(new WealthCommand(pid, WealthCommand.Legacy, cid, Zero));
+    }
     private const string InterestTip = "The same loan with a fifth on top. It is business, and they take it as business.";
     private const string BorrowTip = "Out of their own purse into yours. They will not ask for it. Left six years unpaid, they mind it.";
     private const string RepayTip = "As far as your purse goes.";
@@ -232,6 +307,7 @@
     private static string MadeTip(string kind) => kind == WealthSystem.Library
         ? "A library of your own house: everyone in it who has set themselves a study learns it a little faster. It is yours, and the house's after you."
         : $"A shrine in your house's name: the commons think a point better of the house each year, while they think less than {WealthSystem.ShrineCeiling} of it. It is yours, and the house's after you.";
+    private static string ItemIcon(string kind) => kind switch { "standard" => "flying-flag", "library" => "open-book", "shrine" => "greek-temple", "plate" => "coins-pile", "town_house" => "family-house", "estate" => "castle", _ => "crown" };
     private const string EntailTip = "It goes with the house from now on, to whoever has it, and cannot be sold, given or willed away. The old families approve.";
     private const string BreakTip = "Done in a court. The house loses standing, the old families think the worse of it, and your blood kin do not forget why.";
     private const string Treasury = "treasury", Purse = "purse", Zero = "0", LoanSum = "10";
@@ -241,7 +317,12 @@
     private const string ForgiveTip = "They owe you nothing more, and will not forget it.";
     private const string DowryTreasuryTip = "The house pays, as is usual.";
     private const string DowryPurseTip = "You pay what your purse holds and the treasury the rest. A bride whose portion came mostly from your own hand thinks the better of you for it.";
-    private int _moveCredits = 1000;   // typed in credits; the command is given hundreds (docs/MONEY.md)
+    private static readonly IReadOnlyList<(string, string, string)> DowryOptions = new[] { (Treasury, "From the treasury", DowryTreasuryTip), (Purse, "From my own purse first", DowryPurseTip) };
+    private static readonly IReadOnlyList<(string, string, string)> EstateOptions = new[]
+    {
+        (WealthSystem.Entail, "Kept whole", "The heir takes all of it; the other grown children resent being passed over"),
+        (WealthSystem.Portions, "Shared out in portions", "Each other grown child of the head takes a tenth of the treasury; they mind less, and the house is poorer")
+    };
     private static readonly int[] Sums = { 5, 20 }; private static readonly int[] Shares = { 25, 50, 100 };
     private static string First(string name) => name.Split(' ')[0];
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];

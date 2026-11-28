@@ -1,0 +1,71 @@
+@inject GameClient G
+@* The alerts row (docs/VISUAL_SYSTEM.md 3.5): 40px round badges under the top bar, centred over the free map (never under the
+   window, the outliner or the console). A badge is a dark disc holding the kind's glyph inside a metal rim: ember for danger (with
+   a notched "!" on top, so danger differs by shape as well as colour), brass for a decision, steel for information. Alerts of one
+   kind stack into one badge with a count. The sentences and where they go are in the tooltip; a click goes to the first, a
+   right-click dismisses the kind for the year. Each alert is also a button in a list read by a screen reader (and by the scripts
+   in tools/browser, as .ol-alert), so every one can still be reached and opened on its own. *@
+@{
+    var shown = Items.Where(a => !_dismissed.Contains(a.Kind)).ToList();
+    var groups = shown.GroupBy(a => a.Kind).Select(g => (kind: g.Key, list: g.ToList(), worst: Alerts.Worst(g))).OrderBy(g => Alerts.Rank(g.worst)).ThenBy(g => shown.IndexOf(g.list[0])).ToList();
+}
+<div class="alerts-row" role="region" aria-label="Alerts">
+    @for (int gi = 0; gi < Math.Min(MaxBadges, groups.Count); gi++)
+    {
+        var g = groups[gi]; string rim = g.worst == Alerts.Danger ? "ember" : g.worst == Alerts.Decision ? "brass" : "steel";
+        string first = g.list[0].Go;
+        <button class="alert-badge @rim ab-i@(gi)" data-kind="@g.kind" data-severity="@g.worst" aria-label="@($"{Alerts.Title(g.kind)}: {g.list.Count}")" title="@Tip(g.kind, g.list)"
+                @onclick="() => OnGo.InvokeAsync(first)" @oncontextmenu="() => Dismiss(g.kind)" @oncontextmenu:preventDefault="true">
+            <Icon Name="@Glyph(g.kind)" Tone="@(rim == "ember" ? "ember" : rim == "steel" ? (g.worst == Alerts.Good ? "good" : "steel") : "brass")" Size="21" />
+            @if (rim == "ember") { <i class="bang" aria-hidden="true"></i> }
+            @if (g.list.Count > 1) { <span class="c" data-n="@g.list.Count" aria-hidden="true"></span> }
+        </button>
+    }
+    @if (groups.Count > MaxBadges)
+    {
+        var rest = groups.Skip(MaxBadges).SelectMany(g => g.list).ToList(); string restGo = rest[0].Go;
+        <button class="alert-badge steel more full" data-kind="more" title="@Tip("news", rest, "More")" @onclick="() => OnGo.InvokeAsync(restGo)"><span class="c in" data-n="@("+" + rest.Count)" aria-hidden="true"></span></button>
+    }
+    @* where the free map is narrow the row keeps to one line: the CSS shows the first six or four badges and the "+N" that holds the rest *@
+    @foreach (int cut in new[] { 6, 4 })
+    {
+        if (groups.Count <= cut + 1) { continue; }
+        var restC = groups.Skip(cut).SelectMany(g => g.list).ToList(); string goC = restC[0].Go;
+        <button class="alert-badge steel more cut@(cut)" data-kind="more" title="@Tip("news", restC, "More")" @onclick="() => OnGo.InvokeAsync(goC)"><span class="c in" data-n="@("+" + restC.Count)" aria-hidden="true"></span></button>
+    }
+    <ul class="sr-only alert-list">
+        @foreach (var a in shown)
+        {
+            string go = a.Go;
+            <li><button class="ol-alert ol-row @a.Severity" data-kind="@a.Kind" @onclick="() => OnGo.InvokeAsync(go)">@a.Text</button></li>
+        }
+    </ul>
+</div>
+
+@code {
+    /// <summary>The alerts of the year, the most pressing first (Core's Alerts.For).</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<Alert> Items { get; set; } = Array.Empty<Alert>();
+    [Parameter] public EventCallback<string> OnGo { get; set; }
+    /// <summary>The year the row is of: what was dismissed comes back when it turns.</summary>
+    [Parameter] public int Year { get; set; }
+    /// <summary>How many badges fit over the free map; the rest stack into one "more" badge.</summary>
+    [Parameter] public int MaxBadges { get; set; } = 9;
+
+    private readonly HashSet<string> _dismissed = new(); private int _year = -1;
+    protected override void OnParametersSet() { if (Year != _year) { _year = Year; _dismissed.Clear(); } }
+    private void Dismiss(string kind) => _dismissed.Add(kind);
+
+    /// <summary>The kind's glyph (docs/VISUAL_SYSTEM.md 8.6).</summary>
+    public static string Glyph(string kind) => kind switch
+    {
+        Alerts.Governor => "office-chair", Alerts.Health => "pill", Alerts.Vote => "vote", Alerts.Fleet => "spaceship", Alerts.Office => "podium",
+        Alerts.Duty => "sundial", Alerts.War => "crossed-sabres", Alerts.Beyond => "world", Alerts.Court => "scales", Alerts.Money => "credits",
+        Alerts.Exchange => "trade", Alerts.Family => "family-tree", Alerts.Household => "three-friends", Alerts.Holdings => "ringed-planet",
+        Alerts.Estates => "rally-the-troops", Alerts.Council => "round-table", Alerts.Military => "eagle-emblem", Alerts.Houses => "flying-flag",
+        Alerts.Crisis => "hourglass", _ => "scroll-unfurled",
+    };
+    /// <summary>The badge's tooltip: a head with the kind's glyph, each sentence, and the keys.</summary>
+    private static string Tip(string kind, List<Alert> list, string? head = null) =>
+        $"[{Glyph(kind)}] {head ?? Alerts.Title(kind)}\n" + string.Join("\n", list.Take(8).Select(a => "* " + a.Text)) + (list.Count > 8 ? $"\n* and {list.Count - 8} more" : "")
+        + "\nkey: Click to open the first · right-click to dismiss these for the year";
+}

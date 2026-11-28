@@ -1,8 +1,9 @@
 {
-  "//": "THE HOUSEHOLD — scenes for the dynasty layer's engine-written flags (GDD §14/§18): regent (the adult ruling for a child head), came_of_age (a child turns sixteen — content clears), parvenu (the old blood sneers at a risen house), knife_turned (an attempt on your blood was traced), plot_exposed (your own plot was traced). All clear the flag they read. the_defiant_kin reads the engine `defiant` char flag (family autonomy); the_kin_who_left reads kin_defected. the_suit reads the engine `suitor` char flag (someone seeks the protagonist's hand).",
+  "//": "THE HOUSEHOLD, scenes for the dynasty layer's engine-written flags (GDD §14/§18): regent (the adult ruling for a child head), came_of_age (a child turns sixteen, content clears), parvenu (the old blood sneers at a risen house), knife_turned (an attempt on your blood was traced), plot_exposed (your own plot was traced). All clear the flag they read. the_defiant_kin reads the engine `defiant` char flag (family autonomy); the_kin_who_left reads kin_defected. the_suit reads the engine `suitor` char flag (someone seeks the protagonist's hand).",
   "events": [
     {
       "id": "the_regents_hand",
+      "scene": "family",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -95,7 +96,7 @@
             },
             {
               "type": "log",
-              "text": "The young head of the house overruled {regent.name} in front of the household — once, on a small thing, so that everyone would know it could be done."
+              "text": "The young head of the house overruled {regent.name} in front of the household, once, on a small thing, so that everyone would know it could be done."
             }
           ]
         },
@@ -130,6 +131,7 @@
     },
     {
       "id": "the_coming_of_age",
+      "scene": "family",
       "tier": "situation",
       "weight": 5,
       "repeatable": true,
@@ -183,7 +185,7 @@
             },
             {
               "type": "log",
-              "text": "{heir.name} came of age and {self.name} sent them to the Academy, as the house's heirs have always gone — to be broken and remade among the children of rivals."
+              "text": "{heir.name} came of age and {self.name} sent them to the Academy, as the house's heirs have always gone, to be broken and remade among the children of rivals."
             }
           ]
         },
@@ -386,6 +388,7 @@
     },
     {
       "id": "the_knife_turned",
+      "scene": "intrigue",
       "tier": "setpiece",
       "weight": 6,
       "repeatable": true,
@@ -437,7 +440,7 @@
             },
             {
               "type": "log",
-              "text": "Someone had reached for {self.name}'s blood and missed. {self.name} sent the children away that week — to cousins, to fosterage, to names that were not the house's — and slept no better for it."
+              "text": "Someone had reached for {self.name}'s blood and missed. {self.name} sent the children away that week, to cousins, to fosterage, to names that were not the house's, and slept no better for it."
             }
           ]
         },
@@ -729,7 +732,7 @@
             },
             {
               "type": "log",
-              "text": "{kin.name} wanted more than the house had given, and {self.name} gave some of it — a command, a seat, a say. The sulk ended. The appetite did not."
+              "text": "{kin.name} wanted more than the house had given, and {self.name} gave some of it, a command, a seat, a say. The sulk ended. The appetite did not."
             }
           ]
         },
@@ -931,6 +934,7 @@
     },
     {
       "id": "the_suit",
+      "scene": "feast",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,

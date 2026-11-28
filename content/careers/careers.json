@@ -1,7 +1,7 @@
 {
   // CAREER TRACKS + RANK LADDERS (GDD §13; docs/PRAETORIA_VOCAB.md §8e; docs/TITLES.md). The character's
   // ladder, reset each generation. Rank index i is named ranks[i]; the LAST rung is the ladder's top and
-  // CAPS the `advanceCareer` effect — a Fleet Admiral cannot be promoted again. Events gate on the bare
+  // CAPS the `advanceCareer` effect, a Fleet Admiral cannot be promoted again. Events gate on the bare
   // integer (`rank` condition) and on the track (`track` condition); prose names the rung with
   // {role.rankName}, which follows the era. `ranks` is the Republic's ladder; `imperialRanks` renames the
   // same rungs once a throne stands (same length or shorter; a missing rung keeps its republic name).

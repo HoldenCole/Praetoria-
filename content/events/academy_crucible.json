@@ -2,6 +2,7 @@
   "events": [
     {
       "id": "first_formation",
+      "scene": "bridge",
       "tier": "ambient",
       "weight": 40,
       "repeatable": false,
@@ -47,6 +48,7 @@
     },
     {
       "id": "barracks_slight",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -137,7 +139,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} thanked {rival.name} for the counsel, smiled, and let the silence do the cutting. A feud was made — a quiet one."
+              "text": "{self.name} thanked {rival.name} for the counsel, smiled, and let the silence do the cutting. A feud was made, a quiet one."
             }
           ]
         },
@@ -194,6 +196,7 @@
     },
     {
       "id": "the_reckoning",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -292,7 +295,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} disarmed {rival.name} and stepped back, blade lowered, before the cohort. Mercy, witnessed, is its own kind of victory — and {rival.name} knows the debt."
+              "text": "{self.name} disarmed {rival.name} and stepped back, blade lowered, before the cohort. Mercy, witnessed, is its own kind of victory, and {rival.name} knows the debt."
             }
           ]
         },
@@ -366,6 +369,7 @@
     },
     {
       "id": "night_watch_lapse",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -464,6 +468,7 @@
     },
     {
       "id": "the_oath",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -525,7 +530,7 @@
             },
             {
               "type": "log",
-              "text": "Two cadets, a dead hour, and words that cannot be unsaid. {self.name} and {comrade.name} swore the old oath — blade, blood, and name. Sworn is not blood. Sometimes it is fiercer."
+              "text": "Two cadets, a dead hour, and words that cannot be unsaid. {self.name} and {comrade.name} swore the old oath, blade, blood, and name. Sworn is not blood. Sometimes it is fiercer."
             }
           ]
         },
@@ -576,7 +581,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} clasped {comrade.name}'s arm and named no oath. A friend, yes. But chains, even chosen ones, are still chains — and {self.name} keeps the hands free."
+              "text": "{self.name} clasped {comrade.name}'s arm and named no oath. A friend, yes. But chains, even chosen ones, are still chains, and {self.name} keeps the hands free."
             }
           ]
         }
@@ -584,6 +589,7 @@
     },
     {
       "id": "the_blooding",
+      "scene": "battle",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -642,7 +648,7 @@
             },
             {
               "type": "log",
-              "text": "When the trial came, {self.name} sent {comrade.name} into the worst of it — the debt, called. {comrade.name} survived, and came back changed toward {self.name}. So did {self.name}. The crucible names what you are: Ruthless."
+              "text": "When the trial came, {self.name} sent {comrade.name} into the worst of it, the debt, called. {comrade.name} survived, and came back changed toward {self.name}. So did {self.name}. The crucible names what you are: Ruthless."
             }
           ]
         },
@@ -710,6 +716,7 @@
     },
     {
       "id": "the_instructors_eye",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -763,7 +770,7 @@
             },
             {
               "type": "log",
-              "text": "{mentor.name} of {mentor.house} began to single {self.name} out — harder problems, colder critiques. Favor here is just higher expectation wearing a kinder face. {self.name} rose to it."
+              "text": "{mentor.name} of {mentor.house} began to single {self.name} out, harder problems, colder critiques. Favor here is just higher expectation wearing a kinder face. {self.name} rose to it."
             }
           ]
         },
@@ -799,7 +806,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} made the climb deliberate — the right answers, the right deference, the right silences. {mentor.name} took {self.name} as a protege. Patronage is never free; the price comes later."
+              "text": "{self.name} made the climb deliberate, the right answers, the right deference, the right silences. {mentor.name} took {self.name} as a protege. Patronage is never free; the price comes later."
             }
           ]
         },
@@ -821,6 +828,7 @@
     },
     {
       "id": "mess_hall",
+      "scene": "feast",
       "tier": "ambient",
       "weight": 5,
       "repeatable": true,
@@ -912,7 +920,7 @@
             },
             {
               "type": "log",
-              "text": "A junior cadet, {junior.name}, asked to serve under {self.name}'s banner — said he watched {self.name} stand the first formation and wanted nothing else since. A small loyalty. A small obligation. The way every house begins."
+              "text": "A junior cadet, {junior.name}, asked to serve under {self.name}'s banner, said he watched {self.name} stand the first formation and wanted nothing else since. A small loyalty. A small obligation. The way every house begins."
             }
           ]
         },
@@ -947,7 +955,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent {junior.name} back to find his own feet. Not cruelty — a kindness shaped like a refusal. A banner you are carried to is not yours."
+              "text": "{self.name} sent {junior.name} back to find his own feet. Not cruelty, a kindness shaped like a refusal. A banner you are carried to is not yours."
             }
           ]
         }
@@ -1008,7 +1016,7 @@
             },
             {
               "type": "log",
-              "text": "The final trial, the whole cohort watching. {self.name} beat {best.name} of {best.house} fairly, and {best.name} — outdone — saluted. The best enemies are the ones who know your worth. {self.name} graduated first."
+              "text": "The final trial, the whole cohort watching. {self.name} beat {best.name} of {best.house} fairly, and {best.name}, outdone, saluted. The best enemies are the ones who know your worth. {self.name} graduated first."
             }
           ]
         },
@@ -1086,7 +1094,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} saw {best.name} was the better this day, and said so, before the cohort. To name a rival's excellence aloud costs pride and buys something rarer. {best.name} graduated first — and came to {self.name} after, an arm offered."
+              "text": "{self.name} saw {best.name} was the better this day, and said so, before the cohort. To name a rival's excellence aloud costs pride and buys something rarer. {best.name} graduated first, and came to {self.name} after, an arm offered."
             }
           ]
         }
@@ -1094,6 +1102,7 @@
     },
     {
       "id": "the_sabotage",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -1154,7 +1163,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} traced the ruined kit and the missing orders back to {rival.name} of {rival.house}, and laid the proof before the proctors. {rival.name} kept rank but lost face — and learned that {self.name} fights with patience as well as pride."
+              "text": "{self.name} traced the ruined kit and the missing orders back to {rival.name} of {rival.house}, and laid the proof before the proctors. {rival.name} kept rank but lost face, and learned that {self.name} fights with patience as well as pride."
             }
           ]
         },
@@ -1260,6 +1269,7 @@
     },
     {
       "id": "the_humiliated_returns",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -1319,7 +1329,7 @@
             },
             {
               "type": "log",
-              "text": "{rival.name} of {rival.house} came back smaller than before, the shame still on them. {self.name} offered, quietly and with no audience, a way to stand up straight again. A rival you humble can be ruined — or rebuilt into the most grateful ally you own. {self.name} chose to rebuild."
+              "text": "{rival.name} of {rival.house} came back smaller than before, the shame still on them. {self.name} offered, quietly and with no audience, a way to stand up straight again. A rival you humble can be ruined, or rebuilt into the most grateful ally you own. {self.name} chose to rebuild."
             }
           ]
         },
@@ -1354,7 +1364,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {rival.name} reach for dignity — and took it again, in front of the same cohort. Twice broken, {rival.name} stopped being a rival and became something quieter and more dangerous: a person with nothing left to lose and one name to blame."
+              "text": "{self.name} let {rival.name} reach for dignity, and took it again, in front of the same cohort. Twice broken, {rival.name} stopped being a rival and became something quieter and more dangerous: a person with nothing left to lose and one name to blame."
             }
           ]
         },
@@ -1374,7 +1384,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} walked past {rival.name} as though the feud, and {rival.name}, had already been forgotten. Sometimes indifference is the cruelest answer of all — and the one hardest to forgive."
+              "text": "{self.name} walked past {rival.name} as though the feud, and {rival.name}, had already been forgotten. Sometimes indifference is the cruelest answer of all, and the one hardest to forgive."
             }
           ]
         }
@@ -1382,6 +1392,7 @@
     },
     {
       "id": "the_wounded_mercy",
+      "scene": "family",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -1442,7 +1453,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} came to the infirmary where {rival.name} of {rival.house} lay mending, and brought no triumph — only an arm, and an end to it. The man you beat fairly and then forgave is the man who will hold the line beside you when it matters. Steel made the wound; this healed something older."
+              "text": "{self.name} came to the infirmary where {rival.name} of {rival.house} lay mending, and brought no triumph, only an arm, and an end to it. The man you beat fairly and then forgave is the man who will hold the line beside you when it matters. Steel made the wound; this healed something older."
             }
           ]
         },
@@ -1463,7 +1474,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent a formal note of respect to the infirmary — correct, cold, complete. {rival.name} healed, and the quarrel cooled to mere dislike. Not friendship. But not a knife in the dark either."
+              "text": "{self.name} sent a formal note of respect to the infirmary, correct, cold, complete. {rival.name} healed, and the quarrel cooled to mere dislike. Not friendship. But not a knife in the dark either."
             }
           ]
         },
@@ -1500,6 +1511,7 @@
     },
     {
       "id": "the_proctors_offer",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -1565,7 +1577,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid {proctor.name} of {proctor.house} what the rank was quietly worth, and the marks came back exactly as needed. A rung climbed in the dark is still a rung — and the man who sold it remembers the price, and that you were willing to pay it."
+              "text": "{self.name} paid {proctor.name} of {proctor.house} what the rank was quietly worth, and the marks came back exactly as needed. A rung climbed in the dark is still a rung, and the man who sold it remembers the price, and that you were willing to pay it."
             }
           ]
         },
@@ -1585,7 +1597,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} thanked {proctor.name} for the consideration and declined to buy what should be earned. The proctor's face cooled. A door closed — but {self.name} owns every rung climbed after, free and clear."
+              "text": "{self.name} thanked {proctor.name} for the consideration and declined to buy what should be earned. The proctor's face cooled. A door closed, but {self.name} owns every rung climbed after, free and clear."
             }
           ]
         },
@@ -1630,6 +1642,7 @@
     },
     {
       "id": "the_letter_home",
+      "scene": "dispatch",
       "tier": "ambient",
       "weight": 4,
       "repeatable": false,
@@ -1658,7 +1671,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wrote home plainly — the rivals, the cold nights, the slow climb. To set the truth down is to be, for a moment, a child writing to a house that existed before you and will outlast you. The reply, when it comes, will weigh more than any drill."
+              "text": "{self.name} wrote home plainly, the rivals, the cold nights, the slow climb. To set the truth down is to be, for a moment, a child writing to a house that existed before you and will outlast you. The reply, when it comes, will weigh more than any drill."
             }
           ]
         },
@@ -1686,7 +1699,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wrote home a version where the victories shone brighter and the doubts did not appear. The house will be proud of a son who does not quite exist — and {self.name} will spend the rest of the term becoming him, or failing to."
+              "text": "{self.name} wrote home a version where the victories shone brighter and the doubts did not appear. The house will be proud of a son who does not quite exist, and {self.name} will spend the rest of the term becoming him, or failing to."
             }
           ]
         },
@@ -1708,6 +1721,7 @@
     },
     {
       "id": "the_marked_man",
+      "scene": "intrigue",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -1775,7 +1789,7 @@
             },
             {
               "type": "log",
-              "text": "{enemy.name} of {enemy.house} had been waiting for {self.name} a long time, and waited a little too openly. The matter ended the way these things end at the edge of the academy, where the lights do not reach. {self.name} walked back alone. A made enemy, unmade — and a weight that does not lift."
+              "text": "{enemy.name} of {enemy.house} had been waiting for {self.name} a long time, and waited a little too openly. The matter ended the way these things end at the edge of the academy, where the lights do not reach. {self.name} walked back alone. A made enemy, unmade, and a weight that does not lift."
             }
           ]
         },
@@ -1821,7 +1835,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did neither — only watched, and waited, and slept lighter. {enemy.name}'s hatred is a fact of the world now, carried out the academy gates into whatever comes next. Some debts you do not settle. You only live alongside them, eyes open."
+              "text": "{self.name} did neither, only watched, and waited, and slept lighter. {enemy.name}'s hatred is a fact of the world now, carried out the academy gates into whatever comes next. Some debts you do not settle. You only live alongside them, eyes open."
             }
           ]
         }
@@ -1829,6 +1843,7 @@
     },
     {
       "id": "drills",
+      "scene": "battle",
       "tier": "ambient",
       "weight": 5,
       "repeatable": true,
@@ -1879,6 +1894,7 @@
     },
     {
       "id": "the_frame_unravels",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -1937,7 +1953,7 @@
             },
             {
               "type": "log",
-              "text": "The proctors could prove nothing, and {self.name} gave them nothing. {rival.name} of {rival.house} knows anyway. So, now, does the cohort — and a thing everyone knows but no one can prove is the most expensive kind of secret to keep."
+              "text": "The proctors could prove nothing, and {self.name} gave them nothing. {rival.name} of {rival.house} knows anyway. So, now, does the cohort, and a thing everyone knows but no one can prove is the most expensive kind of secret to keep."
             }
           ]
         },
@@ -2044,12 +2060,12 @@
             },
             {
               "type": "log",
-              "text": "A witness was reassigned. A record was corrected. By the time the inquiry closed, the only person who still knew what {self.name} had done was {rival.name} — who now knew something else as well: that {self.name} would go this far, and might go further."
+              "text": "A witness was reassigned. A record was corrected. By the time the inquiry closed, the only person who still knew what {self.name} had done was {rival.name}, who now knew something else as well: that {self.name} would go this far, and might go further."
             }
           ]
         }
       ]
     }
   ],
-  "//": "THE INSTITUTE — the Imperium's register (docs/ACADEMY.md). The old Academy Crucible: feuds, duels, sabotage, the marked man. Under the Imperium the Academy is a war in miniature and cadets are hurt in it. Every event carries an `academy` condition (register imperium); cadet roles (rival, comrade, junior, best, enemy) bind from the cohort, mentors and proctors from outside it. Flags coined: feud, humiliated, wounded, marked_for_death, reconciled, framed, sabotaged, covered_for, owes_you; world flag oath_sworn_academy; counter standing."
+  "//": "THE INSTITUTE, the Imperium's register (docs/ACADEMY.md). The old Academy Crucible: feuds, duels, sabotage, the marked man. Under the Imperium the Academy is a war in miniature and cadets are hurt in it. Every event carries an `academy` condition (register imperium); cadet roles (rival, comrade, junior, best, enemy) bind from the cohort, mentors and proctors from outside it. Flags coined: feud, humiliated, wounded, marked_for_death, reconciled, framed, sabotaged, covered_for, owes_you; world flag oath_sworn_academy; counter standing."
 }

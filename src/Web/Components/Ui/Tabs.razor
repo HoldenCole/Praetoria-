@@ -1,0 +1,27 @@
+@* Tabs (docs/VISUAL_SYSTEM.md 4.4): one row under the painting, at most six; a tab with Hidden set (an empty one) is not drawn. Raised
+   plates with a 16px icon; a count is a small round badge, gold when it needs action, with its own tooltip (CountTip). The chosen tab
+   takes the body's colour, loses its bottom edge and gains a brass top line, so it joins the page. Long names are cut to one or two
+   words by the caller. Under 1500px wide, a row of five or more drops its icons before it wraps. Sticky holds the row at the top of a
+   page that scrolls under it (StickyTop below a header's strip). A tab's Attrs carry data-* hooks for the scripts. *@
+<nav class="ui-tabs @(Shown.Count >= 5 ? " many" : "") @(Sticky ? " sticky" : "") @(Class.Length > 0 ? " " + Class : "")" role="tablist" data-n="@Shown.Count" style="@(Sticky ? $"top:{StickyTop}" : null)">
+    @foreach (var t in Shown)
+    {
+        var key = t.Key;
+        <button class="ui-tab @(key == Active ? " on" : "")" role="tab" aria-selected="@(key == Active ? "true" : "false")" data-tab="@key" title="@t.Tip" @onclick="() => OnPick.InvokeAsync(key)" @attributes="t.Attrs">
+            @if (t.Icon.Length > 0) { <Icon Name="@t.Icon" Tone="@(key == Active ? "brass" : "ivory")" Size="16" /> }
+            @t.Label
+            @if (t.Count.Length > 0) { <span class="ui-cnt @(t.Warn ? " warn" : "")" title="@(t.CountTip.Length > 0 ? t.CountTip : null)">@t.Count</span> }
+        </button>
+    }
+</nav>
+@code {
+    public sealed record Tab(string Key, string Label, string Icon = "", string Count = "", bool Warn = false, bool Hidden = false, string Tip = "",
+        string CountTip = "", IReadOnlyDictionary<string, object>? Attrs = null);
+    [Parameter] public IReadOnlyList<Tab> Items { get; set; } = Array.Empty<Tab>();
+    [Parameter] public string Active { get; set; } = "";
+    [Parameter] public EventCallback<string> OnPick { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public bool Sticky { get; set; }
+    [Parameter] public string StickyTop { get; set; } = "0";
+    private List<Tab> Shown => Items.Where(t => !t.Hidden).Take(6).ToList();
+}

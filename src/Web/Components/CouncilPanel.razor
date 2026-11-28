@@ -2,7 +2,9 @@
 @inject GameClient G
 @implements IDisposable
 @* The council (docs/HOUSEHOLD.md, "The council"; the owner, 2026-11-22: it is not shown beside the map all the time, and there are
-   more roles). Six posts, each a card: what it does, what it sees, who holds it, what they did, the one thing you have told them. *@
+   more roles), on the House window's Council tab. Six posts, each a row and not a card (docs/VISUAL_SYSTEM.md 4.7): the holder's face
+   (or the empty post's glyph in a hatched well), the post and who holds it, their skill, and under the row what the post sees, its
+   law, the reserve they keep and the one thing you have told them. An empty post offers who of the house could take it. *@
 @{
     var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var pid = p.Id; var house = w.House(p.HouseId)!;
     var eligible = HouseholdSystem.Eligible(w, house);
@@ -10,73 +12,82 @@
     string Rank(Character x) => c.Careers.RankName(x.CareerTrack, x.CareerRank, w.Era) ?? (x.Age < 16 ? "a child" : "of no office");
     string Best(Character x) => x.Skills.Count == 0 ? "no training" : string.Join(", ", x.Skills.Where(kv => kv.Value > 0).OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Take(3).Select(kv => $"{kv.Key} {kv.Value}"));
     var postLaws = c.Policies.Laws.Where(l => l.Scope.StartsWith("post:")).ToDictionary(l => l.Scope["post:".Length..], l => l);
+    int warned = HouseholdSystem.Roles.Count(r => seats.TryGetValue(r, out var st) && st.Warning);
 }
-<section class="panel household council" data-council-panel>
-    <div class="hh-head" data-council><b>The council</b> <span class="muted small">Six posts you can give away. Nothing has to be: an empty post is work you do yourself, or work nobody does. Whoever holds one does it once a year by their own skill, spends only what is above the reserve, and can be anyone grown of the house, born to it or taken in. Each says below what it sees. A post is paid @Money.Show(HouseholdSystem.Stipend) credits a year from the treasury; unpaid for @HouseholdSystem.LeavesAfter years, its holder gives it up.</span></div>
-    <div class="council-grid">
+<section class="panel household council hs-council" data-council-panel>
+    <p class="ui-lede hs-lede" data-council>@HouseScreen.Bold($"Six posts you can give away, {house.Duties.Count} of them held{(warned > 0 ? $", and {warned} with something to say" : "")}. An empty post is work you do yourself, or work nobody does.")</p>
+    <Section Title="The council" Count="@($"{house.Duties.Count} of {HouseholdSystem.Roles.Length}")" Info="@($"Nothing has to be given away: an empty post is work you do yourself, or work nobody does. Whoever holds one does it once a year by their own skill, spends only what is above the reserve, and can be anyone grown of the house, born to it or taken in. Each says what it sees. A post is paid {Money.Show(HouseholdSystem.Stipend)} credits a year from the treasury; unpaid for {HouseholdSystem.LeavesAfter} years, its holder gives it up.")">
+        <Right><span>Paid <b>@Money.Show(HouseholdSystem.Stipend)</b> a post a year</span></Right>
+        <ChildContent>
     @foreach (var role in HouseholdSystem.Roles)
     {
         var d = house.Duty(role); var holder = d != null ? w.Char(d.HolderId) : null; string r = role; int reserve = d?.Reserve ?? ReserveOf(role);
-        <div class="duty">
-            <div class="duty-top">
-                <b>@HouseholdSystem.RoleName(role)</b> <span class="muted small">@Sentence(HouseholdSystem.RoleDoes(role))</span>
-                @if (holder != null) { <button class="opt inline tiny" @onclick="() => G.Execute(new DelegateCommand(pid, r, string.Empty))">Take it back</button> }
-            </div>
-            @if (seats.TryGetValue(role, out var seat)) { <div class="small duty-says @(seat.Warning ? "bad" : "")" data-seat-says="@role">@seat.Line</div> }
-            @if (postLaws.TryGetValue(role, out var pl)) { var inForce = PolicySystem.Option(w, c.Policies, house.Id, pl.Id); <div class="muted small" data-post-law="@pl.Id" title="@pl.Description">Its law: <b>@pl.Name</b>, @(holder != null ? (inForce?.Name ?? "unset") : "in force once somebody holds the post"). It is set in the Laws window.</div> }
-            @if (holder != null && d != null)
-            {
-                <div class="suit-who">
-                    <Portrait Id="@holder.Id" Name="@holder.Name" Sex="@holder.Sex" Age="@holder.Age" Accent="@house.AccentColor" Size="34" />
-                    <div><b>@holder.Name</b> <span class="muted">@Rank(holder), @holder.Age@(HouseholdSystem.IsFound(holder) ? " · " + HouseholdSystem.KindName(HouseholdSystem.KindOf(holder)) : "") · skill @HouseholdSystem.Fit(holder, role) · @Years(w.Turn - d.Since) in the post</span>
-                        @if (!(seats.TryGetValue(role, out var said) && d.LastReport.Length > 0 && said.Line.Contains(d.LastReport))) { <div class="small">@(d.LastReport.Length > 0 ? d.LastReport : "Nothing to report yet.")</div> }
-                        @if (holder.Flags.Contains(HouseholdSystem.SkimmingChar)) { <div class="small bad">The accounts under them do not add up.</div> }</div>
-                </div>
-                <div class="suit-acts"><span class="muted small" title="They spend only what the treasury holds above this in credits. Materials and the rest they leave alone as far as the year's shares of what is already being built will want them.">Leave in the treasury (credits)</span>
-                    @foreach (int amt in Reserves) { int a = amt; <button class="opt inline tiny @(d.Reserve == amt ? "here" : "")" @onclick="() => G.Execute(new DelegateCommand(pid, r, d.HolderId, a))">@Money.Show(amt)</button> }
-                </div>
-                @if (role != HouseholdSystem.Steward && role != HouseholdSystem.Marshal)
-                {
-                    var opts = HouseholdSystem.Instructions(w, house, role);
-                    <div class="suit-acts" data-post-instruction="@role"><span class="muted small" title="The one thing you tell whoever holds this post. They do the rest by their own skill.">Told to</span>
-                        @if (opts.Count <= 4) { foreach (var o in opts) { string ov = o; <button class="opt inline tiny @(d.Favour == o ? "here" : "")" title="@HouseholdSystem.InstructionDoes(w, role, o)" @onclick="() => G.Execute(new PostInstructionCommand(pid, r, ov))">@HouseholdSystem.InstructionName(w, role, o)</button> } }
-                        else { <select value="@d.Favour" @onchange="e => G.Execute(new PostInstructionCommand(pid, r, e.Value?.ToString() ?? string.Empty))">@foreach (var o in opts) { <option value="@o">@HouseholdSystem.InstructionName(w, role, o)</option> }</select> }
-                    </div>
-                    <div class="muted small">@HouseholdSystem.InstructionDoes(w, role, d.Favour)</div>
-                }
-                @if (role == HouseholdSystem.Steward)
-                {
-                    var plan = G.Turn!.Household.StewardPlan(w, house, G.Ctx);
-                    <div class="suit-acts" data-steward-favour="@d.Favour"><span class="muted small" title="What they put first when they choose what to begin. It changes the order they try things in, not what the house can afford.">Favour</span>
-                        @foreach (var fv in HouseholdSystem.Favours) { string f = fv; <button class="opt inline tiny @(d.Favour == fv ? "here" : "")" title="@HouseholdSystem.FavourDoes(fv)" @onclick="() => G.Execute(new StewardFavourCommand(pid, f))">@HouseholdSystem.FavourName(fv)</button> }
-                    </div>
-                    <div class="small steward-plan" data-steward-plan="@(plan.next ?? "")">
-                        <b>When the year turns: </b>
-                        @if (plan.next != null) { <span>@NextSays(plan.next)@(plan.cost != null ? " (" + CourtProjection.Bundle(plan.cost) + ", paid by the year as it rises)" : ""). </span> }
-                        <span class="muted">@plan.says</span>
-                    </div>
-                }
+        seats.TryGetValue(role, out var seat);
+        <div class="duty hs-post @(holder == null ? "empty" : "") @(seat?.Warning == true ? "warn" : "")" data-post="@role">
+            @{
+                // the post's one action (docs/VISUAL_SYSTEM.md 4.12): an Appoint select whose options are the house's grown, each with a face,
+                // the skill and a dim note; one who may not take it keeps their place with the reason as its note
+                var cands = eligible.OrderByDescending(k => HouseholdSystem.Fit(k, role)).ThenBy(k => k.Id, StringComparer.Ordinal).Take(8).ToList();
+                var appoint = cands.Select(k => { var no = HouseholdSystem.AssignRefusal(w, p, role, k); return new Select.Option(no == null ? k.Id : "x:" + k.Id, $"{k.Name} · skill {HouseholdSystem.Fit(k, role)}", no != null ? "cannot: " + LawsScreen.Say(no) : (HouseholdSystem.IsFound(k) ? "taken in · " : "") + Best(k), k.Id, k.Sex, k.Age, house.AccentColor); }).ToList();
+                if (holder != null) appoint.Insert(0, new Select.Option("", "Take it back", "you do the work yourself again"));
+                string reserveTip = holder != null && d != null ? $"\nThey leave {Money.Show(d.Reserve)} in the treasury and spend only what is above it." : "";
             }
-            else
-            {
-                <div class="suit-acts">
-                    @if (eligible.Count == 0) { <span class="muted small">Nobody grown of the house to hand it to. You do it yourself.</span> }
-                    @foreach (var k in eligible.OrderByDescending(k => HouseholdSystem.Fit(k, role)).ThenBy(k => k.Id, StringComparer.Ordinal).Take(6))
+            <Row Name="@HouseholdSystem.RoleName(role)" Tip="@(Sentence(HouseholdSystem.RoleDoes(role)) + reserveTip + (holder == null && seat != null ? "\n" + seat.Line : ""))">
+                <Picture>
+                    @if (holder != null) { <Portrait Id="@holder.Id" Name="@holder.Name" Sex="@holder.Sex" Age="@holder.Age" Accent="@house.AccentColor" Size="46" Height="56" /> }
+                    else { <Portrait Size="46" Height="56" EmptyGlyph="@Glyph(role)" Name="@($"{HouseholdSystem.RoleName(role)}: empty")" /> }
+                </Picture>
+                <Sub>@if (holder != null && d != null) { <span><b>@holder.Name</b> · skill @HouseholdSystem.Fit(holder, role) · @Years(w.Turn - d.Since) in the post</span> } else if (seat != null) { <span class="hs-state @(seat.Warning ? "warn" : "")" title="@seat.Line">@if (seat.Warning) { <Icon Name="threat" Tone="ember" Size="14" /> }@seat.Line</span> } else { <span class="hs-state">Empty</span> }</Sub>
+                <Action>
+                    @if (cands.Count > 0 || holder != null)
                     {
-                        string kid = k.Id; var no = HouseholdSystem.AssignRefusal(w, p, role, k);
-                        <button class="opt inline" disabled="@(no != null)" title="@(no ?? Best(k))" @onclick="() => G.Execute(new DelegateCommand(pid, r, kid, reserve))">@First(k.Name) · skill @HouseholdSystem.Fit(k, role)@(HouseholdSystem.IsFound(k) ? " · taken in" : "")</button>
+                        <Select Value="@(holder?.Id ?? "")" Placeholder="Appoint" Class="hs-appoint" Tip="@(holder == null ? "Give the post to one of the house" : "Give the post to another, or take it back")" Options="@appoint" OnChange="v => Appoint(r, v, d?.Reserve ?? reserve)" />
                     }
-                </div>
-                @if (eligible.Count > 0)
+                    else { <span class="hs-mute-s" title="Nobody grown of the house to hand it to. You do it yourself.">Nobody to give it</span> }
+                </Action>
+            </Row>
+            <div class="hs-post-body">
+                @if (seat != null && holder != null) { <p class="hs-says @(seat.Warning ? "bad" : "")" data-seat-says="@role"><Icon Name="@(seat.Warning ? "alert" : "report")" Tone="@(seat.Warning ? "ember" : "ivory")" Size="15" />@seat.Line</p> }
+                @if (holder != null && d != null)
                 {
-                    <div class="suit-acts"><span class="muted small">Leave in the treasury</span>
-                        @foreach (int amt in Reserves) { int a = amt; <button class="opt inline tiny @(reserve == amt ? "here" : "")" @onclick="() => _reserve[r] = a">@amt</button> }
-                    </div>
+                    @if (!(seat != null && d.LastReport.Length > 0 && seat.Line.Contains(d.LastReport))) { <p class="hs-says" data-duty-report="@role"><Icon Name="scroll-quill" Tone="ivory" Size="15" />@(d.LastReport.Length > 0 ? d.LastReport : "Nothing to report yet.")</p> }
+                    @if (holder.Flags.Contains(HouseholdSystem.SkimmingChar)) { <WarnStrip Icon="coins-pile" Lead="Skimming." Bad="true">The accounts under them do not add up.</WarnStrip> }
                 }
-            }
+                @if (holder != null && postLaws.TryGetValue(role, out var pl)) { var inForce = PolicySystem.Option(w, c.Policies, house.Id, pl.Id); <p class="hs-note" data-post-law="@pl.Id" title="@pl.Description">Its law: <b>@pl.Name</b>, @(inForce?.Name ?? "unset"). It is set in the Laws window.</p> }
+                @if (holder != null && d != null)
+                {
+                    <div class="hs-line">
+                        <Stepper Label="Leave in the treasury" LabelTip="They spend only what the treasury holds above this in credits. Materials and the rest they leave alone as far as the year's shares of what is already being built will want them." Value="@ResIdx(d.Reserve)" Min="0" Max="@(Reserves.Length - 1)" Format="@(i => Money.Show(Reserves[i]))" OnChange="i => G.Execute(new DelegateCommand(pid, r, d.HolderId, Reserves[i]))" />
+                    </div>
+                    @if (role != HouseholdSystem.Steward && role != HouseholdSystem.Marshal)
+                    {
+                        var opts = HouseholdSystem.Instructions(w, house, role);
+                        <div class="hs-line" data-post-instruction="@role">
+                            <span class="hs-lbl" title="The one thing you tell whoever holds this post. They do the rest by their own skill.">Told to</span>
+                            @if (opts.Count <= 4) { <span class="ui-seg hs-seg">@foreach (var o in opts) { string ov = o; <button class="@(d.Favour == o ? "on" : "")" title="@HouseholdSystem.InstructionDoes(w, role, o)" @onclick="() => G.Execute(new PostInstructionCommand(pid, r, ov))">@HouseholdSystem.InstructionName(w, role, o)</button> }</span> }
+                            else { <Select Value="@d.Favour" Options="@opts.Select(o => new Select.Option(o, HouseholdSystem.InstructionName(w, role, o))).ToList()" Tip="The one thing you tell them" OnChange="v => G.Execute(new PostInstructionCommand(pid, r, v))" /> }
+                        </div>
+                        <p class="hs-note">@HouseholdSystem.InstructionDoes(w, role, d.Favour)</p>
+                    }
+                    @if (role == HouseholdSystem.Steward)
+                    {
+                        var plan = G.Turn!.Household.StewardPlan(w, house, G.Ctx);
+                        <div class="hs-line" data-steward-favour="@d.Favour">
+                            <span class="hs-lbl" title="What they put first when they choose what to begin. It changes the order they try things in, not what the house can afford.">Favour</span>
+                            <span class="ui-seg hs-seg">@foreach (var fv in HouseholdSystem.Favours) { string f = fv; <button class="@(d.Favour == fv ? "on" : "")" title="@HouseholdSystem.FavourDoes(fv)" @onclick="() => G.Execute(new StewardFavourCommand(pid, f))">@HouseholdSystem.FavourName(fv)</button> }</span>
+                        </div>
+                        <p class="hs-note steward-plan" data-steward-plan="@(plan.next ?? "")">
+                            <b>When the year turns: </b>
+                            @if (plan.next != null) { <span>@NextSays(plan.next)@(plan.cost != null ? " (" + CourtProjection.Bundle(plan.cost) + ", paid by the year as it rises)" : ""). </span> }
+                            <span>@plan.says</span>
+                        </p>
+                    }
+                }
+            </div>
         </div>
     }
-    </div>
+        </ChildContent>
+    </Section>
 </section>
 
 @code {
@@ -86,9 +97,21 @@
     public void Dispose() => G.Changed -= Redraw;
     private static readonly int[] Reserves = { 0, 20, 50, 100, 200 };
     private readonly Dictionary<string, int> _reserve = new();
+    private static int ResIdx(int reserve) { int i = Array.IndexOf(Reserves, reserve); return i >= 0 ? i : 1; }
+    private void Appoint(string role, string v, int reserve)
+    {
+        var pid = G.World!.ProtagonistId;
+        if (v.StartsWith("x:")) return;   // one who may not take it: the reason is its note
+        G.Execute(new DelegateCommand(pid, role, v, reserve));
+    }
     private int ReserveOf(string role) => _reserve.TryGetValue(role, out int v) ? v : 20;
     private static string NextSays(string did) => did.StartsWith("began ") ? "Would begin " + did[6..] : did.StartsWith("enlarged ") ? "Would enlarge " + did[9..] : did;
     private static string First(string name) => name.Split(' ')[0];
     private static string Sentence(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..] + ".";
     private static string Years(int n) => n <= 0 ? "this year" : n == 1 ? "a year" : $"{n} years";
+    /// <summary>The post's glyph, for its empty well.</summary>
+    private static string Glyph(string role) => role switch
+    {
+        HouseholdSystem.Steward => "abacus", HouseholdSystem.Marshal => "rally-the-troops", "chancellor" => "scroll-quill", "spymaster" => "cowled", "envoy" => "dove", "advocate" => "scales", _ => "round-table"
+    };
 }

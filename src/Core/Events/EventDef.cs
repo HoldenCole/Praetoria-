@@ -56,6 +56,10 @@ public sealed class EventDef
     /// protagonist who holds one. Empty = no bias.</summary>
     public IReadOnlyList<string> Ambitions { get; init; } = Array.Empty<string>();
 
+    /// <summary>The painting the event opens on (one of img/scenes, docs/ART_DIRECTION.md), when its author named one.
+    /// Empty = chosen by the words of its id and title (<see cref="Praetoria.Core.Presentation.SceneArt"/>).</summary>
+    public string Scene { get; init; } = "";
+
     public Choice? Choice(string id)
     {
         foreach (var c in Choices) if (c.Id == id) return c;

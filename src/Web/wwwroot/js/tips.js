@@ -41,6 +41,8 @@
   };
 
   // ---- what a thing says ----
+  /** A glyph of the sprite in index.html, in one of the six ramps. */
+  const glyph = (key, tone) => '<svg class="icon ico ' + (tone || '') + '" viewBox="0 0 512 512" aria-hidden="true"><use href="#i-' + key + '"/></svg>';
   const text = el => { if (el.hasAttribute('title')) { const t = el.getAttribute('title'); el.removeAttribute('title'); if (t) el.dataset.tip = t; else delete el.dataset.tip; } return el.dataset.tip || ''; };
   /** A leaf of a window whose whole text is one of the game's words: it explains itself. */
   const labelTerm = el => {
@@ -61,11 +63,26 @@
     const s = text(owner); if (!s) return null;
     // a tooltip that opens with one of the game's words is about that word: it is not underlined in its own explanation
     if (rx) { rx.lastIndex = 0; const first = rx.exec(s); if (first && first.index === 0) { const own = idOf(first[1]); if (own) skip.add(own); } }
-    const lines = s.split('\n'); const m = /^(.{2,40}?) (?:—|·) (.+)$/.exec(lines[0]);
-    if (m && lines.length === 1 && m[2].length > 24) { const h = document.createElement('b'); h.textContent = m[1]; tipEl.appendChild(h); lines[0] = m[2]; const own = idOf(m[1]); if (own) skip.add(own); }
+    const lines = s.split('\n');
+    // "[icon] Title — text": a head in brass small capitals with its glyph (docs/VISUAL_SYSTEM.md 4.14)
+    const ic = /^\[([\w-]+)\] (.+)$/.exec(lines[0]); let headIcon = '';
+    if (ic && !/ = /.test(lines[0])) { headIcon = ic[1]; lines[0] = ic[2]; }
+    // a short title before an em dash is always the head, however many lines follow (no dash is ever shown); before a middle dot only
+    // when the tooltip is one line
+    const m = /^(.{2,40}?) (—|·) (.+)$/.exec(lines[0]);
+    if (m && (m[2] === '—' || lines.length === 1 && m[3].length > 24 || headIcon)) { const h = document.createElement('b'); if (headIcon) h.innerHTML = glyph(headIcon, 'ivory'); h.append(m[1]); tipEl.appendChild(h); lines[0] = m[3].charAt(0).toUpperCase() + m[3].slice(1); const own = idOf(m[1]); if (own) skip.add(own); }
+    else if (headIcon) { const h = document.createElement('b'); h.innerHTML = glyph(headIcon, 'ivory'); h.append(lines.shift()); tipEl.appendChild(h); if (!lines.length) return ''; }
     for (const ln of lines) {
+      // "[icon] words = value": an effect line, its value red or green by its sign; "=+ value" and "=- value" say outright whether it is
+      // good or bad for you (strain +10 is bad), "=~ value" neither; "key: Press [1] to choose it": the footer of keys
+      const fx = /^\[([\w-]+)\] (.+?) =([+~-])? (.+)$/.exec(ln);
+      if (fx) { const d = document.createElement('div'); d.className = 'fx'; const w = document.createElement('span'); write(w, fx[2], skip, budget); const v = document.createElement('span'); const tone = fx[3] === '+' ? ' up' : fx[3] === '-' ? ' down' : fx[3] === '~' ? '' : /^[−-]/.test(fx[4]) ? ' down' : /^\+/.test(fx[4]) ? ' up' : ''; v.className = 'v' + tone; v.textContent = fx[4]; d.innerHTML = glyph(fx[1], ''); d.append(w, v); tipEl.appendChild(d); continue; }
+      if (/^key: /.test(ln)) { const f = document.createElement('div'); f.className = 'foot'; for (const part of ln.slice(5).split(/(\[[^\]]+\])/)) { if (/^\[.+\]$/.test(part)) { const k = document.createElement('kbd'); k.textContent = part.slice(1, -1); f.append(k); } else if (part) f.append(part); } tipEl.appendChild(f); continue; }
+      // "* sentence": one item of a list (the alerts of a badge), a whole sentence with a brass diamond before it, never split in two
+      if (/^\* /.test(ln)) { const d = document.createElement('div'); d.className = 'li'; write(d, ln.slice(2), skip, budget); tipEl.appendChild(d); continue; }
       const d = document.createElement('div'); const k = /^(.+?): (.+)$/.exec(ln);
-      if (k && lines.length > 2) { d.className = 'row'; const a = document.createElement('span'), b = document.createElement('span'); write(a, k[1], skip, budget); b.textContent = k[2]; d.append(a, b); }
+      // "label: value" is a row of a breakdown only when both are short; a sentence with a colon in it stays a paragraph
+      if (k && lines.length > 2 && k[1].length <= 28 && k[2].length <= 40) { d.className = 'row'; const a = document.createElement('span'), b = document.createElement('span'); write(a, k[1], skip, budget); b.textContent = k[2]; d.append(a, b); }
       else write(d, ln, skip, budget);
       tipEl.appendChild(d);
     }
@@ -76,9 +93,16 @@
   const at = (x, y) => ({ getBoundingClientRect: () => ({ x, y, left: x, top: y, right: x, bottom: y, width: 0, height: 0 }) });
   const place = (tipEl, ref, placement, gap) => {
     if (FUI) {
-      return FUI.computePosition(ref, tipEl, { strategy: 'fixed', placement, middleware: [FUI.offset(gap), FUI.flip({ padding: 8 }), FUI.shift({ padding: 8 }),
-        FUI.size({ padding: 8, apply({ availableHeight }) { tipEl.style.maxHeight = Math.max(140, Math.floor(availableHeight)) + 'px'; } })] })
-        .then(({ x, y, placement: p }) => { tipEl.style.left = Math.round(x) + 'px'; tipEl.style.top = Math.round(y) + 'px'; tipEl.dataset.side = p.split('-')[0]; });
+      const arr = tipEl.querySelector(':scope > .arr');
+      const mw = [FUI.offset(gap + 14), FUI.flip({ padding: 8 }), FUI.shift({ padding: 8 }),
+        FUI.size({ padding: 8, apply({ availableHeight }) { const h = Math.max(140, Math.floor(availableHeight)); tipEl.style.maxHeight = h + 'px'; tipEl.classList.toggle('scrolls', tipEl.scrollHeight > h); } })];  // only a tooltip taller than the screen scrolls (and loses its arrow)
+      if (arr && FUI.arrow) mw.push(FUI.arrow({ element: arr, padding: 18 }));
+      return FUI.computePosition(ref, tipEl, { strategy: 'fixed', placement, middleware: mw })
+        .then(({ x, y, placement: p, middlewareData: md }) => {
+          tipEl.style.left = Math.round(x) + 'px'; tipEl.style.top = Math.round(y) + 'px'; const side = p.split('-')[0]; tipEl.dataset.side = side;
+          // the arrow sits on the frame's outer edge facing the anchor; its offsets are from the padding box, inside the 16px frame
+          if (arr && md && md.arrow) { const b = 16; arr.style.left = side === 'top' || side === 'bottom' ? (md.arrow.x != null ? Math.round(md.arrow.x - b) + 'px' : '') : ''; arr.style.top = side === 'left' || side === 'right' ? (md.arrow.y != null ? Math.round(md.arrow.y - b) + 'px' : '') : ''; }
+        });
     }
     // without the library: below and right of the point, turned back at the edges
     const o = ref.getBoundingClientRect(), r = tipEl.getBoundingClientRect(), W = innerWidth, H = innerHeight; let l = o.right + gap, t = o.bottom + gap;
@@ -97,7 +121,7 @@
   const open = (level, owner, x, y, byKey) => {
     if (!document.contains(owner)) return; prune(level);
     const el = document.createElement('div'); el.className = 'gtip'; el.style.zIndex = 200 + level; el.dataset.level = level;
-    const gloss = build(el, owner, level); if (gloss === null) return;
+    const gloss = build(el, owner, level); if (gloss === null) return; const arr = document.createElement('i'); arr.className = 'arr'; el.appendChild(arr);
     const sticky = level + 1 < DEPTH && !!el.querySelector('.term'); if (sticky) el.classList.add('sticky');
     document.body.appendChild(el); stack.push({ el, owner, sticky, gloss });
     const r = owner.getBoundingClientRect(), wide = r.width > 260 || r.height > 90;

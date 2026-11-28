@@ -16,14 +16,14 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
-  // the House screen keeps its household and its purses on tabs
-  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => e.innerText.includes(n)); if (t) t.click(); }, name); };
+  // the House window keeps its household and its purses on tabs (the shared Tabs part, docs/VISUAL_SYSTEM.md 4.4)
+  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung, .screen.window .ui-tab')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (t) t.click(); }, name); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
-  const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').slice(0, 50) : ''; }, text);
-  const head = () => page.evaluate(() => ((document.querySelector('.panel.wealth h3') || {}).innerText || 'NO PANEL').replace(/\s+/g, ' '));
-  await closeWindows(); await rail('House'); await tab('Purses'); await page.waitForTimeout(700);
+  const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => !e.disabled && e.innerText.trim().toLowerCase().startsWith(t.toLowerCase())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').slice(0, 50) : ''; }, text);
+  const head = () => page.evaluate(() => ((document.querySelector('.panel.wealth [data-purse-head]') || document.querySelector('.panel.wealth h3') || {}).innerText || 'NO PANEL').replace(/\s+/g, ' '));
+  await closeWindows(); await rail('House'); await tab('Purse'); await page.waitForTimeout(700);
   const text = await page.evaluate(() => (document.querySelector('.panel.wealth') || {}).innerText || 'NO PANEL');
   console.log('panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + await head());
   console.log('took: ' + (await press('take 5') || 'could not')); await page.waitForTimeout(200);
@@ -31,35 +31,36 @@ require('fs').mkdirSync(shots, { recursive: true });
   // a thing made to order: enough into the purse for a shrine, then have one made (docs/WEALTH.md "New things")
   for (let i = 0; i < 7; i++) { await press('take 5'); await page.waitForTimeout(300); }
   console.log('made to order: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(300);
-  console.log('heirlooms: ' + await page.evaluate(() => { const col = [...document.querySelectorAll('.panel.wealth .hh-head')].find(e => e.innerText.startsWith('Heirlooms')); let n = col ? col.nextElementSibling : null; const out = []; while (n && !n.classList.contains('hh-head')) { out.push(n.innerText.replace(/\s+/g, ' ').slice(0, 80)); n = n.nextElementSibling; } return out.join(' || '); }));
-  console.log('legatee picked: ' + await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => e.innerText.includes('Of your purse')); const bs = row ? [...row.querySelectorAll('button')] : []; const i = bs.findIndex(b => b.innerText.trim() === 'all'); const b = bs[i + 1]; if (b) b.click(); return b ? b.innerText : 'nobody to name'; }));
-  await page.waitForTimeout(200); console.log('will: ' + (await press('half') || 'not set')); await page.waitForTimeout(200);
+  console.log('heirlooms: ' + await page.evaluate(() => { const sec = document.querySelector('.panel.wealth [data-purse-sec="heirlooms"]'); return sec ? [...sec.querySelectorAll('.suit .ui-row, .suit-acts, .ui-empty')].map(n => n.innerText.replace(/\s+/g, ' ').slice(0, 80)).join(' || ') : 'NO SECTION'; }));
+  // the will is a row a person with a select for their share (docs/VISUAL_SYSTEM.md 4.12): open the first one's and choose half
+  console.log('legatee picked: ' + await page.evaluate(() => { const row = document.querySelector('.panel.wealth [data-legacies] .ui-row'); const b = row && row.querySelector('.ui-select-btn'); if (b) b.click(); return row ? row.querySelector('.ui-row-nm').innerText : 'nobody to name'; }));
+  await page.waitForTimeout(300); console.log('will: ' + (await press('half') || 'not set')); await page.waitForTimeout(200);
   console.log('estate: ' + (await press('Shared out') || 'could not')); await page.waitForTimeout(300);
-  console.log('now: ' + await head()); await page.screenshot({ path: shots + '/wealth-begin.png' });
-  for (let y = 0; y < years; y++) { await endTurn(); await rail('House'); await tab('Purses'); await page.waitForTimeout(300); }
+  console.log('now: ' + await head()); await page.locator('.screen.window').screenshot({ path: shots + '/wealth-begin.png', timeout: 180000 });
+  for (let y = 0; y < years; y++) { await endTurn(); await rail('House'); await tab('Purse'); await page.waitForTimeout(300); }
   console.log('after ' + years + ' years: ' + await head());
   // the treasury of a poor start does not hold a shrine at once: try again with the years' income
   for (let i = 0; i < 6; i++) { await press('take 5'); await page.waitForTimeout(300); }
   console.log('made to order, later: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(400);
   // shares in the head's own name: buy one of whatever is offered, and say what the panel then shows (docs/WEALTH.md)
   for (let i = 0; i < 4; i++) { await press('take 5'); await page.waitForTimeout(300); }
-  const offer = await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => e.innerText.includes('Buy for yourself')); if (!row) return 'NO ROW'; const bs = [...row.querySelectorAll('button')]; const b = bs.find(e => !e.disabled); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nothing affordable: ' + (bs[0] ? bs[0].title : 'no company listed'); });
+  const offer = await page.evaluate(() => { const row = [...document.querySelectorAll('.panel.wealth .suit-acts')].find(e => /buy for yourself/i.test(e.innerText)); if (!row) return 'NO ROW'; const bs = [...row.querySelectorAll('button')].filter(e => /^Buy/.test(e.innerText.trim())); const b = bs.find(e => !e.disabled); if (b) b.click(); return b ? (b.closest('.ui-row').querySelector('.ui-row-nm').innerText + ' · ' + b.innerText).replace(/\s+/g, ' ') : 'nothing affordable: ' + (bs[0] ? bs[0].title : 'no company listed'); });
   await page.waitForTimeout(400);
   console.log('own shares, bought: ' + offer);
-  console.log('own shares, held: ' + await page.evaluate(() => { const col = [...document.querySelectorAll('.panel.wealth .hh-head')].find(e => e.innerText.startsWith('Shares of your own')); let n = col ? col.nextElementSibling : null; const out = []; while (n && !n.classList.contains('hh-head')) { if (n.classList.contains('purse-row') || n.classList.contains('muted')) out.push(n.innerText.replace(/\s+/g, ' ').slice(0, 160)); n = n.nextElementSibling; } return out.join(' || ') || 'NO SECTION'; }));
-  console.log('heirlooms now: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 200)).filter(t => /worth/.test(t)).join(' || ')));
+  console.log('own shares, held: ' + await page.evaluate(() => { const sec = document.querySelector('.panel.wealth [data-purse-sec="shares"]'); return sec ? [...sec.querySelectorAll('.purse-row, .ui-empty')].map(n => n.innerText.replace(/\s+/g, ' ').slice(0, 160)).join(' || ') || 'NOTHING HELD' : 'NO SECTION'; }));
+  console.log('heirlooms now: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .suit .ui-row')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 200)).join(' || ')));
   // a thing given to the head of another house is a favour asked (docs/WEALTH.md "A gift that asks")
   const gave = await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth .suit .suit-acts button')].find(e => !e.disabled && / of /.test(e.innerText) && !/Sell|Send it home/.test(e.innerText)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nobody to give it to'; });
   await page.waitForTimeout(400);
-  console.log('gave the shrine to: ' + gave + ' · ' + await page.evaluate(() => { const el = [...document.querySelectorAll('.panel.wealth .muted.small')].find(e => e.innerText.includes('Owe you a favour')); return el ? el.innerText.replace(/\s+/g, ' ') : 'no favours line'; }));
+  console.log('gave the shrine to: ' + gave + ' · ' + await page.evaluate(() => { const el = document.querySelector('.panel.wealth [data-favours]'); return el ? el.innerText.replace(/\s+/g, ' ') : 'no favours line'; }));
   // the favour that gift bought is called in for money (docs/WEALTH.md "A favour called in")
   const called = await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.includes('Call it in for')); if (b && !b.disabled) b.click(); return b ? (b.disabled ? 'cannot: ' + b.title : b.innerText.replace(/\s+/g, ' ')) : 'no button'; });
   await page.waitForTimeout(400);
-  console.log('called the favour in: ' + called + ' · favours line now: ' + await page.evaluate(() => { const el = [...document.querySelectorAll('.panel.wealth .muted.small')].find(e => e.innerText.includes('Owe you a favour')); return el ? 'still shown' : 'gone'; }));
+  console.log('called the favour in: ' + called + ' · favours line now: ' + await page.evaluate(() => { const el = [...document.querySelectorAll('.panel.wealth [data-favours]')].find(e => /owe you a favour/i.test(e.innerText)); return el ? 'still shown' : 'gone'; }));
   console.log('their purses: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.wealth .purse-row:not(.own-share)')].map(e => e.innerText.replace(/\s+/g, ' ').slice(0, 90)).join(' || ')));
-  await page.evaluate(() => { const el = document.querySelector('.panel.wealth'); if (el) el.scrollIntoView(); }); await page.waitForTimeout(300);
-  const box = await page.evaluate(() => { const r = document.querySelector('.panel.wealth').getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1400) }; });
-  await page.screenshot({ path: shots + '/wealth-panel.png', clip: box });
+  // the window as it stands, the purse tab at its head (an element shot: the map behind it is slow to draw without a graphics card)
+  await page.evaluate(() => { const b = document.querySelector('.screen.window .ui-wbody'); if (b) b.scrollTop = 0; }); await page.waitForTimeout(300);
+  await page.locator('.screen.window').screenshot({ path: shots + '/wealth-panel.png', timeout: 180000 });
   console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e));
   await browser.close();
 })().catch(e => { console.error('FAILED ' + e.message.split('\n')[0]); process.exit(1); });

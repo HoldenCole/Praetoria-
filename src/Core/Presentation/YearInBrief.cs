@@ -6,7 +6,7 @@ namespace Praetoria.Core.Presentation;
 
 /// <summary>One line of the year in brief: what kind of thing it was, how it should be read ("good", "warn", "info"), the line, and
 /// the window that shows it.</summary>
-public sealed record BriefLine(string Kind, string Tone, string Text, string Target);
+public sealed record BriefLine(string Kind, string Tone, string Text, string Target, string PersonId = "");
 
 /// <summary>
 /// The year in brief (docs/PLAYTHROUGH.md, Medium: "births, deaths, marriages, wars declared and ended, suits and fines, elections,
@@ -84,24 +84,24 @@ public static class YearInBrief
 
         // what the house was told as the year turned: births, deaths, wars declared on it, attempts, tutors, illness, dues, dowries
         var dead = w.Deaths.Where(d => d.Turn >= year).ToList();
-        foreach (var n in w.NewsNow()) { if (dead.Any(d => n.SubjectId == d.PersonId && n.Text.Contains("has died"))) continue; lines.Add(new BriefLine(KindOf(n.Target), n.Tone, n.Text, n.Target)); }
+        foreach (var n in w.NewsNow()) { if (dead.Any(d => n.SubjectId == d.PersonId && n.Text.Contains("has died"))) continue; lines.Add(new BriefLine(KindOf(n.Target), n.Tone, n.Text, n.Target, n.SubjectId)); }
         // a death is a report of its own: who and how, each post it left empty (the line opens the place it is filled), and what passed
         foreach (var d in dead)
         {
-            lines.Add(new BriefLine(Family, "warn", $"{d.Name} died at {d.Age}{(d.How.Length > 0 ? ", " + d.How : "")}.", "dynasty:dead"));
-            foreach (var post in d.Posts) lines.Add(new BriefLine(Family, "warn", $"Left empty by {d.Name}: {post.What}. Fill it here.", post.Target));
+            lines.Add(new BriefLine(Family, "warn", $"{d.Name} died at {d.Age}{(d.How.Length > 0 ? ", " + d.How : "")}.", "dynasty:dead", d.PersonId));
+            foreach (var post in d.Posts) lines.Add(new BriefLine(Family, "warn", $"Left empty by {d.Name}: {post.What}. Fill it here.", post.Target, d.PersonId));
             foreach (var passed in d.Passed) lines.Add(new BriefLine(Family, "info", passed, "house:purse"));
         }
 
         // the seat passed: said first of all, since everything else in the year is read in its light
         foreach (var s in w.Successions.Where(s => s.Turn >= year && s.HeirId == p.Id))
-            lines.Insert(0, new BriefLine(Family, "warn", $"{s.DeceasedName}, head of the house, {(s.Cause == "death" ? $"died at {s.DeceasedAge}" : "stepped down")}. {p.Name} is head now, and what the old head had begun in the year is theirs to finish.", "dynasty:tree"));
+            lines.Insert(0, new BriefLine(Family, "warn", $"{s.DeceasedName}, head of the house, {(s.Cause == "death" ? $"died at {s.DeceasedAge}" : "stepped down")}. {p.Name} is head now, and what the old head had begun in the year is theirs to finish.", "dynasty:tree", s.DeceasedId));
 
         foreach (var m in w.Marriages.Where(m => m.Since == year).OrderBy(m => m.A, StringComparer.Ordinal))
         {
             var a = w.Char(m.A); var b = w.Char(m.B); if (a == null || b == null || (a.HouseId != mine && b.HouseId != mine)) continue;
             var ours = a.HouseId == mine ? a : b; var theirs = ours == a ? b : a;
-            lines.Add(new BriefLine(Family, "good", $"{ours.Name} married {theirs.Name}{(theirs.HouseId != mine ? " of " + Nm(theirs.HouseId) : "")}{(m.Dowry > 0 ? $", with a dowry of {Praetoria.Core.Money.Credits(m.Dowry)} {(m.DowryFrom == mine ? "paid" : "received")}" : "")}.", "dynasty:marriages"));
+            lines.Add(new BriefLine(Family, "good", $"{ours.Name} married {theirs.Name}{(theirs.HouseId != mine ? " of " + Nm(theirs.HouseId) : "")}{(m.Dowry > 0 ? $", with a dowry of {Praetoria.Core.Money.Credits(m.Dowry)} {(m.DowryFrom == mine ? "paid" : "received")}" : "")}.", "dynasty:marriages", ours.Id));
         }
         // a battle is fought as the year turns and is dated with the year that opens: those are the battles this brief is of
         foreach (var b in w.Battles.Where(b => b.Turn == w.Turn && b.Involves(mine)))
@@ -123,22 +123,33 @@ public static class YearInBrief
             lines.Add(new BriefLine(Courts, won ? "good" : "warn", $"{(j.Judge.Length > 0 ? j.Judge + ", praetor, ruled" : "It was settled")} {(won ? "for you against " + Nm(j.LoserId) : "against you for " + Nm(j.WinnerId))}{(j.Matter.Length > 0 ? ": " + j.Matter : "")}{(j.Sum > 0 ? $". {Praetoria.Core.Money.Credits(j.Sum)} {(won ? "came to" : "left")} the house" : "")}.", "senate:ladder"));
         }
         foreach (var c in w.Counts.Where(c => c.Turn == year && c.HouseId == mine).OrderBy(c => c.RungId, StringComparer.Ordinal))
-            lines.Add(new BriefLine(Senate, c.Won ? "good" : "info", $"{c.Name} {(c.Won ? "was elected " : "stood for ")}{c.Rung.ToLowerInvariant()}{(c.Won ? "" : " and was not chosen")}, with {c.Votes} votes.", "senate:ladder"));
+            lines.Add(new BriefLine(Senate, c.Won ? "good" : "info", $"{c.Name} {(c.Won ? "was elected " : "stood for ")}{c.Rung.ToLowerInvariant()}{(c.Won ? "" : " and was not chosen")}, with {c.Votes} votes.", "senate:ladder", c.CharacterId));
 
         // where the treasury stood and stands
-        var moved = new List<string>();
+        var moved = Moves(w).Select(m => $"{m.Label} {m.Before} → {m.After} ({m.Change})").ToList();
+        if (moved.Count > 0) lines.Add(new BriefLine(Money, house.Treasury.Credits < 0 ? "warn" : "info", "Over the year, with everything you spent and everything that came in: " + string.Join("; ", moved) + ".", "house:ledger"));
+        return lines.OrderBy(l => Array.IndexOf(Order, l.Kind)).ToList();
+    }
+
+    /// <summary>One stock as the year moved it: what it was when the year opened, what it is now, and the change with its sign (the true
+    /// minus for a loss), for the brief's stock chips.</summary>
+    public sealed record StockMove(string Resource, string Label, string Before, string After, string Change, bool Up);
+    /// <summary>How the year moved each of the house's stocks, credits first; only those that moved.</summary>
+    public static List<StockMove> Moves(World w)
+    {
+        var house = w.Protagonist is { } p ? w.House(p.HouseId) : null; var list = new List<StockMove>(); if (house == null) return list;
         foreach (var r in Counted)
         {
             if (r == Resource.Credits)
             {
                 long by = (long)w.Counter(DeltaKey(r)) * Praetoria.Core.Money.PerUnit + w.Counter(DeltaKey(Resource.Coin));
-                if (by != 0) moved.Add($"credits {Praetoria.Core.Money.Exact(house.Treasury.Total - by)} → {Praetoria.Core.Money.Held(house.Treasury)} ({(by > 0 ? "+" : "−")}{Praetoria.Core.Money.Exact(Math.Abs(by))})");
+                if (by != 0) list.Add(new StockMove(r, "credits", Praetoria.Core.Money.Exact(house.Treasury.Total - by), Praetoria.Core.Money.Held(house.Treasury), (by > 0 ? "+" : "−") + Praetoria.Core.Money.Exact(Math.Abs(by)), by > 0));
                 continue;
             }
-            if (w.WorldCounters.TryGetValue(DeltaKey(r), out int d) && d != 0) moved.Add($"{Resource.Label(r).ToLowerInvariant()} {Praetoria.Core.Money.Of(r, house.Treasury.Get(r) - d)} → {Praetoria.Core.Money.Of(r, house.Treasury.Get(r))} ({(d > 0 ? "+" : "−")}{Praetoria.Core.Money.Of(r, Math.Abs(d))})");
+            if (w.WorldCounters.TryGetValue(DeltaKey(r), out int d) && d != 0)
+                list.Add(new StockMove(r, Resource.Label(r).ToLowerInvariant(), Praetoria.Core.Money.Of(r, house.Treasury.Get(r) - d), Praetoria.Core.Money.Of(r, house.Treasury.Get(r)), (d > 0 ? "+" : "−") + Praetoria.Core.Money.Of(r, Math.Abs(d)), d > 0));
         }
-        if (moved.Count > 0) lines.Add(new BriefLine(Money, house.Treasury.Credits < 0 ? "warn" : "info", "Over the year, with everything you spent and everything that came in: " + string.Join("; ", moved) + ".", "house:ledger"));
-        return lines.OrderBy(l => Array.IndexOf(Order, l.Kind)).ToList();
+        return list;
     }
 
     private static string KindOf(string target)

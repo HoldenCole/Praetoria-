@@ -45,7 +45,7 @@ public sealed class MoveFleetCommand : ICommand
         if (w.Galaxy.Hops(f.SystemId, _targetSystemId, Barred(w, f.OwnerId)) <= 0)
             return w.Galaxy.Hops(f.SystemId, _targetSystemId) > 0 ? "no way through: an enemy's fleet holds a gate on the road, and a gate that is held must be taken first" : "no lane runs there from where the fleet lies";
         if (FleetSystem.Unfuelled(w, f.OwnerId)) return "the tanks are dry: helium-3 is bought on the Exchange, and no fleet of the house sails without it";
-        if (f.Loyalty < _rules.LoyaltyRefuse) return "the crews will not sail — loyalty " + f.Loyalty;
+        if (f.Loyalty < _rules.LoyaltyRefuse) return "the crews will not sail: loyalty " + f.Loyalty;
         return ctx.PoolsOf(ActorId).Short(new Dictionary<string, int> { [Pool.Treasury] = _rules.MovePoolCost });
     }
 
@@ -679,7 +679,7 @@ public sealed class SetStanceCommand : ICommand
         if (!w.Fleets.TryGetValue(_fleetId, out var f) || f.OwnerId != actor.HouseId) return "not your fleet";
         if (!FleetSystem.Stances.Contains(_stance)) return "no such stance";
         if (f.Stance == _stance) return "already so";
-        if (_stance == "boarding" && (w.House(f.OwnerId)?.Treasury.Manpower ?? 0) < 2) return "boarding wants prize crews — 2 manpower in hand";
+        if (_stance == "boarding" && (w.House(f.OwnerId)?.Treasury.Manpower ?? 0) < 2) return "boarding wants prize crews: 2 manpower in hand";
         return null;
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

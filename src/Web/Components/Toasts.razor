@@ -1,0 +1,96 @@
+@inject GameClient G
+@implements IDisposable
+@* Toasts (docs/VISUAL_SYSTEM.md 3.6): news that needs no answer, under the alerts row and right-aligned to the outliner. A toast
+   in the medium frame holds a portrait plate of the person it is about (the dead in greyscale with the ribbon) or a crop of the
+   painting of its occasion, a small-capital kicker ("Of your house", "In the Senate") and one sentence. A brass timer line runs
+   along its foot and it fades after six seconds; the line stays in the year in brief and the Chronicle, and under the news badge
+   of the alerts row until the year ends. The clock waits while something stands in front of the map (Paused). A note of the
+   client's own (what was taken back, what could not be done, a save, an export) stands as a toast without a timer while it holds. *@
+@if (Notes.Count + _shown.Count > 0)
+{
+    <div class="toasts" aria-live="polite" style="@(Hidden ? "display:none" : null)">
+        @foreach (var n in Notes)
+        {
+            <div class="toast note"><Icon Name="@n.Icon" Tone="brass" Size="22" Class="tic" /><div class="tx"><div class="t">@n.Kicker</div><p class="notice" data-export-note="@(n.Export ? "1" : null)">@n.Text</p></div></div>
+        }
+        @foreach (var t in _shown)
+        {
+            var c = t.Person.Length > 0 ? G.World?.Char(t.Person) : null; var ch = c != null ? G.World!.House(c.HouseId) : null; string go = t.Go;
+            <button class="toast news @(t.Started != null && !Paused ? "run" : "")" data-toast="@t.Seq" title="@(t.Kicker + " · " + t.Text + "\nClick to open the place this can be seen. The line is kept in the Chronicle under This year.")" @onclick="() => Open(go)">
+                @if (c != null) { <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@(ch?.AccentColor ?? "#888")" Size="52" Height="62" Opens="false" /> }
+                else { <span class="crop"><img src="img/scenes/@(t.Scene).webp" alt="" /></span> }
+                <span class="tx"><span class="t">@t.Kicker</span><span class="p">@t.Text</span></span>
+                <i class="timer" aria-hidden="true"></i>
+            </button>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>A note of the client's own: its glyph, a kicker, the sentence, and whether it is the export's (data-export-note).</summary>
+    public sealed record Note(string Icon, string Kicker, string Text, bool Export = false);
+    [Parameter] public IReadOnlyList<Note> Notes { get; set; } = Array.Empty<Note>();
+    /// <summary>Something stands in front of the map (the year in brief, a report, the seat passing): the six seconds wait for it.</summary>
+    [Parameter] public bool Paused { get; set; }
+    /// <summary>The year in brief stands in front: the toasts wait out of sight, so the same news is not told twice at once, and show when it closes.</summary>
+    [Parameter] public bool Hidden { get; set; }
+    [Parameter] public EventCallback<string> OnGo { get; set; }
+    /// <summary>How many news toasts stand at once.</summary>
+    [Parameter] public int Most { get; set; } = 2;
+
+    private sealed class Shown { public int Seq; public string Text = "", Kicker = "", Person = "", Scene = "", Go = ""; public DateTime? Started; }
+    private readonly List<Shown> _shown = new(); private readonly Queue<Shown> _waiting = new();
+    private int _turn = -1, _seenSeq; private string _game = ""; private bool _disposed;
+    public const int Seconds = 6;
+
+    protected override void OnParametersSet()
+    {
+        var w = G.World; if (w == null || w.InAcademy) return;
+        string game = w.ProtagonistId + "|" + G.Seed;
+        if (game != _game) { _game = game; _turn = -1; _seenSeq = 0; _shown.Clear(); _waiting.Clear(); }
+        if (w.Turn != _turn)
+        {
+            _turn = w.Turn; _shown.Clear(); _waiting.Clear();
+            // the year's news, what is about the house first, a death or a danger before the rest; at most four reach a toast
+            var mine = w.Protagonist?.HouseId ?? "";
+            var news = w.NewsNow().Where(n => n.Seq > _seenSeq).ToList();
+            if (news.Count > 0) _seenSeq = news.Max(n => n.Seq);
+            foreach (var n in news.OrderByDescending(n => Weight(w, n, mine)).ThenBy(n => n.Seq).Take(4)) _waiting.Enqueue(Make(w, n, mine));
+        }
+        Fill();
+    }
+    protected override void OnAfterRender(bool first)
+    {
+        if (Paused) return; bool started = false;
+        foreach (var t in _shown.Where(t => t.Started == null).ToList()) { t.Started = DateTime.UtcNow; _ = Expire(t); started = true; }
+        if (started) StateHasChanged();   // the timer line starts with the clock
+    }
+    private void Fill() { while (_shown.Count < Most && _waiting.Count > 0) _shown.Add(_waiting.Dequeue()); }
+    private async Task Expire(Shown t)
+    {
+        await Task.Delay(Seconds * 1000);
+        if (_disposed) return;
+        if (Paused) { t.Started = null; await InvokeAsync(StateHasChanged); return; }   // put back: it runs again when the front is clear
+        _shown.Remove(t); Fill(); await InvokeAsync(StateHasChanged);
+    }
+    private async Task Open(string go) { if (go.Length > 0) await OnGo.InvokeAsync(go); }
+
+    private static int Weight(World w, NewsItem n, string mine)
+    {
+        int s = n.Tone == "warn" ? 3 : n.Tone == "good" ? 2 : 1;
+        if (n.SubjectId.Length > 0 && w.Char(n.SubjectId) is { } c && c.HouseId == mine) s += 4;
+        return s;
+    }
+    private static Shown Make(World w, NewsItem n, string mine)
+    {
+        var a = Alerts.FromNews(w, n); var c = n.SubjectId.Length > 0 ? w.Char(n.SubjectId) : null;
+        string t = n.Target ?? "";
+        string kicker = c != null && c.HouseId == mine || t.StartsWith("dynasty") || t.StartsWith("you") ? "Of your house"
+            : t.StartsWith("senate:ladder") ? "In the courts" : t.StartsWith("senate") ? "In the Senate" : t.StartsWith("exchange") ? "On the Exchange"
+            : t.StartsWith("military") ? "Of the fleets" : t.StartsWith("laws") ? "Of the estates" : t.StartsWith("houses") ? "Among the houses" : "News of the Reach";
+        // the picture by subject: the Senate's chamber for the Senate, the court for the estates and the courts, the bridge for the fleets
+        string scene = kicker switch { "In the Senate" => "senate", "Of the estates" or "In the courts" => "court", "Of the fleets" => "bridge", "On the Exchange" => "market", "Among the houses" => "audience", _ => SceneArt.For(t, n.Text) };
+        return new Shown { Seq = n.Seq, Text = a.Text, Kicker = kicker, Person = c != null ? c.Id : "", Scene = scene, Go = a.Go };
+    }
+    public void Dispose() => _disposed = true;
+}

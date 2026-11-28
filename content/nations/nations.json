@@ -2,7 +2,7 @@
   "//": "FOREIGN NATIONS (docs/FOREIGN_NATIONS.md; the owner's direction). The Reach is one nation; these are the others, beyond the rim and off the map for now: the targets of its wars, in the mould of LOTGH's one strong neighbour and Rome's many. Each has a strength (hulls the Reach's expeditions must beat), a temper (aggressive nations raid the rim when their regard falls; mercantile ones trade and forgive; decaying ones crumble), a wealth (plunder a victory brings home), a distance (turns an expedition sails before it fights), a disposition toward the Reach, what it holds that the Reach wants, and the tribute it pays when subdued. The Senate makes war by motion; houses send expeditions; score beyond `threshold` subdues the nation for twenty turns. `exports` are what a nation ships into the Reach's markets a turn while at peace and not hostile (docs/ECONOMY_MARKET.md): war or a regard of -30 closes its ports, and a subdued nation ships double. `senateGold` is the years of its wealth a nation keeps in a purse to buy votes in the Reach's Senate, and `favours` the nations whose wars it also pays to stop (docs/BEYOND.md, \"Foreign gold in the Senate\").",
   "nations": [
     { "id": "concord",
-      "house": { "name": "The Ardent Concord", "accent": "#D7263D", "title": "duke", "legitimacy": 70 },
+      "house": { "name": "The Ardent Concord", "accent": "#9E3350", "title": "duke", "legitimacy": 70 },
       "worlds": [
         { "id": "concordia_seat", "system": "concordia", "name": "Concordia", "specialization": "fortress", "population": 56, "capital": true },
         { "id": "brandt_yards", "system": "brandt", "name": "The Brandt Yards", "specialization": "forge_world", "population": 38 },
@@ -25,7 +25,7 @@
       "holds": "the richest exchanges beyond the rim and a belt of rare earths",
       "description": "A league of trading cities that would rather buy than fight. Rich, lightly armed, quick to pay tribute and quicker to stop when the fleets go home." },
     { "id": "vashti",
-      "house": { "name": "The Vashti Khanates", "accent": "#C9A227", "title": "duke", "legitimacy": 55 },
+      "house": { "name": "The Vashti Khanates", "accent": "#7E9C6A", "title": "duke", "legitimacy": 55 },
       "worlds": [
         { "id": "khal_orda_camp", "system": "khal_orda", "name": "The Great Camp", "specialization": "fortress", "population": 34, "capital": true },
         { "id": "tul_aimag_wells", "system": "tul_aimag", "name": "The Wells of Tul", "specialization": "agri_world", "population": 22 },

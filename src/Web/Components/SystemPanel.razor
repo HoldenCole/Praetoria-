@@ -25,7 +25,8 @@
         + "Buildings may stand at level " + SystemWorks.Roman(levelMay) + (nextUp > 0 ? "; " + SystemWorks.Roman(levelMay + 1) + " at " + nextUp + "." : ".");
     string devTrend = dev < devTop ? "growing toward " + devTop : dev > devTop ? "more than it can bear: falling toward " + devTop : "as high as it can bear";
 }
-<div class="sysp" data-system="@sys.Id">
+<div class="sysp @(Infrastructure ? "infra" : "")" data-system="@sys.Id">
+    @if (sys.Description.Length > 0 && !Infrastructure) { <p class="sysp-lede">@sys.Description</p> }
     @if (planet == null)
     {
         var fc = new FoundColonyCommand(me.Id, sys.Id, cat); string? why = fc.Refusal(ctx);
@@ -34,7 +35,8 @@
             else
             {
                 <div class="empty-line">Nobody holds this system. A colony would make its world yours, and every body round its sun yours to build on.</div>
-                <button class="opt" disabled="@(why != null)" title="@(why ?? $"Ships, settlers and stores. The cost is paid a share a year while they are on the way: {CourtProjection.Bundle(cat.Colony.Cost)} in all. Only the first share is needed in hand to send it. A fleet that stood in the system to make the claim may leave once the colony has sailed.")" @onclick="() => G.Execute(new FoundColonyCommand(me.Id, sys.Id, cat))">Send a colony · @CourtProjection.Bundle(ProjectSystem.Split(cat.Colony.Cost, cat.Colony.BuildTurns).First) now@(cat.Colony.BuildTurns > 1 ? $", the same in each of {Counted.MoreYears(cat.Colony.BuildTurns - 1)}" : "") · lands in @cat.Colony.BuildTurns years</button>
+                <div class="sysp-cost">@CourtProjection.Bundle(ProjectSystem.Split(cat.Colony.Cost, cat.Colony.BuildTurns).First) now@(cat.Colony.BuildTurns > 1 ? $", the same in each of {Counted.MoreYears(cat.Colony.BuildTurns - 1)}" : ""); it lands in @cat.Colony.BuildTurns years.</div>
+                <button class="opt" disabled="@(why != null)" title="@(why ?? $"Ships, settlers and stores. The cost is paid a share a year while they are on the way: {CourtProjection.Bundle(cat.Colony.Cost)} in all. Only the first share is needed in hand to send it. A fleet that stood in the system to make the claim may leave once the colony has sailed.")" @onclick="() => G.Execute(new FoundColonyCommand(me.Id, sys.Id, cat))">Send a colony</button>
                 @if (why != null) { <div class="muted small">@Cap(why).</div> }
             }
         </div>
@@ -42,12 +44,12 @@
     else if (!mine) { <div class="muted small sysp-note">Held by @(w.House(planet.OwnerId)?.Name ?? "another"). What is built here is theirs while they hold the world, and would be yours if you took it.</div> }
     @if (planet != null)
     {
-        <div class="sysp-dev" data-development="@dev" title="@($"Development {dev} of 100. It can bear {devTop}: {devParts}. It grows a point a year toward that, two on a prosperous world, and falls under siege or revolt.")">
-            <span class="dv-level">@devLevel</span>
-            <span class="dv-text"><b>Development</b> <span class="muted">@dev of 100 · @devTrend</span><span class="dv-bar"><i style="@($"width:{dev}%")"></i><u style="@($"left:{devTop}%")"></u></span></span>
+        <div class="sysp-dev" data-development="@dev" title="@($"[upgrade] Development {dev} of 100\nIt can bear {devTop} (the tick): {devParts}. It grows a point a year toward that, two on a prosperous world, and falls under siege or revolt.")">
+            <span class="dv-level" title="@($"Level {devLevel}: a tenth of the development")">@devLevel</span>
+            <span class="dv-text"><span class="dv-l"><b>Development</b><span class="ui-dim">@devTrend</span></span>
+                <Meter Value="@dev" Target="@devTop" Text="@($"{dev}")" Small="/100" Color="@(dev > devTop ? "#c4472f" : "#c9a24a")" /></span>
         </div>
-        <div class="muted small sysp-devnote">@devNext</div>
-        <LocalLawBlock HoldingId="@planet.Id" />
+        @if (!Infrastructure) { <div class="muted small sysp-devnote">@devNext</div> }
         @if (mine && ClaimSystem.Of(w, sys.Id, house.Id).ToList() is { Count: > 0 } claims)
         {
             /* the claims other houses hold in your belt: what each brings its house, what it owes you, and a price to buy it out
@@ -111,17 +113,18 @@
         int slots = SystemWorks.Slots(w, cat, sys, i), most = b.IsStar ? 0 : b.IsPrimary ? rules.MaxWorld : rules.MaxBody;
         int used = hb.Count + standing.Count(d => !d.IsMegastructure), up = hbRising.Count + rising.Count(p => cat.Work(p.DefId)?.IsMegastructure != true);
         var parts = SystemWorks.SlotParts(w, cat, sys, i).ToList(); string partsLine = string.Join(" · ", parts.Select(x => x.what + " " + x.slots));
-        bool open = _open == i; int idx = i; int px = b.IsStar || b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : 18 + b.Size * 4;
-        string sprite = $"{b.Class}|{sys.Id}{b.Name}|{px}";
+        bool open = _open == i; int idx = i;
         <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "") @(b.IsSpace ? "space" : "") @(world ? "home" : "")" data-body="@b.Class" data-body-index="@idx">
-            <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat?.Description ?? Kind(b))">
-                @if (b.IsSpace) { <span class="sprite deep" aria-hidden="true"></span> } else { <img class="sprite" data-planet="@sprite" alt="" /> }
+            <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat != null ? feat.Name + ": " + feat.Description : Kind(b))">
+                @if (b.IsSpace) { <span class="sprite deep" aria-hidden="true"></span> }
+                else if (b.IsStar) { <span class="sysp-sun" aria-hidden="true"></span> }
+                else { <span class="sysp-globe" style="@($"--gs:{GlobePx(b)}px")"><Globe Class="@GlobeClass(b)" Size="@GlobePx(b)" Ringed="@(world && mine)" /></span> }
                 <span class="sysp-name"><b>@b.Name</b><span class="muted">@Kind(b)@(b.IsPrimary ? " · the home world" : "")</span></span>
                 <span class="sysp-marks">
-                    @if (feat != null) { <span class="pill small feat">@feat.Name</span> }
-                    @if (b.Deposit.Length > 0) { <span class="pill small dep" title="@($"A {Resource.Label(b.Deposit)} deposit: richness {sys.Deposit(b.Deposit)}")">@Resource.Label(b.Deposit) @(new string('●', sys.Deposit(b.Deposit)))</span> }
+                    @if (feat != null) { <span class="sysp-feat" title="@($"[medal] {feat.Name}\n{feat.Description}")"><Icon Name="medal" Tone="brass" Size="15" /></span> }
+                    @if (b.Deposit.Length > 0) { <span class="pill small dep" title="@($"[{b.Deposit}] A {Resource.Label(b.Deposit)} deposit\nRichness {sys.Deposit(b.Deposit)}")"><Icon Name="@b.Deposit" Tone="@(b.Deposit == "isotopes" ? "ember" : b.Deposit == "rare_earths" ? "ivory" : "steel")" Size="14" /><b>@sys.Deposit(b.Deposit)</b></span> }
                     <span class="sysp-slots" title="@(most == 0 ? "No building slots: only a great work can be raised here" : $"Building slots: {used} built · {up} rising · {slots} open of {most} at the most. From: {partsLine}.")">@for (int k = 0; k < Math.Max(slots, most); k++) { <i class="@(k < used ? "on" : k < used + up ? "up" : k >= slots ? "lock" : "")"></i> }</span>
-                    <span class="sysp-site @(great == null ? "" : greatRising ? "up" : "on")" title="@(great == null ? "The site for a great work: free" : greatRising ? $"{great.Name} is rising on its site" : $"{great.Name} stands on its site")">◆</span>
+                    <span class="sysp-site @(great == null ? "" : greatRising ? "up" : "on")" title="@(great == null ? "The site for a great work: free" : greatRising ? $"{great.Name} is rising on its site" : $"{great.Name} stands on its site")"></span>
                 </span>
             </button>
             @if (!open && (standing.Count > 0 || rising.Count > 0 || hb.Count > 0 || hbRising.Count > 0))
@@ -181,11 +184,11 @@
                                     </div>
                                     @if (mine && !pmine)
                                     {
-                                        <div class="sw-cost sysp-dues"><span>Its dues</span><span class="seg">
+                                        <div class="sw-cost sysp-dues"><span>Its dues</span><span class="seg ui-seg">
                                             @foreach (var dv in new[] { ProvinceSystem.Forgiven, ProvinceSystem.Customary, ProvinceSystem.Heavy })
                                             {
                                                 int dvv = dv; string? duno = new SetDuesCommand(me.Id, planet.Id, pi, dv).Refusal(ctx); bool cur = pv.Dues == dv;
-                                                <button class="opt inline tiny @(cur ? "on" : "")" disabled="@(duno != null)" title="@(dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? ("Twice the dues; it leans nowhere, and a house that is your match stops paying. " + HeavySays(holderId)) : "The tithe, the levy in war, and its voice.")" @onclick="() => G.Execute(new SetDuesCommand(me.Id, dkey, pidx, dvv))">@ProvinceSystem.DuesName(dv)</button>
+                                                <button class="opt inline tiny @(cur ? "on" : "")" disabled="@(duno != null)" title="@(dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? ("Twice the dues; it leans nowhere, and a house that is your match stops paying. " + HeavySays(holderId)) : "The tithe, the levy in war, and its voice.")" @onclick="() => G.Execute(new SetDuesCommand(me.Id, dkey, pidx, dvv))">@Cap(ProvinceSystem.DuesName(dv))</button>
                                             }
                                         </span></div>
                                     }
@@ -220,10 +223,7 @@
                                         else
                                         {
                                             <div class="row">
-                                                <select @onchange="e => _grantTo[gkey] = e.Value?.ToString() ?? string.Empty">
-                                                    <option value="" selected="@(toG.Length == 0)">Choose a house</option>
-                                                    @foreach (var tk in takers) { <option value="@tk.Id" selected="@(tk.Id == toG)">@tk.Name (its head thinks @RegardFor(tk).ToString("+0;-0") of you)</option> }
-                                                </select>
+                                                <Select Class="sysp-pick" Placeholder="Choose a house" Value="@toG" Tip="The house to give the province to" Options="@takers.Select(tk => new Select.Option(tk.Id, tk.Name, $"its head thinks {RegardFor(tk):+0;-0} of you")).ToList()" OnChange="v => _grantTo[gkey] = v" />
                                                 <button class="opt inline" data-grant-go disabled="@(gno != null)" title="@(gno != null ? Cap(gno) : "")" @onclick="() => AskGrant(grant, pv.Name, planet.Name, toG)">Give it</button>
                                             </div>
                                         }
@@ -274,10 +274,8 @@
                                 }
                                 @if (mine && pi > 0 && !pmine && pending == null)
                                 {
-                                    <div class="sw-cost"><span>Ask them to step down, for <select class="sysp-pick" @onchange="e => SetGive(hid3, pidx, e)">
-                                            <option value="@house.Id" selected="@(giveTo == house.Id)">your own house</option>
-                                            @foreach (var oh in w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name)) { <option value="@oh.Id" selected="@(giveTo == oh.Id)">@oh.Name</option> }
-                                        </select> · @cat.Provinces.DemandInfluence influence</span>
+                                    var giveOpts = new List<Select.Option> { new(house.Id, "Your own house") }; giveOpts.AddRange(w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name).Select(oh => new Select.Option(oh.Id, oh.Name)));
+                                    <div class="sw-cost"><span>Ask them to step down, for</span> <Select Class="sysp-pick" Options="giveOpts" Value="@giveTo" Tip="The house the province is asked for" OnChange="v => SetGive(hid3, pidx, v)" /> <span class="sw-c"><Icon Name="public-speaker" Tone="ivory" Size="14" />@cat.Provinces.DemandInfluence</span>
                                         <button class="opt inline" disabled="@(dno != null)" title="@(dno != null ? Cap(dno) : "It was theirs for life. A house that cannot hope to win steps down; one that can, fights. " + YieldSays(holderId))" @onclick="() => G.AskSeat(planet, pidx, giveTo)">Ask</button>
                                     </div>
                                     @if (dno != null) { <div class="sw-no">@Cap(dno)</div> }
@@ -285,9 +283,8 @@
                                 @if (pi == 0 && over?.Id == house.Id && !mine && pending == null)
                                 {
                                     string wfor = WorldFor(planet, giveTo);
-                                    <div class="sw-cost"><span>Ask its holder to make way for <select class="sysp-pick" @onchange="e => SetGive(hid3, pidx, e)">
-                                            @for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh == planet.OwnerId) continue; <option value="@kh" selected="@(wfor == kh)">@(kh == house.Id ? "your own house" : w.House(kh)?.Name ?? kh)</option> }
-                                        </select> · @cat.Provinces.DemandInfluenceWorld influence</span>
+                                    var forOpts = new List<Select.Option>(); for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh == planet.OwnerId || forOpts.Any(o => o.Key == kh)) continue; forOpts.Add(new(kh, kh == house.Id ? "Your own house" : w.House(kh)?.Name ?? kh)); }
+                                    <div class="sw-cost"><span>Ask its holder to make way for</span> <Select Class="sysp-pick" Options="forOpts" Value="@wfor" Tip="The house the world is asked for" OnChange="v => SetGive(hid3, pidx, v)" /> <span class="sw-c"><Icon Name="public-speaker" Tone="ivory" Size="14" />@cat.Provinces.DemandInfluenceWorld</span>
                                         <button class="opt inline" disabled="@(wno != null)" title="@(wno != null ? Cap(wno) : "The world was theirs for life. They step down and hold a province under the house that rises, or they fight you.")" @onclick="() => G.AskSeat(planet, 0, wfor)">Ask</button>
                                     </div>
                                     @if (wno != null) { <div class="sw-no">@Cap(wno)</div> }
@@ -425,6 +422,8 @@
         </div>
     }
     }
+    @* the system's bodies first (the tab's subject), the world's local law after them (docs/VISUAL_SYSTEM.md 4.6) *@
+    @if (!Infrastructure && planet != null) { <LocalLawBlock HoldingId="@planet.Id" /> }
 </div>
 
 @code {
@@ -456,8 +455,12 @@
     /// <summary>The painting of a thing, where it has one; an empty plate of the same size where it has not.</summary>
     private RenderFragment Art(string id) => __builder =>
     {
-        if (G.WorkPicture(id) is { } src) { <img class="sw-art" src="@src" alt="" loading="lazy" /> } else { <span class="sw-art none" aria-hidden="true"></span> }
+        if (G.WorkPicture(id) is { } src) { <img class="sw-art" src="@src" alt="" loading="eager" decoding="async" /> } else { <span class="sw-art none" aria-hidden="true"></span> }
     };
+    /// <summary>The lit globe a body is drawn as (Globe's classes): moons and comets grey, a belt as rock.</summary>
+    /// <summary>A moon is a small lit globe of rock and a comet one of ice; the ring of dots is for an asteroid belt alone.</summary>
+    private static string GlobeClass(Body b) => b.Class switch { "moon" => "barren", "comet" => "frozen", "belt" => "belt", _ => b.Class };
+    private static int GlobePx(Body b) => b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : b.Class == "comet" ? 14 : 18 + Math.Min(3, b.Size) * 3;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Bundle(Resources r) => r.IsEmpty() ? "nothing" : CourtProjection.Bundle(r);
     private static string Kind(Body b) => b.Class switch
@@ -479,7 +482,7 @@
         string to = G.World!.House(toId)?.Name ?? "that house";
         G.Ask("Give " + province + " to " + to + "?", province + " on " + world + " is theirs for life, with what is built in it. They owe you the customary dues. To have it back you must ask for it, and they may refuse.", "Give it", () => G.Execute(cmd));
     }
-    private void SetGive(string holdingId, int index, ChangeEventArgs e) { _giveTo[holdingId + "#" + index] = e.Value?.ToString() ?? string.Empty; }
+    private void SetGive(string holdingId, int index, string v) { _giveTo[holdingId + "#" + index] = v ?? string.Empty; }
     /// <summary>Whom a world is asked for: the choice made, if that house holds a province of it; else the first that does.</summary>
     private static string WorldFor(Holding planet, string chosen)
     {

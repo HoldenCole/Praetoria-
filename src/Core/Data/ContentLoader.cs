@@ -87,6 +87,7 @@ public static class ContentLoader
                 Tier = ParseTier(ConditionParser.OptStr(el, "tier", "situation")),
                 Weight = el.TryGetProperty("weight", out var w) && w.ValueKind == JsonValueKind.Number ? w.GetDouble() : 1.0,
                 Repeatable = ConditionParser.Bool(el, "repeatable", false),
+                Scene = ConditionParser.OptStr(el, "scene", ""),
                 Roles = ParseRoles(el),
                 Conditions = el.TryGetProperty("when", out var when)
                     ? ConditionParser.ParseList(when)

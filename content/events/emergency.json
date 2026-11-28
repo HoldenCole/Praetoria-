@@ -90,6 +90,7 @@
     },
     {
       "id": "the_powers_are_yours",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 60,
       "repeatable": true,
@@ -149,6 +150,7 @@
     },
     {
       "id": "the_term_is_up",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 70,
       "repeatable": true,
@@ -203,6 +205,7 @@
     },
     {
       "id": "a_year_past_leave",
+      "scene": "senate",
       "tier": "situation",
       "weight": 50,
       "repeatable": true,
@@ -335,6 +338,7 @@
     },
     {
       "id": "the_powers_laid_down",
+      "scene": "senate",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -392,6 +396,7 @@
     },
     {
       "id": "you_laid_them_down",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 50,
       "repeatable": true,
@@ -446,6 +451,7 @@
     },
     {
       "id": "stripped_of_the_powers",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 60,
       "repeatable": true,

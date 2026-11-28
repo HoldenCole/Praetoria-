@@ -1,8 +1,9 @@
 {
-  "//": "THE ESTATES SPEAK (GDD §6.1; the owner's ask: groups that support and dislike your laws). These read PolicySystem's flags — estate_hostile:<id>, estate_loyal:<id>, law:<law>:<option> — and move the estates' regard through the counters estate_offset:<id> (which decay), so a cultivated mood lasts a few turns and then the laws reassert themselves.",
+  "//": "THE ESTATES SPEAK (GDD §6.1; the owner's ask: groups that support and dislike your laws). These read PolicySystem's flags, estate_hostile:<id>, estate_loyal:<id>, law:<law>:<option>, and move the estates' regard through the counters estate_offset:<id> (which decay), so a cultivated mood lasts a few turns and then the laws reassert themselves.",
   "events": [
     {
       "id": "the_commons_march",
+      "scene": "unrest",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": true,
@@ -97,6 +98,7 @@
     },
     {
       "id": "the_merchants_delegation",
+      "scene": "market",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -231,6 +233,7 @@
     },
     {
       "id": "the_old_bloods_letter",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -350,6 +353,7 @@
     },
     {
       "id": "the_frontier_rides_in",
+      "scene": "steppe",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -439,6 +443,7 @@
     },
     {
       "id": "the_exiles",
+      "scene": "unrest",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,

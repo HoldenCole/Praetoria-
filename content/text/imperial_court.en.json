@@ -3,7 +3,7 @@
     {
       "id": "the_emperors_favor",
       "title": "The Emperor's Eye",
-      "body": "The court moves in orbits, and the sun it circles is {sovereign.name} of {sovereign.house}. Today the orbit has brought you close — a petition heard, a case argued in the Imperial presence, a moment in which the most powerful person alive is looking at you and deciding what you are. Houses have been made in such moments. Houses have also learned exactly how little they are.",
+      "body": "The court moves in orbits, and the sun it circles is {sovereign.name} of {sovereign.house}. Today the orbit has brought you close, a petition heard, a case argued in the Imperial presence, a moment in which the most powerful person alive is looking at you and deciding what you are. Houses have been made in such moments. Houses have also learned exactly how little they are.",
       "choices": {
         "serve_well": "Do the work in front of the throne, and do it flawlessly. Let the service speak.",
         "flatter": "Find the words {sovereign.name} wants and say them better than anyone has.",

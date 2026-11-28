@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "not_made_for_it",
+      "scene": "family",
       "tier": "situation",
       "weight": 14,
       "repeatable": true,
@@ -196,6 +197,7 @@
     },
     {
       "id": "the_work_of_years",
+      "scene": "family",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -356,6 +358,7 @@
     },
     {
       "id": "brought_on_by_one_of_the_house",
+      "scene": "family",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,

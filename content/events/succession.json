@@ -1,5 +1,5 @@
 {
-  "//": "TITLE & SUCCESSION — §13/§4b. Uses the real vocabulary: conditions title/claim, effects grantClaim/setTitle/adjustLegitimacy, bond marriage. Reads engine-written READ-ONLY counters (title_rank, house_legitimacy, title_instability) for player-facing gates; NEVER adjustCounter on those. title/claim test EXACT rung (not threshold) — 'Count or higher' gates on title_rank counter. Handoffs within the house use `succeed` (the heir becomes the protagonist; the House keeps its title). `revokeClaim` spends a pressed or sold claim. Char flags coined: slighted (a refused petitioner), pressing_claim (a rival moving against you), wed. World flag: line_secured. Counters written (shared, legal): seizures (force-grab, feeds §7), corruption, unrest. Chain: refuse petition -> slighted; grant claim -> press_the_claim eligible; high title_instability -> the_instability_gap / the_succession_dispute. ADDED: the_slighted_kinsman consumes `slighted` (refused petition / withheld handover) -> reconcile, or it hardens into `feud` (which the academy/career feud consumers read).",
+  "//": "TITLE & SUCCESSION, §13/§4b. Uses the real vocabulary: conditions title/claim, effects grantClaim/setTitle/adjustLegitimacy, bond marriage. Reads engine-written READ-ONLY counters (title_rank, house_legitimacy, title_instability) for player-facing gates; NEVER adjustCounter on those. title/claim test EXACT rung (not threshold), 'Count or higher' gates on title_rank counter. Handoffs within the house use `succeed` (the heir becomes the protagonist; the House keeps its title). `revokeClaim` spends a pressed or sold claim. Char flags coined: slighted (a refused petitioner), pressing_claim (a rival moving against you), wed. World flag: line_secured. Counters written (shared, legal): seizures (force-grab, feeds §7), corruption, unrest. Chain: refuse petition -> slighted; grant claim -> press_the_claim eligible; high title_instability -> the_instability_gap / the_succession_dispute. ADDED: the_slighted_kinsman consumes `slighted` (refused petition / withheld handover) -> reconcile, or it hardens into `feud` (which the academy/career feud consumers read).",
   "events": [
     {
       "id": "the_petition",
@@ -58,7 +58,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} recognized the claim of {petitioner.name} of {petitioner.house} to a county of their own. A title granted is a loyalty bought and a rival created in the same breath — for the kin you raise up is the kin who now stands one rung closer to everything you hold. {self.name} did it with open eyes, as the great always must."
+              "text": "{self.name} recognized the claim of {petitioner.name} of {petitioner.house} to a county of their own. A title granted is a loyalty bought and a rival created in the same breath, for the kin you raise up is the kin who now stands one rung closer to everything you hold. {self.name} did it with open eyes, as the great always must."
             }
           ]
         },
@@ -96,7 +96,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} granted the claim — but bound it with quiet conditions {petitioner.name} of {petitioner.house} was too eager to refuse. The county is theirs in name; the strings are {self.name}'s in fact. To give a gift that is also a leash is the whole art of raising kin without arming them."
+              "text": "{self.name} granted the claim, but bound it with quiet conditions {petitioner.name} of {petitioner.house} was too eager to refuse. The county is theirs in name; the strings are {self.name}'s in fact. To give a gift that is also a leash is the whole art of raising kin without arming them."
             }
           ]
         },
@@ -218,7 +218,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wed {bride.name} of {bride.house} — a union the heralds called love and the ledgers called strategy, and both were a little right. The match raised {self.name}'s standing and, by the old laws of blood, a claim to lands that were never {self.name}'s to want until this morning. The most powerful weddings are the ones where the dowry is a title."
+              "text": "{self.name} wed {bride.name} of {bride.house}, a union the heralds called love and the ledgers called strategy, and both were a little right. The match raised {self.name}'s standing and, by the old laws of blood, a claim to lands that were never {self.name}'s to want until this morning. The most powerful weddings are the ones where the dowry is a title."
             }
           ]
         },
@@ -258,7 +258,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} married {bride.name} of {bride.house} for the oldest and least strategic reason, and let the claims and the politics fall where they would. {era:The capital|The court} thought it sentiment, or folly. Perhaps. But a marriage that is only a bond, and not a maneuver, is a rare strength in a world where everyone assumes the maneuver — and rarity, in the end, is its own power."
+              "text": "{self.name} married {bride.name} of {bride.house} for the oldest and least strategic reason, and let the claims and the politics fall where they would. {era:The capital|The court} thought it sentiment, or folly. Perhaps. But a marriage that is only a bond, and not a maneuver, is a rare strength in a world where everyone assumes the maneuver, and rarity, in the end, is its own power."
             }
           ]
         },
@@ -273,7 +273,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} declined the match, and the alliance it would have sealed, and the claim it would have carried. {bride.name} of {bride.house} took the refusal as houses take refusals — as information. {self.name} remains unbound, unleveraged, and unhelped, which is either freedom or isolation depending on the year."
+              "text": "{self.name} declined the match, and the alliance it would have sealed, and the claim it would have carried. {bride.name} of {bride.house} took the refusal as houses take refusals, as information. {self.name} remains unbound, unleveraged, and unhelped, which is either freedom or isolation depending on the year."
             }
           ]
         }
@@ -284,6 +284,7 @@
     },
     {
       "id": "press_the_claim",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 4,
       "repeatable": true,
@@ -359,7 +360,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} pressed the claim through the courts and the councils, by every law and form the Reach provided — slow, costly, and unanswerable. {holder.name} of {holder.house} yielded the county because the law left no room not to. A title taken cleanly is a title no one can later call stolen. {self.name} rose, and the rise was legitimate, and legitimacy is the only {era:laurel|crown} that does not slip."
+              "text": "{self.name} pressed the claim through the courts and the councils, by every law and form the Reach provided, slow, costly, and unanswerable. {holder.name} of {holder.house} yielded the county because the law left no room not to. A title taken cleanly is a title no one can later call stolen. {self.name} rose, and the rise was legitimate, and legitimacy is the only {era:laurel|crown} that does not slip."
             }
           ]
         },
@@ -412,7 +413,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not wait for the courts. The county changed hands the fast way, and {holder.name} of {holder.house} was left with a grievance and a long memory and nothing else. {self.name} holds the title now — held above the standing to keep it quiet, a {era:laurel|crown} sitting heavier than the head beneath it. The Reach watches a house that takes what it wants, and recalculates its own fear."
+              "text": "{self.name} did not wait for the courts. The county changed hands the fast way, and {holder.name} of {holder.house} was left with a grievance and a long memory and nothing else. {self.name} holds the title now, held above the standing to keep it quiet, a {era:laurel|crown} sitting heavier than the head beneath it. The Reach watches a house that takes what it wants, and recalculates its own fear."
             }
           ]
         },
@@ -446,7 +447,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let it be known the claim existed, and was pressable, and then — graciously — declined to press it, for a consideration. {holder.name} of {holder.house} paid handsomely to keep the county quiet, and {self.name} pocketed the price of a war never fought. A claim is worth most to the one who never has to use it."
+              "text": "{self.name} let it be known the claim existed, and was pressable, and then, graciously, declined to press it, for a consideration. {holder.name} of {holder.house} paid handsomely to keep the county quiet, and {self.name} pocketed the price of a war never fought. A claim is worth most to the one who never has to use it."
             }
           ]
         },
@@ -479,7 +480,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} pressed the claim the ordinary way — a petition, a reading of the old contracts, a transfer the Reach accepted because it was tired of arguing. {holder.name} of {holder.house} lost a county and kept a grievance. Neither clean nor bloody; merely done."
+              "text": "{self.name} pressed the claim the ordinary way, a petition, a reading of the old contracts, a transfer the Reach accepted because it was tired of arguing. {holder.name} of {holder.house} lost a county and kept a grievance. Neither clean nor bloody; merely done."
             }
           ]
         }
@@ -521,7 +522,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} set about the unglamorous work of deserving the title already held — patronage spread, old families courted, the slow purchase of the Reach's belief that {self.name}'s house belongs where it sits. Legitimacy cannot be seized; it can only be earned, or bought, or outlived. {self.name} chose to pay."
+              "text": "{self.name} set about the unglamorous work of deserving the title already held, patronage spread, old families courted, the slow purchase of the Reach's belief that {self.name}'s house belongs where it sits. Legitimacy cannot be seized; it can only be earned, or bought, or outlived. {self.name} chose to pay."
             }
           ]
         },
@@ -563,7 +564,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let the gap stand — too proud, or too busy, or too sure to do the small slow work of earning the seat. The whispers that a house has reached above its right do not fade from neglect. They ferment. {self.name} carries the unease like a stone, and tells the mirror it is nothing."
+              "text": "{self.name} let the gap stand, too proud, or too busy, or too sure to do the small slow work of earning the seat. The whispers that a house has reached above its right do not fade from neglect. They ferment. {self.name} carries the unease like a stone, and tells the mirror it is nothing."
             }
           ]
         }
@@ -571,6 +572,7 @@
     },
     {
       "id": "the_rival_claimant",
+      "scene": "intrigue",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": true,
@@ -631,7 +633,7 @@
             },
             {
               "type": "log",
-              "text": "{claimant.name} of {claimant.house} produced a claim to {self.name}'s own seat — and {self.name} met it in the open, in law, before the Reach, and won the right to the title twice over by surviving the challenge to it. A claim defeated in daylight is worth more than a claim never raised. {self.name}'s standing rose on the strength of having been doubted, and answered."
+              "text": "{claimant.name} of {claimant.house} produced a claim to {self.name}'s own seat, and {self.name} met it in the open, in law, before the Reach, and won the right to the title twice over by surviving the challenge to it. A claim defeated in daylight is worth more than a claim never raised. {self.name}'s standing rose on the strength of having been doubted, and answered."
             }
           ]
         },
@@ -663,7 +665,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} solved the rival claim by removing the claimant — a claim, after all, needs someone alive to press it. {claimant.name} of {claimant.house} learned that pressing a right against {self.name} was the last decision they would make freely. The seat is secure. The method is a stone in {self.name}'s own foundation, set there by {self.name}'s own hand."
+              "text": "{self.name} solved the rival claim by removing the claimant, a claim, after all, needs someone alive to press it. {claimant.name} of {claimant.house} learned that pressing a right against {self.name} was the last decision they would make freely. The seat is secure. The method is a stone in {self.name}'s own foundation, set there by {self.name}'s own hand."
             }
           ]
         },
@@ -691,6 +693,7 @@
     },
     {
       "id": "the_abdication",
+      "scene": "family",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -794,7 +797,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not yet step aside, but began the long handover — a claim secured for {heir.name} of {heir.house}, responsibilities passed down, the slow grooming of the one who will inherit. Succession done well is not an event but a season. {self.name} has chosen to spend it teaching rather than clinging."
+              "text": "{self.name} did not yet step aside, but began the long handover, a claim secured for {heir.name} of {heir.house}, responsibilities passed down, the slow grooming of the one who will inherit. Succession done well is not an event but a season. {self.name} has chosen to spend it teaching rather than clinging."
             }
           ]
         },
@@ -829,7 +832,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} would not loosen the grip. The title is {self.name}'s until {self.name}'s last breath, and {heir.name} of {heir.house} may wait, and age, and watch the inheritance recede. A {era:senator|lord} who will not let go teaches the heir only one lesson — impatience — and trains, without meaning to, the very hunger that ends houses."
+              "text": "{self.name} would not loosen the grip. The title is {self.name}'s until {self.name}'s last breath, and {heir.name} of {heir.house} may wait, and age, and watch the inheritance recede. A {era:senator|lord} who will not let go teaches the heir only one lesson, impatience, and trains, without meaning to, the very hunger that ends houses."
             }
           ]
         }
@@ -837,6 +840,7 @@
     },
     {
       "id": "the_succession_dispute",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -928,7 +932,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} named no heir, and instead let the claimants — {claimant.name} of {claimant.house} among them — circle and scheme and check one another, {era:the seat|the throne} kept safe by the very rivalry for it. It is the oldest trick of aging power, and it works, and it works, and then one day it does not, and the house pays for every year of cleverness at once. {self.name} is betting on not being there for the reckoning."
+              "text": "{self.name} named no heir, and instead let the claimants, {claimant.name} of {claimant.house} among them, circle and scheme and check one another, {era:the seat|the throne} kept safe by the very rivalry for it. It is the oldest trick of aging power, and it works, and it works, and then one day it does not, and the house pays for every year of cleverness at once. {self.name} is betting on not being there for the reckoning."
             }
           ]
         },
@@ -970,7 +974,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} secured the succession by subtraction — the surplus claimants, {claimant.name} of {claimant.house} foremost, removed until only the chosen line remained. The dispute is over. The house is quiet. And every surviving member of it has learned exactly what {self.name}'s love is worth when it competes with {self.name}'s power. Some thrones are cleared of rivals and find no one left who wants to stand beside them."
+              "text": "{self.name} secured the succession by subtraction, the surplus claimants, {claimant.name} of {claimant.house} foremost, removed until only the chosen line remained. The dispute is over. The house is quiet. And every surviving member of it has learned exactly what {self.name}'s love is worth when it competes with {self.name}'s power. Some thrones are cleared of rivals and find no one left who wants to stand beside them."
             }
           ]
         }
@@ -1034,7 +1038,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} went to {kin.name} before the wound could set — a seat at the table, a word said where the household could hear it. Blood forgives faster than it forgets, but it does forgive."
+              "text": "{self.name} went to {kin.name} before the wound could set, a seat at the table, a word said where the household could hear it. Blood forgives faster than it forgets, but it does forgive."
             }
           ]
         },

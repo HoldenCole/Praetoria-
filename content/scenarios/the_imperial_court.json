@@ -1,5 +1,5 @@
 {
-  "//": "SCENARIO 4 — THE IMPERIAL COURT (GDD §10 'The Imperium' start). A galactic empire already stands; you are a minor knight's heir inside it, climbing an existing hierarchy under an Emperor's eye. era 'imperium' gates the court-of-the-emperor events (content/events/imperial_court.json). The protagonist starts MARRIED (wed flags + marriage bonds) so the dynasty layer is live from turn 1. House Aurelian holds the throne (title emperor); House Valmont is the great house that despises the upjumped knight.",
+  "//": "SCENARIO 4, THE IMPERIAL COURT (GDD §10 'The Imperium' start). A galactic empire already stands; you are a minor knight's heir inside it, climbing an existing hierarchy under an Emperor's eye. era 'imperium' gates the court-of-the-emperor events (content/events/imperial_court.json). The protagonist starts MARRIED (wed flags + marriage bonds) so the dynasty layer is live from turn 1. House Aurelian holds the throne (title emperor); House Valmont is the great house that despises the upjumped knight.",
   "id": "the_imperial_court",
   "protagonist": "cassian_thorne",
   "era": "imperium",
@@ -18,7 +18,7 @@
         "influence": 4,
         "exotics": 0
       },
-      "//": "A knightly house holding one fief at the Emperor's sufferance. Legitimate for its rung (Knight needs 10) but nothing above it — every climb must be granted, bought, or married."
+      "//": "A knightly house holding one fief at the Emperor's sufferance. Legitimate for its rung (Knight needs 10) but nothing above it, every climb must be granted, bought, or married."
     },
     {
       "id": "aurelian",
@@ -77,7 +77,7 @@
       "flags": [
         "wed"
       ],
-      "//": "An advocate at the Imperial court — the Merit path incarnate: climb by serving brilliantly, be ennobled. Honorable so the clean options are open; Ambitious so the dirty ones tempt."
+      "//": "An advocate at the Imperial court, the Merit path incarnate: climb by serving brilliantly, be ennobled. Honorable so the clean options are open; Ambitious so the dirty ones tempt."
     },
     {
       "id": "elara_thorne",
@@ -126,7 +126,7 @@
         "oratory": 2
       },
       "ambition": "master_the_senate",
-      "//": "The Emperor: old, just, proud, and at mortality age — his death is the succession that will reshape the court. Binds to sovereign roles (title emperor, outranks everyone)."
+      "//": "The Emperor: old, just, proud, and at mortality age, his death is the succession that will reshape the court. Binds to sovereign roles (title emperor, outranks everyone)."
     },
     {
       "id": "livia_aurelian",
@@ -173,7 +173,7 @@
         "charisma": 1
       },
       "ambition": "amass_a_fortune",
-      "//": "The Imperial Minister — a Duke's power and a miser's soul. The contempt-for-the-risen antagonist; binds to superior/rival_minister/collector roles."
+      "//": "The Imperial Minister, a Duke's power and a miser's soul. The contempt-for-the-risen antagonist; binds to superior/rival_minister/collector roles."
     }
   ],
   "relationships": [

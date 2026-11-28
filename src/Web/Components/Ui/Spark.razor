@@ -1,0 +1,17 @@
+@* A sparkline for a table column (docs/VISUAL_SYSTEM.md 4.13): twelve years in 64 by 18, a 1.5px line, green when the last is up. *@
+<svg class="ui-spark" viewBox="0 0 64 18" preserveAspectRatio="none" aria-hidden="true"><polyline points="@Points" fill="none" stroke="@(Color.Length > 0 ? Color : Rising ? "#8cc47e" : "#e0553f")" stroke-width="1.5" vector-effect="non-scaling-stroke" /></svg>
+@code {
+    [Parameter] public IReadOnlyList<double> Values { get; set; } = Array.Empty<double>();
+    [Parameter] public string Color { get; set; } = "";
+    private bool Rising => Values.Count < 2 || Values[^1] >= Values[0];
+    private string Points
+    {
+        get
+        {
+            if (Values.Count < 2) return "0,9 64,9";
+            double lo = Values.Min(), hi = Values.Max(), span = Math.Max(1e-9, hi - lo);
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            return string.Join(" ", Values.Select((v, i) => (i * 64.0 / (Values.Count - 1)).ToString("0.#", inv) + "," + (16 - (v - lo) / span * 14).ToString("0.#", inv)));
+        }
+    }
+}

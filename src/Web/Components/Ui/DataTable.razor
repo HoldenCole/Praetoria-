@@ -1,0 +1,19 @@
+@* A table (docs/VISUAL_SYSTEM.md 4.13): single-line 36px rows, fixed column widths, right-aligned tabular numbers, the first column a
+   glyph and a name; headers in small capitals that never wrap (a sentence repeated down a column becomes a dash, with the sentence
+   in the head's tooltip). The selected row gets a brass bar; its actions dock in one order bar at the foot (OrderBar) instead of an
+   input in every row. Head holds the <th> cells, ChildContent the <tr> rows. Any other attribute lands on the wrap. *@
+<div class="ui-table-wrap @(Class.Length > 0 ? " " + Class : "")" @attributes="Attrs">
+    <table class="ui-table">
+        @if (Head != null) { <thead><tr>@Head</tr></thead> }
+        <tbody>@ChildContent</tbody>
+    </table>
+    @if (OrderBar != null) { <div class="ui-order">@OrderBar</div> }
+</div>
+@code {
+    [Parameter] public RenderFragment? Head { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? OrderBar { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+    /// <summary>Any other attribute (a data-* hook for the scripts) lands on the table's wrap, which holds the order bar too.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+}

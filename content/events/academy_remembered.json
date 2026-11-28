@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_year_sends_for_its_first",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 5,
       "repeatable": false,
@@ -103,6 +104,7 @@
     },
     {
       "id": "the_banner_you_took",
+      "scene": "triumph",
       "tier": "situation",
       "weight": 5,
       "repeatable": false,
@@ -219,6 +221,7 @@
     },
     {
       "id": "the_ranks_that_won",
+      "scene": "triumph",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -317,6 +320,7 @@
     },
     {
       "id": "second_of_the_year",
+      "scene": "triumph",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -423,6 +427,7 @@
     },
     {
       "id": "the_captain_calls_the_year",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -517,6 +522,7 @@
     },
     {
       "id": "where_you_passed_out",
+      "scene": "triumph",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,

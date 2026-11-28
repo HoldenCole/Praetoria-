@@ -2,10 +2,9 @@
 @inject IJSRuntime JS
 @* The saved sagas of this browser (docs/PLAYTHROUGH.md, a first game: "save slots"): the running one, which the game keeps by itself,
    and three that are kept only when the player says so. Opened from the top bar and from the title. *@
-<div class="overlay" data-saves-box>
-    <div class="epilogue wide saves">
-        <div class="hb-tabs"><span class="tier" style="margin:0"><span class="glyph">◆</span> SAVED SAGAS</span><button class="win-x hb-x" @onclick="() => OnClose.InvokeAsync()" title="Close" aria-label="Close">×</button></div>
+<Box data-saves-box="1" BoxClass="saves" Glyph="scroll-unfurled" Kicker="The saved sagas" Title="@(InGame ? "Save and load" : "Load a saga")" Width="min(50.6667rem, calc(100vw - 2rem))" OnClose="() => OnClose.InvokeAsync()">
         <div class="save-row" data-save-row="running">
+            <Icon Name="hourglass" Tone="brass" Size="22" Class="save-ic" />
             <div class="save-what"><b>The running saga</b>
                 <div class="muted small">@(_labels[0].Length > 0 ? _labels[0] : "Nothing is saved yet.")</div>
                 <div class="muted small">The game keeps this one by itself as each year opens, and whenever you press Save or leave.</div></div>
@@ -17,7 +16,8 @@
         @for (int n = 1; n <= GameClient.Slots; n++)
         {
             int slot = n; string label = _labels[slot];
-            <div class="save-row" data-save-row="@slot">
+            <div class="save-row @(label.Length > 0 ? "" : "empty")" data-save-row="@slot">
+                <Icon Name="wax-seal" Tone="@(label.Length > 0 ? "brass" : "ivory")" Size="22" Class="save-ic" />
                 <div class="save-what"><b>Kept save @slot</b>
                     <div class="@(label.Length > 0 ? "small" : "muted small")">@(label.Length > 0 ? label : "Empty.")</div></div>
                 <div class="save-acts">
@@ -31,9 +31,8 @@
             </div>
         }
         @if (_note.Length > 0) { <div class="notice" data-saves-note>@_note</div> }
-        <div class="muted small">Saves live in this browser. A save now holds the year as it stands, with what you have done in it, and loading one opens that year where it was left. To carry a saga to another machine, or to keep it past a cleared browser, use Export in the top bar and "Load a save file" on the title.</div>
-    </div>
-</div>
+        <div class="box-note saves-note">Saves live in this browser. A save now holds the year as it stands, with what you have done in it, and loading one opens that year where it was left. To carry a saga to another machine, or to keep it past a cleared browser, use Export in the game menu and "Load a save file" on the title.</div>
+</Box>
 @code {
     [Parameter] public EventCallback OnClose { get; set; }
     /// <summary>Whether a saga is being played: only then is there something to save.</summary>

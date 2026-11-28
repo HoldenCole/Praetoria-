@@ -1,0 +1,38 @@
+@* A meter (docs/VISUAL_SYSTEM.md 4.10): an 8px track, a fill with a lighter top edge, a label column and a right-aligned value. A
+   target is a bright-brass tick. Kind "diverging" fills from a centre hairline (red to the left, green to the right: an opinion);
+   "signed" is the ledger's (losses in ember left of the centre, gains in brass right of it). Value and Target are on 0..Max; for the
+   two centred kinds Value runs from -Max to Max. *@
+<div class="ui-meter @(Label.Length == 0 ? " nolabel" : "") @(Class.Length > 0 ? " " + Class : "")" title="@Tip">
+    @if (Label.Length > 0) { <span class="ui-meter-l">@Label</span> }
+    <span class="ui-trk">
+        @if (Kind is "diverging" or "signed")
+        {
+            var f = Math.Clamp(Math.Abs(Value) / Max, 0, 1) * 50; var neg = Value < 0;
+            <i class="ui-mid"></i>
+            <i class="ui-fill" style="left:@(Pc(neg ? 50 - f : 50));width:@Pc(f);--mc:@(Color.Length > 0 ? Color : Kind == "signed" ? (neg ? "#b8452f" : "#c9a24a") : (neg ? "#c4472f" : "#8cc47e"))"></i>
+        }
+        else
+        {
+            <i class="ui-fill" style="width:@Pc(Math.Clamp(Value / Max, 0, 1) * 100);--mc:@(Color.Length > 0 ? Color : "#c9a24a")"></i>
+            @if (Target is double t) { <i class="ui-tick" style="left:@Pc(Math.Clamp(t / Max, 0, 1) * 100)"></i> }
+        }
+    </span>
+    <span class="ui-val @ValueClass">@(Text ?? Value.ToString("0"))@if (Small.Length > 0) { <small>@Small</small> }</span>
+</div>
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public double Value { get; set; }
+    [Parameter] public double Max { get; set; } = 100;
+    [Parameter] public double? Target { get; set; }
+    /// <summary>"plain", "diverging" or "signed".</summary>
+    [Parameter] public string Kind { get; set; } = "plain";
+    /// <summary>The fill's colour; by default brass (plain), red or green (diverging), ember or brass (signed).</summary>
+    [Parameter] public string Color { get; set; } = "";
+    /// <summary>The value as written (a signed figure through Counted.Figure, "3.8 bn"); the number itself when null.</summary>
+    [Parameter] public string? Text { get; set; }
+    [Parameter] public string Small { get; set; } = "";
+    [Parameter] public string ValueClass { get; set; } = "";
+    [Parameter] public string Tip { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "";
+    private static string Pc(double v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "%";
+}

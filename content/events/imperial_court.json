@@ -1,5 +1,5 @@
 {
-  "//": "THE IMPERIAL COURT — content for the §10 'Imperium' start, gated on the `era` condition so it never fires in a fractured_stars run. The court of a standing Emperor: favor, whispers, and the levy. Writes debt_to_crown (consumed by echoes/the_crowns_due), corruption, unrest, standing. The sovereign role binds by TITLE (the house that holds `emperor`), not by name — any Emperor will do, including whoever seizes the throne later.",
+  "//": "THE IMPERIAL COURT, content for the §10 'Imperium' start, gated on the `era` condition so it never fires in a fractured_stars run. The court of a standing Emperor: favor, whispers, and the levy. Writes debt_to_crown (consumed by echoes/the_crowns_due), corruption, unrest, standing. The sovereign role binds by TITLE (the house that holds `emperor`), not by name, any Emperor will do, including whoever seizes the throne later.",
   "events": [
     {
       "id": "the_emperors_favor",
@@ -222,6 +222,7 @@
     },
     {
       "id": "the_imperial_levy",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,

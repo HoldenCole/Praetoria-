@@ -79,7 +79,7 @@ public static class CharacterCreation
         if (p.AptitudeTraits.Count > MaxAptitude) throw new ContentException($"Too many aptitude traits ({p.AptitudeTraits.Count} > {MaxAptitude}).");
 
         string line = $"{p.Name} of {house.Name} takes the stage" +
-                      (bg != null ? $" — {bg.Name.ToLowerInvariant()}" : "") +
+                      (bg != null ? $", {bg.Name.ToLowerInvariant()}" : "") +
                       $"; {string.Join(", ", p.NatureTraits.OrderBy(t => t, StringComparer.Ordinal))}" +
                       (p.AptitudeTraits.Count > 0 ? $" ({string.Join(", ", p.AptitudeTraits.OrderBy(t => t, StringComparer.Ordinal))})" : "") +
                       $", serving in {content.Careers.ById(p.CareerTrack)?.Name ?? p.CareerTrack}.";

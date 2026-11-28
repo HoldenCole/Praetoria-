@@ -1,28 +1,115 @@
-@* A procedural house sigil: a shield in the house accent carrying a charge chosen from the house id, so every house has a
-   stable, distinct mark without any art assets (GDD §19 "territory shaded by house accent" extended to heraldry). *@
-<svg class="sigil" width="@Size" height="@Size" viewBox="0 0 40 44" aria-label="sigil of @HouseId">
-    <defs>
-        <linearGradient id="@("sg" + Key)" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="@Accent" stop-opacity="1"/><stop offset="1" stop-color="@Accent" stop-opacity=".55"/></linearGradient>
-    </defs>
-    <path d="M20 2 L37 7 V22 C37 32 29 39 20 42 C11 39 3 32 3 22 V7 Z" fill="url(#@("sg" + Key))" stroke="#e6c77a" stroke-width="1.2"/>
-    @switch (Charge)
-    {
-        case 0: <path d="M8 26 L20 12 L32 26 L28 26 L20 17 L12 26 Z" fill="#f3e9cf"/> break;
-        case 1: <path d="M20 9 L23 18 L32 19 L25 25 L27 34 L20 29 L13 34 L15 25 L8 19 L17 18 Z" fill="#f3e9cf"/> break;
-        case 2: <g fill="#f3e9cf"><rect x="9" y="12" width="22" height="4"/><rect x="9" y="20" width="22" height="4"/><rect x="9" y="28" width="22" height="4"/></g> break;
-        case 3: <circle cx="20" cy="22" r="9" fill="none" stroke="#f3e9cf" stroke-width="3.5"/> break;
-        case 4: <path d="M20 8 L31 22 L20 36 L9 22 Z" fill="none" stroke="#f3e9cf" stroke-width="3.5"/> break;
-        case 5: <g fill="#f3e9cf"><rect x="18" y="8" width="4" height="28"/><rect x="8" y="18" width="24" height="4"/></g> break;
-        case 6: <path d="M8 30 Q20 6 32 30 Z" fill="#f3e9cf"/> break;
-        default: <path d="M20 10 C27 10 32 16 32 22 C32 30 20 36 20 36 C20 36 8 30 8 22 C8 16 13 10 20 10 Z" fill="none" stroke="#f3e9cf" stroke-width="3"/> break;
-    }
-</svg>
+@* A house's marks (docs/VISUAL_SYSTEM.md 4.16 and 3.4), from its id and its colour, so every house has a stable, distinct mark without
+   any art asset. The arms (the default): a shield in the house colour with its charge in ivory and a dark keyline, used at 26px in the
+   bar, in lists of houses and on map tooltips. Mode "seal": an uneven disc of wax in the house colour, a pressed ring, the shield and
+   its charge in relief, for window headers (82px), the ruler's portrait (28px) and the profile (40px). Mode "standard": a swallow-
+   tailed vexillum on a crossbar with finials, the cloth in the house colour toned for cloth with folds, a gilt border and the arms'
+   charge in ivory over a darker shield; 64 wide by 150 tall at the foot of the rail. Size is the width in px at the normal text size. *@
+@switch (Mode)
+{
+    case "seal":
+        <svg class="sigil house-seal" width="@Rem(Size)" height="@Rem(Size)" viewBox="0 0 100 100" aria-label="the seal of @HouseId">
+            <defs><radialGradient id="@("wx" + Key)" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="@Mix(Accent, "#fff3d6", .45)" /><stop offset=".45" stop-color="@Mix(Accent, "#000", .06)" /><stop offset=".8" stop-color="@Mix(Accent, "#000", .38)" /><stop offset="1" stop-color="@Mix(Accent, "#000", .6)" /></radialGradient></defs>
+            <polygon points="@WaxEdge" fill="url(#@("wx" + Key))" stroke="rgba(0,0,0,.65)" stroke-width="1.2" />
+            <circle cx="50" cy="50" r="35" fill="none" stroke="rgba(30,18,4,.5)" stroke-width="3.2" /><circle cx="49.3" cy="49.3" r="35" fill="none" stroke="rgba(255,236,190,.35)" stroke-width="1.2" />
+            <ellipse cx="36" cy="27" rx="13" ry="6" fill="rgba(255,246,220,.22)" transform="rotate(-32 36 27)" />
+            <g transform="translate(30.5 28) scale(.98)">
+                <path d="@Shield" fill="rgba(30,18,4,.42)" transform="translate(.9 1.2)" /><path d="@Shield" fill="rgba(255,236,190,.28)" transform="translate(-.7 -.8)" /><path d="@Shield" fill="url(#@("wx" + Key))" opacity=".92" />
+                <g transform="translate(-.6 -.7)">@Charge("rgba(255,240,205,.5)", "none", 0)</g><g transform="translate(.6 .7)">@Charge("rgba(40,24,4,.6)", "none", 0)</g>@Charge("url(#wx" + Key + ")", "none", 0)
+            </g>
+        </svg>
+        break;
+    case "standard":
+        <svg class="sigil house-standard" width="@Rem(Size)" height="@Rem(Size * 150 / 64)" viewBox="0 0 64 150" aria-label="the standard of @HouseId">
+            <defs>
+                <linearGradient id="@("cl" + Key)" x1="0" x2="1"><stop offset="0" stop-color="@Mix(Cloth, "#000", .55)" /><stop offset=".18" stop-color="@Cloth" /><stop offset=".36" stop-color="@Mix(Cloth, "#000", .3)" /><stop offset=".6" stop-color="@Mix(Cloth, "#fff", .1)" /><stop offset=".82" stop-color="@Mix(Cloth, "#000", .35)" /><stop offset="1" stop-color="@Mix(Cloth, "#000", .6)" /></linearGradient>
+                <linearGradient id="@("cv" + Key)" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".45" /><stop offset=".14" stop-color="#000" stop-opacity="0" /><stop offset=".8" stop-color="#000" stop-opacity="0" /><stop offset="1" stop-color="#000" stop-opacity=".5" /></linearGradient>
+            </defs>
+            <rect x="30.5" y="0" width="3" height="150" fill="url(#g-rim)" stroke="#000" stroke-width=".6" />
+            <path d="M32 0 l4.5 6 -4.5 5 -4.5 -5z" fill="url(#g-gold)" stroke="#120b02" stroke-width=".7" />
+            <rect x="2" y="12" width="60" height="5" rx="1" fill="url(#g-rim)" stroke="#000" stroke-width=".7" />
+            <circle cx="3" cy="14.5" r="3.2" fill="url(#g-gold)" stroke="#000" stroke-width=".6" /><circle cx="61" cy="14.5" r="3.2" fill="url(#g-gold)" stroke="#000" stroke-width=".6" />
+            <path d="M7 17 H57 V124 L32 108 L7 124 Z" fill="url(#@("cl" + Key))" stroke="#120b02" stroke-width="1" />
+            <path d="M7 17 H57 V124 L32 108 L7 124 Z" fill="url(#@("cv" + Key))" />
+            <path d="M10.5 20.5 H53.5 V117.5 L32 104 L10.5 117.5 Z" fill="none" stroke="#e2c477" stroke-width="1.2" stroke-opacity=".9" />
+            <g transform="translate(16 32) scale(.8)"><path d="@Shield" fill="@Mix(Cloth, "#000", .55)" fill-opacity=".7" stroke="#f3e9cf" stroke-width="1.8" />@Charge("#f3e9cf", "#2a1d08", .7)</g>
+            <path d="M18 84 h28" stroke="#e2c477" stroke-width="1" stroke-opacity=".7" /><path d="M32 80 l3 4 -3 4 -3 -4z" fill="#e2c477" opacity=".85" />
+            <path d="M14 17 v100 M24 17 v94 M40 17 v94 M50 17 v100" stroke="#000" stroke-opacity=".14" stroke-width="3" />
+            <path d="M2.5 17 q-1.5 12 .5 22 M61.5 17 q1.5 12 -.5 22" stroke="url(#g-gold)" stroke-width="1.3" fill="none" />
+            <circle cx="3" cy="41" r="2.4" fill="url(#g-gold)" stroke="#000" stroke-width=".5" /><circle cx="61" cy="41" r="2.4" fill="url(#g-gold)" stroke="#000" stroke-width=".5" />
+        </svg>
+        break;
+    default:
+        <svg class="sigil" width="@Rem(Size)" height="@Rem(Size)" viewBox="0 0 40 44" aria-label="sigil of @HouseId">
+            <defs><linearGradient id="@("sg" + Key)" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="@Mix(Accent, "#fff3d6", .18)" /><stop offset="1" stop-color="@Mix(Accent, "#000", .3)" /></linearGradient></defs>
+            <path d="@Shield" fill="url(#@("sg" + Key))" stroke="#000" stroke-width="2.4" />
+            <path d="@Shield" fill="none" stroke="#e6c77a" stroke-width="1.1" />
+            @Charge("#f6eedb", "#3a2808", .8)
+        </svg>
+        break;
+}
 
 @code {
     [Parameter] public string HouseId { get; set; } = "";
     [Parameter] public string Accent { get; set; } = "#888";
     [Parameter] public int Size { get; set; } = 28;
-    private int Charge => Math.Abs(Hash(HouseId)) % 8;
-    private string Key => Math.Abs(Hash(HouseId)).ToString();
+    /// <summary>"arms" (the default), "seal" or "standard".</summary>
+    [Parameter] public string Mode { get; set; } = "arms";
+    private const string Shield = "M20 2 L37 7 V22 C37 32 29 39 20 42 C11 39 3 32 3 22 V7 Z";
+    private int ChargeNo => Math.Abs(Hash(HouseId)) % 8;
+    private string Key => Math.Abs(Hash(HouseId)).ToString() + Accent.TrimStart('#');
     private static int Hash(string s) { unchecked { int h = 17; foreach (var ch in s) h = h * 31 + ch; return h; } }
+    private static string Rem(int px) => (px / 15.0).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture) + "rem";
+    private static string F(double v) => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>The house's charge, by its id: a chevron, a star, three bars, a ring, a lozenge, a cross, a dome or a heart. Outlined charges
+    /// draw a wider keyline beneath their stroke.</summary>
+    private RenderFragment Charge(string ink, string key, double kw) => __builder =>
+    {
+        switch (ChargeNo)
+        {
+            case 0: <path d="M8 26 L20 12 L32 26 L28 26 L20 17 L12 26 Z" fill="@ink" stroke="@key" stroke-width="@F(kw)" paint-order="stroke" /> break;
+            case 1: <path d="M20 9 L23 18 L32 19 L25 25 L27 34 L20 29 L13 34 L15 25 L8 19 L17 18 Z" fill="@ink" stroke="@key" stroke-width="@F(kw)" paint-order="stroke" /> break;
+            case 2: <path d="M9 12h22v4H9zM9 20h22v4H9zM9 28h22v4H9z" fill="@ink" stroke="@key" stroke-width="@F(kw)" paint-order="stroke" /> break;
+            case 3: if (kw > 0) { <circle cx="20" cy="22" r="9" fill="none" stroke="@key" stroke-width="@F(3.5 + kw * 2)" /> } <circle cx="20" cy="22" r="9" fill="none" stroke="@ink" stroke-width="3.5" /> break;
+            case 4: if (kw > 0) { <path d="M20 8 L31 22 L20 36 L9 22 Z" fill="none" stroke="@key" stroke-width="@F(3.5 + kw * 2)" /> } <path d="M20 8 L31 22 L20 36 L9 22 Z" fill="none" stroke="@ink" stroke-width="3.5" /> break;
+            case 5: <path d="M18 8h4v10h10v4H22v14h-4V22H8v-4h10z" fill="@ink" stroke="@key" stroke-width="@F(kw)" paint-order="stroke" /> break;
+            case 6: <path d="M8 30 Q20 6 32 30 Z" fill="@ink" stroke="@key" stroke-width="@F(kw)" paint-order="stroke" /> break;
+            default: if (kw > 0) { <path d="M20 10 C27 10 32 16 32 22 C32 30 20 36 20 36 C20 36 8 30 8 22 C8 16 13 10 20 10 Z" fill="none" stroke="@key" stroke-width="@F(3 + kw * 2)" /> } <path d="M20 10 C27 10 32 16 32 22 C32 30 20 36 20 36 C20 36 8 30 8 22 C8 16 13 10 20 10 Z" fill="none" stroke="@ink" stroke-width="3" /> break;
+        }
+    };
+
+    /// <summary>The wax's uneven edge: forty points round a 45-unit disc, wobbling by the house's own hash so each seal is its own.</summary>
+    private string WaxEdge
+    {
+        get
+        {
+            int n = Math.Abs(Hash(HouseId)) % 97; var pts = new List<string>();
+            for (int i = 0; i < 40; i++)
+            {
+                double a = i / 40.0 * Math.PI * 2;
+                double r = 45 + 2.8 * Math.Sin(a * 5 + 1.3 + n) + 1.8 * Math.Sin(a * 11 + .4) + 1.4 * Math.Cos(a * 7 + n) + (Math.Sin(a * 3 + n * 2) > .93 ? 2.5 : 0);
+                pts.Add(F(50 + r * Math.Cos(a)) + "," + F(50 + r * Math.Sin(a)));
+            }
+            return string.Join(" ", pts);
+        }
+    }
+
+    /// <summary>The house colour toned for cloth and other large areas: saturation times 0.8, value times 0.88 (docs/VISUAL_SYSTEM.md 2.2).</summary>
+    private string Cloth { get { var (h, s, v) = Palette.Hsv(Hex(Accent)); return FromHsv(h, s * 0.8, v * 0.88); } }
+
+    private static string Hex(string c) => c.StartsWith('#') && c.Length == 7 ? c : "#888888";
+    /// <summary>A colour mixed toward another by t (0 keeps it, 1 is the other).</summary>
+    public static string Mix(string a, string b, double t)
+    {
+        a = Hex(a); b = b.Length == 4 ? "#" + string.Concat(b.Skip(1).Select(ch => $"{ch}{ch}")) : Hex(b);
+        int C(string s, int i) => Convert.ToInt32(s.Substring(i, 2), 16);
+        int M(int i) => (int)Math.Round(C(a, i) + (C(b, i) - C(a, i)) * t);
+        return $"#{M(1):x2}{M(3):x2}{M(5):x2}";
+    }
+    private static string FromHsv(double h, double s, double v)
+    {
+        double c = v * s, x = c * (1 - Math.Abs(h / 60 % 2 - 1)), m = v - c;
+        var (r, g, b) = h < 60 ? (c, x, 0.0) : h < 120 ? (x, c, 0.0) : h < 180 ? (0.0, c, x) : h < 240 ? (0.0, x, c) : h < 300 ? (x, 0.0, c) : (c, 0.0, x);
+        return $"#{(int)Math.Round((r + m) * 255):x2}{(int)Math.Round((g + m) * 255):x2}{(int)Math.Round((b + m) * 255):x2}";
+    }
 }

@@ -8,7 +8,6 @@
     int living = kin.Count(k => k.Alive), dead = kin.Count - living, children = kin.Count(k => k.Alive && k.Age < 16);
     var tree = Tree(w, p, house, kin);
     var fc = _focus != null ? w.Char(_focus) : null;
-    string F(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
 
     // The picture (docs/DASHBOARDS.md): who has the house next, how deep the line is, and what state the blood is in.
     var heir = heirs.FirstOrDefault(); int heirRegard = heir != null ? w.GetRelationship(heir.Id, pid)?.Disposition ?? 0 : 0;
@@ -16,161 +15,201 @@
     var grown = kin.Where(k => k.Alive && k.Age >= 16).ToList(); var unwed = grown.Where(k => DynastySystem.Spouse(w, k) == null).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
     var ailing = kin.Where(k => k.Alive && (k.Health < LifeSystem.Sound || k.Flags.Contains(LifeSystem.IllChar))).OrderBy(k => k.Health).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
     string law = house.SuccessionLaw.Replace('_', ' '); string heirBy = DynastySystem.HeirBy(w, p);
-    double minX = tree.nodes.Count > 0 ? tree.nodes.Min(n => n.x) : 430, maxX = tree.nodes.Count > 0 ? tree.nodes.Max(n => n.x) : 570; double treeW = Math.Max(420, maxX - minX + 150);
-    static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
-    static string First(string name) => name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? name;
-    string story, storyTone;
-    if (heir == null) { story = "There is no heir. The line hangs by a thread: wed, or the name dies with you."; storyTone = "bad"; }
-    else if (heir.Age < 16) { story = $"{heir.Name}, {heir.Age}, is your heir, {heirBy}: the seat would pass to a child{(heirs.Count > 1 ? $", with {heirs.Count - 1} more behind in the line" : ", and nobody stands behind")}."; storyTone = "warn"; }
-    else if (heirs.Count == 1) { story = $"{heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, is your heir, {heirBy}, and the only one: the line is one life deep."; storyTone = "warn"; }
-    else { story = $"{heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, is your heir, {heirBy}, with {heirs.Count - 1} more behind in the line. {living} of the blood are living, {children} of them children{(ailing.Count > 0 ? $"; {ailing[0].Name} is {LifeSystem.HealthName(ailing[0].Health)}" : "")}."; storyTone = heirRegard < -20 ? "warn" : ""; }
+    string story;
+    if (heir == null) story = "There is no heir. The line hangs by a thread: wed, or the name dies with you.";
+    else if (heir.Age < 16) story = $"{heir.Name}, {heir.Age}, is your heir, {heirBy}: the seat would pass to a child{(heirs.Count > 1 ? $", with {heirs.Count - 1} more behind in the line" : ", and nobody stands behind")}.";
+    else if (heirs.Count == 1) story = $"{heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, is your heir, {heirBy}, and the only one: the line is one life deep.";
+    else story = $"{heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, is your heir, {heirBy}, with {heirs.Count - 1} more behind in the line. {living} of the blood are living, {children} of them children{(ailing.Count > 0 ? $"; {ailing[0].Name} is {LifeSystem.HealthName(ailing[0].Health)}" : "")}.";
     if (heir != null && heirRegard < -20) story += $" Your heir thinks ill of you ({Counted.Figure(heirRegard)}).";
+    bool storyWarn = heir == null || heir.Age < 16 || heirs.Count == 1 || heirRegard < -20;
+
+    var figures = new List<WindowHeader.Figure>
+    {
+        new("family-tree", heirs.Count.ToString(), "In the line", heirs.Count == 0 ? "ember" : heirs.Count == 1 ? "brass" : "ivory",
+            Tip: $"[family-tree] The line of succession\nHow many stand in it, in order, by {law}.{(heirs.Count > 1 ? $" Then {First(heirs[1].Name)}." : "")}" + (heir != null ? $"\nYour heir, {heir.Name}, {heir.Age}{(heirRank != null ? $", {heirRank}" : "")}, thinks {(heirRegard >= 0 ? "+" : "")}{Counted.Figure(heirRegard)} of you." : "\nNo heir: wed, or the name dies with you.")),
+        new("three-friends", living.ToString(), "Of the blood", "ivory",
+            Tip: $"[three-friends] Of the blood\nThose born to the house: {grown.Count} grown, {children} children{(dead > 0 ? $", {dead} remembered" : "")}. Those taken in are on the House window."),
+        new("roman-toga", children.ToString(), "Children", "ivory", Tip: $"[roman-toga] Children of the house\nUnder 16. How they are raised is under Upbringing."),
+        new("marriage", unwed.Count.ToString(), "Unwed of age", unwed.Count > 0 ? "brass" : "ivory",
+            Tip: $"[marriage] Unwed and of age\n{(unwed.Count == 0 ? "Every grown one of the blood is wed." : string.Join(", ", unwed.Take(3).Select(k => First(k.Name))) + (unwed.Count > 3 ? " and others" : "") + ".")} A match is an alliance, a dowry and the next generation. They court for themselves, and ask your blessing."),
+        new("heart-beats", ailing.Count.ToString(), "Ailing", ailing.Count > 0 ? "ember" : "good",
+            Tip: $"[heart-beats] The health of the house\n{(ailing.Count == 0 ? "Nobody ill or frail." : string.Join(", ", ailing.Take(3).Select(k => $"{First(k.Name)} {LifeSystem.HealthName(k.Health)}")) + ".")} Send your physicians to one who is ailing, from the You window.")
+    };
+    int askingKin = w.Courtships.Count(x => x.Incoming || (x.Own && x.AskingSince >= 0 && !x.Forbidden && x.SuitorId != pid));
+    int asking = Praetoria.Core.Systems.AmbitionSystem.Members(w, house).Count(x => x.Pursuit is { Request.Length: > 0 });
+    int atLessons = w.LivingCharacters().Count(x => x.HouseId == house.Id && x.Id != pid && x.Age < EducationSystem.Adult && x.Age >= EducationSystem.SchoolAge);
+    var tabs = new List<Tabs.Tab>
+    {
+        new("tree", "The tree", "family-tree", Tip: "The family tree, whoever you pick on it, and the line of succession"),
+        new("marriages", "Marriages", "marriage", askingKin > 0 ? askingKin.ToString() : "", askingKin > 0, Tip: "Marriages, courtships and suits to answer, and a match to make"),
+        new("ambitions", "Ambitions", "stairs-goal", asking > 0 ? asking.ToString() : "", asking > 0, Tip: "What your people are after, what they ask of you, and your heir"),
+        new("upbringing", "Upbringing", "open-book", atLessons > 0 ? atLessons.ToString() : "", Tip: "How the young are raised and what the grown study"),
+        new("dead", dead > 0 ? "The dead" : "Health", dead > 0 ? "candle-light" : "heart-beats", dead > 0 ? dead.ToString() : "", Tip: "The health of the house, the dead and what they left, and what was said of them")
+    };
+    var facts = new List<(string icon, string text, string tip)>
+    {
+        ("throne-king", heir != null ? $"Heir: {First(heir.Name)}, {heir.Age}" : "No heir", heir != null ? $"{heir.Name}, {heirBy}" : "The line hangs by a thread"),
+        ("scales", "Succession by " + law, "The law is set in the Senate"),
+        ("family-tree", $"{living} living" + (dead > 0 ? $", {dead} remembered" : ""), "Those born to the house"),
+        ("hourglass", w.Successions.Count == 0 ? "The seat has not passed" : $"The seat has passed {Counted.Times(w.Successions.Count)}", "Each head of the house is a generation")
+    };
+    // the tree's frame: the span of the nodes in the layout's units, the widest row, and the width it needs so no two plates meet
+    double minX = tree.nodes.Count > 0 ? tree.nodes.Min(n => n.x) : 430, maxX = tree.nodes.Count > 0 ? tree.nodes.Max(n => n.x) : 570;
+    double x0 = minX - 75, treeW = Math.Max(300, maxX - minX + 150);
+    int widest = tree.nodes.Count == 0 ? 1 : tree.nodes.GroupBy(n => n.y).Max(g => g.Count());
+    double step = Math.Min(130, 940.0 / Math.Max(1, widest)); double needPx = Math.Max(240, 70 * treeW / step);
 }
-<div class="dash lineage" style="--accent:@house.AccentColor">
-    <header class="dash-head picture">
-        <div class="dh-title"><Icon Name="dynasty" Size="18" /> <b>The Line of @house.Name</b> <span class="muted">generation @generation · @living living@(dead > 0 ? $" · {dead} remembered" : "") · succession by @law</span></div>
-        <p class="headline @storyTone">@story</p>
-        <div class="tiles">
-            <Tile Label="Your heir" Value="@(heir != null ? First(heir.Name) : "none")" Tone="@(heir == null ? "bad" : heir.Age < 16 || heirRegard < -20 ? "warn" : "good")"
-                  Note="@(heir == null ? "wed, or the name dies with you" : $"{heir.Age}{(heirRank != null ? $" · {heirRank}" : "")} · {(heirRegard >= 0 ? "+" : "")}{Counted.Figure(heirRegard)} toward you")" Title="Who has the house when you die or lay it down." />
-            <Tile Label="The line" Value="@(heirs.Count == 0 ? "empty" : heirs.Count == 1 ? "1 deep" : $"{heirs.Count} deep")" Tone="@(heirs.Count == 0 ? "bad" : heirs.Count == 1 ? "warn" : "")"
-                  Note="@($"by {law}" + (heirs.Count > 1 ? $" · then {First(heirs[1].Name)}" : ""))" Title="How many stand in the line of succession, in order." />
-            <Tile Label="Of the blood" Value="@($"{living} living")" Note="@($"{grown.Count} grown · {children} children{(dead > 0 ? $" · {dead} remembered" : "")}")" Title="Those born to the house. Those taken in are on the House screen." />
-            <Tile Label="Unwed and of age" Value="@unwed.Count.ToString()" Note="@(unwed.Count == 0 ? "every grown one of the blood is wed" : string.Join(", ", unwed.Take(3).Select(k => First(k.Name))) + (unwed.Count > 3 ? " and others" : ""))" Title="A match is an alliance, a dowry and the next generation. They court for themselves, and ask your blessing." />
-            <Tile Label="Health of the house" Value="@(ailing.Count == 0 ? "all sound" : $"{ailing.Count} ailing")" Tone="@(ailing.Count == 0 ? "good" : "warn")"
-                  Note="@(ailing.Count == 0 ? "nobody ill or frail" : string.Join(", ", ailing.Take(2).Select(k => $"{First(k.Name)} {LifeSystem.HealthName(k.Health)}")))" Title="Send your physicians to one who is ailing, from the You screen." />
-            <Tile Label="Generation" Value="@Ordinal(generation)" Note="@(w.Successions.Count == 0 ? "the seat has not yet passed" : $"the seat has passed {Counted.Times(w.Successions.Count)}")" />
-        </div>
-    </header>
-    @* The Dynasty window (docs/ART_DIRECTION.md, "The windows, one by one"): the tree first, and whoever is picked on it beside the
-       succession; marriages, what your people are after, how the young are raised and the dead each behind a tab. *@
-    <nav class="cw-tabs">
-        @foreach (var (id, label) in new[] { ("tree", "The tree"), ("marriages", "Marriages"), ("ambitions", "Ambitions"), ("upbringing", "Upbringing"), ("dead", "The dead") }) { var tid = id; <button class="rung @(_tab == tid ? "here" : "")" @onclick="() => _tab = tid">@label</button> }
-    </nav>
-    <div class="dash-grid lineage-grid">
-        <div class="dash-col">
-        @if (_tab == "tree") {
-        <section class="panel">
-            <h3><Icon Name="dynasty" Size="13" /> The family tree <span class="muted">a row a generation · children under their parents, the eldest leftmost · the figure is an age · click a name</span></h3>
-            <div class="tree-wrap"><svg class="tree" viewBox="@F(minX - 75) 0 @F(treeW) @(Math.Max(200, tree.rows * 120 + 30))" style="min-width:min(100%, @F(Math.Min(treeW, 1400) * 0.8)px); max-width:@F(treeW)px" role="img" aria-label="the family tree">
-                <defs><clipPath id="tree-face"><circle r="25" /></clipPath></defs>
-                @foreach (var l in tree.links) { <path d="M @F(l.x1) @F(l.y1) C @F(l.x1) @F((l.y1 + l.y2) / 2), @F(l.x2) @F((l.y1 + l.y2) / 2), @F(l.x2) @F(l.y2)" class="link" /> }
-                @foreach (var s in tree.spouses) { <line x1="@F(s.x1)" y1="@F(s.y)" x2="@F(s.x2)" y2="@F(s.y)" class="wed" /> }
-                @foreach (var n in tree.nodes)
+@* The Dynasty window (docs/VISUAL_SYSTEM.md 5.3): the family painting with the house's seal, the generation, the house's name, who is
+   heir and by what law, and five figures. Five tabs. The tree is drawn as portrait plates (the dead in greyscale with the ribbon, the
+   heir's and your own names in brass) on brass lines: a row a generation, children under their parents, the wed joined by a double
+   line. Whoever is picked on it is shown under it with what can be done about them, then the line of succession as rows. *@
+<div class="dyn-win" style="--accent:@house.AccentColor" data-dynasty="@_tab">
+    <WindowHeader Scene="family" HouseId="@house.Id" Accent="@house.AccentColor" Kicker="@($"Dynasty · {Ordinal(generation)} generation")" Title="@($"The {(house.Name.StartsWith("House ") ? house.Name[6..] : house.Name)} line")" Figures="figures" Class="dyn-head">
+        <Facts>
+            @for (int i = 0; i < facts.Count; i++) { var (icon, text, tip) = facts[i]; <span class="@(i >= 2 ? "dy-fx2" : "")" title="@tip"><Icon Name="@icon" Tone="ivory" Size="16" />@text</span> }
+        </Facts>
+    </WindowHeader>
+    <Tabs Items="tabs" Active="@_tab" OnPick="Pick" />
+    <div class="ui-wbody fades dyn-body">
+    @if (_tab == "tree")
+    {
+        <p class="ui-lede dy-lede @(storyWarn ? "warn" : "")">@LawsScreen.Bold(story)</p>
+        <Section Title="The family tree" Count="@kin.Count.ToString()" Info="A row a generation; children stand under their parents, the eldest of each family at the left; the wed are joined by a double line, one wed in from another house wears their house's colour on the plate's foot. The dead are in grey with a black ribbon. Click a face for who they are and what can be done.">
+            <Right><span class="dy-key"><i class="mk"></i>you and your heir <i class="wed"></i>wed</span></Right>
+            <ChildContent>
+            <div class="dy-tree-wrap">
+                <div class="tree dy-tree" style="--rows:@tree.rows; min-width:@Rem(needPx); max-width:@Rem(Math.Max(needPx, treeW * 1.15))">
+                    <svg class="dy-lines" viewBox="@F(x0) 0 @F(treeW) @F(tree.rows * RowH)" preserveAspectRatio="none" aria-hidden="true">
+                        @foreach (var l in tree.links)
+                        {
+                            double pr = Row(l.y1), cr = Row(l.y2); double top = l.two ? pr * RowH + 41 : pr * RowH + 124, bus = cr * RowH - 9, foot = cr * RowH + 7;
+                            <path d="M @F(l.x1) @F(top) V @F(bus) H @F(l.x2) V @F(foot)" class="ln" />
+                        }
+                        @foreach (var s in tree.spouses) { double y = Row(s.y) * RowH + 41; <path d="M @F(s.x1) @F(y - 2) H @F(s.x2) M @F(s.x1) @F(y + 2) H @F(s.x2)" class="wd" /> }
+                    </svg>
+                    @foreach (var n in tree.nodes)
+                    {
+                        var tc = w.Char(n.id); string nid = n.id; bool isHeir = heirs.Count > 0 && heirs[0].Id == n.id;
+                        <button class="tn @(n.me ? "me" : "") @(n.alive ? "" : "dead") @(n.id == _focus ? "focus" : "") @(isHeir ? "heir" : "") @(n.inHouse ? "" : "wed")" style="left:@Pc((n.x - x0) / treeW * 100);top:calc(@Row(n.y) * 9.3333rem)"
+                                title="@($"{n.name}{(n.alive ? $", {tc?.Age}" : ", remembered")}{(n.inHouse ? "" : " · " + n.house)}{(n.me ? " · you" : isHeir ? " · your heir" : "")}\nClick for who they are")" @onclick="() => _focus = nid">
+                            @if (tc != null) { <Portrait Id="@tc.Id" Name="@tc.Name" Sex="@tc.Sex" Age="@tc.Age" Alive="@tc.Alive" Accent="@n.accent" Size="58" Height="70" Opens="false" /> }
+                            <b class="nm">@First(n.name)</b><span class="sub">@n.sub</span>
+                        </button>
+                    }
+                </div>
+            </div>
+            </ChildContent>
+        </Section>
+        @if (fc != null)
+        {
+            var fh = w.House(fc.HouseId)!; var rel = w.GetRelationship(fc.Id, pid); int d = rel?.Disposition ?? 0; var sp = DynastySystem.Spouse(w, fc);
+            var mother = fc.MotherId.Length > 0 ? w.Char(fc.MotherId) : null; var father = fc.FatherId.Length > 0 ? w.Char(fc.FatherId) : null; var hl = Model.Household.FirstOrDefault(x => x.Id == fc.Id);
+            string? frn = fc.Alive ? c.Careers.RankName(fc.CareerTrack, fc.CareerRank, w.Era) : null; bool fHeir = heirs.Count > 0 && heirs[0].Id == fc.Id;
+            <Section Title="@First(fc.Name)" Class="dy-focus-sec" Info="Who they are to you and to the house, and what can be done about them. Click the face for their whole profile.">
+                <Right><Link Label="Clear" Tip="Pick nobody on the tree" OnClick="() => _focus = null" /></Right>
+                <ChildContent>
+                <div class="dy-focus" data-focus="@fc.Id">
+                    <Portrait Id="@fc.Id" Name="@fc.Name" Sex="@fc.Sex" Age="@fc.Age" Alive="@fc.Alive" Accent="@fh.AccentColor" Size="58" Height="70" />
+                    <div class="dy-focus-who">
+                        <div class="dy-focus-nm"><b class="@(fc.Id == pid || fHeir ? "brass" : "")">@fc.Name</b>@if (fc.Id == pid) { <span class="dy-tag">You</span> }@if (fHeir) { <span class="dy-tag">Heir</span> }</div>
+                        <div class="dy-focus-sub">@(fc.Alive ? $"{fc.Age}" : "Remembered")@(frn != null ? $" · {frn}" : "")@(fh.Id != house.Id ? $" · of {fh.Name}" : "")@if (fc.Id != pid && fc.Alive) { <span> · </span><span class="@(d < -20 ? "ui-down" : d > 20 ? "ui-up" : "")">@(d >= 0 ? "+" : "")@Counted.Figure(d) toward you</span>@(rel?.Bond is { } b && b != BondType.None ? " · " + b.ToString().ToLowerInvariant() : "") }</div>
+                    </div>
+                </div>
+                @if (mother != null || father != null) { <div class="you-kv dy-kv"><span class="k">Child of</span><span class="v">@string.Join(" and ", new[] { father?.Name, mother?.Name }.Where(x => x != null))</span><span></span></div> }
+                @if (sp != null) { <div class="you-kv dy-kv"><span class="k">Wed to</span><span class="v">@sp.Name@(sp.HouseId != fc.HouseId ? $" of {w.House(sp.HouseId)?.Name}" : "")</span><span></span></div> }
+                @if (fc.NatureTraits.Count + fc.AptitudeTraits.Count > 0 || fc.Ambition.Length > 0)
                 {
-                    <g class="tn @(n.me ? "me" : "") @(n.alive ? "" : "dead") @(n.id == _focus ? "focus" : "") @(heirs.Count > 0 && heirs[0].Id == n.id ? "heir" : "")" transform="translate(@F(n.x),@F(n.y))" @onclick="() => _focus = n.id">
-                        <circle r="26" style="fill:#0b0e14;stroke:@n.accent;stroke-width:3" />
-                        @if (w.Char(n.id) is { } tc && Portrait.PaintedUrl(G, tc.Id, tc.Sex, tc.Age, w.Cosmetics.GetValueOrDefault("look:" + tc.Id)) is { } turl) { <image @key="turl" href="@turl" x="-25" y="-25" width="50" height="50" clip-path="url(#tree-face)" preserveAspectRatio="xMidYMin slice" /> }
-                        else if (w.Char(n.id) is { } td) { <image @key="n.id + td.Age" data-bust="@Portrait.Spec(w, td.Id, td.Sex, td.Age, n.accent, td.Alive, w.Cosmetics.GetValueOrDefault("look:" + td.Id), true)" x="-25" y="-25" width="50" height="50" clip-path="url(#tree-face)" /> }
-                        <circle r="29" class="ring" />
-                        @((MarkupString)$"<text y=\"46\" class=\"nm\">{System.Net.WebUtility.HtmlEncode(First(n.name))}</text><text y=\"61\" class=\"sub\">{System.Net.WebUtility.HtmlEncode(n.sub)}</text>")
-                        <title>@n.name · @n.sub</title>
-                    </g>
+                    <div class="you-kv dy-kv"><span class="k">What they are</span><span class="v dy-traits">@foreach (var t in fc.NatureTraits.Concat(fc.AptitudeTraits)) { <span class="dy-trait" title="@t"><Icon Name="@CharacterScreen.TraitIcon(t)" Tone="ivory" Size="15" />@t</span> }@if (fc.Ambition.Length > 0) { <span class="dy-trait amb" title="What they want"><Icon Name="@CharacterScreen.AmbitionIcon(fc.Ambition)" Tone="brass" Size="15" />Wants to @fc.Ambition.Replace('_', ' ')</span> }</span><span></span></div>
                 }
-            </svg></div>
-            <div class="chamber-legend"><span class="lg"><i style="background:@house.AccentColor"></i>@house.Name</span><span class="lg"><i class="none"></i>wed in from another house</span><span class="lg"><i class="ring me"></i>you</span><span class="lg"><i class="ring heir"></i>your heir</span><span class="lg">† remembered</span></div>
-        </section>
+                @if (fc.Skills.Any(k => k.Value > 0)) { <div class="you-kv dy-kv"><span class="k">Best at</span><span class="v dy-traits">@foreach (var k in fc.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).ThenBy(k => k.Key, StringComparer.Ordinal).Take(4)) { <span class="dy-trait" title="@SkillWords.For(k.Key)"><Icon Name="@CharacterScreen.SkillIcon(k.Key)" Tone="ivory" Size="15" />@CharacterScreen.Cap(k.Key) <b>@k.Value</b></span> }</span><span></span></div> }
+                @if (fc.Flags.Any(f => !f.StartsWith("background:"))) { <div class="you-kv dy-kv"><span class="k">Marked as</span><span class="v you-marks sc-flags">@foreach (var f in fc.Flags.Where(f => !f.StartsWith("background:")).OrderBy(f => f, StringComparer.Ordinal)) { <em title="@Marks.Tip(f)">@Marks.Label(f)</em> }</span><span></span></div> }
+                @if (hl != null && hl.Actions.Count > 0)
+                {
+                    <div class="you-acts sc-actions">
+                    @foreach (var o in hl.Actions)
+                    {
+                        var opt = o;
+                        if (o.Id == "defiant") { <span class="dy-tag warn" title="They will not do as they are bid">Defiant</span> }
+                        else { <Plate Label="@opt.Label" Small="true" Locked="@(opt.Refusal != null)" Disabled="@(opt.Refusal != null)" Need="@LifePanel.Say(opt.Refusal)" ShowNeed="false" Tip="@HouseholdWords.Tip(opt.Id)" OnClick="() => G.Execute(Household(opt.Id, hl.Id))" /> }
+                    }
+                    </div>
+                }
+                @if (fc.Id != pid && fc.Alive && (fh.Id == house.Id ? fc.Age >= DynastySystem.AgeOfMajority : DisownSystem.Standing(w, fc, DisownSystem.CastOut)?.HouseId == house.Id))
+                {
+                    var fid = fc.Id; bool struck = DisownSystem.IsStruck(fc); bool castOut = fh.Id != house.Id;
+                    var noStrike = new DisownCommand(pid, struck ? DisownCommand.Restore : DisownCommand.Strike, fid).Refusal(G.Ctx);
+                    var noCast = new DisownCommand(pid, castOut ? DisownCommand.TakeBack : DisownCommand.CastOut, fid).Refusal(G.Ctx);
+                    string strikeTip = noStrike ?? (struck ? DisownSystem.RestoreSays(w, fc) : DisownSystem.StrikeSays(w, fc));
+                    string castTip = noCast ?? (castOut ? DisownSystem.TakeBackSays(w, fc) : DisownSystem.CastOutSays(w, fc));
+                    string strikeLabel = struck ? "Restore to the line" : "Strike from the line"; string castLabel = castOut ? "Take back" : "Cast out";
+                    <div class="you-acts sc-actions" data-disown="@fid">
+                        @if (!castOut) { <button class="ui-btn sm @(struck ? "" : "dy-veto")" data-strike="@fid" disabled="@(noStrike != null)" title="@strikeTip" @onclick="() => AskStrike(fid, struck)"><Icon Name="@(noStrike != null ? "padlock" : "family-tree")" Tone="ivory" Size="14" />@strikeLabel</button> }
+                        <button class="ui-btn sm @(castOut ? "" : "dy-veto")" data-cast-out="@fid" disabled="@(noCast != null)" title="@castTip" @onclick="() => AskCast(fid, castOut)"><Icon Name="@(noCast != null ? "padlock" : "castle")" Tone="ivory" Size="14" />@castLabel</button>
+                    </div>
+                }
+                </ChildContent>
+            </Section>
         }
-        @if (_tab == "ambitions") {
-        <AmbitionsPanel />
-        }
-        @if (_tab == "marriages") {
+        <Section Title="The line of succession" Count="@heirs.Count.ToString()" Info="@($"Who has the house when you die or lay it down, in order, by {law}. The law is set in the Senate.")">
+            <Right><span>By @law</span></Right>
+            <ChildContent>
+            @if (heirs.Count == 0) { <WarnStrip Icon="family-tree" Lead="No heir." Bad="true" Class="dy-strip">The line hangs by a thread: wed, or the name dies with you.</WarnStrip> }
+            @{ int rank = 0; }
+            @foreach (var h in heirs.Take(6))
+            {
+                rank++; int place = rank; string hid = h.Id; string? hr = h.CareerTrack.Length > 0 ? c.Careers.RankName(h.CareerTrack, h.CareerRank, w.Era) : null;
+                <Row Wrap="true" Name="@h.Name" SubText="@($"{h.Age} · {(Kinship.Of(w, p, h) is { Length: > 0 } hk ? hk : "kin")}{(hr != null ? " · " + hr : "")}")" Class="@("person heir dy-heir" + (place == 1 ? " first" : ""))" OnClick="() => _focus = hid" Tip="Pick them on the tree">
+                    <Picture><span class="dy-rank">@place</span><Portrait Id="@h.Id" Name="@h.Name" Sex="@h.Sex" Age="@h.Age" Alive="@h.Alive" Accent="@house.AccentColor" Size="46" Height="56" Opens="false" /></Picture>
+                    <Cells>@if (DisownSystem.IsStruck(h)) { <span class="dy-tag warn" title="@Marks.Tip(DisownSystem.StruckChar)">Struck out</span> }</Cells>
+                </Row>
+            }
+            @if (struckOut.Count > 0)
+            {
+                <p class="you-note" data-struck-list="1"><b>Struck from the line:</b>@(" ")@foreach (var d in struckOut) { string did = d.PersonId; string by = d.Cause.Length > 0 ? "they " + d.Cause : "no cause given"; <span class="line dy-pick" title="@by" @onclick="() => _focus = did">@d.PersonName, year @d.Turn. </span> }</p>
+            }
+            @if (castOuts.Count > 0)
+            {
+                <p class="you-note" data-cast-list="1"><b>Cast out:</b>@(" ")@foreach (var d in castOuts) { string did = d.PersonId; string now = w.House(w.Char(did)?.HouseId ?? string.Empty)?.Name ?? string.Empty; <span class="line dy-pick" @onclick="() => _focus = did">@d.PersonName, year @d.Turn, now of @now. </span> }</p>
+            }
+            @if (w.Successions.Count > 0) { <p class="you-note seats-before"><b>The seats before:</b> @string.Join(" · ", w.Successions.Select(s => $"{s.DeceasedName} ({(s.Cause == "abdication" ? "yielded" : "died")} in year {s.Turn}), then {s.HeirName}"))</p> }
+            </ChildContent>
+        </Section>
+    }
+    else if (_tab == "marriages")
+    {
         <CourtshipPanel />
-        }
-        @if (_tab == "upbringing") {
-        <EducationPanel />
-        }
-        </div>
-        <aside class="dash-side">
-        @if (_tab == "tree") {
-            @if (fc != null)
+        var bonds = kin.Where(k => k.Alive && k.Id != pid).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
+        <Section Title="Bonds within the house" Count="@bonds.Count.ToString()" Info="What each of the blood thinks of you, from −100 to +100, and any bond between you. Click one to pick them on the tree."
+                 IsEmpty="@(bonds.Count == 0)" EmptyIcon="family-tree" EmptyLine="You are the last of your name.">
+            @foreach (var k in bonds)
             {
-                var fh = w.House(fc.HouseId)!; var rel = w.GetRelationship(fc.Id, pid); int d = rel?.Disposition ?? 0; var sp = DynastySystem.Spouse(w, fc);
-                var mother = fc.MotherId.Length > 0 ? w.Char(fc.MotherId) : null; var father = fc.FatherId.Length > 0 ? w.Char(fc.FatherId) : null; var hl = Model.Household.FirstOrDefault(x => x.Id == fc.Id);
-                <section class="panel">
-                    <div class="seat-card">
-                        <Portrait Id="@fc.Id" Name="@fc.Name" Sex="@fc.Sex" Age="@fc.Age" Alive="@fc.Alive" Accent="@fh.AccentColor" Size="64" />
-                        <div class="sc-body">
-                            <div class="sc-name">@fc.Name @(fc.Id == pid ? "✦" : "") <span class="muted">@(fc.Alive ? $"{fc.Age}" : "†")@(fc.Alive && c.Careers.RankName(fc.CareerTrack, fc.CareerRank, G.World!.Era) is { } rn ? $" · {rn}" : "")@(fh.Id != house.Id ? $" · of {fh.Name}" : "")</span></div>
-                            <div class="muted small">
-                                @if (mother != null || father != null) { <span>child of @string.Join(" and ", new[] { father?.Name, mother?.Name }.Where(x => x != null)) · </span> }
-                                @if (sp != null) { <span>⚭ @sp.Name@(sp.HouseId != fc.HouseId ? $" of {w.House(sp.HouseId)?.Name}" : "") · </span> }
-                                @if (fc.Id != pid && fc.Alive) { <span class="@(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@Counted.Figure(d) toward you@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span> }
-                                @if (heirs.Count > 0 && heirs[0].Id == fc.Id) { <span class="good"> · heir</span> }
-                            </div>
-                            @if (fc.NatureTraits.Count + fc.AptitudeTraits.Count > 0) { <div class="muted small">@string.Join(" · ", fc.NatureTraits.Concat(fc.AptitudeTraits))@(fc.Ambition.Length > 0 ? $" · wants: {fc.Ambition.Replace('_', ' ')}" : "")</div> }
-                            @if (fc.Skills.Any(k => k.Value > 0)) { <div class="muted small">@string.Join(" · ", fc.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).Take(4).Select(k => $"{k.Key} {k.Value}"))</div> }
-                            @if (fc.Flags.Any(f => !f.StartsWith("background:"))) { <div class="sc-flags">@foreach (var f in fc.Flags.Where(f => !f.StartsWith("background:")).OrderBy(f => f, StringComparer.Ordinal)) { <span class="pill small" title="@Marks.Tip(f)">@Marks.Label(f)</span> }</div> }
-                            @if (hl != null && hl.Actions.Count > 0) { <div class="sc-actions">@foreach (var o in hl.Actions) { if (o.Id == "defiant") { <span class="pill warn">defiant</span> } else { <button class="opt inline tiny" disabled="@(o.Refusal != null)" title="@(o.Refusal ?? HouseholdWords.Tip(o.Id))" @onclick="() => G.Execute(Household(o.Id, hl.Id))">@o.Label</button> } }</div> }
-                            @if (fc.Id != pid && fc.Alive && (fh.Id == house.Id ? fc.Age >= DynastySystem.AgeOfMajority : DisownSystem.Standing(w, fc, DisownSystem.CastOut)?.HouseId == house.Id))
-                            {
-                                var fid = fc.Id; bool struck = DisownSystem.IsStruck(fc); bool castOut = fh.Id != house.Id;
-                                var noStrike = new DisownCommand(pid, struck ? DisownCommand.Restore : DisownCommand.Strike, fid).Refusal(G.Ctx);
-                                var noCast = new DisownCommand(pid, castOut ? DisownCommand.TakeBack : DisownCommand.CastOut, fid).Refusal(G.Ctx);
-                                string strikeTip = noStrike ?? (struck ? DisownSystem.RestoreSays(w, fc) : DisownSystem.StrikeSays(w, fc));
-                                string castTip = noCast ?? (castOut ? DisownSystem.TakeBackSays(w, fc) : DisownSystem.CastOutSays(w, fc));
-                                string strikeLabel = struck ? "Restore to the line" : "Strike from the line"; string castLabel = castOut ? "Take back" : "Cast out";
-                                <div class="sc-actions" data-disown="@fid">
-                                    @if (!castOut) { <button class="opt inline tiny" data-strike="@fid" disabled="@(noStrike != null)" title="@strikeTip" @onclick="() => AskStrike(fid, struck)">@strikeLabel</button> }
-                                    <button class="opt inline tiny" data-cast-out="@fid" disabled="@(noCast != null)" title="@castTip" @onclick="() => AskCast(fid, castOut)">@castLabel</button>
-                                </div>
-                            }
-                        </div>
-                        <button class="win-close" @onclick="() => _focus = null">✕</button>
-                    </div>
-                </section>
+                var rel = w.GetRelationship(k.Id, pid); int d = rel?.Disposition ?? 0; string kid = k.Id; string? kr = c.Careers.RankName(k.CareerTrack, k.CareerRank, w.Era);
+                <Row Wrap="true" Name="@k.Name" SubText="@($"{(Kinship.Of(w, w.Protagonist!, k) is { Length: > 0 } kk ? kk + " · " : "")}{(kr != null ? kr + " · " : "")}{k.Age}")" Class="person dy-bond" Tip="@Kinship.ChildOfSays(w, k)" OnClick='() => { _focus = kid; _tab = "tree"; }'>
+                    <Picture><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Accent="@house.AccentColor" Size="46" Height="56" Opens="false" /></Picture>
+                    <Cells><span class="ui-cell @(d < -20 ? "ui-down" : d > 20 ? "ui-up" : "")" title="What they think of you">@(d >= 0 ? "+" : "")@Counted.Figure(d)@(rel?.Bond is { } b && b != BondType.None ? " · " + b.ToString().ToLowerInvariant() : "")</span></Cells>
+                </Row>
             }
-        }
-        @if (_tab == "tree") {
-            <section class="panel">
-                <h3><Icon Name="throne" Size="13" /> The line of succession</h3>
-                @if (w.Successions.Count > 0) { <div class="muted small seats-before">The seats before: @string.Join(" · ", w.Successions.Select(s => $"{s.DeceasedName} ({(s.Cause == "abdication" ? "yielded" : "d.")} turn {s.Turn}) → {s.HeirName}"))</div> }
-                @if (heirs.Count == 0) { <div class="flag">No heir. The line hangs by a thread: wed, or the name dies with you.</div> }
-                @{ int rank = 0; }
-                @foreach (var h in heirs.Take(6))
+        </Section>
+    }
+    else if (_tab == "ambitions") { <AmbitionsPanel /> }
+    else if (_tab == "upbringing") { <EducationPanel /> }
+    else
+    {
+        <FuneralsPanel OnGo="OnGo" />
+        var gone = kin.Where(k => !k.Alive).OrderBy(k => k.Id, StringComparer.Ordinal).Take(10).ToList();
+        @if (gone.Count > 0)
+        {
+            <Section Title="The remembered" Count="@dead.ToString()" Info="The dead of the blood. Click one to pick them on the tree.">
+                @foreach (var k in gone)
                 {
-                    rank++;
-                    <div class="person heir" @onclick="() => _focus = h.Id">
-                        <span class="rank">@rank</span>
-                        <Portrait Id="@h.Id" Name="@h.Name" Sex="@h.Sex" Age="@h.Age" Accent="@house.AccentColor" Size="28" />
-                        <span><b>@h.Name</b> <span class="muted">@h.Age · @(Kinship.Of(w, p, h) is { Length: > 0 } hk ? hk : "kin")@(h.CareerTrack.Length > 0 ? $" · {c.Careers.RankName(h.CareerTrack, h.CareerRank, G.World!.Era)}" : "")</span></span>
-                        @if (DisownSystem.IsStruck(h)) { <span class="pill small warn" title="@Marks.Tip(DisownSystem.StruckChar)">struck out</span> }
-                    </div>
+                    string kid = k.Id;
+                    <Row Wrap="true" Name="@k.Name" SubText="@(w.Deaths.FirstOrDefault(x => x.PersonId == k.Id) is { } dr ? $"Died at {dr.Age} in year {dr.Turn}{(dr.How.Length > 0 ? ", " + dr.How : "")}" : "Remembered")" Class="line dy-gone" OnClick='() => { _focus = kid; _tab = "tree"; }'>
+                        <Picture><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="false" Accent="@house.AccentColor" Size="46" Height="56" Opens="false" /></Picture>
+                    </Row>
                 }
-                @if (struckOut.Count > 0)
-                {
-                    <div class="muted small" data-struck-list="1">Struck from the line: @foreach (var d in struckOut) { string did = d.PersonId; string by = d.Cause.Length > 0 ? "they " + d.Cause : "no cause given"; <span class="line" title="@by" @onclick="() => _focus = did">@d.PersonName, year @d.Turn. </span> }</div>
-                }
-                @if (castOuts.Count > 0)
-                {
-                    <div class="muted small" data-cast-list="1">Cast out: @foreach (var d in castOuts) { string did = d.PersonId; string now = w.House(w.Char(did)?.HouseId ?? string.Empty)?.Name ?? string.Empty; <span class="line" @onclick="() => _focus = did">@d.PersonName, year @d.Turn, now of @now. </span> }</div>
-                }
-                <div class="muted small">By @house.SuccessionLaw.Replace('_', ' '). The law is set in the Senate.</div>
-            </section>
+            </Section>
         }
-        @if (_tab == "marriages") {
-            <section class="panel">
-                <h3><Icon Name="marriage" Size="13" /> Bonds within the house</h3>
-                @foreach (var k in kin.Where(k => k.Alive && k.Id != pid).OrderByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal))
-                {
-                    var rel = w.GetRelationship(k.Id, pid); int d = rel?.Disposition ?? 0;
-                    <div class="person" @onclick="() => _focus = k.Id">
-                        <Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Accent="@house.AccentColor" Size="28" />
-                        <span title="@Kinship.ChildOfSays(w, k)"><b>@k.Name</b> <span class="muted">@(Kinship.Of(w, w.Protagonist!, k) is { Length: > 0 } kk ? kk + " · " : "")@(c.Careers.RankName(k.CareerTrack, k.CareerRank, G.World!.Era) ?? "") · @k.Age</span></span>
-                        <span class="pill @(d < -20 ? "warn" : d > 20 ? "good" : "")">@(d >= 0 ? "+" : "")@d@(rel?.Bond is { } b && b != BondType.None ? $" · {b.ToString().ToLowerInvariant()}" : "")</span>
-                    </div>
-                }
-                @if (kin.Count(k => k.Alive) <= 1) { <div class="muted">You are the last of your name.</div> }
-            </section>
-        }
-        @if (_tab == "dead") {
-            <FuneralsPanel OnGo="OnGo" />
-            @if (kin.Any(k => !k.Alive))
-            {
-                <section class="panel"><h3>The remembered</h3>@foreach (var k in kin.Where(k => !k.Alive).OrderBy(k => k.Id, StringComparer.Ordinal).Take(10)) { <div class="line muted" @onclick="() => _focus = k.Id">† @k.Name</div> }</section>
-            }
-        }
-        </aside>
+    }
     </div>
 </div>
 
@@ -178,6 +217,7 @@
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private string? _focus;
     private string _tab = "tree";
+    private void Pick(string k) => _tab = k;
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public EventCallback<string> OnGo { get; set; }
@@ -185,6 +225,16 @@
     private static int _seenStamp;
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
     private void OpenOn(string tab) { int i = tab.IndexOf(':'); string t = i < 0 ? tab : tab[..i]; if (t is "tree" or "ambitions" or "dead" or "marriages" or "upbringing") _tab = t; if (i >= 0) { _tab = "tree"; _focus = tab[(i + 1)..]; } }
+    private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
+    private static string First(string name) => name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? name;
+    private static string F(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+    private static string Pc(double v) => v.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "%";
+    private static string Rem(double px) => (px / 15.0).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "rem";
+    /// <summary>The height of a generation's row in the tree's units (1 unit = 1px at the normal text size): the plate, its name, its
+    /// line and the heir's diamond, and below them room for the line to the children, which never crosses a caption.</summary>
+    private const double RowH = 140;
+    /// <summary>The generation a layout y stands for (the layout puts a row every RowH units from 50).</summary>
+    private static double Row(double y) => Math.Round((y - 50) / RowH);
 
     public static List<Character> Heirs(World w, House house)
     {
@@ -194,14 +244,23 @@
     }
     private static bool SharesParent(Character a, Character b) => (a.MotherId.Length > 0 && a.MotherId == b.MotherId) || (a.FatherId.Length > 0 && a.FatherId == b.FatherId);
 
-    private sealed record TreeNode(string id, string name, string initials, string sub, string accent, bool me, bool alive, double x, double y);
-    private sealed record Link(double x1, double y1, double x2, double y2);
+    private sealed record TreeNode(string id, string name, string sub, string accent, bool me, bool alive, bool inHouse, string house, double x, double y);
+    private sealed record TreeLink(double x1, double y1, double x2, double y2, bool two);
     private sealed record Wed(double x1, double x2, double y);
     /// <summary>Generations as rows (a root has no parent in the house; a child sits one row below its deepest parent), siblings by age, a spouse from
-    /// another house beside their partner, parent-to-child curves, and a double line between the wed.</summary>
-    private static (List<TreeNode> nodes, List<Link> links, List<Wed> spouses, int rows) Tree(World w, Character p, House house, List<Character> kin)
+    /// another house beside their partner, a line from the parents (from between them when both stand on the tree) to each child, and a double line
+    /// between the wed.</summary>
+    private static (List<TreeNode> nodes, List<TreeLink> links, List<Wed> spouses, int rows) Tree(World w, Character p, House house, List<Character> kin)
     {
         var ids = kin.Select(k => k.Id).ToHashSet(); var gen = new Dictionary<string, int>();
+        // the partner as the marriages record them, the dead and the widowed included (Spouse() knows only the living), so a dead couple
+        // stands side by side with its double line and the line to their children falls from between them
+        Character? Mate(Character k)
+        {
+            if (DynastySystem.Spouse(w, k) is { } living) return living;  
+            var m = w.Marriages.Where(x => x.Has(k.Id)).OrderByDescending(x => x.Since).FirstOrDefault();
+            return m != null ? w.Char(m.Other(k.Id)) : null;
+        }
         int Gen(Character ch, int depth)
         {
             if (gen.TryGetValue(ch.Id, out var g)) return g; if (depth > 8) return 0;
@@ -212,10 +271,9 @@
         foreach (var k in kin) Gen(k, 0);
         // one who married in has no parent in the house: they stand in their partner's generation, not with the founders
         foreach (var k in kin.OrderBy(k => k.Id, StringComparer.Ordinal))
-            if (gen[k.Id] == 0 && !ids.Contains(k.MotherId) && !ids.Contains(k.FatherId) && DynastySystem.Spouse(w, k) is { } partner && gen.TryGetValue(partner.Id, out var pg) && pg > 0) gen[k.Id] = pg;
+            if (gen[k.Id] == 0 && !ids.Contains(k.MotherId) && !ids.Contains(k.FatherId) && Mate(k) is { } partner && gen.TryGetValue(partner.Id, out var pg) && pg > 0) gen[k.Id] = pg;
         var rows = kin.GroupBy(k => gen[k.Id]).OrderBy(g => g.Key).ToList(); int rowCount = Math.Max(1, (rows.LastOrDefault()?.Key ?? 0) + 1);
         var nodes = new List<TreeNode>(); var pos = new Dictionary<string, (double x, double y)>(); var spouses = new List<Wed>();
-        string Ini(string name) => string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(s => s[0]));
         foreach (var row in rows)
         {
             // children stand under their parents: a row is ordered by where each one's parents stand in the row above, the eldest of
@@ -224,7 +282,7 @@
             {
                 var ps = new[] { k.MotherId, k.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x].x).ToList();
                 if (ps.Count > 0) return ps.Average();
-                if (DynastySystem.Spouse(w, k) is { } partner && ids.Contains(partner.Id)) { var pp = new[] { partner.MotherId, partner.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x].x).ToList(); if (pp.Count > 0) return pp.Average() + 0.5; }
+                if (Mate(k) is { } partner && ids.Contains(partner.Id)) { var pp = new[] { partner.MotherId, partner.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x].x).ToList(); if (pp.Count > 0) return pp.Average() + 0.5; }
                 return double.MaxValue;
             }
             var sorted = row.OrderBy(Under).ThenByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
@@ -233,28 +291,29 @@
             foreach (var k in sorted)
             {
                 if (members.Any(m => m.Id == k.Id)) continue; members.Add(k);
-                if (DynastySystem.Spouse(w, k) is { } mate && sorted.FirstOrDefault(m => m.Id == mate.Id) is { } inRow && !members.Any(m => m.Id == inRow.Id)) members.Add(inRow);
+                if (Mate(k) is { } mate && sorted.FirstOrDefault(m => m.Id == mate.Id) is { } inRow && !members.Any(m => m.Id == inRow.Id)) members.Add(inRow);
             }
             // each member may bring a spouse from outside the house; lay the row out as slots
             var slots = new List<(Character ch, bool inHouse)>();
-            foreach (var k in members) { slots.Add((k, true)); var sp = DynastySystem.Spouse(w, k); if (sp != null && !ids.Contains(sp.Id) && !slots.Any(s => s.ch.Id == sp.Id)) slots.Add((sp, false)); }
-            double step = Math.Min(130, 940.0 / Math.Max(1, slots.Count)); double x0 = 500 - step * (slots.Count - 1) / 2; double y = 50 + row.Key * 120;
+            foreach (var k in members) { slots.Add((k, true)); var sp = Mate(k); if (sp != null && !ids.Contains(sp.Id) && !slots.Any(s => s.ch.Id == sp.Id)) slots.Add((sp, false)); }
+            double step = Math.Min(130, 940.0 / Math.Max(1, slots.Count)); double x0 = 500 - step * (slots.Count - 1) / 2; double y = 50 + row.Key * RowH;
             for (int i = 0; i < slots.Count; i++)
             {
                 var (ch, inHouse) = slots[i]; double x = x0 + i * step; pos[ch.Id] = (x, y);
-                string sub = (ch.Alive ? ch.Age.ToString() : "†") + (inHouse ? "" : " · " + (w.House(ch.HouseId)?.Name ?? "")) + (ch.Id == p.Id ? " ✦" : "");
-                nodes.Add(new TreeNode(ch.Id, ch.Name, Ini(ch.Name), sub, inHouse ? house.AccentColor : (w.House(ch.HouseId)?.AccentColor ?? "#55617a"), ch.Id == p.Id, ch.Alive, x, y));
-                var sp2 = DynastySystem.Spouse(w, ch); if (inHouse && sp2 != null && pos.TryGetValue(sp2.Id, out var sppos) && Math.Abs(sppos.y - y) < 1) spouses.Add(new Wed(Math.Min(x, sppos.x) + 22, Math.Max(x, sppos.x) - 22, y));
+                string hn = w.House(ch.HouseId)?.Name ?? "";
+                string sub = (ch.Alive ? ch.Age.ToString() : "Remembered") + (inHouse ? "" : " · " + hn.Replace("House ", "")) + (ch.Id == p.Id ? " · you" : "");
+                nodes.Add(new TreeNode(ch.Id, ch.Name, sub, inHouse ? house.AccentColor : (w.House(ch.HouseId)?.AccentColor ?? "#55617a"), ch.Id == p.Id, ch.Alive, inHouse, hn, x, y));
+                var sp2 = Mate(ch); if (inHouse && sp2 != null && pos.TryGetValue(sp2.Id, out var sppos) && Math.Abs(sppos.y - y) < 1) spouses.Add(new Wed(Math.Min(x, sppos.x), Math.Max(x, sppos.x), y));
             }
         }
-        var links = new List<Link>();
+        var links = new List<TreeLink>();
         foreach (var k in kin)
         {
             if (!pos.TryGetValue(k.Id, out var me)) continue;
             var parents = new[] { k.MotherId, k.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x]).ToList();
             if (parents.Count == 0) continue;
             double px = parents.Average(x => x.x), py = parents.Max(x => x.y);
-            links.Add(new Link(px, py + 24, me.x, me.y - 24));
+            links.Add(new TreeLink(px, py, me.x, me.y, parents.Count > 1 && Math.Abs(parents[0].y - parents[1].y) < 1));
         }
         return (nodes, links, spouses, rowCount);
     }

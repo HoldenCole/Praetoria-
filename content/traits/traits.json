@@ -1,5 +1,5 @@
 {
-  "//": "THE §8 CONTROLLED VOCABULARIES AS DATA (docs/PRAETORIA_VOCAB.md v1.1 — LOCKED). Nature traits constrain and bear stress; aptitude traits gate and flavour; ambitions drive NPC AI and personal-story events. Character creation offers exactly these; the Python pre-flight asserts this file matches the locked lists. Add a trait here AND in the vocab doc, then author content that reads it.",
+  "//": "THE §8 CONTROLLED VOCABULARIES AS DATA (docs/PRAETORIA_VOCAB.md v1.1, LOCKED). Nature traits constrain and bear stress; aptitude traits gate and flavour; ambitions drive NPC AI and personal-story events. Character creation offers exactly these; the Python pre-flight asserts this file matches the locked lists. Add a trait here AND in the vocab doc, then author content that reads it.",
   "nature": [
     {
       "id": "Ambitious",
@@ -56,7 +56,7 @@
     {
       "id": "Brilliant",
       "name": "Brilliant",
-      "description": "Insight options — study, invent, see what others miss."
+      "description": "Insight options, study, invent, see what others miss."
     },
     {
       "id": "Diplomat",
@@ -108,12 +108,12 @@
     {
       "id": "amass_a_fortune",
       "name": "Amass a Fortune",
-      "description": "Wealth above all — credits, holdings, leverage."
+      "description": "Wealth above all, credits, holdings, leverage."
     },
     {
       "id": "command_a_fleet",
       "name": "Command a Fleet",
-      "description": "A fleet of their own to command — the military dream made concrete."
+      "description": "A fleet of their own to command, the military dream made concrete."
     },
     {
       "id": "earn_a_command",
@@ -138,7 +138,7 @@
     {
       "id": "seize_the_throne",
       "name": "Seize the Throne",
-      "description": "Ultimate power — rule itself."
+      "description": "Ultimate power, rule itself."
     },
     {
       "id": "win_a_great_love",

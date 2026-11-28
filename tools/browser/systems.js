@@ -17,7 +17,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")');
-  await page.evaluate(v => { const s = document.querySelector('[data-setting=size]'); if (s) { s.value = v; s.dispatchEvent(new Event('change', { bubbles: true })); } }, size);
+  await page.evaluate(v => { const b = document.querySelector('[data-setting=size] button[data-v="' + v + '"]'); if (b) b.click(); }, size);   // the size is a row of joined plates on the new-game screen
   await page.waitForTimeout(300); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 }); await page.waitForTimeout(2500);
   let failed = 0; const check = (ok, what) => { console.log((ok ? 'ok   ' : 'FAIL ') + what); if (!ok) failed++; };
   const pick = async name => { const id = await page.evaluate(n => window.praetoriaSpace.select(n), name); await page.waitForTimeout(1800); return id; };
@@ -25,11 +25,11 @@ require('fs').mkdirSync(shots, { recursive: true });
   const seat = await page.evaluate(() => { const g = [...window.praetoriaSpace.galaxies.values()][0]; const s = g.model.systems.find(x => x.isPlayer); return s ? s.name : null; });
   check(!!seat, 'the player holds a system: ' + seat);
   await pick(seat);
-  const bodies = await page.evaluate(() => [...document.querySelectorAll('.sysp-body')].map(b => b.querySelector('.sysp-name b').innerText + ' [' + b.querySelector('.sysp-name .muted').innerText + ']' + [...b.querySelectorAll('.pill.feat')].map(p => ' *' + p.innerText).join('') + ' slots ' + b.querySelectorAll('.sysp-slots i').length + (b.querySelector('.sysp-site') ? ' +site' : '')));
+  const bodies = await page.evaluate(() => [...document.querySelectorAll('.sysp-body')].map(b => b.querySelector('.sysp-name b').innerText + ' [' + b.querySelector('.sysp-name .muted').innerText + ']' + [...b.querySelectorAll('.sysp-feat')].map(p => ' *' + (p.title || '').replace(/^\[[^\]]*\]\s*/, '').split('\n')[0]).join('') + ' slots ' + b.querySelectorAll('.sysp-slots i').length + (b.querySelector('.sysp-site') ? ' +site' : '')));
   check(bodies.length >= 5, bodies.length + ' bodies listed, the sun among them'); bodies.forEach(b => console.log('       ' + b));
   check(bodies.some(b => b.includes('the sun') && b.includes('slots 0 +site')), 'the sun has no building slot, and a site for a great work');
   check(bodies.some(b => b.includes('Open space')), 'open space is a place to build, tied to no world'); check(bodies.some(b => b.includes('*')), 'a body has a feature no other system need have');
-  check(bodies.some(b => b.includes("the system's world") && !b.includes('slots 0')), "the system's own world shows its holding's slots");
+  check(bodies.some(b => /the system's world|the home world/.test(b) && !b.includes('slots 0')), "the system's own world shows its holding's slots");
   await page.screenshot({ path: shots + '/system-seat.png' });
   // open each body until one offers something that can be built now, and build it
   const n = bodies.length; let builtName = null;
@@ -46,7 +46,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   check(standing.some(x => builtName && x.startsWith(builtName)), 'it shows on its body: ' + standing.join(', '));
   await page.screenshot({ path: shots + '/system-built.png' });
   // infrastructure: the system's own, a level at a time
-  await page.evaluate(() => { const t = [...document.querySelectorAll('.sys-tabs .rung')].find(x => x.innerText.trim().toLowerCase().startsWith('infrastructure')); if (t) t.click(); }); await page.waitForTimeout(700);
+  await page.evaluate(() => { const t = [...document.querySelectorAll('.sys-tabs .rung, .sys-tabs .ui-tab')].find(x => x.innerText.trim().toLowerCase().startsWith('infrastructure')); if (t) t.click(); }); await page.waitForTimeout(700);
   const tracks = await page.evaluate(() => [...document.querySelectorAll('.sysp-work.infra')].map(x => x.querySelector('.sw-head b').innerText + ' ' + x.querySelectorAll('.lv i.on').length + '/' + x.querySelectorAll('.lv i').length));
   check(tracks.length >= 4, 'infrastructure tracks: ' + tracks.join(', '));
   const laidOk = await page.evaluate(() => { const b = [...document.querySelectorAll('.sysp-work.infra button.opt')].find(x => !x.disabled); if (b) { b.click(); return true; } return false; }); await page.waitForTimeout(1000);

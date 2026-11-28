@@ -1,0 +1,52 @@
+@* Building slots (docs/VISUAL_SYSTEM.md 4.8): a label row ("Buildings", "4 of 5 free"), each filled slot the building's painting
+   (its name in the tooltip), each free slot a hatched well with a faint plus. The count written matches the slots drawn. Given
+   Items, every slot is drawn as its kind says: "built" (the painting, or the build glyph where a building has no painting yet),
+   "rising" (an hourglass with the years left in its Note, ember when Stalled), "other" (a slot in use by a work on the world
+   itself, its Icon) and "free". Any other attribute (a data-* hook for the scripts) lands on the wrap. *@
+<div class="ui-slots-wrap @(Class.Length > 0 ? " " + Class : "")" @attributes="Attrs">
+    @if (Label.Length > 0) { <div class="ui-slots-head" title="@(HeadTip.Length > 0 ? HeadTip : null)"><span>@Label</span><span><b>@FreeCount</b> of @Total free</span></div> }
+    <div class="ui-slots">
+        @if (Items != null)
+        {
+            foreach (var s in Items)
+            {
+                switch (s.Kind)
+                {
+                    case "rising":
+                        <span class="ui-slot rising @(s.Stalled ? " stalled" : "")" title="@s.Name"><Icon Name="@(s.Icon.Length > 0 ? s.Icon : "hourglass")" Tone="@(s.Stalled ? "ember" : "brass")" Size="16" />@if (s.Note.Length > 0) { <small>@s.Note</small> }</span>
+                        break;
+                    case "other":
+                        <span class="ui-slot other" title="@s.Name"><Icon Name="@(s.Icon.Length > 0 ? s.Icon : "station")" Tone="ivory" Size="14" /></span>
+                        break;
+                    case "free":
+                        <span class="ui-slot free" title="@(s.Name.Length > 0 ? s.Name : FreeTip)"><Icon Name="plus" Tone="ivory" Size="13" /></span>
+                        break;
+                    default:
+                        if (s.Img.Length > 0) { <span class="ui-slot" title="@s.Name"><img src="@s.Img" alt="@s.Name" loading="eager" decoding="async" /></span> }
+                        else { <span class="ui-slot noart" title="@s.Name"><Icon Name="@(s.Icon.Length > 0 ? s.Icon : "build")" Tone="ivory" Size="16" /></span> }
+                        break;
+                }
+            }
+        }
+        else
+        {
+            @foreach (var (img, name) in Filled) { <span class="ui-slot" title="@name"><img src="@img" alt="@name" loading="eager" decoding="async" /></span> }
+            @for (int i = 0; i < Free; i++) { <span class="ui-slot free" title="@FreeTip"><Icon Name="plus" Tone="ivory" Size="13" /></span> }
+        }
+    </div>
+</div>
+@code {
+    /// <summary>One slot: its kind (built, rising, other, free), the name for its tooltip, the painting, a short note ("3 yr").</summary>
+    public sealed record Slot(string Kind, string Name, string Img = "", string Note = "", bool Stalled = false, string Icon = "");
+    [Parameter] public IReadOnlyList<(string img, string name)> Filled { get; set; } = Array.Empty<(string, string)>();
+    [Parameter] public int Free { get; set; }
+    /// <summary>Every slot by kind, in place of Filled and Free.</summary>
+    [Parameter] public IReadOnlyList<Slot>? Items { get; set; }
+    [Parameter] public string Label { get; set; } = "Buildings";
+    [Parameter] public string HeadTip { get; set; } = "";
+    [Parameter] public string FreeTip { get; set; } = "A free slot";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+    private int FreeCount => Items != null ? Items.Count(s => s.Kind == "free") : Free;
+    private int Total => Items != null ? Items.Count : Filled.Count + Free;
+}

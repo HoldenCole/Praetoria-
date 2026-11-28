@@ -18,7 +18,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()); if (el) el.click(); return !!el; }, name);
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   // find the screen each panel lives on
   const find = async sel => { for (const s of ['Dynasty', 'You', 'House', 'Houses']) { await rail(s); await page.waitForTimeout(450); if (await page.evaluate(q => !!document.querySelector(q), sel)) return s; } return ''; };
@@ -28,7 +28,7 @@ require('fs').mkdirSync(shots, { recursive: true });
 
   await closeWindows();
   const bad = t => /NaN|undefined|Exception|@\(/.test(t) ? 'SUSPICIOUS TEXT' : 'ok';
-  const senate = async () => { await rail('Senate'); await page.waitForTimeout(400); await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find(e => /ladder/i.test(e.innerText)); if (b) b.click(); }); await page.waitForTimeout(500); return page.evaluate(() => !!document.querySelector('.panel.courts')); };
+  const senate = async () => { await rail('Senate'); await page.waitForTimeout(400); await page.evaluate(() => { const t = document.querySelector('.ui-tab[data-tab="ladder"]'); if (t) { t.click(); return; } const b = [...document.querySelectorAll('button')].find(e => /ladder/i.test(e.innerText)); if (b) b.click(); }); await page.waitForTimeout(500); return page.evaluate(() => !!document.querySelector('.panel.courts')); };
   console.log('courts panel on the Senate screen: ' + await senate());
   let t = await text('.panel.courts'); console.log('courts: ' + bad(t) + ' · ' + t.slice(0, 260));
   let brought = false, offered = false;

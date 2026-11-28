@@ -14,7 +14,7 @@ const base = process.env.PRAETORIA_URL || 'http://localhost:8112/';
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell');
   const closeWindows = async () => { for (let i = 0; i < 10; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary') || [...document.querySelectorAll('.overlay button')].find(b => !b.disabled); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const top = () => page.evaluate(() => { const el = document.querySelector('.topbar') || document.querySelector('header'); return el ? el.innerText.replace(/\s+/g, ' ').slice(0, 160) : 'NO TOP BAR'; });
   for (let i = 0; i < 4; i++) { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let k = 0; k < 400; k++) { await page.waitForTimeout(50); await closeWindows(); if (await turnNo() > before) break; } }
   await closeWindows(); const was = { turn: await turnNo(), top: await top() };

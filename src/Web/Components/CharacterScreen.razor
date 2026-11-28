@@ -1,4 +1,5 @@
 @inject GameClient G
+@inject IJSRuntime JS
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
     var track = c.Careers.ById(p.CareerTrack); int maxRank = track?.MaxRank ?? 0;
@@ -8,6 +9,7 @@
     var heirNow = DynastySystem.FindHeir(w, w.Protagonist!);
     var children = w.Characters.Values.Where(k => k.MotherId == p.Id || k.FatherId == p.Id).OrderByDescending(k => k.Age).ToList();
     var ambition = c.Traits.Ambitions.FirstOrDefault(a => a.Id == p.Ambition);
+    var aim = ambition != null ? Praetoria.Core.Presentation.OwnAim.For(w, p) : null; bool won = aim?.Had == true;
     var honors = m.Standing?.Honors ?? new List<string>();
     var flags = p.Flags.Where(f => !f.StartsWith("background:") && !f.StartsWith("honor:")).OrderBy(f => f, StringComparer.Ordinal).ToList();
     var ties = m.Connections.OrderByDescending(x => Math.Abs(x.Disposition)).Take(10).ToList();
@@ -19,132 +21,210 @@
     string rankName = track?.RankName(p.CareerRank, w.Era) ?? p.CareerRank.ToString(), trackName = track?.NameIn(w.Era) ?? p.CareerTrack;
     string? nextRank = p.CareerRank < maxRank ? track?.RankName(p.CareerRank + 1, w.Era) : null;
     int renownNext = renown >= 70 ? 0 : renown >= 45 ? 70 : renown >= 25 ? 45 : renown >= 10 ? 25 : 10;
+    string epithet = LifeSystem.Epithet(p);
     string Mine(string said) => said.Replace("their own", "your own");
-    string story, storyTone;
-    if (m.Character.Broken) { story = $"The strain has broken you ({p.Stress} of 100). Until it eases you decide worse and are worse company; a season away is the cure."; storyTone = "bad"; }
-    else if (p.Health < LifeSystem.Sound || ill || wounded) { story = $"You are {healthName}{(ill ? ", and ill" : "")}{(wounded ? ", and carrying a wound" : "")}: health {p.Health} of the {cap} a body of {p.Age} can have. Rest or the physicians come before anything else."; storyTone = p.Health < LifeSystem.Frail ? "bad" : "warn"; }
-    else if (p.Stress >= 70) { story = $"The strain is telling: {p.Stress} of 100. A season away eases it; left alone it breaks you."; storyTone = "warn"; }
-    else { story = $"{rankName} in {trackName} at {p.Age}, {healthName}, and {Mine(LifeSystem.RenownName(renown))}."
-            + (best.Key != null ? $" Your best is {best.Key}, at {best.Value} of a possible {bestCeil}." : " You are untrained: skills grow from what you do, what you study and who teaches you.")
-            + (ambition != null ? $" Your ambition is to {ambition.Name.ToLowerInvariant()}." : ""); storyTone = ""; }
-}
-@* The character window (docs/ART_DIRECTION.md, "The windows, one by one"): laid out as Crusader Kings III lays its own. The person at
-   the top — a large portrait, who stands closest to them beside it, what they are like, what they are good at, the state they are
-   in — and everything else behind tabs, so the first screen is the person and nothing has to be scrolled for. *@
-<div class="dash sheet cw" style="--accent:@house.AccentColor">
-    <header class="cw-head">
-        <div class="hero-frame"><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="188" /></div>
-        <div class="cw-who">
-            <div class="profile-house"><i></i>@house.Name · @G.Content!.Ancestries.Name(Lineage.Of(w, G.Content.Ancestries, p))</div>
-            <h2>@p.Name</h2>
-            @if (LifeSystem.Epithet(p).Length > 0) { <div class="profile-epithet">@LifeSystem.Epithet(p)</div> }
-            <div class="profile-station">@rankName in @trackName · @m.Character.TitleName · @p.Age years@(m.Character.Background != null ? $" · {m.Character.Background}" : "")</div>
-            <div class="cw-close">
-                @if (spouse != null) { <div class="cw-near"><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(w.House(spouse.HouseId)?.AccentColor ?? "#888")" Size="58" /><span>@(spouse.Sex == "female" ? "wife" : "husband")</span></div> }
-                @if (heirNow != null) { <div class="cw-near heir"><Portrait Id="@heirNow.Id" Name="@heirNow.Name" Sex="@heirNow.Sex" Age="@heirNow.Age" Alive="@heirNow.Alive" Accent="@house.AccentColor" Size="58" /><span>heir</span></div> }
-                @foreach (var k in children.Where(k => k.Alive && k.Id != heirNow?.Id).Take(4)) { <div class="cw-near"><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@house.AccentColor" Size="44" /><span>@(k.Sex == "female" ? "daughter" : "son")</span></div> }
-                @if (spouse == null && heirNow == null) { <span class="muted small">Unwed and without an heir: the line is you.</span> }
-            </div>
-        </div>
-    </header>
-    <div class="cw-traits">
-        @foreach (var t in m.Character.Nature) { <span class="cw-trait nature" title="@(TraitName(t) + " — " + TraitDesc(t))">@TraitName(t)</span> }
-        @foreach (var t in m.Character.Aptitude) { <span class="cw-trait apt" title="@(TraitName(t) + " — " + TraitDesc(t))">@TraitName(t)</span> }
-        @if (ambition != null) { <span class="cw-trait amb" title="@("Ambition — " + ambition.Description)">wants to @ambition.Name.ToLowerInvariant()</span> }
-    </div>
-    <div class="cw-skills">
-        @foreach (var sk in skills.Take(6)) { <div class="cw-skill" title="@($"{char.ToUpper(sk.Key[0])}{sk.Key[1..]} — {sk.Value} of a possible {EducationSystem.Ceiling(p, sk.Key)}; every skill runs to ten. {SkillWords.For(sk.Key)}")"><b>@sk.Value</b><span>@sk.Key</span></div> }
-        @if (skills.Count == 0) { <span class="muted small">Untrained. Skills grow from what you do, what you study and who teaches you.</span> }
-    </div>
-    <div class="tiles">
-            <Tile Label="Rank" Value="@rankName" Share="@(maxRank > 0 ? 100 * p.CareerRank / maxRank : 0)"
-                  Note="@($"{Ordinal(p.CareerRank + 1)} of {maxRank + 1} ranks in {trackName}" + (nextRank != null ? $" · next: {nextRank}" : " · the top of it"))" Title="How far you have risen in your own service. The bar is how far up its ladder you stand." />
-            <Tile Label="Health" Value="@($"{p.Health} · {healthName}")" Share="@p.Health" Tone="@(p.Health < LifeSystem.Frail ? "bad" : p.Health < LifeSystem.Sound || ill || wounded ? "warn" : p.Health >= 80 ? "good" : "")"
-                  Note="@((ill ? "ill · " : "") + (wounded ? "wounded · " : "") + $"at {p.Age} it can be no better than {cap}")" Title="Age lowers what it can be. Wounds, illness and great strain lower it. Rest and time restore it. It bears on how long you live." />
-            <Tile Label="Renown" Value="@renown.ToString()" Share="@renown" Tone="@(renown >= 45 ? "good" : "")"
-                  Note="@(Mine(LifeSystem.RenownName(renown)) + (renownNext > 0 ? $" · {LifeSystem.RenownName(renownNext)} at {renownNext}" : ""))" Title="What you are apart from your house: how far you rose and what you did." />
-            <Tile Label="Strain" Value="@p.Stress.ToString()" Share="@p.Stress" Tone="@(m.Character.Broken ? "bad" : p.Stress >= 70 ? "warn" : "")"
-                  Note="@(m.Character.Broken ? "broken" : p.Stress >= 70 ? "close to breaking, of 100" : p.Stress == 0 ? "none, of 100 · it tells at 70" : "of 100 · it tells at 70")" Title="What you carry. Hard choices and bad years add to it; rest takes it away." />
-            <Tile Label="Your own purse" Value="@Money.Credits(p.Purse)" Tone="@(p.Purse > 0 ? "good" : "")" Note="apart from the house's treasury" Title="Yours, not the house's: physicians, gifts and bribes 'of your own' are paid from it, and it goes by your will. Move coin between the two in House, under Purses and the will." />
-    </div>
-    <nav class="cw-tabs">
-        @foreach (var (id, label) in new[] { ("life", "A life"), ("family", "Family"), ("ties", "Relations"), ("learning", "Learning"), ("record", "Record") }) { var tid = id; <button class="rung @(_tab == tid ? "here" : "")" @onclick="() => _tab = tid">@label</button> }
-    </nav>
-    @if (_tab == "life")
+    // what is wrong, if anything: the strain, the body, or the strain telling; said once, as a strip at the head of A life
+    string? alarm = null; bool alarmBad = false;
+    if (m.Character.Broken) { alarm = $"The strain has broken you ({p.Stress} of 100). Until it eases you decide worse and are worse company; a season away is the cure."; alarmBad = true; }
+    else if (p.Health < LifeSystem.Sound || ill || wounded) { alarm = $"You are {healthName}{(ill ? ", and ill" : "")}{(wounded ? ", and carrying a wound" : "")}: health {p.Health} of the {cap} a body of {p.Age} can have. Rest or the physicians come before anything else."; alarmBad = p.Health < LifeSystem.Frail; }
+    else if (p.Stress >= 70) alarm = $"The strain is telling: {p.Stress} of 100. A season away eases it; left alone it breaks you.";
+    // the one-line lede of the header: the station and the state, then the ambition
+    string station = $"{rankName} in {trackName} at {p.Age}{(m.Character.TitleName.Length > 0 ? ", " + m.Character.TitleName : "")}, and {healthName}{(ill ? " but ill" : wounded ? " but wounded" : "")}.";
+    string ledeTip = $"[roman-toga] {p.Name}\n{rankName} in {trackName} · {m.Character.TitleName} · {p.Age} years{(m.Character.Background != null ? " · " + m.Character.Background : "")}\n"
+        + $"{Cap(Mine(LifeSystem.RenownName(renown)))}. " + (best.Key != null ? $"Your best is {best.Key}, at {best.Value} of a possible {bestCeil}." : "You are untrained: skills grow from what you do, what you study and who teaches you.");
+    string scene = p.Age < DynastySystem.AgeOfMajority ? "family" : p.CareerTrack switch { "military" => "bridge", "law" => "court", "stewardship" => "senate", _ => "audience" };
+    // the kin beside the portrait: the spouse, the heir, then the children, four at most (the rest are on Family)
+    var kin = new List<(Character who, string label, bool heir)>();
+    if (spouse != null) kin.Add((spouse, spouse.Sex == "female" ? "Wife" : "Husband", false));
+    if (heirNow != null) kin.Add((heirNow, "Heir", true));
+    foreach (var k in children.Where(k => k.Alive && k.Id != heirNow?.Id)) kin.Add((k, k.Sex == "female" ? "Daughter" : "Son", false));
+    int livingKin = (spouse is { Alive: true } ? 1 : 0) + children.Count(k => k.Alive);
+
+    var figs = new List<WindowHeader.Figure>();
+    for (int i = 0; i < Math.Min(4, skills.Count); i++)
     {
-        <p class="headline @storyTone">@story</p>
-        <section class="panel">
-            <h3>Career · @trackName</h3>
-            <div class="ladder">@for (int r = 0; r <= maxRank; r++) { <span class="rung @(r == p.CareerRank ? "here" : r < p.CareerRank ? "past" : "")">@(track?.RankName(r, G.World!.Era) ?? r.ToString())</span> }</div>
-            <div class="kv"><span>Commands from</span><b>@(style == "front" ? "the front" : style == "flag" ? "the flag" : "the staff")@(valour > 0 ? $" · valour {valour}" : "")@(p.Flags.Contains(FleetSystem.AchillesFlag) ? " · the fleet will not fight without you" : "")</b></div>
-            @if (ambition != null)
-            {
-                /* what the ambition asks, how near it is and what would bring it nearer (docs/PLAYTHROUGH.md, Medium, A first game) */
-                var aim = Praetoria.Core.Presentation.OwnAim.For(G.World!, p);
-                <div class="kv"><span>Ambition</span><b>@ambition.Name</b></div>
-                @if (aim != null)
+        var sk = skills[i]; int ceil = EducationSystem.Ceiling(p, sk.Key);
+        figs.Add(new(SkillIcon(sk.Key), sk.Value.ToString(), Cap(sk.Key), i == 0 ? "brass" : "ivory", Of: ceil.ToString(),
+            Tip: $"[{SkillIcon(sk.Key)}] {Cap(sk.Key)}\n{sk.Value} of a possible {ceil}; every skill runs to ten. {SkillWords.For(sk.Key)}" + (i == 3 && skills.Count > 4 ? $"\nAnd {skills.Count - 4} more on the Learning tab" : "")));
+    }
+    figs.Add(new("heart-beats", p.Health.ToString(), "Health", p.Health < LifeSystem.Frail ? "ember" : p.Health >= 80 ? "good" : "ivory",
+        Tip: $"[heart-beats] Health · {healthName}\n{(ill ? "Ill. " : "")}{(wounded ? "Wounded. " : "")}At {p.Age} it can be no better than {cap}. Age lowers what it can be. Wounds, illness and great strain lower it. Rest and time restore it. It bears on how long you live."));
+    figs.Add(new("laurels", renown.ToString(), "Renown", renown >= 45 ? "brass" : "ivory",
+        Tip: $"[laurels] Renown · {Mine(LifeSystem.RenownName(renown))}\nWhat you are apart from your house: how far you rose and what you did.{(renownNext > 0 ? $" {Cap(LifeSystem.RenownName(renownNext))} at {renownNext}." : "")}"));
+    figs.Add(new("brain", p.Stress.ToString(), "Strain", m.Character.Broken || p.Stress >= 70 ? "ember" : "steel",
+        Tip: $"[brain] Strain{(m.Character.Broken ? " · broken" : p.Stress >= 70 ? " · close to breaking" : "")}\nWhat you carry, of 100. Hard choices and bad years add to it; rest takes it away. It tells at 70."));
+
+    var tabs = new List<Tabs.Tab>
+    {
+        new("life", "A life", "heart-organ", alarm != null ? "!" : "", alarm != null, Tip: "Your service, your health and renown, your old friends and enemies, and what you have done"),
+        new("family", "Family", "family-tree", livingKin > 0 ? livingKin.ToString() : "", Tip: "Your spouse and your children"),
+        new("ties", "Relations", "shaking-hands", ties.Count > 0 ? ties.Count.ToString() : "", Tip: "Those outside your blood who feel strongly about you, for or against"),
+        new("learning", "Learning", "open-book", Tip: "Your skills, what feeds them this year, and what you study"),
+        new("record", "Record", "scroll-unfurled", mine.Count > 0 ? mine.Count.ToString() : "", Hidden: mine.Count == 0 && _tab != "record", Tip: "What the chronicle has written of you")
+    };
+}
+@* The You window (docs/VISUAL_SYSTEM.md 5.2, FINAL/you.png): a person's window, laid out as Crusader Kings III lays its own. The
+   header is 288px: the painting of your service, your portrait with the house's seal, the kicker (house and ancestry), your name,
+   one line of what you are, your traits and your ambition as tiles, the kin who stand nearest to you, and on the plinth your four
+   best skills and your health, renown and strain. Five tabs under it. The whole window scrolls as one page; once the header has
+   passed, a 64px strip (your face, your name) stays at the top with the tabs under it. *@
+<div class="you-win" style="--accent:@house.AccentColor" data-you="@_tab">
+    <div class="ui-wbody fades you-scroll">
+        <WindowHeader StripKicker="@house.Name" Scene="@scene" Kicker="@($"{house.Name} · {c.Ancestries.Name(Lineage.Of(w, c.Ancestries, p))}{(epithet.Length > 0 ? " · " + epithet : "")}")" Title="@p.Name" Figures="figs" Class="you-head">
+            <Strip><Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="40" Height="48" Opens="false" /></Strip>
+            <Who>
+                <div class="you-por">
+                    <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Alive="@p.Alive" Accent="@house.AccentColor" Size="150" Height="188" Condition="@(ill ? "pill" : wounded ? "sticking-plaster" : "")" ConditionTip="@(ill ? "Ill" : "Wounded")" />
+                    <span class="you-seal"><Sigil HouseId="@house.Id" Accent="@house.AccentColor" Size="40" Mode="seal" /></span>
+                </div>
+            </Who>
+            <Lede><span title="@ledeTip">@station@if (ambition != null) { @(" Your ambition is to " + ambition.Name.ToLowerInvariant()) }@if (won) { <text>, </text><b>and you do</b> }@if (ambition != null) { <text>.</text> }</span></Lede>
+            <ChildContent>
+                <div class="you-traits">
+                    @foreach (var t in m.Character.Nature) { <div class="you-trait" title="@($"[{TraitIcon(t)}] {TraitName(t)}\n{TraitDesc(t)}")"><span class="you-tile nat"><Icon Name="@TraitIcon(t)" Tone="ivory" Size="27" /></span><span>@TraitName(t)</span></div> }
+                    @foreach (var t in m.Character.Aptitude) { <div class="you-trait" title="@($"[{TraitIcon(t)}] {TraitName(t)}\n{TraitDesc(t)}")"><span class="you-tile apt"><Icon Name="@TraitIcon(t)" Tone="ivory" Size="27" /></span><span>@TraitName(t)</span></div> }
+                    @if (ambition != null)
+                    {
+                        <i class="you-tsep" aria-hidden="true"></i>
+                        <div class="you-trait amb" title="@($"[{AmbitionIcon(ambition.Id)}] Ambition: {Cap(ambition.Name.ToLowerInvariant())}\n{ambition.Description}" + (aim != null ? $"\n{(aim.Had ? "You have it. " : "")}{aim.Stands}" : ""))">
+                            <span class="you-tile amb"><Icon Name="@AmbitionIcon(ambition.Id)" Tone="brass" Size="27" />@if (aim?.Had == true) { <i class="you-tick"><Icon Name="check" Size="11" Class="flat" /></i> }</span><span>@Cap(ambition.Name.ToLowerInvariant())</span>
+                        </div>
+                    }
+                </div>
+                <div class="you-kin">
+                    @foreach (var (who, label, heir) in kin.Take(4))
+                    {
+                        <div class="you-k @(heir ? "heir" : "")"><Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Alive="@who.Alive" Accent="@(w.House(who.HouseId)?.AccentColor ?? "#888")" Size="58" Height="70" /><span>@label</span></div>
+                    }
+                    @if (spouse == null && heirNow == null) { <p class="you-kin-none">Unwed and without an heir: the line is you.</p> }
+                </div>
+            </ChildContent>
+        </WindowHeader>
+        <Tabs Items="tabs" Active="@_tab" OnPick="Pick" Class="you-tabs" Sticky="true" StickyTop="4.2667rem" />
+        <div class="you-page">
+        @if (_tab == "life")
+        {
+            @if (alarm != null) { <WarnStrip Icon="@(m.Character.Broken || p.Stress >= 70 ? "brain" : ill ? "pill" : "heart-beats")" Bad="alarmBad" Class="you-alarm">@alarm</WarnStrip> }
+            <Section Title="@("Career, " + trackName)" Class="you-first"
+                     Info="@($"How far you have risen in your own service: the {Ordinal(p.CareerRank + 1)} of {maxRank + 1} ranks in {trackName}{(nextRank != null ? $". Next: {nextRank}" : ", the top of it")}.")">
+                <Right><span title="Where you command from in battle: the front, the flag or the staff (the Military window, a fleet's orders)">Commands from <b>@(style == "front" ? "the front" : style == "flag" ? "the flag" : "the staff")</b>@(valour > 0 ? $" · valour {valour}" : "")@(p.Flags.Contains(FleetSystem.AchillesFlag) ? " · the fleet will not fight without you" : "")</span></Right>
+                <ChildContent>
+                    <div class="you-ladder" style="--n:@(maxRank + 1);--past:@Pc(maxRank > 0 ? (double)p.CareerRank / maxRank : 0)">
+                        @for (int r = 0; r <= maxRank; r++)
+                        {
+                            <div class="you-rung @(r == p.CareerRank ? "now" : r < p.CareerRank ? "past" : "")"><i>@if (r == p.CareerRank) { <Icon Name="@CareerIcon(p.CareerTrack)" Tone="brass" Size="16" /> }</i><span>@(track?.RankName(r, w.Era) ?? r.ToString())</span></div>
+                        }
+                    </div>
+                    @if (ambition != null)
+                    {
+                        /* what the ambition asks, how near it is and what would bring it nearer (docs/PLAYTHROUGH.md, Medium, A first game) */
+                        <div class="you-kv" data-aim="@(aim?.Progress ?? 0)">
+                            <span class="k">Ambition</span>
+                            <span class="v">@Cap(ambition.Name.ToLowerInvariant()).
+                                @if (won) { <b class="ui-up">Won:</b>@(" ") }
+                                @if (aim != null) { @Mine(aim.Stands) }
+                                @if (aim is { Next.Length: > 0 }) { string aimTarget = aim.Target; <span class="you-next"><b>A next step:</b> @aim.Next <Link Label="Go there" Tip="Open the window where it is done" OnClick="() => OnGo.InvokeAsync(aimTarget)" /></span> }
+                            </span>
+                            @if (aim != null) { <span class="ui-cell @(aim.Progress >= 70 ? "ui-up" : aim.Progress < 25 ? "ui-warn-t" : "")" title="How near you are to what you want, from 0 to 100, reckoned as the ambitions of the house's other people are. Nothing in the game waits on it: it is yours to follow or not."><Icon Name="trophy" Tone="brass" Size="17" />@aim.Progress<small class="ui-mute">/100</small></span> } else { <span></span> }
+                        </div>
+                    }
+                    @if (honors.Count > 0) { <div class="you-kv"><span class="k">Honours</span><span class="v">@string.Join(", ", honors)</span><span></span></div> }
+                    @if (flags.Count > 0) { <div class="you-kv"><span class="k">Marked as</span><span class="v you-marks">@foreach (var f in flags) { <em class="mark-word" title="@Marks.Tip(f)">@Marks.Label(f)</em> }</span><span></span></div> }
+                    <div class="you-kv" title="Yours, not the house's: physicians, gifts and bribes 'of your own' are paid from it, and it goes by your will. Move coin between the two in House, under Purses and the will.">
+                        <span class="k">Your own purse</span><span class="v">Apart from the house's treasury</span><span class="ui-cell"><Icon Name="credits" Tone="brass" Size="17" />@Money.Show(p.Purse)</span>
+                    </div>
+                </ChildContent>
+            </Section>
+            <LifePanel />
+            <FeudPanel />
+        }
+        else if (_tab == "family")
+        {
+            <Section Title="Blood and bonds" Count="@((children.Count + (spouse != null ? 1 : 0)).ToString())" Info="Your spouse and every child of yours, the living and the dead. The tree of the whole house is on the Dynasty window.">
+                @if (spouse != null)
                 {
-                    string aimTarget = aim.Target;
-                    <div class="aim" data-aim="@aim.Progress">
-                        <div class="gauge" title="How near you are to what you want, from 0 to 100, reckoned as the ambitions of the house's other people are. Nothing in the game waits on it: it is yours to follow or not."><span>How near (of 100)</span><i><b style="width:@aim.Progress%" class="@(aim.Progress >= 70 ? "high" : aim.Progress < 25 ? "low" : "")"></b></i><em>@aim.Progress</em></div>
-                        <div class="small">@(aim.Had ? "You have it. " : "")@aim.Stands</div>
-                        @if (aim.Next.Length > 0) { <div class="small"><b>A next step:</b> @aim.Next <button class="opt inline tiny" @onclick="() => OnGo.InvokeAsync(aimTarget)">Go there ▸</button></div> }
+                    var sh = w.House(spouse.HouseId);
+                    <Row Wrap="true" Name="@spouse.Name" SubText="@($"Your {(spouse.Sex == "female" ? "wife" : "husband")} · {(spouse.Alive ? spouse.Age.ToString() : "remembered")}{(spouse.HouseId != house.Id ? $" · of {sh?.Name}" : "")}")" Class="you-person">
+                        <Picture><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(sh?.AccentColor ?? "#888")" Size="46" Height="56" /></Picture>
+                        <Cells>@if (sh != null && spouse.HouseId != house.Id) { <span class="you-arms" title="@sh.Name"><Sigil HouseId="@sh.Id" Accent="@sh.AccentColor" Size="20" /></span> }</Cells>
+                    </Row>
+                }
+                else { <EmptyState Icon="marriage" Text="Unwed. A match is made on the Dynasty window, under Marriages." /> }
+                @foreach (var k in children)
+                {
+                    string? rn = c.Careers.RankName(k.CareerTrack, k.CareerRank, w.Era);
+                    <Row Wrap="true" Name="@k.Name" SubText="@($"Your {(k.Sex == "female" ? "daughter" : "son")} · {(k.Alive ? k.Age.ToString() : "remembered")}{(rn != null ? " · " + rn : "")}{(k.Id == heirNow?.Id ? " · your heir" : "")}")" Class="@("you-person" + (k.Id == heirNow?.Id ? " heir" : ""))">
+                        <Picture><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
+                    </Row>
+                }
+                @if (children.Count == 0) { <EmptyState Icon="family-tree" Text="No children yet. The line is you." /> }
+            </Section>
+        }
+        else if (_tab == "ties")
+        {
+            <Section Title="Those who matter" Count="@ties.Count.ToString()" Info="Those outside your blood who feel most strongly about you, for or against, from −100 to +100. One who thinks well or ill of you for 8 years becomes an old friend or an old enemy (A life)."
+                     IsEmpty="@(ties.Count == 0)" EmptyIcon="shaking-hands" EmptyLine="Nobody outside your blood feels strongly about you yet, for or against.">
+                @foreach (var t in ties)
+                {
+                    var ch = w.Char(t.Id)!; var th = w.House(ch.HouseId);
+                    <div class="you-tie">
+                        <Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Alive="@ch.Alive" Accent="@(th?.AccentColor ?? "#888")" Size="46" Height="56" />
+                        <div class="you-tie-who"><b>@t.Name</b><span>@t.Detail of @t.HouseName@(t.Bond.Length > 0 ? $" · {t.Bond}" : "")</span></div>
+                        <Meter Kind="diverging" Value="@t.Disposition" Max="100" Text="@((t.Disposition > 0 ? "+" : "") + Counted.Figure(t.Disposition))" ValueClass="@(t.Disposition < -20 ? "ui-down" : t.Disposition > 20 ? "ui-up" : "")" Tip="@($"What {t.Name} thinks of you, from −100 to +100")" />
                     </div>
                 }
-            }
-            @if (honors.Count > 0) { <div class="kv"><span>Honours</span><b>@string.Join(", ", honors)</b></div> }
-            @if (flags.Count > 0) { <div class="kv"><span>Marked as</span><b>@foreach (var f in flags) { <span class="mark-word" title="@Marks.Tip(f)">@Marks.Label(f)</span> }</b></div> }
-        </section>
-        <LifePanel />
-        <FeudPanel />
-    }
-    else if (_tab == "family")
-    {
-        <section class="panel">
-            <h3>Blood and bonds</h3>
-            @if (spouse != null) { <div class="person"><Portrait Id="@spouse.Id" Name="@spouse.Name" Sex="@spouse.Sex" Age="@spouse.Age" Alive="@spouse.Alive" Accent="@(w.House(spouse.HouseId)?.AccentColor ?? "#888")" Size="30" /><span><b>@spouse.Name</b> <span class="muted">your spouse · @(spouse.Alive ? spouse.Age.ToString() : "†")@(spouse.HouseId != house.Id ? $" · of {w.House(spouse.HouseId)?.Name}" : "")</span></span></div> }
-            else { <div class="muted">Unwed.</div> }
-            @foreach (var k in children) { <div class="person"><Portrait Id="@k.Id" Name="@k.Name" Sex="@k.Sex" Age="@k.Age" Alive="@k.Alive" Accent="@house.AccentColor" Size="28" /><span><b>@k.Name</b> <span class="muted">@(k.Alive ? $"{k.Age}" : "†")@(c.Careers.RankName(k.CareerTrack, k.CareerRank, G.World!.Era) is { } rn ? $" · {rn}" : "")</span></span></div> }
-            @if (children.Count == 0) { <div class="muted small">No children yet. The line is you.</div> }
-        </section>
-    }
-    else if (_tab == "ties")
-    {
-        <section class="panel">
-            <h3>Those who matter</h3>
-            @if (ties.Count == 0) { <div class="muted small">Nobody outside your blood feels strongly about you yet, for or against.</div> }
-            @foreach (var t in ties)
-            {
-                var ch = w.Char(t.Id)!; var th = w.House(ch.HouseId);
-                <div class="tie"><Portrait Id="@ch.Id" Name="@ch.Name" Sex="@ch.Sex" Age="@ch.Age" Accent="@(th?.AccentColor ?? "#888")" Size="26" />
-                    <span class="tn"><b>@t.Name</b> <span class="muted small">@t.Detail of @t.HouseName@(t.Bond.Length > 0 ? $" · {t.Bond}" : "")</span></span>
-                    <span class="dbar"><i class="zero"></i><i class="fill @(t.Disposition >= 0 ? "pos" : "neg")" style="left:@(t.Disposition >= 0 ? 50 : 50 + t.Disposition / 2)%; width:@(Math.Abs(t.Disposition) / 2)%"></i></span>
-                    <b class="@(t.Disposition < -20 ? "warn" : t.Disposition > 20 ? "good" : "")">@(t.Disposition >= 0 ? "+" : "")@t.Disposition</b></div>
-            }
-        </section>
-    }
-    else if (_tab == "learning") { <LearningPanel /> }
-    else
-    {
-        <section class="panel">
-            @if (mine.Count == 0) { <div class="empty-line">Nothing is written of you yet. It is what will be said of you.</div> }
-            else { <h3>Your story so far</h3> }
-            @foreach (var h in mine) { <div class="line small"><span class="muted">T@(h.Turn)</span> @h.Text</div> }
-        </section>
-    }
+            </Section>
+        }
+        else if (_tab == "learning") { <LearningPanel /> }
+        else
+        {
+            <Section Title="Your story so far" Count="@mine.Count.ToString()" Info="What the chronicle has written of you, the newest first. What you have done is kept under A life."
+                     IsEmpty="@(mine.Count == 0)" EmptyIcon="scroll-unfurled" EmptyLine="Nothing is written of you yet. It is what will be said of you.">
+                @foreach (var h in mine) { <div class="you-line"><span>Year @h.Turn</span><p>@h.Text</p></div> }
+            </Section>
+            @if (m.Character.Background != null) { <div class="you-kv you-born"><span class="k">Born</span><span class="v">@m.Character.Background</span><span></span></div> }
+        }
+        </div>
+    </div>
 </div>
 
 @code {
     private string _tab = "life";
+    private async Task Pick(string k) { bool moved = _tab != k; _tab = k; if (moved) { try { await JS.InvokeVoidAsync("praetoria.scrollHome", ".you-scroll"); } catch { } } }
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public string Tab { get; set; } = "";
     [Parameter] public int TabStamp { get; set; }
     private static int _seenStamp;
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
-    private void OpenOn(string tab) { if (tab is "life" or "family" or "learning" or "ties") _tab = tab; }
+    private void OpenOn(string tab) { if (tab is "life" or "family" or "learning" or "ties" or "record") _tab = tab; }
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
+    private static string Pc(double v) => v.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+    public static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private string TraitName(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Name ?? id;
     private string TraitDesc(string id) => G.Content!.Traits.Nature.Concat(G.Content.Traits.Aptitude).FirstOrDefault(t => t.Id == id)?.Description ?? "";
+    /// <summary>The glyph of a skill (docs/VISUAL_SYSTEM.md 8.4).</summary>
+    public static string SkillIcon(string skill) => skill switch
+    {
+        "tactics" => "target-arrows", "gunnery" => "cannon", "leadership" => "rally-the-troops", "logistics" => "cargo-crate", "discipline" => "checked-shield",
+        "law" => "scales", "oratory" => "public-speaker", "diplomacy" => "shaking-hands", "charisma" => "sun", "intrigue" => "cowled",
+        "administration" => "tied-scroll", "economics" => "abacus", "engineering" => "gears", _ => "open-book"
+    };
+    /// <summary>The glyph of a trait (docs/VISUAL_SYSTEM.md 8.5).</summary>
+    public static string TraitIcon(string trait) => trait switch
+    {
+        "Ambitious" => "stairs-goal", "Arrogant" => "podium-winner", "Cruel" => "bleeding-heart", "Honorable" => "medal", "Just" => "scales", "Loyal" => "crowned-heart",
+        "Proud" => "crown", "Ruthless" => "plain-dagger", "Vengeful" => "wolf-head", "Administrator" => "tied-scroll", "Brilliant" => "smart", "Diplomat" => "dove",
+        "Duelist" => "crossed-sabres", "Greedy" => "coins-pile", "Orator" => "public-speaker", "Paranoid" => "spyglass", "Quartermaster" => "cargo-crate",
+        "Schemer" => "cowled", "Strategist" => "flag-objective", "Tactician" => "compass", _ => "medal"
+    };
+    /// <summary>The glyph of an ambition (docs/VISUAL_SYSTEM.md 8.5).</summary>
+    public static string AmbitionIcon(string id) => id switch
+    {
+        "amass_a_fortune" => "money-stack", "command_a_fleet" => "fleet", "earn_a_command" => "upgrade", "master_the_senate" => "podium", "outshine_all_rivals" => "trophy",
+        "restore_house_fortunes" => "family-house", "seize_the_throne" => "throne-king", "win_a_great_love" => "charm", _ => "ambition"
+    };
+    /// <summary>The glyph of a service, on the lit rung of the career ladder.</summary>
+    public static string CareerIcon(string track) => track switch { "military" => "eagle-emblem", "law" => "scales", "stewardship" => "tied-scroll", _ => "roman-toga" };
 }

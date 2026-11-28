@@ -111,6 +111,7 @@
     },
     {
       "id": "the_informer_found",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -444,6 +445,7 @@
     },
     {
       "id": "the_advocates_day",
+      "scene": "court",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
@@ -542,6 +544,7 @@
     },
     {
       "id": "the_advocate_loses",
+      "scene": "court",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
@@ -645,6 +648,7 @@
     },
     {
       "id": "the_chancellors_voice",
+      "scene": "senate",
       "tier": "situation",
       "weight": 10,
       "repeatable": true,

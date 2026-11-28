@@ -1,5 +1,5 @@
 {
-  "//": "COALITION CRISES — sphere-dominance arc (§2.4/§5: power-grabs create coalitions of the fearful). Spheres are M5 (no sphere loader yet), so authored against COUNTERS — same pattern as corruption/unrest. Counters coined: navy_influence, treasury_influence, senate_influence (fed here + by career/steward events; M5 sphere system can read or supersede them). Arc: feeders raise a counter -> buildup plants unease (charFlag rival 'wary') -> crisis setpiece fires on counter>=threshold -> aftermath reads outcome flags (humbled / coalition_broken). New char flags: wary (a rival uneasy at your rise), coalition_leader (the house that organized against you), humbled (you bent the knee), debt_to_crown. Thresholds set at 6 — tune vs scenario mono-track spikes (risen-officer hits navy fast). NOTE: when M5 sphere loader lands, swap counter-gates for sphere-gates; prose transfers unchanged.",
+  "//": "COALITION CRISES, sphere-dominance arc (§2.4/§5: power-grabs create coalitions of the fearful). Spheres are M5 (no sphere loader yet), so authored against COUNTERS, same pattern as corruption/unrest. Counters coined: navy_influence, treasury_influence, senate_influence (fed here + by career/steward events; M5 sphere system can read or supersede them). Arc: feeders raise a counter -> buildup plants unease (charFlag rival 'wary') -> crisis setpiece fires on counter>=threshold -> aftermath reads outcome flags (humbled / coalition_broken). New char flags: wary (a rival uneasy at your rise), coalition_leader (the house that organized against you), humbled (you bent the knee), debt_to_crown. Thresholds set at 6, tune vs scenario mono-track spikes (risen-officer hits navy fast). NOTE: when M5 sphere loader lands, swap counter-gates for sphere-gates; prose transfers unchanged.",
   "events": [
     {
       "id": "the_navy_grows",
@@ -57,7 +57,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the new commission, the extra hulls, the wider mandate — every yard that builds for {self.name} a yard that does not build for {rival_house.name} of {rival_house.house}. The fleet grows. So does the cold arithmetic in rival wardrooms: a house that holds the navy holds the knife over every other."
+              "text": "{self.name} took the new commission, the extra hulls, the wider mandate, every yard that builds for {self.name} a yard that does not build for {rival_house.name} of {rival_house.house}. The fleet grows. So does the cold arithmetic in rival wardrooms: a house that holds the navy holds the knife over every other."
             }
           ]
         },
@@ -86,7 +86,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {rival_house.name} of {rival_house.house} into the contract — a slower path to dominance, but one that buys a rival's calm instead of their fear. The shrewd accumulate power quietly enough that no one thinks to combine against it until too late. {self.name} is learning that patience."
+              "text": "{self.name} let {rival_house.name} of {rival_house.house} into the contract, a slower path to dominance, but one that buys a rival's calm instead of their fear. The shrewd accumulate power quietly enough that no one thinks to combine against it until too late. {self.name} is learning that patience."
             }
           ]
         },
@@ -100,7 +100,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} declined the expansion, and watched the commission go elsewhere. There is a ceiling a careful house sets on its own rise — high enough to matter, low enough not to frighten. {self.name} chose, this once, to stay beneath it. The fearful slept easy, and so, for now, did {self.name}."
+              "text": "{self.name} declined the expansion, and watched the commission go elsewhere. There is a ceiling a careful house sets on its own rise, high enough to matter, low enough not to frighten. {self.name} chose, this once, to stay beneath it. The fearful slept easy, and so, for now, did {self.name}."
             }
           ]
         }
@@ -111,6 +111,7 @@
     },
     {
       "id": "the_treasury_tightens",
+      "scene": "market",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -164,7 +165,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} drew another thread of the Reach's money through {self.name}'s own hands — a fund administered, a debt held, a disbursement that now waits on {self.name}'s signature. {rival_house.name} of {rival_house.house} noticed, as the indebted always notice the one who holds the note. To control the treasury is to be feared by everyone who needs paying, which is everyone."
+              "text": "{self.name} drew another thread of the Reach's money through {self.name}'s own hands, a fund administered, a debt held, a disbursement that now waits on {self.name}'s signature. {rival_house.name} of {rival_house.house} noticed, as the indebted always notice the one who holds the note. To control the treasury is to be feared by everyone who needs paying, which is everyone."
             }
           ]
         },
@@ -251,7 +252,7 @@
             },
             {
               "type": "log",
-              "text": "Another senator to {self.name}'s side, another vote that moves when {self.name} moves. The bloc grows the way blocs grow — one quiet promise at a time, until the chamber looks up one day and finds {self.name} can carry a motion alone. {rival_house.name} of {rival_house.house} is counting heads now, and not liking the sum."
+              "text": "Another senator to {self.name}'s side, another vote that moves when {self.name} moves. The bloc grows the way blocs grow, one quiet promise at a time, until the chamber looks up one day and finds {self.name} can carry a motion alone. {rival_house.name} of {rival_house.house} is counting heads now, and not liking the sum."
             }
           ]
         },
@@ -274,7 +275,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let others take the public credit for {self.name}'s motions — a rival's name on {self.name}'s policy, a friend's face on {self.name}'s win. The bloc grows and no one fears it, because no one can quite see its shape. The most dangerous power is the kind that has arranged not to look like power at all."
+              "text": "{self.name} let others take the public credit for {self.name}'s motions, a rival's name on {self.name}'s policy, a friend's face on {self.name}'s win. The bloc grows and no one fears it, because no one can quite see its shape. The most dangerous power is the kind that has arranged not to look like power at all."
             }
           ]
         }
@@ -339,7 +340,7 @@
             },
             {
               "type": "log",
-              "text": "{informant.name} came quietly to {self.name} with a warning worth more than flattery: that {self.name}'s rise is being spoken of, in the rooms {self.name} is not in, with the particular hush reserved for threats. {self.name} listened. Forewarned of fear, one can choose to ease it — or to deserve it before the others are ready."
+              "text": "{informant.name} came quietly to {self.name} with a warning worth more than flattery: that {self.name}'s rise is being spoken of, in the rooms {self.name} is not in, with the particular hush reserved for threats. {self.name} listened. Forewarned of fear, one can choose to ease it, or to deserve it before the others are ready."
             }
           ]
         },
@@ -463,7 +464,7 @@
             },
             {
               "type": "log",
-              "text": "{coalition_head.name} of {coalition_head.house} came at the head of the frightened — a bloc of houses who individually feared {self.name} and together believed they need not. {self.name} did not yield an inch. The coalition held, for now, and so did {self.name}, and the Reach learned that the over-mighty house would have to be broken, not merely warned. The lines are drawn. The war, if it comes, will have a name on each side."
+              "text": "{coalition_head.name} of {coalition_head.house} came at the head of the frightened, a bloc of houses who individually feared {self.name} and together believed they need not. {self.name} did not yield an inch. The coalition held, for now, and so did {self.name}, and the Reach learned that the over-mighty house would have to be broken, not merely warned. The lines are drawn. The war, if it comes, will have a name on each side."
             }
           ]
         },
@@ -501,7 +502,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not fight the coalition; {self.name} dissolved it — a private assurance here, a planted suspicion there, a richer offer to the weakest member than loyalty to {coalition_head.name} of {coalition_head.house} could match. By the time the bloc met to act, it was no longer a bloc, only a room of houses who no longer trusted each other. {coalition_head.name} sat at the head of nothing, and knew exactly whose hand had emptied the table."
+              "text": "{self.name} did not fight the coalition; {self.name} dissolved it, a private assurance here, a planted suspicion there, a richer offer to the weakest member than loyalty to {coalition_head.name} of {coalition_head.house} could match. By the time the bloc met to act, it was no longer a bloc, only a room of houses who no longer trusted each other. {coalition_head.name} sat at the head of nothing, and knew exactly whose hand had emptied the table."
             }
           ]
         },
@@ -537,7 +538,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} gave ground — surrendered the contracts, freed the votes, loosened the grip that had frightened them, and let {coalition_head.name} of {coalition_head.house} carry the victory home. The coalition dissolved, satisfied, having unmade the thing it feared. {self.name} is smaller now, and safer, and will remember every house that stood in that room. Power surrendered under threat is a debt the threatened do not know they have incurred."
+              "text": "{self.name} gave ground, surrendered the contracts, freed the votes, loosened the grip that had frightened them, and let {coalition_head.name} of {coalition_head.house} carry the victory home. The coalition dissolved, satisfied, having unmade the thing it feared. {self.name} is smaller now, and safer, and will remember every house that stood in that room. Power surrendered under threat is a debt the threatened do not know they have incurred."
             }
           ]
         },
@@ -581,7 +582,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} knelt — publicly, convincingly, gave the coalition its win and its comfort. And began, that same night, the quiet work of ensuring {coalition_head.name} of {coalition_head.house} would not live to lead a second one. A bent knee is the cheapest disguise a patient enemy can wear. The coalition celebrated a victory it did not have, over a house it had not beaten."
+              "text": "{self.name} knelt, publicly, convincingly, gave the coalition its win and its comfort. And began, that same night, the quiet work of ensuring {coalition_head.name} of {coalition_head.house} would not live to lead a second one. A bent knee is the cheapest disguise a patient enemy can wear. The coalition celebrated a victory it did not have, over a house it had not beaten."
             }
           ]
         }
@@ -668,7 +669,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} simply endured — gave the coalition nothing to strike at and nothing to fear afresh, and let the slow rot of shared purpose do its work. Alliances of the frightened curdle when the fear cools; what was a bloc becomes a grudge, then a memory. {self.name} paid for the waiting in sleepless months, and outlasted them, which is its own kind of victory and a colder one."
+              "text": "{self.name} simply endured, gave the coalition nothing to strike at and nothing to fear afresh, and let the slow rot of shared purpose do its work. Alliances of the frightened curdle when the fear cools; what was a bloc becomes a grudge, then a memory. {self.name} paid for the waiting in sleepless months, and outlasted them, which is its own kind of victory and a colder one."
             }
           ]
         },
@@ -706,7 +707,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} stopped pretending the coalition could be talked down and met it as what it was: an enemy in all but the declaring. {self.name} struck first, hard, at {coalition_head.name} of {coalition_head.house} — and the Reach understood that the over-mighty house had chosen to become mightier still rather than be diminished. There is no road back from this. There was never meant to be."
+              "text": "{self.name} stopped pretending the coalition could be talked down and met it as what it was: an enemy in all but the declaring. {self.name} struck first, hard, at {coalition_head.name} of {coalition_head.house}, and the Reach understood that the over-mighty house had chosen to become mightier still rather than be diminished. There is no road back from this. There was never meant to be."
             }
           ]
         }
@@ -839,7 +840,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the humbling for what it honestly was: a correction. {self.name} HAD grown frightening; the fearful HAD been right to combine. {self.name} rebuilt with that lesson held close, accumulating power the slow and legitimate way that does not provoke the next coalition. {rival_house.name} of {rival_house.house}, watching, revised its estimate of {self.name} upward — for there is nothing more dangerous, or more rare, than a powerful house that has learned restraint."
+              "text": "{self.name} took the humbling for what it honestly was: a correction. {self.name} HAD grown frightening; the fearful HAD been right to combine. {self.name} rebuilt with that lesson held close, accumulating power the slow and legitimate way that does not provoke the next coalition. {rival_house.name} of {rival_house.house}, watching, revised its estimate of {self.name} upward, for there is nothing more dangerous, or more rare, than a powerful house that has learned restraint."
             }
           ]
         },
@@ -864,7 +865,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} endured the humbling the way most houses endure most things: by going on. No plan, no vengeance, no lesson taken — only the slow work of being smaller for a while, and the knowledge that {rival_house.name} of {rival_house.house} was watching to see if it would last."
+              "text": "{self.name} endured the humbling the way most houses endure most things: by going on. No plan, no vengeance, no lesson taken, only the slow work of being smaller for a while, and the knowledge that {rival_house.name} of {rival_house.house} was watching to see if it would last."
             }
           ]
         }
@@ -872,6 +873,7 @@
     },
     {
       "id": "the_crowns_eye",
+      "scene": "intrigue",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -937,7 +939,7 @@
             },
             {
               "type": "log",
-              "text": "{sovereign.name} of {sovereign.house}, who sits above even the coalitions, summoned {self.name} to answer a single unspoken question: is this great power mine, or its own? {self.name} {era:swore|knelt}, and meant the words, and bound the house's strength to {era:the Republic's|the throne's}. Safety, bought with a loyalty that can never again be fully questioned — nor fully withdrawn. The mighty serve, or the mighty are unmade. {self.name} chose to serve."
+              "text": "{sovereign.name} of {sovereign.house}, who sits above even the coalitions, summoned {self.name} to answer a single unspoken question: is this great power mine, or its own? {self.name} {era:swore|knelt}, and meant the words, and bound the house's strength to {era:the Republic's|the throne's}. Safety, bought with a loyalty that can never again be fully questioned, nor fully withdrawn. The mighty serve, or the mighty are unmade. {self.name} chose to serve."
             }
           ]
         },

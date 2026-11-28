@@ -3,7 +3,7 @@
   // to an assault, defense what it brings holding a system; both are scaled by readiness, the admiral, and
   // veterancy. A fleet is a composition {class: count}; "strength" (hull count) is kept as the quick measure the
   // intel/threat layers use. minTitleRank gates the heavy hulls to houses with a seat big enough to build them
-  // (§13 — a landless captain does not lay down battleships); `requires` pins a class to a specialization. The heavy hulls want rare earths
+  // (§13, a landless captain does not lay down battleships); `requires` pins a class to a specialization. The heavy hulls want rare earths
   // (drives, sensors) and the battleship weapons-grade isotopes (GDD §17 "special materials needed for weapons").
   "classes": [
     { "id": "corvette",   "name": "Corvette",   "attack": 1, "defense": 1, "cost": { "materials": 3, "manpower": 1, "credits": 1 }, "upkeep": { "credits": 1 } },

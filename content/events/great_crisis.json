@@ -1,8 +1,9 @@
 {
-  "//": "THE GREAT CRISIS — scenes for the war of the Reach (GDD §11/§16). Each reads a stage flag the engine raises (great_crisis:<stage>) and a once-marker it sets so it fires once per stage. the_blocs_form lets the player choose a side (joinBloc) against the engine's default sorting.",
+  "//": "THE GREAT CRISIS, scenes for the war of the Reach (GDD §11/§16). Each reads a stage flag the engine raises (great_crisis:<stage>) and a once-marker it sets so it fires once per stage. the_blocs_form lets the player choose a side (joinBloc) against the engine's default sorting.",
   "events": [
     {
       "id": "the_rumblings",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 6,
       "repeatable": false,
@@ -113,6 +114,7 @@
     },
     {
       "id": "the_blocs_form",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,
@@ -248,6 +250,7 @@
     },
     {
       "id": "the_war_of_the_reach",
+      "scene": "battle",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,
@@ -345,6 +348,7 @@
     },
     {
       "id": "the_reckoning_of_the_reach",
+      "scene": "funeral",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,

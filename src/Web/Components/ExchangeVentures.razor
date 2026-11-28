@@ -1,5 +1,9 @@
 @inject GameClient G
 @using Praetoria.Core.Presentation
+@* The Exchange's Ventures tab (docs/ECONOMY_MARKET.md stage B; the House's own Ventures tab moved here, docs/VISUAL_SYSTEM.md 5.1).
+   Your ventures as rows (what each earns and is worth, enlarging it on the row, and under it whose it is, the pledge, settling it on
+   one of the house, listing it, selling it); ventures offered to you; what can be founded, as a table whose chosen row docks its cost
+   and the Found plate in the order bar; belt claims to stake; and the ventures other houses would sell. *@
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var vs = G.Turn!.Ventures;
     var mine = m.Businesses ?? new List<BusinessCard>(); var assets = m.Assets;
@@ -7,133 +11,235 @@
     var shut = (m.Ventures ?? new List<VentureOption>()).Where(v => v.Refusal != null).ToList();
     int earns = mine.Sum(b => b.Earnings), worth = mine.Sum(b => b.Value);
     var settleOn = new[] { w.Protagonist! }.Concat(WealthSystem.Members(w, w.House(w.Protagonist!.HouseId)!).Where(k => k.Id != pid)).ToList();
+    var boards = w.Companies.Where(x => !x.Chartered && x.ControllerId == w.Protagonist!.HouseId).OrderBy(x => x.Id, StringComparer.Ordinal).ToList(); if (boards.All(x => x.Id != _payFrom)) _payFrom = string.Empty;
+    var shown = open.Take(_all ? 200 : 12).ToList();
+    var pick = shown.FirstOrDefault(v => v.DefId + "@" + v.SystemId == _pick) ?? shown.FirstOrDefault();
 }
-<div class="dash-grid exchange-grid">
-    <section class="panel">
-        <h3><Icon Name="trade_hub" Size="13" /> Your ventures <span class="muted">@mine.Count · earning @Money.Show(earns) credits a year at this year's prices · worth @Money.Show(worth)</span></h3>
-        @if (VentureSystem.BadName(w, w.Protagonist!.HouseId)) { <div class="row small"><span class="pill warn" title="A venture of the house failed and was wound up. Buyers know it: they bid a tenth less for anything the house sells, until the year is out.">A name for bad business until year @w.Counter(VentureSystem.BadNameKey(w.Protagonist!.HouseId))</span> <span class="muted">Other houses bid a tenth less for what you sell.</span></div> }
-        @if (mine.Count == 0) { <div class="muted">The house owns no venture. Found one below, or buy one from a house that needs the coin.</div> }
-        @foreach (var b in mine)
-        {
-            <div class="vcard">
-                <div class="vc-head"><b>@b.Name</b> <span class="muted small">@b.KindName · level @b.Level/@b.MaxLevel@(b.SystemName != null ? $" · {b.SystemName}" : "")@(b.CompanyName != null ? $" · held by {b.CompanyName}" : "")</span>
-                    <span class="pill @(b.Earnings <= 0 ? "warn" : "good")">@(b.Earnings >= 0 ? "+" : "")@Money.Show(b.Earnings) a year</span>
-                    @if (w.Business(b.Id) is { LosingYears: > 0 } losing) { <span class="pill bad" title="A venture that earns nothing or loses money three years running is wound up: half its salvage comes back, and whoever of the house founded it has failed at it.">@losing.LosingYears of @VentureSystem.FailsAfter years without a profit</span> }</div>
-                @if (vs != null && w.Business(b.Id) is { LosingYears: > 0 } failing)
+<p class="ui-lede ex-lede">@HouseScreen.Bold(mine.Count == 0 ? $"The house owns no venture. {(open.Count > 0 ? $"{open.Count} could be founded with what it holds and where it stands" : "Nothing can be founded with what it holds now")}, or one bought from a house that needs the coin." : $"The house owns {(mine.Count == 1 ? "one venture" : mine.Count + " ventures")}, earning {Money.Show(earns)} a year at this year's prices and worth {Money.Show(worth)}.")</p>
+@if (VentureSystem.BadName(w, w.Protagonist!.HouseId)) { <WarnStrip Icon="alert" Lead="A name for bad business." Class="ex-strip">A venture of the house failed and was wound up: other houses bid a tenth less for what you sell until year @w.Counter(VentureSystem.BadNameKey(w.Protagonist!.HouseId)).</WarnStrip> }
+
+<Section Title="Your ventures" Count="@mine.Count.ToString()" Info="A venture's worth is six years of what it earns now, half its book at least. What it yields is goods, not coin: its earnings are what a year of it is worth at today's prices, after its keep and the charter. A venture that earns nothing or loses money three years running is wound up: half its salvage comes back, and whoever of the house founded it has failed at it."
+         IsEmpty="@(mine.Count == 0)" EmptyLine="Found one below, or buy one from a house that needs the coin: they are under For sale in the Reach." EmptyIcon="factory">
+    <Right><span>Earning <b class="@(earns >= 0 ? "ui-up" : "ui-down")">@HouseScreen.Sg(earns)</b> a year · worth <b>@Money.Show(worth)</b></span></Right>
+    <ChildContent>
+    @foreach (var b in mine)
+    {
+        var raw = w.Business(b.Id); string bid0 = b.Id;
+        <div class="vcard ex-venture @(raw is { LosingYears: > 0 } ? "distress" : "")" data-venture="@b.Id">
+            <Row Name="@b.Name" SubText="@($"{b.KindName} · level {b.Level} of {b.MaxLevel}{(b.SystemName != null ? $" · {b.SystemName}" : "")}{(b.CompanyName != null ? $" · held by {b.CompanyName}" : "")}")" Tip="@($"Pays {(b.Yield == "—" ? "nothing" : b.Yield)}{(b.Charter != null ? $"; charter {b.Charter}" : "")}")">
+                <Picture>@if (raw != null && G.WorkPicture(raw.Kind) is { } art) { <span class="ui-thumb"><img src="@art" alt="" loading="eager" decoding="async" /></span> } else { <span class="ui-thumb hs-thumb-none"><Icon Name="factory" Tone="brass" Size="20" /></span> }</Picture>
+                <Cells>
+                    <Cell Icon="credits" Value="@(HouseScreen.Sg(b.Earnings) + " a year")" Class="@(b.Earnings > 0 ? "ui-up" : "ui-down")" Tip="What it earns a year at this year's prices" />
+                    <Cell Icon="money-stack" Value="@Money.Show(b.Value)" Tip="Its worth: six years of what it earns now, half its book at least" />
+                </Cells>
+                <Action><Plate Label="Expand" Icon="upgrade" Small="true" Locked="@(b.Expand.Refusal != null)" Disabled="@(b.Expand.Refusal != null)" ShowNeed="false" Need="@(b.Expand.Refusal ?? "")" Tip="@b.Expand.Label" OnClick="() => G.Execute(new ExpandBusinessCommand(pid, bid0, c.Businesses))" /></Action>
+            </Row>
+            <div class="ex-under">
+                <p class="hs-note ex-pays">@(b.Yield == "—" ? "Yields nothing this year" : "Pays " + b.Yield)@(b.Charter != null ? $" · charter {b.Charter}" : "")</p>
+                @if (vs != null && raw is { LosingYears: > 0 } failing)
                 {
                     var noProp = vs.PropRefusal(w, w.House(w.Protagonist!.HouseId), failing);
-                    <div class="row small"><span class="warn">@(failing.LosingYears >= VentureSystem.FailsAfter - 1 ? "It will be wound up next year if it does not pay." : "It has stopped paying.")</span>
-                        <button class="opt inline tiny" disabled="@(noProp != null)" title="@(noProp ?? "The losing years are wiped out, and it has three more to come right.")" @onclick="() => G.Execute(new PropVentureCommand(pid, b.Id, vs))">Put @Money.Show(vs.PropCost(w, failing)) credits in</button>
-                        <span class="muted">or sell it below. Wound up, it returns @Money.Show(vs.WoundUp(failing)).</span></div>
+                    <WarnStrip Icon="alert" Lead="@($"{failing.LosingYears} of {VentureSystem.FailsAfter} years without a profit.")" Bad="true">
+                        <ChildContent>@(failing.LosingYears >= VentureSystem.FailsAfter - 1 ? "It will be wound up next year if it does not pay." : "It has stopped paying.") Or sell it; wound up, it returns @Money.Show(vs.WoundUp(failing)).</ChildContent>
+                        <Action><Plate Label="@($"Put {Money.Show(vs.PropCost(w, failing))} in")" Small="true" Locked="@(noProp != null)" Disabled="@(noProp != null)" ShowNeed="false" Need="@(noProp ?? "")" Tip="The losing years are wiped out, and it has three more to come right." OnClick="() => G.Execute(new PropVentureCommand(pid, bid0, vs))" /></Action>
+                    </WarnStrip>
                 }
-                @if (vs != null && w.Business(b.Id) is { CompanyId.Length: 0 } own)
+                @if (vs != null && raw is { CompanyId.Length: 0 } own)
                 {
-                    var its = VentureSystem.HolderOf(w, own); string bid0 = b.Id;
-                    <div class="row small">
-                        @if (its != null) { <span class="pill" title="What it earns is paid over to them each year, it is not sold or listed unless they agree, and it goes as they leave it.">@(its.Id == pid ? "your own, apart from the house" : its.Name + "'s own")</span> }
-                        else if (own.FounderId.Length > 0 && w.Char(own.FounderId) is { Alive: true } fo && fo.Id != pid) { <span class="muted">Founded by @fo.Name: a fifth of its price is theirs if it is sold, and they will mind.</span> }
+                    var its = VentureSystem.HolderOf(w, own);
+                    <div class="hs-acts ex-row" data-settle>
+                        @if (its != null) { <span class="hs-tag gold" title="What it earns is paid over to them each year, it is not sold or listed unless they agree, and it goes as they leave it.">@(its.Id == pid ? "your own, apart from the house" : its.Name + "'s own")</span> }
+                        else if (own.FounderId.Length > 0 && w.Char(own.FounderId) is { Alive: true } fo && fo.Id != pid) { <span class="hs-mute-s">Founded by @fo.Name: a fifth of its price is theirs if it is sold, and they will mind.</span> }
                         @if (its == null)
                         {
                             bool pledged = w.House(w.Protagonist!.HouseId)!.PledgedId == bid0; var noPledge = vs.PledgeRefusal(w, w.Protagonist, pledged ? string.Empty : bid0);
-                            <button class="opt inline tiny @(pledged ? "here" : "")" disabled="@(noPledge != null)" title="@(noPledge ?? (pledged ? "Withdraw it: the creditors take the least of your ventures, as they would have." : "If the house is foreclosed on, its creditors take this first, and leave the rest. Otherwise they take the least of your ventures."))" @onclick="() => G.Execute(new PledgeCommand(pid, pledged ? string.Empty : bid0, vs))">@(pledged ? "Pledged to the creditors" : "Pledge it")</button>
+                            <Plate Label="@(pledged ? "Pledged to the creditors" : "Pledge it")" Small="true" Class="@(pledged ? "down" : "")" Locked="@(noPledge != null)" Disabled="@(noPledge != null)" ShowNeed="false" Need="@(noPledge ?? "")" Tip="@(pledged ? "Withdraw it: the creditors take the least of your ventures, as they would have." : "If the house is foreclosed on, its creditors take this first, and leave the rest. Otherwise they take the least of your ventures.")" OnClick="() => G.Execute(new PledgeCommand(pid, pledged ? string.Empty : bid0, vs))" />
                         }
                         @if (its == null || its.Id == pid)
                         {
-                            <span class="muted">Settle it on</span>
-                            @foreach (var k in settleOn.Where(k => k.Id != its?.Id).Take(5)) { string kid = k.Id; var noSettle = vs.SettleRefusal(w, w.Protagonist, own, k); <button class="opt inline tiny" disabled="@(noSettle != null)" title="@(noSettle ?? (kid == pid ? "It is yours, not the house's: what it earns goes to your purse, and it goes by your will." : "It is theirs from now on: what it earns, and the say in selling it. They will think much better of you. You cannot take it back."))" @onclick="() => G.Execute(new SettleVentureCommand(pid, bid0, kid, vs))">@(kid == pid ? "yourself" : k.Name.Split(' ')[0])</button> }
+                            <span class="hs-lbl">Settle it on</span>
+                            @foreach (var k in settleOn.Where(k => k.Id != its?.Id).Take(5)) { string kid = k.Id; var noSettle = vs.SettleRefusal(w, w.Protagonist, own, k); <Plate Label="@(kid == pid ? "yourself" : k.Name.Split(' ')[0])" Small="true" Locked="@(noSettle != null)" Disabled="@(noSettle != null)" ShowNeed="false" Need="@(noSettle ?? "")" Tip="@(kid == pid ? "It is yours, not the house's: what it earns goes to your purse, and it goes by your will." : "It is theirs from now on: what it earns, and the say in selling it. They will think much better of you. You cannot take it back.")" OnClick="() => G.Execute(new SettleVentureCommand(pid, bid0, kid, vs))" /> }
                         }
                     </div>
                 }
-                <div class="kv"><span>Pays</span><b>@b.Yield@(b.Charter != null ? $" · charter {b.Charter}" : "")</b></div>
-                <div class="kv"><span>Worth</span><b>@Money.Show(b.Value) <i class="muted">six years of what it earns now, half its book at least</i></b></div>
-                <div class="row small">
-                    <button class="opt inline tiny" disabled="@(b.Expand.Refusal != null)" title="@b.Expand.Refusal" @onclick="() => G.Execute(new ExpandBusinessCommand(pid, b.Id, c.Businesses))">@b.Expand.Label</button>
+                <div class="hs-acts ex-row">
                     @if (b.CompanyName == null && G.Turn!.Companies is { Open: true } cx)
                     {
                         var listing = cx.IncorporateRefusal(w, w.Protagonist!.HouseId, w.Businesses.GetValueOrDefault(b.Id), string.Empty);
-                        <button class="opt inline tiny" disabled="@(listing != null)" title="@(listing ?? "list it on the Exchange as a company: a hundred shares, all yours")" @onclick='() => G.AskDo("Incorporate " + b.Name + "?", "It is listed on the Exchange as a company of a hundred shares, all yours to begin with. It is then a company and not a venture of the house: its profit is paid as dividends to whoever holds the shares, and others may buy in. It cannot be made a private venture again.", "Incorporate", new IncorporateCommand(pid, b.Id, string.Empty, cx))'>Incorporate</button>
+                        <Plate Label="Incorporate" Icon="coins-pile" Small="true" Locked="@(listing != null)" Disabled="@(listing != null)" ShowNeed="false" Need="@(listing ?? "")" Tip="List it on the Exchange as a company: a hundred shares, all yours" OnClick='() => G.AskDo("Incorporate " + b.Name + "?", "It is listed on the Exchange as a company of a hundred shares, all yours to begin with. It is then a company and not a venture of the house: its profit is paid as dividends to whoever holds the shares, and others may buy in. It cannot be made a private venture again.", "Incorporate", new IncorporateCommand(pid, bid0, string.Empty, cx))' />
                     }
                     @if (vs != null && b.CompanyName == null)
                     {
-                        <button class="opt inline tiny" disabled="@(b.Sell.Refusal != null)" title="@(b.Sell.Refusal ?? "four-fifths of its worth; the caravaneers break it up")" @onclick='() => G.AskDo("Sell " + b.Name + "?", b.Sell.Label + ". The caravaneers break it up and pay four-fifths of what it is worth today: a venture is worth what it cost in its first year and comes to its full worth over five. It is gone for good, and what it yielded each year goes with it.", "Sell it", new SellVentureCommand(pid, b.Id, string.Empty, vs))'>@b.Sell.Label</button>
+                        <Plate Label="Sell" Small="true" CostIcon="credits" CostText="@SellPrice(b)" Locked="@(b.Sell.Refusal != null)" Disabled="@(b.Sell.Refusal != null)" ShowNeed="false" Need="@(b.Sell.Refusal ?? "")" Tip="@($"{b.Sell.Label}: four-fifths of its worth; the caravaneers break it up")" OnClick='() => G.AskDo("Sell " + b.Name + "?", b.Sell.Label + ". The caravaneers break it up and pay four-fifths of what it is worth today: a venture is worth what it cost in its first year and comes to its full worth over five. It is gone for good, and what it yielded each year goes with it.", "Sell it", new SellVentureCommand(pid, bid0, string.Empty, vs))' />
                         @foreach (var bid in b.Bids ?? new List<VentureBid>())
                         {
-                            string? bidNo = new SellVentureCommand(pid, b.Id, bid.HouseId, vs).Refusal(G.Ctx);
-                            <button class="opt inline tiny" disabled="@(bidNo != null)" title="@(bidNo ?? ((bid.HoldsTheWorld ? "It holds the world the venture works, and pays the more for that. " : "") + $"A private sale: the venture stays whole and goes on working for {bid.HouseName}, whose head thinks {VentureSystem.PrivateSaleRegard} the better of you for it. The open market breaks it up and buys you no regard: take whichever pays you more for what you want."))" @onclick='() => G.AskDo("Sell " + b.Name + " to " + bid.HouseName + "?", bid.HouseName + " pays " + Money.Credits(bid.Price) + " and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + Money.Show(bid.Price), new SellVentureCommand(pid, b.Id, bid.HouseId, vs))'>Sell to @bid.HouseName for @Money.Show(bid.Price)</button>
+                            string? bidNo = new SellVentureCommand(pid, b.Id, bid.HouseId, vs).Refusal(G.Ctx); var bb = bid;
+                            <Plate Label="@($"Sell to {bid.HouseName}")" Small="true" CostIcon="credits" CostText="@Money.Show(bid.Price)" Locked="@(bidNo != null)" Disabled="@(bidNo != null)" ShowNeed="false" Need="@(bidNo ?? "")" Tip="@((bid.HoldsTheWorld ? "It holds the world the venture works, and pays the more for that. " : "") + $"A private sale: the venture stays whole and goes on working for {bid.HouseName}, whose head thinks {VentureSystem.PrivateSaleRegard} the better of you for it. The open market breaks it up and buys you no regard: take whichever pays you more for what you want.")" OnClick='() => G.AskDo("Sell " + b.Name + " to " + bb.HouseName + "?", bb.HouseName + " pays " + Money.Credits(bb.Price) + " and has the venture and what it yields from now on. It cannot be asked back.", "Sell for " + Money.Show(bb.Price), new SellVentureCommand(pid, bid0, bb.HouseId, vs))' />
                         }
                     }
                 </div>
             </div>
-        }
+        </div>
+    }
+    </ChildContent>
+</Section>
 
-        @if (assets is { Offers.Count: > 0 } && vs != null)
+@if (assets is { Offers.Count: > 0 } && vs != null)
+{
+    <Section Title="Offered to you" Count="@assets.Offers.Count.ToString()" Info="A house that needs the coin offers you one of its ventures. The offer is good until the year is out. What it yields is goods, not coin: what it is worth to you is a year of it at today's prices, after its keep and the charter.">
+        <Right><span>Good until the year is out</span></Right>
+        <ChildContent>
+        @foreach (var o in assets.Offers)
         {
-            <h4>Offered to you <span class="muted">good until the year is out</span></h4>
-            @foreach (var o in assets.Offers)
-            {
-                <div class="vcard offer">
-                    <div class="vc-head"><b>@o.BusinessName</b> <span class="muted small">@o.KindName@(o.SystemName != null ? $" · {o.SystemName}" : "") · from @o.FromName</span><span class="pill good" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter.">worth +@Money.Show(o.PerYear) credits a year to you at today's prices</span></div>
-                    <div class="muted small">@Cap(o.Reason).</div>
-                    <button class="opt inline" disabled="@(o.Refusal != null)" title="@o.Refusal" @onclick="() => G.Execute(new AcceptVentureOfferCommand(pid, o.Id, vs))">Take it for @Money.Show(o.Price) credits</button>
-                </div>
-            }
-        }
-
-        <h4>Found a venture <span class="muted">what it would earn at this year's prices, and how long until it has paid for itself</span></h4>
-        @{ var boards = w.Companies.Where(x => !x.Chartered && x.ControllerId == w.Protagonist!.HouseId).OrderBy(x => x.Id, StringComparer.Ordinal).ToList(); if (boards.All(x => x.Id != _payFrom)) _payFrom = string.Empty; }
-        @if (boards.Count > 0)
-        {
-            <div class="row small"><span class="muted">Paid for by</span>
-                <button class="opt inline tiny @(_payFrom.Length == 0 ? "here" : "")" @onclick="() => _payFrom = string.Empty">the house</button>
-                @foreach (var bd in boards) { var bid = bd.Id; <button class="opt inline tiny @(_payFrom == bid ? "here" : "")" title="from the company's own cash; the venture is the company's" @onclick="() => _payFrom = bid">@bd.Name · @Money.Show(bd.Cash) in hand</button> }
+            string oid = o.Id;
+            <div class="vcard offer">
+            <Row Name="@o.BusinessName" SubText="@($"{o.KindName}{(o.SystemName != null ? $" · {o.SystemName}" : "")} · from {o.FromName}. {Cap(o.Reason)}.")">
+                <Picture><span class="ui-thumb hs-thumb-none"><Icon Name="receive-money" Tone="good" Size="20" /></span></Picture>
+                <Cells><Cell Icon="credits" Value="@($"+{Money.Show(o.PerYear)} a year")" Class="ui-up" Tip="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter." /></Cells>
+                <Action><Plate Label="Take it" Small="true" CostIcon="credits" CostText="@Money.Show(o.Price)" Locked="@(o.Refusal != null)" Disabled="@(o.Refusal != null)" ShowNeed="false" Need="@(o.Refusal ?? "")" Tip="@($"Take it for {Money.Credits(o.Price)}")" OnClick="() => G.Execute(new AcceptVentureOfferCommand(pid, oid, vs))" /></Action>
+            </Row>
             </div>
         }
-        @if (open.Count == 0) { <div class="muted small">Nothing can be founded with what the house holds and where it stands.</div> }
-        <table class="standings ventures">
-            <thead><tr><th>Venture</th><th>Where</th><th>Cost</th><th>Built in</th><th>Earns</th><th>Pays back</th><th></th></tr></thead>
-            <tbody>
-            @foreach (var v in open.Take(_all ? 200 : 12))
+        </ChildContent>
+    </Section>
+}
+
+<Section Title="Found a venture" Count="@open.Count.ToString()" Info="What each would earn at this year's prices, and how long until it has paid for itself. What it yields is goods, not coin; prices move. Click a row to put it in the order bar, with what it costs and the Found plate. A company you direct can pay for it from its own cash, and the venture is then the company's.">
+    <Right>@if (open.Count > 12) { <button class="ui-link" @onclick="() => _all = !_all">@(_all ? "Show the best twelve" : $"Show all {open.Count}")<Icon Name="chev" Size="11" Class="flat" /></button> }</Right>
+    <ChildContent>
+    @if (boards.Count > 0)
+    {
+        <div class="hs-line">
+            <span class="hs-lbl">Paid for by</span>
+            <span class="ui-seg hs-seg">
+                <button class="@(_payFrom.Length == 0 ? "on" : "")" @onclick="() => _payFrom = string.Empty">The house</button>
+                @foreach (var bd in boards) { var bid = bd.Id; <button class="@(_payFrom == bid ? "on" : "")" title="From the company's own cash; the venture is the company's" @onclick="() => _payFrom = bid">@bd.Name · @Money.Show(bd.Cash) in hand</button> }
+            </span>
+        </div>
+    }
+    @if (open.Count == 0) { <EmptyState Icon="factory" Text="Nothing can be founded with what the house holds and where it stands." /> }
+    else
+    {
+        <div class="ex-found">
+        <DataTable Class="ex-table" data-found-table="1">
+            <Head><th>Venture</th><th>Where</th><th title="What it yields is goods, not coin: what a year of it is worth at today's prices, after its keep and the charter. Prices move.">Earns</th><th>Pays back</th><th>Built in</th></Head>
+            <ChildContent>
+            @foreach (var v in shown)
             {
-                <tr title="@v.Description">
-                    <td class="hn"><b>@v.Name</b> <span class="muted small">@v.Sector</span></td>
-                    <td class="muted small">@v.SystemName</td>
-                    <td class="small">@v.Cost@(v.BuildTurns > 1 ? $" · {v.First} a year" : "")</td>
-                    <td class="small">@(v.BuildTurns <= 0 ? "at once" : v.BuildTurns == 1 ? "a year" : $"{v.BuildTurns} years")</td>
-                    <td><span class="@(v.PerYear > 0 ? "good" : "warn")" title="What it yields is goods, not coin: this is what a year of it is worth at today's prices, after its keep and the charter. Prices move.">@(v.PerYear >= 0 ? "+" : "")@Money.Show(v.PerYear) cr worth</span>@if (v.Swing.Length > 0) { <div class="muted small" data-swing>@v.Swing</div> }</td>
-                    <td class="small">@v.Payback</td>
-                    <td>@{ var foundCmd = new FoundBusinessCommand(pid, v.DefId, v.SystemId, c.Businesses, c.Holdings, c.Titles, _payFrom); var foundNo = _payFrom.Length > 0 ? foundCmd.Refusal(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0))) : null; }<button class="opt inline tiny" disabled="@(foundNo != null)" title="@foundNo" @onclick="() => G.Execute(foundCmd)">Found</button></td>
+                string key = v.DefId + "@" + v.SystemId; bool on = pick == v;
+                <tr class="@(on ? "on" : "")" title="@($"{v.Name}: {v.Description}{(v.Sector.Length > 0 ? $" ({v.Sector})" : "")}{(v.Swing.Length > 0 ? $"\n{v.Swing}" : "")}\nkey: Click to put it in the order bar")" @onclick="() => _pick = key">
+                    <td><Icon Name="factory" Tone="@(v.PerYear > 0 ? "brass" : "ivory")" Size="16" />@v.Name</td>
+                    <td class="ex-td-l">@v.SystemName</td>
+                    <td class="@(v.PerYear > 0 ? "ui-up" : "ui-warn-t")">@HouseScreen.Sg(v.PerYear)@if (v.Swing.Length > 0) { <small class="ex-swing" data-swing title="@v.Swing">&nbsp;swings</small> }</td>
+                    <td>@v.Payback</td>
+                    <td>@(v.BuildTurns <= 0 ? "at once" : v.BuildTurns == 1 ? "a year" : $"{v.BuildTurns} years")</td>
                 </tr>
             }
-            </tbody>
-        </table>
-        @if (open.Count > 12) { <button class="opt inline tiny" @onclick="() => _all = !_all">@(_all ? "Show the best twelve" : $"Show all {open.Count}")</button> }
-        @if (shut.Count > 0) { <details><summary class="muted small">@shut.Count more on your own worlds that cannot be founded yet</summary>@foreach (var v in shut) { <div class="line small"><b>@v.Name</b> at @v.SystemName <span class="muted">— @v.Refusal</span></div> }</details> }
-    </section>
-
-    <aside class="dash-side">
-        <section class="panel">
-            <h3><Icon Name="houses" Size="13" /> For sale in the Reach <span class="muted">every house has its price</span></h3>
-            @if (assets == null || assets.ForSale.Count == 0) { <div class="muted">No house has a venture it would part with to you.</div> }
-            else
+            </ChildContent>
+            <OrderBar>
+            @if (pick != null)
             {
-                @foreach (var f in assets.ForSale)
-                {
-                    <div class="vcard @(f.Distressed ? "distress" : "")">
-                        <div class="vc-head"><Sigil HouseId="@f.OwnerId" Accent="@f.OwnerAccent" Size="14" /> <b>@f.Name</b></div>
-                        <div class="muted small">@f.KindName · level @f.Level@(f.SystemName != null ? $" · {f.SystemName}" : "") · @f.OwnerName@(f.Distressed ? " · short of coin" : "")@(f.OnYourWorld ? " · works your world" : "")</div>
-                        <div class="kv"><span>To you</span><b><span class="@(f.PerYear > 0 ? "good" : "warn")">@(f.PerYear >= 0 ? "+" : "")@Money.Show(f.PerYear) credits' worth a year, in goods at today's prices</span> · @(f.Payback == "never" ? "does not pay itself back at this price" : "pays back in " + f.Payback)</b></div>
-                        <VentureBuy BusinessId="@f.BusinessId" />
-                    </div>
-                }
-                <div class="muted small">A house asks a premium to part with a venture, more for one on its own world or its last, less when it is short of coin. It would take less than it asks: make an offer, once a year for each. The holder of the world it works may match your price and take it first. Any venture of any house can be offered for from that house's page, under Houses.</div>
+                var foundCmd = new FoundBusinessCommand(pid, pick.DefId, pick.SystemId, c.Businesses, c.Holdings, c.Titles, _payFrom); var foundNo = _payFrom.Length > 0 ? foundCmd.Refusal(new CommandContext(w, new Praetoria.Core.Rng.SplitMix64Rng(0))) : null;
+                <span class="ui-order-nm"><Icon Name="factory" Tone="brass" Size="18" />@pick.Name</span>
+                <span class="ex-quote">at @pick.SystemName · @pick.Cost@(pick.BuildTurns > 1 ? $" · {pick.First} a year" : "")</span>
+                <span class="ui-order-sp"></span>
+                <Plate Label="Found" Icon="build" Primary="true" Locked="@(foundNo != null)" Disabled="@(foundNo != null)" ShowNeed="false" Need="@(foundNo ?? "")" Tip="@($"[factory] Found {pick.Name} at {pick.SystemName}\n{pick.Description}\nCost: {pick.Cost}{(pick.BuildTurns > 1 ? $", {pick.First} a year over {pick.BuildTurns} years" : "")}\nEarns: {HouseScreen.Sg(pick.PerYear)} a year at this year's prices\nPays back: {pick.Payback}")" OnClick="() => G.Execute(foundCmd)" />
             }
-        </section>
-    </aside>
-</div>
+            </OrderBar>
+        </DataTable>
+        </div>
+    }
+    @if (shut.Count > 0)
+    {
+        <p class="hs-note"><button class="ui-link" @onclick="() => _shut = !_shut">@(_shut ? "Hide" : $"{shut.Count} more on your own worlds that cannot be founded yet")<Icon Name="chev" Size="11" Class="flat" /></button></p>
+        @if (_shut) { @foreach (var v in shut) { <Row Name="@v.Name" SubText="@($"at {v.SystemName}: {v.Refusal}")" Class="ex-shut"><Picture><span class="ui-thumb hs-thumb-none"><Icon Name="padlock" Tone="ivory" Size="16" /></span></Picture></Row> } }
+    }
+    </ChildContent>
+</Section>
+
+@if (m.Claims is { Count: > 0 } cl)
+{
+    var cspec = c.Holdings.Spec(StakeClaimCommand.Spec); int cbase = cspec?.BaseYield.Materials ?? 0, ckeep = cspec?.Upkeep.Credits ?? 0;
+    <div data-claims>
+    <Section Title="Belt claims" Count="@cl.Count.ToString()" Info="@($"A claim brings up {cbase} materials a year and one more for each mark of the belt's richness, with some of any rare earths the belt holds and an exotic a year from the richest (richness 3). It costs {Money.Credits(ckeep)} a year to keep, and a belt takes as many claims as it has marks of richness.")">
+        <Right><span>A claim costs <b>@Money.Show(c.Businesses.Finance.ClaimCredits)</b> credits, <b>@c.Businesses.Finance.ClaimMaterials</b> materials</span></Right>
+        <ChildContent>
+        @{ var claimsShown = _allClaims ? cl : cl.OrderBy(k => k.Refusal != null).ThenByDescending(k => k.Belt).ThenBy(k => k.SystemName, StringComparer.Ordinal).Take(6).ToList();
+           var claim = cl.FirstOrDefault(k => k.SystemId == _claim) ?? claimsShown.FirstOrDefault(k => k.Refusal == null) ?? claimsShown.FirstOrDefault(); }
+        @* one row a belt and one order bar under them (docs/VISUAL_SYSTEM.md 4.13): the chosen belt's Stake plate with its cost, and why not *@
+        <div class="ex-found ex-claims" data-claim-yield title="@($"A claim brings up {cbase} materials a year and one more for each mark of the belt's richness, and costs {Money.Credits(ckeep)} a year to keep.")">
+        <DataTable Class="ex-table">
+            <Head><th>Belt</th><th title="Marks of richness: a belt takes as many claims">Richness</th><th>Staked</th><th title="Materials a year from a claim">A year</th></Head>
+            <ChildContent>
+            @foreach (var k in claimsShown)
+            {
+                string ksys = k.SystemId; bool on = claim == k;
+                <tr class="@(on ? "on" : "") @(k.Refusal != null ? "ex-locked" : "")" title="@($"The {k.SystemName} belt: richness {k.Belt}, {k.Staked} of {k.Belt} staked{(k.Refusal != null ? $"\nYou cannot stake it: {k.Refusal}" : "")}\nkey: Click to put it in the order bar")" @onclick="() => _claim = ksys">
+                    <td>@if (k.Refusal != null) { <Icon Name="padlock" Tone="ivory" Size="14" /> } else { <Icon Name="materials" Tone="steel" Size="16" /> }@k.SystemName belt</td>
+                    <td>@k.Belt</td>
+                    <td>@k.Staked of @k.Belt</td>
+                    <td class="ui-up">+@(cbase + k.Belt)</td>
+                </tr>
+            }
+            </ChildContent>
+            <OrderBar>
+            @if (claim != null)
+            {
+                string csys = claim.SystemId;
+                <span class="ui-order-nm"><Icon Name="materials" Tone="steel" Size="18" />@claim.SystemName belt</span>
+                @if (claim.Refusal != null) { <span class="ui-need ex-order-warn">@Cap(claim.Refusal)</span> } else { <span class="ex-quote">+@(cbase + claim.Belt) materials a year · @Money.Credits(ckeep) a year to keep</span> }
+                <span class="ui-order-sp"></span>
+                <Plate Label="Stake a claim" Icon="build" CostIcon="credits" CostText="@Money.Show(c.Businesses.Finance.ClaimCredits)" Locked="@(claim.Refusal != null)" Disabled="@(claim.Refusal != null)" ShowNeed="false" Need="@(claim.Refusal ?? "")" Tip="@($"Stake a claim in the {claim.SystemName} belt: {Money.Show(c.Businesses.Finance.ClaimCredits)} credits and {c.Businesses.Finance.ClaimMaterials} materials")" OnClick="() => G.Execute(new StakeClaimCommand(pid, csys, c.Holdings, c.Businesses))" />
+            }
+            </OrderBar>
+        </DataTable>
+        </div>
+        @if (cl.Count > 6) { <p class="hs-note"><button class="ui-link" @onclick="() => _allClaims = !_allClaims">@(_allClaims ? "Show the six best" : $"Show all {cl.Count}")<Icon Name="chev" Size="11" Class="flat" /></button></p> }
+        </ChildContent>
+    </Section>
+    </div>
+}
+
+<Section Title="For sale in the Reach" Count="@(assets?.ForSale.Count.ToString() ?? "0")" Info="A house asks a premium to part with a venture, more for one on its own world or its last, less when it is short of coin. It would take less than it asks: make an offer, once a year for each. The holder of the world it works may match your price and take it first. Any venture of any house can be offered for from that house's page, under Houses."
+         IsEmpty="@(assets == null || assets.ForSale.Count == 0)" EmptyLine="No house has a venture it would part with to you." EmptyIcon="trade">
+    <Right><span>Every house has its price</span></Right>
+    <ChildContent>
+    @{ var sale = assets!.ForSale.FirstOrDefault(f => f.BusinessId == _sale) ?? assets.ForSale.FirstOrDefault(); }
+    @* one row a venture and one order bar under them (4.13): Buy at the asking price, then an offer on the stepper and its Offer plate *@
+    <div class="ex-found ex-sale">
+    <DataTable Class="ex-table">
+        <Head><th>Venture</th><th>Holder</th><th title="Credits' worth a year to you, in goods at today's prices">A year</th><th title="How long until it has paid for itself at the asking price">Pays back</th></Head>
+        <ChildContent>
+        @foreach (var f in assets.ForSale)
+        {
+            string fid = f.BusinessId; bool on = sale == f;
+            <tr class="@(on ? "on" : "") @(f.Distressed ? "distress" : "")" title="@($"{f.Name}: {f.KindName}, level {f.Level}{(f.SystemName != null ? $", at {f.SystemName}" : "")}, of {f.OwnerName}{(f.Distressed ? ", which is short of coin" : "")}{(f.OnYourWorld ? ". It works your world" : "")}\nkey: Click to put it in the order bar")" @onclick="() => _sale = fid">
+                <td><Sigil HouseId="@f.OwnerId" Accent="@f.OwnerAccent" Size="16" />@f.Name</td>
+                <td class="ex-td-l">@f.OwnerName.Replace("House ", "")@if (f.Distressed) { <small class="ui-warn-t"> · short</small> }</td>
+                <td class="@(f.PerYear > 0 ? "ui-up" : "ui-warn-t")">@HouseScreen.Sg(f.PerYear)</td>
+                <td>@(f.Payback == "never" ? "never" : f.Payback)</td>
+            </tr>
+        }
+        </ChildContent>
+        <OrderBar>
+        @if (sale != null)
+        {
+            <span class="ui-order-nm"><Icon Name="factory" Tone="brass" Size="18" />@sale.Name</span>
+            <span class="ui-order-sp"></span>
+            <VentureBuy BusinessId="@sale.BusinessId" />
+        }
+        </OrderBar>
+    </DataTable>
+    </div>
+    </ChildContent>
+</Section>
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
-    private bool _all;
+    private bool _all, _shut, _allClaims;
+    private string? _pick, _claim, _sale;
     private string _payFrom = string.Empty;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>The open market's price for a venture: four-fifths of its worth, as the Sell option's own label reckons it.</summary>
+    private static string SellPrice(BusinessCard b) => b.MarketPrice > 0 ? Money.Show(b.MarketPrice) : Money.Show(b.Value * 4 / 5);
 }

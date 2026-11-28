@@ -5,37 +5,39 @@
     bool imperium = w?.IsImperium == true;
     var cards = p == null || house == null ? Array.Empty<(string, string)>() : new[]
     {
-        ("The house and you", $"You are {p.Name}, head of {house.Name}. The dynasty is what survives you: its title, its worlds, its fleet, its name. You are one life in it. When you die, you play the heir — and the heir starts their career from the bottom."),
-        ("The briefing", "Each turn your advisors bring reports — the cards on the desk. Some are decisions with choices that cost from your pools; some are news. Reading is free. Acting is not. Unanswered reports are set aside when the turn ends."),
+        ("The house and you", $"You are {p.Name}, head of {house.Name}. The dynasty is what survives you: its title, its worlds, its fleet, its name. You are one life in it. When you die, you play the heir, and the heir starts their career from the bottom."),
+        ("The briefing", "Each turn your advisors bring reports: the cards on the desk. Some are decisions with choices that cost from your pools; some are news. Reading is free. Acting is not. Unanswered reports are set aside when the turn ends."),
         ("The three pools", "Influence (plots, the Senate, favours), Treasury actions (builds, fleet orders, the market) and Agents (schemes, training). They refill a little each turn and cap at six. The strip at the top shows what you have left."),
-        ("Coin, hulls and the strategic three", "The ledger is in the House screen: worlds, ventures, claims, loans. Credits are the thing you run out of. Helium-3 fuels the fleet, rare earths build the heavy hulls, isotopes arm them — and not every world has them."),
-        ("The laws and the estates", "The Chancery holds the laws in your gift — as head of a house, holder of worlds, dominant in a region, chair, or an officer of the Reach. Six estates watch what you set and warm or sour; a loyal estate pays, a hostile one costs, and one hostile across the Reach will petition the Senate itself. Acts of the Senate bind every house."),
+        ("Coin, hulls and the strategic three", "The ledger is in the House screen: worlds, ventures, claims, loans. Credits are the thing you run out of. Helium-3 fuels the fleet, rare earths build the heavy hulls, isotopes arm them, and not every world has them."),
+        ("The laws and the estates", "The Chancery holds the laws in your gift: as head of a house, holder of worlds, dominant in a region, chair, or an officer of the Reach. Six estates watch what you set and warm or sour; a loyal estate pays, a hostile one costs, and one hostile across the Reach will petition the Senate itself. Acts of the Senate bind every house."),
         ("The climb", (imperium ? "Titles are a ladder: knight, baron, count, duke, archduke, and the throne." : "The Republic has no nobles. A house rises by what it holds and what it is trusted with: Citizen, Warden, Prefect, Legate, Proconsul, First Citizen. A person rises by rank, in the Navy, the Administration or the Courts.") + " Take a rung by force, by merit, or by marriage and claim. The Senate votes motions by weight; the War of the Reach is the storm every house is sailing toward. Survive it with the name intact."),
-        ("The keys", "Enter ends the year (when no report is open). Esc closes the window in front and goes back to the map. The windows on the left open by number in the order they are listed: 1 to 9, then 0, - and = for the last three; each one's tooltip shows its key. ? opens this primer. On the map, drag to move and the wheel to zoom; the buttons at its corner go home and fit the whole Reach."),
-        ("Three things to do first", "One: open the report at the top of the list on the right, read what each answer costs and gives, and answer it. Two: open House, then the ledger, and look at the last line: where the treasury will stand when the year ends. Three: click your own world on the map and raise one building. Then press End Turn. A year passes, and the list on the right tells you what happened in it.")
+        ("The keys", "Enter ends the year (when no report is open). Esc closes the window in front and goes back to the map. The windows on the left open by number in the order they are listed: 1 to 9, then 0, - and = for the last three; each one's name, shown when the pointer is on it, gives its key. ? opens this primer. On the map, drag to move and the wheel (or Page Up and Page Down) to zoom; the plates over the small map at the bottom right go to your seat and fit the whole Reach. Esc on the map opens the game menu."),
+        ("Three things to do first", "One: open the report at the top of the list on the right, read what each answer costs and gives, and answer it. Two: open House, then the ledger, and look at the last line: where the treasury will stand when the year ends. Three: click your own world on the map and raise one building. Then press End Year. A year passes, and the list on the right tells you what happened in it.")
     };
 }
-<div class="overlay" data-handbook>
-    <div class="epilogue primer wide handbook">
-        <div class="hb-tabs" role="tablist">
-            @foreach (var (id, label) in new[] { ("primer", "The primer"), ("glossary", "Glossary"), ("lectures", "The lectures") }.Where(t => t.Item1 != "primer" || cards.Length > 0))
+@* The handbook (docs/PLAYTHROUGH.md, a first game): the primer, the glossary and the lectures, in a box in the window frame
+   (docs/VISUAL_SYSTEM.md 4.1) with its three tabs under the head. *@
+<Box data-handbook="1" BoxClass="handbook" Glyph="open-book" Kicker="The handbook" Title="@(_tab == "primer" && cards.Length > 0 ? cards[_i].Item1 : _tab == "lectures" ? "The lectures" : "The glossary")" Width="min(50.6667rem, calc(100vw - 2rem))" OnClose="() => OnClose.InvokeAsync()">
+    <Head>
+        <div class="hb-tabs ui-tabs" role="tablist">
+            @foreach (var (id, label, icon) in new[] { ("primer", "The primer", "scroll-quill"), ("glossary", "Glossary", "open-book"), ("lectures", "The lectures", "scroll-unfurled") }.Where(t => t.Item1 != "primer" || cards.Length > 0))
             {
-                <button class="hb-tab @(_tab == id ? "on" : "")" role="tab" aria-selected="@(_tab == id)" data-hb-tab="@id" @onclick="() => _tab = id">@label</button>
+                <button class="hb-tab ui-tab @(_tab == id ? "on" : "")" role="tab" aria-selected="@(_tab == id)" data-hb-tab="@id" @onclick="() => _tab = id"><Icon Name="@icon" Tone="@(_tab == id ? "brass" : "ivory")" Size="16" />@label</button>
             }
-            <button class="win-x hb-x" @onclick="() => OnClose.InvokeAsync()" title="Close (Esc)" aria-label="Close">×</button>
         </div>
+    </Head>
+    <ChildContent>
         @if (_tab == "primer" && cards.Length > 0)
         {
-            <div class="tier"><span class="glyph">◆</span> A PRIMER · @(_i + 1) of @cards.Length</div>
-            <h2>@cards[_i].Item1</h2>
+            <div class="ui-kick hb-count">A primer · @(_i + 1) of @cards.Length</div>
             <p class="epi-text">@cards[_i].Item2</p>
-            <div class="row">
+            <div class="row box-acts">
                 @if (_i > 0) { <button class="btn" @onclick="() => _i--">Back</button> }
                 @if (_i < cards.Length - 1) { <button class="btn primary" @onclick="() => _i++">Next</button> }
                 else { <button class="btn primary" @onclick="() => OnClose.InvokeAsync()">To the desk</button> }
                 <button class="btn ghost sm" @onclick="() => OnClose.InvokeAsync()">Skip</button>
             </div>
-            <div class="muted small">You can reopen this from the ? in the top bar. The glossary and the Academy's lectures are on the other two tabs.</div>
+            <div class="muted small">You can reopen this from Help in the game menu (the cog at the top right), or with the ? key. The glossary and the Academy's lectures are on the other two tabs.</div>
         }
         else if (_tab is "glossary" or "primer")
         {
@@ -50,7 +52,7 @@
                     <dl>
                         @foreach (var t in grp)
                         {
-                            <dt data-term="@t.Id">@t.Term @if (t.Where.Length > 0 && OnGo.HasDelegate) { <button class="opt inline tiny" title="Close this and open the window where it is seen" @onclick="() => Open(t.Where)">@Place(t.Where) ▸</button> }</dt>
+                            <dt data-term="@t.Id">@t.Term @if (t.Where.Length > 0 && OnGo.HasDelegate) { <button class="opt inline tiny" title="Close this and open the window where it is seen" @onclick="() => Open(t.Where)">@Place(t.Where) <Icon Name="chev" Tone="brass" Size="9" /></button> }</dt>
                             <dd>@t.Means</dd>
                         }
                     </dl>
@@ -70,8 +72,8 @@
                 }
             </div>
         }
-    </div>
-</div>
+    </ChildContent>
+</Box>
 @code {
     [Parameter] public EventCallback OnClose { get; set; }
     /// <summary>Opens a window by its id, for a glossary term's "where".</summary>

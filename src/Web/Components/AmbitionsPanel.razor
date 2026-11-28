@@ -8,76 +8,109 @@
     var heir = DynastySystem.FindHeir(w, p); var named = house.NamedHeirId.Length > 0 ? w.Char(house.NamedHeirId) : null;
     var nameable = AmbitionSystem.HeirChoices(w, p);   // each with why naming them would be refused: one struck from the line cannot be (docs/HOUSEHOLD.md)
     int asking = members.Count(c => c.Pursuit!.Request.Length > 0);
+    var quarrels = AmbitionSystem.Quarrels(w, house).ToList();
+    var shown = named ?? heir;
 }
-<section class="panel ambitions">
-    <h3><Icon Name="claim" Size="13" /> What your people are after <span class="muted">@members.Count pursuing@(asking > 0 ? $" · {asking} asking" : "")</span></h3>
-    <div class="muted small">They go after it themselves. Now and then one of them asks you for something that would help. You grant it or you do not; that is all there is for you to do.</div>
-
-    <div class="ac-fact"><span>Your heir</span><p>
-        @if (named != null) { <text>You have named <b>@named.Name</b>, whatever the law would say. </text> }
-        else if (heir != null) { <text><b>@heir.Name</b>, by @house.SuccessionLaw.Replace('_', ' '). </text> }
-        else { <text>Nobody. </text> }
-        @if (named != null) { <button class="opt inline tiny" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, string.Empty, sys))">Leave it to the law</button> }
-        @foreach (var (c, no) in nameable)
+@* What your people are after (docs/AMBITIONS.md) on the Dynasty window: your heir and who you could name instead; any two of the house
+   who want one prize; then each of the house's people who wants something, as a face, what they want, how near they are, what would
+   help, and what they ask of you. "panel ambitions", its .suit blocks and the data-* attributes are what tools/browser reads. *@
+<div class="panel ambitions dy-amb">
+    <p class="ui-lede dy-lede">@LawsScreen.Bold(members.Count == 0 ? "Nobody grown of the house has set their mind on anything yet." : $"{members.Count} of your people {(members.Count == 1 ? "is" : "are")} after something{(asking > 0 ? $", and {asking} {(asking == 1 ? "asks" : "ask")} you for help" : "")}{(quarrels.Count > 0 ? $"; {quarrels.Count * 2} want the same prize" : "")}. They go after it themselves; you grant what they ask, or you do not.")</p>
+    <Section Title="Your heir" Info="Who has the house when you die or lay it down. You may name another of the blood in the law's place: passing over whoever the law would give costs the house a little standing, and that person's regard. One struck from the line cannot be named.">
+        <Right>@if (named != null) { <Plate Label="Leave it to the law" Small="true" Tip="Let the law of succession say who is heir again" OnClick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, string.Empty, sys))" /> }</Right>
+        <ChildContent>
+        @if (shown != null)
         {
-            string cid = c.Id;
-            <button class="opt inline tiny" data-name-heir="@cid" disabled="@(no != null)" title="@(no != null ? Cap(no) + "." : "Passing over whoever the law would give costs the house a little standing, and that person's regard.")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, cid, sys))">Name @First(c.Name)</button>
+            <Row Wrap="true" Name="@shown.Name" SubText="@(named != null ? "Named by you, whatever the law would say" : "By " + house.SuccessionLaw.Replace('_', ' '))" Class="dy-heir-row">
+                <Picture><Portrait Id="@shown.Id" Name="@shown.Name" Sex="@shown.Sex" Age="@shown.Age" Alive="@shown.Alive" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
+                <Cells><span class="ui-cell" title="Their age">Age @shown.Age</span></Cells>
+            </Row>
         }
-    </p></div>
+        else { <WarnStrip Icon="family-tree" Lead="No heir." Bad="true" Class="dy-strip">Nobody stands to take the house.</WarnStrip> }
+        @if (nameable.Count > 0)
+        {
+            <div class="you-acts"><span class="you-lbl">Name instead</span>
+            @foreach (var (c, no) in nameable)
+            {
+                string cid = c.Id;
+                <button class="ui-btn sm" data-name-heir="@cid" disabled="@(no != null)" title="@(no != null ? Cap(no) + "." : "Passing over whoever the law would give costs the house a little standing, and that person's regard.")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.NameHeir, cid, sys))"><Icon Name="@(no != null ? "padlock" : "throne-king")" Tone="ivory" Size="14" />Name @First(c.Name)</button>
+            }
+            </div>
+        }
+        </ChildContent>
+    </Section>
 
-    @foreach (var (qa, qb, prize) in AmbitionSystem.Quarrels(w, house))
+    @if (quarrels.Count > 0)
     {
-        /* two of the house want one prize: the head may find for either (docs/PLAYTHROUGH.md, Medium, Family, F74 and F95) */
-        var (withA, withB) = AmbitionSystem.Sides(w, AmbitionSystem.Members(w, house), qa, qb);
-        <div class="suit incoming quarrel" data-quarrel="@(qa.Id + "|" + qb.Id)">
-            <div class="small"><b>@qa.Name and @qb.Name both want @prize.</b> <span class="muted">@(withA.Count + withB.Count == 0 ? "The rest of the house has not taken sides." : $"{withA.Count} of the house stand with {First(qa.Name)}, {withB.Count} with {First(qb.Name)}.") Each year it goes on they think the worse of each other, and those behind one think the worse of the other. You may find for one of them, or leave it.</span></div>
-            <div class="suit-acts">
-                @foreach (var one in new[] { qa, qb })
+        <Section Title="Quarrels" Count="@quarrels.Count.ToString()" Info="Two of the house want one prize. Each year it goes on they think the worse of each other, and those behind one think the worse of the other. You may find for one of them, or leave it.">
+        @foreach (var (qa, qb, prize) in quarrels)
+        {
+            /* two of the house want one prize: the head may find for either (docs/PLAYTHROUGH.md, Medium, Family, F74 and F95) */
+            var (withA, withB) = AmbitionSystem.Sides(w, AmbitionSystem.Members(w, house), qa, qb);
+            <div class="suit incoming quarrel dy-blk warn" data-quarrel="@(qa.Id + "|" + qb.Id)">
+                <div class="dy-pair">
+                    <Portrait Id="@qa.Id" Name="@qa.Name" Sex="@qa.Sex" Age="@qa.Age" Accent="@house.AccentColor" Size="46" Height="56" />
+                    <Portrait Id="@qb.Id" Name="@qb.Name" Sex="@qb.Sex" Age="@qb.Age" Accent="@house.AccentColor" Size="46" Height="56" />
+                </div>
+                <div class="dy-blk-body">
+                    <div class="dy-blk-nm">@qa.Name and @qb.Name both want @prize.</div>
+                    <div class="dy-blk-sub">@(withA.Count + withB.Count == 0 ? "The rest of the house has not taken sides." : $"{withA.Count} of the house stand with {First(qa.Name)}, {withB.Count} with {First(qb.Name)}.")</div>
+                    <div class="you-acts dy-acts">
+                    @foreach (var one in new[] { qa, qb })
+                    {
+                        string oid = one.Id; var settle = new AmbitionCommand(pid, AmbitionCommand.Settle, oid, sys); string? sno = settle.Refusal(G.Ctx); string says = sys.SettleSays(w, w.Protagonist!, one);
+                        <button class="ui-btn sm" data-settle-for="@oid" disabled="@(sno != null)" title="@(sno ?? says)" @onclick='() => G.Ask("Find for " + one.Name + "?", says, "Find for " + First(one.Name), () => G.Execute(settle))'><Icon Name="@(sno != null ? "padlock" : "scales")" Tone="ivory" Size="14" />Find for @First(one.Name)</button>
+                        @if (sno != null) { <span class="ui-need">@Cap(sno).</span> }
+                    }
+                    </div>
+                </div>
+            </div>
+        }
+        </Section>
+    }
+
+    <Section Title="What they are after" Count="@members.Count.ToString()" Info="They go after it themselves. Now and then one of them asks you for something that would help. You grant it or you do not; that is all there is for you to do. How near runs from 0 to 100 by their own reckoning; at 100 they have it."
+             IsEmpty="@(members.Count == 0)" EmptyIcon="stairs-goal" EmptyLine="@(w.FamilyAutonomy <= 0 ? "Yours is a deferential family: they wait to be told." : "An ambition comes with age and temper: the grown of the house take one up in their own time, and the heir most of all.")">
+    @foreach (var c in members)
+    {
+        var u = c.Pursuit!; string cid = c.Id; bool asks = u.Request.Length > 0;
+        <div class="suit dy-blk @(asks ? "incoming" : "")">
+            <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" />
+            <div class="dy-blk-body">
+                <div class="suit-who dy-blk-nm">@c.Name wants @AmbitionSystem.Wants(u.Goal)
+                    @if (u.Fulfilled) { <span class="dy-tag good">Has it</span> }
+                    @if (c.Flags.Contains(AmbitionSystem.ThwartedChar)) { <span class="dy-tag warn">Thwarted</span> }
+                </div>
+                <div class="dy-blk-sub">@(u.Note.Length > 0 ? u.Note : "Nothing to note this year.")@(u.Helped + u.Refused > 0 ? $" · you have helped {Counted.Times(u.Helped)} and said no {u.Refused}" : "")</div>
+                @if (!u.Fulfilled) { <Meter Label="How near" Value="@u.Progress" Max="100" Color="@(u.Progress >= 70 ? "#8cc47e" : u.Progress < 25 ? "#e3a64a" : "#c9a24a")" Tip="How near they are to what they want, from 0 to 100 by their own reckoning. At 100 they have it." Class="dy-meter" /> }
+                @if (AmbitionSystem.HelpSays(w, c) is { Length: > 0 } helps) { <div class="dy-blk-sub" data-help-for="@cid"><b>What would help:</b> @helps</div> }
+                @if (w.Counter(VentureSystem.FailedFounderKey(c.Id)) > 0)
                 {
-                    string oid = one.Id; var settle = new AmbitionCommand(pid, AmbitionCommand.Settle, oid, sys); string? sno = settle.Refusal(G.Ctx); string says = sys.SettleSays(w, w.Protagonist!, one);
-                    <button class="opt inline" data-settle-for="@oid" disabled="@(sno != null)" title="@(sno ?? says)" @onclick='() => G.Ask("Find for " + one.Name + "?", says, "Find for " + First(one.Name), () => G.Execute(settle))'>Find for @First(one.Name)</button>
-                    @if (sno != null) { <span class="small warn">@Cap(sno).</span> }
+                    var offer = sys.SecondStartOffer(w, w.Protagonist, c, G.Ctx);
+                    <div class="you-acts dy-acts">
+                        <span class="you-lbl">What @First(c.Name) founded failed in year @w.Counter(VentureSystem.FailedFounderKey(c.Id)).</span>
+                        <Plate Label="A second start" Icon="sprout" Small="true" CostIcon="@(offer.refusal == null ? "credits" : "")" CostText="@(offer.refusal == null ? Money.Show(offer.cost) : "")" Locked="@(offer.refusal != null)" Disabled="@(offer.refusal != null)" Need="@LifePanel.Say(offer.refusal)" ShowNeed="false"
+                               Tip="@(offer.refusal != null ? "Give them a second start" : $"Give them a second start\nThe house founds {offer.what} for them, out of the treasury. They think much better of you, and the failure is no longer the last word.")" OnClick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.SecondStart, cid, sys))" />
+                    </div>
+                }
+                @if (asks)
+                {
+                    var no = new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys).Refusal(G.Ctx); int left = Math.Max(1, AmbitionSystem.RequestYears - (w.Turn - u.RequestSince));
+                    var later = new AmbitionCommand(pid, AmbitionCommand.Later, cid, sys); var laterNo = later.Refusal(G.Ctx);
+                    <div class="dy-ask"><b>@First(c.Name) @AmbitionSystem.RequestSays(w, c).</b> They will take silence for a no in @Counted.Years(left).</div>
+                    <div class="you-acts dy-acts">
+                        <Plate Label="Grant it" Icon="check" Small="true" Locked="@(no != null)" Disabled="@(no != null)" Need="@LifePanel.Say(no)" ShowNeed="false" Tip="@("Grant it\nIt costs: " + AmbitionSystem.GrantCosts(w, c) + ".")" OnClick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys))" />
+                        <Plate Label="Not yet" Icon="hourglass" Small="true" Locked="@(laterNo != null)" Disabled="@(laterNo != null)" Need="@LifePanel.Say(laterNo)" ShowNeed="false" data-not-yet="@cid"
+                               Tip="@($"Not yet\nThe request stands and they wait {AmbitionSystem.RequestYears} years more for an answer. They think {AmbitionSystem.DeferRegard} the worse of you for it, where a no costs 8 (15 when what is asked is to be named heir). It can be said once.")" OnClick="() => G.Execute(later)" />
+                        <Plate Label="Say no" Small="true" Tip="They will remember it." OnClick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Refuse, cid, sys))" />
+                        <span class="you-lbl">Costs @AmbitionSystem.GrantCosts(w, c).</span>
+                    </div>
                 }
             </div>
         </div>
     }
-    @if (members.Count == 0) { <div class="muted small">@(w.FamilyAutonomy <= 0 ? "Yours is a deferential family: they wait to be told." : "Nobody grown of the house has set their mind on anything yet.")</div> }
-    @foreach (var c in members)
-    {
-        var u = c.Pursuit!; string cid = c.Id; bool asks = u.Request.Length > 0;
-        <div class="suit @(asks ? "incoming" : "")">
-            <div class="suit-who">
-                <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="34" />
-                <div><b>@c.Name</b> wants @AmbitionSystem.Wants(u.Goal)@(" ")
-                    @if (u.Fulfilled) { <span class="pill small good">has it</span> }
-                    @if (c.Flags.Contains(AmbitionSystem.ThwartedChar)) { <span class="pill small warn">thwarted</span> }
-                    <div class="muted small">@(u.Note.Length > 0 ? u.Note : "Nothing to note this year.")@(u.Helped + u.Refused > 0 ? $" · you have helped {Counted.Times(u.Helped)} and said no {u.Refused}" : "")</div></div>
-            </div>
-            @if (AmbitionSystem.HelpSays(w, c) is { Length: > 0 } helps) { <div class="muted small" data-help-for="@cid"><b>What would help:</b> @helps</div> }
-            @if (!u.Fulfilled) { <div class="gauges"><div class="gauge" title="How near they are to what they want, from 0 to 100 by their own reckoning. At 100 they have it."><span>How near (of 100)</span><i><b style="width:@u.Progress%" class="@(u.Progress >= 70 ? "high" : u.Progress < 25 ? "low" : "")"></b></i><em>@u.Progress</em></div></div> }
-            @if (w.Counter(VentureSystem.FailedFounderKey(c.Id)) > 0)
-            {
-                var offer = sys.SecondStartOffer(w, w.Protagonist, c, G.Ctx);
-                <div class="suit-acts">
-                    <span class="muted small">What @First(c.Name) founded failed in year @w.Counter(VentureSystem.FailedFounderKey(c.Id)).</span>
-                    <button class="opt inline tiny" disabled="@(offer.refusal != null)" title="@(offer.refusal ?? $"The house founds {offer.what} for them, out of the treasury. They think much better of you, and the failure is no longer the last word.")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.SecondStart, cid, sys))">Give them a second start@(offer.refusal == null ? $" · {Money.Show(offer.cost)}" : "")</button>
-                </div>
-            }
-            @if (asks)
-            {
-                var no = new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys).Refusal(G.Ctx); int left = Math.Max(1, AmbitionSystem.RequestYears - (w.Turn - u.RequestSince));
-                <div class="small"><b>@First(c.Name) @AmbitionSystem.RequestSays(w, c).</b> <span class="muted">They will take silence for a no in @Counted.Years(left).</span></div>
-                <div class="suit-acts">
-                    <button class="opt inline" disabled="@(no != null)" title="@(no ?? "It costs: " + AmbitionSystem.GrantCosts(w, c) + ".")" @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Grant, cid, sys))">Grant it</button>
-                    @{ var later = new AmbitionCommand(pid, AmbitionCommand.Later, cid, sys); var laterNo = later.Refusal(G.Ctx); }
-                    <button class="opt inline" data-not-yet="@cid" disabled="@(laterNo != null)" title="@(laterNo ?? $"The request stands and they wait {AmbitionSystem.RequestYears} years more for an answer. They think {AmbitionSystem.DeferRegard} the worse of you for it, where a no costs 8 (15 when what is asked is to be named heir). It can be said once.")" @onclick="() => G.Execute(later)">Not yet</button>
-                    <button class="opt inline" title="They will remember it." @onclick="() => G.Execute(new AmbitionCommand(pid, AmbitionCommand.Refuse, cid, sys))">Say no</button>
-                    <span class="muted small">Costs @AmbitionSystem.GrantCosts(w, c).</span>
-                </div>
-            }
-        </div>
-    }
-</section>
+    </Section>
+</div>
 
 @code {
     private static string First(string name) => name.Split(' ')[0];

@@ -1,5 +1,6 @@
-// Drives the household panel on the House screen: hands the steward's work to someone, looks for a person to take in, takes
-// them in if anyone is willing, and plays some years to see what the steward reports.
+// Drives the household on the House window: on the Council tab hands the steward's and the marshal's work to someone, on the
+// Household tab looks for a person to take in and takes them in if anyone is willing, and plays some years to see what the
+// steward and the marshal report.
 //
 //   node household.js ["Start title"] [years]
 //
@@ -16,31 +17,34 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")'); await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   const rail = name => page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.trim().toLowerCase() === n.toLowerCase()) || [...document.querySelectorAll('.rail-btn')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (el) el.click(); return !!el; }, name);
-  // the House screen keeps its household and its purses on tabs
-  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => e.innerText.includes(n)); if (t) t.click(); }, name); };
+  // the House window keeps its household, its council and its purses on tabs (the shared Tabs part, docs/VISUAL_SYSTEM.md 4.4)
+  const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung, .screen.window .ui-tab')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (t) t.click(); }, name); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
-  const turnNo = () => page.evaluate(() => { const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
+  const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
   const panel = () => page.evaluate(() => (document.querySelector('.panel.household') || {}).innerText || 'NO PANEL');
   const press = (sel, text) => page.evaluate(([s, t]) => { const b = [...document.querySelectorAll(s)].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').slice(0, 60) : ''; }, [sel, text]);
-  await closeWindows(); await rail('House'); await tab('The household'); await page.waitForTimeout(700);
+  await closeWindows(); await rail('House'); await tab('Council'); await page.waitForTimeout(700);
   let text = await panel(); console.log('panel: ' + (/NaN|undefined|Exception|@\(/.test(text) ? 'SUSPICIOUS TEXT' : 'ok') + ' · ' + text.split('\n')[0]);
-  console.log('steward given to: ' + await page.evaluate(() => { const d = [...document.querySelectorAll('.panel.household .duty')][0]; const b = d && [...d.querySelectorAll('button.opt.inline')].find(e => !e.disabled && /skill/.test(e.innerText)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nobody'; }));
+  console.log('steward given to: ' + await page.evaluate(async () => { const d = [...document.querySelectorAll('.panel.household .duty')][0]; const sel = d && d.querySelector('.hs-appoint .ui-select-btn'); if (sel) sel.click(); await new Promise(r => setTimeout(r, 250)); const b = d && [...d.querySelectorAll('.ui-menu button')].find(e => /skill/.test(e.innerText) && !/cannot/.test(e.innerText)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nobody'; }));
   await page.waitForTimeout(300);
-  console.log('marshal given to: ' + await page.evaluate(() => { const d = [...document.querySelectorAll('.panel.household .duty')][1]; const b = d && [...d.querySelectorAll('button.opt.inline')].find(e => !e.disabled && /skill/.test(e.innerText)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nobody'; }));
+  console.log('marshal given to: ' + await page.evaluate(async () => { const d = [...document.querySelectorAll('.panel.household .duty')][1]; const sel = d && d.querySelector('.hs-appoint .ui-select-btn'); if (sel) sel.click(); await new Promise(r => setTimeout(r, 250)); const b = d && [...d.querySelectorAll('.ui-menu button')].find(e => /skill/.test(e.innerText) && !/cannot/.test(e.innerText)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ') : 'nobody'; }));
   await page.waitForTimeout(300);
+  await tab('Household'); await page.waitForTimeout(500);
   await press('.panel.household button', 'Look for someone'); await page.waitForTimeout(400);
   console.log('would come: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.household table.prospects tbody tr')].map(r => r.innerText.replace(/\s+/g, ' ').slice(0, 70)).join(' | ')));
   console.log('took in: ' + (await press('.panel.household table.prospects button', 'Take in') || 'nobody willing'));
-  await page.waitForTimeout(400); await page.screenshot({ path: shots + '/household-begin.png' });
+  await page.waitForTimeout(400); await page.locator('.screen.window').screenshot({ path: shots + '/household-begin.png', timeout: 180000 });
   for (let y = 0; y < years; y++) {
-    await endTurn(); await rail('House'); await tab('The household'); await page.waitForTimeout(500);
+    await endTurn(); await rail('House'); await tab('Household'); await page.waitForTimeout(500);
     text = await panel(); if (/NaN|undefined|Exception|@\(/.test(text)) console.log('SUSPICIOUS TEXT in year ' + y);
-    const reports = await page.evaluate(() => [...document.querySelectorAll('.panel.household .duty .suit-who .small')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' || '));
+    await tab('Council'); await page.waitForTimeout(500);
+    const reports = await page.evaluate(() => [...document.querySelectorAll('.panel.household .duty')].slice(0, 2).map(d => [...d.querySelectorAll('[data-duty-report], [data-seat-says]')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' / ')).join(' || '));
     console.log('year ' + (y + 1) + ' (turn ' + await turnNo() + '): ' + reports.slice(0, 260));
   }
-  await page.screenshot({ path: shots + '/household-end.png' });
-  console.log('taken in now: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.household .hh-cols .suit:not(.incoming) .suit-who b')].map(e => e.innerText).join(', ')));
+  await page.locator('.screen.window').screenshot({ path: shots + '/household-end.png', timeout: 180000 });
+  await tab('Household'); await page.waitForTimeout(500);
+  console.log('taken in now: ' + await page.evaluate(() => [...document.querySelectorAll('.panel.household [data-found-person] .ui-row-nm')].map(e => e.innerText).join(', ')));
   console.log('errors: ' + errors.length); errors.slice(0, 5).forEach(e => console.log('   ' + e));
   await browser.close();
 })().catch(e => { console.error('FAILED ' + e.message.split('\n')[0]); process.exit(1); });

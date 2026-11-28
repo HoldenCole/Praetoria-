@@ -49,8 +49,8 @@ public static class AdvisorReports
         var steward = Seat("stewardship");
         var t = house.Treasury;
         int upkeepHint = w.HoldingsOf(house.Id).Count();
-        string stewardLine = upkeepHint == 0 ? $"We hold no land. The house lives on what it has banked — {Money.Held(t)} credits — until a {(w.IsImperium ? "fief" : "world")} is won, granted or married into."
-            : t.Credits < 0 ? $"We are insolvent — {Money.Held(t)} credits. Unrest climbs on every populated world until the ledger turns."
+        string stewardLine = upkeepHint == 0 ? $"We hold no land. The house lives on what it has banked, {Money.Held(t)} credits, until a {(w.IsImperium ? "fief" : "world")} is won, granted or married into."
+            : t.Credits < 0 ? $"We are insolvent: {Money.Held(t)} credits. Unrest climbs on every populated world until the ledger turns."
             : t.Credits < 5 ? $"The coffers are thin ({Money.Held(t)} credits). One bad season and we borrow."
             : w.Sieges.Values.Any(s => w.Holding(s.HoldingId)?.OwnerId == house.Id) ? "A world of ours is blockaded; its yield reaches us halved."
             : house.Debt > 0 ? $"We owe {Money.Credits(house.Debt)}{(house.LenderId.Length > 0 ? $" to the bank of {w.House(house.LenderId)?.Name}" : "")}; {(EdictSystem.Stay(w) is { } stay ? $"nothing falls due while {EdictSystem.Lower(stay.Name)} stands, until year {stay.Until}" : "the instalments fall due each turn")}. {Money.Held(t)} credits banked."
@@ -67,11 +67,11 @@ public static class AdvisorReports
         string admiralLine = ours == 0 && laidUpHulls > 0 ? $"We have no hull in commission: {laidUpHulls} lie laid up, with no crews aboard. Until they are put back in commission any house with a squadron can dictate to us."
             : ours == 0 ? "We keep no ships. Any house with a squadron can dictate to us."
             : biggest.name == null ? $"We field {Counted.Hulls(ours)}. Of the rivals' fleets we have no reliable picture."
-            : $"We field {Counted.Hulls(ours)}; {biggest.name} is reported at {(biggest.conf >= 90 ? "" : "perhaps ")}{biggest.hulls}{(biggest.conf < 60 ? " — an old report, trust it lightly" : "")}.";
+            : $"We field {Counted.Hulls(ours)}; {biggest.name} is reported at {(biggest.conf >= 90 ? "" : "perhaps ")}{biggest.hulls}{(biggest.conf < 60 ? ", an old report, trust it lightly" : "")}.";
         var enemies = w.EnemiesOf(house.Id).Select(e => w.House(e)?.Name ?? e).ToList();
         if (enemies.Count > 0) admiralLine += $" We are at war with {string.Join(", ", enemies)}.";
-        if (w.HasFlag("fuel_short")) admiralLine += " The tanks are dry: no fleet of ours can sail until we find helium-3 — a skimmer, the exchange, or the open market.";
-        else if (ours >= 2 && house.Treasury.Helium3 <= FleetSystem.FuelBillFor(w, house.Id, 3) * 2) admiralLine += $" The tanks hold {house.Treasury.Helium3} helium-3 — two turns at most. Buy or skim.";
+        if (w.HasFlag("fuel_short")) admiralLine += " The tanks are dry: no fleet of ours can sail until we find helium-3: a skimmer, the exchange or the open market.";
+        else if (ours >= 2 && house.Treasury.Helium3 <= FleetSystem.FuelBillFor(w, house.Id, 3) * 2) admiralLine += $" The tanks hold {house.Treasury.Helium3} helium-3, two turns at most. Buy or skim.";
         list.Add(new AdvisorReport("Admiral", admiral?.Name, admiralLine, enemies.Count > 0 || (biggest.name != null && biggest.hulls > ours * 2)) { Role = HouseholdSystem.Marshal, Vacant = house.Duty(HouseholdSystem.Marshal) == null, AdvisorId = admiral?.Id, Urgent = w.HasFlag("fuel_short") || (ours == 0 && enemies.Count > 0) });
 
         // Chancellor — standing and the realm

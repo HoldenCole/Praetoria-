@@ -1,67 +1,215 @@
 @inject GameClient G
+@* The event window (docs/VISUAL_SYSTEM.md 6; the mock is ui-mock/final/event.png). Over a flat dim of the map, 900px wide and as tall as
+   its content: the painting by subject (SceneArt), brightened and darkening into the body at its foot; the cast standing in it as
+   framed plates, the other party at the left and you at the right; the kicker between laurel sprays, the title in Cinzel on the
+   painting's foot over a gilt rule; the prose in Alegreya with a drop capital, and what the game adds (the occasion's facts) in a quote
+   block; then the choices, pinned while long prose scrolls: a gold disc with the digit that picks it (the keys 1 to 9), the label, and
+   the stakes as chips drawn from Core's items (ChoiceCard.Items), each with the tooltip of every effect, its before and after and any
+   requirement against what is there now. A locked choice keeps its label at full ink and says what it needs on a warn line.
+
+   The cast rules: the subject takes the large plate; the dead are greyscale with the black ribbon; when the report is about someone
+   else (one of your own house, or the dead) you are a smaller plate marked "yours to decide"; when it is about you, your line reads
+   "You · yours to decide" in brass. More than one other party: the first stands in the painting, the rest are named under the prose
+   with their faces. *@
 @{
-    var w = G.World!; var b = Card;
-    var roles = b.Item.Fired.Binding.All.Where(kv => kv.Key != "self").Select(kv => (role: kv.Key, ch: w.Char(kv.Value))).Where(x => x.ch != null).ToList();
+    var w = G.World!; var b = Card; var me = w.Protagonist;
+    var others = b.Item.Fired.Binding.All.Where(kv => kv.Key != "self").Select(kv => (role: kv.Key, ch: w.Char(kv.Value)))
+        .Where(x => x.ch != null && x.ch.Id != me?.Id).GroupBy(x => x.ch!.Id).Select(g => g.First()).ToList();
+    var lead = others.FirstOrDefault(); var rest = others.Skip(1).ToList();
+    bool about = lead.ch != null && (!lead.ch.Alive || lead.ch.HouseId == me?.HouseId);
+    // the painting by subject; an order from a superior is given on the ship's bridge (docs/VISUAL_SYSTEM.md 6)
+    string scene = others.Any(o => o.role == "superior") ? "bridge" : SceneArt.For(b.Item.Fired.Def, b.Title);
+    var paras = (b.Body ?? "").Replace("\r", "").Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+    bool dropCap = (b.Body ?? "").Length > 200;
+    string tier = b.Setpiece ? "A turning point" : b.Tier == "AMBIENT" ? "In passing" : "A situation";
+    string voice = Voice(RoleTheme.Kicker(RoleTheme.Of(w)));
+    string titleSize = b.Title.Length <= 14 ? "t1" : b.Title.Length <= 20 ? "t2" : b.Title.Length <= 28 ? "t3" : "t4";
 }
-<div class="win-backdrop" @onclick="OnClose">
-    <div class="win event @b.Tier.ToLowerInvariant()" @onclick:stopPropagation="true">
-        @* The painting an occasion opens on (tools/art/scenes.py), with its title set over the foot of it. *@
-        <div class="win-art" style="background-image:url('img/scenes/@(SceneArt.For(b.Item.Fired.Def.Id, b.Title)).webp')">
-            <button class="win-close" @onclick="OnClose" title="Set aside (you can return to it from the outliner this turn)">✕</button>
-            <div class="win-head">
-                <span class="tier"><span class="glyph">@(b.Setpiece ? "✦" : b.Tier == "AMBIENT" ? "·" : "◆")</span> @b.Tier <span class="kicker">· @RoleTheme.Kicker(RoleTheme.Of(w))</span></span>
-                <h2>@b.Title</h2>
-            </div>
-        </div>
-        <div class="ev-body">
-            @if (roles.Count > 0)
+<div class="ev-veil" @onclick="OnClose">
+    <section class="ui-win event ev-win @b.Tier.ToLowerInvariant() @(lead.ch == null ? "solo" : "")" role="dialog" aria-modal="true" aria-label="@b.Title" @onclick:stopPropagation="true">
+        <div class="ui-win-body ev-body">
+            <div class="ev-art"><i style="background-image:url('img/scenes/@(scene).webp')"></i></div>
+            @if (lead.ch is { } o)
             {
-                <div class="win-cast">
-                    @foreach (var r in roles)
-                    {
-                        var h = w.House(r.ch!.HouseId);
-                        <div class="cast">
-                            <Portrait Id="@r.ch.Id" Name="@r.ch.Name" Sex="@r.ch.Sex" Age="@r.ch.Age" Alive="@r.ch.Alive" Accent="@(h?.AccentColor ?? "#888")" Size="116" />
-                            <div class="cast-name">@r.ch.Name</div>
-                            <div class="cast-sub">@(h?.Name ?? "") · @RoleWord(r.role, h)</div>
-                        </div>
-                    }
+                var oh = w.House(o.HouseId);
+                <div class="ev-cast l @(o.Alive ? "" : "dead")">
+                    <Portrait Id="@o.Id" Name="@o.Name" Sex="@o.Sex" Age="@o.Age" Alive="@o.Alive" Accent="@(oh?.AccentColor ?? "#888")" Size="132" Height="164" />
+                    <div class="ev-plate"><b>@o.Name</b><span>@(oh != null ? oh.Name + " · " : "")@RoleWord(lead.role, oh)@(o.Alive ? "" : $" · died at {o.Age}")</span></div>
                 </div>
             }
-            <p class="prose">@Prose(b.Body)</p>
-            @if (b.Facts.Length > 0) { <p class="facts small" data-facts="1">@b.Facts</p> }
-        </div>
-        <div class="win-choices">
-            @if (b.Resolved) { <div class="done" data-answer="1">Answered@(b.Answer.Length > 0 ? ": “" + b.Answer + "”" : ".")</div> }
-            else
+            @if (me != null)
             {
-                @foreach (var ch in b.Choices)
+                var mh = w.House(me.HouseId);
+                <div class="ev-cast r @(about ? "small" : "")">
+                    <Portrait Id="@me.Id" Name="@me.Name" Sex="@me.Sex" Age="@me.Age" Accent="@(mh?.AccentColor ?? "#888")" Size="@(about ? 100 : 132)" Height="@(about ? 124 : 164)" />
+                    <div class="ev-plate"><b>@me.Name</b><span class="you">@(about ? "Yours to decide" : "You · yours to decide")</span></div>
+                </div>
+            }
+            <div class="ev-head">
+                <div class="ev-kick"><i class="ln"></i>@Laurel(false)<span>@tier · @voice</span>@Laurel(true)<i class="ln r"></i></div>
+                <h2 class="ev-title @titleSize">@b.Title</h2>
+                <div class="ev-rule"></div>
+            </div>
+            <div class="ev-mid">
+                @for (int i = 0; i < paras.Count; i++)
                 {
-                    <button class="choice" disabled="@(!ch.Available)" @onclick="() => OnChoose.InvokeAsync((b, ch.Id))">
-                        <span class="label">@ch.Label</span>
-                        @if (ch.Cost.Length > 0) { <span class="cost" title="Taken from this year's pools, which refill each year">@ch.Cost this year</span> }
-                        @if (ch.Stakes.Length > 0) { <span class="cost stakes" data-stakes="@ch.Id">@ch.Stakes</span> }
-                        @if (ch.Warn != null) { <span class="cost why" data-warn="@ch.Id">@ch.Warn</span> }
-                        @if (!ch.Available) { <span class="cost why" data-why="@ch.Id">@ch.Reason</span> }
-                    </button>
+                    <p class="ev-prose @(i == 0 && dropCap ? "cap" : "")">@(i == 0 ? Prose(paras[i]) : paras[i])</p>
                 }
-                <button class="choice aside" title="It waits in the list at the right until you end the year. Left unanswered then, it lapses: nothing is chosen for you, and an offer in it is gone." @onclick="OnClose"><span class="label">Set it aside for now</span><span class="cost">unanswered at the year's end, it lapses</span></button>
+                @if (rest.Count > 0)
+                {
+                    <div class="ev-also">
+                        <span class="k">Also</span>
+                        @foreach (var x in rest)
+                        {
+                            var xh = w.House(x.ch!.HouseId);
+                            <span class="who"><Portrait Id="@x.ch.Id" Name="@x.ch.Name" Sex="@x.ch.Sex" Age="@x.ch.Age" Alive="@x.ch.Alive" Accent="@(xh?.AccentColor ?? "#888")" Size="22" />
+                                <b>@x.ch.Name</b><small>@(xh != null ? xh.Name + " · " : "")@RoleWord(x.role, xh)</small></span>
+                        }
+                    </div>
+                }
+                @if (b.Facts.Length > 0)
+                {
+                    <div class="ev-quote" data-facts="1"><div class="qh">What it concerns</div>@b.Facts</div>
+                }
+            </div>
+            <div class="win-choices ev-choices">
+                @if (b.Resolved)
+                {
+                    <div class="done ev-done" data-answer="1"><Icon Name="check" Tone="good" Size="18" /><span>Answered@(b.Answer.Length > 0 ? ": “" + b.Answer + "”" : ".")</span></div>
+                }
+                else
+                {
+                    @for (int i = 0; i < b.Choices.Count; i++)
+                    {
+                        var ch = b.Choices[i]; int n = i + 1; int at = i;
+                        var shown = ch.Items.Take(ch.Items.Count > 4 ? 3 : 4).ToList(); int more = ch.Items.Count - shown.Count;
+                        <button class="choice ev-ch @(ch.Available ? "" : "locked") @(_tip == at ? "hov" : "")" aria-disabled="@(ch.Available ? "false" : "true")" data-choice="@ch.Id"
+                                aria-keyshortcuts="@(n <= 9 ? n.ToString() : null)" style="anchor-name:--evc@(at)"
+                                @onclick="() => Choose(ch)" @onmouseenter="() => _tip = at" @onmouseleave="() => Leave(at)" @onfocus="() => _tip = at" @onblur="() => Leave(at)">
+                            <span class="n">@(n <= 9 ? n.ToString() : "")</span>
+                            <span class="ev-ch-t">
+                                <span class="label">@ch.Label</span>
+                                @if (!ch.Available) { <span class="req" data-why="@ch.Id"><Icon Name="padlock" Tone="ember" Size="14" />@Cap(ch.Reason ?? "")</span> }
+                                @if (ch.Warn != null) { <span class="req" data-warn="@ch.Id"><Icon Name="threat" Tone="ember" Size="14" />@Cap(ch.Warn)</span> }
+                            </span>
+                            @if (ch.Items.Count > 0 || ch.Stakes.Length > 0)
+                            {
+                                <span class="fx" data-stakes="@ch.Id">
+                                    @if (ch.Items.Count == 0) { <span class="chip words">@ch.Stakes</span> }
+                                    @foreach (var it in shown)
+                                    {
+                                        @if (it.PersonId.Length > 0 && w.Char(it.PersonId) is { } pc)
+                                        {
+                                            <span class="chip face"><Portrait Id="@pc.Id" Name="@pc.Name" Sex="@pc.Sex" Age="@pc.Age" Alive="@pc.Alive" Accent="@(w.House(pc.HouseId)?.AccentColor ?? "#888")" Size="22" Opens="false" /><b class="@(it.Good ? "up" : "down")">@it.Figure</b></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="chip"><Icon Name="@it.Icon" Tone="@ToneOf(it)" Size="18" /><b class="@(it.Good ? "up" : "down")">@it.Figure</b></span>
+                                        }
+                                    }
+                                    @if (more > 0) { <span class="chip more"><b>+@more</b></span> }
+                                </span>
+                            }
+                        </button>
+                    }
+                }
+            </div>
+            @if (!b.Resolved)
+            {
+                <div class="ev-aside">
+                    <button class="ev-later" title="It waits in the list at the right until you end the year. Left unanswered then, it lapses: nothing is chosen for you, and an offer in it is gone." @onclick="OnClose">Set it aside for now</button>
+                    <i class="dot"></i>
+                    <span><Icon Name="hourglass" Tone="brass" Size="15" />Unanswered at the year's end, it lapses</span>
+                </div>
             }
         </div>
-    </div>
+        <i class="ui-win-frame" aria-hidden="true"></i>
+        <button class="ui-round win-close ev-x" title="Set aside (you can return to it from the outliner this turn)" aria-label="Set aside" @onclick="OnClose"><Icon Name="close" Tone="ivory" Size="13" /></button>
+    </section>
+    @* the choice's tooltip stands in the veil, not the window, so it may sit beside the window (anchored to the choice) *@
+    @if (!b.Resolved && _tip >= 0 && _tip < b.Choices.Count)
+    {
+        var ch = b.Choices[_tip]; int n = _tip + 1;
+        <div class="ev-tip" role="tooltip" style="position-anchor:--evc@(_tip)">
+            @{ string head = Short(ch.Label); }<div class="th @(head.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length > 4 ? "long" : "")"><span class="n @(ch.Available ? "" : "off")">@(n <= 9 ? n.ToString() : "")</span>@head</div>
+            @if (ch.Items.Count == 0 && ch.Stakes.Length > 0) { <div class="line">@Cap(ch.Stakes)</div> }
+            @foreach (var it in ch.Items)
+            {
+                <div class="fxl">
+                    @if (it.PersonId.Length > 0 && w.Char(it.PersonId) is { } pc)
+                    {
+                        <Portrait Id="@pc.Id" Name="@pc.Name" Sex="@pc.Sex" Age="@pc.Age" Alive="@pc.Alive" Accent="@(w.House(pc.HouseId)?.AccentColor ?? "#888")" Size="22" Opens="false" />
+                    }
+                    else { <Icon Name="@it.Icon" Tone="@ToneOf(it)" Size="20" /> }
+                    <span class="w">
+                        @if (it.Kind == "regard") { <b class="@(it.Good ? "up" : "down")">@it.Figure</b>@(" " + it.Words) }
+                        else { <b class="@(it.Good ? "up" : "down")">@Head(it)</b> }
+                        @if (Change(it) is { Length: > 0 } c) { <small>@c</small> }
+                    </span>
+                </div>
+            }
+            @if (ch.Items.Count == 0 && ch.Stakes.Length == 0) { <div class="line dim">What it brings is told in the story.</div> }
+            @foreach (var need in ch.Needs)
+            {
+                <div class="need @(need.Met ? "met" : "")"><Icon Name="@(need.Met ? "check" : "padlock")" Tone="@(need.Met ? "good" : "ember")" Size="14" /><span>@Cap(need.Words)</span></div>
+            }
+            @if (!ch.Available && ch.Needs.Count == 0 && ch.Reason is { Length: > 0 } why) { <div class="need"><Icon Name="padlock" Tone="ember" Size="14" /><span>@Cap(why)</span></div> }
+            @if (ch.Warn != null) { <div class="need"><Icon Name="threat" Tone="ember" Size="14" /><span>@Cap(ch.Warn)</span></div> }
+            <div class="foot">@if (ch.Available) { @("Press ")<kbd>@n</kbd>@(" or click to choose it") } else { @("Not open to you as things stand") }</div>
+        </div>
+    }
 </div>
 
 @code {
-    /* the first letter is set large and floated, and a browser drops the space after it: "A market" read "Amarket". A space that does not break is kept. */
-    private static string Prose(string s) => s.Length > 2 && s[1] == ' ' ? s[0] + "\u00A0" + s[2..] : s;
-    /* the part somebody plays in a report, in the Reach's own words: no "sovereign" where no throne stands */
+    [Parameter, EditorRequired] public BriefingCard Card { get; set; } = default!;
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback<(BriefingCard card, string choiceId)> OnChoose { get; set; }
+
+    /// <summary>The choice whose tooltip is open (hovered or focused), or -1.</summary>
+    private int _tip = -1;
+    private void Leave(int at) { if (_tip == at) _tip = -1; }
+    private Task Choose(ChoiceCard ch) => ch.Available && !Card.Resolved ? OnChoose.InvokeAsync((Card, ch.Id)) : Task.CompletedTask;
+
+    /* The digits 1 to 9 pick a choice (docs/VISUAL_SYSTEM.md 6): the shell's keys (index.html, Index.Key) give them to the open report,
+       not to the rail behind it, so nothing here listens for keys. */
+    /* the first letter is set large, and a browser that floats it drops the space after it: "A market" read "Amarket". A space that does not break is kept. */
+    private static string Prose(string s) => s.Length > 2 && s[1] == ' ' ? s[0] + " " + s[2..] : s;
+    private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>The register's voice for the kicker, in sentence case: "Dispatch", "The court".</summary>
+    private static string Voice(string k) => k.Length == 0 ? k : k[0] + k[1..].ToLowerInvariant();
+    /// <summary>A choice's label cut to its first clause, for the tooltip's head: "Carry it out". A head of more than four words is set in
+    /// sentence case, not spaced capitals (docs/VISUAL_SYSTEM.md 2.3).</summary>
+    private static string Short(string label)
+    {
+        int cut = label.IndexOfAny(new[] { '.', ';', ':', '!', '?', ',', '(' });
+        string s = (cut > 0 ? label[..cut] : label).Trim();
+        if (s.Length <= 52) return s;
+        int sp = s.LastIndexOf(' ', 48); return (sp > 20 ? s[..sp] : s[..48]).TrimEnd(',', ' ') + "…";
+    }
+    /// <summary>What a tooltip line says in bold: the effect in words.</summary>
+    private static string Head(StakeItem it) => it.Kind.StartsWith("pool:") ? Cap(it.Words) + " (" + it.Figure + ")" : Cap(it.Words);
+    /// <summary>Its before and after under it: "from 2,500 to 1,900", "Commander to Captain".</summary>
+    private static string Change(StakeItem it) =>
+        it.Before.Length == 0 || it.After.Length == 0 || it.Before == it.After ? "" : it.Kind == "career" ? $"{it.Before} to {it.After}" : $"from {it.Before} to {it.After}";
+    /// <summary>The ramp a stake's glyph takes (docs/VISUAL_SYSTEM.md 8.3): the goods by their own, strain and war ember, a step up green.</summary>
+    private static string ToneOf(StakeItem it) => it.Kind switch
+    {
+        "stress" or "war" => "ember", "career" or "peace" => "good", "claim" => "brass",
+        "resource:credits" or "resource:coin" => "brass", "resource:materials" or "resource:exotics" or "resource:helium3" => "steel", "resource:isotopes" => "ember",
+        _ => "ivory"
+    };
+    /// <summary>Half of Lorc's laurels, the spray each side of the kicker.</summary>
+    private static RenderFragment Laurel(bool flip) => __builder =>
+    {
+        <svg class="icon ico brass ev-ls @(flip ? "flip" : "")" viewBox="0 0 230 512" aria-hidden="true"><use href="#i-@Icons.Key("laurels")" /></svg>
+    };
+    /// <summary>The part somebody plays in a report, in the Reach's own words: no "sovereign" where no throne stands; a tie to you is "your".</summary>
     private string RoleWord(string role, House? h)
     {
         var w = G.World!;
         if (role == "sovereign" && !w.IsImperium) return h != null && RegionSystem.CapitalHolder(w)?.Id == h.Id ? "holds the chair" : h != null ? Praetoria.Core.Progression.Title.StyleOf(h.Title, w.Era) : "of higher rank";
-        return role.Replace('_', ' ');
+        string r = role.Replace('_', ' ');
+        return Yours.Contains(role) ? "your " + r : r;
     }
-    [Parameter, EditorRequired] public BriefingCard Card { get; set; } = default!;
-    [Parameter] public EventCallback OnClose { get; set; }
-    [Parameter] public EventCallback<(BriefingCard card, string choiceId)> OnChoose { get; set; }
+    private static readonly HashSet<string> Yours = new() { "superior", "rival", "kin", "heir", "enemy", "beloved", "friend", "comrade", "child", "mentor", "creditor", "debtor", "steward", "patron", "client", "second", "junior", "officer", "admiral", "spouse", "wife", "husband", "father", "mother", "son", "daughter", "brother", "sister", "ward", "protege", "tutor", "marshal" };
 }

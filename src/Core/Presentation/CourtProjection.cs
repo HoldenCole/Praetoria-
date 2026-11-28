@@ -183,7 +183,12 @@ public sealed record BattleLine(string Text);
 /// skill or rank gate — or "cannot afford: 2 influence").</summary>
 /// <summary>One answer to a report. <c>Stakes</c> is what it costs and gives the house in words, <c>Warn</c> what it would overdraw
 /// (docs/PLAYTHROUGH.md 8: a choice is not made blind).</summary>
-public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available, string? Reason = null, string Stakes = "", string? Warn = null);
+public sealed record ChoiceCard(string Id, string Label, string Cost, bool Available, string? Reason = null, string Stakes = "", string? Warn = null)
+{ /// <summary>The same stakes as items, one to a chip (docs/VISUAL_SYSTEM.md 6): the year's pools it spends, then what it does to the
+  /// house and the player, each with its icon, signed figure, before and after, and the person it is about.</summary>
+  public IReadOnlyList<StakeItem> Items { get; init; } = Array.Empty<StakeItem>();
+  /// <summary>Its requirements in words and whether each holds now, for the choice's tooltip.</summary>
+  public IReadOnlyList<StakeNeed> Needs { get; init; } = Array.Empty<StakeNeed>(); }
 public sealed record BriefingCard(BriefingItem Item, string Title, string Tier, bool Setpiece, string Body, bool Resolved, IReadOnlyList<ChoiceCard> Choices)
 { /// <summary>The words of the answer that was given, once it has been.</summary>
   public string Answer { get; init; } = "";
@@ -395,7 +400,7 @@ public static class CourtProjection
             bool refuses = !tc.Fleets.WouldAcceptPeace(w, enemy, house.Id);
             bool suing = w.LivingCharacters().Any(c => c.HouseId == enemy && c.Flags.Contains(FleetSystem.SuingForPeaceFlag));
             wars.Add(new WarLine(enemy, w.House(enemy)?.Name ?? enemy, war.Since, FleetSystem.StrengthOf(w, enemy), can,
-                can ? "" : refuses ? "They smell victory — their hulls far outnumber yours." : "No Influence left this turn.", suing)
+                can ? "" : refuses ? "They smell victory: their hulls far outnumber yours." : "No Influence left this turn.", suing)
                 { Terms = HousePeace.Terms(w, tc.Fleets, content.Fleets, house.Id, enemy), Lead = war.Lead(house.Id), CanPay = pools.Get(Pool.Influence) >= content.Fleets.PeaceCost });
         }
 
@@ -411,9 +416,13 @@ public static class CourtProjection
                 string? reason = oc.Available ? null
                     : !tc.Engine.IsChoiceAvailable(fired, w, oc.Choice.Id) ? ChoiceStakes.Unmet(oc.Choice, ectx)
                     : "this year's " + string.Join(" and ", oc.Choice.Cost.Where(c => pools.Get(c.Key) < c.Value).Select(c => $"{c.Key} is spent ({pools.Get(c.Key)} left of the {c.Value} it takes)"));
+                // the stakes as items (docs/VISUAL_SYSTEM.md 6): what the year's pools give up first, then what the choice does
+                var items = oc.Choice.Cost.Where(c => c.Value != 0).Select(c => new StakeItem("pool:" + c.Key, ChoiceStakes.PoolIcon(c.Key), -c.Value, Counted.Figure(-c.Value),
+                    (c.Key == Pool.Treasury ? Counted.TreasuryActions(c.Value) : c.Key == Pool.Agents ? Counted.Agents(c.Value) : $"{c.Value} {c.Key}") + " this year", false, pools.Get(c.Key).ToString(), Counted.Figure(pools.Get(c.Key) - c.Value))).Concat(ChoiceStakes.Items(oc.Choice, ectx, p)).ToList();
                 return new ChoiceCard(oc.Choice.Id,
                     text != null && text.Choices.TryGetValue(oc.Choice.Id, out var ct) ? TextRenderer.Substitute(ct, ectx) : oc.Choice.Id,
-                    cost, oc.Available, reason, ChoiceStakes.Of(oc.Choice, ectx, p), ChoiceStakes.Overdraws(oc.Choice, ectx, p));
+                    cost, oc.Available, reason, ChoiceStakes.Of(oc.Choice, ectx, p), ChoiceStakes.Overdraws(oc.Choice, ectx, p))
+                    { Items = items, Needs = ChoiceStakes.Needs(oc.Choice, ectx) };
             }).ToList();
             briefing.Add(new BriefingCard(item, TextRenderer.Substitute(text?.Title ?? fired.Def.Id, ectx), fired.Def.Tier.ToString().ToUpperInvariant(),
                 fired.Def.Tier == EventTier.Setpiece, string.IsNullOrWhiteSpace(text?.Body) ? "" : TextRenderer.Substitute(text!.Body, ectx), item.Resolved, choices)
@@ -454,7 +463,7 @@ public static class CourtProjection
             .Select(c =>
             {
                 var acts = new List<Option>();
-                if (c.Flags.Contains(FamilySystem.DefiantFlag)) acts.Add(new Option("defiant", $"{c.Name} is defiant — answer it in the briefing", "informational"));
+                if (c.Flags.Contains(FamilySystem.DefiantFlag)) acts.Add(new Option("defiant", $"{c.Name} is defiant; answer it in the briefing", "informational"));
                 if (c.Age < DynastySystem.AgeOfMajority)
                     acts.Add(c.Flags.Contains(DynastySystem.HiddenFlag)
                         ? new Option("recall", $"Recall {c.Name} {(w.IsImperium ? "to court" : "home")}", new RecallCommand(p.Id, c.Id).CanExecute(ctx) ? null : "")
@@ -600,11 +609,11 @@ public static class CourtProjection
         var factions = w.Factions.OrderByDescending(f => f.Members.Sum(h => senate.Weight(w, h))).ThenBy(f => f.Id, StringComparer.Ordinal).Select(f =>
         {
             var lh = w.House(f.LeaderHouseId);
-            string platform = string.Join(" · ", f.Platform.Where(kv => kv.Value != 0).OrderByDescending(kv => Math.Abs(kv.Value)).Take(3).Select(kv => $"{(kv.Value > 0 ? "for" : "against")} {senate.Motions.Def(kv.Key)?.Name.ToLowerInvariant() ?? kv.Key}"));
+            string platform = string.Join(" · ", f.Platform.Where(kv => kv.Value != 0).OrderByDescending(kv => Math.Abs(kv.Value)).Take(3).Select(kv => $"{(kv.Value > 0 ? "for" : "against")} {InProse(senate.Motions.Def(kv.Key)?.Name ?? kv.Key)}"));
             return new FactionCard(f.Id, f.Name, f.LeaderHouseId, lh?.Name ?? f.LeaderHouseId, f.Accent.Length > 0 ? f.Accent : lh?.AccentColor ?? "#888",
                 f.Members.Select(h => (Id: h, Name: w.House(h)?.Name ?? h, Accent: w.House(h)?.AccentColor ?? "#888")).ToList(), f.Members.Sum(h => senate.Weight(w, h)),
                 f.Members.Contains(house.Id), f.LeaderHouseId == house.Id, platform, f.Record, f.FormedTurn, new JoinFactionCommand(p.Id, f.Id).Refusal(ctx),
-                f.Description, string.Join(", ", f.Estates.Select(e => senate.Policies.Estate(e)?.Name ?? e)), string.Join(" · ", f.Laws.Select(kv => $"{senate.Policies.Law(kv.Key)?.Name.ToLowerInvariant() ?? kv.Key}: {senate.Policies.Law(kv.Key)?.Option(kv.Value)?.Name.ToLowerInvariant() ?? kv.Value}")), f.PartyId.Length > 0);
+                f.Description, string.Join(", ", f.Estates.Select(e => senate.Policies.Estate(e)?.Name ?? e)), string.Join(" · ", f.Laws.Select(kv => $"{InProse(senate.Policies.Law(kv.Key)?.Name ?? kv.Key)}: {InProse(senate.Policies.Law(kv.Key)?.Option(kv.Value)?.Name ?? kv.Value)}")), f.PartyId.Length > 0);
         }).ToList();
         ElectionCard? election = null;
         if (ElectionSystem.ConsulOffices(senate.Offices).Any())
@@ -882,4 +891,7 @@ public static class CourtProjection
         }).ToList();
         return new ChanceryCard(laws, estates, w.PoolsFor(p.Id).Influence, reach, bound);
     }
+
+    /// <summary>A name in the middle of a sentence: lower case, but the Reach keeps its capital ("the levy of the Reach").</summary>
+    private static string InProse(string name) => System.Text.RegularExpressions.Regex.Replace(name.ToLowerInvariant(), @"\breach\b", "Reach");
 }

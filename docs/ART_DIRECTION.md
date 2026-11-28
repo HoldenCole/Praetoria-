@@ -4,6 +4,14 @@ Written after looking at the reference games directly (Steam screenshots of Star
 Space 2, 2026-11-07) and at what the owner asked for: a space-opera grand-strategy look, not a visual novel, not a
 college project. Everything in `src/Web` is held to this document.
 
+**Since 2026-11-27 the visual system is [VISUAL_SYSTEM.md](VISUAL_SYSTEM.md)** ("Imperial brass", chosen by three judges from three
+competing designs; the mockups are in [docs/ui/](ui/)). It replaces this document's chrome, palette, register, shell, portrait and
+event-window rules, each marked below where it begins; the rest of this document (what the references do, the map, the rule for
+pictures of things, the art pipeline) still stands. In short: one metal, brass, everywhere, in every era and register; brushed
+steel at the screen's edges and a leather body inside one chamfered brass frame for every window; a painting at the head of
+every window; people as painted faces on portrait plates; Cinzel for titles, Alegreya for reading, IBM Plex Sans for figures and
+controls (Cormorant is gone); gold means yours and red means danger, so no rival house wears either; every size in rem.
+
 ## What the references actually do
 
 **Star Dynasties** (the closest cousin). Portraits are painted, semi-realistic busts in uniform collars, set on a plate
@@ -23,6 +31,9 @@ vista of the world with a lit 3D sphere. Everything sits on the map; windows flo
 our means in fidelity, right in mood: space is luminous, not black.
 
 ## Praetoria's direction
+
+> **Replaced (2026-11-27).** Rule 4 ("chrome is dark glass with light edges", Cormorant for prose) is replaced by the brass, steel and leather of VISUAL_SYSTEM.md 2 and the three faces of 2.3; rules 2 and 3 (the 3D office, code-drawn busts) by its section 9 and 4.15. The text below is kept as the history of the look; where it and
+> [VISUAL_SYSTEM.md](VISUAL_SYSTEM.md) disagree, VISUAL_SYSTEM.md holds.
 
 An **imperial console**: the player is a noble at a desk in a station or palace, and every screen is a lit
 instrument or a lit room. Deep space is always present behind the glass. House colour is a material (banners,
@@ -75,6 +86,9 @@ Reference pass against Star Dynasties and Stellaris galaxy screens (Steam store 
 
 ## The role register
 
+> **Replaced (2026-11-27).** A register now changes accents only: the rail's active glow and strip, the kicker's colour and the rail's order (VISUAL_SYSTEM.md 3.3), never the metal, the faces, the corners or the frames; the era no longer changes the metal either. `app.css` holds one block per register, setting `--reg` and `--reg-strip`. The text below is kept as the history of the look; where it and
+> [VISUAL_SYSTEM.md](VISUAL_SYSTEM.md) disagree, VISUAL_SYSTEM.md holds.
+
 The GDD's second reactive register (after the era): the same screens, chrome and emphasis by the protagonist's career
 track, changing at succession. `RoleTheme` (Core/Presentation) maps the track to a register id — `military`,
 `stewardship`, `law`, or `none` — and the shell carries it as `data-role` beside `data-era`. Everything else reads
@@ -108,6 +122,9 @@ Shared classes: `.dash`, `.dash-head` (title and stat strip), `.dash-grid` (per-
 is created for these screens, and portraits paint themselves.
 
 ## The palette (2026-11-09)
+
+> **Replaced (2026-11-27).** The house list is VISUAL_SYSTEM.md 2.2: the player's house is gold (`Palette.Player`, #D4A23E) unless they choose another in the creator; the twenty-four rival colours hold no gold, amber, yellow, orange, alarm red or ivory, and `Palette.RivalAllowed` with tests/PaletteTests.cs keeps any colour added later to that rule. The Ardent Concord is #9E3350 and the Vashti Khanates #7E9C6A. Regions and parties are unchanged. The text below is kept as the history of the look; where it and
+> [VISUAL_SYSTEM.md](VISUAL_SYSTEM.md) disagree, VISUAL_SYSTEM.md holds.
 
 The owner's direction: the colours of parties, regions and planets must be bright enough to read and different enough
 not to be confused — red, blue, yellow, green and silver first. `Presentation.Palette` holds the one palette:
@@ -159,6 +176,9 @@ gone. Star Dynasties is a second: reviewers found its simple portraits made peop
 
 ### The shell
 
+> **Replaced (2026-11-27).** The shell is VISUAL_SYSTEM.md 3: a brushed-steel bar on a brass trim, a rail of grouped sockets with the house's standard at its foot, alert badges, toasts, an outliner of head strips and a framed console with the End Year medallion. The text below is kept as the history of the look; where it and
+> [VISUAL_SYSTEM.md](VISUAL_SYSTEM.md) disagree, VISUAL_SYSTEM.md holds.
+
 - **The map is the screen.** It is always mounted and fills the window. Escape, or closing a window, returns to it.
 - **Top bar**: your portrait in a brass frame with the house's shield on its corner (it opens your profile), the
   house and its rank, then stocks as icon, number and yearly change, the three strategic goods, the turn's pools,
@@ -186,6 +206,9 @@ gone. Star Dynasties is a second: reviewers found its simple portraits made peop
 - A portrait anywhere opens that person's **profile**.
 
 ### Portraits
+
+> **Replaced (2026-11-27).** A portrait is now one plate at every size (VISUAL_SYSTEM.md 4.15, `Portrait.razor`): a backdrop tinted by the house colour, the painting, a vignette, a house band at the foot and a brass frame by size; no circles and no thin coloured rings. The code-drawn busts go with the Office (section 9). The text below is kept as the history of the look; where it and
+> [VISUAL_SYSTEM.md](VISUAL_SYSTEM.md) disagree, VISUAL_SYSTEM.md holds.
 
 Portraits are painted, not drawn by code. `tools/art/portraits.py` runs an openly licensed diffusion model
 (Lykon/dreamshaper-8-lcm, of the Stable Diffusion 1.5 family; CreativeML OpenRAIL-M, whose output may be used
@@ -233,11 +256,22 @@ about 4,000 SVG icons, needs a credits screen), Kenney's CC0 frame kits, ambient
 
 ### The event window
 
+> **Replaced (2026-11-27).** The event window is VISUAL_SYSTEM.md 6: a flat dim, the painting with the cast standing in it, the title on its foot between laurel sprays, Alegreya prose with a drop capital, and choice plates with their stakes as chips. The text below is kept as the history of the look; where it and
+> [VISUAL_SYSTEM.md](VISUAL_SYSTEM.md) disagree, VISUAL_SYSTEM.md holds.
+
 A painting across the top (`tools/art/scenes.py` paints sixteen occasions: an audience, the Senate, a ship's bridge,
 a battle, the Exchange, a family hall, a funeral, a court, unrest, a hall beyond the rim, a dispatch, a feast, an
 intrigue, a world, a shipyard, a triumph), chosen by what the event is about (`SceneArt.For`). The title sits over
 the foot of the painting in capitals. The people involved are shown at bust size in brass frames. The prose is
 serif. The choices are full-width plates; setting it aside is a plain line beneath.
+
+### Key art (2026-11-27)
+
+The title's painting and the plate of "A character of your own" (`tools/art/keyart.py`, `img/scenes/title.webp` and `own.webp`) are
+**AI-generated** with the same open model as the portraits and the event paintings. The first key art read as a present-day Earth city
+at dusk (a dome, a spire like an obelisk, a river road); the one now shipped is a city of spires on a ridge under a ringed gate of light,
+and its prompt names the Earth landmarks it must not paint. The own-character plate is a hooded figure seen from behind in a dark
+hall before a window of stars: anyone at all, in the same frame and grade as the eight painted faces beside it.
 
 ### Buildings (2026-11-20)
 
@@ -298,7 +332,7 @@ without scrolling, everything else behind tabs, rows and not cards. Every window
 | Senate | done | A normal-width window. The chamber itself leads (the seats by party, then what is before it); moving a motion and the consulship are tabs of their own beside offices and parties, your duties, the ladder and courts, and the orders. |
 | Exchange | done | The goods table is one row a good: what moves a price is in the row's tooltip, and written under the row only when the good is dear, cheap, short or moving. Favours for coin is one line at the foot, not a panel. |
 | Chronicle | done | Tabs for whose record to read: all that was written, of your house, of the Reach. A year is one list, your house's lines first and marked; the span of years is chosen from a list or by clicking the timeline. |
-| Office | not yet | Still a room modelled in code (V9): the owner chooses between a painting and dropping it. |
+| Office | done | A painted room, the owner's choice of 2026-11-27 ("I like having some actual rooms"): one painting for each register (the head's study, a naval ready room, a counting house, a jurist's study; `tools/art/rooms.py`, `img/rooms/`, **AI-generated** with the same open model as the portraits and the event paintings, held to their plan by two ControlNets of the same licence), shown whole at its own shape; the year's visitors stand on its floor as framed plates with brass name plates, its letters lie sealed on the desk, the lamps breathe and the stars drift past the window; the room's panel is one framed part on its right. The old 3D room (`js/office.js`) is kept, unused, until the owner has seen this one. |
 
 An empty section folds to one line and loses its heading (Military at peace says so in a sentence, not under "Wars"
 and "The campaign"). `tools/browser/windows.js` walks every window and every tab and prints which first screens fit,

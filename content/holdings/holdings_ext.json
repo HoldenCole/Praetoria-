@@ -57,7 +57,7 @@
       },
       "slots": 3,
       "popGrowth": 0,
-      "//": "Pure UPKEEP SINK, zero yield — the §17 'marginal in most runs, decisive in some'. You build it for defense/projection (a future military-layer hook), not income. Sterile, so no unrest. A fortress economy is a bet that survival outvalues growth.",
+      "//": "Pure UPKEEP SINK, zero yield, the §17 'marginal in most runs, decisive in some'. You build it for defense/projection (a future military-layer hook), not income. Sterile, so no unrest. A fortress economy is a bet that survival outvalues growth.",
       "defense": 0.6
     },
     {
@@ -71,7 +71,7 @@
       },
       "slots": 2,
       "popGrowth": 0,
-      "//": "EXOTICS home — the ONLY steady exotics source in the catalog, so decisive for any exotics-dependent path (and the M5 anomaly systems later). Costly, low raw output, sterile. Exotics are marginal until they aren't; this is the spec that makes them a strategy."
+      "//": "EXOTICS home, the ONLY steady exotics source in the catalog, so decisive for any exotics-dependent path (and the M5 anomaly systems later). Costly, low raw output, sterile. Exotics are marginal until they aren't; this is the spec that makes them a strategy."
     },
     {
       "id": "trade_consortium",
@@ -84,7 +84,7 @@
       },
       "slots": 3,
       "popGrowth": 1,
-      "//": "CREDITS home — highest raw credit yield in the catalog. Populated (carries unrest), and upkeep is paid in MANPOWER not credits, so it stays profitable even when broke but quietly drains your soldiers. The merchant house's engine.",
+      "//": "CREDITS home, highest raw credit yield in the catalog. Populated (carries unrest), and upkeep is paid in MANPOWER not credits, so it stays profitable even when broke but quietly drains your soldiers. The merchant house's engine.",
       "maxPopulation": 60,
       "popManpower": 20
     },
@@ -99,7 +99,7 @@
       },
       "slots": 2,
       "popGrowth": 0,
-      "//": "INFLUENCE home — the intrigue house's whole economy. Produces almost no material wealth; converts a credit cost into soft power. Useless to a forge house, decisive to a schemer who turns influence into everything else (see steward 'the_influence_broker'). Sterile."
+      "//": "INFLUENCE home, the intrigue house's whole economy. Produces almost no material wealth; converts a credit cost into soft power. Useless to a forge house, decisive to a schemer who turns influence into everything else (see steward 'the_influence_broker'). Sterile."
     }
   ],
   "buildings": [
@@ -150,7 +150,7 @@
       "upkeep": {
         "credits": 3
       },
-      "//": "Big materials+credits on a shipyard_world, but steep one-time cost and upkeep — amplifies both the yield and the insolvency risk that defines the spec. High-roller military infrastructure."
+      "//": "Big materials+credits on a shipyard_world, but steep one-time cost and upkeep, amplifies both the yield and the insolvency risk that defines the spec. High-roller military infrastructure."
     },
     {
       "id": "conscription_hall",
@@ -166,7 +166,7 @@
       "upkeep": {
         "credits": 1
       },
-      "//": "Turns an agri_collective's population into soldiers faster. Pushes the manpower path hard — but more conscription is more unrest pressure on a populated world. Power with a political cost."
+      "//": "Turns an agri_collective's population into soldiers faster. Pushes the manpower path hard, but more conscription is more unrest pressure on a populated world. Power with a political cost."
     },
     {
       "id": "bastion_guns",
@@ -180,7 +180,7 @@
       "upkeep": {
         "materials": 1
       },
-      "//": "No yield — a defensive build-out for the fortress_station (hooks the future military layer). Materials sink that buys safety, not income. Deliberately 'useless' on a spreadsheet, decisive in a siege.",
+      "//": "No yield, a defensive build-out for the fortress_station (hooks the future military layer). Materials sink that buys safety, not income. Deliberately 'useless' on a spreadsheet, decisive in a siege.",
       "defense": 0.4
     },
     {
@@ -212,7 +212,7 @@
       "upkeep": {
         "manpower": 1
       },
-      "//": "Scales a trade_consortium's credits, upkeep again paid in manpower — keeps printing money while broke, keeps draining soldiers. Doubles down on the merchant tradeoff."
+      "//": "Scales a trade_consortium's credits, upkeep again paid in manpower, keeps printing money while broke, keeps draining soldiers. Doubles down on the merchant tradeoff."
     },
     {
       "id": "patronage_office",
@@ -226,7 +226,7 @@
       "upkeep": {
         "credits": 2
       },
-      "//": "UNIVERSAL (no requires) — any holding can buy soft power. The only non-senatorial influence source, so it lets a material house dip a toe into intrigue. Converts a credit stream into influence."
+      "//": "UNIVERSAL (no requires), any holding can buy soft power. The only non-senatorial influence source, so it lets a material house dip a toe into intrigue. Converts a credit stream into influence."
     },
     {
       "id": "granary_relief",
@@ -239,7 +239,7 @@
       "upkeep": {
         "credits": 1
       },
-      "//": "UNIVERSAL unrest-mitigation. No resource yield — its 'output' is social stability on a populated world (pairs with the steward unrest events; treat as a standing reason to keep a world calm). The build-out for a humane or cautious economy."
+      "//": "UNIVERSAL unrest-mitigation. No resource yield, its 'output' is social stability on a populated world (pairs with the steward unrest events; treat as a standing reason to keep a world calm). The build-out for a humane or cautious economy."
     }
   ]
 }

@@ -50,7 +50,7 @@ public class MilitaryDepthTests
         var w = Rings(0); var f = At(w, "f", "vega", "tessaly", 3); var ctx = new CommandContext(w, TestContent.Rng()); w.Pools["self"].Treasury = 3;
         var move = new MoveFleetCommand("self", "f", "prime", Content.Fleets);
         Assert.True(move.CanExecute(ctx)); f.Loyalty = 20; Assert.False(move.CanExecute(ctx)); Assert.StartsWith("the crews will not sail", move.Refusal(ctx)); f.Loyalty = 70;
-        Assert.Equal("boarding wants prize crews — 2 manpower in hand", new SetStanceCommand("self", "f", "boarding").Refusal(ctx));
+        Assert.Equal("boarding wants prize crews: 2 manpower in hand", new SetStanceCommand("self", "f", "boarding").Refusal(ctx));
         w.House("vega")!.Treasury.Manpower = 4; Assert.Null(new SetStanceCommand("self", "f", "boarding").Refusal(ctx)); new SetStanceCommand("self", "f", "press").Execute(ctx); Assert.Equal("press", f.Stance);
         Assert.Equal("no isotopes in store", new SetLoadoutCommand("self", "f", "torpedoes").Refusal(ctx)); w.House("vega")!.Treasury.Isotopes = 1; Assert.Null(new SetLoadoutCommand("self", "f", "torpedoes").Refusal(ctx));
         var self = w.Char("self")!; self.CareerTrack = "military"; self.CareerRank = 1;

@@ -20,7 +20,7 @@ public sealed class EnactLawCommand : ICommand
         if (law.Option(_optionId) == null) return "no such option";
         if (!PolicySystem.HoldsScope(w, house.Id, law.Scope)) return $"only {PolicySystem.ScopeName(law.Scope)} may set this";
         if (PolicySystem.OptionId(w, _cat, house.Id, _lawId) == _optionId) return "already the law";
-        if (PolicySystem.OnCooldown(w, house.Id, _lawId)) return $"changed too lately — {Counted.MoreYears(w.Counter($"law_cd:{house.Id}:{_lawId}") - w.Turn)}";
+        if (PolicySystem.OnCooldown(w, house.Id, _lawId)) return $"changed too lately: {Counted.MoreYears(w.Counter($"law_cd:{house.Id}:{_lawId}") - w.Turn)}";
         return ctx.PoolsOf(ActorId).CanAfford(new Dictionary<string, int> { [Pool.Influence] = law.Cost }) ? null : $"needs {law.Cost} influence";
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

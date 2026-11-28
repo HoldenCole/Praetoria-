@@ -32,7 +32,7 @@ public sealed class ProposeMotionCommand : ICommand
             var law = _senate.Policies.Law(_lawId); if (law == null || law.Scope != "senate") return "name a law of the Senate";
             var opt = law.Option(_optionId); if (opt == null) return "name one of its options";
             if ((PolicySystem.ReachOption(w, _senate.Policies, law) ?? law.DefaultOption).Id == opt.Id) return "already the law of the Reach";
-            if (PolicySystem.OnCooldown(w, PolicySystem.SenateHolder, law.Id)) return $"the Senate settled that lately — {Counted.MoreYears(w.Counter($"law_cd:{PolicySystem.SenateHolder}:{law.Id}") - w.Turn)}";
+            if (PolicySystem.OnCooldown(w, PolicySystem.SenateHolder, law.Id)) return $"the Senate settled that lately: {Counted.MoreYears(w.Counter($"law_cd:{PolicySystem.SenateHolder}:{law.Id}") - w.Turn)}";
             if (w.Motions.Any(m => m.Open && m.LawId == law.Id)) return "that law is already before the Senate";
         }
         if (def.Office)
@@ -128,7 +128,7 @@ public sealed class LobbyCommand : ICommand
         if (m.Lobbied.Contains(house.Id + "→" + _houseId)) return "you have already had their ear";
         var head = Economy.HeadOf(w, target); if (head == null) return "no one to speak to";
         if (_bribe) { int price = SenateSystem.BribeCost(w, target, actor); return SenateSystem.BribeRefused(w, target, actor) ?? (house.Treasury.Credits >= price ? null : $"needs {Money.Credits(price)} (the house has {Money.Held(house.Treasury)})"); }
-        if ((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) < -20) return $"{head.Name} will not hear you — try coin";
+        if ((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) < -20) return $"{head.Name} will not hear you; try coin";
         return ctx.PoolsOf(ActorId).Short(new Dictionary<string, int> { [Pool.Influence] = 1 });
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;

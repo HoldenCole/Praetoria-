@@ -173,6 +173,7 @@
     },
     {
       "id": "a_mean_house",
+      "scene": "family",
       "tier": "situation",
       "weight": 12,
       "repeatable": true,
@@ -513,6 +514,7 @@
     },
     {
       "id": "what_you_owe_your_own",
+      "scene": "family",
       "tier": "situation",
       "weight": 35,
       "repeatable": true,
@@ -598,6 +600,7 @@
     },
     {
       "id": "one_of_them_lent_the_other",
+      "scene": "family",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
@@ -685,6 +688,7 @@
     },
     {
       "id": "the_entail_is_broken",
+      "scene": "court",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -756,6 +760,7 @@
     },
     {
       "id": "a_standard_comes_home",
+      "scene": "triumph",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -1311,6 +1316,7 @@
     },
     {
       "id": "a_thing_of_the_house_is_carried_off",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 45,
       "repeatable": true,

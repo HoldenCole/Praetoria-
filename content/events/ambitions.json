@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "what_they_wanted",
+      "scene": "family",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -81,6 +82,7 @@
     },
     {
       "id": "no_nearer_it",
+      "scene": "family",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -314,6 +316,7 @@
     },
     {
       "id": "two_of_yours_want_one_thing",
+      "scene": "family",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -461,6 +464,7 @@
     },
     {
       "id": "one_of_yours_fails",
+      "scene": "family",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,

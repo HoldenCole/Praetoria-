@@ -1,7 +1,7 @@
 {
   "texts": [
     { "id": "the_commission", "title": "The Commission",
-      "body": "The Senate has commissioned {self.house} to an office of the Reach. The seals are heavy, the oath is short, and the thing the office commands is not the house's — it is the state's, lent to a hand the chamber trusts for now.",
+      "body": "The Senate has commissioned {self.house} to an office of the Reach. The seals are heavy, the oath is short, and the thing the office commands is not the house's, it is the state's, lent to a hand the chamber trusts for now.",
       "choices": { "swear_it_gladly": "Swear the oath and mean it.", "swear_it_and_count": "Swear it, and count what the office commands. Ambitious." } },
     { "id": "the_office_lost", "title": "Relieved of Office",
       "body": "The Senate has commissioned another to the office {self.house} held. The seals are to be handed over at the session's end. The successor is already in the anteroom.",

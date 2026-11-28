@@ -1,0 +1,148 @@
+/* The Worlds window (docs/VISUAL_SYSTEM.md 5.3: "rows of lit globes by region"): the world painting and its plinth; the worlds region by
+   region, each a row with its lit globe (a brass orbit ring on yours, a crown on the capital), its holder's arms, loyalty, prosperity and
+   people as figures and what lies under it as small marks, opened in place; the regions with their unrest as meters; the great cities
+   and the colony sites as rows. Loaded after app.css, so a rule here wins over a shared rule of the same weight. Only this window's file
+   (PlanetsScreen) uses the classes below.
+
+   Widths: the window is a container ("wl"); "mid" is under 46rem (1366 wide, or 1600 at the larger text sizes). */
+
+.wl-win { --g-l: 1.8667rem; --g-r: 1.6rem; container: wl / inline-size; }
+
+/* the painted header */
+.wl-head .ui-head-art { background-position: center 38%; }
+.wl-head .ui-head-shade { background:
+  linear-gradient(90deg, rgba(8,10,15,.9) 0, rgba(8,10,15,.74) 16rem, rgba(8,10,15,.42) 28rem, rgba(8,10,15,.1) 40rem, rgba(8,10,15,.18) 100%),
+  linear-gradient(180deg, rgba(8,10,15,.35) 0%, rgba(8,10,15,0) 26%, rgba(8,10,15,0) 58%, rgba(8,10,15,.9) 100%); }
+.wl-head .ui-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-head .ui-facts { display: grid; grid-template-columns: repeat(2, max-content); gap: .2667rem 1.0667rem; max-width: 30rem; }
+.wl-head .ui-facts > span { white-space: nowrap; cursor: help; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9), 0 0 12px rgba(0,0,0,.6); }
+.wl-head .ui-facts > .warn { color: #f0d39a; }
+.wl-head .ui-plinth { justify-content: space-between; }
+.wl-head .ui-plinth .ui-fig + .ui-fig { margin-left: .6rem; padding-left: 1rem; }
+.wl-head .ui-fig { cursor: help; }
+@container wl (max-width: 46rem) {
+  .wl-head .ui-plinth { padding: 0 1.2rem 0 1.3333rem; }
+  .wl-head .ui-plinth .ui-fig { gap: .4rem; }
+  .wl-head .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
+  .wl-head .ui-plinth .ui-fig + .ui-fig { margin-left: .2667rem; padding-left: .6667rem; }
+  .wl-head .ui-fig-l { font-size: .8rem; }
+  .wl-head .ui-head-text { right: 3.6rem; }
+  .wl-head .ui-facts { grid-template-columns: max-content; gap: .2rem; }
+  .wl-head .ui-facts > span:nth-child(n+3) { display: none; }
+}
+
+/* the body: a scrolling page that fades at its foot, and at its head once scrolled */
+@property --wl-top { syntax: '<length>'; inherits: false; initial-value: 0px; }
+.wl-win .wl-body { padding-bottom: 2.4rem;
+  -webkit-mask-image: linear-gradient(transparent 0, #000 var(--wl-top), #000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(transparent 0, #000 var(--wl-top), #000 calc(100% - 56px), transparent); }
+@supports (animation-timeline: scroll()) { .wl-win .wl-body { animation: wl-topfade linear both; animation-timeline: scroll(self); animation-range: 0 32px; } }
+@supports not (animation-timeline: scroll()) { .wl-win .wl-body { --wl-top: 18px; } }
+@keyframes wl-topfade { from { --wl-top: 0px; } to { --wl-top: 22px; } }
+.wl-win .ui-lede.wl-lede { margin-bottom: .2667rem; }
+.wl-lede.bad b { color: #f3b3a3; }
+.wl-win .ui-sec { padding-left: var(--g-l); padding-right: var(--g-r); }
+.wl-win .ui-sec-r { white-space: nowrap; } .wl-win .ui-sec-r > span { display: inline-flex; align-items: center; gap: .3333rem; }
+.wl-win .ui-sec-r .icon { width: .9333rem; height: .9333rem; }
+.wl-win .ui-empty { padding-left: var(--g-l); }
+.wl-ring { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); padding: .2rem .4rem; background: #07090d; box-shadow: inset 0 1px 2px #000; border: 0; }
+.wl-ring.core { color: var(--brass-ink); } .wl-ring.rim { color: #e0a183; } .wl-ring.beyond { color: #9fb6d6; }
+
+/* the region picker */
+.wl-pick { display: flex; align-items: center; gap: .8rem; padding: .6667rem var(--g-r) .2667rem var(--g-l); flex-wrap: wrap; }
+.wl-pl { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+
+/* a status word */
+.wl-st { display: inline-flex; align-items: center; height: 1.2rem; padding: 0 .4rem; margin-left: .5333rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim);
+  background: #07090d; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(255,255,255,.06); white-space: nowrap; cursor: help; }
+.wl-st.warn { color: var(--warn); } .wl-st.bad { color: #f08a72; }
+.wl-own { color: var(--brass-hi); font-weight: 600; }
+
+/* the picture of a row: a lit globe, a crown on the capital */
+.wl-pic { position: relative; width: 3.6rem; display: grid; place-items: center; flex: none; }
+.wl-crown { position: absolute; left: .1333rem; top: -.2rem; width: 1.3333rem; height: 1.3333rem; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 50% 40%, #2a2312, #0a0805 75%); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.7); }
+.wl-void { width: 2.4rem; height: 2.4rem; border-radius: 50%; background: radial-gradient(circle at 50% 50%, rgba(140,170,230,.2), rgba(10,13,20,0) 70%), repeating-conic-gradient(from 20deg, rgba(200,215,245,.4) 0 2deg, transparent 2deg 45deg); }
+.wr-chev { width: .8rem; height: .8rem; color: var(--brass); opacity: .6; transition: transform .12s; flex: none; } .wr-chev.open { transform: rotate(90deg); opacity: 1; }
+
+/* ---- a world: one row, opened in place ---- */
+.wl-world { border-bottom: 1px solid rgba(255,255,255,.05); position: relative; }
+.ww-row { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) auto .8rem; align-items: center; column-gap: .9333rem; min-height: 3.8667rem; padding: .4rem var(--g-r) .4rem var(--g-l); cursor: pointer; }
+.wl-world:hover, .wl-world.on { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.015)); }
+.wl-world:hover::before, .wl-world.on::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.wl-world.mine .ww-nm b { color: var(--brass-hi); }
+.wl-world.restless::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--ember); }
+.ww-id { min-width: 0; }
+.ww-nm { display: flex; align-items: center; flex-wrap: wrap; row-gap: .2rem; } .ww-nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
+.ww-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .3333rem; margin-top: 2px; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }   /* the holder is never cut: a long name takes a second line */
+.ww-sub > span { white-space: nowrap; }
+.ww-id { min-width: 12rem; }
+.ww-choke { display: inline-flex; align-items: center; margin-left: .4rem; cursor: help; }
+.ww-sub .sigil, .wc-sub .sigil { flex: none; }
+.ww-cells { display: grid; grid-template-columns: 3.4667rem 3.4667rem 4.2667rem 6.4rem; align-items: center; column-gap: .6667rem; }
+.ww-cells .ui-cell { cursor: help; min-width: 0; }
+.ww-riches { display: flex; align-items: center; justify-content: flex-end; gap: .4rem; }
+.ww-dep { display: inline-flex; align-items: center; gap: .1333rem; cursor: help; } .ww-dep small { font: 600 .8rem/1 var(--f-ui); color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.ww-open { padding: .2667rem var(--g-r) .9333rem calc(var(--g-l) + 4.5333rem); }
+.ww-desc { margin: 0 0 .5333rem; font: italic 400 1rem/1.45 var(--f-prose); color: var(--ink-dim); max-width: 42rem; }
+.ww-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .3333rem .9333rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.ww-facts .k { font: 600 .8rem/1.75 var(--f-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-mute); white-space: nowrap; }
+.ww-acts { margin-top: .6667rem; display: flex; gap: .5333rem; }
+.ww-open .local-laws, .ww-open .local-law { margin-top: .6667rem; }
+@container wl (max-width: 46rem) {
+  .ww-cells { grid-template-columns: 3.2rem 3.2rem; }
+  .ww-cells .ww-pop, .ww-cells > .ui-cell:nth-child(3), .ww-cells > :nth-child(3) { display: none; }   /* the citizens step into the row's tooltip and the open row */
+  .ww-riches { display: none; }
+  .ww-open { padding-left: var(--g-l); }
+}
+
+/* ---- the regions ---- */
+.wl-region { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) minmax(12rem, 16rem) .8rem; align-items: center; column-gap: .9333rem; min-height: 3.8667rem; padding: .4667rem var(--g-r) .4667rem var(--g-l);
+  border-bottom: 1px solid rgba(255,255,255,.05); cursor: pointer; position: relative; }
+.wl-region:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.015)); }
+.wl-region:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.wr-sw { position: relative; justify-self: center; width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border-radius: 50%;
+  background: radial-gradient(circle at 45% 35%, #2a2418, #0d0b08 75%); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.55), 0 2px 4px #000; }
+.wr-sw::after { content: ""; position: absolute; left: .2667rem; right: .2667rem; bottom: -.4667rem; height: .2667rem; border-radius: 1px; background: color-mix(in srgb, var(--rc) 82%, #1b1e26); box-shadow: 0 0 0 1px #000; }
+.wr-calm { display: inline-flex; align-items: center; gap: .3333rem; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-mute); cursor: help; }
+.wl-st.mine { color: var(--brass-hi); border-color: rgba(201,162,74,.5); }
+.wr-id { min-width: 0; }
+.wr-nm { display: flex; align-items: center; flex-wrap: wrap; row-gap: .2rem; } .wr-nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
+.wr-sub { margin-top: 2px; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.wr-meters { display: flex; flex-direction: column; gap: .2667rem; } .wr-meters .ui-meter { grid-template-columns: 5.0667rem 1fr 2.4rem; cursor: help; }
+@container wl (max-width: 46rem) { .wl-region { grid-template-columns: 3.6rem minmax(0, 1fr) .8rem; } .wr-meters { grid-column: 2 / 3; } }
+
+/* ---- the great cities and the colony sites ---- */
+.wl-city, .wl-site { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) auto; align-items: center; column-gap: .9333rem; min-height: 3.8667rem; padding: .5333rem var(--g-r) .5333rem var(--g-l);
+  border-bottom: 1px solid rgba(255,255,255,.05); position: relative; }
+.wl-city { cursor: pointer; }
+.wl-city:hover, .wl-site:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.015)); }
+.wl-city:hover::before, .wl-site:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.wl-city.mine .wc-nm b { color: var(--brass-hi); }
+.wc-t { min-width: 0; }
+.wc-nm { display: flex; align-items: center; flex-wrap: wrap; row-gap: .2rem; gap: 0 .5333rem; } .wc-nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); } .wc-nm .wl-st { margin-left: 0; }
+.wc-sub { display: flex; align-items: center; flex-wrap: wrap; gap: .3333rem; margin-top: 2px; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.wc-does { margin-top: .2667rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); max-width: 40rem; }
+.wl-map { font-size: .8667rem; margin-left: .2667rem; }
+.wl-act { display: flex; align-items: center; }
+.wl-city { grid-template-columns: 4.8rem minmax(0, 1fr) auto .8rem; }
+.wl-city .wr-chev { grid-column: 4; }
+.wl-city .wc-t { cursor: help; }
+.wc-art { width: 4.8rem; height: 3.2rem; background: center / cover no-repeat; border-radius: 2px; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.45); filter: brightness(1.08) contrast(1.04); }
+.wc-figs { display: flex; align-items: center; gap: .8rem; justify-content: flex-end; }
+.wc-figs .ui-cell { cursor: help; white-space: nowrap; }
+.wl-st.good { color: var(--good); border-color: rgba(140,196,126,.45); }
+/* the worlds: every figure in a fixed column, a dash where there is none, deposits in their own column */
+.ww-cells { grid-template-columns: 3.4667rem 3.4667rem 4.2667rem 9.6rem; }
+.ww-riches { display: grid; grid-template-columns: repeat(4, 2.2rem); justify-items: start; gap: 0; }
+/* the narrow window (1366 by 768): repeated after the wide columns so it wins, two fixed columns, the citizens and deposits into the
+   row's tooltip and the open row */
+@container wl (max-width: 46rem) {
+  .ww-cells { grid-template-columns: 3.4667rem 3.4667rem; }
+  .ww-cells .ww-pop, .ww-cells > .ui-cell:nth-child(3), .ww-cells > :nth-child(3), .ww-cells > .ww-riches, .ww-riches { display: none; }
+}
+.ww-empty::before { content: "–"; color: var(--ink-mute); }
+
+/* a city: its kind in the subtitle with where it is and who holds it; its special work as a small glyph after the name, hollow while
+   not raised; the holder's arms and name never part */
+.wc-sub > span { white-space: nowrap; } .wc-holder { display: inline-flex; align-items: center; gap: .2667rem; }
+.wc-work { display: inline-flex; align-items: center; cursor: help; } .wc-work:not(.on) .icon { opacity: .45; }

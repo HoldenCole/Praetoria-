@@ -1,0 +1,15 @@
+@* An empty state (docs/VISUAL_SYSTEM.md 4.17): a faint glyph, one line in Alegreya italic, one way on as a link. *@
+<div class="ui-empty @(Class.Length > 0 ? " " + Class : "")">
+    @if (Icon.Length > 0) { <Icon Name="@Icon" Tone="ivory" Size="46" /> }
+    <div>
+        <p>@Text</p>
+        @if (LinkLabel.Length > 0) { <button class="ui-link" @onclick="OnLink">@LinkLabel<Icon Name="chev" Size="11" Class="flat" /></button> }
+    </div>
+</div>
+@code {
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Text { get; set; } = "";
+    [Parameter] public string LinkLabel { get; set; } = "";
+    [Parameter] public EventCallback OnLink { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+}

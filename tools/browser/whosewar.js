@@ -18,11 +18,12 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")');
-  const setting = await page.evaluate(() => { const l = [...document.querySelectorAll('label')].find(x => /the powers beyond/i.test(x.innerText)); return l ? [...l.querySelectorAll('option')].map(o => o.innerText.trim()).join(' | ') : null; });
+  // each rule of the world is a row of joined plates (.fr-rule), a choice's whole wording in its tooltip
+  const setting = await page.evaluate(() => { const l = [...document.querySelectorAll('.fr-rule')].find(x => /the powers beyond/i.test(x.innerText)); return l ? [...l.querySelectorAll('button')].map(o => (o.title || o.innerText).trim()).join(' | ') : null; });
   console.log('new-game setting, the powers beyond: ' + (setting || 'NOT SHOWN'));
-  const often = await page.evaluate(() => { const l = [...document.querySelectorAll('label')].find(x => /how often they attack/i.test(x.innerText)); return l ? [...l.querySelectorAll('option')].map(o => o.innerText.trim()).join(' | ') : null; });
+  const often = await page.evaluate(() => { const l = [...document.querySelectorAll('.fr-rule')].find(x => /how often they attack/i.test(x.innerText)); return l ? [...l.querySelectorAll('button')].map(o => (o.title || o.innerText).trim()).join(' | ') : null; });
   console.log('new-game setting, how often they attack: ' + (often || 'NOT SHOWN'));
-  const lab = await page.evaluateHandle(() => [...document.querySelectorAll('label')].find(x => /the powers beyond/i.test(x.innerText)) || null);
+  const lab = await page.evaluateHandle(() => [...document.querySelectorAll('.fr-rule')].find(x => /the powers beyond/i.test(x.innerText)) || null);
   if (lab.asElement()) { await lab.asElement().scrollIntoViewIfNeeded(); await page.screenshot({ path: shots + '/whosewar-setting.png' }); }
   await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   for (let i = 0; i < 10; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(300); }
@@ -30,24 +31,24 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.evaluate(() => { const s = window.praetoriaSpace; const orig = s.setModel.bind(s); window.__setModel = orig; s.setModel = (id, json) => { window.__last = { id, json }; return orig(id, json); }; });
   const rail = async name => { await page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => new RegExp('^' + n + '$', 'i').test(e.innerText.trim())); if (el) el.click(); }, name); await page.waitForTimeout(700); };
   await rail('military');
-  await page.evaluate(() => { const t = [...document.querySelectorAll('.ex-tabs .rung')].find(e => /beyond the reach/i.test(e.innerText)); if (t) t.click(); }); await page.waitForTimeout(600);
+  await page.evaluate(() => { const t = (document.querySelector('.screen.window .ui-tab[data-tab="abroad"]') || [...document.querySelectorAll('.ex-tabs .rung')].find(e => /beyond the reach/i.test(e.innerText))); if (t) t.click(); }); await page.waitForTimeout(600);
   const card = async name => page.evaluate(n => { const el = [...document.querySelectorAll('.panel.abroad .nation')].find(x => new RegExp(n, 'i').test(x.innerText)); return el ? el.innerText.replace(/\s+/g, ' ') : null; }, name);
   const press = async (name, label) => page.evaluate(([n, l]) => { const el = [...document.querySelectorAll('.panel.abroad .nation')].find(x => new RegExp(n, 'i').test(x.innerText)); const b = el && [...el.querySelectorAll('button')].find(x => new RegExp(l, 'i').test(x.innerText)); if (b && !b.disabled) { b.click(); return true; } return b ? 'disabled: ' + b.title : false; }, [name, label]);
-  let c = await card('hollow crown'); console.log('orders offered on the Hollow Crown: ' + ((c || '').match(/Make war on your own account|Your fleets take and hold: order them to raid|Move for peace|Move for war/g) || []).join(' · '));
-  console.log('order the fleets to raid: ' + await press('hollow crown', 'order them to raid')); await page.waitForTimeout(500);
-  c = await card('hollow crown'); console.log('  the order now reads: ' + ((c || '').match(/Your fleets raid: order them to take and hold/) || ['NOT CHANGED'])[0]);
+  let c = await card('hollow crown'); console.log('orders offered on the Hollow Crown: ' + ((c || '').match(/Make war on your own account|Now they take and hold: Order your fleets to raid|Move for peace|Move for war/g) || []).join(' · '));
+  console.log('order the fleets to raid: ' + await press('hollow crown', 'Order your fleets to raid')); await page.waitForTimeout(500);
+  c = await card('hollow crown'); console.log('  the order now reads: ' + ((c || '').match(/Now they raid: Order your fleets to take and hold/) || ['NOT CHANGED'])[0]);
   console.log('make war on your own account: ' + await press('hollow crown', 'Make war on your own account')); await page.waitForTimeout(700);
-  c = await card('hollow crown'); console.log('  whose war: ' + ((c || '').match(/Whose war: [^.]*/) || ['NOT SHOWN'])[0].trim());
+  c = await card('hollow crown'); console.log('  whose war: ' + ((c || '').match(/Whose war:? [^.]*/i) || ['NOT SHOWN'])[0].trim());
   console.log('  at war: ' + /at war/i.test(c || '') + ' · the Senate may be moved for peace: ' + /Move for peace/.test(c || ''));
   console.log('  the war score and what it buys: ' + ((c || '').match(/War score [^)]*\)\. Negotiated now: [^.]*\.( At [^.]*\.)?/) || ['NOT SHOWN'])[0]);
-  console.log('  your own peace, offered on the card: ' + ((c || '').match(/Make your own peace: [a-z ]+/g) || ['NOT SHOWN']).join(' · '));
-  console.log('  asking for tribute at this score: ' + await press('hollow crown', 'Make your own peace: they pay tribute'));
+  console.log('  your own peace, offered on the card: ' + ((c || '').match(/Make your own peace: [A-Za-z ]+/g) || ['NOT SHOWN']).join(' · '));
+  console.log('  asking for tribute at this score: ' + await press('hollow crown', 'They pay tribute'));
   console.log('say you would make it a client: ' + await press('hollow crown', 'say you would make it a client')); await page.waitForTimeout(500);
   c = await card('hollow crown'); console.log('  your word now reads: ' + ((c || '').match(/Beaten decisively, you would make it a client/) || ['NOT CHANGED'])[0]);
   const hint = await card('vashti'); console.log('the Khanates\' card says how often a Great Khan comes: ' + ((hint || '').match(/Under a Great Khan[^.]*\./) || ['NOT SHOWN'])[0]);
   const el = await page.$('.panel.abroad'); if (el) { await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: shots + '/whosewar-card.png' }); }
   // the Galaxy screen, with two worlds marked as conquered (staged: see the note at the top)
-  await rail('galaxy'); await page.waitForTimeout(2500);
+  await page.evaluate(() => { const el = document.querySelector('[data-close-window]'); if (el) el.click(); }); await page.waitForTimeout(2500);   // back to the map: the docked window's close (the rail has no Galaxy socket)
   const staged = await page.evaluate(() => {
     if (!window.__last) return 'the map gave no model';
     const m = JSON.parse(window.__last.json); const khan = m.systems.find(s => /khal/i.test(s.id)); const rim = m.systems.find(s => s.id === 'the_veil') || m.systems.find(s => s.ring === 'rim' && s.ownerId);

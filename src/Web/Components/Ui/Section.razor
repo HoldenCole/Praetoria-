@@ -1,0 +1,32 @@
+@* A section (docs/VISUAL_SYSTEM.md 4.6): a 32px lit band with a brass top line and a diamond, the title in Cinzel capitals (four
+   words at most), a count, an "i" whose tooltip holds the rules, and at the right one sum, note or link. An empty section folds to
+   its EmptyLine and loses its heading (4.17). Any other attribute lands on the band. *@
+@if (IsEmpty)
+{
+    @if (EmptyLine.Length > 0) { <EmptyState Icon="@EmptyIcon" Text="@EmptyLine" LinkLabel="@EmptyLink" OnLink="OnEmptyLink" /> }
+}
+else
+{
+    <div class="ui-sec @(Class.Length > 0 ? " " + Class : "")" @attributes="Attrs">
+        <h3>@Title</h3>
+        @if (Count.Length > 0) { <span class="ui-n">@Count</span> }
+        @if (Info.Length > 0) { <span class="ui-info" title="@Info" tabindex="0" aria-label="The rules">i</span> }
+        @if (Right != null) { <span class="ui-sec-r">@Right</span> }
+    </div>
+    @ChildContent
+}
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Count { get; set; } = "";
+    [Parameter] public string Info { get; set; } = "";
+    [Parameter] public RenderFragment? Right { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool IsEmpty { get; set; }
+    [Parameter] public string EmptyLine { get; set; } = "";
+    [Parameter] public string EmptyIcon { get; set; } = "";
+    [Parameter] public string EmptyLink { get; set; } = "";
+    [Parameter] public EventCallback OnEmptyLink { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+    /// <summary>Any other attribute (a data-* hook for the scripts) lands on the heading band.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public Dictionary<string, object>? Attrs { get; set; }
+}

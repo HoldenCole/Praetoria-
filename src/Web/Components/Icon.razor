@@ -1,7 +1,13 @@
-@* A game-icons.net glyph (CC BY 3.0) drawn in the current text colour. *@
-<svg class="icon @Class" width="@Size" height="@Size" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><path d="@Icons.Path(Name)" fill="currentColor"/></svg>
+@* A glyph from the sprite in index.html (docs/VISUAL_SYSTEM.md 8.1; game-icons.net, CC BY 3.0, keys in Services/Icons.cs). With no
+   Tone it is flat in the current text colour, as the windows not yet rebuilt draw it. A Tone gives it one of the six metal ramps
+   (brass, ivory, ivory-hi, steel, ember, good) with a dark keyline and a 1px drop shadow; "dark" is the solid glyph for a brass plate.
+   The size is given in pixels at the normal text size and written in rem, so the text-size setting scales it. *@
+<svg class="icon @(Tone.Length > 0 ? " ico " + Tone : "") @(Class.Length > 0 ? " " + Class : "")" width="@W" height="@W" viewBox="0 0 512 512" aria-hidden="true" focusable="false"><use href="#i-@Icons.Key(Name)" /></svg>
 @code {
     [Parameter] public string Name { get; set; } = "sigil";
     [Parameter] public int Size { get; set; } = 18;
+    /// <summary>"", "brass", "ivory", "ivory-hi", "steel", "ember", "good" or "dark".</summary>
+    [Parameter] public string Tone { get; set; } = "";
     [Parameter] public string Class { get; set; } = "";
+    private string W => (Size / 15.0).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture) + "rem";
 }

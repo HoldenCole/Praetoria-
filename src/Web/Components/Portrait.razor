@@ -1,14 +1,29 @@
 @inject IJSRuntime JS
 @inject GameClient G
-@* A portrait (docs/ART_DIRECTION.md, "Portraits and profiles"): drawn by js/portrait.js from the person's id, sex, age and house
+@* A portrait plate (docs/VISUAL_SYSTEM.md 4.15): a backdrop tinted by the house colour, the painting, an inner vignette, a band in
+   the house colour along the foot, and a frame by size: the window frame from 120px, the medium frame from 64px, the small frame
+   below, a round face of 22px and under (a chip). The dead are greyscale with a black ribbon; a condition (an illness, a wound,
+   prison) is a small ember badge at the top right; an empty post is a hatched well with the post's glyph (EmptyGlyph). Sizes are
+   given in px at the normal text size and written in rem; Height makes a plate taller than wide (150 by 188, 46 by 56).
+   A portrait (docs/ART_DIRECTION.md, "Portraits and profiles"): drawn by js/portrait.js from the person's id, sex, age and house
    colour, dressed for their service and rank, its face set by what they think of you; stable everywhere the person appears. Small
    ones are the head alone, large ones the bust. Clicking one opens that person's profile. The <img> is filled after render by
    praetoriaBust.paint(), which this component calls for itself so any screen may place a portrait without a paint hook of its own. *@
-<span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "") @(CanOpen ? "opens" : "") @(Size <= CloseBelow ? "close" : "")" style="--ring:@Accent; width:@(Size)px; height:@(Size)px" title="@(CanOpen ? Name + " · open their profile" : Name)"
+@if (EmptyGlyph.Length > 0)
+{
+    <span class="portrait pf-empty @Tier" style="width:@Rem(Size); height:@Rem(Height ?? Size)" title="@(Titled ? Name : null)"><Icon Name="@EmptyGlyph" Tone="ivory" Size="@(Math.Max(10, Size * 11 / 20))" /></span>
+}
+else
+{
+<span class="portrait @(Alive ? "" : "dead") @(Age >= 60 ? "elder" : "") @(CanOpen ? "opens" : "") @(Size <= CloseBelow ? "close" : "") @Tier" style="--ring:@Accent; width:@Rem(Size); height:@Rem(Height ?? Size)" title="@(!Titled ? null : CanOpen ? Name + " · open their profile" : Name)"
       @onclick="Open" @onclick:stopPropagation="CanOpen">
-    @if (Painted is { } url) { <img @key="url" class="lib" src="@url" alt="@Name" width="@Size" height="@Size" loading="lazy" /> }
-    else { <img @key="SpecNow" data-bust="@SpecNow" alt="@Name" width="@Size" height="@Size" /> }
+    @if (Painted is { } url) { <img @key="url" class="lib" src="@url" alt="@Name" width="@Size" height="@(Height ?? Size)" loading="eager" decoding="async" /> }
+    else { <img @key="SpecNow" data-bust="@SpecNow" alt="@Name" width="@Size" height="@(Height ?? Size)" /> }
+    @if (Size > 22) { <i class="pf-band"></i> }
+    @if (!Alive && Size > 22) { <i class="pf-ribbon"></i> }
+    @if (Condition.Length > 0 && Size >= 40) { <i class="pf-cond" title="@ConditionTip"><Icon Name="@Condition" Tone="ember" Size="12" /></i> }
 </span>
+}
 
 @code {
     [Parameter] public string Id { get; set; } = "";
@@ -18,8 +33,20 @@
     [Parameter] public bool Alive { get; set; } = true;
     [Parameter] public string Accent { get; set; } = "#888";
     [Parameter] public int Size { get; set; } = 48;
+    /// <summary>The plate's height in px when it is not square (the profile's 150 by 188, a row's 46 by 56).</summary>
+    [Parameter] public int? Height { get; set; }
+    /// <summary>A condition shown as a badge: an icon key such as "pill" (ill), "sticking-plaster" (wounded), "candle-light".</summary>
+    [Parameter] public string Condition { get; set; } = "";
+    [Parameter] public string ConditionTip { get; set; } = "";
+    /// <summary>An empty post: the post's glyph in a hatched well, and no person.</summary>
+    [Parameter] public string EmptyGlyph { get; set; } = "";
+    private string Tier => Size <= 22 ? "pf-chip" : Size >= 120 ? "pf-lg" : Size >= 64 ? "pf-md" : Size < 40 ? "pf-xs" : "";
+    private static string Rem(int px) => (px / 15.0).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture) + "rem";
     /// <summary>A face by choice, as "skin=2,hair=1,style=-1,beard=1,scar=1"; null reads the world's record for this person, if any.</summary>
     [Parameter] public string? Look { get; set; }
+    /// <summary>Whether the plate carries its own tooltip (the name). Off where the plate stands inside something whose tooltip says more:
+    /// an Office visitor, whose tooltip is their business.</summary>
+    [Parameter] public bool Titled { get; set; } = true;
     /// <summary>Whether a click opens the person's profile. Off inside the profile itself and where there is no such person yet.</summary>
     [Parameter] public bool Opens { get; set; } = true;
     /// <summary>Dress for someone the world does not hold yet (the creation screen): "military", "stewardship", "law".</summary>
@@ -60,5 +87,5 @@
         }
         return System.Text.Json.JsonSerializer.Serialize(spec);
     }
-    protected override async Task OnAfterRenderAsync(bool first) { if (Painted != null) return; try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { } }
+    protected override async Task OnAfterRenderAsync(bool first) { if (EmptyGlyph.Length > 0 || Painted != null) return; try { await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { } }
 }

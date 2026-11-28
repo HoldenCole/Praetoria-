@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_physicians_cure",
+      "scene": "family",
       "tier": "situation",
       "weight": 26,
       "repeatable": true,
@@ -104,6 +105,7 @@
     },
     {
       "id": "the_guard_between",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -204,6 +206,7 @@
     },
     {
       "id": "the_nurse_at_the_cradle",
+      "scene": "family",
       "tier": "situation",
       "weight": 22,
       "repeatable": true,
@@ -363,6 +366,7 @@
     },
     {
       "id": "the_duel_masters_pupil",
+      "scene": "battle",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,

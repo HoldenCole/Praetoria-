@@ -1,0 +1,39 @@
+{
+ "room": "law",
+ "image": "law.webp",
+ "size": [
+  1280,
+  1056
+ ],
+ "floor": {
+  "y": [
+   0.81,
+   0.99
+  ],
+  "x": [
+   0.05,
+   0.95
+  ]
+ },
+ "desk": {
+  "x": [
+   0.33,
+   0.67
+  ],
+  "y": [
+   0.56,
+   0.6
+  ]
+ },
+ "window": {
+  "x": [
+   0.42,
+   0.58
+  ],
+  "y": [
+   0.08,
+   0.55
+  ]
+ },
+ "note": "fractions of the picture, x from the left and y from the top: floor is where visitors stand, desk the top where letters lie. Painted at the Office's shape (about 1100 x 900): show it whole. AI-generated: see tools/art/rooms.py"
+}

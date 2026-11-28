@@ -10,9 +10,9 @@ const want = process.argv[2] || 'African'; const out = process.env.PRAETORIA_SHO
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 200)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 200)));
   const fails = []; const check = (ok, what) => { if (!ok) fails.push(what); };
   const click = (sel, text) => page.evaluate(([s, t]) => { const el = [...document.querySelectorAll(s)].find(e => !t || e.innerText.trim().startsWith(t)); if (el) el.click(); return !!el; }, [sel, text]);
-  await page.goto('http://localhost:8112/', { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
+  await page.goto(process.env.PRAETORIA_URL || 'http://localhost:8112/', { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
-  await click('.scenario.custom'); await page.waitForSelector('.workshop'); await click('.workshop .ex-tabs .rung', 'The face'); await page.waitForTimeout(400);
+  await click('.scenario.custom'); await page.waitForSelector('.workshop'); await click('.workshop .ui-tab', 'The face'); await page.waitForTimeout(400);
   const names = await page.evaluate(() => [...document.querySelectorAll('.workshop .chips .chip')].map(e => e.innerText.trim()));
   check(names.includes(want), 'no ancestry called ' + want + ' is offered (' + names.slice(0, 8).join(', ') + ')');
   check(!(await page.$('.face-pick')), 'faces are offered before an ancestry is chosen');
