@@ -59,7 +59,8 @@ public class PlaythroughFixTests
     [Fact]
     public void AFleetLaidUp_KeepsItsHulls_CostsAPartOfItsKeep_BurnsNothing_AndCannotSailUntilRecommissioned()
     {
-        var (w, tc, house, me, ctx) = Start(); tc.BeginTurn(); Fill(ctx, me); Hulls(w, house.Id, 9);
+        var (w, tc, house, me, ctx) = Start(); me.Age = 50; me.Health = 100;   // the Old Lion is 68: a head who sees the three years out, whatever they bring
+        tc.BeginTurn(); Fill(ctx, me); Hulls(w, house.Id, 9);
         var f = w.Fleets["t_" + house.Id]; f.HomeSystemId = f.SystemId; var fs = tc.Fleets;
         Assert.Contains(w.Holdings.Values, h => h.OwnerId == house.Id && h.SystemId == f.SystemId);
         var full = fs.Upkeep(f); int burn = FleetSystem.FuelBillFor(w, house.Id, Content.Fleets.FuelHullsPerUnit); int strength = FleetSystem.StrengthOf(w, house.Id);
@@ -1123,9 +1124,20 @@ public class PlaythroughFixTests
         house.Treasury.Manpower = Economy.MusterCap(w, house.Id, Content.Holdings) - 1; house.Treasury.Credits = 500; tc.EndTurn(); tc.BeginTurn();
         Assert.True(house.Treasury.Manpower <= Economy.MusterCap(w, house.Id, Content.Holdings));
         Assert.Contains(w.News, n => n.Text.StartsWith("Your worlds can muster no more"));
-        // no house in the Reach ends a long run with a host its worlds could not keep
-        for (int y = 0; y < 12; y++) { tc.EndTurn(); tc.BeginTurn(); }
-        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) Assert.True(h.Treasury.Manpower <= Math.Max(Economy.MusterCap(w, h.Id, Content.Holdings), 60), h.Name + " holds " + h.Treasury.Manpower + " of " + Economy.MusterCap(w, h.Id, Content.Holdings));
+        // no house in the Reach ends a long run with a host its worlds could not keep: above its cap only while an excess stands down
+        // a quarter a year, as the host of a house that loses a world late in the run does
+        var bound = w.Houses.Values.ToDictionary(h => h.Id, h => Math.Max(Math.Max(Economy.MusterCap(w, h.Id, Content.Holdings), 60), h.Treasury.Manpower));
+        for (int y = 0; y < 12; y++)
+        {
+            var capBefore = w.Houses.Values.ToDictionary(h => h.Id, h => Economy.MusterCap(w, h.Id, Content.Holdings));
+            tc.EndTurn(); tc.BeginTurn();
+            foreach (var h in w.Houses.Values)
+            {
+                int now = Economy.MusterCap(w, h.Id, Content.Holdings), was = capBefore.GetValueOrDefault(h.Id, now);
+                bound[h.Id] = Math.Max(Math.Max(Math.Max(now, was), 60), Economy.MusterSettle(bound.GetValueOrDefault(h.Id, 60), 0, Math.Min(now, was)));
+            }
+        }
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id))) Assert.True(h.Treasury.Manpower <= bound[h.Id], h.Name + " holds " + h.Treasury.Manpower + " of " + Economy.MusterCap(w, h.Id, Content.Holdings));
     }
 
     [Fact]

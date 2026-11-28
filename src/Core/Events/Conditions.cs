@@ -217,6 +217,77 @@ public sealed class InLineCondition : ICondition
     }
 }
 
+/// <summary>Does the role hold the office named (docs/CONTENT_GUIDE.md, "office")? So that a role named for an office binds to whoever really
+/// holds it. JSON: { "type": "office", "role": "sovereign", "office": "sovereign", "present": true }. The offices: "sovereign" is the head of the
+/// house on the throne, or in the Republic the head of the house that holds the chair (the capital); "head" the head of their own house;
+/// "consul" either consul's chair; "magistrate" any rung of the ladder; "office" any office of the Reach; "commander" one who commands a fleet;
+/// else an office of the Reach by id (admiral, treasurer, speaker, consul_senior, consul_junior) or a rung of the ladder (quaestor, aedile,
+/// praetor).</summary>
+public sealed class OfficeCondition : ICondition
+{
+    public string Role { get; }
+    public string Office { get; }
+    public bool Present { get; }
+    public OfficeCondition(string role, string office, bool present) { Role = role; Office = office; Present = present; }
+    public bool Evaluate(EvalContext ctx) => ctx.Actor(Role) is { } c && Holds(ctx.World, c, Office) == Present;
+
+    /// <summary>Does this person hold that office now?</summary>
+    public static bool Holds(World w, Character c, string office)
+    {
+        switch (office)
+        {
+            case "sovereign":
+            {
+                var seat = w.IsImperium ? Systems.ThroneSystem.Emperor(w) : Systems.RegionSystem.CapitalHolder(w);
+                return seat != null && Systems.Economy.HeadOf(w, seat)?.Id == c.Id;
+            }
+            case "head": return w.House(c.HouseId) is { } h && Systems.Economy.HeadOf(w, h)?.Id == c.Id;
+            case "consul": return w.Offices.Any(o => o.CharacterId == c.Id && o.OfficeId.StartsWith("consul", StringComparison.Ordinal));
+            case "magistrate": return w.Magistrates.Any(m => m.CharacterId == c.Id);
+            case "office": return w.Offices.Any(o => o.CharacterId == c.Id);
+            case "commander": return w.Fleets.Values.Any(f => f.AdmiralId == c.Id);
+            default: return w.Offices.Any(o => o.CharacterId == c.Id && o.OfficeId == office) || w.Magistrates.Any(m => m.CharacterId == c.Id && m.OfficeId == office);
+        }
+    }
+}
+
+/// <summary>Does the role stand on the top rung of the ladder of their own service (docs/CONTENT_GUIDE.md, "topRank")? A card that offers a
+/// step up is gated on it being false, so no Fleet Admiral is offered a promotion. JSON: { "type": "topRank", "role": "self", "present": false }.
+/// With no career catalog loaded, nobody is at the top.</summary>
+public sealed class TopRankCondition : ICondition
+{
+    public string Role { get; } public bool Present { get; }
+    public TopRankCondition(string role, bool present) { Role = role; Present = present; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); if (c == null) return false;
+        bool top = ctx.Content?.Careers.MaxRank(c.CareerTrack) is int max && c.CareerRank >= max;
+        return top == Present;
+    }
+}
+
+/// <summary>Is the role's house an old name or a new one (<see cref="House.Origin"/>; docs/CONTENT_GUIDE.md, "origin")? A card that speaks of
+/// a family that was always there, or of a grandfather's paper, is gated on it. JSON: { "type": "origin", "role": "grandee", "origin": "old" }.</summary>
+public sealed class OriginCondition : ICondition
+{
+    public string Role { get; } public string Origin { get; }
+    public OriginCondition(string role, string origin) { Role = role; Origin = origin; }
+    public bool Evaluate(EvalContext ctx) => ctx.Actor(Role) is { } c && ctx.World.House(c.HouseId) is { } h && h.Origin == Origin;
+}
+
+/// <summary>How many ventures the role's house owns (docs/CONTENT_GUIDE.md, "ventures"): a report that speaks of the house's ventures is
+/// gated on it, so it comes to a house that has one. JSON: { "type": "ventures", "role": "self", "op": "gte", "value": 1 }.</summary>
+public sealed class VenturesCondition : ICondition
+{
+    public string Role { get; } public CompareOp Op { get; } public int Value { get; }
+    public VenturesCondition(string role, CompareOp op, int value) { Role = role; Op = op; Value = value; }
+    public bool Evaluate(EvalContext ctx)
+    {
+        var c = ctx.Actor(Role); int n = c == null ? 0 : ctx.World.BusinessesOf(c.HouseId).Count();
+        return Comparison.Apply(Op, n, Value);
+    }
+}
+
 /// <summary>Has an event already fired this run? JSON: { "type": "eventFired", "event": "id", "value": true }.</summary>
 public sealed class EventFiredCondition : ICondition
 {

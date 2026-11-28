@@ -18,7 +18,7 @@
       "choices": [
         { "id": "a_dinner_for_the_bench", "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -5 }, { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
             { "type": "log", "text": "{self.name} gave the new bench a dinner. Five hundred credits, and houses that now owe {self.house} an evening." } ] },
-        { "id": "set_the_terms", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
+        { "id": "set_the_terms",
           "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 2 },
             { "type": "log", "text": "{self.name} stood up at the bench's first meeting and said what it was for. Nobody had asked; everybody remembered." } ] }
       ]

@@ -13,6 +13,10 @@ public sealed class CommandExecutor
     /// <summary>Ordered, human-readable record of every command that executed this run.</summary>
     public IReadOnlyList<string> Log => _log;
 
+    /// <summary>Told after every command that executed, the player's and every other: the turn uses it to draw at once a report that answers a
+    /// moment the head's own act has made (docs/EVENTS.md, "Moments in the year").</summary>
+    public event Action<ICommand, CommandContext>? Executed;
+
     /// <summary>Execute if legal. Returns false (and records nothing) if the command can't run.</summary>
     public bool TryExecute(ICommand command, CommandContext ctx)
     {
@@ -24,6 +28,7 @@ public sealed class CommandExecutor
         // choice open on the screen is one the engine can keep (docs/events/votes.md, "Promises", round 2). A choice does it itself (EventEngine.Resolve).
         if (command.ActorId == ctx.World.ProtagonistId && command is not ResolveChoiceCommand) Systems.VoteMarks.Refresh(ctx.World, ctx.World.Protagonist?.HouseId);
         _log.Add($"T{ctx.World.Turn} {command.ActorId}: {command.Describe()}");
+        Executed?.Invoke(command, ctx);
         return true;
     }
 }

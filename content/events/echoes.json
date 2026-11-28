@@ -11,10 +11,10 @@
           "name": "sovereign",
           "when": [
             {
-              "type": "rank",
+              "type": "office",
               "role": "sovereign",
-              "op": "gt",
-              "vsRole": "self"
+              "office": "sovereign",
+              "present": true
             }
           ]
         }
@@ -1201,15 +1201,6 @@
         },
         {
           "id": "proclaim_the_conquest",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Proud",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "setWorldFlag",
@@ -1803,27 +1794,6 @@
         },
         {
           "id": "convene_the_senate",
-          "requires": [
-            {
-              "type": "any",
-              "of": [
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Orator",
-                  "kind": "aptitude",
-                  "present": true
-                },
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Diplomat",
-                  "kind": "aptitude",
-                  "present": true
-                }
-              ]
-            }
-          ],
           "cost": {
             "influence": 2
           },
@@ -1997,27 +1967,6 @@
         },
         {
           "id": "make_peace_at_the_table",
-          "requires": [
-            {
-              "type": "any",
-              "of": [
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Diplomat",
-                  "kind": "aptitude",
-                  "present": true
-                },
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Just",
-                  "kind": "nature",
-                  "present": true
-                }
-              ]
-            }
-          ],
           "cost": {
             "influence": 2
           },

@@ -15,6 +15,139 @@ someone. Each names the people in it by role and asks you to decide something th
 Each design doc says, for every report, when it fires, what each choice does, every number and why, what was cut, and what
 was added to Core. This page is the index.
 
+## The deck as a whole: waiting times, once a person, two answers, versions, moments (2026-11-28)
+
+The review against Steam (docs/STEAM_REVIEW.md, row 3) found reports that fire for the wrong person and come back too often: a
+68-year-old Admiral offered *The Empty Command* in year 1 and again, word for word, in year 2; *Not Seen in the Senate* eleven
+times in a 54-year game; 133 reports answered and only 79 of them different. This is what changed in the engine and in the deck,
+and how it was measured (`events`, docs/TOOLS.md, "A tool of our own: the events audit").
+
+### Waiting times
+
+- **A repeatable card waits before it comes again to the same head of the house**: its `"cooldown"` in years, or 10 when its
+  event names none (`EventDef.DefaultCooldown`, measured below: 9 and 10 were tried). After its second coming it waits twice
+  that, after its third three times, and so on (`EventEngine.WaitAfter`), so a card that is always eligible does not come back
+  every decade of a long life. A card that is not repeatable comes once in a game, as before.
+- **Counted per head.** The record is `World.Cards`, keyed by event and head: the year the card last came, how often, and in
+  which version of its words. A new head has met none of them and may meet each again. A save keeps the record; a save from
+  before it loads with none, as if no card had come yet (`EventCardsTests`).
+- **New, or news, before old.** While a card the house has not had (under any head), or news of something that happened this year
+  or last, can come, the year's reports are drawn from those; a card the house has had comes again only in a year with nothing
+  new to tell, and then alone (`EventEngine.SelectBriefing`, `Director.HadByTheHouse`). Late in a long game a year may bring two
+  reports, or one, where it brought three that had all come before. Among the cards that may come, the Director divides a card's
+  weight by one more than the times it has come to the house (news), or by the square of that (any other card).
+- Cards that name their own wait: *The Wedding* and *The Naming of a Child* (0, and once for each person: below), *A Motion Against
+  the House* (2: each censure moved against the house is answered).
+
+### Once for each person
+
+A role may say `"once": true`: it binds each person at most once for that event, ever (`RoleDef.Once`; the record is
+`World.CardsMet`, event, part and person, with the year). A life event about one person's milestone is one: *The Naming of a Child*
+(the child), *The Wedding* (the spouse), *A Grandchild Is Born* (the grandchild).
+
+### Two answers open
+
+- **A card is drawn only when at least two of its answers are open** to the head: requirements met, and the pools an answer costs
+  there to pay as the year's pools stand (`EventEngine.OpenAnswers`, in `GatherEligible`). An event with a single answer is refused
+  by both validators. Answers later in the year can still close one (money or influence spent): that is the player's own doing,
+  and the locked answer says so.
+- **The check**: `EventMomentsTests.EveryStart_DrawsNoCardWithOneAnswerOpen_AndNoneBackWithinItsWait` plays every start ten years
+  and fails if any card is drawn with fewer than two answers open, or comes back within its wait; the events audit counts the
+  cards held back at the draw and the cards a stand-in found with one answer open.
+- **The deck.** A card whose only open answer was the plain one, with the others for a trait, would now never come to a head without
+  the trait. Where an answer anyone could give was gated on a trait (to refuse, to defer, to confess, to yield, to own it, to
+  govern or rule by the law, to make peace at the table, to face a coalition down at its price, to answer a censure from the
+  floor, to dismiss a whisper, to stay unsworn at its price), it is open to anyone now; the dark and the clever answers keep their
+  traits. Where the second answer is skill, it can be had by the skill as well as the trait: the diplomat's (diplomacy 2), the
+  orator's (oratory or charisma 2), the eclipsing commander's (tactics 3), the consolidating treasurer's (administration 3), the
+  schemer among claimants (intrigue 2), the delegating officer (rank 2). An ask the house can only answer with money comes to a
+  house that has it: *The In-Laws Ask a Favour* (1,500 credits), *A Secret for Sale* (400).
+- **The event window.** A locked answer, clicked, flashes the line under it that says what it needs, and a reader is told the same
+  (`EventWindow.razor`; `tools/browser/locked.js`).
+
+### Versions of the words
+
+A text entry may carry `"versions"`: other bodies, each with its own title and choice words if it likes (`EventText.Versions`).
+The engine draws one each time the card comes, by the world's dice, never the one it last came in (`FiredEvent.Version`); a save
+made in the middle of the year keeps the version each report was drawn in. Written for the four cards the review named:
+*Not Seen in the Senate* (`content/text/ladder.json`), *Shares of Their Own* (`wealth.json`; now *Shares of {kin}'s Own*, with
+its words to the player as "you" and no "they" for a named relative), *The Leader's Table* (`situations.json`) and *The Empty
+Command* (`career_progression.en.json`). Each has three versions now, with their own titles and answers.
+
+### Moments in the year: the wedding and the naming
+
+The year in brief told a marriage and a birth as done, and only afterwards came the cards asking how the wedding and the naming
+should go. A match agreed in the year had its wedding card as the next year opened, and up to two years late. The fix is in the
+engine, because the cards were right and the timing was not:
+
+1. **A marriage made in the year is made then.** A match an answer agrees (`addBond` marriage) is written into the record at once,
+   with its mark, instead of at the year's turn (`AddBondEffect` calls `CourtshipSystem.Sync`); a match agreed by a command already
+   was (`CourtshipSystem.Wed`).
+2. **A report about a moment of the year comes with the moment.** An event that says `"moment": true` is drawn at once into the
+   year's reports when the head's own act in the year (a command, or an answer) raises a world flag its conditions read
+   (`TurnController.AfterAct`, `EventEngine.DrawMoment`, told by `CommandExecutor.Executed`). *The Wedding* is one: it comes the
+   moment the match is agreed, in the year of the marriage, and the next year's brief tells the marriage after it.
+3. **A moment at the turn of the year is told with its card.** A birth happens as the year turns, and its naming is drawn as the
+   next year opens, with the birth. The year in brief's line for a birth or a marriage whose own card (a role marked once) came
+   as the year opened says so: "A child is born to your house: ... “The Naming of a Child” is among this year's reports."
+   (`YearInBrief.WithItsCard`). So the brief never tells a moment as done before the card that is the moment.
+4. Once for each person, so the wedding and the naming never come twice for one spouse or one child.
+
+### Conditions from the real state of the game
+
+Four conditions were added (docs/CONTENT_GUIDE.md): `office` (the role holds an office: `sovereign` is the head of the house on
+the throne, or in the Republic of the house that holds the chair; `head` the head of their house; `consul`, `magistrate`,
+`commander`, or an office or rung by id), `ventures`, `topRank` (on the top rung of their own ladder) and `origin` (an old name or
+a new one).
+
+| The misfire the review found | The fix |
+|---|---|
+| A 68-year-old Admiral offered *The Empty Command* in year 1 and again in year 2 | Lieutenant to Captain, 40 or under, in no office of the Reach, and the house at war; a 10-year wait; three versions |
+| A 17-year-old Ensign with no ships told "another commission lands on your desk, more hulls" (*The Fleet Grows*) | A house with 3 hulls or more, a head of Commander's rank or more and 21 or older; the rival bound to the head of a house. *The Treasury Tightens* likewise: rank 2 and 21 |
+| Last year's fellow cadet shown as the sovereign, "the most powerful person alive" (*The Emperor's Eye*) | The sovereign binds by `office`: the head of the house on the throne. So do *The Crown's Due* and *The Crown's Eye*, which bound anyone of higher rank |
+| The New Man asked to honour "paper your grandfather signed" (*The Old Paper*) | Not for a new name (`new_name`); a plain refusal open to anyone |
+| A Fleet Admiral whose ambition is "Earn a command" | `AmbitionSystem.Outgrow` (docs/AMBITIONS.md, "Outgrown") |
+| The wedding and the naming after the brief told them | Moments in the year, above |
+| At least 5 of the 43 reports of a first hour with one answer open, and a locked answer that did nothing | Two answers open, above |
+
+The sweep for the same kinds: *The Act Carries*, *The Act Falls*, *The Comet*, *The Exiles*, *The Commons March*, *The Merchants'
+Delegation*, *The Magistrates' Find*, *The Commons' Feast*, *The Merchants' Gift* and *The Old Blood's Invitation* speak of the
+house's worlds and now require one; *Dry Tanks* and *The Officers' Toast* speak of its fleet and require hulls; *The Crash* comes
+to a house with holdings; every role named for the head of a house binds the head (`rival_house` in four coalition cards,
+`coalition_head`, the grandee of *The Old Blood* and of *A Great Merchant's Venture*, who is also of an old name in the first);
+twelve cards whose answer is a step up the ladder (*The First Command*, *The Test*, *The Admiral's Shadow*, *The Governor's Seat*,
+*The Policy Fight*, *The High Treasury*, *The First Case*, *The Great Trial*, *The Praetor's Robe*, *The Crossroads*, *The Teacher,
+Outgrown*, *Mentioned in Dispatches*) no longer come to one at the top, and the "first" cards only to the first rungs.
+
+### Measured
+
+`events --scenario all --years 20 --seeds 3`, and the same at 54 years (the length of the review's game), on the code before this
+work (`c7ac572`, with the audit tool added and measured against a ten-year wait it did not have) and after. The stand-in answers
+every report; "different of answered" is the different events among those answered in one game, summed over the games.
+
+| Start | 20 years: different of answered, before → after | Back within the wait | Misfires | One answer open | 54 years: different of answered, before → after | Reports a game, before → after |
+|---|---|---|---|---|---|---|
+| The Academy | 81.5% → 96.3% | 32 → 0 | 33 → 0 | 25 → 0 | 58.6% → 85.1% | 174 → 127 |
+| The Circling Heir | 80.6% → 96.2% | 30 → 0 | 26 → 0 | 11 → 0 | 54.7% → 85.7% | 162 → 133 |
+| The Fallen House | 78.9% → 95.0% | 29 → 0 | 30 → 0 | 19 → 0 | 57.4% → 79.9% | 162 → 139 |
+| The Imperial Court | 76.7% → 97.8% | 31 → 0 | 36 → 1 | 11 → 0 | 54.5% → 81.6% | 162 → 123 |
+| The Institute | 81.0% → 98.6% | 25 → 0 | 45 → 0 | 9 → 0 | 57.3% → 90.0% | 174 → 127 |
+| The New Man | 75.0% → 97.8% | 31 → 0 | 42 → 0 | 18 → 0 | 58.4% → 80.2% | 162 → 129 |
+| The Old Lion | 77.2% → 96.1% | 22 → 0 | 28 → 0 | 11 → 0 | 52.7% → 80.9% | 162 → 136 |
+| The Risen Officer | 76.7% → 97.8% | 30 → 0 | 37 → 1 | 21 → 0 | 54.6% → 84.9% | 152 → 106 |
+| All | 78.6% → 97.0% | 230 → 0 | 277 → 2 | 125 → 0 | 56.1% → 83.4% | 164 → 128 |
+
+- **The known misfires**: 237 over 20 years before (508 over 54), none after on either.
+- **What is left**: two misfires over 20 years and three over 54, all one card: *A Great Khan* tells a house with no fleet to "see
+  to your own fleets", and its words are to change with the rewrite of the text. *The Line Breaks*, about the battle that took the
+  last hull, is right to speak of it and is not counted. Over 54 years the stand-in twice found *A Secret for Sale* with one answer
+  open: two were open at the draw, and its own earlier answers that year had spent the money.
+- **The price**: late in a long game a year with nothing new to tell brings fewer reports, 128 a game over 54 years where there were
+  164. The first 20 years keep three a year (1,520 reports against 1,512).
+- **How the wait was chosen**: 9 and 10 years were measured on the fixed deck before the last rule was added: 78.6% and 79.9% of 54
+  years' answers were different. 10 was kept, and with "new, or news, before old" it gives 83.4%. Every head may meet a card
+  again: a five-year memory across heads was tried and made no difference (79.8%).
+
 ## No new verbs
 
 None of the four sets added a condition or an effect verb. Everything is said with the verbs already in

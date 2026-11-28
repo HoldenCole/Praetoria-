@@ -15,11 +15,13 @@ engine's loader accepts. Exit code 0 = clean, 1 = errors. Run after every batch.
 """
 import json, re, sys, glob, os
 
-COND={"holding","rankYears","peaceTerm","price","academy","cohort","all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","sex","eventFired","wealth","deposit","inLine"}
+COND={"office","ventures","topRank","origin","holding","rankYears","peaceTerm","price","academy","cohort","all","any","not","const","worldFlag","charFlag","relationship","bond","skill","trait","rank","turn","counter","resource","sphere","title","claim","age","track","era","fleetStrength","atWar","bloc","sex","eventFired","wealth","deposit","inLine"}
 EFF={"sellAtMarket","peaceTerms","setUpbringing","takeIn","courtship","marriage","beginCourtship","setWorldFlag","setCharFlag","adjustRelationship","addBond","adjustSkill","adjustStress","adjustCounter","addTrait","advanceCareer","adjustResource","grantClaim","revokeClaim","adjustLegitimacy","setTitle","succeed","kill","declareWar","makePeace","joinBloc","log"}
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics","helium3","rare_earths","isotopes"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
 SPHERES={"navy","treasury","senate"}; TITLES={"landless","knight","baron","count","duke","archduke","emperor"}
+# the "office" condition (docs/CONTENT_GUIDE.md): the kinds of holder, the offices of the Reach and the rungs of the ladder
+OFFICES={"sovereign","head","consul","magistrate","office","commander","admiral","treasurer","speaker","consul_senior","consul_junior","quaestor","aedile","praetor"}
 # §4b: engine-written projections of the player's house — gate on them, but never adjustCounter them.
 READONLY_COUNTERS={"title_rank","house_legitimacy","title_instability"}
 
@@ -98,6 +100,8 @@ def walk(conds,ctx,roles):
             errors.append(f"[{ctx}] bad sphere '{c.get('sphere')}'")
         if c.get("type") in ("title","claim") and c.get("title") not in TITLES:
             errors.append(f"[{ctx}] bad title id '{c.get('title')}'")
+        if c.get("type")=="office" and c.get("office") not in OFFICES:
+            errors.append(f"[{ctx}] unknown office '{c.get('office')}'")
         if "of" in c:
             v=c["of"]; walk(v if isinstance(v,list) else [v],ctx,roles)
         for rf in ("role","from","to"):
@@ -165,8 +169,17 @@ def validate_events(ev,tx):
                 if "//" in ef: errors.append(f"[{eid}/{cid}] stray '//' key inside effect")
         if e.get("choices") and all(ch.get("requires") for ch in e["choices"]):
             errors.append(f"[{eid}] every choice is gated by `requires` — leave one ungated or the event can be un-actionable and is re-offered every turn")
+        # never fewer than two answers open (docs/EVENTS.md, "Two answers open"): a card is drawn only when two of its answers are open
+        if len(e.get("choices",[]))==1: errors.append(f"[{eid}] one answer only: give it a second, or it can only ever be shown with one answer open")
+        # a waiting time is whole years, 0 or more (docs/EVENTS.md, "Waiting times")
+        if "cooldown" in e and (not isinstance(e["cooldown"],int) or isinstance(e["cooldown"],bool) or e["cooldown"]<0): errors.append(f"[{eid}] cooldown must be a whole number of years, 0 or more")
         orphan=set(t.get("choices",{}))-cids
         if orphan: errors.append(f"[{eid}] orphan choice text {orphan}")
+        # the other versions of the words (docs/EVENTS.md, "Versions"): a body each, and only the event's own choices
+        for vi,ver in enumerate(t.get("versions",[]),start=2):
+            if not ver.get("body"): errors.append(f"[{eid}] version {vi} has no body")
+            vorph=set(ver.get("choices",{}))-cids
+            if vorph: errors.append(f"[{eid}] version {vi} names choices the event does not have: {vorph}")
         def collect(conds):
             for c in conds:
                 if c.get("type") in ("charFlag","worldFlag"): read.add(c["flag"])

@@ -282,6 +282,14 @@ public sealed class World
     /// <summary>Most-recently-fired event ids (newest last). Director suppression reads this (GDD §15 L4).</summary>
     public List<string> RecentEventIds { get; set; } = new();
 
+    /// <summary>The reports each head of the player's house has had, by <see cref="CardSeen.Key"/>: when each last came, how often, and in
+    /// which version of its words. A card waits its <see cref="Events.EventDef.WaitYears"/> before it comes to the same head again
+    /// (docs/EVENTS.md, "Waiting times"). Empty in a save from before it was kept; such a save loads as one in which no card has come yet.</summary>
+    public Dictionary<string, CardSeen> Cards { get; set; } = new();
+    /// <summary>The people a once-a-person role has been bound to, by <see cref="CardSeen.Met"/>, and the year it was: a life event about one
+    /// person's milestone (a birth, a coming of age, a naming) comes once for each person.</summary>
+    public Dictionary<string, int> CardsMet { get; set; } = new();
+
     // ---- Convenience accessors (not serialised behaviour, just lookups) ----
 
     [JsonIgnore]
@@ -441,4 +449,6 @@ public sealed class PendingReport
     public Dictionary<string, string> Roles { get; set; } = new();
     public bool Resolved { get; set; }
     public string ChosenId { get; set; } = "";
+    /// <summary>The version of the report's words it was drawn in (0 is the text's own body), so it reads the same when the game is opened again.</summary>
+    public int Version { get; set; }
 }

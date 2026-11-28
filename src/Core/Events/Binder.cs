@@ -50,6 +50,7 @@ public static class Binder
                 if (!bindsChildren && c.Age < Systems.DynastySystem.AgeOfMajority) continue;
                 if (OutsideParts.Contains(role.Name) && c.HouseId == protagonistHouse) continue;
                 if (role.Name == "steward" && c.Id != stewardId) continue;   // the steward of a report is whoever keeps the house's accounts; with nobody named there is no such report   // nobody of the house buys from it, lends to it or comes to it as a stranger
+                if (role.Once && world.CardsMet.ContainsKey(CardSeen.Met(def.Id, role.Name, c.Id))) continue;   // a life event about this person's milestone has come for them already
                 var trial = binding.With(role.Name, c.Id);
                 var ctx = new EvalContext(world, trial, rng);
                 if (AllHold(role.Constraints, ctx))

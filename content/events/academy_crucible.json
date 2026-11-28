@@ -1064,15 +1064,6 @@
         },
         {
           "id": "yield_to_better",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Honorable",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "adjustRelationship",
@@ -1603,15 +1594,6 @@
         },
         {
           "id": "expose_it",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Honorable",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "cost": {
             "influence": 1
           },
@@ -1959,27 +1941,6 @@
         },
         {
           "id": "confess_it",
-          "requires": [
-            {
-              "type": "any",
-              "of": [
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Honorable",
-                  "kind": "nature",
-                  "present": true
-                },
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Just",
-                  "kind": "nature",
-                  "present": true
-                }
-              ]
-            }
-          ],
           "effects": [
             {
               "type": "setCharFlag",

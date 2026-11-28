@@ -47,7 +47,27 @@
         "a_dinner": "Feed the bench at the house's table (400 credits). It follows your vote the more closely at the next count.",
         "the_whip": "Remind them, one by one, who leads. They follow your vote the more closely at the next count.",
         "let_them_talk": "Let them argue it out and take the sense of the room."
-      }
+      },
+      "versions": [
+        {
+          "title": "The Bench Before the Session",
+          "body": "The session opens in a week, and the members of your bench want an evening with the house that leads them. One wants a word in the right ear, one wants a better seat, and all of them want to hear that the bench is going somewhere.",
+          "choices": {
+            "a_dinner": "Give them the evening, at the house's table (400 credits). They follow your vote the more closely at the next count.",
+            "the_whip": "See them one at a time, and remind each who leads. They follow your vote the more closely at the next count.",
+            "let_them_talk": "Hear them out together, and promise nothing."
+          }
+        },
+        {
+          "title": "A Bench Out of Step",
+          "body": "A member of your bench has voted against it twice this year, and the others are waiting to see what the house that leads them will do about it, if anything.",
+          "choices": {
+            "a_dinner": "Bring the bench to dinner, the one who strayed too (400 credits). They follow your vote the more closely at the next count.",
+            "the_whip": "Make an example of the one who strayed. They follow your vote the more closely at the next count.",
+            "let_them_talk": "Let it pass, and let the bench draw its own lesson."
+          }
+        }
+      ]
     },
     {
       "id": "the_commons_feast",

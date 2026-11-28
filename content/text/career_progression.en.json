@@ -33,11 +33,29 @@
     {
       "id": "the_field_promotion",
       "title": "The Empty Command",
-      "body": "The senior officer is down, the situation will not wait for the chain of command to deliberate, and the gap where authority should be is standing open in front of you. No one has given you this. No one is going to, in time. The rank is there for the taking, by whoever has the nerve to take it and the skill to be proven right.",
+      "body": "The senior officer is down, the action will not wait for the chain of command to deliberate, and the gap where authority should be is standing open in front of you. No one has given you this. No one is going to, in time. The rank is there for the taking, by whoever has the nerve to take it and the skill to be proven right.",
       "choices": {
         "seize_the_moment": "Take the command without waiting for permission. Win it, make it paper.",
         "hold_the_line": "Hold your assigned post flawlessly. No overreach, no enemies made."
-      }
+      },
+      "versions": [
+        {
+          "title": "Half a Signal",
+          "body": "The flag captain is dead at the rail, and the admiral's last signal is half a sentence. The line is waiting for an order, and you are the most senior officer left standing who knows what the order should be.",
+          "choices": {
+            "seize_the_moment": "Give the order yourself, and answer for it after.",
+            "hold_the_line": "Keep your own station, and leave the line to those whose place it is."
+          }
+        },
+        {
+          "title": "The Ship Is Yours",
+          "body": "Your captain has been carried below, and the ship is yours for as long as nobody senior says otherwise. Nobody senior is in a state to say anything, and the squadron is drifting out of its place in the line.",
+          "choices": {
+            "seize_the_moment": "Take the ship, and bring the squadron back into the line.",
+            "hold_the_line": "Hold the ship where it is, and wait for orders."
+          }
+        }
+      ]
     },
     {
       "id": "the_admirals_shadow",

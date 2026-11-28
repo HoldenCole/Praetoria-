@@ -277,6 +277,17 @@
               "to": "self",
               "op": "lte",
               "value": -10
+            },
+            {
+              "type": "office",
+              "role": "grandee",
+              "office": "head",
+              "present": true
+            },
+            {
+              "type": "origin",
+              "role": "grandee",
+              "origin": "old"
             }
           ]
         }
@@ -452,27 +463,6 @@
         },
         {
           "id": "demand_satisfaction",
-          "requires": [
-            {
-              "type": "any",
-              "of": [
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Proud",
-                  "kind": "nature",
-                  "present": true
-                },
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Honorable",
-                  "kind": "nature",
-                  "present": true
-                }
-              ]
-            }
-          ],
           "cost": {
             "influence": 1
           },
@@ -643,27 +633,6 @@
         },
         {
           "id": "own_it",
-          "requires": [
-            {
-              "type": "any",
-              "of": [
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Proud",
-                  "kind": "nature",
-                  "present": true
-                },
-                {
-                  "type": "trait",
-                  "role": "self",
-                  "trait": "Honorable",
-                  "kind": "nature",
-                  "present": true
-                }
-              ]
-            }
-          ],
           "effects": [
             {
               "type": "setWorldFlag",

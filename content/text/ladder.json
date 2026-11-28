@@ -122,12 +122,32 @@
     {
       "id": "not_seen_in_the_senate",
       "title": "Not Seen in the Senate",
-      "body": "It has been three years since {self.name} did anything with the house's seat but hold it. The benches have noticed. A seat is a thing a house is given to use, and one that is never used begins to look like one that could be given to somebody else.",
+      "body": "It has been three years since you did anything with the house's seat but hold it. The benches have noticed. A seat is a thing a house is given to use, and one that is never used begins to look like one that could be given to somebody else.",
       "choices": {
         "go_back_and_be_seen": "Go back, and be seen there.",
         "say_the_house_has_had_other_work": "Say the house has had other work.",
         "let_them_talk": "Let them talk."
-      }
+      },
+      "versions": [
+        {
+          "title": "The Clerk's Book",
+          "body": "The clerk of the Senate keeps a book of who sat and who spoke. The house's name has not been in it for three years, and the clerk is not the only one who reads it. Sooner or later a house that does not use its seat is asked why it should keep it.",
+          "choices": {
+            "go_back_and_be_seen": "Sit at the next session, and speak.",
+            "say_the_house_has_had_other_work": "Say the house's business has kept you away.",
+            "let_them_talk": "Let them read what they like."
+          }
+        },
+        {
+          "title": "An Empty Seat",
+          "body": "A senator of your own bench stops you on the steps to ask, pleasantly, whether the house means to sit this session. It is the third year the seat has stood empty, and the question is less pleasant than it sounds.",
+          "choices": {
+            "go_back_and_be_seen": "Say you will be there, and be there.",
+            "say_the_house_has_had_other_work": "Say there has been other work, and make it believed.",
+            "let_them_talk": "Smile, and say nothing."
+          }
+        }
+      ]
     },
     {
       "id": "the_levy_is_forgiven",

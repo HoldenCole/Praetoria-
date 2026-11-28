@@ -70,6 +70,7 @@ public class CouncilTests
     {
         var (tc, w, house, me, ctx) = Start(); var target = w.Houses.Values.Where(h => h.Id != house.Id && !World.Outsider(h.Id) && Economy.HeadOf(w, h) != null && !w.AtWar(h.Id, house.Id)).OrderBy(h => h.Id).First();
         var head = Economy.HeadOf(w, target)!; w.Relationship(head.Id, me.Id).Disposition = 0; house.Treasury.Credits = 200;
+        me.Age = 50; me.Health = 100;   // the Old Lion is 68: a head who lives the three years, whichever reports the years bring
         var d = Give(tc, w, house, me, ctx, HouseholdSystem.Envoy, HouseholdSystem.HousePrefix + target.Id); var envoy = w.Char(d.HolderId)!; envoy.Skills["diplomacy"] = 3;
         Year(tc);
         int after = w.Relationship(head.Id, me.Id).Disposition; Assert.True(after >= HouseholdSystem.EnvoyBase + 3 - 2, $"regard {after}");   // the call, less whatever else the year did
@@ -101,6 +102,7 @@ public class CouncilTests
     public void An_advocate_pleads_what_names_the_house_and_a_chancellor_declares_what_you_left_alone()
     {
         var (tc, w, house, me, ctx) = Start(); house.Treasury.Credits = 300;
+        me.Age = 50; me.Health = 100;   // the Old Lion is 68: a head who lives the fourteen years, whichever reports the years bring
         var adv = Give(tc, w, house, me, ctx, HouseholdSystem.Advocate); var chan = Give(tc, w, house, me, ctx, HouseholdSystem.Chancellor);
         int pleaded = 0, declared = 0;
         for (int y = 0; y < 14; y++)

@@ -300,15 +300,6 @@
         },
         {
           "id": "speak_of_what_the_house_will_be",
-          "requires": [
-            {
-              "type": "skill",
-              "role": "self",
-              "skill": "oratory",
-              "op": "gte",
-              "value": 2
-            }
-          ],
           "effects": [
             {
               "type": "courtship",
@@ -466,9 +457,12 @@
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
+      "cooldown": 0,
+      "moment": true,
       "roles": [
         {
           "name": "spouse",
+          "once": true,
           "when": [
             {
               "type": "bond",
@@ -987,15 +981,6 @@
         },
         {
           "id": "ask_their_pardon",
-          "requires": [
-            {
-              "type": "skill",
-              "role": "self",
-              "skill": "diplomacy",
-              "op": "gte",
-              "value": 2
-            }
-          ],
           "effects": [
             {
               "type": "adjustLegitimacy",
@@ -1070,6 +1055,12 @@
           "type": "turn",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "resource",
+          "resource": "credits",
+          "op": "gte",
+          "value": 15
         }
       ],
       "choices": [

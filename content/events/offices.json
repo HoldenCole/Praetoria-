@@ -7,7 +7,7 @@
       "choices": [
         { "id": "swear_it_gladly", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
             { "type": "log", "text": "{self.name} swore the oath of office before the Senate and meant every word of it, for now." } ] },
-        { "id": "swear_it_and_count", "requires": [ { "type": "trait", "role": "self", "trait": "Ambitious", "kind": "nature", "present": true } ],
+        { "id": "swear_it_and_count",
           "effects": [ { "type": "adjustCounter", "key": "threat", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 2 },
             { "type": "log", "text": "{self.name} swore the oath and, walking out, counted what the office commanded and what it would take to keep it." } ] }
       ]

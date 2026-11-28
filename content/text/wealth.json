@@ -112,13 +112,33 @@
     },
     {
       "id": "one_of_yours_buys_shares",
-      "title": "Shares of Their Own",
-      "body": "{kin.name} has bought shares on the Exchange with their own money, in their own name. They are not the house's: what they pay goes into {kin.name}'s purse, and they give the house no say in the company. {kin.name} has told you because they would rather you heard it from them.",
+      "title": "Shares of {kin.name}'s Own",
+      "body": "{kin.name} has bought shares on the Exchange, out of a private purse and in a private name. The shares are not the house's: what they pay goes to {kin.name}, and they give the house no say in the company. {kin.name} has come to tell you before you hear it from anyone else.",
       "choices": {
-        "it_is_their_money": "It is their money.",
-        "tell_them_what_you_know": "Tell them what the house knows of the Exchange.",
-        "the_house_comes_first": "The house comes first: buy in its name."
-      }
+        "it_is_their_money": "The money is {kin.name}'s to place.",
+        "tell_them_what_you_know": "Tell {kin.name} what the house knows of the Exchange (1 influence).",
+        "the_house_comes_first": "The house comes first: the next shares are bought in its name."
+      },
+      "versions": [
+        {
+          "title": "A Name on the Exchange",
+          "body": "Word comes from the Exchange before it comes from {kin.name}: a block of shares has been bought in {kin.name}'s name, with money that was never the house's. By evening {kin.name} is at your door to say so, and to ask what you think of it.",
+          "choices": {
+            "it_is_their_money": "Say it was {kin.name}'s money, and {kin.name}'s choice.",
+            "tell_them_what_you_know": "Sit down together over what the house knows of the market (1 influence).",
+            "the_house_comes_first": "Say that from now on the house buys, and the house holds."
+          }
+        },
+        {
+          "title": "The Broker's Note",
+          "body": "{kin.name} puts a broker's note on your desk: shares in a company of the Exchange, bought from a private purse. The dividends will not come to the house, and neither will a vote in the company. It is a small thing, and {kin.name} wants to know whether you mean to make it a large one.",
+          "choices": {
+            "it_is_their_money": "Hand the note back. It is a small thing.",
+            "tell_them_what_you_know": "Tell {kin.name} which companies the house trusts, and which it does not (1 influence).",
+            "the_house_comes_first": "Make it a large one: the house's money first, then anyone's."
+          }
+        }
+      ]
     },
     {
       "id": "they_ask_for_their_standard",

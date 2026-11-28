@@ -39,7 +39,9 @@ public class EndgameTests
         Assert.Equal("emperor", w.House("vega")!.Title);
         Assert.True(w.HasFlag(ThroneSystem.ProclaimedFlag));
         Assert.Equal(100, w.House("vega")!.Legitimacy);
-        // the era flip opens the Imperial-court content for this world
+        // the era flip opens the Imperial-court content for this world, drawn as the next year opens with the year's pools (a card is drawn
+        // only with two of its answers open: docs/EVENTS.md, "Two answers open")
+        w.Pools[w.ProtagonistId].Regenerate();
         var eligible = new EventEngine(content, WorldBuilder.RngFor(w)).GatherEligible(w).Select(e => e.def.Id).ToHashSet();
         Assert.Contains("the_proclamation", eligible);
         Assert.Contains("the_imperial_levy", eligible);                       // imperium-only content, now live

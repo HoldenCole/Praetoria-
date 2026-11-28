@@ -6,6 +6,7 @@
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
+      "cooldown": 0,
       "roles": [
         {
           "name": "spouse",
@@ -32,6 +33,7 @@
         },
         {
           "name": "child",
+          "once": true,
           "when": [
             {
               "type": "age",
@@ -191,9 +193,11 @@
       "tier": "situation",
       "weight": 35,
       "repeatable": true,
+      "cooldown": 0,
       "roles": [
         {
           "name": "grandchild",
+          "once": true,
           "when": [
             {
               "type": "worldFlag",

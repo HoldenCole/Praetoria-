@@ -34,7 +34,7 @@ public class TurnControllerTests
     public void Offer_MarksUnaffordableChoiceUnavailable()
     {
         var w = CadetWorldWithPools();
-        w.PoolsFor("self").Influence = 1; // need 5 below
+        w.PoolsFor("self").Influence = 5; // enough when the year's reports are drawn (a card is drawn only with its answers open)
 
         var def = new EventDef
         {
@@ -49,6 +49,7 @@ public class TurnControllerTests
         var briefing = tc.BeginTurn();
 
         Assert.Single(briefing);
+        w.PoolsFor("self").Influence = 1; // spent since, on something else: need 5 below
         var offered = tc.Offer(briefing[0]);
         Assert.False(offered[0].Available); // requirements met, but can't afford
     }

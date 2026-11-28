@@ -87,6 +87,13 @@
         {
           "type": "worldFlag",
           "flag": "act_failed"
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -363,6 +370,13 @@
         {
           "type": "worldFlag",
           "flag": "estate_loyal:commons"
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -434,6 +448,12 @@
         {
           "type": "worldFlag",
           "flag": "estate_loyal:officers"
+        },
+        {
+          "type": "fleetStrength",
+          "role": "self",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -501,6 +521,13 @@
         {
           "type": "worldFlag",
           "flag": "estate_loyal:merchants"
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -576,6 +603,13 @@
         {
           "type": "worldFlag",
           "flag": "estate_loyal:old_blood"
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -1676,6 +1710,13 @@
           "type": "turn",
           "op": "gte",
           "value": 15
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [

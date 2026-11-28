@@ -16,6 +16,13 @@
           "type": "turn",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -111,6 +118,13 @@
           "type": "turn",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -308,6 +322,13 @@
           "type": "turn",
           "op": "gte",
           "value": 4
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [
@@ -463,6 +484,13 @@
           "type": "turn",
           "op": "gte",
           "value": 5
+        },
+        {
+          "type": "holding",
+          "role": "self",
+          "kind": "planet",
+          "op": "gte",
+          "value": 1
         }
       ],
       "choices": [

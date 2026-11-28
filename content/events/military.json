@@ -187,6 +187,11 @@
           "type": "track",
           "role": "self",
           "track": "military"
+        },
+        {
+          "type": "topRank",
+          "role": "self",
+          "present": false
         }
       ],
       "choices": [

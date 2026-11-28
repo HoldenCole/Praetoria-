@@ -1033,6 +1033,12 @@
               "tier": "opulent"
             },
             {
+              "type": "office",
+              "role": "grandee",
+              "office": "head",
+              "present": true
+            },
+            {
               "type": "age",
               "role": "grandee",
               "op": "gte",
@@ -1809,6 +1815,12 @@
           "type": "turn",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "resource",
+          "resource": "credits",
+          "op": "gte",
+          "value": 4
         }
       ],
       "choices": [

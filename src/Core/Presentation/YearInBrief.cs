@@ -84,7 +84,7 @@ public static class YearInBrief
 
         // what the house was told as the year turned: births, deaths, wars declared on it, attempts, tutors, illness, dues, dowries
         var dead = w.Deaths.Where(d => d.Turn >= year).ToList();
-        foreach (var n in w.NewsNow()) { if (dead.Any(d => n.SubjectId == d.PersonId && n.Text.Contains("has died"))) continue; lines.Add(new BriefLine(KindOf(n.Target), n.Tone, n.Text, n.Target, n.SubjectId)); }
+        foreach (var n in w.NewsNow()) { if (dead.Any(d => n.SubjectId == d.PersonId && n.Text.Contains("has died"))) continue; lines.Add(new BriefLine(KindOf(n.Target), n.Tone, KindOf(n.Target) == Family ? WithItsCard(w, content, n.Text, n.SubjectId) : n.Text, n.Target, n.SubjectId)); }
         // a death is a report of its own: who and how, each post it left empty (the line opens the place it is filled), and what passed
         foreach (var d in dead)
         {
@@ -101,7 +101,7 @@ public static class YearInBrief
         {
             var a = w.Char(m.A); var b = w.Char(m.B); if (a == null || b == null || (a.HouseId != mine && b.HouseId != mine)) continue;
             var ours = a.HouseId == mine ? a : b; var theirs = ours == a ? b : a;
-            lines.Add(new BriefLine(Family, "good", $"{ours.Name} married {theirs.Name}{(theirs.HouseId != mine ? " of " + Nm(theirs.HouseId) : "")}{(m.Dowry > 0 ? $", with a dowry of {Praetoria.Core.Money.Credits(m.Dowry)} {(m.DowryFrom == mine ? "paid" : "received")}" : "")}.", "dynasty:marriages", ours.Id));
+            lines.Add(new BriefLine(Family, "good", WithItsCard(w, content, $"{ours.Name} married {theirs.Name}{(theirs.HouseId != mine ? " of " + Nm(theirs.HouseId) : "")}{(m.Dowry > 0 ? $", with a dowry of {Praetoria.Core.Money.Credits(m.Dowry)} {(m.DowryFrom == mine ? "paid" : "received")}" : "")}.", ours.Id, theirs.Id), "dynasty:marriages", ours.Id));
         }
         // a battle is fought as the year turns and is dated with the year that opens: those are the battles this brief is of
         foreach (var b in w.Battles.Where(b => b.Turn == w.Turn && b.Involves(mine)))
@@ -150,6 +150,26 @@ public static class YearInBrief
                 list.Add(new StockMove(r, Resource.Label(r).ToLowerInvariant(), Praetoria.Core.Money.Of(r, house.Treasury.Get(r) - d), Praetoria.Core.Money.Of(r, house.Treasury.Get(r)), (d > 0 ? "+" : "−") + Praetoria.Core.Money.Of(r, Math.Abs(d)), d > 0));
         }
         return list;
+    }
+
+    /// <summary>A birth or a marriage whose own card came as this year opened (a life event about the person, docs/EVENTS.md, "Moments in the
+    /// year"): the line says the card is among the year's reports, so the brief does not tell the moment as done before the card that is
+    /// its moment comes. The line as it is otherwise.</summary>
+    private static string WithItsCard(World w, ContentDatabase content, string text, params string[] people)
+    {
+        foreach (var id in people)
+        {
+            if (id.Length == 0) continue;
+            foreach (var (key, turn) in w.CardsMet)
+            {
+                if (turn != w.Turn || !key.EndsWith("|" + id, StringComparison.Ordinal)) continue;
+                string eventId = key[..key.IndexOf('|')];
+                int version = w.Cards.TryGetValue(CardSeen.Key(eventId, w.ProtagonistId), out var seen) ? seen.Version : 0;
+                string title = content.Text(eventId)?.TitleOf(version) is { Length: > 0 } t && !t.Contains('{') ? t : "";
+                if (title.Length > 0) return text.TrimEnd() + (text.TrimEnd().EndsWith('.') ? "" : ".") + $" “{title}” is among this year's reports.";
+            }
+        }
+        return text;
     }
 
     private static string KindOf(string target)

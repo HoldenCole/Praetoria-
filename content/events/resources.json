@@ -3,7 +3,7 @@
   "events": [
     {
       "id": "dry_tanks", "scene": "shipyard", "tier": "situation", "weight": 10, "repeatable": true,
-      "when": [ { "type": "worldFlag", "flag": "fuel_short" } ],
+      "when": [ { "type": "worldFlag", "flag": "fuel_short" }, { "type": "fleetStrength", "role": "self", "op": "gte", "value": 1 } ],
       "choices": [
         { "id": "buy_dear", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 18 } ],
           "effects": [ { "type": "adjustResource", "resource": "credits", "delta": -18 }, { "type": "adjustResource", "resource": "helium3", "delta": 4 },

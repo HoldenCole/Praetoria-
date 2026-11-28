@@ -11,6 +11,12 @@
           "name": "rival_house",
           "when": [
             {
+              "type": "office",
+              "role": "rival_house",
+              "office": "head",
+              "present": true
+            },
+            {
               "type": "rank",
               "role": "rival_house",
               "op": "gte",
@@ -26,6 +32,24 @@
           "skill": "tactics",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "fleetStrength",
+          "role": "self",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 3
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "gte",
+          "value": 21
         },
         {
           "type": "counter",
@@ -120,6 +144,12 @@
           "name": "rival_house",
           "when": [
             {
+              "type": "office",
+              "role": "rival_house",
+              "office": "head",
+              "present": true
+            },
+            {
               "type": "rank",
               "role": "rival_house",
               "op": "gte",
@@ -135,6 +165,18 @@
           "skill": "economics",
           "op": "gte",
           "value": 3
+        },
+        {
+          "type": "rank",
+          "role": "self",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "gte",
+          "value": 21
         },
         {
           "type": "counter",
@@ -206,6 +248,12 @@
           "name": "rival_house",
           "when": [
             {
+              "type": "office",
+              "role": "rival_house",
+              "office": "head",
+              "present": true
+            },
+            {
               "type": "rank",
               "role": "rival_house",
               "op": "gte",
@@ -268,15 +316,6 @@
         },
         {
           "id": "spread_credit",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Schemer",
-              "kind": "aptitude",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "adjustCounter",
@@ -361,15 +400,6 @@
         },
         {
           "id": "dismiss_it",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Proud",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "adjustStress",
@@ -398,6 +428,12 @@
               "role": "coalition_head",
               "flag": "wary",
               "value": true
+            },
+            {
+              "type": "office",
+              "role": "coalition_head",
+              "office": "head",
+              "present": true
             },
             {
               "type": "rank",
@@ -441,15 +477,6 @@
       "choices": [
         {
           "id": "face_them_down",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Proud",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "cost": {
             "influence": 2
           },
@@ -633,11 +660,23 @@
           "id": "peel_off_weakest",
           "requires": [
             {
-              "type": "trait",
-              "role": "self",
-              "trait": "Diplomat",
-              "kind": "aptitude",
-              "present": true
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Diplomat",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "diplomacy",
+                  "op": "gte",
+                  "value": 2
+                }
+              ]
             }
           ],
           "effects": [
@@ -738,6 +777,12 @@
           "name": "rival_house",
           "when": [
             {
+              "type": "office",
+              "role": "rival_house",
+              "office": "head",
+              "present": true
+            },
+            {
               "type": "rank",
               "role": "rival_house",
               "op": "gte",
@@ -826,15 +871,6 @@
         },
         {
           "id": "accept_the_lesson",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Just",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "effects": [
             {
               "type": "setCharFlag",
@@ -897,10 +933,10 @@
           "name": "sovereign",
           "when": [
             {
-              "type": "rank",
+              "type": "office",
               "role": "sovereign",
-              "op": "gt",
-              "vsRole": "self"
+              "office": "sovereign",
+              "present": true
             }
           ]
         }
@@ -960,15 +996,6 @@
         },
         {
           "id": "remain_independent",
-          "requires": [
-            {
-              "type": "trait",
-              "role": "self",
-              "trait": "Ambitious",
-              "kind": "nature",
-              "present": true
-            }
-          ],
           "cost": {
             "influence": 3
           },

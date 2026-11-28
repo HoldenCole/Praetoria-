@@ -63,8 +63,10 @@ File names don't matter to the engine (it loads every `*.json` in each dir); gro
     "tier": "situation",                 // "ambient" | "situation" | "setpiece". default "situation".
     "weight": 4,                         // selection weight (relative, within the eligible pool). default 1.0
     "repeatable": false,                 // default false = fires at most once per run
+    "cooldown": 9,                       // optional, repeatable cards: years before it can come again to the same head (default 9; 0 = no wait)
+    "moment": false,                     // optional: drawn at once when the head's own act in the year raises a flag its `when` reads
     "roles": [                           // optional. "self" (the protagonist) is ALWAYS pre-bound.
-      { "name": "rival",
+      { "name": "rival",                 // a role may say "once": true: it binds each person once for this event, ever
         "when": [                        // this role binds to any character satisfying ALL of these
           { "type": "relationship", "from": "self", "to": "rival", "op": "lte", "value": 0 }
         ] }
@@ -99,6 +101,18 @@ File names don't matter to the engine (it loads every `*.json` in each dir); gro
   still recur — just not back-to-back.
 - Otherwise authored `weight` is honored directly. Bigger = more often. Use this for "the common
   scene" vs "the rare one."
+- **Waiting times** (docs/EVENTS.md, "Waiting times"). A repeatable card does not come again to the same head of the house for
+  its `cooldown` in years (10 when the event names none), and after its second coming for twice that, after its third for three
+  times, and so on. A new head has met none of them. While a card the house has not had (under any head), or news of this year
+  or last, can come, the year's reports are of those; a card the house has had comes again only in a year with nothing new, and
+  alone. Among those that may come, one the house has had is drawn the less readily (its weight divided by one more than the times
+  it has come, squared unless it is news). Give a news card that must come each time its moment does a short `cooldown` (0 to 3),
+  and a card about one person's milestone a role marked `"once": true` with `"cooldown": 0`. A card whose moment is a world flag
+  the engine marks (`mark:<flag>`) is news while the mark is a year old or less; one gated on a state re-reckoned every year is not.
+- **Two answers open** (docs/EVENTS.md, "Two answers open"). A card is drawn only when at least two of its answers are open
+  (requirements met, pool costs affordable from the year's pools), so an answer gated on a trait, a skill or money is only seen
+  beside another that is open. An event with one answer is refused by both validators. A gate that closes the second answer for
+  most heads keeps the card from most games: the events audit (docs/TOOLS.md) counts how often each card was held back.
 
 ### Roles & binding (the heart — "by role, not by name", GDD §15)
 - `self` is always the protagonist. You never declare it.
@@ -120,6 +134,9 @@ File names don't matter to the engine (it loads every `*.json` in each dir); gro
 - **Always leave one choice ungated.** A briefing item the player cannot act on is re-offered every
   turn (it is never marked fired), so an event whose every choice has a `requires` is a trap for any
   character meeting none of them. Both validators reject it.
+- **Never fewer than two answers open.** A card is drawn only when two of its answers are open to the head, so give every event
+  at least two answers (both validators refuse one with a single answer), and do not gate the second answer so narrowly that most
+  heads never see the card. A locked answer, clicked, flashes the line under it that says what it needs.
 
 ---
 
@@ -139,6 +156,20 @@ File names don't matter to the engine (it loads every `*.json` in each dir); gro
   }
 ]}
 ```
+
+### Versions of the words (docs/EVENTS.md, "Versions")
+A card that comes back may carry other versions of its words, so it does not come back word for word. Each version has a `body`,
+and may have its own `title` and its own words for some of the choices; what it leaves out is the entry's own.
+```jsonc
+{ "id": "not_seen_in_the_senate", "title": "...", "body": "...", "choices": { ... },
+  "versions": [
+    { "title": "The Clerk's Book", "body": "...", "choices": { "let_them_talk": "Let them read what they like." } },
+    { "body": "..." }
+  ] }
+```
+The engine draws one version each time the card comes, by the world's dice, never the one it last came in; a save made in the
+middle of the year keeps the version each report was drawn in. The validators check every version's tokens and refuse a version
+with no body or with words for a choice the event does not have.
 
 ### Tokens (substituted against the live binding)
 Only these resolve. Anything else is left intact **and flagged by the validator** (so typos are caught):
@@ -186,6 +217,10 @@ AND). Comparison `op` ∈ `eq, neq, lt, lte, gt, gte` (symbols `==, !=, <, <=, >
 | `claim` | `role`(default `self`), `title`, `present:bool` | does the house hold a claim to this title? (GDD §13) |
 | `eventFired` | `event`, `value:bool` | has an event already fired this run? |
 | `inLine` | `role`, `vsRole`(default `self`), `value:bool` | does `role` stand in the line of succession to `vsRole`: of the same house, and not struck from the line unless nobody else is left? (docs/HOUSEHOLD.md, "Struck from the line") |
+| `office` | `role`(default `self`), `office`, `present:bool` | does the role hold that office now? `sovereign` (the head of the house on the throne; in the Republic the head of the house that holds the chair, the capital), `head` (the head of their own house), `consul` (either chair), `magistrate` (any rung of the ladder), `office` (any office of the Reach), `commander` (commands a fleet), or an office id (`admiral`, `treasurer`, `speaker`, `consul_senior`, `consul_junior`) or a rung (`quaestor`, `aedile`, `praetor`). A role named for an office binds by it, so it is always whoever really holds it |
+| `ventures` | `role`(default `self`), `op`, `value` | how many ventures the role's house owns: a card that speaks of the house's ventures requires one |
+| `topRank` | `role`(default `self`), `present:bool` | does the role stand on the top rung of the ladder of their own service? A card whose answer is a step up is gated on `present: false`. Read in an event's `when` or a choice's `requires` (a role's own `when` is read without the career ladders) |
+| `origin` | `role`(default `self`), `origin: old\|new` | is the role's house an old name or a new one? A card that speaks of a family that was always there, or of forebears, is gated on it (the player's own house also raises the world flag `new_name`) |
 
 `resource` ∈ `credits, materials, manpower, influence, exotics`.
 `sphere` ∈ `navy, treasury, senate`.

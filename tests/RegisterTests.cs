@@ -41,6 +41,7 @@ public class RegisterTests
         Assert.True(found.def != null, $"{eventId} is not eligible");
         foreach (var c in found.def!.Choices)
         {
+            w.Cards.Remove(Praetoria.Core.State.CardSeen.Key(eventId, me.Id));   // about eligibility, not the waiting time a card keeps after it comes
             var again = engine.GatherEligible(w).FirstOrDefault(e => e.def.Id == eventId); if (again.def == null) break;
             engine.Resolve(new Praetoria.Core.Events.FiredEvent(again.def, again.binding), w, c.Id);
         }
