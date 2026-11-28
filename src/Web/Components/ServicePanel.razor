@@ -68,17 +68,21 @@
         else
         {
             <div class="sv-pick" data-seeker>
-                <span class="mo-l">Whose service</span>
-                <Select Options="@SeekerOptions(seekers, pid, house.AccentColor)" Value="@seeker.Id" OnChange="v => _seeker = v" Tip="Who of your house would serve" />
+                <Select Options="@SeekerOptions(seekers, pid, house.AccentColor)" Value="@seeker.Id" OnChange="v => _seeker = v" Tip="Whose service: who of your house would serve" />
             </div>
+            @* a refusal that every row would repeat is said once, over the list, and kept in each locked plate's tooltip *@
+            var allNo = takers.Select(t => new SeekCommandCommand(pid, seeker.Id, t, c.Offices).Refusal(G.Ctx)).ToList(); string? sameNo = allNo.Count > 1 && allNo.All(x => x != null && x == allNo[0]) ? allNo[0] : null;
+            @if (sameNo != null) { <WarnStrip Icon="padlock" Lead="Not now." Class="sv-strip">@Cap(sameNo).</WarnStrip> }
             @if (takers.Count == 0) { <div data-service-none="takers"><EmptyState Icon="greek-temple" Text="Nobody gives commands to others now: no consul, Admiral or holder of emergency powers sits, and no house is at war." /></div> }
             @foreach (var t in takers)
             {
                 string tid = t, sid = seeker.Id; var seek = new SeekCommandCommand(pid, sid, tid, c.Offices); string? seekNo = seek.Refusal(G.Ctx);
                 ServiceSystem.SeekRefusal(w, c.Offices, seeker, tid, out var plan); string offerLabel = "Offer " + (sid == pid ? "your" : FirstName(seeker.Name) + "'s") + " service";
+                var tk = w.Char(tid); var tkh = tk != null ? w.House(tk.HouseId) : null;
                 <div class="sv-row" data-taker="@tid">
-                    <span class="sv-med"><Icon Name="podium" Tone="ivory" Size="20" /></span>
-                    <span class="sv-t"><b>@ServiceSystem.TakerName(w, c.Offices, tid)</b>@if (seekNo != null) { <span class="ui-need"> · @Cap(seekNo)</span> }</span>
+                    @if (tk != null) { <Portrait Id="@tk.Id" Name="@tk.Name" Sex="@tk.Sex" Age="@tk.Age" Accent="@(tkh?.AccentColor ?? "#888")" Size="46" Height="56" /> }
+                    else { <span class="sv-med"><Icon Name="podium" Tone="ivory" Size="20" /></span> }
+                    <span class="sv-t"><b>@ServiceSystem.TakerName(w, c.Offices, tid)</b>@if (seekNo != null && sameNo == null) { <span class="ui-need"> · @Cap(seekNo)</span> }</span>
                     <Plate Label="@offerLabel" Small="true" Locked="@(seekNo != null)" Disabled="@(seekNo != null)" ShowNeed="false" Need="@Cap(seekNo ?? "")" data-seek-command="@tid" Tip="@("[rally-the-troops] Offer service\n" + (seekNo != null ? Cap(seekNo) : SeekHelp(plan)))" OnClick="() => G.Execute(new SeekCommandCommand(pid, sid, tid, c.Offices))" />
                 </div>
             }

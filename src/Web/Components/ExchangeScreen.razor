@@ -8,6 +8,7 @@
    Shares. Rules go in "i" tooltips; sections and rows, never cards. *@
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var house = w.House(w.Protagonist!.HouseId)!; var t = c.Trade;
+    int yearNet = HouseScreen.YearNet(G, w, house);
     var mk = m.Market;
     var mover = mk?.Goods.OrderByDescending(g => Math.Abs(g.ChangePct)).FirstOrDefault();
     int wars = w.Wars.Count;
@@ -34,7 +35,7 @@
 
     var figures = new List<WindowHeader.Figure>
     {
-        new("credits", Money.Held(house.Treasury), "To trade with", m.Treasury.Insolvent ? "ember" : "brass", Delta: net == 0 ? "" : HouseScreen.Sg(net),
+        new("credits", Money.Held(house.Treasury), "To trade with", m.Treasury.Insolvent ? "ember" : "brass", Delta: yearNet == 0 ? "" : HouseScreen.Sg(yearNet),
             Tip: $"[credits] Credits to trade with\nWhat the treasury holds: {Money.Held(house.Treasury)}.\nA year: {(net > 0 ? $"+{Money.Show(net)} coming in" : net < 0 ? $"−{Money.Show(-net)} going out" : "neither growing nor shrinking")}")
     };
     if (mk != null)
@@ -55,7 +56,7 @@
     {
         new("goods", "Goods", "cargo-crate", Tip: "Every good of the Reach: its price, where it has been, and an order to buy or sell"),
         new("ventures", "Ventures", "factory", (m.Assets?.Offers.Count ?? 0) is > 0 and var oc ? oc.ToString() : "", (m.Assets?.Offers.Count ?? 0) > 0, Tip: "Your ventures, what can be founded, belt claims, and the ventures other houses would sell"),
-        new("projects", "Projects", "build", sites > 0 ? sites.ToString() : "", Tip: "What is being built: years left, what is paid and what is owed"),
+        new("projects", "Projects", "build", sites > 0 ? sites.ToString() : "", Hidden: sites == 0 && _tab != "projects", Tip: "What is being built: years left, what is paid and what is owed"),   // an empty tab is hidden (4.4)
         new("shares", "Shares", "coins-pile", m.Exchange?.Companies.Count is > 0 and var cc ? cc.ToString() : "", Tip: "The companies of the Exchange, your paper, the boards you sit on, and war bonds")
     };
     var sel = goods.FirstOrDefault(g => g.Id == _sel) ?? lacking ?? goods.FirstOrDefault();

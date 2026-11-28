@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_rumblings",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 6,
       "repeatable": false,
@@ -113,6 +114,7 @@
     },
     {
       "id": "the_blocs_form",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,
@@ -248,6 +250,7 @@
     },
     {
       "id": "the_war_of_the_reach",
+      "scene": "battle",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,
@@ -345,6 +348,7 @@
     },
     {
       "id": "the_reckoning_of_the_reach",
+      "scene": "funeral",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,

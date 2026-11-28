@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "an_introduction",
+      "scene": "feast",
       "tier": "situation",
       "weight": 10,
       "repeatable": true,
@@ -122,6 +123,7 @@
     },
     {
       "id": "a_rival_for_the_hand",
+      "scene": "feast",
       "tier": "situation",
       "weight": 16,
       "repeatable": true,
@@ -247,6 +249,7 @@
     },
     {
       "id": "what_are_your_prospects",
+      "scene": "feast",
       "tier": "situation",
       "weight": 12,
       "repeatable": false,
@@ -363,6 +366,7 @@
     },
     {
       "id": "a_letter_unanswered",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 10,
       "repeatable": true,
@@ -559,6 +563,7 @@
     },
     {
       "id": "jilted",
+      "scene": "feast",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -626,6 +631,7 @@
     },
     {
       "id": "a_cold_house",
+      "scene": "family",
       "tier": "situation",
       "weight": 14,
       "repeatable": true,
@@ -715,6 +721,7 @@
     },
     {
       "id": "the_affair_is_known",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
@@ -825,6 +832,7 @@
     },
     {
       "id": "a_marriage_of_two_minds",
+      "scene": "family",
       "tier": "situation",
       "weight": 8,
       "repeatable": false,
@@ -1148,6 +1156,7 @@
     },
     {
       "id": "widowed",
+      "scene": "funeral",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -1215,6 +1224,7 @@
     },
     {
       "id": "married_without_your_leave",
+      "scene": "feast",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,

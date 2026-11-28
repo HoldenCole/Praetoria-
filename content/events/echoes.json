@@ -146,6 +146,7 @@
     },
     {
       "id": "the_anomaly_stirs",
+      "scene": "world",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -249,6 +250,7 @@
     },
     {
       "id": "the_oath_remembered",
+      "scene": "court",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -463,6 +465,7 @@
     },
     {
       "id": "the_old_wound_healed",
+      "scene": "family",
       "tier": "ambient",
       "weight": 3,
       "repeatable": false,
@@ -541,6 +544,7 @@
     },
     {
       "id": "what_the_sabotage_taught",
+      "scene": "intrigue",
       "tier": "ambient",
       "weight": 3,
       "repeatable": false,
@@ -802,6 +806,7 @@
     },
     {
       "id": "the_unfamiliar_sails",
+      "scene": "steppe",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -977,6 +982,7 @@
     },
     {
       "id": "the_butchers_bill",
+      "scene": "funeral",
       "tier": "situation",
       "weight": 5,
       "repeatable": true,
@@ -1538,6 +1544,7 @@
     },
     {
       "id": "the_great_work",
+      "scene": "world",
       "tier": "setpiece",
       "weight": 5,
       "repeatable": true,
@@ -1655,6 +1662,7 @@
     },
     {
       "id": "the_proclamation",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 10,
       "repeatable": false,

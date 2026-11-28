@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_regents_hand",
+      "scene": "family",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -130,6 +131,7 @@
     },
     {
       "id": "the_coming_of_age",
+      "scene": "family",
       "tier": "situation",
       "weight": 5,
       "repeatable": true,
@@ -386,6 +388,7 @@
     },
     {
       "id": "the_knife_turned",
+      "scene": "intrigue",
       "tier": "setpiece",
       "weight": 6,
       "repeatable": true,
@@ -931,6 +934,7 @@
     },
     {
       "id": "the_suit",
+      "scene": "feast",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,

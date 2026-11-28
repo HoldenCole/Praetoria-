@@ -315,6 +315,7 @@
     },
     {
       "id": "the_loyalty_test",
+      "scene": "bridge",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -750,6 +751,7 @@
     },
     {
       "id": "the_ministers_dilemma",
+      "scene": "senate",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -847,6 +849,7 @@
     },
     {
       "id": "the_treasury_audit",
+      "scene": "market",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -935,6 +938,7 @@
     },
     {
       "id": "first_case",
+      "scene": "court",
       "tier": "situation",
       "weight": 12,
       "repeatable": false,
@@ -1364,6 +1368,7 @@
     },
     {
       "id": "the_passed_over_rival",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -1466,6 +1471,7 @@
     },
     {
       "id": "the_crossroads",
+      "scene": "dispatch",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -1626,6 +1632,7 @@
     },
     {
       "id": "the_quiet_competence",
+      "scene": "dispatch",
       "tier": "ambient",
       "weight": 5,
       "repeatable": true,

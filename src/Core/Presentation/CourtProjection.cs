@@ -608,11 +608,11 @@ public static class CourtProjection
         var factions = w.Factions.OrderByDescending(f => f.Members.Sum(h => senate.Weight(w, h))).ThenBy(f => f.Id, StringComparer.Ordinal).Select(f =>
         {
             var lh = w.House(f.LeaderHouseId);
-            string platform = string.Join(" · ", f.Platform.Where(kv => kv.Value != 0).OrderByDescending(kv => Math.Abs(kv.Value)).Take(3).Select(kv => $"{(kv.Value > 0 ? "for" : "against")} {senate.Motions.Def(kv.Key)?.Name.ToLowerInvariant() ?? kv.Key}"));
+            string platform = string.Join(" · ", f.Platform.Where(kv => kv.Value != 0).OrderByDescending(kv => Math.Abs(kv.Value)).Take(3).Select(kv => $"{(kv.Value > 0 ? "for" : "against")} {InProse(senate.Motions.Def(kv.Key)?.Name ?? kv.Key)}"));
             return new FactionCard(f.Id, f.Name, f.LeaderHouseId, lh?.Name ?? f.LeaderHouseId, f.Accent.Length > 0 ? f.Accent : lh?.AccentColor ?? "#888",
                 f.Members.Select(h => (Id: h, Name: w.House(h)?.Name ?? h, Accent: w.House(h)?.AccentColor ?? "#888")).ToList(), f.Members.Sum(h => senate.Weight(w, h)),
                 f.Members.Contains(house.Id), f.LeaderHouseId == house.Id, platform, f.Record, f.FormedTurn, new JoinFactionCommand(p.Id, f.Id).Refusal(ctx),
-                f.Description, string.Join(", ", f.Estates.Select(e => senate.Policies.Estate(e)?.Name ?? e)), string.Join(" · ", f.Laws.Select(kv => $"{senate.Policies.Law(kv.Key)?.Name.ToLowerInvariant() ?? kv.Key}: {senate.Policies.Law(kv.Key)?.Option(kv.Value)?.Name.ToLowerInvariant() ?? kv.Value}")), f.PartyId.Length > 0);
+                f.Description, string.Join(", ", f.Estates.Select(e => senate.Policies.Estate(e)?.Name ?? e)), string.Join(" · ", f.Laws.Select(kv => $"{InProse(senate.Policies.Law(kv.Key)?.Name ?? kv.Key)}: {InProse(senate.Policies.Law(kv.Key)?.Option(kv.Value)?.Name ?? kv.Value)}")), f.PartyId.Length > 0);
         }).ToList();
         ElectionCard? election = null;
         if (ElectionSystem.ConsulOffices(senate.Offices).Any())
@@ -889,4 +889,7 @@ public static class CourtProjection
         }).ToList();
         return new ChanceryCard(laws, estates, w.PoolsFor(p.Id).Influence, reach, bound);
     }
+
+    /// <summary>A name in the middle of a sentence: lower case, but the Reach keeps its capital ("the levy of the Reach").</summary>
+    private static string InProse(string name) => System.Text.RegularExpressions.Regex.Replace(name.ToLowerInvariant(), @"\breach\b", "Reach");
 }

@@ -9,7 +9,7 @@
 .docked-win:has(.office-room) .win-bar { display: none; }
 .docked-win .win-body:has(.office-room) { padding: 0; overflow: hidden; display: flex; -webkit-mask-image: none; mask-image: none; }
 
-.office-room { position: relative; flex: 1 1 auto; align-self: stretch; min-height: 0; overflow: hidden; container-type: size; background: #06080c; --pw: clamp(15.3333rem, 22cqw, 17.3333rem); }
+.office-room { position: relative; flex: 1 1 auto; align-self: stretch; min-height: 0; overflow: hidden; container-type: size; background: #06080c; --pw: clamp(18rem, 27cqw, 21.3333rem); }
 .or-stage { position: absolute; left: 50%; top: 50%; width: min(100cqw, 100cqh * 1.2121); height: min(100cqh, 100cqw / 1.2121); transform: translate(-50%, -50%); container-type: size; }
 .or-paint { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; user-select: none;
   filter: brightness(1.05) contrast(1.05) saturate(1.02); }
@@ -119,6 +119,13 @@
 .or-traits .trait { gap: .3333rem; justify-content: flex-start; border-radius: 2px; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(201,162,74,.28) !important; }
 .or-figs { display: flex; justify-content: space-around; gap: .4rem; padding: .6rem 1.2rem .2rem 1.3333rem; }
 .or-fig { display: inline-flex; align-items: center; gap: .3333rem; cursor: help; } .or-fig b { font: 600 1.1333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); }
-.or-lines .line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
+/* a line wraps to two lines, then the rest is in its tooltip; four lines, then a link to the Chronicle, so the panel never scrolls */
+.or-lines .line { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: help; }
+.or-more { padding: .4rem 1.6rem 0 2.2667rem; }
+.or-panel .ui-sec { padding-right: 1.6rem; } .or-kv, .or-who, .or-traits, .or-lines, .or-figs { padding-right: 1.6rem; }
+.or-who h2 { overflow-wrap: anywhere; }
 .or-letter:hover::before { content: ""; position: absolute; inset: -.3333rem; border-radius: 3px; box-shadow: 0 0 0 2px rgba(246,226,160,.75); }
 .or-panel .or-great .ui-meter { grid-template-columns: 4.8rem minmax(4rem, 1fr) 3.6rem; }   /* the track keeps its room in the narrow panel */
+/* the clamp cuts at the padding box: the space between lines is margin, so no half of a third line shows under the second */
+.or-lines .line { padding-top: 0; padding-bottom: 0; margin: .4rem 0; } .or-lines .line::before { top: .5rem; }
+.or-lines .line:not(:last-child) { padding-bottom: 0; box-shadow: 0 .4rem 0 -1px transparent; }

@@ -2,6 +2,7 @@
   "events": [
     {
       "id": "a_seat_by_the_purse",
+      "scene": "market",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -458,6 +459,7 @@
     },
     {
       "id": "a_name_in_arms",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -499,6 +501,7 @@
     },
     {
       "id": "a_name_in_commerce",
+      "scene": "market",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -693,6 +696,7 @@
     },
     {
       "id": "first_of_the_name",
+      "scene": "family",
       "tier": "situation",
       "weight": 8,
       "repeatable": false,
@@ -780,6 +784,7 @@
     },
     {
       "id": "the_old_names",
+      "scene": "senate",
       "tier": "ambient",
       "weight": 2,
       "repeatable": false,

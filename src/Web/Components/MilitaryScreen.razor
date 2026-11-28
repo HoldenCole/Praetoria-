@@ -513,6 +513,13 @@
                         }
                         <Plate Label="Refit" Small="true" Icon="gears" CostIcon="materials" CostText="@((RefitFleetCommand.MaterialsPerHull * f.Strength).ToString())" Locked="@(f.Refit.Refusal != null)" Disabled="@(f.Refit.Refusal != null)" ShowNeed="true" Need="@Cap(f.Refit.Refusal ?? "")"
                                Tip="@($"[gears] Refit {f.Name}\n{RefitFleetCommand.MaterialsPerHull * f.Strength} materials, and readiness is back to 100 at once.")" OnClick="() => G.Execute(new RefitFleetCommand(pid, fid))" />
+                        @* the one plate for the rest of the fleet's orders (4.7): drill, lay up, and the drawers (rename, admiral, captain,
+                           hulls, hire out, merge) in a menu in the medium frame *@
+                        <span class="mf-menu-wrap">
+                        <button class="ui-btn sm mf-menu-btn @(_ordersFor == fid ? "on" : "")" aria-expanded="@(_ordersFor == fid ? "true" : "false")" title="The fleet's other orders: drill, lay up, rename, its admiral and captain, its hulls, hire it out" @onclick="() => _ordersFor = _ordersFor == fid ? null : fid"><Icon Name="scroll-quill" Tone="ivory" Size="16" />Orders<Icon Name="chev" Tone="brass" Size="13" Class="mf-menu-chev" /></button>
+                        @if (_ordersFor == fid)
+                        {
+                        <span class="mf-menu" role="menu">
                         @if (!fleet.Office && fleet.LevyOf.Length == 0)
                         {
                             /* drill: a smaller force made worth more, for manpower each year */
@@ -535,6 +542,9 @@
                             @if (!fleet.IsAway && fleet.LevyOf.Length == 0) { <button class="mf-tg @(drawer == "hulls" ? "on" : "")" data-hulls="@f.Id" title="Detach hulls as a guard, or pay them off" @onclick='() => Toggle(fid, "hulls")'>Hulls</button> }
                             @if (!fleet.IsAway && !fleet.Office && fleet.LevyOf.Length == 0) { <button class="mf-tg @(drawer == "hire" ? "on" : "")" data-hire="@f.Id" title="Hire the fleet out in another house's war" @onclick='() => Toggle(fid, "hire")'>Hire out</button> }
                             @if (f.MergeOptions.Count > 0) { <button class="mf-tg @(drawer == "merge" ? "on" : "")" title="Fold another of your fleets into this one" @onclick='() => Toggle(fid, "merge")'>Merge</button> }
+                        </span>
+                        </span>
+                        }
                         </span>
                     </div>
                     @if (drawer == "rename" && !fleet.Office && fleet.LevyOf.Length == 0)
@@ -701,6 +711,8 @@
     private readonly Dictionary<string, string> _drawer = new();
     private void Toggle(string fleetId, string what) { if (_drawer.GetValueOrDefault(fleetId) == what) _drawer.Remove(fleetId); else _drawer[fleetId] = what; }
     private void Pick(string key) => _view = key;
+    /// <summary>The fleet whose Orders menu is open.</summary>
+    private string? _ordersFor;
     private void SendCaptain(string fleetId, bool on) { if (on) { _withCap.Add(fleetId); } else { _withCap.Remove(fleetId); } }
     private void Detach(DetachHullsCommand det, string fleetId) { G.Execute(det); _withCap.Remove(fleetId); }
     private static IReadOnlyList<Option> Opts(IReadOnlyList<Option>? o) => o ?? Array.Empty<Option>();

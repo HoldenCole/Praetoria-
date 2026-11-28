@@ -76,6 +76,7 @@
     },
     {
       "id": "rich_vein",
+      "scene": "world",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -136,6 +137,7 @@
     },
     {
       "id": "richest_in_the_reach",
+      "scene": "market",
       "tier": "ambient",
       "weight": 6,
       "repeatable": false,

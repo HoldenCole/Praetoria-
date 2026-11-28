@@ -16,7 +16,9 @@
 .hu-dim { color: var(--ink-mute); font-weight: 500; }
 
 /* ---- the header: the audience; the facts in a column, the figures spread along the plinth ---- */
-.hu-head .ui-head-art { background-position: center 40%; }
+/* the audience hall's lit window falls right of the text column, and the shade reaches further, so the title never sits on glass */
+.hu-head .ui-head-art { background-position: 78% 40%; }
+.hu-head .ui-head-shade { background: linear-gradient(90deg, rgba(8,10,15,.9) 0%, rgba(8,10,15,.72) 40%, rgba(8,10,15,.25) 70%, rgba(8,10,15,.18)), linear-gradient(180deg, rgba(8,10,15,0) 55%, rgba(8,10,15,.85)); }
 .hu-head .ui-facts { display: grid; grid-template-columns: repeat(2, max-content); gap: .2667rem 1.0667rem; }
 .hu-head .ui-facts > span { white-space: nowrap; cursor: help; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9); }
 .hu-head .ui-plinth { justify-content: space-between; }
@@ -24,10 +26,27 @@
 .hu-head .ui-fig[title] { cursor: help; }
 
 /* ---- the standings ---- */
-.hu-table { margin: .4rem var(--yg-r) 0 var(--yg-l); overflow-x: auto; scrollbar-width: thin; scrollbar-color: #c9a24a #05070a; }
+/* the table fits the docked window (4.13): fixed column widths, the house's name takes what is left and is cut last; under the
+   container's narrower sizes the seats, then the worlds, step into the row's tooltip, and "House" drops from the names */
+.hu-table { margin: .4rem var(--yg-r) 0 var(--yg-l); overflow: hidden; }
+.hu-win .ui-table.standings { table-layout: fixed; width: 100%; }
+.hu-win .ui-table.standings th.hu-c-hn { width: auto; }
+.hu-win .ui-table.standings .hu-c-rank { width: 6.6rem; } .hu-win .ui-table.standings .hu-c-worlds, .hu-win .ui-table.standings .hu-c-n, .hu-win .ui-table.standings .hu-c-seats { width: 4rem; }
+.hu-win .ui-table.standings .hu-c-wealth { width: 4.8rem; } .hu-win .ui-table.standings .hu-c-ord { width: 4.8rem; } .hu-win .ui-table.standings .hu-c-to { width: 4.4rem; }
+.hu-win .ui-table.standings th.hu-bench { width: 9rem; }
+.hu-win .ui-table.standings td.hn { overflow: hidden; } .hu-win .ui-table.standings td.hn .hu-hn { max-width: 100%; } .hu-win .ui-table.standings td.hn b { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.hu-win .ui-table.standings td.hu-c-rank { overflow: hidden; text-overflow: ellipsis; }
+.hu-hw { display: inline; }
+.hu-ords { display: inline-flex; align-items: center; justify-content: center; gap: .1333rem; }
+.hu-ord-b { display: inline-grid; place-items: center; width: 1.3333rem; height: 1.6rem; padding: 0; border: 0; background: none; cursor: pointer; opacity: .8; }
+.hu-ord-b:hover { opacity: 1; } .hu-ord-b.here { opacity: 1; box-shadow: inset 0 -2px 0 var(--brass); }
+.hu-wpips { display: inline-flex; gap: 3px; vertical-align: middle; }
+.hu-wpips i { width: 6px; height: 6px; transform: rotate(45deg); background: #05070a; box-shadow: 0 0 0 1px rgba(201,162,74,.35); }
+.hu-wpips i.on { background: linear-gradient(135deg, #f6e2a0, #c9a24a 55%, #8f6a26); box-shadow: 0 0 0 1px #000; }
+.hu-wpips.poor i.on { background: var(--warn); } .hu-wpips.destitute i { box-shadow: 0 0 0 1px rgba(224,85,63,.6); }
 .game .win-body .hu-win .ui-table th { height: 2.1333rem; text-align: right; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); border-bottom: 1px solid rgba(201,162,74,.45); padding: 0 .5333rem; white-space: nowrap; }
 .game .win-body .hu-win .ui-table th:first-child, .game .win-body .hu-win .ui-table td:first-child, .game .win-body .hu-win .ui-table th:nth-child(2), .game .win-body .hu-win .ui-table td:nth-child(2) { text-align: left; }
-.game .win-body .hu-win .ui-table th.hu-ord, .game .win-body .hu-win .ui-table td.hu-ord { text-align: center; padding: 0 .1333rem; width: 1.8rem; }
+.game .win-body .hu-win .ui-table th.hu-ord, .game .win-body .hu-win .ui-table td.hu-ord { text-align: center; padding: 0 .1333rem; width: 4.8rem; }
 .game .win-body .hu-win .ui-table th.hu-bench, .game .win-body .hu-win .ui-table td.hu-bench { text-align: left; }
 .hu-win .ui-table.standings { font: 500 .9333rem/1 var(--f-ui); }
 .hu-win .ui-table.standings td { height: 2.4rem; padding: 0 .5333rem; border-bottom: 1px solid rgba(255,255,255,.05); font-weight: 600; color: var(--ink); }
@@ -74,7 +93,7 @@
 .hu-lasting { padding: .4rem var(--yg-r) .4rem var(--yg-l); display: flex; flex-direction: column; gap: .2667rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
 .hu-lasting .line { display: flex; flex-wrap: wrap; align-items: center; gap: .5333rem; }
 .hu-lasting .line.ui-down { color: #f0a090; } .hu-lasting .line.ui-up { color: var(--good); }
-.hu-good { padding: .5333rem var(--yg-r) .4rem var(--yg-l); border-bottom: 1px solid rgba(255,255,255,.05); display: flex; flex-direction: column; gap: .4rem; }
+div.hu-good { padding: .5333rem var(--yg-r) .4rem var(--yg-l); border-bottom: 1px solid rgba(255,255,255,.05); display: flex; flex-direction: column; gap: .4rem; }
 .hu-good-nm { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .6667rem; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); } .hu-good-nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
 .hu-good-acts { display: flex; flex-wrap: wrap; gap: .4rem; }
 .hu-venture { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .9333rem; padding: .5333rem var(--yg-r) .4rem var(--yg-l); border-bottom: 1px solid rgba(255,255,255,.05); }
@@ -109,6 +128,13 @@
 .hu-win .ui-link.back { margin-left: .4rem; }
 
 @container hw (max-width: 60rem) { .hu-win .hu-bench { display: none; } }
+@container hw (max-width: 46rem) { .hu-win .ui-table.standings .hu-c-seats { display: none; } }
+@container hw (max-width: 42rem) {
+  .hu-win .ui-table.standings .hu-c-worlds { display: none; }
+  .hu-win .ui-table.standings .hu-c-rank { width: 5.6rem; }
+  .hu-hw { display: inline-block; width: 0; overflow: hidden; vertical-align: bottom; }   /* still in the text, for the scripts and a reader */
+  .hu-mark.you { padding: 0 .2rem; }
+}
 @container hw (max-width: 52rem) {
   .hu-win { --yg-l: 1.4667rem; --yg-r: 1.2rem; }
   .hu-bar { display: none; }
@@ -139,7 +165,8 @@
 .hu-figs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; margin: .4rem var(--yg-r) .4rem var(--yg-l); }
 .hu-fig { display: grid; justify-items: center; gap: .1333rem; padding: .4rem .2rem; border: 0; background: none; color: var(--ink); text-align: center; }
 button.hu-fig { cursor: pointer; } button.hu-fig:hover { background: linear-gradient(rgba(201,162,74,.08), transparent); }
-.hu-fig + .hu-fig { box-shadow: inset 1px 0 0 rgba(201,162,74,.18); }
+.hu-fig { position: relative; }
+.hu-fig + .hu-fig::before { content: ""; position: absolute; left: -.1667rem; top: 50%; width: .3333rem; height: .3333rem; transform: translateY(-50%) rotate(45deg); background: var(--brass-mid); box-shadow: 0 0 0 1px #000; }   /* the plinth's brass diamonds, not box rules */
 .hu-fig b { font: 600 1.2rem/1.1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; } .hu-fig b small { font-size: .8333rem; color: var(--ink-dim); font-weight: 500; }
 .hu-fig > span { display: inline-flex; align-items: center; gap: .2667rem; font: 500 .8333rem/1.2 var(--f-ui); color: var(--ink-mute); }
 .hu-fig .hu-chev { width: .6667rem; height: .6667rem; transition: transform .15s; } .hu-fig .hu-chev.open { transform: rotate(90deg); }
@@ -155,3 +182,11 @@ button.hu-fig { cursor: pointer; } button.hu-fig:hover { background: linear-grad
 .hu-person { display: block; }
 .hu-person .ui-row .hu-acts { flex-wrap: wrap; max-width: 26rem; }
 .hu-person .ui-row-sub .hu-marks { margin-left: .4rem; }
+/* a person of another house (4.7): the name and the subtitle keep the row's width; what may be done with them stands on a second
+   line under the name, so two plates never crush a name to "Luciu..." */
+.hu-person .ui-row { grid-template-rows: auto auto; }
+.hu-person .ui-row > div:first-child { grid-row: 1 / span 2; align-self: center; }
+.hu-person .ui-row > div:nth-child(4) { grid-column: 2 / -1; grid-row: 2; justify-self: start; }
+.hu-person .ui-row > div:nth-child(4):has(.hu-acts:not(:empty)) { margin-top: .3333rem; }
+.hu-person .ui-row .hu-acts { display: flex; flex-wrap: wrap; gap: .4rem; max-width: none; padding: 0; }
+.hu-person .ui-row .ui-row-nm { white-space: normal; }

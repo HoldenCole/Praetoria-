@@ -63,7 +63,7 @@
                     <ChildContent>
                     @foreach (var b in m.Briefing)
                     {
-                        string scene = SceneArt.For(b.Item.Fired.Def.Id, b.Title);
+                        string scene = SceneArt.For(b.Item.Fired.Def, b.Title);
                         <button class="ac-report @(b.Resolved ? "done" : "") @(b.Setpiece ? "setpiece" : "")" title="@(b.Resolved ? "Answered: open it again to read what was said" : "Open this report")" @onclick="() => OnOpenReport.InvokeAsync(b)">
                             <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="eager" decoding="async" /></span>
                             <span class="nm"><b>@b.Title</b><span class="k">@(b.Resolved ? "answered" : b.Setpiece ? "a turning point · waiting for you" : "waiting for you")</span></span>

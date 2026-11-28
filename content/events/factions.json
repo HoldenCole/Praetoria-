@@ -24,7 +24,7 @@
       ]
     },
     {
-      "id": "the_whips_displeasure", "tier": "situation", "weight": 10, "repeatable": true,
+      "id": "the_whips_displeasure", "scene": "senate", "tier": "situation", "weight": 10, "repeatable": true,
       "when": [ { "type": "worldFlag", "flag": "broke_the_whip" } ],
       "choices": [
         { "id": "apologise", "effects": [ { "type": "adjustResource", "resource": "influence", "delta": -1 }, { "type": "adjustCounter", "key": "stress", "delta": 3 },
@@ -46,7 +46,7 @@
       ]
     },
     {
-      "id": "across_the_aisle", "tier": "setpiece", "weight": 11, "repeatable": true,
+      "id": "across_the_aisle", "scene": "senate", "tier": "setpiece", "weight": 11, "repeatable": true,
       "when": [ { "type": "worldFlag", "flag": "faction_against_me" } ],
       "choices": [
         { "id": "offer_a_deal", "cost": { "influence": 2 }, "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 1 },

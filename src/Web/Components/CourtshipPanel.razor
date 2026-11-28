@@ -183,17 +183,18 @@
                 {
                     bool wishCol = suitor.Id != pid && suitor.Age >= 16;
                     <p class="dy-note" data-prospect-legend><b>Favour</b> is what the one courted would feel; <b>Family</b> is how near their family is to saying yes, and they agree at @CourtshipSystem.AcceptAt. @(wishCol ? $"{First(suitor.Name)}'s wish is what your own relative thinks of the match: under {CourtshipSystem.UnwillingWish} they are unwilling. " : "")Both move in the years of the courtship.</p>
+                    var shownPr = Sorted(w, suitor, prospects).Take(_more ? 24 : 6).ToList(); var picked = shownPr.Select(x => x.person).FirstOrDefault(x => x.Id == _pick) ?? shownPr.FirstOrDefault().person;
                     <div class="ui-table-wrap dy-table">
                     <table class="ui-table prospects">
-                        <thead><tr><th>Who</th><th class="sortable @(_sort == "house" ? "here" : "")" title="Sort by the standing of their house" @onclick='() => _sort = "house"'>House</th>@if (wishCol) { <th title="What your own kin would think of them">Wish</th> }
+                        <thead><tr><th class="sortable @(_sort == "" ? "here" : "")" title="Likeliest: the likeliest match first, favour and family together, those who can bear heirs ahead. Click a row to pick it; what can be done is at the table's foot." @onclick='() => _sort = ""'>Who</th><th class="sortable @(_sort == "house" ? "here" : "")" title="Sort by the standing of their house" @onclick='() => _sort = "house"'>House</th>@if (wishCol) { <th title="What your own kin would think of them">Wish</th> }
                             <th class="sortable dy-best @(_sort == "skill" ? "here" : "")" title="What they are best at, and how good (skills run from 0 to 10). Sort by it." @onclick='() => _sort = "skill"'>Best</th>
                             <th class="sortable @(_sort == "dowry" ? "here" : "")" title="The customary dowry of a match with their house, in credits: it follows the house's rank and wealth. It is paid by the bride's house, so it comes to you when one of yours marries a daughter of theirs and is yours to pay when a daughter of yours marries into theirs. The terms can ask for none, or for a rich one of twice this. Sort by it." @onclick='() => _sort = "dowry"'>Dowry</th>
-                            <th class="sortable @(_sort == "favour" ? "here" : "")" title="What they would feel on the first day. Sort by it." @onclick='() => _sort = "favour"'>Favour</th><th class="sortable @(_sort == "family" ? "here" : "")" title="What their family would think on the first day. Sort by it." @onclick='() => _sort = "family"'>Family</th><th class="sortable @(_sort == "" ? "here" : "")" title="The likeliest match first: favour and family together, those who can bear heirs ahead" @onclick='() => _sort = ""'>Likeliest</th></tr></thead>
+                            <th class="sortable @(_sort == "favour" ? "here" : "")" title="What they would feel on the first day. Sort by it." @onclick='() => _sort = "favour"'>Favour</th><th class="sortable @(_sort == "family" ? "here" : "")" title="What their family would think on the first day. Sort by it." @onclick='() => _sort = "family"'>Family</th></tr></thead>
                         <tbody>
-                            @foreach (var pr in Sorted(w, suitor, prospects).Take(_more ? 24 : 6))
+                            @foreach (var pr in shownPr)
                             {
                                 var t = pr.person; var th = w.House(t.HouseId); string tid = t.Id; string sid = suitor.Id; bool kid = t.Age < 16 || suitor.Age < 16;
-                                <tr>
+                                <tr class="@(t.Id == picked?.Id ? "on" : "")" data-prospect="@tid" title="@($"{t.Name}: pick them. What can be done is at the table's foot.")" @onclick="() => _pick = tid">
                                     <td><span class="dy-who"><Portrait Id="@t.Id" Name="@t.Name" Sex="@t.Sex" Age="@t.Age" Accent="@(th?.AccentColor ?? "#888")" Size="30" Height="36" /><span><b>@t.Name</b> <small>@t.Age@(kid ? " · a promise" : "")</small>@if (!CourtshipSystem.CanBear(suitor, t)) { <span class="dy-unlikely" title="Heirs unlikely: the woman is at or near the end of her bearing years, and children are unlikely"><Icon Name="hourglass" Tone="ember" Size="14" /></span> }</span></span></td>
                                     <td title="@(th == null ? "" : $"{th.Name}, {Praetoria.Core.Progression.Title.StyleOf(th.Title, w.Era)} house, legitimacy {th.Legitimacy}")">@if (th != null) { <span class="dy-house"><Sigil HouseId="@th.Id" Accent="@th.AccentColor" Size="16" />@th.Name.Replace("House ", "")<small>@th.Legitimacy</small></span> }</td>
                                     @if (wishCol) { int wish = kid ? 50 : CourtshipSystem.StartFavour(w, t, suitor); <td class="@(wish >= 45 ? "ui-up" : wish < CourtshipSystem.UnwillingWish ? "ui-down" : "")">@(kid ? "–" : wish.ToString())</td> }
@@ -201,11 +202,20 @@
                                     <td data-dowry="@DowryOf(w, suitor, t)" title="@(suitor.Sex == "female" ? "Yours to pay: the bride is of your house." : "Theirs to pay: the bride is of their house.")">@Money.Show(DowryOf(w, suitor, t))@if (suitor.Sex == "female") { <small> to pay</small> }</td>
                                     <td class="@(pr.favour >= 45 ? "ui-up" : pr.favour < 25 && !kid ? "ui-down" : "")">@(kid ? "–" : pr.favour.ToString())</td>
                                     <td class="@(pr.consent >= 45 ? "ui-up" : pr.consent < 25 ? "ui-down" : "")">@pr.consent</td>
-                                    <td><button class="ui-btn sm" title="@(kid ? "Sound their family out about a promise" : suitor.Id == pid ? "Begin to pay court" : "Begin to arrange the match")" @onclick="() => G.Execute(new CourtCommand(pid, sid, tid))">@(kid ? "Sound them out" : suitor.Id == pid ? "Pay court" : "Arrange it")</button></td>
                                 </tr>
                             }
                         </tbody>
                     </table>
+                    @if (picked != null)
+                    {
+                        @* the order bar at the table's foot (4.13): the one picked, and what can be begun with them *@
+                        var t = picked; var th = w.House(t.HouseId); string tid = t.Id; string sid = suitor.Id; bool kid = t.Age < 16 || suitor.Age < 16;
+                        <div class="ui-orderbar dy-orderbar" data-prospect-bar="@tid">
+                            <span class="dy-ob-nm"><Portrait Id="@t.Id" Name="@t.Name" Sex="@t.Sex" Age="@t.Age" Accent="@(th?.AccentColor ?? "#888")" Size="24" Height="28" Opens="false" /><b>@t.Name</b>@if (th != null) { <small>@th.Name</small> }</span>
+                            <span class="dy-ob-dowry" title="@(suitor.Sex == "female" ? "The customary dowry, yours to pay: the bride is of your house." : "The customary dowry, theirs to pay: the bride is of their house.")"><Icon Name="credits" Tone="brass" Size="16" />@Money.Show(DowryOf(w, suitor, t))@if (suitor.Sex == "female") { <small>&nbsp;to pay</small> }</span>
+                            <button class="ui-btn sm" title="@(kid ? "Sound their family out about a promise" : suitor.Id == pid ? "Begin to pay court" : "Begin to arrange the match")" @onclick="() => G.Execute(new CourtCommand(pid, sid, tid))">@(kid ? "Sound them out" : suitor.Id == pid ? "Pay court" : "Arrange it")</button>
+                        </div>
+                    }
                     </div>
                     @if (prospects.Count > 6) { <div class="dy-more"><Link Label="@(_more ? "Show fewer" : $"Show more of {prospects.Count}")" OnClick="() => _more = !_more" /></div> }
                 }
@@ -225,6 +235,8 @@
     private string? _suitor, _confirm; private bool _more;
     /// <summary>How the table of prospects is sorted: "" the likeliest first, or house, skill, dowry, favour, family.</summary>
     private string _sort = "";
+    /// <summary>The prospect picked in the table, whose order bar stands at its foot (the likeliest when none is).</summary>
+    private string? _pick;
     private static (string name, int level) Best(Character c) => c.Skills.Count == 0 ? ("", 0) : c.Skills.OrderByDescending(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => (kv.Key, kv.Value)).First();
     private static string BestSkill(Character c) { var b = Best(c); return b.level <= 0 ? "nothing yet" : b.name.Replace('_', ' ') + " " + b.level; }
     /// <summary>The customary dowry of a match between the two: the bride's house pays it.</summary>

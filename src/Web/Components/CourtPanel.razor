@@ -20,12 +20,12 @@
     {
         var r = house.Position(role); string rl = role; int skill = CourtSystem.Skill(w, house.Id, role);
         <div class="duty hs-post @(r == null ? "empty" : "")" data-position="@role" data-held="@(r != null ? "1" : "0")">
-            <Row Name="@CourtSystem.Name(role)" Tip="@CourtSystem.Does(role)">
+            <Row Name="@CourtSystem.Name(role)" Tip="@(CourtSystem.Does(role) + (r == null ? "\n" + Without(role) : ""))">
                 <Picture>
                     @if (r != null) { <Portrait Id="@(r.KinId.Length > 0 ? r.KinId : r.Id)" Name="@r.Name" Sex="@r.Sex" Age="@r.Age" Accent="@house.AccentColor" Size="46" Height="56" Opens="@(r.KinId.Length > 0)" /> }
                     else { <Portrait Size="46" Height="56" EmptyGlyph="@Glyph(role)" Name="@($"{CourtSystem.Name(role)}: empty")" /> }
                 </Picture>
-                <Sub>@if (r != null) { <span><b>@r.Name</b>, @r.Age · @(r.KinId.Length > 0 ? "of the family" : "of the commons") · @Years(w.Turn - r.Since) in the place</span> } else { <span class="ui-mute">Empty. @Without(role)</span> }</Sub>
+                <Sub>@if (r != null) { <span><b>@r.Name</b>, @r.Age · @(r.KinId.Length > 0 ? "of the family" : "of the commons") · @Years(w.Turn - r.Since) in the place</span> } else { <span class="hs-state">Empty</span> }</Sub>
                 <Cells>
                     @if (r != null)
                     {

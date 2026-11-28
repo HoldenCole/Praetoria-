@@ -102,19 +102,14 @@
                         <Section Title="The character" Info="Leave anything blank to play the scenario's protagonist as written. A name, a sex, a service, an ambition, a background and the traits you pick replace what the scenario wrote.">
                             <Right><span>as written: <b>@_protagonistName</b></span></Right>
                             <ChildContent>
-                                <p class="fr-note">Leave anything blank to play the scenario's protagonist as written.</p>
-                                <div class="fr-fields">
-                                    <label class="fr-field"><span class="fr-fl">Name</span><input class="fr-in" @bind="_name" placeholder="@_protagonistName" /></label>
-                                    <label class="fr-field"><span class="fr-fl">Sex</span>
-                                        <select class="fr-sel" @bind="_sex"><option value="">as written</option><option value="male">male</option><option value="female">female</option></select></label>
-                                    <label class="fr-field"><span class="fr-fl">Career track</span>
-                                        <select class="fr-sel" @bind="_track"><option value="">as written</option>
-                                            @foreach (var t in G.Content!.Careers.Defs) { <option value="@t.Id">@t.Name</option> }
-                                        </select></label>
-                                    <label class="fr-field"><span class="fr-fl">Ambition</span>
-                                        <select class="fr-sel" @bind="_ambition"><option value="">as written</option>
-                                            @foreach (var a in G.Content!.Traits.Ambitions) { <option value="@a.Id" title="@a.Description">@a.Name</option> }
-                                        </select></label>
+                                <div class="fr-rules fr-who">
+                                    <div class="fr-rule" title="Their name; blank keeps the scenario's"><Icon Name="scroll-quill" Tone="ivory" Size="18" /><span class="fr-rule-nm">Name</span>
+                                        <span class="fr-rule-v"><input class="fr-in ui-input" @bind="_name" placeholder="@_protagonistName" aria-label="Name" /></span></div>
+                                    @(Rule("sex", "three-friends", "ivory", "Sex", "As written keeps the scenario's", _sex, v => _sex = v, ("", "As written", "As the scenario wrote them"), ("male", "Male", "A man"), ("female", "Female", "A woman")))
+                                    <div class="fr-rule" data-setting="track"><Icon Name="@(_track != "" ? Workshop.TrackIcon(_track) : "upgrade")" Tone="ivory" Size="18" /><span class="fr-rule-nm" title="The service they rise in">Career track</span>
+                                        <span class="fr-rule-v"><Select Options="@(new[] { new Select.Option("", "As written") }.Concat(G.Content!.Careers.Defs.Select(t => new Select.Option(t.Id, t.Name))).ToList())" Value="@_track" Tip="The service they rise in; as written keeps the scenario's" OnChange="v => _track = v" /></span></div>
+                                    <div class="fr-rule" data-setting="ambition"><Icon Name="@(_ambition != "" ? Workshop.AmbitionIcon(_ambition) : "stairs-goal")" Tone="brass" Size="18" /><span class="fr-rule-nm" title="What they are after">Ambition</span>
+                                        <span class="fr-rule-v"><Select Options="@(new[] { new Select.Option("", "As written") }.Concat(G.Content!.Traits.Ambitions.Select(a => new Select.Option(a.Id, a.Name))).ToList())" Value="@_ambition" Tip="What they are after; as written keeps the scenario's" OnChange="v => _ambition = v" /></span></div>
                                 </div>
                                 @if (_track != "") { <p class="fr-says" data-track-says><Icon Name="@Workshop.TrackIcon(_track)" Tone="brass" Size="18" /><span>@TrackSays(_track)</span></p> }
                                 @if (_ambition != "" && G.Content!.Traits.Ambitions.FirstOrDefault(a => a.Id == _ambition) is { } amb) { <p class="fr-says" data-ambition-says><Icon Name="@Workshop.AmbitionIcon(amb.Id)" Tone="brass" Size="18" /><span><b>@amb.Name.</b> @amb.Description Reports that speak to what you want come to you more often, and the You window shows how near you are.</span></p> }
@@ -343,68 +338,35 @@
     /// <summary>The rules of the world: one row each, the name at the left and the choice at the right; the same for a written start and
     /// a character of one's own (on the workshop's last tab).</summary>
     private RenderFragment Rules() => @<div class="fr-rules-wrap">
-        <Section Title="The world" Info="The rules this saga is played by. Hover a rule for what it does. None of them can be changed once the saga begins.">
+        <Section Title="The world" Info="The rules this saga is played by. Hover a choice for what it does. None of them can be changed once the saga begins.">
             <div class="fr-rules">
-                <label class="fr-rule" title="The dice of the world: the same seed and the same choices make the same saga">
-                    <Icon Name="sprout" Tone="ivory" Size="20" /><span class="fr-rule-nm">Seed</span>
-                    <input class="fr-in" type="number" min="1" value="@_seed" @onchange="e => _seed = int.TryParse(e.Value?.ToString(), out var v) ? Math.Max(1, v) : 1" /></label>
-                <label class="fr-rule" title="What happens when the bloodline ends">
-                    <Icon Name="family-tree" Tone="ivory" Size="20" /><span class="fr-rule-nm">Mode</span>
-                    <select class="fr-sel" value="@_mode" @onchange="e => _mode = e.Value?.ToString() ?? _mode">
-                        <option value="ironman">Ironman: when the bloodline ends, the run ends</option>
-                        <option value="continue">Continue: a sworn house takes up the banner</option>
-                    </select></label>
-                <label class="fr-rule" title="How quickly and how hard the rival houses act">
-                    <Icon Name="crossed-sabres" Tone="ivory" Size="20" /><span class="fr-rule-nm">Difficulty</span>
-                    <select class="fr-sel" value="@_difficulty" @onchange="e => _difficulty = e.Value?.ToString() ?? _difficulty">
-                        <option value="0.5">Forgiving: rivals slow to act</option>
-                        <option value="1">Standard</option>
-                        <option value="1.5">Hard</option>
-                        <option value="2">Harsh: the galaxy hunts you</option>
-                    </select></label>
-                <label class="fr-rule" title="The Reach and every nation beyond it grow together: more systems, more houses, larger neighbours. A larger map makes for longer turns.">
-                    <Icon Name="ringed-planet" Tone="ivory" Size="20" /><span class="fr-rule-nm">The size of the map</span>
-                    <select class="fr-sel" value="@_size" data-setting="size" @onchange="e => _size = e.Value?.ToString() ?? _size">
-                        @foreach (var sz in GrowthCatalog.Sizes) { <option value="@sz">@GrowthCatalog.SizeName(sz): @SizeNote(sz)</option> }
-                    </select></label>
-                <label class="fr-rule money" title="How much everything that is built costs, and so what it returns, for every house. At Standard a thing returns what its kind is meant to: a market 7% a year, a mine 10%, the dear goods 15%.">
-                    <Icon Name="money-stack" Tone="brass" Size="20" /><span class="fr-rule-nm">Making money<small data-money-does>@MoneySettings.Does(_ease)</small></span>
-                    <select class="fr-sel" value="@_ease" data-setting="money" @onchange="e => _ease = e.Value?.ToString() ?? _ease">
-                        @foreach (var lv in MoneySettings.Levels) { <option value="@lv">@MoneySettings.Name(lv): returns @(MoneySettings.ReturnPct(lv) == 100 ? "as priced" : "×" + (MoneySettings.ReturnPct(lv) / 100.0).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))</option> }
-                    </select></label>
-                <label class="fr-rule" title="The nations that border the Reach: the Khanates, the Free Cities, the Concord, the Compact, the Crown. Each has fleets and worlds of its own on the map's rim, raids when it thinks ill of the Reach, and can be fought, bought off or subdued. This sets how strong their fleets are.">
-                    <Icon Name="spaceship" Tone="steel" Size="20" /><span class="fr-rule-nm">The powers beyond</span>
-                    <select class="fr-sel" value="@_beyond" @onchange="e => _beyond = e.Value?.ToString() ?? _beyond">
-                        <option value="gentle">Gentle: a fifth weaker</option>
-                        <option value="default">As written</option>
-                        <option value="harsh">Harsh: a quarter stronger</option>
-                    </select></label>
-                <label class="fr-rule" title="How readily a nation beyond the Reach goes from raiding to war: how often a great ruler rises among them, and how soon an invasion follows.">
-                    <Icon Name="war" Tone="ember" Size="20" /><span class="fr-rule-nm">How often they attack</span>
-                    <select class="fr-sel" value="@_aggression" @onchange="e => _aggression = e.Value?.ToString() ?? _aggression">
-                        <option value="seldom">Seldom: wars from beyond are rare</option>
-                        <option value="default">As written</option>
-                        <option value="often">Often: great rulers and invasions come sooner</option>
-                    </select></label>
-                <label class="fr-rule" title="The Great Crisis is the war of the Reach with itself: as wars, over-mighty houses and seizures pile up, the houses sort into two blocs and fight for ten years or more. This sets how fast it comes. Off, it never does, and the game is the Republic's ordinary politics for as long as you play.">
-                    <Icon Name="crisis" Tone="ember" Size="20" /><span class="fr-rule-nm">Crisis intensity</span>
-                    <select class="fr-sel" value="@_intensity" @onchange="e => _intensity = e.Value?.ToString() ?? _intensity">
-                        <option value="off">Off: no Great Crisis</option>
-                        <option value="low">Low: a slow-burning century</option>
-                        <option value="default">Default</option>
-                        <option value="dominant">Dominant: the war comes fast</option>
-                    </select></label>
-                <label class="fr-rule" title="How far your relatives go their own way. Deferential: they pursue nothing of their own, never stand for office unasked, never defy you and never elope. Wills of their own: they have ambitions, stand for office, marry for love if forbidden, and one who thinks ill enough of you defies you or goes over to a rival. A nest of schemers: the same, at half the provocation.">
-                    <Icon Name="three-friends" Tone="ivory" Size="20" /><span class="fr-rule-nm">Family autonomy</span>
-                    <select class="fr-sel" value="@_autonomy" @onchange="e => _autonomy = e.Value?.ToString() ?? _autonomy">
-                        <option value="0">Deferential kin</option>
-                        <option value="1">Wills of their own</option>
-                        <option value="2">A nest of schemers</option>
-                    </select></label>
+                @* each rule is a row (4.7): its glyph, its name, and the choice at the right as joined plates with short words; what a
+                   choice does is in its tooltip. data-setting and data-v are for tools/browser (systems.js, whosewar.js). *@
+                <div class="fr-rule" data-setting="seed" title="The dice of the world: the same seed and the same choices make the same saga">
+                    <Icon Name="rolling-dices" Tone="ivory" Size="18" /><span class="fr-rule-nm">Seed</span>
+                    <span class="fr-rule-v"><Stepper Value="@_seed" Min="1" Max="99999" Input="true" InputLabel="Seed" Tip="The dice of the world: the same seed and the same choices make the same saga" OnChange="v => _seed = Math.Max(1, v)" />
+                        <button class="ui-btn sm fr-dice" title="Let the dice choose a seed" @onclick="() => _seed = Random.Shared.Next(1, 99999)"><Icon Name="rolling-dices" Tone="ivory" Size="16" /></button></span>
+                </div>
+                @(Rule("mode", "family-tree", "ivory", "Mode", "What happens when the bloodline ends", _mode, v => _mode = v,
+                    ("ironman", "Ironman", "When the bloodline ends, the run ends"), ("continue", "Continue", "A sworn house takes up the banner")))
+                @(Rule("difficulty", "crossed-sabres", "ivory", "Difficulty", "How quickly and how hard the rival houses act", _difficulty, v => _difficulty = v,
+                    ("0.5", "Forgiving", "Rivals slow to act"), ("1", "Standard", "As the game is meant"), ("1.5", "Hard", "Rivals quicker and harder"), ("2", "Harsh", "The galaxy hunts you")))
+                @(Rule("size", "ringed-planet", "ivory", "The size of the map", "The Reach and every nation beyond it grow together: more systems, more houses, larger neighbours. A larger map makes for longer turns.", _size, v => _size = v,
+                    GrowthCatalog.Sizes.Select(sz => (sz, GrowthCatalog.SizeName(sz), $"{GrowthCatalog.SizeName(sz)}: {SizeNote(sz)}")).ToArray()))
+                @(Rule("money", "money-stack", "brass", "Making money", $"How much everything that is built costs, and so what it returns, for every house. At Standard a thing returns what its kind is meant to: a market 7% a year, a mine 10%, the dear goods 15%.\nNow: {MoneySettings.Does(_ease)}", _ease, v => _ease = v,
+                    MoneySettings.Levels.Select(lv => (lv, MoneySettings.Name(lv), $"{MoneySettings.Name(lv)}: returns {(MoneySettings.ReturnPct(lv) == 100 ? "as priced" : "×" + (MoneySettings.ReturnPct(lv) / 100.0).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))}")).ToArray()))
+                @(Rule("beyond", "spaceship", "steel", "The powers beyond", "The nations that border the Reach: the Khanates, the Free Cities, the Concord, the Compact, the Crown. Each has fleets and worlds of its own on the map's rim, raids when it thinks ill of the Reach, and can be fought, bought off or subdued. This sets how strong their fleets are.", _beyond, v => _beyond = v,
+                    ("gentle", "Gentle", "Gentle: a fifth weaker"), ("default", "As written", "As written"), ("harsh", "Harsh", "Harsh: a quarter stronger")))
+                @(Rule("aggression", "war", "ember", "How often they attack", "How readily a nation beyond the Reach goes from raiding to war: how often a great ruler rises among them, and how soon an invasion follows.", _aggression, v => _aggression = v,
+                    ("seldom", "Seldom", "Seldom: wars from beyond are rare"), ("default", "As written", "As written"), ("often", "Often", "Often: great rulers and invasions come sooner")))
+                @(Rule("intensity", "crisis", "ember", "Crisis intensity", "The Great Crisis is the war of the Reach with itself: as wars, over-mighty houses and seizures pile up, the houses sort into two blocs and fight for ten years or more. This sets how fast it comes. Off, it never does, and the game is the Republic's ordinary politics for as long as you play.", _intensity, v => _intensity = v,
+                    ("off", "Off", "Off: no Great Crisis"), ("low", "Low", "Low: a slow-burning century"), ("default", "Default", "Default"), ("dominant", "Dominant", "Dominant: the war comes fast")))
+                @(Rule("autonomy", "three-friends", "ivory", "Family autonomy", "How far your relatives go their own way. Deferential: they pursue nothing of their own, never stand for office unasked, never defy you and never elope. Wills of their own: they have ambitions, stand for office, marry for love if forbidden, and one who thinks ill enough of you defies you or goes over to a rival. A nest of schemers: the same, at half the provocation.", _autonomy, v => _autonomy = v,
+                    ("0", "Deferential", "Deferential kin"), ("1", "Wills", "Wills of their own"), ("2", "Schemers", "A nest of schemers")))
             </div>
         </Section>
         <Section Title="Begin with" Count="@($"{_boosts.Count} of {MoneySettings.Boosts.Length}")" Info="For your house alone, given once when the game begins. A game begun with any of these says so in its chronicle and on the House window.">
-            <Right><span>boosts: none are on unless you tick them</span></Right>
+            <Right><span>None are on unless you tick them</span></Right>
             <ChildContent>
                 <div class="setting-boosts fr-boosts" data-setting="boosts" title="For your house alone, given once when the game begins. A game begun with any of these says so in its chronicle and on the House window.">
                     @foreach (var ch in MoneySettings.Boosts)
@@ -413,13 +375,28 @@
                         <label class="ui-check boost @(on ? "on" : "")" title="@MoneySettings.BoostDoes(ch)">
                             <input type="checkbox" data-boost="@ch" checked="@on" @onchange="e => { if (e.Value is true) _boosts.Add(id); else _boosts.Remove(id); }" />
                             <span class="ui-check-box">@if (on) { <Icon Name="check" Size="13" Class="flat" /> }</span>
-                            <b>@MoneySettings.BoostName(ch)</b><span class="fr-boost-does">@MoneySettings.BoostDoes(ch)</span>
+                            <span class="fr-boost-t"><b>@MoneySettings.BoostName(ch)</b><span class="fr-boost-does">@MoneySettings.BoostDoes(ch)</span></span>
                         </label>
                     }
                 </div>
             </ChildContent>
         </Section>
     </div>;
+
+    /// <summary>One rule of the world as a row: its glyph, its name (its rule in the tooltip) and its choices as joined plates.</summary>
+    private RenderFragment Rule(string key, string icon, string tone, string name, string tip, string value, Action<string> set, params (string v, string text, string tip)[] options) => __builder =>
+    {
+        <div class="fr-rule" data-setting="@key">
+            <Icon Name="@icon" Tone="@tone" Size="18" /><span class="fr-rule-nm" title="@tip">@name</span>
+            <span class="fr-rule-v"><span class="ui-seg" role="radiogroup" aria-label="@name">
+                @foreach (var (v, text, otip) in options)
+                {
+                    string vv = v;
+                    <button class="@(v == value ? "on" : "")" role="radio" aria-checked="@(v == value ? "true" : "false")" data-v="@v" title="@otip" @onclick="() => set(vv)">@text</button>
+                }
+            </span></span>
+        </div>
+    };
 
     private async Task OnFile(InputFileChangeEventArgs e)
     {

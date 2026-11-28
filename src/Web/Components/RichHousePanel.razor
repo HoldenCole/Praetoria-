@@ -17,7 +17,10 @@
     string estateFirst = Money.Credits(WealthSystem.EstatePrice), estateMore = Money.Show(WealthSystem.EstateDearer), estatePays = Money.Credits(WealthSystem.EstatePays);
 }
 <div class="rich-house hs-rich" data-rich-house>
-    <p class="ui-lede hs-lede hs-rich-lede">@HouseScreen.Bold($"Seat and estates. The treasury holds {Money.Held(house.Treasury)}: four things it can be spent on that are for the house's people and its name, and not for a return.")</p>
+    @* the second half of the Purse tab under its own heading: a part title in Cinzel on a gilt rule, the treasury at the right *@
+    <div class="hs-part" title="Four things the treasury can be spent on that are for the house's people and its name, and not for a return">
+        <h3>Seat and estates</h3><span class="hs-part-r"><Icon Name="credits" Tone="brass" Size="16" />The treasury holds <b>@Money.Held(house.Treasury)</b></span>
+    </div>
 
     <div data-rich-estates="@settled.Count">
     <Section Title="Land for the family" Count="@settled.Count.ToString()" Info="@($"Bought from the treasury and settled on one person, child or grown. It brings them {estatePays} a year for life into their own purse (a child's is kept for them until they are of age), it is theirs to leave, and they and whoever they are married to think the better of you. The first costs {estateFirst} at the standard setting, about fifteen years' purchase; each further one on the same person {estateMore} more; {WealthSystem.EstatesAPerson} is the most. Land settled on a son or daughter counts {WealthSystem.EstateMatch} with a family asked for a match, to {WealthSystem.EstateMatchMost}.")"
@@ -53,7 +56,7 @@
         {
             int gg = g; bool done = gg <= grade, isNext = gg == next;
             <div class="hs-rung @(done ? "done" : isNext ? "next" : "")" data-seat-grade="@gg">
-                <Row Name="@($"A {WealthSystem.SeatName(gg)}")" SubText="@WealthSystem.SeatGives(gg)" Tip="@($"A {WealthSystem.SeatName(gg)}: {Money.Show(WealthSystem.SeatCost(gg))} to build, {Money.Show(WealthSystem.SeatKeep(gg))} a year to keep. {WealthSystem.SeatGives(gg)}")" On="@(done && gg == grade)">
+                <Row Class="acts-under" Name="@($"A {WealthSystem.SeatName(gg)}")" SubText="@WealthSystem.SeatGives(gg)" Tip="@($"A {WealthSystem.SeatName(gg)}: {Money.Show(WealthSystem.SeatCost(gg))} to build, {Money.Show(WealthSystem.SeatKeep(gg))} a year to keep. {WealthSystem.SeatGives(gg)}")" On="@(done && gg == grade)">
                     <Picture><span class="ui-medal hs-medal @(done ? "lit" : "")"><Icon Name="@(done ? "check" : "castle")" Tone="@(done ? "brass" : "ivory")" Size="22" /></span></Picture>
                     <Cells><Cell Icon="credits" Value="@Money.Show(WealthSystem.SeatCost(gg))" Tip="To build" /><Cell Icon="hourglass" Tone="ivory" Value="@Money.Show(WealthSystem.SeatKeep(gg))" Small=" a year" Tip="Its keep, a year" /></Cells>
                     <Action>
@@ -86,7 +89,7 @@
             string cid = c.Id; bool has = WealthSystem.AtTheCapital(w, c.Id); int cost = WealthSystem.TownHouseCost(w, c);
             var noT = new TownHouseCommand(pid, cid, false).Refusal(G.Ctx); var noP = new TownHouseCommand(pid, cid, true).Refusal(G.Ctx);
             string takes = (c.Id == pid ? "You take in " : "Takes in ") + Money.Show(WealthSystem.YearlyIncome(w, c)) + " a year of " + (c.Id == pid ? "your" : "their") + " own.";
-            <Row Class="rich-row" Name="@(c.Id == pid ? "You" : c.Name)" SubText="@takes">
+            <Row Class="rich-row acts-under" Name="@(c.Id == pid ? "You" : c.Name)" SubText="@takes" Tip="@takes">
                 <Picture><Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Accent="@house.AccentColor" Size="46" Height="56" /></Picture>
                 <NameExtra>@if (has) { <span class="hs-tag gold">has a house at the capital</span> }</NameExtra>
                 <Action>
@@ -105,7 +108,7 @@
     </div>
 
     <div data-rich-campaigns="@paid.Count">
-    <Section Title="Coin for a canvass" Count="@standing.Count.ToString()" Info="@($"When you or one of the house stands for an office of the ladder, the treasury can pay for the canvass, besides what speaking for them does: {SizesSay} A lavish canvass is written on the record as votes bought, and any house may charge the candidate with it before a praetor at once. Whoever it was for remembers it, won or lost. The same buttons are under Senate, The ladder of offices.")">
+    <Section Title="Coin for a canvass" Count="@standing.Count.ToString()" IsEmpty="@(standing.Count == 0 && !paid.Any(f => f.Counted))" EmptyIcon="vote" EmptyLine="@($"Nobody of the house is standing for an office{(LadderSystem.Active(w, offices) ? "" : ": there are no elections under a throne")}.")" Info="@($"When you or one of the house stands for an office of the ladder, the treasury can pay for the canvass, besides what speaking for them does: {SizesSay} A lavish canvass is written on the record as votes bought, and any house may charge the candidate with it before a praetor at once. Whoever it was for remembers it, won or lost. The same buttons are under Senate, The ladder of offices.")">
         @if (standing.Count == 0) { <EmptyState Icon="vote" Text="@($"Nobody of the house is standing{(LadderSystem.Active(w, offices) ? "" : ": there are no elections under a throne")}.")" /> }
         @foreach (var (cd, who) in standing)
         {

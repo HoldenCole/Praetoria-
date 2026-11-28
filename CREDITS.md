@@ -9,7 +9,8 @@ Praetoria's code and writing are the project's own. The browser client uses thes
   set's raw SVGs (github.com/game-icons/icons): by **Lorc** and **Delapouite**, CC BY 3.0. The marks for helium-3, rare earths
   and isotopes are drawn for the game.
 - **Fonts**: Cinzel (Natanael Gama), Alegreya roman and italic (Huerta Tipográfica) and IBM Plex Sans (IBM), via Google Fonts,
-  [SIL Open Font License 1.1](https://openfontlicense.org).
+  [SIL Open Font License 1.1](https://openfontlicense.org). `src/Web/wwwroot/fonts/IBMPlexSans-var.woff2` is Plex's latin subset
+  from Google Fonts, kept beside the client so the digits in Cinzel titles can be drawn in Plex (`app.css`).
 - **Textures** (`src/Web/wwwroot/img/tex/`): `steel-brushed.jpg` from ambientCG Metal009 and `leather-dark.jpg` from ambientCG
   Leather026 ([ambientCG](https://ambientcg.com), CC0 1.0), made seamless at 512 pixels, high-passed and tinted for the game.
 - **Frames** (`src/Web/wwwroot/img/ui/`): the window, medium and small brass frames are drawn for the game (SVG); the wax seal,

@@ -3,7 +3,7 @@
    takes the body's colour, loses its bottom edge and gains a brass top line, so it joins the page. Long names are cut to one or two
    words by the caller. Under 1500px wide, a row of five or more drops its icons before it wraps. Sticky holds the row at the top of a
    page that scrolls under it (StickyTop below a header's strip). A tab's Attrs carry data-* hooks for the scripts. *@
-<nav class="ui-tabs @(Shown.Count >= 5 ? " many" : "") @(Sticky ? " sticky" : "") @(Class.Length > 0 ? " " + Class : "")" role="tablist" style="@(Sticky ? $"top:{StickyTop}" : null)">
+<nav class="ui-tabs @(Shown.Count >= 5 ? " many" : "") @(Sticky ? " sticky" : "") @(Class.Length > 0 ? " " + Class : "")" role="tablist" data-n="@Shown.Count" style="@(Sticky ? $"top:{StickyTop}" : null)">
     @foreach (var t in Shown)
     {
         var key = t.Key;

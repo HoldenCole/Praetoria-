@@ -213,4 +213,5 @@
 /* your study as one row with two selects (docs/VISUAL_SYSTEM.md 4.12) */
 .you-study .you-study-acts { display: inline-flex; align-items: center; gap: .4rem; }
 .you-study .ui-select-btn { min-width: 8.5333rem; justify-content: space-between; }
-.you-study .ui-menu { right: 0; left: auto; min-width: 16rem; max-height: 22rem; overflow-y: auto; }
+.you-study .ui-menu { left: 0; right: auto; min-width: 16rem; max-height: 22rem; overflow-y: auto; }
+.you-study .ui-medal { width: 3.0667rem; height: 3.0667rem; } .you-study .ui-medal .icon { width: 1.3333rem; height: 1.3333rem; }

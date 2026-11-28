@@ -293,6 +293,7 @@
     },
     {
       "id": "the_failing_reactor",
+      "scene": "shipyard",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -717,6 +718,7 @@
     },
     {
       "id": "the_auditors_visit",
+      "scene": "market",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -929,6 +931,7 @@
     },
     {
       "id": "the_exotic_find",
+      "scene": "world",
       "tier": "situation",
       "weight": 3,
       "repeatable": true,
@@ -1428,6 +1431,7 @@
     },
     {
       "id": "the_grain_dole",
+      "scene": "unrest",
       "tier": "ambient",
       "weight": 4,
       "repeatable": true,

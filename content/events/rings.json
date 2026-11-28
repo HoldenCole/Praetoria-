@@ -270,6 +270,7 @@
     },
     {
       "id": "the_rim_remembers",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -411,6 +412,7 @@
     },
     {
       "id": "the_knife_traced_home",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -587,6 +589,7 @@
     },
     {
       "id": "the_keys_of_the_capital",
+      "scene": "triumph",
       "tier": "setpiece",
       "weight": 12,
       "repeatable": true,
@@ -672,6 +675,7 @@
     },
     {
       "id": "the_capital_falls",
+      "scene": "battle",
       "tier": "setpiece",
       "weight": 12,
       "repeatable": true,
@@ -756,6 +760,7 @@
     },
     {
       "id": "the_free_hold_sends_word",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 6,
       "repeatable": true,
@@ -1143,6 +1148,7 @@
     },
     {
       "id": "the_fief",
+      "scene": "world",
       "tier": "setpiece",
       "weight": 12,
       "repeatable": false,
@@ -1205,6 +1211,7 @@
     },
     {
       "id": "the_terms_of_peace",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 10,
       "repeatable": true,

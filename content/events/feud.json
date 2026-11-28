@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "blood_between_houses",
+      "scene": "funeral",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -287,6 +288,7 @@
     },
     {
       "id": "called_out",
+      "scene": "battle",
       "tier": "setpiece",
       "weight": 60,
       "repeatable": true,
@@ -353,6 +355,7 @@
     },
     {
       "id": "the_dead_unanswered",
+      "scene": "funeral",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
@@ -427,6 +430,7 @@
     },
     {
       "id": "after_the_field",
+      "scene": "funeral",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,

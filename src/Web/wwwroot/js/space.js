@@ -345,8 +345,8 @@ export class Galaxy {
     // labels: holders (0 is nobody), realms (0 is the Reach), regions
     const holders = { '': 0 }, hk = ['']; const realms = { reach: 0 }, rk = ['reach']; const regions = {}; let nreg = 0;
     for (const s of S) { const h = holderOf(s); if (!(h in holders)) { holders[h] = hk.length; hk.push(h); } const r = realmOf(s); if (!(r in realms)) { realms[r] = rk.length; rk.push(r); } if (!(s.regionId in regions)) regions[s.regionId] = nreg++; }
-    const sx = new Float64Array(N), sy = new Float64Array(N), sh = new Int32Array(N), sr = new Int32Array(N), sg = new Int32Array(N);
-    S.forEach((s, i) => { sx[i] = s.x; sy[i] = -s.y; sh[i] = holders[holderOf(s)]; sr[i] = realms[realmOf(s)]; sg[i] = regions[s.regionId]; });
+    const sx = new Float64Array(N), sy = new Float64Array(N), sh = new Int32Array(N), sr = new Int32Array(N), sg = new Int32Array(N), mine = new Uint8Array(N);
+    S.forEach((s, i) => { sx[i] = s.x; sy[i] = -s.y; sh[i] = holders[holderOf(s)]; sr[i] = realms[realmOf(s)]; sg[i] = regions[s.regionId]; mine[i] = s.isPlayer ? 1 : 0; });
     // the field's reach follows how far apart the systems stand, so the small and the extra-large maps are drawn alike (R 205 at 205)
     let nn = 0; for (let i = 0; i < N; i++) { let b = 1e12; for (let j = 0; j < N; j++) if (j !== i) b = Math.min(b, (sx[i] - sx[j]) ** 2 + (sy[i] - sy[j]) ** 2); nn += Math.sqrt(b); }
     nn = N > 1 ? nn / N : 205; const R = Math.max(140, Math.min(340, nn)), T = 0.33, R2 = R * R;
@@ -401,7 +401,7 @@ export class Galaxy {
     this.terrMesh = new THREE.Mesh(new THREE.PlaneGeometry(GW * cell, GH * cell), mat); this.terrMesh.position.set(x0 + GW * cell / 2, y0 + GH * cell / 2, 0); this.terrMesh.renderOrder = 1; this.terrMesh.frustumCulled = false;
     this.objects.add(this.terrMesh);
     const centre = (sum, i) => sum[i * 3 + 2] > 0 ? { x: sum[i * 3] / sum[i * 3 + 2], y: sum[i * 3 + 1] / sum[i * 3 + 2] } : null;
-    this.terr = { x0, y0, cell, GW, GH, E, ci, sx, sy, sh, sr, sg, hk, rk, R, nn, regIdx: regions,
+    this.terr = { x0, y0, cell, GW, GH, E, ci, sx, sy, sh, sr, sg, mine, hk, rk, R, nn, regIdx: regions,
       regionAt: Object.fromEntries(Object.keys(regions).map(id => [id, centre(regSum, regions[id])])), realmAt: Object.fromEntries(rk.map((k, i) => [k, centre(realmSum, i)])),
       land: landSum[2] > 0 ? { x: landSum[0] / landSum[2], y: landSum[1] / landSum[2] } : { x: (this.bounds.minX + this.bounds.maxX) / 2, y: (this.bounds.minY + this.bounds.maxY) / 2 } };
     this.miniBase = null;
@@ -741,13 +741,16 @@ export class Galaxy {
   obstacles() {
     const out = []; const add = r => { if (r && r.w > 0 && r.h > 0) out.push({ x: r.x, y: r.y, w: r.w, h: r.h }); };
     const c = this.cover || window.praetoriaShell?.covered?.(); if (c) for (const k of Object.keys(c)) add(c[k]);
-    for (const e of document.querySelectorAll('.gs-shell.game .endturn-dock, .galaxy .order-bar, .galaxy .crumbs, .galaxy .world-strip, .galaxy .legend, .galaxy .map-side:not(.idle)')) { if (getComputedStyle(e).display === 'none') continue; const r = e.getBoundingClientRect(); add({ x: r.left, y: r.top, w: r.width, h: r.height }); }
+    for (const e of document.querySelectorAll('.gs-shell.game .endturn-dock, .galaxy .order-bar, .galaxy .crumbs-in, .galaxy .world-strip, .galaxy .legend, .galaxy .map-side:not(.idle)')) { if (getComputedStyle(e).display === 'none') continue; const r = e.getBoundingClientRect(); add({ x: r.left, y: r.top, w: r.width, h: r.height }); }
     return out;
   }
   declutter() {
     if (!this.model || this.sys) return;
     const hits = (a, b, pad) => a.x < b.x + b.w + pad && b.x < a.x + a.w + pad && a.y < b.y + b.h + pad && b.y < a.y + a.h + pad;
-    const host = this.renderer.domElement.getBoundingClientRect(), f = this.freeRect(), view = { x: host.left + f.x0, y: host.top + f.y0, w: f.x1 - f.x0, h: f.y1 - f.y0 };
+    // a name is tested against the canvas and the real boxes of the interface (the rail, the window, the outliner as tall as it is,
+    // the console, the End Year dock, the alerts and toasts), not the free map's frame: a star below the outliner keeps its name.
+    // freeRect stays the camera's (the view offset and the pan clamp).
+    const host = this.renderer.domElement.getBoundingClientRect(), view = { x: host.left, y: host.top, w: host.width, h: host.height };
     const inView = (b, m = 2) => b.x >= view.x + m && b.y >= view.y + m && b.x + b.w <= view.x + view.w - m && b.y + b.h <= view.y + view.h - m;
     const ui = this.obstacles(), tier = this.tier;
     const rect = e => { const r = e.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
@@ -776,14 +779,19 @@ export class Galaxy {
     const segs = []; for (const l of this.model.lanes) { const a = this.byId[l.a], b = this.byId[l.b]; if (!a || !b) continue; const pa = this.screenOf(a.x, -a.y), pb = this.screenOf(b.x, -b.y); segs.push([pa.x, pa.y, pb.x, pb.y]); }
     const crosses = r => { let n = 0; for (const [x1, y1, x2, y2] of segs) { if (Math.max(x1, x2) < r.x || Math.min(x1, x2) > r.x + r.w || Math.max(y1, y2) < r.y || Math.min(y1, y2) > r.y + r.h) continue; const dx = x2 - x1, dy = y2 - y1; let t0 = 0, t1 = 1; for (const [p, q] of [[-dx, x1 - r.x], [dx, r.x + r.w - x1], [-dy, y1 - r.y], [dy, r.y + r.h - y1]]) { if (p === 0) { if (q < 0) { t0 = 2; break; } } else { const t = q / p; if (p < 0) t0 = Math.max(t0, t); else t1 = Math.min(t1, t); } } if (t0 <= t1) n++; } return n; };
     // where a stretch of a name lies on the map: which system's cell, which holder's land, which region (null off the territory)
-    const t = this.terr, cellAt = (px, py) => { const pt = this.planePoint(px, py); if (!pt || !t) return null; const i = this.siteAt(pt.x, pt.y); return i < 0 ? null : { site: i, holder: t.sh[i], region: t.sg[i] }; };
+    const t = this.terr, cellAt = (px, py) => { const pt = this.planePoint(px, py); if (!pt || !t) return null; const i = this.siteAt(pt.x, pt.y); return i < 0 ? null : { site: i, holder: t.sh[i], region: t.sg[i], mine: t.mine ? t.mine[i] : 0 }; };
     // a region's name lies inside its own region, across as few cells as it can, off the seams of a holder's land (the gold border of
     // yours above all) and off the lanes: sampled at five points along its middle
     const lie = (b, rid) => {
       if (!t || rid == null || !(rid in t.regIdx)) return 0; const ri = t.regIdx[rid], cy = b.y + b.h / 2, sites = new Set(), holders = new Set();
       const pts = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1].map(f => [b.x - 4 + (b.w + 8) * f, cy]).concat([[b.x - 4, b.y - 3], [b.x + b.w + 4, b.y - 3], [b.x - 4, b.y + b.h + 3], [b.x + b.w + 4, b.y + b.h + 3]]);
-      for (const [px, py] of pts) { const c = cellAt(px, py); if (!c || c.region !== ri) return null; sites.add(c.site); holders.add(c.holder); }
-      return (sites.size - 1) * 18 + (holders.size - 1) * 26;
+      let mine = -1;
+      for (const [px, py] of pts) { const c = cellAt(px, py); if (!c || c.region !== ri) return null; sites.add(c.site); holders.add(c.holder); if (mine < 0) mine = c.mine; else if (mine !== c.mine) return null; }
+      // your own gold border and the Reach's ivory edge are obstacles with a pad: a ring of points 9px out must lie in the region
+      // and on the same side of your border
+      for (const [px, py] of [[b.x - 9, cy], [b.x + b.w + 9, cy], [b.x + b.w / 2, b.y - 8], [b.x + b.w / 2, b.y + b.h + 8], [b.x + b.w * .25, b.y - 8], [b.x + b.w * .75, b.y + b.h + 8]]) { const c = cellAt(px, py); if (!c || c.region !== ri || c.mine !== mine) return null; }
+      // a holder's seam through the name costs dearly: one cell's land is the place for it
+      return (sites.size - 1) * 18 + (holders.size - 1) * 70;
     };
     const names = [];   // the region names placed so far: two never stand closer than a line's gap
     // a region's or a realm's name: the clearest place near its centre, or not at all (a second name is dropped rather than stacked)
@@ -988,7 +996,7 @@ export class Galaxy {
         const rocks = new THREE.Points(geo, new THREE.PointsMaterial({ size: 2.1, vertexColors: true, transparent: true, opacity: .9, sizeAttenuation: true })); rocks.userData.spinZ = 0.012; g.add(rocks);
         for (let q = 0; q < 9; q++) { const a = rr() * Math.PI * 2, r2 = b.orbit + (rr() - .5) * 20; const rock = new THREE.Sprite(new THREE.SpriteMaterial({ map: window.praetoriaFx ? new THREE.TextureLoader().load(window.praetoriaFx.planet('moon', chart.id + 'rock' + q, 48)) : T.glow, color: 0xb8ab98, transparent: true, depthWrite: false })); const sc = 3 + rr() * 3.5; rock.scale.set(sc, sc * (.7 + rr() * .3), 1); rock.position.set(Math.cos(a) * r2, Math.sin(a) * r2, 1); g.add(rock); }
         const lx = Math.cos(b.angle) * b.orbit, ly = Math.sin(b.angle) * b.orbit;
-        label(`<span class="n">${esc(b.name)}</span><span class="o">${b.deposit ? esc(b.deposit.replace('_', ' ')) + ' · ' : ''}${chart.belt || 0} claim${chart.belt === 1 ? '' : 's'}${b.works ? ' · ' + b.works + ' built' : ''}</span>`, 'sysv-label belt', lx, ly - 22, 2);
+        label(`<span class="n">${esc(b.name)}</span><span class="o">${b.deposit ? esc(depositName(b.deposit)) + ' · ' : ''}${chart.belt || 0} claim${chart.belt === 1 ? '' : 's'}${b.works ? ' · ' + b.works + ' built' : ''}</span>`, 'sysv-label belt', lx, ly - 22, 2);
         hitAt(lx, ly, 24, { kind: 'body', id: String(b.index), tip: `<b>${esc(b.name)}</b><div>an asteroid belt · room for ${chart.belt || 0} claim${chart.belt === 1 ? '' : 's'}</div>`, at: [lx, ly], up: 20 });
         this.sysBodies[b.index] = { group: { position: new THREE.Vector3(lx, ly, 0) }, r: 20, fixed: true };
         continue;
@@ -1024,7 +1032,7 @@ export class Galaxy {
       if (b.rising) { const rz = circle(r * 1.95, 0xffd36a, .7, true); rz.userData.spinZ = -0.4; grp.add(rz); }
       if (String(b.index) === String(chart.selectedBody) && !looked) { const sel = new THREE.Mesh(new THREE.RingGeometry(r * 2.15, r * 2.3, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: .95, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); sel.userData.spinZ = 0.5; sel.position.z = 2; grp.add(sel); }
       const kind = b.parent >= 0 ? 'moon' : b.cls === 'gas' ? 'gas giant' : b.cls === 'comet' ? 'comet' : b.cls + ' world';
-      const marks = [b.featureName ? '✦ ' + esc(b.featureName) : '', b.deposit ? esc(b.deposit.replace('_', ' ')) : '', b.works ? b.works + ' built' : '', b.rising ? b.rising + ' rising' : ''].filter(Boolean).join(' · ');
+      const marks = [b.featureName ? esc(b.featureName) : '', b.deposit ? esc(depositName(b.deposit)) : '', b.works ? b.works + ' built' : '', b.rising ? b.rising + ' rising' : ''].filter(Boolean).join(' · ');
       label(`<span class="n">${b.primary && chart.capital ? '♛ ' : ''}${esc(b.name)}</span>${b.primary && chart.holderName ? `<span class="o" style="color:${esc(chart.accent)}">${esc(chart.holderName)}</span>` : ''}${marks ? `<span class="m">${marks}</span>` : ''}`, 'sysv-label' + (b.primary ? ' primary' : '') + (b.parent >= 0 ? ' moon' : '') + (looked ? ' looked' : '') + (b.parent >= 0 && b.parent === chart.focusBody ? ' of-looked' : '') + (b.cls === 'comet' ? ' comet' : ''), 0, -(r + 5), 4, grp);
       const hit = hitAt(0, 0, Math.max(7, r * 1.15), { kind: 'body', id: String(b.index), tip: `<b>${esc(b.name)}</b><div>${esc(kind)}${b.parent < 0 && b.cls !== 'comet' ? ` · ${b.period} years to go round` : ''}</div>${marks ? `<div>${marks}</div>` : ''}<div>click to pick · twice to go to it</div>`, at: [0, 0], up: r + 8 }, grp);
       // the provinces of the world looked at: a pin on its face for each, and beside it whose it is and what city it has
@@ -1087,6 +1095,8 @@ export class Galaxy {
 }
 
 function esc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+/** A deposit's name as the game writes it on a screen (Resource.Label): never the data key. */
+function depositName(d) { return ({ helium3: 'Helium-3', rare_earths: 'Rare earths', isotopes: 'Isotopes' })[d] || (d ? d.charAt(0).toUpperCase() + d.slice(1).replace(/_/g, ' ') : ''); }
 function planetColor(cls) { return ({ terran: 0x3f8f62, ocean: 0x2f6fb5, arid: 0xc98f4a, forge: 0xa5452a, frozen: 0xb9d4ea, gas: 0xc9a06a, belt: 0x7a6f60, barren: 0x6f6a66 })[cls] || 0x3f8f62; }
 function planetGlow(cls) { return ({ terran: 0x8ad9ff, ocean: 0x8ac8ff, arid: 0xffd9a0, forge: 0xff9060, frozen: 0xe6f4ff, gas: 0xffe0b0, belt: 0x000000, barren: 0x999999 })[cls] || 0x8ad9ff; }
 

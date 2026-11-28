@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_wound",
+      "scene": "battle",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -214,6 +215,7 @@
     },
     {
       "id": "a_friend_is_buried",
+      "scene": "funeral",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -289,6 +291,7 @@
     },
     {
       "id": "the_enemy_is_dead",
+      "scene": "funeral",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -421,6 +424,7 @@
     },
     {
       "id": "the_elder_at_the_table",
+      "scene": "family",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -510,6 +514,7 @@
     },
     {
       "id": "the_elder_makes_peace",
+      "scene": "family",
       "tier": "situation",
       "weight": 35,
       "repeatable": true,

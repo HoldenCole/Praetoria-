@@ -318,7 +318,7 @@
 .mc-crews-fig { display: flex; align-items: center; gap: .5333rem; padding: .2667rem var(--g-r) .4rem calc(var(--g-l) + 4rem); font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); cursor: help; }
 .mc-crews-fig b { font: 600 1.2rem/1 var(--f-ui); color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
 /* the fleet's standing is one line; the whole of it is its tooltip */
-.mf-standing.clamp { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
+.mf-standing.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: help; }   /* two lines, then the tooltip; never cut mid-line */
 /* the lesser orders as small ghost plates, not bare words */
 .mf-tg { border: 1px solid rgba(201,162,74,.32); background: linear-gradient(#171b24, #0f1219); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
 .mf-tg:hover { color: var(--brass-hi); border-color: rgba(201,162,74,.6); background: linear-gradient(#1c212c, #12151d); }
@@ -333,3 +333,13 @@
 .mn-more[open] > summary .icon { transform: rotate(90deg); }
 .mn-more .mn-facts, .mn-more .mn-manner { margin-left: 0; }
 @container (max-width: 40rem) { .mn-more { margin-left: 0; } }
+
+/* the fleet's Orders menu: one plate; the other orders in a list in the medium frame */
+.mf-menu-wrap { position: relative; display: inline-flex; }
+.mf-menu-btn .mf-menu-chev { transform: rotate(90deg); transition: transform .12s; } .mf-menu-btn.on .mf-menu-chev { transform: rotate(-90deg); }
+.mf-menu { position: absolute; z-index: 30; left: 0; top: calc(100% + .4rem); display: flex; flex-direction: column; align-items: stretch; gap: .2667rem; min-width: 13.3333rem; padding: .5333rem;
+  background: linear-gradient(180deg, rgba(24,28,38,.98), rgba(10,12,17,.98)); border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; border-image-outset: 6px; box-shadow: var(--sh-drop); }
+.mf-menu > .ui-btn, .mf-menu .mf-more > .mf-tg { justify-content: flex-start; width: 100%; text-align: left; }
+.mf-menu .mf-more { display: flex; flex-direction: column; gap: .2667rem; margin: .2667rem 0 0; padding-top: .3333rem; border-top: 1px solid rgba(201,162,74,.25); }
+.mf-menu .mf-tg { border: 0; background: none; box-shadow: none; height: 1.8667rem; padding: 0 .5333rem; } .mf-menu .mf-tg:hover { background: rgba(201,162,74,.10); }
+.sv-strip { margin: .2667rem var(--g-r) .2667rem var(--g-l); }

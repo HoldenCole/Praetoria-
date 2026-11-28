@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_hold_is_shaken",
+      "scene": "unrest",
       "tier": "situation",
       "weight": 45,
       "repeatable": true,
@@ -76,6 +77,7 @@
     },
     {
       "id": "a_standard_is_raised",
+      "scene": "battle",
       "tier": "setpiece",
       "weight": 70,
       "repeatable": true,
@@ -161,6 +163,7 @@
     },
     {
       "id": "a_standard_against_you",
+      "scene": "battle",
       "tier": "setpiece",
       "weight": 70,
       "repeatable": true,
@@ -242,6 +245,7 @@
     },
     {
       "id": "the_pretender_is_broken",
+      "scene": "triumph",
       "tier": "situation",
       "weight": 45,
       "repeatable": true,
@@ -304,6 +308,7 @@
     },
     {
       "id": "a_new_house_on_the_throne",
+      "scene": "triumph",
       "tier": "setpiece",
       "weight": 60,
       "repeatable": true,
@@ -358,6 +363,7 @@
     },
     {
       "id": "cast_down",
+      "scene": "funeral",
       "tier": "setpiece",
       "weight": 90,
       "repeatable": true,

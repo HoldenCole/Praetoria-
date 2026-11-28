@@ -27,7 +27,10 @@
 /* the middle: the cast at the left (the old head at 140, the heir at 220 in the window frame, their names under them), what passes
    and what does not at the right */
 .succ-main { display: grid; grid-template-columns: auto minmax(0, 36rem); align-items: center; justify-content: center; gap: 1.6rem 2.4rem; width: 100%; margin-top: clamp(.8rem, 2.6vh, 1.8rem); }
-.succ-side, .succ-left { min-width: 0; } .succ-left { display: flex; flex-direction: column; align-items: center; }
+.succ-side, .succ-left { min-width: 0; } .succ-left { position: relative; display: flex; flex-direction: column; align-items: center; }
+.succ-left::before { content: ""; position: absolute; inset: -2rem -3.2rem; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 58% 60% at 50% 55%, rgba(5,7,10,.74), rgba(5,7,10,.5) 58%, rgba(5,7,10,0) 100%); }
+.succ-main, .succ-pass { isolation: isolate; }
 .succ-cast { display: flex; align-items: flex-end; justify-content: center; gap: .8rem; }
 .succ-who { display: flex; flex-direction: column; align-items: center; width: 12.6667rem; }
 .succ-who.heir { width: 18rem; }
@@ -56,8 +59,13 @@
 
 /* what does not pass, and the rest: rows, the label in small capitals at the left */
 .succ-grid { width: 100%; text-align: left; display: flex; flex-direction: column; gap: .2667rem; }
-.succ-row { display: grid; grid-template-columns: 2.6667rem minmax(0, 1fr); align-items: center; column-gap: .8rem; padding: .4667rem .8rem;
-  background: linear-gradient(90deg, rgba(8,10,15,.78), rgba(8,10,15,.62)); border: 1px solid rgba(201,162,74,.16); border-radius: 2px; }
+/* no cards: the rows stand on one soft shade behind the whole column (.succ-side::before), parted by a 1px divider at 5% white */
+.succ-row { display: grid; grid-template-columns: 4.6667rem minmax(0, 1fr); align-items: center; column-gap: .8rem; padding: .5333rem .8rem; background: none; border: 0; border-radius: 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.succ-row:last-child { border-bottom: 0; }
+.succ-row .pic { justify-self: center; }
+.succ-side { position: relative; }
+.succ-side::before { content: ""; position: absolute; inset: -1.6rem -2.4rem; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 60% 56% at 50% 50%, rgba(5,7,10,.82), rgba(5,7,10,.62) 55%, rgba(5,7,10,0) 100%); }
 .succ-row .pic { width: 2.6667rem; height: 2.6667rem; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #2a2418, #0d0b08); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.45); }
 .succ-row .pic .icon { width: 1.3333rem; height: 1.3333rem; }
 .succ-row .pic.face, .succ-row .pic.faces { background: none; box-shadow: none; border-radius: 0; }
@@ -69,7 +77,7 @@
 .succ-row .v { font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink); }
 .succ-row.warn { box-shadow: inset 2px 0 0 var(--warn); } .succ-row.warn .k { color: var(--warn); }
 .succ-row.good { box-shadow: inset 2px 0 0 var(--good); } .succ-row.good .k { color: var(--good); }
-.succ-row:has(.pic.faces) { grid-template-columns: 4.6667rem minmax(0, 1fr); }
+.succ-row .pic.faces { justify-self: start; }
 
 .succ-lines { width: 100%; margin-top: .6667rem; padding: .6rem 1rem .6667rem; text-align: left; font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink-dim);
   background: linear-gradient(90deg, rgba(0,0,0,.5), rgba(0,0,0,.28)); box-shadow: inset 2px 0 0 var(--brass); }
@@ -77,8 +85,7 @@
 .succ-lines .ln + .ln { margin-top: .2rem; }
 /* one gold plate */
 /* the gold plate stays on the screen when the rest must scroll */
-.succ-foot.row { position: sticky; bottom: 0; z-index: 2; justify-content: center; width: 100%; margin-top: clamp(.6rem, 2vh, 1.2rem); padding: .6rem 0 1rem;
-  background: linear-gradient(180deg, rgba(5,7,10,0), rgba(5,7,10,.75) 45%); }
+.succ-foot.row { position: sticky; bottom: 0; z-index: 2; justify-content: center; width: 100%; margin-top: clamp(.6rem, 2vh, 1.2rem); padding: .6rem 0 1rem; background: none; }
 .succ-go.btn.primary.ui-btn { height: 2.6667rem; padding: 0 1.6rem; gap: .6rem; font: 600 1.0667rem/1 var(--f-display); letter-spacing: .06em; border: 1px solid #000; border-radius: 2px;
   color: var(--ink-dark); text-shadow: 0 1px 0 rgba(255,240,200,.45); background: linear-gradient(#f6e2a0, #d2ad58 45%, #a07a30); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.25), 0 2px 8px rgba(0,0,0,.8); }
 .succ-go.btn.primary.ui-btn:hover { filter: none; background: linear-gradient(#fbe9b0, #dcb862 45%, #ab8436); box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 0 rgba(0,0,0,.25), 0 0 16px rgba(232,196,110,.4); }
@@ -96,3 +103,4 @@
   .overlay.succ-veil .epilogue.succession { --heir: 180px; }
 }
 @media (prefers-reduced-motion: reduce) { .overlay.succ-veil .epilogue.succession { animation: none; } }
+.succ-row .pic.faces { max-width: 4.6667rem; overflow: hidden; }

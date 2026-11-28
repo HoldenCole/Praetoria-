@@ -178,6 +178,7 @@
     },
     {
       "id": "the_board_changes_hands",
+      "scene": "market",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -354,6 +355,7 @@
     },
     {
       "id": "a_rival_lists",
+      "scene": "market",
       "tier": "situation",
       "weight": 2,
       "repeatable": true,
@@ -550,6 +552,7 @@
     },
     {
       "id": "purse_opened",
+      "scene": "market",
       "tier": "situation",
       "weight": 2,
       "repeatable": true,

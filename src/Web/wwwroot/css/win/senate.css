@@ -437,5 +437,17 @@ p.sn-say { margin: .2667rem 0; }
 /* the three orders: one grid for all three meters; the calling is a chip on the order's badge; target ticks in bright brass */
 .sn-order { grid-template-columns: var(--sn-ic) minmax(0, 1fr); }
 .sn-order .sn-ic { position: relative; overflow: visible; }
-.sn-order .sn-calling { position: absolute; left: 50%; bottom: -.6rem; transform: translateX(-50%); font-size: .8rem; padding: 0 .2667rem; line-height: 1.1rem; height: 1.1rem; white-space: nowrap; z-index: 1; }
+.sn-order .sn-calling { position: static; transform: none; flex: none; font-size: .8rem; padding: 0 .3333rem; line-height: 1.2rem; height: 1.2rem; white-space: nowrap; margin-left: -.2rem; }   /* inline after the order's name, never hung under the badge */
 .sn-order .sn-gauge .ui-tick { width: 2px; background: var(--brass-hi, #f6e2a0); box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+/* the year's duties as rows (4.7), not event slabs: a small brass numeral, the verb in Plex, a hairline between them; the hover is the
+   row's brass bar, and a "Do it" mark at the right says the row is the action */
+.sn-duty-choices { gap: 0; margin: .4rem 0; border-top: 1px solid rgba(255,255,255,.05); }
+.sn-duty-ch { min-height: 2.9333rem; padding: .3333rem .6667rem; background: none !important; border: 0; border-bottom: 1px solid rgba(255,255,255,.05); border-radius: 0; box-shadow: none !important; text-align: left; cursor: pointer; grid-template-columns: 1.6rem minmax(0, 1fr) auto; }
+.sn-duty-ch .n { width: 1.3333rem; height: 1.3333rem; font-size: .8rem; }
+.sn-duty-ch .l { font: 600 .9333rem/1.3 var(--f-ui); color: var(--ink); }
+.sn-duty-ch::after { content: "Do it"; grid-column: 3; grid-row: 1; justify-self: end; height: 1.7333rem; padding: 0 .6667rem; display: inline-flex; align-items: center; font: 600 .8667rem/1 var(--f-ui); color: #eae2cc;
+  background: linear-gradient(#323b50, #1c2231); border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-plate); }
+.sn-duty-ch.locked::after { content: none; }
+.sn-duty-ch:hover:not(:disabled) { background: linear-gradient(90deg, rgba(201,162,74,.10), rgba(255,255,255,.02)) !important; }
+.sn-duty-ch:hover:not(:disabled)::before { left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.sn-duty-ch .req { grid-column: 2 / -1; font-weight: 500; color: var(--ink-dim); }

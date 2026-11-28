@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "war_is_declared_on_you",
+      "scene": "battle",
       "tier": "situation",
       "weight": 60,
       "repeatable": true,
@@ -68,6 +69,7 @@
     },
     {
       "id": "the_front_or_the_flag",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 9,
       "repeatable": false,
@@ -395,6 +397,7 @@
     },
     {
       "id": "the_achilles_name",
+      "scene": "triumph",
       "tier": "setpiece",
       "weight": 14,
       "repeatable": false,
@@ -474,6 +477,7 @@
     },
     {
       "id": "the_prize_crews",
+      "scene": "shipyard",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,
@@ -609,6 +613,7 @@
     },
     {
       "id": "the_restive_crews",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 9,
       "repeatable": true,
@@ -944,6 +949,7 @@
     },
     {
       "id": "the_torpedo_run",
+      "scene": "battle",
       "tier": "situation",
       "weight": 7,
       "repeatable": true,
@@ -1026,6 +1032,7 @@
     },
     {
       "id": "the_generals_sway",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 8,
       "repeatable": true,

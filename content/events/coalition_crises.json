@@ -111,6 +111,7 @@
     },
     {
       "id": "the_treasury_tightens",
+      "scene": "market",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,
@@ -872,6 +873,7 @@
     },
     {
       "id": "the_crowns_eye",
+      "scene": "intrigue",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,

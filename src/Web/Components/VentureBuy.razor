@@ -14,8 +14,9 @@
     int offer = Math.Clamp(_offer > 0 ? _offer : Math.Max(1, ask * 9 / 10), 1, Math.Max(1, ask - 1));
     var cmd = new OfferForVentureCommand(pid, bid, offer, vs); var offerNo = cmd.Refusal(G.Ctx);
     <div class="vbuy" data-venture-buy="@bid">
+        @* one line of plates for every venture (the same shape row to row); what stands in the way is one warn line after them *@
         <Plate Label="@(askNo == null ? "Buy" : "Not for sale")" Small="true" CostIcon="@(askNo == null ? "credits" : "")" CostText="@(askNo == null ? Money.Show(ask) : "")" data-buy="@bid"
-               Locked="@(buyNo != null)" Disabled="@(buyNo != null)" ShowNeed="true" Need="@(askNo ?? buyNo ?? "")" Tip="@($"Buy it for {Money.Show(ask)}. The holder of the world it works may match the price and take it first; you then keep your coin.")"
+               Locked="@(buyNo != null)" Disabled="@(buyNo != null)" ShowNeed="false" Need="@(askNo ?? buyNo ?? "")" Tip="@($"Buy it for {Money.Show(ask)}. The holder of the world it works may match the price and take it first; you then keep your coin.")"
                OnClick="() => G.Execute(new BuyVentureCommand(pid, bid, vs))" />
         @if (askNo == null && last > 0)
         {
@@ -25,11 +26,12 @@
         {
             <span class="vbuy-l">or offer</span>
             <Stepper Value="@offer" Min="1" Max="@Math.Max(1, ask - 1)" Step="@Math.Max(1, ask / 20)" Format="@(v => Money.Show(v))" Class="vbuy-step" Tip="Your offer, in credits" FewerTip="Offer less" MoreTip="Offer more" OnChange="v => _offer = v" />
-            <Plate Label="Offer" Small="true" CostIcon="credits" CostText="@Money.Show(offer)" data-offer="@bid" Locked="@(offerNo != null)" Disabled="@(offerNo != null)" ShowNeed="true" Need="@(offerNo ?? "")"
+            <Plate Label="Offer" Small="true" CostIcon="credits" CostText="@Money.Show(offer)" data-offer="@bid" Locked="@(offerNo != null)" Disabled="@(offerNo != null)" ShowNeed="false" Need="@(offerNo ?? "")"
                    Tip="@($"{owner?.Name} asks {Money.Show(ask)} and would take less; how much less follows what its head thinks of you and whether it is short of coin, and you are not told. One offer a year. An offer they like is taken at your price. One they do not is answered with a price between yours and theirs, and that is their last word until the year turns. Under {Money.Show(insult)} (half the asking) is an insult: no answer, and its head thinks {VentureSystem.InsultRegard} the worse of you.")"
                    OnClick="() => G.Execute(cmd)" />
             @if (offer < insult) { <span class="vbuy-warn ui-warn-t">an insult</span> }
         }
+        @if (buyNo != null && askNo == null) { <span class="ui-need vbuy-need">@buyNo</span> }
     </div>
 }
 

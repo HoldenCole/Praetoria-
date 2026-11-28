@@ -122,6 +122,8 @@ def validate_events(ev,tx):
         if eid in ids: errors.append(f"DUPLICATE event id '{eid}'")
         ids.add(eid)
         if e.get("tier","situation") not in TIERS: errors.append(f"[{eid}] bad tier")
+        if "scene" in e and not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)),"src","Web","wwwroot","img","scenes",f"{e['scene']}.webp")):
+            errors.append(f"[{eid}] scene '{e['scene']}' is not a painting in src/Web/wwwroot/img/scenes")
         roles={"self"}
         for r in e.get("roles",[]):
             roles.add(r["name"]); walk(r.get("when",[]),f"{eid}/role:{r['name']}",roles)

@@ -18,7 +18,7 @@
     var lead = others.FirstOrDefault(); var rest = others.Skip(1).ToList();
     bool about = lead.ch != null && (!lead.ch.Alive || lead.ch.HouseId == me?.HouseId);
     // the painting by subject; an order from a superior is given on the ship's bridge (docs/VISUAL_SYSTEM.md 6)
-    string scene = others.Any(o => o.role == "superior") ? "bridge" : SceneArt.For(b.Item.Fired.Def.Id, b.Title);
+    string scene = others.Any(o => o.role == "superior") ? "bridge" : SceneArt.For(b.Item.Fired.Def, b.Title);
     var paras = (b.Body ?? "").Replace("\r", "").Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
     bool dropCap = (b.Body ?? "").Length > 200;
     string tier = b.Setpiece ? "A turning point" : b.Tier == "AMBIENT" ? "In passing" : "A situation";

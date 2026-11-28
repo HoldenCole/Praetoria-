@@ -7,6 +7,10 @@
    css/win/ can use var(--tex-leather) without its relative path turning into css/img/... */
 @property --tex-steel { syntax: '<url> | none'; inherits: true; initial-value: none; }
 @property --tex-leather { syntax: '<url> | none'; inherits: true; initial-value: none; }
+/* Cinzel draws the digit 1 as a capital I, so "Year 11" read as "YEAR II" beside the date plate's Roman year: in every Cinzel title the
+   ten digits come from IBM Plex Sans (the face for figures), by unicode-range; the letters stay Cinzel's. The file is Plex's variable
+   latin subset, the same Google Fonts file the page loads (OFL 1.1, CREDITS.md). */
+@font-face { font-family: 'Cinzel Figures'; font-style: normal; font-weight: 100 900; font-display: swap; src: url(../fonts/IBMPlexSans-var.woff2) format('woff2'); unicode-range: U+0030-0039; }
 :root {
   /* metal: one brass. The frame metal is the dull family; --brass-hi is kept for what is selected, active or yours */
   --brass-hi: #f6e2a0; --brass: #c9a24a; --brass-mid: #a5813a; --brass-lo: #6f5020; --brass-dk: #2b1e09;
@@ -22,7 +26,7 @@
   --house: #d4a23e; --own: #e9b949; --own-line: #f0c661;
   --reach-edge: #e3d3a4;
   /* type: three faces */
-  --f-display: 'Cinzel', serif; --f-prose: 'Alegreya', Georgia, serif; --f-ui: 'IBM Plex Sans', system-ui, sans-serif;
+  --f-display: 'Cinzel Figures', 'Cinzel', serif; --f-prose: 'Alegreya', Georgia, serif; --f-ui: 'IBM Plex Sans', system-ui, sans-serif;
   /* shadows */
   --sh-drop: 0 .6667rem 1.8667rem rgba(0,0,0,.6), 0 2px .4rem rgba(0,0,0,.6);
   --sh-inset: inset 0 1px .2rem rgba(0,0,0,.85), inset 0 0 0 1px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.05);
@@ -87,7 +91,11 @@ label.inline { flex-direction: row; align-items: center; text-transform: none; l
 .panel::before, .panel::after { content: ""; position: absolute; width: .6667rem; height: .6667rem; border: 1px solid var(--brass3); pointer-events: none; }
 .panel::before { left: -1px; top: -1px; border-right: none; border-bottom: none; } .panel::after { right: -1px; bottom: -1px; border-left: none; border-top: none; }
 details > summary { cursor: pointer; list-style: none; padding: .25rem 0; } details > summary::-webkit-details-marker { display: none; }
-details > summary::before { content: "▸ "; color: var(--brass3); } details[open] > summary::before { content: "▾ "; }
+/* a fold's marker is a drawn chevron (8.1): a summary that draws its own chev Icon shows that alone; one without gets a CSS chevron */
+details > summary { list-style: none; } details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: ""; display: inline-block; width: .4rem; height: .4rem; margin: 0 .5rem .1rem .1rem; border-right: 2px solid var(--brass); border-bottom: 2px solid var(--brass); transform: rotate(-45deg); transition: transform .15s; vertical-align: middle; }
+details[open] > summary::before { transform: rotate(45deg); }
+details > summary:has(.icon)::before { content: none; display: none; }
 .line { font-size: .88rem; color: var(--ink2); padding: .18rem 0; border-top: 1px dotted var(--line); }
 .bar { display: inline-block; width: 4.6667rem; height: .4rem; background: rgba(0,0,0,.5); border: 1px solid var(--line); border-radius: 3px; vertical-align: middle; margin: 0 .4rem; overflow: hidden; } .bar i { display: block; height: 100%; background: linear-gradient(90deg, #4f9a6a, #6fbf8a); } .bar i.low { background: linear-gradient(90deg, #a04a38, #d8705a); } .bar.wide { width: 7.3333rem; }
 .flag { margin-top: .4rem; font-size: .82rem; color: var(--bad); }
@@ -658,9 +666,7 @@ label [data-money-does] { text-transform: none; letter-spacing: 0; line-height: 
 .chip.full { opacity: .45; cursor: not-allowed; }
 /* the top bar is a solid plate over the map: nothing of the map shows through it, and the map's labels are drawn under it (docs/PLAYTHROUGH.md, Easy, N15 and B36) */
 .game .gl-labels { clip-path: inset(var(--top) 0 0 0); }
-.brief { max-height: 86vh; overflow-y: auto; text-align: left; } .brief h2 { text-align: left; } .brief-group { margin: .5rem 0; } .brief-group h4 { font-family: var(--display); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--brass2); margin: .4rem 0 .2rem; border-bottom: 1px solid var(--line); }
-.brief-line { display: block; width: 100%; text-align: left; background: none; border: 0; border-left: 2px solid var(--line2); color: var(--ink); font-family: inherit; font-size: .9rem; line-height: 1.35; padding: .25rem .5rem; margin: .15rem 0; cursor: pointer; } .brief-line:hover { background: rgba(200,160,80,.1); } .brief-line.warn { border-left-color: #E63946; } .brief-line.good { border-left-color: #2EC27E; }
-.brief .brief-opt { margin-left: .8rem; display: inline-flex; flex-direction: row; align-items: center; gap: .4rem; text-transform: none; letter-spacing: 0; font-size: .82rem; color: var(--ink2); font-family: var(--sans); } .brief .brief-opt input { width: auto; margin: 0; } .tb-turn { cursor: pointer; }
+.tb-turn { cursor: pointer; }
 details.why { margin: .3rem 0; font-size: .8rem; } details.why summary { cursor: pointer; color: var(--brass2); font-size: .74rem; letter-spacing: .04em; }
 /* the fleet card's Hulls fold: how many, then the two things that can be done with them, on one line under the row */
 details.inline[data-hulls][open] { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; flex-basis: 100%; }
@@ -785,7 +791,7 @@ button.ui-fig:hover .ui-fig-l, button.ui-fig:focus-visible .ui-fig-l { color: va
 .ui-head-strip b { font: 600 1.2rem/1 var(--f-display); letter-spacing: .04em; color: #f5e9c9; text-shadow: 0 1px 0 #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ui-head-strip .ui-kick { font-size: .8rem; }
 @supports (animation-timeline: scroll()) {
-  .ui-head-strip { animation: ui-head-strip linear both; animation-timeline: scroll(nearest block); animation-range: 7.2rem 8.8rem; }
+  .ui-head-strip { animation: ui-head-strip linear both; animation-timeline: scroll(nearest block); animation-range: 0px 1.6rem; }   /* opaque once the page has moved 24px: a page that scrolls only a little never leaves it half seen */
 }
 @keyframes ui-head-strip { 0% { opacity: 0; visibility: hidden; } 1% { visibility: visible; } 100% { opacity: 1; visibility: visible; } }
 
@@ -964,7 +970,7 @@ button.ui-fig:hover .ui-fig-l, button.ui-fig:focus-visible .ui-fig-l { color: va
    The shell's widths are layout and stay in px (2.4): the rail 76, the window min(740px, 46vw) or 620 under 1500, the outliner 262,
    the console 318 by 232; type and the parts in them are in rem. ==== */
 .gs-shell.game { display: block; position: relative; height: 100vh; overflow: hidden; background: var(--space);
-  --bar: 3.7333rem; --trim: 5px; --top: calc(var(--bar) + var(--trim)); --rail: 76px; --edge: 8px; --ol-w: 262px; --cs-w: 318px; --cs-h: 232px;
+  --bar: 3.7333rem; --trim: 5px; --top: calc(var(--bar) + var(--trim)); --rail: 76px; --edge: 8px; --ol-w: max(262px, 17.4667rem); --cs-w: 318px; --cs-h: 232px;
   --win-w: min(740px, 46vw); --free-l: var(--rail); --free-r: calc(var(--ol-w) + var(--edge)); }
 @media (max-width: 1500px) { .gs-shell.game { --win-w: 620px; } }
 .gs-shell.game.in-window { --free-l: calc(var(--rail) + 2px + var(--win-w)); }
@@ -1192,8 +1198,9 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
   font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink); cursor: pointer; }
 .outliner .ol-row:first-of-type { border-top: 0; }
 .outliner .ol-row:hover, .outliner .ol-row:focus-visible { background: linear-gradient(90deg, rgba(201,162,74,.12), rgba(255,255,255,.02)); box-shadow: inset 2px 0 0 var(--brass); color: var(--ink); outline: 0; }
-.outliner .ol-row .nm { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.outliner .ol-row .m { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; } .outliner .ol-row .m.warn { color: var(--warn); }
+.outliner .ol-row .nm { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the class of a holding gives way before its name does: it shrinks first and is cut to nothing rather than the name */
+.outliner .ol-row .m { flex: 0 1000 auto; min-width: 0; overflow: hidden; font: 500 .8333rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; } .outliner .ol-row .m.warn { color: var(--warn); }
 .outliner .ol-row .tok { width: 18px; height: 18px; flex: none; filter: drop-shadow(0 1px 1px #000); }
 .outliner .ol-row .ui-globe { margin: 0 1px; }
 .outliner .ol-row.rep { min-height: 3.2rem; height: auto; align-items: center; }
@@ -1201,7 +1208,7 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
 .outliner .ol-row .crop img { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.2) contrast(1.06); }
 .outliner .ol-row.rep .nm { white-space: normal; display: flex; flex-direction: column; }
 .outliner .ol-row.rep .title { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }   /* a long title takes a second line and the row grows, never an ellipsis */
-.outliner .ol-row.rep .k { display: flex; align-items: center; gap: .2667rem; font: italic 400 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); margin-top: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.outliner .ol-row.rep .k { display: flex; align-items: flex-start; gap: .2667rem; font: italic 400 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); margin-top: .2rem; white-space: normal; }
 .outliner .ol-row.rep .k .icon { flex: none; width: .8667rem; height: .8667rem; }
 .outliner .ol-row .wseal { width: 1.3333rem; height: 1.3333rem; flex: none; }
 .outliner .ol-row .tick { width: .9333rem; height: .9333rem; flex: none; }
@@ -1222,7 +1229,7 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
 .console .tool.on { background: #0a0d13; box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass); }
 .console .mm { position: absolute; left: 20px; right: 20px; top: 48px; bottom: 38px; background: #04060a; box-shadow: inset 0 1px 4px #000, 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.4); overflow: hidden; }
 .console .mm canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; cursor: pointer; }
-.console .cap { position: absolute; left: 112px; right: 20px; bottom: 13px; display: flex; justify-content: space-between; gap: .6rem; font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
+.console .cap { position: absolute; left: calc(60px + 3.4667rem);   /* clear of the End Year medallion at every text size */ right: 20px; bottom: 13px; display: flex; justify-content: space-between; gap: .6rem; font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
 .console .cap b { color: var(--brass-ink); font-weight: 600; } .console .cap span { overflow: hidden; text-overflow: ellipsis; }
 .gs-shell.game .endturn-dock { position: absolute; right: calc(var(--edge) + var(--cs-w) - 52px); bottom: 42px; width: 6.9333rem; height: 6.9333rem; z-index: 32; display: block; transform: translateX(50%); }
 .gs-shell.game .endturn { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; margin: 0; border: 0; border-radius: 50%; background: none; box-shadow: none; cursor: pointer; font: inherit; color: inherit; text-transform: none; letter-spacing: 0; }
@@ -1274,20 +1281,20 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
 .box .opt.inline { height: 1.8667rem; padding: 0 .7333rem; font-size: .8667rem; }
 .box .opt.inline.on, .box .opt.on { color: var(--brass-hi); background: #0b0e14; box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass); }
 .box .opt.tiny { height: 1.6rem; font-size: .8rem; padding: 0 .5rem; }
-/* the year in brief */
-.box.brief .brief-group { margin: 0; }
-.box.brief .brief-line { display: flex; align-items: center; gap: .6rem; width: 100%; min-height: 2.2667rem; margin: 0; padding: .35rem .4rem .35rem .2rem; border: 0; border-bottom: 1px solid rgba(255,255,255,.05); background: none; text-align: left; cursor: pointer;
-  font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink); }
-.box.brief .brief-line:hover { background: linear-gradient(90deg, rgba(201,162,74,.12), rgba(255,255,255,.02)); box-shadow: inset 2px 0 0 var(--brass); }
-.box.brief .brief-line .bl-t { flex: 1; min-width: 0; } .box.brief .brief-line .bl-mark { flex: none; width: .8rem; height: .8rem; } .box.brief .brief-line .bl-go { flex: none; opacity: .6; width: .6667rem; height: .6667rem; }
-/* the year's money as stock chips, as the top bar's wells show them (docs/VISUAL_SYSTEM.md 3.1) */
-.box.brief .brief-stocks { display: flex; flex-wrap: wrap; align-items: center; gap: .5333rem; width: 100%; margin: .2667rem 0; padding: .4rem .4rem .4rem .2rem; border: 0; background: none; cursor: pointer; text-align: left; color: var(--ink); }
-.box.brief .brief-stocks:hover { background: linear-gradient(90deg, rgba(201,162,74,.12), rgba(255,255,255,.02)); box-shadow: inset 2px 0 0 var(--brass); }
-.box.brief .bs-chip { display: inline-flex; align-items: center; gap: .4rem; height: 2.2rem; padding: 0 .6667rem 0 .5333rem; background: var(--well); border-radius: 2px; box-shadow: var(--sh-inset); }
-.box.brief .bs-chip b { font: 600 1rem/1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; }
-.box.brief .bs-chip small { font: 600 .8333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; } .box.brief .bs-chip small.up { color: var(--good); } .box.brief .bs-chip small.down { color: var(--bad); }
-.box.brief .brief-stocks .bl-go { margin-left: auto; opacity: .6; width: .6667rem; height: .6667rem; }
-.box.brief .brief-opt { display: inline-flex; flex-direction: row; align-items: center; gap: .5rem; text-transform: none; letter-spacing: 0; font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); margin: 0; cursor: pointer; }
+/* the year in brief: a window over the dimmed map, the dispatch painting at its head, a row with a face or a crop for each line */
+.ui-win.box.yb { width: min(48rem, calc(100vw - 2rem)); max-height: min(92vh, 58rem); }
+.ui-win.box.yb .ui-head { height: 13.3333rem; }
+.ui-win.box.yb .ui-wbody { padding-bottom: 3.2rem; }
+.yb .yb-sec:first-child { margin-top: .5333rem; }
+.yb .yb-line .ui-row-nm { font: 500 .9333rem/1.35 var(--f-ui); white-space: normal; overflow: visible; text-wrap: pretty; }
+.yb .yb-line { min-height: 4.2rem; }
+.yb .yb-crop { display: block; width: 3.0667rem; height: 3.7333rem; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.45); }
+.yb .yb-crop img { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.15) contrast(1.06); }
+.yb .ui-row > div:first-child { display: grid; place-items: center; }
+.yb .bl-mark { width: .9333rem; height: .9333rem; }
+.yb .ui-win-foot .brief-opt { font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); }
+.yb .ui-win-foot .btn.primary { margin-left: auto; }
+.ui-win.box.yb .ui-plinth .ui-fig .d { margin-left: .3333rem; font: 600 .8333rem/1 var(--f-ui); }
 /* the handbook */
 .box.handbook .hb-tab { text-transform: none; letter-spacing: 0; border-bottom: 0; }
 .box.handbook .hb-count { margin-bottom: .6rem; }
@@ -1385,6 +1392,37 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
   .gs-shell.game > .rail { display: block; }
 }
 @media (max-width: 700px) { .gs-shell.game > .rail { flex-direction: column; overflow: visible; border-bottom: 0; } .rail .rail-btn { min-width: 0; } .gs-shell.game .endturn-dock { right: 46px; bottom: 30px; } }
-.box.brief .brief-line .bl-dot { width: .4rem; height: .4rem; margin: 0 .2rem; transform: rotate(45deg); background: var(--brass); box-shadow: 0 0 0 1px #000; }
 /* a belt's mark in place of a globe (Globe.razor, Class "belt") */
 .ui-belt { display: inline-block; flex: none; } .ui-belt svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* a row whose actions would crush its name (4.7): the name and one line of subtitle keep the width, the plates stand on a second line
+   under the name; the figures stay at the right. Used where a row carries more than one plate or a plate and a picker. */
+.ui-row.acts-under { grid-template-rows: auto auto; }
+.ui-row.acts-under > div:first-child { grid-row: 1 / span 2; align-self: center; }
+.ui-row.acts-under > div:nth-child(4) { grid-column: 2 / -1; grid-row: 2; justify-self: start; min-width: 0; }
+.ui-row.acts-under > div:nth-child(4):not(:empty) { margin-top: .3333rem; }
+.ui-row.acts-under .ui-row-nm { white-space: normal; overflow: visible; }
+.ui-row.acts-under > div:nth-child(4) > span { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+/* tabs never run under the frame (2.4): the row is a container; as it narrows against how many tabs it holds, the tabs drop their icons,
+   then their padding closes up, before any tab would pass the window's right padding */
+.ui-tabs { container: tabs / inline-size; }
+@container tabs (max-width: 47rem) { .ui-tabs[data-n="6"] .ui-tab > .icon { display: none; } }
+@container tabs (max-width: 41rem) { .ui-tabs[data-n="5"] .ui-tab > .icon { display: none; } .ui-tabs[data-n="6"] .ui-tab { padding: 0 .6rem; } }
+@container tabs (max-width: 34rem) { .ui-tabs[data-n="4"] .ui-tab > .icon { display: none; } .ui-tabs[data-n="5"] .ui-tab, .ui-tabs[data-n="6"] .ui-tab { padding: 0 .5333rem; } }
+@container tabs (max-width: 30rem) { .ui-tabs .ui-tab { padding: 0 .4rem; } .ui-tabs .ui-tab .ui-cnt { margin-left: -.1333rem; } }
+/* the plinth never runs into the frame (2.5): the header is a container; as it narrows, the figures' icons drop to 20px and the gaps
+   close, then the value shrinks and the label may take two lines, so the last figure keeps the window's right padding */
+.ui-head { container: head / inline-size; }
+.ui-plinth { overflow: hidden; }
+@container head (max-width: 46rem) {
+  .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
+  .ui-plinth .ui-fig { gap: .4rem; }
+  .ui-plinth .ui-fig + .ui-fig, .ui-plinth button.ui-fig + .ui-fig, .ui-plinth .ui-fig + button.ui-fig { margin-left: .7333rem; padding-left: .7333rem; }
+}
+@container head (max-width: 40rem) {
+  .ui-plinth .ui-fig-v { font-size: 1.2rem; }
+  .ui-plinth .ui-fig-l { white-space: normal; max-width: 6.4rem; line-height: 1.1; }
+  .ui-plinth .ui-fig + .ui-fig, .ui-plinth button.ui-fig + .ui-fig, .ui-plinth .ui-fig + button.ui-fig { margin-left: .5333rem; padding-left: .5333rem; }
+}

@@ -21,9 +21,9 @@
         var (score, parts) = os.Measure(w, house, o); int tier = OrderSystem.Tier(score); int next = OrderSystem.NextAt(score);
         int rank = 1 + w.Houses.Values.Count(h => h.Id != PirateSystem.HouseId && h.Id != house.Id && h.Order(o) > score);
         <div class="sn-order order-row @(house.Calling == o ? "calling" : "")" title="@string.Join(" · ", parts.Select(p => $"{p.what} +{p.points}"))">
-            <span class="sn-ic @(tier >= 2 ? "mine" : "")"><Icon Name="@OrderIcon(o)" Tone="@(tier >= 2 ? "brass" : "ivory")" Size="22" />@if (house.Calling == o) { <span class="sn-tag mine sn-calling" title="The order the house is called to">calling</span> }</span>
+            <span class="sn-ic @(tier >= 2 ? "mine" : "")"><Icon Name="@OrderIcon(o)" Tone="@(tier >= 2 ? "brass" : "ivory")" Size="22" /></span>
             <div class="sn-order-main">
-                <div class="sn-order-l1"><b class="sn-nm">@Cap(OrderSystem.Name(o))</b>
+                <div class="sn-order-l1"><b class="sn-nm">@Cap(OrderSystem.Name(o))</b>@if (house.Calling == o) { <span class="sn-tag mine sn-calling" title="The order the house is called to">Calling</span> }
                     <span class="ui-trk sn-gauge"><i class="ui-fill" style="width:@SenateScreen.Pc(score);--mc:@(tier >= 2 ? "#c9a24a" : tier == 1 ? "#a5813a" : "#6f5020")"></i>@if (next > 0) { <i class="ui-tick" style="left:@SenateScreen.Pc(next)"></i> }</span>
                     <span class="sn-order-v"><b>@score</b><small>/100</small></span></div>
                 <div class="sn-sub2"><b class="@(tier >= 2 ? "ui-up" : "")">@Cap(OrderSystem.TierName(tier))</b> · @Ordinal(rank) among the houses@(next > 0 ? $" · {OrderSystem.TierName(tier + 1)} at {next}" : "")@(parts.Count > 0 ? " · " + string.Join(", ", parts.Take(3).Select(p => $"{p.what} +{p.points}")) : " · nothing yet")</div>

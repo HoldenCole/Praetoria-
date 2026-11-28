@@ -237,7 +237,12 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 .hs-says { display: flex; align-items: flex-start; gap: .5333rem; margin: .1333rem 0 .4rem; font: 400 .9333rem/1.4 var(--f-ui); color: #d8d0bb; }
 .hs-says .icon { flex: none; width: 1rem; height: 1rem; margin-top: .1333rem; }
 .hs-says.bad { color: #f6c9bd; }
-.hs-post.empty .ui-row-sub { font-style: italic; font-family: var(--f-prose); font-size: 1rem; }
+/* a post's state is a short Plex line ("Empty", "Held by Corvin"); the long sentence is in the row's tooltip; a seat with something
+   to say carries the warn mark, not a sentence in amber */
+.hs-state { display: inline; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-mute); white-space: normal; }   /* two lines at most (the row clamps), the whole in the tooltip */
+.hs-state .icon { vertical-align: -.1333rem; margin-right: .2667rem; }
+.hs-state.warn { color: var(--ink-dim); }
+.hs-post.empty .ui-row-sub { font-style: normal; }
 .hs-cands .ui-btn { height: 1.7333rem; }
 .court-offers { display: grid; gap: 0; margin: .2667rem 0 .2667rem; }
 .court-offers .hs-pick { grid-template-columns: auto minmax(0, 1fr) auto; padding: .3333rem 0; }
@@ -311,3 +316,17 @@ details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant
 /* the strategic goods bought at once from their own row: "Buy 3", the good's icon, the cost after the hairline */
 .hs-stores .ui-table td.hs-buy { width: 1%; white-space: nowrap; text-align: right; padding-top: .2rem; padding-bottom: .2rem; }
 @media (max-width: 1500px) { .hs-head .ui-facts .hs-culture { display: none; } }   /* the least useful fact steps out, so the facts keep to one line */
+
+/* a part of a tab under its own heading (the Purse's Seat and estates): the title in Cinzel on a gilt rule, one figure at the right */
+.hs-part { position: relative; display: flex; align-items: baseline; gap: 1rem; margin: 2rem 1.6rem .2rem 1.8667rem; padding: 0 0 .5333rem; }
+.hs-part::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--gilt-rule); opacity: .8; }
+.game .win-body .hs-part h3, .hs-part h3 { margin: 0; font: 600 1.3333rem/1.1 var(--f-display); letter-spacing: .04em; text-transform: none; color: #f5e9c9; text-shadow: 0 1px 0 #000; }
+.game .win-body .hs-part h3::before, .game .win-body .hs-part h3::after { display: none; }
+.hs-part-r { margin-left: auto; display: inline-flex; align-items: center; gap: .3333rem; font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; } .hs-part-r b { color: var(--ink); font-weight: 600; }
+
+/* the stores: 36px rows, every cell centred on one line; the Buy column has its head and a dash where nothing can be bought */
+.hs-stores .ui-table td { height: 2.4rem; padding-top: 0; padding-bottom: 0; vertical-align: middle; white-space: nowrap; }
+.hs-stores .ui-table td:first-child { display: table-cell; } .hs-stores .ui-table td:first-child .icon { vertical-align: -.2rem; }
+.hs-stores .ui-table .ui-btn { height: 1.7333rem; margin: 0; }
+.hs-stores .ui-table th.hs-buy, .hs-stores .ui-table td.hs-buy { text-align: right; width: 1%; }
+.hs-stores .hs-strat { margin-left: .4rem; vertical-align: baseline; }

@@ -2,6 +2,7 @@
   "events": [
     {
       "id": "first_formation",
+      "scene": "bridge",
       "tier": "ambient",
       "weight": 40,
       "repeatable": false,
@@ -47,6 +48,7 @@
     },
     {
       "id": "barracks_slight",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -194,6 +196,7 @@
     },
     {
       "id": "the_reckoning",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -366,6 +369,7 @@
     },
     {
       "id": "night_watch_lapse",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -464,6 +468,7 @@
     },
     {
       "id": "the_oath",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -584,6 +589,7 @@
     },
     {
       "id": "the_blooding",
+      "scene": "battle",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -710,6 +716,7 @@
     },
     {
       "id": "the_instructors_eye",
+      "scene": "bridge",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -821,6 +828,7 @@
     },
     {
       "id": "mess_hall",
+      "scene": "feast",
       "tier": "ambient",
       "weight": 5,
       "repeatable": true,
@@ -1094,6 +1102,7 @@
     },
     {
       "id": "the_sabotage",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -1260,6 +1269,7 @@
     },
     {
       "id": "the_humiliated_returns",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -1382,6 +1392,7 @@
     },
     {
       "id": "the_wounded_mercy",
+      "scene": "family",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -1500,6 +1511,7 @@
     },
     {
       "id": "the_proctors_offer",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 3,
       "repeatable": false,
@@ -1630,6 +1642,7 @@
     },
     {
       "id": "the_letter_home",
+      "scene": "dispatch",
       "tier": "ambient",
       "weight": 4,
       "repeatable": false,
@@ -1708,6 +1721,7 @@
     },
     {
       "id": "the_marked_man",
+      "scene": "intrigue",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,
@@ -1829,6 +1843,7 @@
     },
     {
       "id": "drills",
+      "scene": "battle",
       "tier": "ambient",
       "weight": 5,
       "repeatable": true,
@@ -1879,6 +1894,7 @@
     },
     {
       "id": "the_frame_unravels",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,

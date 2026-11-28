@@ -20,7 +20,7 @@
     var letters = open.Where(x => !visitors.Any(v => ReferenceEquals(v.card, x.card))).Select(x => (x.card, sealedUp: true))
         .Concat(m.Briefing.Where(b => b.Resolved).Select(b => (card: b, sealedUp: false))).ToList();
     var slots = Slots(room, L); var onDesk = letters.Take(slots.Count).ToList(); int offDesk = letters.Count - onDesk.Count;
-    var since = w.History.Where(h => h.Turn >= m.Turn - 1 && h.EventId == null).Reverse().Take(7).ToList();
+    var sinceAll = w.History.Where(h => h.Turn >= m.Turn - 1 && h.EventId == null).Reverse().Take(7).ToList(); var since = sinceAll.Take(4).ToList(); int sinceMore = sinceAll.Count - since.Count;
     var top = p.Skills.Where(k => k.Value > 0).OrderByDescending(k => k.Value).Take(4).ToList();
     string where = seatSys != null ? $"{seatSys.Name} · {w.Galaxy!.Region(seatSys.RegionId)?.Name}" : "no seat of your own";
 }
@@ -79,7 +79,7 @@
                 <Portrait Id="@p.Id" Name="@p.Name" Sex="@p.Sex" Age="@p.Age" Accent="@house.AccentColor" Size="58" Height="70" />
                 <div class="or-who-t">
                     <h2>@p.Name</h2>
-                    <div class="sub">@m.Character.RankName of @house.Name · @m.Character.TitleName · age @p.Age</div>
+                    <div class="sub" title="@($"{m.Character.RankName} of {house.Name} · {m.Character.TitleName} · age {p.Age}")">@m.Character.RankName · @m.Character.TitleName · @p.Age</div>
                 </div>
             </div>
             @if (m.Character.Nature.Count + m.Character.Aptitude.Count > 0)
@@ -96,8 +96,9 @@
             {
                 <div class="or-figs">@foreach (var k in top) { <span class="or-fig" title="@($"{Cap(k.Key)} {k.Value}\n{SkillWords.For(k.Key)}")"><Icon Name="@ChoiceStakes.SkillIcon(k.Key)" Tone="ivory" Size="24" /><b>@k.Value</b></span> }</div>
             }
-            <Section Title="Since last year" Count="@(since.Count > 0 ? since.Count.ToString() : "")" IsEmpty="@(since.Count == 0)" EmptyLine="Nothing of note." EmptyIcon="turn">
+            <Section Title="Since last year" Count="@(sinceAll.Count > 0 ? sinceAll.Count.ToString() : "")" IsEmpty="@(since.Count == 0)" EmptyLine="Nothing of note." EmptyIcon="turn">
                 <div class="or-lines">@foreach (var h in since) { <div class="line" title="@h.Text">@h.Text</div> }</div>
+                @if (sinceMore > 0) { <div class="or-more"><Link Label="@($"and {sinceMore} more")" Tip="The rest of the year's news, kept in the Chronicle under This year" OnClick='() => OnGo.InvokeAsync("chronicle:now")' /></div> }
             </Section>
             @if (m.GreatCrisis is { } gc)
             {
@@ -120,6 +121,7 @@
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
     [Parameter] public EventCallback<BriefingCard> OnOpenReport { get; set; }
+    [Parameter] public EventCallback<string> OnGo { get; set; }
     private const int MaxVisitors = 5;
 
     /// <summary>The four rooms, one for each register (img/rooms/<key>.webp, painted by tools/art/rooms.py).</summary>

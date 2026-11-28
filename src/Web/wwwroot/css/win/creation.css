@@ -358,7 +358,7 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
 .fr-in.ws-kin-nm { height: 1.8667rem; width: 13rem; max-width: 100%; font: 500 .9333rem/1 var(--f-ui); }
 .ws-kin .ui-menu { right: 0; left: auto; min-width: 18rem; max-height: 22rem; overflow-y: auto; }
 .ws-kin .ws-kin-sel .ui-select-btn { min-width: 7rem; }
-.face-pick .face { position: relative; } .face-pick .face .face-nm { position: absolute; left: 0; right: 0; bottom: 0; padding: .1333rem; font: 600 .8rem/1.1 var(--f-ui); color: #fff8e8; text-align: center; background: linear-gradient(transparent, rgba(0,0,0,.85)); }
+.face-pick .face { position: relative; }
 .face-pick .face.on { box-shadow: 0 0 0 2px var(--brass-hi), 0 0 10px rgba(246,226,160,.4); }
 /* the points meter: the rating, a gap, the track, the budget (4.10) */
 .ws-power { display: inline-flex; align-items: center; gap: .5333rem; }
@@ -374,3 +374,60 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
 .ws-site .ring { stroke: var(--own-line, #f0c661); }
 .ws-site-card .ws-site-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.6rem; }
 .ws-worlds { max-height: none !important; overflow: visible !important; }
+
+/* ---- round 2: every setting a row (4.7): an 18px glyph, the name in Plex 600, the choice at the right as joined plates or a
+   framed select with short words; what a choice does is in its tooltip ---- */
+.fr-rule { grid-template-columns: 1.2rem minmax(0, 1fr) auto; gap: .8rem; min-height: 3.2rem; }
+.fr-rule > .icon { width: 1.2rem; height: 1.2rem; }
+.fr-rule-v { display: inline-flex; align-items: center; justify-content: flex-end; gap: .4rem; min-width: 0; }
+.fr-rule-v .ui-seg { flex-wrap: nowrap; }
+.fr-rule-v .ui-seg button { white-space: nowrap; }
+.fr-rule-v .ui-select-btn { min-width: 11rem; justify-content: space-between; }
+.fr-rule-v .ui-input, .fr-rule-v .fr-in { width: 13.3333rem; height: 2.1333rem; padding: 0 .6667rem; background: #05070a; color: var(--ink); border: 1px solid #000; box-shadow: var(--sh-inset), 0 0 0 1px rgba(165,129,58,.35); font: 500 .9333rem/1 var(--f-ui); }
+.fr-rule-v .ui-step { flex: none; }
+.fr-dice { width: 2.1333rem; height: 2.1333rem; padding: 0; display: inline-grid; place-items: center; }
+.fr-rules .fr-rule.money { grid-column: auto; grid-template-columns: 1.2rem minmax(0, 1fr) auto; }
+.fr-who { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Begin with: four check rows, the name and one line of what it gives (the whole in its tooltip) */
+.fr-boosts .boost { grid-template-columns: auto minmax(0, 1fr); min-height: 3.2rem; cursor: pointer; }
+.fr-boost-t { display: flex; flex-direction: column; gap: .1333rem; min-width: 0; }
+.fr-boost-t .fr-boost-does { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@container fr (max-width: 900px) { .fr-who { grid-template-columns: minmax(0, 1fr); } }
+
+/* a short screen (under 800px): the header closes to a strip, the portrait small, the title and lede on one line, the plinth inline,
+   so the body has the room (as You collapses to a strip) */
+@media (max-height: 800px) {
+  .fr-win .ui-head, .fr-win .ui-head.tall { height: 9.0667rem; }
+  .fr-win .ui-head-who .portrait { width: 5.0667rem !important; height: 6.4rem !important; }
+  .fr-win .ui-head-who { top: .9333rem !important; }
+  .fr-win .ui-head.portrait-head .ui-head-text, .fr-win .ui-head-text { left: 8rem; top: .9333rem; right: 24rem; }
+  .fr-win .ui-head-mark { top: .8rem; transform: scale(.72); transform-origin: top left; }
+  .fr-win .ui-title { font-size: 1.4667rem; margin-top: .2rem; }
+  .fr-win .ui-lede-head { font-size: .9333rem; margin-top: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr-win .ui-facts { display: none; }
+  .fr-win .ui-plinth { left: auto; right: 0; top: 0; bottom: auto; height: 9.0667rem; padding: 0 1.6rem; flex-wrap: wrap; align-content: center; justify-content: flex-end; max-width: 24rem; gap: .4rem 0; }
+  .fr-win .ui-plinth::before, .fr-win .ui-plinth::after { display: none; }
+  .fr-win .ui-plinth .ui-fig + .ui-fig { margin-left: .8rem; padding-left: .8rem; }
+}
+
+/* the workshop's house: two columns, the facts at the left, the colour and the arms at the right */
+.ws-two { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); column-gap: 1.0667rem; align-items: start; }
+.ws-two .fr-colour { flex-direction: column; align-items: flex-start; }
+@container fr (max-width: 760px) { .ws-two { grid-template-columns: minmax(0, 1fr); } }
+/* the face: plates of 96 by 120 in a grid that fills the body, the name under the plate on a caption line, never over the picture */
+.face-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.4rem, 1fr)); gap: .9333rem .8rem; }
+.face-pick .face, .face-pick .chip.dice { width: auto; height: auto; display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: 0; background: none; overflow: visible; }
+.face-pick .face::after { content: none; }
+.face-pick .face-img { position: relative; display: block; width: 6.4rem; height: 8rem; overflow: hidden; background: #0b0e14; box-shadow: 0 4px 10px rgba(0,0,0,.6); }
+.face-pick .face-img::after { content: ""; position: absolute; inset: 0; border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; pointer-events: none; }
+.face-pick .face-nm { position: static; display: block; max-width: 7.4667rem; padding: 0; background: none; font: 600 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); text-align: center; white-space: normal; text-shadow: none; }
+.face-pick .face.on .face-nm { color: var(--brass-hi); } .face-pick .face.on .face-img { box-shadow: 0 0 0 2px var(--brass-hi), 0 0 12px rgba(246,226,160,.4); }
+.face-pick .chip.dice { justify-content: flex-start; border: 0; box-shadow: none; }
+.face-pick .chip.dice .icon { width: 6.4rem; height: 8rem; padding: 2.1333rem 1.6rem; box-sizing: border-box; background: radial-gradient(circle at 50% 40%, #222a3b, #0b0e15); box-shadow: inset 0 1px 3px #000, 0 0 0 1px rgba(165,129,58,.45); }
+.face-pick .chip.dice.on .icon { box-shadow: inset 0 1px 3px #000, 0 0 0 2px var(--brass-hi); }
+.face-life figure img { width: 6.4rem; height: 8rem; }
+
+/* the start plates are sized by the height of the screen as well as its width, so their names and their era and hardness lines stand
+   above the screen's foot at every text size */
+.fr-plate-pic { max-height: clamp(8rem, 26vh, 16rem); }
+@media (max-height: 820px) { .fr-plate .sc-name { min-height: 0; margin-top: .4rem; } }

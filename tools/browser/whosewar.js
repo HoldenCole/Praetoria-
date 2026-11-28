@@ -18,11 +18,12 @@ require('fs').mkdirSync(shots, { recursive: true });
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
   await page.click('.scenario:has-text("' + title + '")');
-  const setting = await page.evaluate(() => { const l = [...document.querySelectorAll('label')].find(x => /the powers beyond/i.test(x.innerText)); return l ? [...l.querySelectorAll('option')].map(o => o.innerText.trim()).join(' | ') : null; });
+  // each rule of the world is a row of joined plates (.fr-rule), a choice's whole wording in its tooltip
+  const setting = await page.evaluate(() => { const l = [...document.querySelectorAll('.fr-rule')].find(x => /the powers beyond/i.test(x.innerText)); return l ? [...l.querySelectorAll('button')].map(o => (o.title || o.innerText).trim()).join(' | ') : null; });
   console.log('new-game setting, the powers beyond: ' + (setting || 'NOT SHOWN'));
-  const often = await page.evaluate(() => { const l = [...document.querySelectorAll('label')].find(x => /how often they attack/i.test(x.innerText)); return l ? [...l.querySelectorAll('option')].map(o => o.innerText.trim()).join(' | ') : null; });
+  const often = await page.evaluate(() => { const l = [...document.querySelectorAll('.fr-rule')].find(x => /how often they attack/i.test(x.innerText)); return l ? [...l.querySelectorAll('button')].map(o => (o.title || o.innerText).trim()).join(' | ') : null; });
   console.log('new-game setting, how often they attack: ' + (often || 'NOT SHOWN'));
-  const lab = await page.evaluateHandle(() => [...document.querySelectorAll('label')].find(x => /the powers beyond/i.test(x.innerText)) || null);
+  const lab = await page.evaluateHandle(() => [...document.querySelectorAll('.fr-rule')].find(x => /the powers beyond/i.test(x.innerText)) || null);
   if (lab.asElement()) { await lab.asElement().scrollIntoViewIfNeeded(); await page.screenshot({ path: shots + '/whosewar-setting.png' }); }
   await page.click('button.begin'); await page.waitForSelector('.gs-shell', { timeout: 90000 });
   for (let i = 0; i < 10; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(300); }

@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_canvass",
+      "scene": "senate",
       "tier": "situation",
       "weight": 26,
       "repeatable": true,
@@ -83,6 +84,7 @@
     },
     {
       "id": "the_count_goes_your_way",
+      "scene": "senate",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -145,6 +147,7 @@
     },
     {
       "id": "the_count_goes_against_you",
+      "scene": "senate",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -217,6 +220,7 @@
     },
     {
       "id": "one_of_yours_is_elected",
+      "scene": "senate",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -307,6 +311,7 @@
     },
     {
       "id": "the_aediles_games",
+      "scene": "triumph",
       "tier": "situation",
       "weight": 34,
       "repeatable": false,
@@ -387,6 +392,7 @@
     },
     {
       "id": "the_one_you_did_not_speak_for",
+      "scene": "senate",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -580,6 +586,7 @@
     },
     {
       "id": "one_of_yours_is_removed",
+      "scene": "senate",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -688,6 +695,7 @@
     },
     {
       "id": "the_court_finds_for_you",
+      "scene": "court",
       "tier": "situation",
       "weight": 25,
       "repeatable": true,
@@ -736,6 +744,7 @@
     },
     {
       "id": "the_court_finds_against_you",
+      "scene": "court",
       "tier": "situation",
       "weight": 25,
       "repeatable": true,
@@ -811,6 +820,7 @@
     },
     {
       "id": "the_audit_names_a_name",
+      "scene": "court",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -893,6 +903,7 @@
     },
     {
       "id": "the_appeal_goes_your_way",
+      "scene": "court",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -1035,6 +1046,7 @@
     },
     {
       "id": "the_levy_is_forgiven",
+      "scene": "market",
       "tier": "situation",
       "weight": 35,
       "repeatable": true,
@@ -1185,6 +1197,7 @@
     },
     {
       "id": "the_returns_are_reopened",
+      "scene": "senate",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -1270,6 +1283,7 @@
     },
     {
       "id": "the_squares_turn_on_the_magistrates",
+      "scene": "unrest",
       "tier": "situation",
       "weight": 35,
       "repeatable": true,
@@ -1350,6 +1364,7 @@
     },
     {
       "id": "the_magistrates_are_believed_again",
+      "scene": "senate",
       "tier": "situation",
       "weight": 25,
       "repeatable": true,
@@ -1412,6 +1427,7 @@
     },
     {
       "id": "the_padded_account",
+      "scene": "court",
       "tier": "situation",
       "weight": 35,
       "repeatable": true,
@@ -1487,6 +1503,7 @@
     },
     {
       "id": "one_of_yours_is_spoken_for",
+      "scene": "senate",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
@@ -1566,6 +1583,7 @@
     },
     {
       "id": "the_charge_is_proved",
+      "scene": "court",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -1650,6 +1668,7 @@
     },
     {
       "id": "the_court_lets_them_go",
+      "scene": "court",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -1721,6 +1740,7 @@
     },
     {
       "id": "the_praetor_is_not_for_sale",
+      "scene": "court",
       "tier": "situation",
       "weight": 45,
       "repeatable": true,
@@ -1800,6 +1820,7 @@
     },
     {
       "id": "the_chair_of_the_committee",
+      "scene": "senate",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -1964,6 +1985,7 @@
     },
     {
       "id": "one_of_yours_is_taken_up",
+      "scene": "senate",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
@@ -2061,6 +2083,7 @@
     },
     {
       "id": "one_of_yours_falls_out",
+      "scene": "senate",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,
@@ -2164,6 +2187,7 @@
     },
     {
       "id": "one_of_yours_is_taken_along",
+      "scene": "senate",
       "tier": "situation",
       "weight": 30,
       "repeatable": true,

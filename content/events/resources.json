@@ -2,7 +2,7 @@
   "//": "THE STRATEGIC THREE (GDD §17 'not every world has everything; decisions gated behind wealth and resources'). Helium-3 fuels the fleet, rare earths build the clever things, isotopes arm the heavy hulls. These events read the engine's deposit:<res>, strategic:<res> and fuel_short flags, the wealth tier, and the resource stocks, so a rich house without a deposit buys its way in, a poor house with one sells, and a dry navy is a decision.",
   "events": [
     {
-      "id": "dry_tanks", "tier": "situation", "weight": 10, "repeatable": true,
+      "id": "dry_tanks", "scene": "shipyard", "tier": "situation", "weight": 10, "repeatable": true,
       "when": [ { "type": "worldFlag", "flag": "fuel_short" } ],
       "choices": [
         { "id": "buy_dear", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 18 } ],
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "id": "the_skimmer_barons", "tier": "situation", "weight": 7, "repeatable": false,
+      "id": "the_skimmer_barons", "scene": "world", "tier": "situation", "weight": 7, "repeatable": false,
       "when": [ { "type": "worldFlag", "flag": "deposit:helium3" }, { "type": "turn", "op": "gte", "value": 2 } ],
       "choices": [
         { "id": "raise_skimmers", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 8 }, { "type": "resource", "resource": "materials", "op": "gte", "value": 4 } ],
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "id": "a_vein_of_rare_earths", "tier": "situation", "weight": 7, "repeatable": false,
+      "id": "a_vein_of_rare_earths", "scene": "world", "tier": "situation", "weight": 7, "repeatable": false,
       "when": [ { "type": "worldFlag", "flag": "deposit:rare_earths" }, { "type": "worldFlag", "flag": "claim_holder" } ],
       "choices": [
         { "id": "refine_it", "requires": [ { "type": "resource", "resource": "credits", "op": "gte", "value": 10 } ],
@@ -50,7 +50,7 @@
       ]
     },
     {
-      "id": "the_fuel_contract", "tier": "situation", "weight": 6, "repeatable": true,
+      "id": "the_fuel_contract", "scene": "market", "tier": "situation", "weight": 6, "repeatable": true,
       "when": [ { "type": "worldFlag", "flag": "strategic:helium3" }, { "type": "resource", "resource": "helium3", "op": "gte", "value": 8 }, { "type": "turn", "op": "gte", "value": 3 } ],
       "roles": [ { "name": "buyer", "when": [ { "type": "not", "of": { "type": "atWar", "role": "buyer", "present": true } } ] } ],
       "choices": [
@@ -64,7 +64,7 @@
       ]
     },
     {
-      "id": "the_embargo", "tier": "situation", "weight": 8, "repeatable": false,
+      "id": "the_embargo", "scene": "market", "tier": "situation", "weight": 8, "repeatable": false,
       "when": [ { "type": "worldFlag", "flag": "strategic:isotopes" }, { "type": "worldFlag", "flag": "at_war_any" } ],
       "choices": [
         { "id": "arm_the_fleet", "requires": [ { "type": "resource", "resource": "isotopes", "op": "gte", "value": 2 } ],

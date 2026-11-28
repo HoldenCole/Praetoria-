@@ -40,16 +40,17 @@
     else if (lg != null) { story = $"The house clears {Money.Show(net)} a year{(top != null ? $", the most of it from {top.Source}" : "")}, and is the {Ordinal(lg.Rank)} richest of {lg.Houses} houses{(above != null ? $", {Money.Show(above.Wealth - lg.Wealth)} behind {above.Name}" : below != null ? $", {Money.Show(lg.Wealth - below.Wealth)} ahead of {below.Name}" : "")}."; storyTone = net > 0 ? "good" : ""; }
     else { story = $"The house clears {Money.Show(net)} a year."; storyTone = net > 0 ? "good" : ""; }
 
+    int yearNet = YearNet(G, w, house);
     // the plinth: five numbers; the old tiles' notes are their tooltips
     var figures = new List<WindowHeader.Figure>
     {
-        new("credits", Money.Held(house.Treasury), "Treasury, a year", m.Treasury.Insolvent ? "ember" : "brass", Delta: net == 0 ? "" : Sg(net),
-            Tip: $"[credits] In the treasury\nWhat the house has in hand, and what a year adds to it or takes from it.\nIn hand: {Money.Held(house.Treasury)}\nA year: {(net > 0 ? $"+{Money.Show(net)}" : net < 0 ? $"−{Money.Show(-net)}, {(lasts <= 0 ? "gone within the year" : Counted.Years(lasts) + " left")}" : "neither growing nor shrinking")}\nTakes in: +{Money.Show(gross)}\nSpends: {(gross == 0 ? Money.Show(spend) : spend > gross ? $"{Money.Show(spend)}, {Money.Show(spend - gross)} more than it takes in" : $"{Money.Show(spend)}, {100 * spend / gross}% of it")}{(drain != null ? $"\nMost on: {drain.Source}" : "")}\nkey: The Ledger tab has every line"),
+        new("credits", Money.Held(house.Treasury), "Treasury, a year", m.Treasury.Insolvent ? "ember" : "brass", Delta: yearNet == 0 ? "" : Sg(yearNet),
+            Tip: $"[credits] In the treasury\nWhat the house has in hand, and what a year adds to it or takes from it.\nIn hand: {Money.Held(house.Treasury)}\nA year, as the top bar has it: {(yearNet > 0 ? $"+{Money.Show(yearNet)}" : yearNet < 0 ? $"−{Money.Show(-yearNet)}, {(lasts <= 0 ? "gone within the year" : Counted.Years(lasts) + " left")}" : "neither growing nor shrinking")}\nTakes in: +{Money.Show(gross)}\nSpends: {(gross == 0 ? Money.Show(spend) : spend > gross ? $"{Money.Show(spend)}, {Money.Show(spend - gross)} more than it takes in" : $"{Money.Show(spend)}, {100 * spend / gross}% of it")}{(drain != null ? $"\nMost on: {drain.Source}" : "")}\nkey: The Ledger tab has every line"),
     };
     if (lg != null)
         figures.Add(new("money-stack", Money.Show(lg.Wealth), lg.Debt > 0 ? "Wealth, in debt" : "Wealth, no debt", "brass",
             Tip: $"[money-stack] Wealth\n{(above != null ? $"{above.Name} is next above, at {Money.Show(above.Wealth)}." : "The richest house of the Reach.")}\nRank: {Ordinal(lg.Rank)} of {lg.Houses} houses, {lg.Tier}\nDebt: {(lg.Debt > 0 ? $"{Money.Show(lg.Debt)}, {Money.Show(lg.LoanInstalment)} a year to {(lg.LenderName != null ? "the bank of " + lg.LenderName : "the counting-houses")}" : lg.Loan.Refusal == null ? "nothing owed; the counting-houses would lend" : "nothing owed")}"));
-    figures.Add(new("ringed-planet", lands.Count.ToString(), lands.Count == 0 ? "Worlds" : $"Worlds, {pop} pop", "ivory",
+    figures.Add(new("ringed-planet", lands.Count.ToString(), lands.Count == 0 ? "Worlds" : $"Worlds, {Census.Short(citizens)}", "ivory",
         Tip: lands.Count == 0 ? "[ringed-planet] The worlds\nThe house holds none: a fief is won, granted, or married into." :
             $"[ringed-planet] The worlds\n{Counted.Worlds(planets)}{(stations > 0 ? $", {Counted.Stations(stations)}" : "")}{(claims > 0 ? $", {Counted.Claims(claims)}" : "")}, {Census.Say(citizens)} citizens.\nLoyalty: {loyal}{(lands.Count > 1 ? $", the least loyal, {weakest!.Name}" : "")}\nThriving: {thriving}, the average prosperity\n{(besieged != null ? $"{besieged.Name} is besieged." : "Loyalty is that of the least loyal world; thriving is the average prosperity of them all.")}"));
     figures.Add(new("legitimacy", house.Legitimacy.ToString(), "Legitimacy", m.Standing is { Instability: > 0 } ? "ember" : "ivory",
@@ -300,7 +301,7 @@
             @if (m.Treasury.Insolvent) { <WarnStrip Icon="credits" Lead="Insolvent." Bad="true">Unrest climbs on every populated world and unpaid crews will desert.</WarnStrip> }
             <div class="ui-table-wrap hs-stores">
                 <table class="ui-table">
-                    <thead><tr><th>Good</th><th>Held</th><th>A year</th>@if (m.Procure is { Count: > 0 }) { <th></th> }</tr></thead>
+                    <thead><tr><th>Good</th><th>Held</th><th>A year</th>@if (m.Procure is { Count: > 0 }) { <th class="hs-buy" title="What can be bought on the market for the house now; a dash where nothing can">Buy</th> }</tr></thead>
                     <tbody>
                     @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics), ("helium3", m.Treasury.Helium3, fc?.Helium3), ("rare_earths", m.Treasury.RareEarths, fc?.RareEarths), ("isotopes", m.Treasury.Isotopes, fc?.Isotopes) })
                     {
@@ -314,7 +315,8 @@
                                 {
                                     var q = new BuyGoodCommand(pid, name, 3, c.Trade).Quote(w);
                                     <Plate Label="Buy 3" Icon="@name" IconTone="@ResTone(name)" CostIcon="credits" CostText="@(q.Credits > 0 ? Money.Show(q.Credits) : "")" Small="true" Locked="@(po.Refusal != null)" Disabled="@(po.Refusal != null)" ShowNeed="false" Need="@(po.Refusal ?? "")" Tip="@($"Buy 3 {Resource.Label(name)} on the market at once, for {(q.Credits > 0 ? Money.Show(q.Credits) : "nothing")} credits")" data-procure="@name" OnClick="() => G.Execute(new BuyGoodCommand(pid, name, 3, c.Trade))" />
-                                }</td>
+                                }
+                                else { <span class="ui-mute">–</span> }</td>
                             }
                         </tr>
                     }
@@ -595,6 +597,15 @@
 </div>
 
 @code {
+    /// <summary>What the year adds to the treasury or takes from it, as the top bar and the Ledger's "This year" have it: the forecast
+    /// less the year's outgoings (the shares of what is being built, hastening, tutors, allowances, the household).</summary>
+    public static int YearNet(GameClient g, World w, House house)
+    {
+        var fc = g.Turn!.Economy?.Forecast(w, house.Id, g.Turn.Fleets); if (fc == null) return 0;
+        var outs = HouseAccounts.Total(HouseAccounts.Outgoings(w, g.Content!.Holdings, house, g.Turn.Economy));
+        return fc.Credits - outs.Credits;
+    }
+
     /* a list of causes for a tooltip, one effect line each: "[icon] a solvent house = +2", then the sum */
     private static string WhyTip(string head, string lead, List<(string what, int by)> why, string sumLabel)
     {

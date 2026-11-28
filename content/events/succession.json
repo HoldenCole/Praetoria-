@@ -284,6 +284,7 @@
     },
     {
       "id": "press_the_claim",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 4,
       "repeatable": true,
@@ -571,6 +572,7 @@
     },
     {
       "id": "the_rival_claimant",
+      "scene": "intrigue",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": true,
@@ -691,6 +693,7 @@
     },
     {
       "id": "the_abdication",
+      "scene": "family",
       "tier": "setpiece",
       "weight": 2,
       "repeatable": false,
@@ -837,6 +840,7 @@
     },
     {
       "id": "the_succession_dispute",
+      "scene": "court",
       "tier": "setpiece",
       "weight": 3,
       "repeatable": false,

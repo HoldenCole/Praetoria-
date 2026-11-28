@@ -73,7 +73,10 @@
 .wl-world.restless::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--ember); }
 .ww-id { min-width: 0; }
 .ww-nm { display: flex; align-items: center; flex-wrap: wrap; row-gap: .2rem; } .ww-nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
-.ww-sub { display: flex; align-items: center; gap: .3333rem; margin-top: 2px; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ww-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .3333rem; margin-top: 2px; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }   /* the holder is never cut: a long name takes a second line */
+.ww-sub > span { white-space: nowrap; }
+.ww-id { min-width: 12rem; }
+.ww-choke { display: inline-flex; align-items: center; margin-left: .4rem; cursor: help; }
 .ww-sub .sigil, .wc-sub .sigil { flex: none; }
 .ww-cells { display: grid; grid-template-columns: 3.4667rem 3.4667rem 4.2667rem 6.4rem; align-items: center; column-gap: .6667rem; }
 .ww-cells .ui-cell { cursor: help; min-width: 0; }
@@ -86,7 +89,8 @@
 .ww-acts { margin-top: .6667rem; display: flex; gap: .5333rem; }
 .ww-open .local-laws, .ww-open .local-law { margin-top: .6667rem; }
 @container wl (max-width: 46rem) {
-  .ww-cells { grid-template-columns: 3.2rem 3.2rem 4rem; }
+  .ww-cells { grid-template-columns: 3.2rem 3.2rem; }
+  .ww-cells .ww-pop, .ww-cells > .ui-cell:nth-child(3), .ww-cells > :nth-child(3) { display: none; }   /* the citizens step into the row's tooltip and the open row */
   .ww-riches { display: none; }
   .ww-open { padding-left: var(--g-l); }
 }
@@ -131,3 +135,8 @@
 .ww-cells { grid-template-columns: 3.4667rem 3.4667rem 4.2667rem 9.6rem; }
 .ww-riches { display: grid; grid-template-columns: repeat(4, 2.2rem); justify-items: start; gap: 0; }
 .ww-empty::before { content: "–"; color: var(--ink-mute); }
+
+/* a city: its kind in the subtitle with where it is and who holds it; its special work as a small glyph after the name, hollow while
+   not raised; the holder's arms and name never part */
+.wc-sub > span { white-space: nowrap; } .wc-holder { display: inline-flex; align-items: center; gap: .2667rem; }
+.wc-work { display: inline-flex; align-items: center; cursor: help; } .wc-work:not(.on) .icon { opacity: .45; }

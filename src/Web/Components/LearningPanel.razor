@@ -47,7 +47,7 @@
         <ChildContent>
         @* one row, a Select for the study (each skill with its ceiling as a dim note) and a second for the teacher (4.12), not a wall of plates *@
         @{ var studyOpts = new List<Select.Option> { new("", "Nothing", "you learn by doing") }.Concat(rows.Where(r => r.level < r.top || r.skill == p.Study).OrderBy(r => r.skill, StringComparer.Ordinal).Select(r => new Select.Option(r.skill, CharacterScreen.Cap(r.skill), $"{r.level} now, can reach {r.top}"))).ToList(); }
-        <Row Name="@(p.Study.Length > 0 ? "Your study: " + CharacterScreen.Cap(p.Study) : "Your study: nothing")" SubText="@(p.Study.Length > 0 ? SkillWords.For(p.Study) : "What you learn, you learn by doing. Choose a study and it takes points toward its next step every year.")" Class="you-study">
+        <Row Name="@(p.Study.Length > 0 ? "Your study: " + CharacterScreen.Cap(p.Study) : "Your study: nothing")" SubText="@(p.Study.Length > 0 ? SkillWords.For(p.Study) : "Choose a study")" Tip="@(p.Study.Length > 0 ? SkillWords.For(p.Study) : "What you learn, you learn by doing. Choose a study and it takes points toward its next step every year.")" Class="you-study acts-under">
             <Picture><span class="ui-medal"><Icon Name="@(p.Study.Length > 0 ? CharacterScreen.SkillIcon(p.Study) : "open-book")" Tone="brass" Size="22" /></span></Picture>
             <Action><span class="you-study-acts">
                 <Select Value="@p.Study" Placeholder="Study…" Tip="Choose what you study" Options="@studyOpts" OnChange="v => G.Execute(new EducationCommand(pid, EducationCommand.Study, pid, v))" />

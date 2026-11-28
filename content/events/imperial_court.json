@@ -222,6 +222,7 @@
     },
     {
       "id": "the_imperial_levy",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 4,
       "repeatable": true,

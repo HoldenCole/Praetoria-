@@ -120,3 +120,8 @@
 .vbuy-in { width: 6.6667rem; }
 .vbuy-warn { font: 600 .9333rem/1 var(--f-ui); }
 .ex-holders-link { padding: .4rem 1.4667rem .2rem 1.8667rem; }
+
+/* a venture for sale: its name wraps rather than being cut; its plates on one line, the one requirement after them */
+.ex-win .ui-row-nm { white-space: normal; overflow: visible; }
+.vbuy { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; }
+.vbuy .vbuy-need { flex-basis: auto; }

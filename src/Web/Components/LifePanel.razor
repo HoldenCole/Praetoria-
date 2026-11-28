@@ -77,7 +77,8 @@
         </ChildContent>
     </Section>
 
-    <Section Title="Old ties" Count="@(friends.Count + enemies.Count > 0 ? (friends.Count + enemies.Count).ToString() : "")" Info="@TieRule">
+    <Section Title="Old ties" Count="@(friends.Count + enemies.Count > 0 ? (friends.Count + enemies.Count).ToString() : "")" Info="@TieRule"
+             IsEmpty="@(friends.Count + enemies.Count == 0)" EmptyIcon="shaking-hands" EmptyLine="@($"No old friends and no old enemies yet. One who thinks well or ill of you for {LifeSystem.OldTieYears} years becomes one.")">
         <Right><span>@(friends.Count + enemies.Count == 0 ? "None yet" : $"{friends.Count} {(friends.Count == 1 ? "friend" : "friends")}, {enemies.Count} {(enemies.Count == 1 ? "enemy" : "enemies")}")</span></Right>
         <ChildContent>
         @if (friends.Count == 0 && enemies.Count == 0)
@@ -101,7 +102,7 @@
         </ChildContent>
     </Section>
 
-    <Section Title="What you have done" Count="@(deeds.Count > 0 ? deeds.Count.ToString() : "")" Info="What is written of you, the newest first. It is what will be said of you, and it makes your renown.">
+    <Section Title="What you have done" Count="@(deeds.Count > 0 ? deeds.Count.ToString() : "")" IsEmpty="@(deeds.Count == 0)" EmptyIcon="scroll-unfurled" EmptyLine="Nothing is written of what you have done yet." Info="What is written of you, the newest first. It is what will be said of you, and it makes your renown.">
         <Right>@if (deeds.Count > 6) { <Link Label="@(_all ? "Show fewer" : $"Show all {deeds.Count}")" OnClick="() => _all = !_all" /> }</Right>
         <ChildContent>
             @if (deeds.Count == 0) { <EmptyState Icon="scroll-unfurled" Text="Nothing is written yet." /> }

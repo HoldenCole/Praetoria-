@@ -32,12 +32,12 @@
                 if (holder != null) appoint.Insert(0, new Select.Option("", "Take it back", "you do the work yourself again"));
                 string reserveTip = holder != null && d != null ? $"\nThey leave {Money.Show(d.Reserve)} in the treasury and spend only what is above it." : "";
             }
-            <Row Name="@HouseholdSystem.RoleName(role)" Tip="@(Sentence(HouseholdSystem.RoleDoes(role)) + reserveTip)">
+            <Row Name="@HouseholdSystem.RoleName(role)" Tip="@(Sentence(HouseholdSystem.RoleDoes(role)) + reserveTip + (holder == null && seat != null ? "\n" + seat.Line : ""))">
                 <Picture>
                     @if (holder != null) { <Portrait Id="@holder.Id" Name="@holder.Name" Sex="@holder.Sex" Age="@holder.Age" Accent="@house.AccentColor" Size="46" Height="56" /> }
                     else { <Portrait Size="46" Height="56" EmptyGlyph="@Glyph(role)" Name="@($"{HouseholdSystem.RoleName(role)}: empty")" /> }
                 </Picture>
-                <Sub>@if (holder != null && d != null) { <span><b>@holder.Name</b> · skill @HouseholdSystem.Fit(holder, role) · @Years(w.Turn - d.Since) in the post</span> } else if (seat != null) { <span class="@(seat.Warning ? "ui-warn-t" : "ui-mute")">@seat.Line</span> } else { <span class="ui-mute">Empty. @Sentence(HouseholdSystem.RoleDoes(role))</span> }</Sub>
+                <Sub>@if (holder != null && d != null) { <span><b>@holder.Name</b> · skill @HouseholdSystem.Fit(holder, role) · @Years(w.Turn - d.Since) in the post</span> } else if (seat != null) { <span class="hs-state @(seat.Warning ? "warn" : "")" title="@seat.Line">@if (seat.Warning) { <Icon Name="threat" Tone="ember" Size="14" /> }@seat.Line</span> } else { <span class="hs-state">Empty</span> }</Sub>
                 <Action>
                     @if (cands.Count > 0 || holder != null)
                     {

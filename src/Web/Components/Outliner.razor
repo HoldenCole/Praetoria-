@@ -18,12 +18,17 @@
             @Head("reports", "report", "Reports", unanswered.ToString(), false, "The year's reports: who waits at your door and what came. Each is answered in its own window; left unanswered at the year's end, it lapses.")
             @if (Open("reports"))
             {
+                var seen = new Dictionary<string, int>();
                 @foreach (var b in m.Briefing)
                 {
-                    string scene = SceneArt.For(b.Item.Fired.Def.Id, b.Title);
-                    <button class="ol-row ol-report rep @b.Tier.ToLowerInvariant() @(b.Resolved ? "done" : "")" data-report title="@(b.Resolved ? "Answered: open it again to read what was said" : "Open this report")" @onclick="() => OnOpenReport.InvokeAsync(b)">
-                        <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="eager" decoding="async" /></span>
-                        <span class="nm"><span class="title">@b.Title</span><span class="k">@if (!b.Resolved && (b.Setpiece || b.Tier == "AMBIENT")) { <Icon Name="hourglass" Tone="ember" Size="13" /> }@(b.Resolved ? "Answered" : b.Setpiece || b.Tier == "AMBIENT" ? "Lapses at the year's end" : "Answer by the year's end")</span></span>
+                    string scene = SceneArt.For(b.Item.Fired.Def, b.Title);
+                    // two reports on one painting show different parts of it, so the column of crops still tells them apart
+                    int nth = seen.TryGetValue(scene, out var k) ? k : 0; seen[scene] = nth + 1;
+                    string pos = CropAt[nth % CropAt.Length];
+                    bool lapses = b.Setpiece || b.Tier == "AMBIENT";
+                    <button class="ol-row ol-report rep @b.Tier.ToLowerInvariant() @(b.Resolved ? "done" : "")" data-report title="@(b.Resolved ? "Answered: open it again to read what was said" : lapses ? "Open this report. Left unanswered, it lapses at the year's end." : "Open this report. Answer it before the year ends.")" @onclick="() => OnOpenReport.InvokeAsync(b)">
+                        <span class="crop"><img src="img/scenes/@(scene).webp" alt="" loading="eager" decoding="async" style="object-position:@pos" /></span>
+                        <span class="nm"><span class="title">@b.Title</span><span class="k">@if (!b.Resolved && lapses) { <Icon Name="hourglass" Tone="ember" Size="13" /> }@(b.Resolved ? "Answered" : lapses ? "Lapses at year's end" : "Answer this year")</span></span>
                         @if (b.Resolved) { <Icon Name="check" Tone="good" Size="14" Class="tick" /> }
                         else { <Icon Name="wax-seal" Tone="brass" Size="20" Class="wseal" /> }
                     </button>
@@ -91,6 +96,8 @@
 
     /// <summary>What the player opened or folded: kept apart for the map at rest and for when a window is open.</summary>
     private readonly Dictionary<string, bool> _open = new();
+    /// <summary>Where the crop of a painting looks, for the first, second, third report on the same painting.</summary>
+    private static readonly string[] CropAt = { "50% 45%", "18% 70%", "84% 30%", "30% 20%", "70% 80%" };
     private string Key(string section) => Folded && section != "reports" ? section + ":folded" : section;
     private bool Open(string section) => _open.TryGetValue(Key(section), out var o) ? o : !Folded || section == "reports";
     private void Toggle(string section) => _open[Key(section)] = !Open(section);

@@ -115,13 +115,13 @@
         var parts = SystemWorks.SlotParts(w, cat, sys, i).ToList(); string partsLine = string.Join(" · ", parts.Select(x => x.what + " " + x.slots));
         bool open = _open == i; int idx = i;
         <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "") @(b.IsSpace ? "space" : "") @(world ? "home" : "")" data-body="@b.Class" data-body-index="@idx">
-            <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat?.Description ?? Kind(b))">
+            <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat != null ? feat.Name + ": " + feat.Description : Kind(b))">
                 @if (b.IsSpace) { <span class="sprite deep" aria-hidden="true"></span> }
                 else if (b.IsStar) { <span class="sysp-sun" aria-hidden="true"></span> }
                 else { <span class="sysp-globe" style="@($"--gs:{GlobePx(b)}px")"><Globe Class="@GlobeClass(b)" Size="@GlobePx(b)" Ringed="@(world && mine)" /></span> }
                 <span class="sysp-name"><b>@b.Name</b><span class="muted">@Kind(b)@(b.IsPrimary ? " · the home world" : "")</span></span>
                 <span class="sysp-marks">
-                    @if (feat != null) { <span class="pill small feat">@feat.Name</span> }
+                    @if (feat != null) { <span class="sysp-feat" title="@($"[medal] {feat.Name}\n{feat.Description}")"><Icon Name="medal" Tone="brass" Size="15" /></span> }
                     @if (b.Deposit.Length > 0) { <span class="pill small dep" title="@($"[{b.Deposit}] A {Resource.Label(b.Deposit)} deposit\nRichness {sys.Deposit(b.Deposit)}")"><Icon Name="@b.Deposit" Tone="@(b.Deposit == "isotopes" ? "ember" : b.Deposit == "rare_earths" ? "ivory" : "steel")" Size="14" /><b>@sys.Deposit(b.Deposit)</b></span> }
                     <span class="sysp-slots" title="@(most == 0 ? "No building slots: only a great work can be raised here" : $"Building slots: {used} built · {up} rising · {slots} open of {most} at the most. From: {partsLine}.")">@for (int k = 0; k < Math.Max(slots, most); k++) { <i class="@(k < used ? "on" : k < used + up ? "up" : k >= slots ? "lock" : "")"></i> }</span>
                     <span class="sysp-site @(great == null ? "" : greatRising ? "up" : "on")" title="@(great == null ? "The site for a great work: free" : greatRising ? $"{great.Name} is rising on its site" : $"{great.Name} stands on its site")"></span>
@@ -184,11 +184,11 @@
                                     </div>
                                     @if (mine && !pmine)
                                     {
-                                        <div class="sw-cost sysp-dues"><span>Its dues</span><span class="seg">
+                                        <div class="sw-cost sysp-dues"><span>Its dues</span><span class="seg ui-seg">
                                             @foreach (var dv in new[] { ProvinceSystem.Forgiven, ProvinceSystem.Customary, ProvinceSystem.Heavy })
                                             {
                                                 int dvv = dv; string? duno = new SetDuesCommand(me.Id, planet.Id, pi, dv).Refusal(ctx); bool cur = pv.Dues == dv;
-                                                <button class="opt inline tiny @(cur ? "on" : "")" disabled="@(duno != null)" title="@(dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? ("Twice the dues; it leans nowhere, and a house that is your match stops paying. " + HeavySays(holderId)) : "The tithe, the levy in war, and its voice.")" @onclick="() => G.Execute(new SetDuesCommand(me.Id, dkey, pidx, dvv))">@ProvinceSystem.DuesName(dv)</button>
+                                                <button class="opt inline tiny @(cur ? "on" : "")" disabled="@(duno != null)" title="@(dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? ("Twice the dues; it leans nowhere, and a house that is your match stops paying. " + HeavySays(holderId)) : "The tithe, the levy in war, and its voice.")" @onclick="() => G.Execute(new SetDuesCommand(me.Id, dkey, pidx, dvv))">@Cap(ProvinceSystem.DuesName(dv))</button>
                                             }
                                         </span></div>
                                     }
@@ -223,10 +223,7 @@
                                         else
                                         {
                                             <div class="row">
-                                                <select @onchange="e => _grantTo[gkey] = e.Value?.ToString() ?? string.Empty">
-                                                    <option value="" selected="@(toG.Length == 0)">Choose a house</option>
-                                                    @foreach (var tk in takers) { <option value="@tk.Id" selected="@(tk.Id == toG)">@tk.Name (its head thinks @RegardFor(tk).ToString("+0;-0") of you)</option> }
-                                                </select>
+                                                <Select Class="sysp-pick" Placeholder="Choose a house" Value="@toG" Tip="The house to give the province to" Options="@takers.Select(tk => new Select.Option(tk.Id, tk.Name, $"its head thinks {RegardFor(tk):+0;-0} of you")).ToList()" OnChange="v => _grantTo[gkey] = v" />
                                                 <button class="opt inline" data-grant-go disabled="@(gno != null)" title="@(gno != null ? Cap(gno) : "")" @onclick="() => AskGrant(grant, pv.Name, planet.Name, toG)">Give it</button>
                                             </div>
                                         }
@@ -277,10 +274,8 @@
                                 }
                                 @if (mine && pi > 0 && !pmine && pending == null)
                                 {
-                                    <div class="sw-cost"><span>Ask them to step down, for <select class="sysp-pick" @onchange="e => SetGive(hid3, pidx, e)">
-                                            <option value="@house.Id" selected="@(giveTo == house.Id)">your own house</option>
-                                            @foreach (var oh in w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name)) { <option value="@oh.Id" selected="@(giveTo == oh.Id)">@oh.Name</option> }
-                                        </select> · @cat.Provinces.DemandInfluence influence</span>
+                                    var giveOpts = new List<Select.Option> { new(house.Id, "Your own house") }; giveOpts.AddRange(w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name).Select(oh => new Select.Option(oh.Id, oh.Name)));
+                                    <div class="sw-cost"><span>Ask them to step down, for</span> <Select Class="sysp-pick" Options="giveOpts" Value="@giveTo" Tip="The house the province is asked for" OnChange="v => SetGive(hid3, pidx, v)" /> <span class="sw-c"><Icon Name="public-speaker" Tone="ivory" Size="14" />@cat.Provinces.DemandInfluence</span>
                                         <button class="opt inline" disabled="@(dno != null)" title="@(dno != null ? Cap(dno) : "It was theirs for life. A house that cannot hope to win steps down; one that can, fights. " + YieldSays(holderId))" @onclick="() => G.AskSeat(planet, pidx, giveTo)">Ask</button>
                                     </div>
                                     @if (dno != null) { <div class="sw-no">@Cap(dno)</div> }
@@ -288,9 +283,8 @@
                                 @if (pi == 0 && over?.Id == house.Id && !mine && pending == null)
                                 {
                                     string wfor = WorldFor(planet, giveTo);
-                                    <div class="sw-cost"><span>Ask its holder to make way for <select class="sysp-pick" @onchange="e => SetGive(hid3, pidx, e)">
-                                            @for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh == planet.OwnerId) continue; <option value="@kh" selected="@(wfor == kh)">@(kh == house.Id ? "your own house" : w.House(kh)?.Name ?? kh)</option> }
-                                        </select> · @cat.Provinces.DemandInfluenceWorld influence</span>
+                                    var forOpts = new List<Select.Option>(); for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh == planet.OwnerId || forOpts.Any(o => o.Key == kh)) continue; forOpts.Add(new(kh, kh == house.Id ? "Your own house" : w.House(kh)?.Name ?? kh)); }
+                                    <div class="sw-cost"><span>Ask its holder to make way for</span> <Select Class="sysp-pick" Options="forOpts" Value="@wfor" Tip="The house the world is asked for" OnChange="v => SetGive(hid3, pidx, v)" /> <span class="sw-c"><Icon Name="public-speaker" Tone="ivory" Size="14" />@cat.Provinces.DemandInfluenceWorld</span>
                                         <button class="opt inline" disabled="@(wno != null)" title="@(wno != null ? Cap(wno) : "The world was theirs for life. They step down and hold a province under the house that rises, or they fight you.")" @onclick="() => G.AskSeat(planet, 0, wfor)">Ask</button>
                                     </div>
                                     @if (wno != null) { <div class="sw-no">@Cap(wno)</div> }
@@ -464,7 +458,8 @@
         if (G.WorkPicture(id) is { } src) { <img class="sw-art" src="@src" alt="" loading="eager" decoding="async" /> } else { <span class="sw-art none" aria-hidden="true"></span> }
     };
     /// <summary>The lit globe a body is drawn as (Globe's classes): moons and comets grey, a belt as rock.</summary>
-    private static string GlobeClass(Body b) => b.Class switch { "moon" or "comet" => "belt", "belt" => "belt", _ => b.Class };
+    /// <summary>A moon is a small lit globe of rock and a comet one of ice; the ring of dots is for an asteroid belt alone.</summary>
+    private static string GlobeClass(Body b) => b.Class switch { "moon" => "barren", "comet" => "frozen", "belt" => "belt", _ => b.Class };
     private static int GlobePx(Body b) => b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : b.Class == "comet" ? 14 : 18 + Math.Min(3, b.Size) * 3;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Bundle(Resources r) => r.IsEmpty() ? "nothing" : CourtProjection.Bundle(r);
@@ -487,7 +482,7 @@
         string to = G.World!.House(toId)?.Name ?? "that house";
         G.Ask("Give " + province + " to " + to + "?", province + " on " + world + " is theirs for life, with what is built in it. They owe you the customary dues. To have it back you must ask for it, and they may refuse.", "Give it", () => G.Execute(cmd));
     }
-    private void SetGive(string holdingId, int index, ChangeEventArgs e) { _giveTo[holdingId + "#" + index] = e.Value?.ToString() ?? string.Empty; }
+    private void SetGive(string holdingId, int index, string v) { _giveTo[holdingId + "#" + index] = v ?? string.Empty; }
     /// <summary>Whom a world is asked for: the choice made, if that house holds a province of it; else the first that does.</summary>
     private static string WorldFor(Holding planet, string chosen)
     {

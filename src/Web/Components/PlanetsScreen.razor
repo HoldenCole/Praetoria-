@@ -98,8 +98,8 @@
                         @if (gb != null && G.WorkPicture(gb.Id) is { } gpic) { <span class="wl-pic wc-art" style="background-image:url('@gpic')"></span> }
                         else { <span class="wl-pic"><Globe Class="@gcls" Size="40" Ringed="@(gholder?.Id == house.Id)" /></span> }
                         <div class="wc-t" title="@MilitaryScreen.Minus(gk.What + " " + (gdoes.Length > 0 ? gdoes + "." : "") + gonly)">
-                            <div class="wc-nm"><b>@gw.Provinces[gi].City</b><span class="wl-st">@gk.Name</span>@if (gb != null) { <span class="wl-st @(gstands ? "good" : "")" title="@(gb.Name + (gstands ? ": it stands" : ": not yet raised"))">@(gstands ? "work stands" : "work unraised")</span> }</div>
-                            <div class="wc-sub">on @gw.Name · @Census.Short(CitySystem.Citizens(w, c.Holdings, gw, gi)) · @if (gholder != null) { <Sigil HouseId="@gholder.Id" Accent="@gholder.AccentColor" Size="14" /> }<span class="@(gholder?.Id == house.Id ? "wl-own" : "")">@(gholder?.Id == house.Id ? "your house" : gholder?.Name ?? "nobody")</span></div>
+                            <div class="wc-nm"><b>@gw.Provinces[gi].City</b>@if (gb != null) { <span class="wc-work @(gstands ? "on" : "")" title="@($"[build] {gb.Name}\n{(gstands ? "It stands" : "Not yet raised")}")"><Icon Name="build" Tone="@(gstands ? "brass" : "ivory")" Size="14" /><span class="visually-hidden">@(gstands ? "work stands" : "work unraised")</span></span> }</div>
+                            <div class="wc-sub"><span>@gk.Name</span> · <span>on @gw.Name</span> · <span>@Census.Short(CitySystem.Citizens(w, c.Holdings, gw, gi))</span> · <span class="wc-holder">@if (gholder != null) { <Sigil HouseId="@gholder.Id" Accent="@gholder.AccentColor" Size="14" /> }<span class="@(gholder?.Id == house.Id ? "wl-own" : "")">@(gholder?.Id == house.Id ? "your house" : gholder?.Name ?? "nobody")</span></span></div>
                         </div>
                         <div class="wc-figs">@foreach (var (ic, tone, val, tip) in CityFigures(gk).Take(3)) { <span class="ui-cell" title="@tip"><Icon Name="@ic" Tone="@tone" Size="15" />@val</span> }</div>
                         <Icon Name="chev" Size="12" Class="flat wr-chev" />
@@ -162,7 +162,7 @@
                         <div class="ww-row" title="@($"[ringed-planet] {n.Name}\nClick for what is there; again to fold it")" @onclick="() => _focus = open ? null : sid">
                             <span class="wl-pic"><Globe Class="@n.PlanetClass" Size="40" Ringed="@n.IsPlayerTerritory" />@if (n.Capital) { <i class="wl-crown" title="The capital"><Icon Name="crown" Tone="brass" Size="15" /></i> }</span>
                             <div class="ww-id">
-                                <div class="ww-nm"><b>@n.Name</b>@if (n.Chokepoint) { <span class="wl-st" title="A chokepoint: its holder takes tolls, and an enemy fleet cannot pass while one of the holder's sits here">chokepoint</span> }@if (n.Rebellion > 0) { <span class="wl-st bad">in revolt</span> }</div>
+                                <div class="ww-nm"><b>@n.Name</b>@if (n.Chokepoint) { <span class="ww-choke" title="[position-marker] A chokepoint\nIts holder takes tolls, and an enemy fleet cannot pass while one of the holder's sits here"><Icon Name="position-marker" Tone="brass" Size="15" /><span class="visually-hidden">chokepoint</span></span> }@if (n.Rebellion > 0) { <span class="wl-st bad">in revolt</span> }</div>
                                 <div class="ww-sub">@Cap(n.PlanetClass) world · @if (owner != null) { <Sigil HouseId="@owner.Id" Accent="@owner.AccentColor" Size="14" /><span class="@(n.IsPlayerTerritory ? "wl-own" : "")">@(n.IsPlayerTerritory ? "yours" : owner.Name)</span> } else { <span class="ui-mute">nobody's</span> }</div>
                             </div>
                             <div class="ww-cells">

@@ -130,8 +130,8 @@ else
                         case "military": <MilitaryScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
                         case "dynasty": <DynastyScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
                         case "houses": <HousesScreen Model="m" Tab="@_tab" TabStamp="_tabStamp" /> break;
-                        case "chronicle": <ChronicleScreen /> break;
-                        default: <OfficeScreen Model="m" OnOpenReport="OpenReport" /> break;
+                        case "chronicle": <ChronicleScreen Tab="@_tab" TabStamp="_tabStamp" /> break;
+                        default: <OfficeScreen Model="m" OnOpenReport="OpenReport" OnGo="Go" /> break;
                     }
                     </div>
                 </div>

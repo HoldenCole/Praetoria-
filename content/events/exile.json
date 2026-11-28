@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "the_road_abroad",
+      "scene": "steppe",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -93,6 +94,7 @@
     },
     {
       "id": "called_home",
+      "scene": "dispatch",
       "tier": "situation",
       "weight": 40,
       "repeatable": true,
@@ -183,6 +185,7 @@
     },
     {
       "id": "the_charge_thrown_back",
+      "scene": "court",
       "tier": "situation",
       "weight": 35,
       "repeatable": true,

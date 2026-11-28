@@ -33,7 +33,7 @@
 .cr-full { position: absolute; right: 0; top: -1.2rem; font: 500 .8rem/1 var(--f-ui); color: var(--ink-mute); display: none; }
 
 /* the controls: the span of years, the kinds as joined plates, only the notable */
-.cr-ctl.chron-controls { display: flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; align-items: center; gap: .6667rem 1.0667rem; margin: .9333rem 1.4667rem .2rem 1.8667rem; }
+.cr-ctl.chron-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .6667rem 1.0667rem; margin: .9333rem 1.4667rem .2rem 1.8667rem; }
 .cr-ctl .cr-sel .ui-select-btn { min-width: 12.6667rem; }
 .cr-ctl .ui-seg button { padding: 0 .6rem; }
 

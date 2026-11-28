@@ -3,6 +3,7 @@
   "events": [
     {
       "id": "matriculation",
+      "scene": "senate",
       "tier": "setpiece",
       "weight": 40,
       "repeatable": false,
@@ -68,6 +69,7 @@
     },
     {
       "id": "the_first_lecture",
+      "scene": "court",
       "tier": "ambient",
       "weight": 6,
       "repeatable": false,
@@ -132,6 +134,7 @@
     },
     {
       "id": "the_study_circle",
+      "scene": "family",
       "tier": "situation",
       "weight": 5,
       "repeatable": false,
@@ -246,6 +249,7 @@
     },
     {
       "id": "the_house_question",
+      "scene": "senate",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -336,6 +340,7 @@
     },
     {
       "id": "the_fencing_salle",
+      "scene": "battle",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -440,6 +445,7 @@
     },
     {
       "id": "the_debating_society",
+      "scene": "senate",
       "tier": "situation",
       "weight": 5,
       "repeatable": false,
@@ -546,6 +552,7 @@
     },
     {
       "id": "the_regatta",
+      "scene": "shipyard",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -644,6 +651,7 @@
     },
     {
       "id": "the_prank",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -838,6 +846,7 @@
     },
     {
       "id": "the_visiting_senator",
+      "scene": "senate",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -935,6 +944,7 @@
     },
     {
       "id": "the_war_game",
+      "scene": "bridge",
       "tier": "setpiece",
       "weight": 8,
       "repeatable": false,
@@ -1052,6 +1062,7 @@
     },
     {
       "id": "the_borrowed_notes",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 4,
       "repeatable": false,
@@ -1214,6 +1225,7 @@
     },
     {
       "id": "the_rivals_hand",
+      "scene": "intrigue",
       "tier": "situation",
       "weight": 6,
       "repeatable": false,
@@ -1319,6 +1331,7 @@
     },
     {
       "id": "passing_out_eve",
+      "scene": "feast",
       "tier": "ambient",
       "weight": 6,
       "repeatable": false,
@@ -1406,6 +1419,7 @@
     },
     {
       "id": "the_library_late",
+      "scene": "court",
       "tier": "ambient",
       "weight": 4,
       "repeatable": true,
@@ -1455,6 +1469,7 @@
     },
     {
       "id": "the_mess_table",
+      "scene": "feast",
       "tier": "ambient",
       "weight": 4,
       "repeatable": true,

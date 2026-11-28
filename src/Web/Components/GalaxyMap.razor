@@ -24,11 +24,15 @@
         {
             /* where you are, and the way back out: each step is a button */
             <nav class="crumbs" data-crumbs="@chart.SystemId" aria-label="Where the map is looking">
-                <button class="crumb" data-crumb="reach" title="Back out to the map of the Reach (Esc, or pull back with the wheel)" @onclick="Leave">The Reach</button>
-                <Icon Name="chev" Size="11" Class="sep flat" />
-                @if (chart.RegionName.Length > 0) { <span class="crumb still">@chart.RegionName</span><Icon Name="chev" Size="11" Class="sep flat" /> }
-                <button class="crumb @(picked == null || !_world ? "here" : "")" data-crumb="system" title="The whole system" @onclick="() => { _world = false; }">@chart.Name</button>
-                @if (picked != null && _world) { <Icon Name="chev" Size="11" Class="sep flat" /><span class="crumb here" data-crumb="world">@(picked.Name == chart.Name ? picked.Name + " (world)" : picked.Name)</span> }
+                <div class="crumbs-in">
+                @* when the bar is narrow, whole crumbs step out (the "(world)" word, then the region, then the Reach for a back plate): a crumb is never cut *@
+                <button class="crumb back" data-crumb="back" title="@(picked != null && _world ? "Back to the whole system (Esc)" : "Back out to the map of the Reach (Esc)")" @onclick="Back"><Icon Name="chev" Size="11" Class="flat flip" />@(picked != null && _world ? chart.Name : "The Reach")</button>
+                <button class="crumb reach" data-crumb="reach" title="Back out to the map of the Reach (Esc, or pull back with the wheel)" @onclick="Leave">The Reach</button>
+                <Icon Name="chev" Size="11" Class="sep flat reach" />
+                @if (chart.RegionName.Length > 0) { <span class="crumb still region">@chart.RegionName</span><Icon Name="chev" Size="11" Class="sep flat region" /> }
+                <button class="crumb sys @(picked == null || !_world ? "here" : "")" data-crumb="system" title="The whole system" @onclick="() => { _world = false; }">@chart.Name</button>
+                @if (picked != null && _world) { <Icon Name="chev" Size="11" Class="sep flat" /><span class="crumb here" data-crumb="world">@picked.Name@if (picked.Name == chart.Name) { <span class="crumb-w"> (world)</span> }</span> }
+                </div>
             </nav>
         }
         @if (selectedFleet != null)
@@ -59,7 +63,9 @@
                 </div>
             </div>
         }
-        @if (chart != null && picked != null && _world && chart.Body(_body) is { } cb)
+        @* the world strip stands in the free map only while no window is open: with the system window open, the window shows the body
+           under its name, and nothing is drawn over the window (rule 5) *@
+        @if (chart != null && picked != null && _world && _systemId == null && chart.Body(_body) is { } cb)
         {
             var hold = picked.IsPrimary ? w.PlanetOf(chart.SystemId) : null; var feat = picked.Feature.Length > 0 ? c.Holdings.Feature(picked.Feature) : null;
             int slots = SystemWorks.Slots(w, c.Holdings, inside!, _body);
@@ -79,7 +85,7 @@
                     @if (picked.Deposit.Length > 0) { <span><i>In the ground</i> @Resource.Label(picked.Deposit)</span> }
                     <span><i>Built</i> @cb.Works@(cb.Rising > 0 ? $" · {cb.Rising} rising" : "") · @slots slot@(slots == 1 ? "" : "s")</span>
                 </div>
-                <div class="ws-note">@if (_systemId != null) { <span>What can be built here is in the window at the left, under this body's name.</span> } else { <Link Label="Open the system window" Tip="What can be built here, and the system's law, in the window at the left" OnClick="() => _systemId = chart.SystemId" /> } Esc goes back to the whole system.</div>
+                <div class="ws-note"><Link Label="Open the system window" Tip="What can be built here, and the system's law, in the window at the left" OnClick="() => _systemId = chart.SystemId" /> Esc goes back to the whole system.</div>
             </div>
         }
         @* the map's own tools: the console stands for them in the shell (they stay for the scripts and the keys, docs/VISUAL_SYSTEM.md 3.8) *@
@@ -359,6 +365,8 @@
     /// <summary>Come back out a step: from a world to its system, from a system to the Reach. False when there was nowhere to come back from.</summary>
     public bool Up() { if (_inSystem == null) return false; if (_world) { _world = false; } else { _inSystem = null; _body = -1; } StateHasChanged(); return true; }
     private void Leave() { _inSystem = null; _body = -1; _world = false; }
+    /// <summary>The back plate the breadcrumb shows when it is too narrow for every step: up one level.</summary>
+    private void Back() { if (_world) _world = false; else Leave(); }
     private async Task FitSystem() { _world = false; try { await JS.InvokeVoidAsync("praetoriaSpace.fit", _id); } catch { } }
 
     protected override async Task OnAfterRenderAsync(bool first)

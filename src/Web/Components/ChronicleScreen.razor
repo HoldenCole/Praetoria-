@@ -143,6 +143,11 @@
     protected override void OnInitialized() => G.Changed += Redraw;
     public void Dispose() => G.Changed -= Redraw;
     private string? _volume; private bool _onlyNotable; private string _kind = "all", _whose = "all";
+    /// <summary>A tab asked for from elsewhere ("chronicle:now", the Office's "and 3 more"): opened once per stamp.</summary>
+    [Parameter] public string Tab { get; set; } = "";
+    [Parameter] public int TabStamp { get; set; }
+    private int _seenStamp = -1;
+    protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) _whose = Tab; } }
     private static readonly IReadOnlyList<(string key, string text, string tip)> Notables = new[]
     {
         ("all", "All", "Every line"),

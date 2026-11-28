@@ -60,7 +60,7 @@
             <span class="fr-tools-l">Start from</span>
             @foreach (var (name, blurb, _) in CharacterWorkshop.Presets(content)) { var n = name; <button class="chip" title="@blurb" @onclick="() => UsePreset(n)">@name</button> }
             <i class="fr-tools-div"></i>
-            <button class="chip" title="a character by the dice, within this mode's rules" @onclick="Randomise"><Icon Name="sprout" Tone="ivory" Size="14" />Throw the dice</button>
+            <button class="chip" title="a character by the dice, within this mode's rules" @onclick="Randomise"><Icon Name="rolling-dices" Tone="ivory" Size="14" />Throw the dice</button>
             <button class="chip" title="save this character as a small file" @onclick="SaveFile"><Icon Name="save" Tone="ivory" Size="14" />Save to a file</button>
             <label class="chip file" title="load a character file saved earlier"><Icon Name="export" Tone="ivory" Size="14" />Load a file <InputFile OnChange="LoadFile" accept=".json" /></label>
         </div>
@@ -145,7 +145,7 @@
         <Section Title="The ancestry of your house" Info="Your kin by blood share it. Whoever marries in keeps their own, and a child takes after one parent.">
             <p class="fr-note hint">Your kin by blood share it. Whoever marries in keeps their own, and a child takes after one parent.</p>
             <div class="chips fr-picks">
-                <button class="chip @(c.Ancestry.Length == 0 ? "on" : "")" @onclick='() => { c.Ancestry = ""; c.Face.Portrait = -1; Changed(); }'>as the dice fall</button>
+                <button class="chip @(c.Ancestry.Length == 0 ? "on" : "")" @onclick='() => { c.Ancestry = ""; c.Face.Portrait = -1; Changed(); }'>As the dice fall</button>
                 @foreach (var a in G.Content!.Ancestries.OfTheReach) { var id = a.Id; <button class="chip @(c.Ancestry == id ? "on" : "")" title="@a.Note" @onclick="() => { c.Ancestry = id; c.Face.Portrait = -1; Changed(); }">@a.Name</button> }
             </div>
         </Section>
@@ -154,8 +154,8 @@
             <Section Title="Your face" Count="@faces.Count.ToString()" Info="Each face is painted at five ages and grows old with you.">
                 <p class="fr-note hint">@faces.Count faces are painted for @content.Ancestries.Name(c.Ancestry) @(c.Sex == "female" ? "women" : "men"). Each is painted at five ages and grows old with you.</p>
                 <div class="face-pick">
-                    <button class="chip dice @(c.Face.Portrait < 0 ? "on" : "")" title="Let the dice choose among these faces" @onclick="() => { c.Face.Portrait = -1; Changed(); }"><Icon Name="sprout" Tone="@(c.Face.Portrait < 0 ? "brass" : "ivory")" Size="22" />dice</button>
-                    @for (int i = 0; i < faces.Count; i++) { int k = i; <button class="face @(c.Face.Portrait == k ? "on" : "")" @onclick="() => { c.Face.Portrait = k; Changed(); }" title="face @(k + 1)"><img src="@faces[k]" alt="face @(k + 1)" loading="lazy" /></button> }
+                    <button class="chip dice @(c.Face.Portrait < 0 ? "on" : "")" title="Let the dice choose among these faces" @onclick="() => { c.Face.Portrait = -1; Changed(); }"><Icon Name="rolling-dices" Tone="@(c.Face.Portrait < 0 ? "brass" : "ivory")" Size="28" /><span class="face-nm">Let the dice choose</span></button>
+                    @for (int i = 0; i < faces.Count; i++) { int k = i; <button class="face @(c.Face.Portrait == k ? "on" : "")" @onclick="() => { c.Face.Portrait = k; Changed(); }" title="face @(k + 1)"><span class="face-img"><img src="@faces[k]" alt="face @(k + 1)" loading="lazy" /></span></button> }
                 </div>
             </Section>
             @if (G.Portraits.Life(c.Sex, c.Ancestry, c.Face.Portrait) is { Count: > 0 } life)
@@ -172,7 +172,7 @@
                     @foreach (var a in G.Content!.Ancestries.OfTheReach)
                     {
                         var aid = a.Id; var one = G.Portraits.Faces(c.Sex, aid, age);
-                        @if (one.Count > 0) { <button class="face" title="@($"{a.Name}: choose a face painted for it")" @onclick="() => { c.Ancestry = aid; c.Face.Portrait = 0; Changed(); }"><img src="@one[0]" alt="@a.Name" loading="eager" decoding="async" /><span class="face-nm">@a.Name</span></button> }
+                        @if (one.Count > 0) { <button class="face" title="@($"{a.Name}: choose a face painted for it")" @onclick="() => { c.Ancestry = aid; c.Face.Portrait = 0; Changed(); }"><span class="face-img"><img src="@one[0]" alt="@a.Name" loading="eager" decoding="async" /></span><span class="face-nm">@a.Name</span></button> }
                     }
                 </div>
             </Section>
@@ -180,6 +180,9 @@
     }
     else if (_tab == "house")
     {
+        @* the house in two columns: its facts at the left, its colour and its arms at the right *@
+        <div class="ws-two">
+        <div class="ws-col">
         <Section Title="The house" Info="The house is named for the person's family name until you write one here.">
             <div class="ws-namerow">
                 <span class="ws-title-pre">House</span><input class="fr-in ws-title-in" value="@c.HouseName" aria-label="Family name" title="The house is named for it. It follows the person's own family name until you write one here." @onchange="e => { c.HouseName = Text(e); _houseNamed = c.HouseName.Length > 0; Changed(); }" placeholder="From the person's name" />
@@ -198,12 +201,16 @@
                 <Select Value="@c.Party" Placeholder="Wherever its laws fit" Tip="The party it sits with" Options="@(new[] { new Select.Option("", "Wherever its laws fit") }.Concat(content.Parties.Defs.Select(p => new Select.Option(p.Id, p.Name))).ToList())" OnChange="v => { c.Party = v; Changed(); }" />
             </div>
         </Section>
+        </div>
+        <div class="ws-col">
         <Section Title="Colour" Info="The house's colour: on its seal, its standard, its people's portraits and its land on the map. Gold, or one of the houses' colours.">
             <div class="fr-colour">
                 <Sigil HouseId="@CharacterWorkshop.HouseId" Accent="@c.Accent" Size="64" Mode="seal" />
                 <div class="chips">@foreach (var a in CharacterWorkshop.Accents) { var col = a; <button class="swatch @(c.Accent == col ? "on" : "")" style="background:@col" title="@(col == Palette.Player ? "Gold, the colour of the player's house" : col)" @onclick="() => { c.Accent = col; Changed(); }"></button> }</div>
             </div>
         </Section>
+        </div>
+        </div>
         <Section Title="The treasury" Info="What the house has in hand on the first day.">
             <Right><span>what the house has in hand on the first day</span></Right>
             <ChildContent>
@@ -312,7 +319,8 @@
         </Section>
         <Section Title="The fleet" Info="Hulls in the house's own fleet on the first day.">
             <div class="fr-lines">
-                <label class="fr-line"><span class="fr-ll"><Icon Name="fleet" Tone="steel" Size="18" />Hulls in the house's fleet</span><input class="fr-in" type="number" min="0" max="@lim.MaxHulls" value="@c.Hulls" @onchange="e => { c.Hulls = Num(e, 0, lim.MaxHulls); Changed(); }" /><span class="ui-mute">up to @lim.MaxHulls</span></label>
+                <div class="fr-rule" data-setting="hulls" title="@($"Hulls in the house's own fleet on the first day, up to {lim.MaxHulls}")"><Icon Name="fleet" Tone="steel" Size="18" /><span class="fr-rule-nm">Hulls in the house's fleet <small class="ui-mute">up to @lim.MaxHulls</small></span>
+                    <span class="fr-rule-v"><Stepper Value="@c.Hulls" Min="0" Max="@lim.MaxHulls" Tip="Hulls in the house's own fleet on the first day" OnChange="v => { c.Hulls = v; Changed(); }" /></span></div>
             </div>
         </Section>
         <Section Title="Ventures" Count="@($"{c.Ventures.Count} of {lim.MaxVentures}")" Info="Ventures open on the first day: what they bring a year, and what each needs where it stands.">
@@ -403,11 +411,12 @@
             <div class="chips fr-picks"><button class="chip @(c.Academy ? "" : "on")" @onclick="() => { c.Academy = false; Changed(); }"><Icon Name="ringed-planet" Tone="@(c.Academy ? "ivory" : "brass")" Size="18" />In the world, at the age chosen</button><button class="chip @(c.Academy ? "on" : "")" @onclick="StartAtAcademy"><Icon Name="open-book" Tone="@(c.Academy ? "brass" : "ivory")" Size="18" />At @(c.Imperium ? "the Institute" : "the Academy"), at sixteen</button></div>
         </Section>
         <Section Title="Friends and rivals" Info="A friend's head thinks well of you from the first day; a rival's does not, and that is worth two points back.">
-            <div class="fr-fields">
-                <label class="fr-field"><span class="fr-fl">A friend among the houses</span><select class="fr-sel" value="@c.FriendId" @onchange="e => { c.FriendId = Text(e); Changed(); }"><option value="">none</option>@foreach (var h in houses) { <option value="@h.Id">@h.Name</option> }</select></label>
-                <label class="fr-field"><span class="fr-fl">A rival among the houses</span><select class="fr-sel" value="@c.RivalId" @onchange="e => { c.RivalId = Text(e); Changed(); }"><option value="">none</option>@foreach (var h in houses) { <option value="@h.Id">@h.Name</option> }</select></label>
+            <div class="fr-rules">
+                <div class="fr-rule" data-setting="friend"><Icon Name="shaking-hands" Tone="good" Size="18" /><span class="fr-rule-nm" title="A friend's head thinks well of you from the first day">A friend among the houses</span>
+                    <span class="fr-rule-v"><Select Options="@(new[] { new Select.Option("", "None") }.Concat(houses.Select(h => new Select.Option(h.Id, h.Name))).ToList())" Value="@c.FriendId" Tip="A friend's head thinks well of you from the first day" OnChange="v => { c.FriendId = v; Changed(); }" /></span></div>
+                <div class="fr-rule" data-setting="rival"><Icon Name="crossed-sabres" Tone="ember" Size="18" /><span class="fr-rule-nm" title="A rival's head does not, and that is worth two points back">A rival among the houses</span>
+                    <span class="fr-rule-v"><Select Options="@(new[] { new Select.Option("", "None") }.Concat(houses.Select(h => new Select.Option(h.Id, h.Name))).ToList())" Value="@c.RivalId" Tip="A rival's head does not think well of you, and that is worth two points back" OnChange="v => { c.RivalId = v; Changed(); }" /></span></div>
             </div>
-            <p class="fr-note hint">A friend's head thinks well of you from the first day; a rival's does not, and that is worth two points back.</p>
         </Section>
         @Rules
     }

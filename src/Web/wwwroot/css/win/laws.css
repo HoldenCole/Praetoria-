@@ -346,3 +346,7 @@ select.lw-sel option { background: #12161f; color: var(--ink); }
 .local-laws.lw-local .lw-cell, .local-laws.lw-local .lw-pl { min-width: 0; }
 .local-laws.lw-local .lw-pc:not(.lock) { display: none; }
 @container llb (max-width: 46rem) { .local-laws.lw-local .lw-step { display: none; } }
+/* every ladder ends on the same line: the track takes the row's width and a short ladder's plates share it (a two-option law is not a
+   hole in the column of ladders) */
+.lw-lad { width: 100%; box-sizing: border-box; }
+.lw-cell.on { flex: 1 0 auto; } .lw-cell.on .lw-pl, .lw-cell .lw-pl { justify-content: flex-start; }

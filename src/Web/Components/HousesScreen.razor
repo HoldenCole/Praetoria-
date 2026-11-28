@@ -67,35 +67,40 @@
             <div class="ui-table-wrap hu-table">
             <table class="ui-table standings">
                 <thead><tr>
-                    <th>House</th>
-                    <th class="sortable @(_sort == "title" ? "here" : "")" title="Sort by @(w.IsImperium ? "title" : "rank"), then legitimacy" @onclick='() => _sort = "title"'>@(w.IsImperium ? "Title" : "Rank")</th>
-                    <th class="sortable @(_sort == "worlds" ? "here" : "")" title="Worlds held. Sort by it." @onclick='() => _sort = "worlds"'>Worlds</th>
-                    <th class="sortable @(_sort == "hulls" ? "here" : "")" title="Hulls in its fleets. Sort by it." @onclick='() => _sort = "hulls"'>Hulls</th>
-                    <th class="sortable @(_sort == "seats" ? "here" : "")" title="Its weight in the Senate. Sort by it." @onclick='() => _sort = "seats"'>Seats</th>
-                    <th class="sortable @(_sort == "wealth" ? "here" : "")" title="What the house would fetch sold up, in credits: its treasury, its stores at two-thirds of the market, its worlds and what is built on them, its ventures and shares, less what it owes. Ranked among the houses of the Reach: the top sixth opulent, the next quarter rich, the bottom quarter poor. A nation beyond the Reach is a dash: it is not ranked. Sort by it." @onclick='() => _sort = "wealth"'>Wealth</th>
-                    <th class="sortable hu-ord @(_sort == "senate" ? "here" : "")" title="[greek-temple] The Senate\nIts standing in the Senate, one of the three orders: the glyph lit in brass where the house is great or dominant, plain where it is notable, dim where it is of no account; ringed where it is the house's calling. Sort by it." @onclick='() => _sort = "senate"'><Icon Name="greek-temple" Tone="ivory" Size="16" /></th>
-                    <th class="sortable hu-ord @(_sort == "arms" ? "here" : "")" title="[eagle-emblem] Arms\nIts standing in arms, one of the three orders. Sort by it." @onclick='() => _sort = "arms"'><Icon Name="eagle-emblem" Tone="ivory" Size="16" /></th>
-                    <th class="sortable hu-ord @(_sort == "commerce" ? "here" : "")" title="[trade] Commerce\nIts standing in commerce, one of the three orders. Sort by it." @onclick='() => _sort = "commerce"'><Icon Name="trade" Tone="ivory" Size="16" /></th>
-                    <th class="sortable @(_sort == "disposition" ? "here" : "")" title="What its people think of you, on average, from −100 to +100. Sort by it." @onclick='() => _sort = "disposition"'>Toward you</th>
+                    <th class="hu-c-hn">House</th>
+                    <th class="sortable hu-c-rank @(_sort == "title" ? "here" : "")" title="Sort by @(w.IsImperium ? "title" : "rank"), then legitimacy" @onclick='() => _sort = "title"'>@(w.IsImperium ? "Title" : "Rank")</th>
+                    <th class="sortable hu-c-worlds @(_sort == "worlds" ? "here" : "")" title="Worlds held. Sort by it." @onclick='() => _sort = "worlds"'>Worlds</th>
+                    <th class="sortable hu-c-n @(_sort == "hulls" ? "here" : "")" title="Hulls in its fleets. Sort by it." @onclick='() => _sort = "hulls"'>Hulls</th>
+                    <th class="sortable hu-c-seats @(_sort == "seats" ? "here" : "")" title="Its weight in the Senate. Sort by it." @onclick='() => _sort = "seats"'>Seats</th>
+                    <th class="sortable hu-c-wealth @(_sort == "wealth" ? "here" : "")" title="What the house would fetch sold up, in credits: its treasury, its stores at two-thirds of the market, its worlds and what is built on them, its ventures and shares, less what it owes. Ranked among the houses of the Reach: the top sixth opulent (four marks), the next quarter rich (three), then comfortable (two), the bottom quarter poor (one). A nation beyond the Reach is a dash: it is not ranked. Sort by it." @onclick='() => _sort = "wealth"'>Wealth</th>
+                    <th class="hu-ord hu-c-ord" title="[greek-temple] The three orders\nIts standing in the Senate, in arms and in commerce: a glyph lit in brass where the house is great or dominant, plain where it is notable, dim where it is of no account; ringed where it is the house's calling. Click a glyph to sort by that order.">
+                        <span class="hu-ords">
+                            <button class="hu-ord-b @(_sort == "senate" ? "here" : "")" title="[greek-temple] The Senate\nIts standing in the Senate, one of the three orders. Sort by it." @onclick='() => _sort = "senate"'><Icon Name="greek-temple" Tone="ivory" Size="14" /></button>
+                            <button class="hu-ord-b @(_sort == "arms" ? "here" : "")" title="[eagle-emblem] Arms\nIts standing in arms, one of the three orders. Sort by it." @onclick='() => _sort = "arms"'><Icon Name="eagle-emblem" Tone="ivory" Size="14" /></button>
+                            <button class="hu-ord-b @(_sort == "commerce" ? "here" : "")" title="[trade] Commerce\nIts standing in commerce, one of the three orders. Sort by it." @onclick='() => _sort = "commerce"'><Icon Name="trade" Tone="ivory" Size="14" /></button>
+                        </span>
+                    </th>
+                    <th class="sortable hu-c-to @(_sort == "disposition" ? "here" : "")" title="Toward you: what its people think of you, on average, from −100 to +100. Sort by it." @onclick='() => _sort = "disposition"'>To you</th>
                     <th class="hu-bench">Bench</th>
                 </tr></thead>
                 <tbody>
                 @foreach (var h in houses.Prepend(mine))
                 {
                     int worlds = w.HoldingsOf(h.Id).Count(x => x.IsPlanet), hulls = FleetSystem.StrengthOf(w, h.Id), seats = senate.Weight(w, h.Id); int disp = h.Id == mine.Id ? 0 : Disp(h); bool atWar = w.AtWar(mine.Id, h.Id); var bench = FactionSystem.Of(w, h.Id); string hid = h.Id;
-                    <tr class="@(h.Id == mine.Id ? "mine" : "") @(h.Id == _focus ? "on here" : "") @(atWar ? "hostile" : "")" style="--hc:@h.AccentColor" @onclick='() => { _focus = hid; _tab = "house"; }' title="@($"{h.Name}: open its page")">
-                        <td class="hn"><span class="hu-hn"><Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="20" /><b>@h.Name</b>
+                    string wtier = w.Foreign(h.Id) ? "" : Wealth.TierFor(w, h.Id);
+                    <tr class="@(h.Id == mine.Id ? "mine" : "") @(h.Id == _focus ? "on here" : "") @(atWar ? "hostile" : "")" style="--hc:@h.AccentColor" @onclick='() => { _focus = hid; _tab = "house"; }' title="@($"{h.Name}: {Counted.Worlds(worlds)}, {Counted.Hulls(hulls)}, {Counted.Seats(seats)}{(bench != null ? ", of " + bench.Name : "")}{(wtier.Length > 0 ? ", " + wtier : "")}. Click to open its page.")">
+                        <td class="hn"><span class="hu-hn"><Sigil HouseId="@h.Id" Accent="@h.AccentColor" Size="20" /><b>@if (h.Name.StartsWith("House ")) { <span class="hu-hw">House </span>@h.Name[6..] } else { @h.Name }</b>
                             @if (h.Id == mine.Id) { <span class="hu-mark you" title="Your house">You</span> }
                             @if (m.Capital?.HolderId == h.Id) { <span class="hu-mark" title="Holds the capital"><Icon Name="crown" Tone="brass" Size="14" /></span> }
                             @if (h.Bloc == RegionSystem.FreeholdsBloc) { <span class="hu-mark warn" title="A free hold: sworn to no one">Free hold</span> }
                             @if (ThroneSystem.Emperor(w)?.Id == h.Id) { <span class="hu-mark" title="Holds the throne"><Icon Name="throne-king" Tone="brass" Size="14" /></span> }</span></td>
-                        <td class="hu-dim">@(c.Titles.NameOf(h.Title, G.World!.Era))</td>
-                        <td><span class="hu-bar"><i style="width:@(100 * worlds / maxWorlds)%"></i></span>@worlds</td>
-                        <td><span class="hu-bar"><i style="width:@(100 * hulls / maxHulls)%"></i></span>@hulls</td>
-                        <td><span class="hu-bar"><i style="width:@(100 * seats / maxSeats)%"></i></span>@seats</td>
-                        <td>@if (w.Foreign(h.Id)) { <span class="hu-dim" title="A nation beyond the Reach: its wealth is its own treasury and trade, and is not ranked among the houses.">–</span> } else { <span class="hu-tier @Wealth.TierFor(w, h.Id)" title="wealth @Money.Show(h.Wealth): ranked among the houses of the Reach (the top sixth opulent, the next quarter rich, the bottom quarter poor)">@CharacterScreen.Cap(Wealth.TierFor(w, h.Id))</span> }</td>
-                        @foreach (var o in OrderSystem.All) { int tier = OrderSystem.Tier(h, o); <td class="ord hu-ord" title="@($"{OrderSystem.CallingName(h.Calling)}: {OrderSystem.Name(o)} {h.Order(o)}, {OrderSystem.TierName(tier)}")"><span class="ordglyph t@(tier) @(h.Calling == o ? "calling" : "")"><Icon Name="@(o == OrderSystem.Senate ? "greek-temple" : o == OrderSystem.Arms ? "eagle-emblem" : "trade")" Tone="@(tier >= 2 ? "brass" : "ivory")" Size="16" /></span></td> }
-                        <td>@if (h.Id != mine.Id) { <span class="hu-disp @(atWar || disp < -20 ? "ui-down" : disp > 20 ? "ui-up" : "")">@if (atWar) { <Icon Name="crossed-sabres" Tone="ember" Size="14" /> }@Signed(disp)</span> } else { <span class="hu-dim">–</span> }</td>
+                        <td class="hu-dim hu-c-rank">@(c.Titles.NameOf(h.Title, G.World!.Era))</td>
+                        <td class="hu-c-worlds"><span class="hu-bar"><i style="width:@(100 * worlds / maxWorlds)%"></i></span>@worlds</td>
+                        <td class="hu-c-n"><span class="hu-bar"><i style="width:@(100 * hulls / maxHulls)%"></i></span>@hulls</td>
+                        <td class="hu-c-seats"><span class="hu-bar"><i style="width:@(100 * seats / maxSeats)%"></i></span>@seats</td>
+                        <td class="hu-c-wealth">@if (w.Foreign(h.Id)) { <span class="hu-dim" title="A nation beyond the Reach: its wealth is its own treasury and trade, and is not ranked among the houses.">–</span> } else { int lit = WealthMarks(wtier); <span class="hu-tier hu-wpips @wtier" title="@($"{CharacterScreen.Cap(wtier)}: wealth {Money.Show(h.Wealth)}, ranked among the houses of the Reach (the top sixth opulent, the next quarter rich, the bottom quarter poor)")">@for (int k = 0; k < 4; k++) { <i class="@(k < lit ? "on" : "")"></i> }</span> }</td>
+                        <td class="ord hu-ord hu-c-ord"><span class="hu-ords">@foreach (var o in OrderSystem.All) { int tier = OrderSystem.Tier(h, o); <span class="ordglyph t@(tier) @(h.Calling == o ? "calling" : "")" title="@($"{OrderSystem.CallingName(h.Calling)}: {OrderSystem.Name(o)} {h.Order(o)}, {OrderSystem.TierName(tier)}")"><Icon Name="@(o == OrderSystem.Senate ? "greek-temple" : o == OrderSystem.Arms ? "eagle-emblem" : "trade")" Tone="@(tier >= 2 ? "brass" : "ivory")" Size="14" /></span> }</span></td>
+                        <td class="hu-c-to">@if (h.Id != mine.Id) { <span class="hu-disp @(atWar || disp < -20 ? "ui-down" : disp > 20 ? "ui-up" : "")">@if (atWar) { <Icon Name="crossed-sabres" Tone="ember" Size="14" /> }@Signed(disp)</span> } else { <span class="hu-dim">–</span> }</td>
                         <td class="hu-bench hu-dim">@(bench?.Name ?? "")</td>
                     </tr>
                 }
@@ -114,7 +119,7 @@
         var moods = c.Policies.Estates.Select(e => (e, a: PolicySystem.Approval(w, fh.Id, e.Id))).Where(x => x.a <= PolicySystem.Hostile || x.a >= PolicySystem.Loyal).ToList();
         <div class="focus-house hu-page" style="--hc:@fh.AccentColor" data-house-page="@fh.Id">
             @{ var fb0 = FactionSystem.Of(w, fh.Id); int seats0 = senate.Weight(w, fh.Id); string thinks = disp > 20 ? "thinks well of you" : disp < -20 ? "thinks ill of you" : "thinks nothing of you"; }
-            <p class="ui-lede hu-lede">@LawsScreen.Bold($"{fh.Name}, {c.Titles.NameOf(fh.Title, w.Era)}, {(fh.Id == mine.Id ? "is your own house" : atWar ? "is at war with you" : thinks)}; it {(fb0 == null ? "sits with no bench" : fb0.LeaderHouseId == fh.Id ? $"leads the {fb0.Name}" : $"sits with the {fb0.Name}")} with {Counted.Seats(seats0)}.")</p>
+            <p class="ui-lede hu-lede">@LawsScreen.Bold($"{fh.Name}, {c.Titles.NameOf(fh.Title, w.Era)}, {(fh.Id == mine.Id ? "is your own house" : atWar ? "is at war with you" : thinks)}; it {(fb0 == null ? "sits with no bench" : fb0.LeaderHouseId == fh.Id ? $"leads {The(fb0.Name)}" : $"sits with {The(fb0.Name)}")} with {Counted.Seats(seats0)}.")</p>
             <div class="hu-id">
                 <Sigil HouseId="@fh.Id" Accent="@fh.AccentColor" Size="58" Mode="seal" />
                 <div class="hu-id-who">
@@ -219,7 +224,7 @@
                         @foreach (var gd in goods)
                         {
                             string gid = gd.Id; int spare = tr.Spare(w, fh, gid), wants = tr.Wants(w, fh, gid);
-                            <tr class="trade-good hu-good @(gid == sel ? "on" : "")" data-trade-good="@gid" title="@TradeLine(tr, fh, mine, gid)" @onclick="() => _tradeGood = gid">
+                            <tr class="trade-good @(gid == sel ? "on" : "")" data-trade-good="@gid" title="@TradeLine(tr, fh, mine, gid)" @onclick="() => _tradeGood = gid">
                                 <td class="hn"><span class="hu-gd"><Icon Name="@GoodIcon(gid)" Tone="@GoodTone(gid)" Size="16" /><b>@gd.Name</b></span></td>
                                 <td class="num">@fh.Treasury.Get(gid)<small class="@(spare > 0 ? "ui-up" : wants > 0 ? "ui-warn-t" : "hu-dim")">@(spare > 0 ? $" spares {spare}" : wants > 0 ? $" wants {wants}" : "")</small></td>
                                 <td class="num">@Money.Show(tr.Asks(w, fh, mine, gid))</td>
@@ -440,6 +445,10 @@
     protected override void OnParametersSet() { if (TabStamp != _seenStamp) { _seenStamp = TabStamp; if (Tab.Length > 0) OpenOn(Tab); } }
     private void OpenOn(string tab) { if (G.World?.House(tab) != null) { _focus = tab; _tab = "house"; } else if (tab is "standings" or "house") _tab = tab; }
     protected override async Task OnAfterRenderAsync(bool first) { try { await JS.InvokeVoidAsync("praetoriaFx.paint"); } catch { } }
+    /// <summary>How many of the four wealth marks a tier lights: opulent four, rich three, comfortable two, poor one, destitute none.</summary>
+    /// <summary>A bench's name with "the" before it, unless it carries its own ("The Optimates").</summary>
+    private static string The(string name) => name.StartsWith("The ", StringComparison.Ordinal) ? name : "the " + name;
+    private static int WealthMarks(string tier) => tier switch { "opulent" => 4, "rich" => 3, "comfortable" => 2, "poor" => 1, _ => 0 };
     private static string Ordinal(int n) => n % 100 is 11 or 12 or 13 ? $"{n}th" : (n % 10) switch { 1 => $"{n}st", 2 => $"{n}nd", 3 => $"{n}rd", _ => $"{n}th" };
     private void AskConn(string optionId, string label, string targetId) { if (optionId.StartsWith("marry:")) G.AskTreatyMarriage(label, Conn(optionId, targetId)); else G.AskAccident(label, Conn(optionId, targetId)); }
     private ICommand Conn(string optionId, string targetId) { var pid = G.World!.ProtagonistId; var c = G.Content!; return optionId.StartsWith("marry:") ? new ProposeMarriageCommand(pid, optionId["marry:".Length..], targetId, c.Titles) : new AssassinateCommand(pid, targetId, c.Friction); }
