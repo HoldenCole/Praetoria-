@@ -72,3 +72,11 @@
 
 /* ---- Options: the rail's labels on by themselves ---- */
 .box.settings .set-auto { align-self: center; margin-right: .6667rem; font: italic 400 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); white-space: nowrap; }
+/* a short screen (768 tall and the like): one line a step, and the steps already done step aside (the head still counts them,
+   "2 of 6"), so the reports under the list still fit above the console */
+@media (max-height: 820px) {
+  .outliner .fy-step { min-height: 2.2667rem; padding-top: .2rem; padding-bottom: .2rem; }
+  .outliner .fy-step .nm .k:not(.warn) { display: none; }
+  .outliner .fy-step.done:not(.fresh) { display: none; }
+  .outliner .fy-lede { display: none; }
+}

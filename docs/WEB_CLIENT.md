@@ -130,6 +130,8 @@ step is in docs/ACADEMY.md, "The first years"; this is how the client does it.
   spotlight's own shadow; the primer's veil gives up its dim and stands over the top bar (`.box-veil.hb-point`), and the box stands aside
   from the part (`hb-low`, `hb-left`). `[data-primer-page]`, `[data-primer-points]`, `[data-primer-steps]`, `[data-pin-first-steps]`.
 - **Rail labels**: `FirstYearsCheck` gives the shell the labels' state as shown, the player's choice or the first game's own.
+- **A short screen** (under 820 pixels tall, as 1366 by 768): the list keeps to one line a step and the steps already done step
+  aside (its head still counts them), so the reports under it fit above the console (`css/win/firstyears.css`).
 - **The Academy**: a lecture folds to its few lines with **Read more** (`[data-lecture-summary]`, `[data-read-more]`,
   `[data-lecture-full]`); a report card each term (`TermCard.razor`, `[data-term-card]`), at the head of This term, under So far, and
   on the passing-out card with the line that the four terms go on as the list (`[data-first-years-told]`).
