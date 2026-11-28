@@ -44,12 +44,11 @@
     else if (!mine) { <div class="muted small sysp-note">Held by @(w.House(planet.OwnerId)?.Name ?? "another"). What is built here is theirs while they hold the world, and would be yours if you took it.</div> }
     @if (planet != null)
     {
-        <div class="sysp-dev" data-development="@dev" title="@($"[upgrade] Development {dev} of 100\nIt can bear {devTop} (the tick): {devParts}. It grows a point a year toward that, two on a prosperous world, and falls under siege or revolt.")">
+        <div class="sysp-dev" data-development="@dev" title="@($"[upgrade] Development {dev} of 100\nIt can bear {devTop} (the tick): {devParts}. It grows a point a year toward that, two on a prosperous world, and falls under siege or revolt.\n{devNext}")">
             <span class="dv-level" title="@($"Level {devLevel}: a tenth of the development")">@devLevel</span>
             <span class="dv-text"><span class="dv-l"><b>Development</b><span class="ui-dim">@devTrend</span></span>
                 <Meter Value="@dev" Target="@devTop" Text="@($"{dev}")" Small="/100" Color="@(dev > devTop ? "#c4472f" : "#c9a24a")" /></span>
         </div>
-        @if (!Infrastructure) { <div class="muted small sysp-devnote">@devNext</div> }
         @if (mine && ClaimSystem.Of(w, sys.Id, house.Id).ToList() is { Count: > 0 } claims)
         {
             /* the claims other houses hold in your belt: what each brings its house, what it owes you, and a price to buy it out
@@ -90,8 +89,11 @@
                     else if (level >= t.MaxLevel) { <div class="sw-cost"><span>Carried as far as it goes.</span></div> }
                     else
                     {
-                        <div class="sw-cost"><span>Level @SystemWorks.Roman(next) · @CourtProjection.Bundle(t.CostOf(next))@(t.YearsOf(next) > 1 ? $" · {t.YearsOf(next)} years" : "") · development +@rules.DevPerLevel</span>
-                            @if (mine) { <button class="opt inline" disabled="@(no != null)" title="@(no != null ? Cap(no) : "")" @onclick="() => G.Execute(new InvestInfrastructureCommand(me.Id, sys.Id, tid, cat))">Lay it</button> }
+                        /* the next level: what it adds under the name, its cost inside the plate after a hairline (docs/VISUAL_SYSTEM.md 4.11) */
+                        string costLine = $"Level {SystemWorks.Roman(next)} · {CourtProjection.Bundle(t.CostOf(next))}{(t.YearsOf(next) > 1 ? $" · {t.YearsOf(next)} years" : "")} · development +{rules.DevPerLevel}";
+                        <div class="sw-cost infra-next"><span class="sw-sub">Level @SystemWorks.Roman(next) · development +@rules.DevPerLevel@(t.YearsOf(next) > 1 ? $" · {t.YearsOf(next)} years" : "")</span>
+                            @if (mine) { <Plate Label="Lay it" Small="true" Icon="gears" Locked="@(no != null)" Disabled="@(no != null)" Need="@(no != null ? Cap(no) : "")" ShowNeed="false" Class="opt" Tip="@($"[gears] Lay level {SystemWorks.Roman(next)} of {t.Name}\n{costLine}.")" OnClick="() => G.Execute(new InvestInfrastructureCommand(me.Id, sys.Id, tid, cat))"><Cost>@CostIcons(t.CostOf(next))</Cost></Plate> }
+                            else { <span class="sw-c" title="@costLine">@CostIcons(t.CostOf(next))</span> }
                         </div>
                         @if (mine && no != null) { <div class="sw-no">@Cap(no)</div> }
                     }
@@ -115,7 +117,7 @@
         var parts = SystemWorks.SlotParts(w, cat, sys, i).ToList(); string partsLine = string.Join(" · ", parts.Select(x => x.what + " " + x.slots));
         bool open = _open == i; int idx = i;
         <div class="sysp-body @(open ? "open" : "") @(b.Orbits >= 0 ? "moon" : "") @(b.IsStar ? "star" : "") @(b.IsSpace ? "space" : "") @(world ? "home" : "")" data-body="@b.Class" data-body-index="@idx">
-            <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@(feat != null ? feat.Name + ": " + feat.Description : Kind(b))">
+            <button class="sysp-row" @onclick="() => _open = _open == idx ? -1 : idx" title="@((feat != null ? feat.Name + ": " + feat.Description : Kind(b)) + (most == 0 ? "\nNo building slots: only a great work can be raised here. " + (great == null ? "The site for a great work: free." : greatRising ? great.Name + " is rising on its site." : great.Name + " stands on its site.") : ""))">
                 @if (b.IsSpace) { <span class="sprite deep" aria-hidden="true"></span> }
                 else if (b.IsStar) { <span class="sysp-sun" aria-hidden="true"></span> }
                 else { <span class="sysp-globe" style="@($"--gs:{GlobePx(b)}px")"><Globe Class="@GlobeClass(b)" Size="@GlobePx(b)" Ringed="@(world && mine)" /></span> }
@@ -123,8 +125,10 @@
                 <span class="sysp-marks">
                     @if (feat != null) { <span class="sysp-feat" title="@($"[medal] {feat.Name}\n{feat.Description}")"><Icon Name="medal" Tone="brass" Size="15" /></span> }
                     @if (b.Deposit.Length > 0) { <span class="pill small dep" title="@($"[{b.Deposit}] A {Resource.Label(b.Deposit)} deposit\nRichness {sys.Deposit(b.Deposit)}")"><Icon Name="@b.Deposit" Tone="@(b.Deposit == "isotopes" ? "ember" : b.Deposit == "rare_earths" ? "ivory" : "steel")" Size="14" /><b>@sys.Deposit(b.Deposit)</b></span> }
-                    <span class="sysp-slots" title="@(most == 0 ? "No building slots: only a great work can be raised here" : $"Building slots: {used} built · {up} rising · {slots} open of {most} at the most. From: {partsLine}.")">@for (int k = 0; k < Math.Max(slots, most); k++) { <i class="@(k < used ? "on" : k < used + up ? "up" : k >= slots ? "lock" : "")"></i> }</span>
-                    <span class="sysp-site @(great == null ? "" : greatRising ? "up" : "on")" title="@(great == null ? "The site for a great work: free" : greatRising ? $"{great.Name} is rising on its site" : $"{great.Name} stands on its site")"></span>
+                    @if (most > 0) { <span class="sysp-slots @(used + up >= slots ? "full" : "")" data-slots-used="@(used + up)" data-slots-open="@slots" title="@($"[build] Building slots\n{used} built · {up} rising · {slots} open of {most} at the most. From: {partsLine}.\nThe site for a great work: {(great == null ? "free" : greatRising ? great.Name + " is rising on it" : great.Name + " stands on it")}.")"><Icon Name="build" Tone="@(used > 0 ? "brass" : "ivory")" Size="14" /><b>@(used + up)</b><small>of @slots</small>@for (int k = 0; k < Math.Max(slots, most); k++) { <i class="@(k < used ? "on" : k < used + up ? "up" : k >= slots ? "lock" : "")" aria-hidden="true"></i> }</span> }
+                    @* the site of a great work is drawn only where one stands or rises; a free site is still marked (hidden) for tools/browser/systems.js *@
+                    @if (great == null) { <span class="sysp-site free" aria-hidden="true"></span> }
+                    else { <span class="sysp-site @(greatRising ? "up" : "on")" title="@(greatRising ? $"[crown] {great.Name}\nIt is rising on the site for a great work" : $"[crown] {great.Name}\nIt stands on the site for a great work")"></span> }
                 </span>
             </button>
             @if (!open && (standing.Count > 0 || rising.Count > 0 || hb.Count > 0 || hbRising.Count > 0))
@@ -144,94 +148,131 @@
                     @if (world) { <p class="sysp-desc">The home world: where the system's people live and its holder sits. It takes its own buildings, some that only a home world takes, and the ordinary ones of its kind, all in the same slots.</p> }
                     @if (world && planet!.Provinces.Count > 0)
                     {
+                        /* the provinces (docs/PROVINCES.md, docs/CITIES.md), one row each (docs/VISUAL_SYSTEM.md 4.7): the chief city's painting or the
+                           holder's arms, the name, the city and the holder under it, the figures (citizens, what it yields, the dues, its slots), and
+                           one action at the right; what else can be done with it is a strip of small plates under the row, and every rule sentence
+                           is in a tooltip */
                         var over = ProvinceSystem.Over(w, planet); string hid3 = planet.Id; string ownerName = mine ? "Your house" : w.House(planet.OwnerId)?.Name ?? "A house";
-                        <h5 class="sysp-h prov">Provinces and their cities <span class="muted">three to a world · each held by a house, for life · each with a chief city of its own kind</span></h5>
-                        @if (planet.Population > 0 && planet.Provinces.Any(x => x.City.Length > 0)) { <div class="muted small" data-lesser="@CitySystem.Lesser(w, cat, planet)">Besides its chief cities the world has about @CitySystem.Lesser(w, cat, planet) lesser cities and towns, where most of its @Census.Say(Census.Citizens(w, planet)) citizens live. They grow with the world's development and are not named.</div> }
-                        @if (planet.Provinces[0].SettledUntil > w.Turn) { <div class="muted small">A peace holds the world its holder's until year @planet.Provinces[0].SettledUntil.</div> }
-                        <div class="muted small sysp-over">@ownerName holds the world, and its seat with it. @(over == null ? "Nobody stands over it." : (over.Id == house.Id ? "You stand" : over.Name + " stands") + " over it, and may ask it to make way.")</div>
+                        string overLine = ownerName + " holds the world, and its seat with it. " + (over == null ? "Nobody stands over it." : (over.Id == house.Id ? "You stand" : over.Name + " stands") + " over it, and may ask it to make way.");
+                        string provRules = "[region] Provinces and their cities\nThree to a world: each held by a house, for life, each with a chief city of its own kind."
+                            + (planet.Population > 0 && planet.Provinces.Any(x => x.City.Length > 0) ? $"\nBesides its chief cities the world has about {CitySystem.Lesser(w, cat, planet)} lesser cities and towns, where most of its {Census.Say(Census.Citizens(w, planet))} citizens live. They grow with the world's development and are not named." : "")
+                            + (planet.Provinces[0].SettledUntil > w.Turn ? $"\nA peace holds the world its holder's until year {planet.Provinces[0].SettledUntil}." : "");
+                        <h5 class="sysp-h prov" data-lesser="@CitySystem.Lesser(w, cat, planet)">Provinces <span class="sysp-n">@planet.Provinces.Count</span><span class="ui-info" title="@provRules" tabindex="0" aria-label="The rules">i</span></h5>
+                        <div class="sysp-over" title="@overLine">@overLine</div>
                         @for (int pi = 0; pi < planet.Provinces.Count; pi++)
                         {
                             var pv = planet.Provinces[pi]; var pf = cat.Provinces.Focus(pv.Focus); string holderId = ProvinceSystem.HolderOf(planet, pi); bool pmine = holderId == house.Id; int pidx = pi;
                             var pending = w.SeatDemands.FirstOrDefault(d => d.HoldingId == planet.Id && d.Province == pidx);
-                            string? ino = pmine && pv.Level < rules.MaxLevel ? new ImproveProvinceCommand(me.Id, planet.Id, pi, cat).Refusal(ctx) : null;
-                            string giveTo = _giveTo.TryGetValue(planet.Id + "#" + pi, out var gt) ? gt : house.Id; string? dno = mine && pi > 0 && !pmine ? new DemandSeatCommand(me.Id, planet.Id, pi, giveTo, cat).Refusal(ctx) : null;
-                            string? wno = pi == 0 && over?.Id == house.Id && !mine ? new DemandSeatCommand(me.Id, planet.Id, 0, WorldFor(planet, giveTo), cat).Refusal(ctx) : null;
-                            bool atWar = !pmine && pi > 0 && w.AtWar(holderId, planet.OwnerId);
+                            string giveTo = _giveTo.TryGetValue(planet.Id + "#" + pidx, out var gt) ? gt : house.Id; string? dno = mine && pidx > 0 && !pmine ? new DemandSeatCommand(me.Id, planet.Id, pidx, giveTo, cat).Refusal(ctx) : null;
+                            string? wno = pidx == 0 && over?.Id == house.Id && !mine ? new DemandSeatCommand(me.Id, planet.Id, 0, WorldFor(planet, giveTo), cat).Refusal(ctx) : null;
+                            bool atWar = !pmine && pidx > 0 && w.AtWar(holderId, planet.OwnerId);
+                            int pslots = ProvinceSystem.Slots(w, cat, planet, pidx), pbuilt = pv.Buildings.Count, prising = ProvinceSystem.Rising(w, planet, pidx); var owed = ProvinceSystem.Dues(w, cat, planet, pidx); var pyield = ProvinceSystem.Yield(w, cat, planet, pv);
+                            var holderHouse = w.House(holderId); var ck = CitySystem.KindOf(cat, pv);
+                            var cb = ck != null && ck.Building.Length > 0 ? cat.Work(ck.Building) : null; bool cbStands = cb != null && (pv.Buildings.Contains(cb.Id) || (pidx == 0 && w.BodyWorks.Any(x => x.SystemId == sys.Id && x.DefId == cb.Id)));
+                            string cityDoes = ck != null ? CitySystem.Says(ck) : ""; string cityOnly = cb == null ? "" : " Only here: " + cb.Name + (cbStands ? " (it stands)." : pidx == 0 ? ", raised on the home world." : ", raised in the province's slots.");
+                            string cityLine = ck == null ? "" : $"{pv.City}, {ck.Name}: {Census.Say(CitySystem.Citizens(w, cat, planet, pidx))} citizens.\n{ck.What} {(cityDoes.Length > 0 ? cityDoes + "." : "")}{cityOnly}";
+                            string tenure = pidx > 0 && holderId != planet.OwnerId ? (pv.Since > 0 ? " since year " + pv.Since : ", for life") : pidx == 0 ? ", with the world" : "";
+                            string holds = (pmine ? "Yours" : holderHouse?.Name ?? "nobody's") + tenure;
+                            string doesLine = holds + " · " + (pyield.IsEmpty() ? "pays nothing" : "+" + CourtProjection.Bundle(pyield) + " a year") + (pf != null && pf.Defense > 0 ? " · defence +" + (pf.Defense * Math.Max(1, pv.Level)).ToString("0.##") : "") + (atWar ? " · withheld: its house is at war with the holder of the world" : "");
+                            bool under = pidx > 0 && holderId != planet.OwnerId && !atWar;
+                            string overName = mine ? "you" : w.House(planet.OwnerId)?.Name ?? "the holder of the world"; bool warNow = w.EnemiesOf(planet.OwnerId).Any(); int squad = cat.Provinces.LevySquadron * Math.Max(1, pv.Level); string dkey = planet.Id;
+                            string youLean = pmine ? "your house is expected to lean" : "it leans";
+                            string owesLine = !under ? "" : pv.Withheld ? (pmine ? "You are withholding" : "It is withholding") + " the dues. Nothing is paid, no levy is sent, and " + overName + " may ask for the province at no cost. It ends when " + (pmine ? "you pay" : "the holder pays") + " again of " + (pmine ? "your" : "its") + " own accord, when the province changes hands, or when the two houses fight over it and make peace (the peace settles it for " + cat.Provinces.SettleYears + " years)."
+                                : pv.EasedUntil > w.Turn ? "Its dues are commuted until year " + pv.EasedUntil + ": nothing is owed, no levy is sent, and " + youLean + " " + overName + "'s way in the Senate the more for it."
+                                : pv.Dues <= ProvinceSystem.Forgiven ? "Its dues are forgiven: nothing is owed, no levy is sent, and " + youLean + " " + overName + "'s way in the Senate the more for it."
+                                : (pmine ? "You owe" : "It owes") + " " + overName + " " + (owed.IsEmpty() ? "nothing this year" : Bundle(owed) + " a year") + " (" + ProvinceSystem.DuesName(pv.Dues) + " dues)" + (warNow ? ", levy included, and a squadron of " + squad + " under one of " + (pmine ? "your" : "its") + " own officers sails for " + (mine ? "you" : "that house") + " until the peace" : "; in a war of " + (mine ? "yours" : "that house's") + ", a levy too and a squadron of " + squad) + (pv.Dues >= ProvinceSystem.Heavy ? ". Heavy dues buy no voice in the Senate." : ", and " + youLean + " that way in the Senate.");
+                            long owedCr = owed.Get(Resource.Credits); string duesFig = !under ? "" : pv.Withheld ? "withheld" : pv.EasedUntil > w.Turn ? "commuted" : pv.Dues <= ProvinceSystem.Forgiven ? "forgiven" : owedCr == 0 ? "0" : pmine ? "−" + Money.Show(owedCr) : "+" + Money.Show(owedCr);
+                            string rowTip = $"[region] {pv.Name}\n{(pf?.Name ?? pv.Focus)}{(planet.Population > 0 ? " · " + Census.Say(Census.CitizensOfProvince(w, planet, pidx)) + " citizens" : "")}\n{doesLine}." + (cityLine.Length > 0 ? "\n" + cityLine : "");
                             <div class="sysp-prov @(pmine ? "mine" : "") @(atWar ? "war" : "")" data-province="@pv.Focus" data-holder="@holderId">
-                                @{ int pslots = ProvinceSystem.Slots(w, cat, planet, pi), pbuilt = pv.Buildings.Count, prising = ProvinceSystem.Rising(w, planet, pi); var owed = ProvinceSystem.Dues(w, cat, planet, pi); var pyield = ProvinceSystem.Yield(w, cat, planet, pv); }
-                                <div class="sw-head"><b>@pv.Name</b> @LevelPips(pv.Level) <span class="muted small">@(pf?.Name ?? pv.Focus)@(planet.Population > 0 ? " · " + Census.Say(Census.CitizensOfProvince(w, planet, pi)) + " citizens" : "")</span>
-                                    @if (pi > 0) { <span class="sysp-slots" title="@($"Building slots of the province: {pbuilt} built · {prising} rising · {pslots} open of {cat.Provinces.SlotMax} at the most. One to begin with; more by the system's development and the rank of the house that holds the province.")">@for (int k = 0; k < Math.Max(pslots, cat.Provinces.SlotMax); k++) { <i class="@(k < pbuilt ? "on" : k < pbuilt + prising ? "up" : k >= pslots ? "lock" : "")"></i> }</span> }
-                                </div>
-                                @if (CitySystem.KindOf(cat, pv) is { } ck)
-                                {
-                                    /* the province's chief city: its name, its kind, how many live there, and what is special about it */
-                                    var cb = ck.Building.Length > 0 ? cat.Work(ck.Building) : null; bool cbStands = cb != null && (pv.Buildings.Contains(cb.Id) || (pi == 0 && w.BodyWorks.Any(x => x.SystemId == sys.Id && x.DefId == cb.Id)));
-                                    string cityDoes = CitySystem.Says(ck); string cityOnly = cb == null ? "" : " Only here: " + cb.Name + (cbStands ? " (it stands)." : pi == 0 ? ", raised on the home world." : ", raised in the province's slots.");
-                                    <div class="sysp-city @(ck.Great ? "great" : "")" data-city="@ck.Id" title="@ck.What">
-                                        <b>@pv.City</b> <span class="city-kind">@ck.Name</span> <span class="muted small">· @Census.Say(CitySystem.Citizens(w, cat, planet, pi)) citizens</span>
-                                        <div class="muted small">@ck.What @(cityDoes.Length > 0 ? cityDoes + "." : "")@cityOnly</div>
-                                    </div>
-                                }
-                                <div class="sw-does">@(pmine ? "Yours" : w.House(holderId)?.Name ?? "nobody's")@(pi > 0 && holderId != planet.OwnerId ? (pv.Since > 0 ? " since year " + pv.Since : ", for life") : pi == 0 ? ", with the world" : "") · @(pyield.IsEmpty() ? "pays nothing" : "+" + CourtProjection.Bundle(pyield) + " a year")@(pf != null && pf.Defense > 0 ? " · defence +" + (pf.Defense * Math.Max(1, pv.Level)).ToString("0.##") : "")@(atWar ? " · withheld: its house is at war with the holder of the world" : "")</div>
-                                @if (pi > 0 && holderId != planet.OwnerId && !atWar)
-                                {
-                                    string overName = mine ? "you" : w.House(planet.OwnerId)?.Name ?? "the holder of the world"; bool warNow = w.EnemiesOf(planet.OwnerId).Any(); int squad = cat.Provinces.LevySquadron * Math.Max(1, pv.Level); string dkey = planet.Id;
-                                    <div class="muted small sysp-owes">
-                                        @if (pv.Withheld) { <span class="warnline">@(pmine ? "You are withholding" : "It is withholding") the dues. Nothing is paid, no levy is sent, and @overName may ask for the province at no cost. It ends when @(pmine ? "you pay" : "the holder pays") again of @(pmine ? "your" : "its") own accord, when the province changes hands, or when the two houses fight over it and make peace (the peace settles it for @cat.Provinces.SettleYears years).</span> }
-                                        else if (pv.EasedUntil > w.Turn) { <span>Its dues are commuted until year @pv.EasedUntil: nothing is owed, no levy is sent, and @(pmine ? "your house is expected to lean" : "it leans") @overName's way in the Senate the more for it.</span> }
-                                        else if (pv.Dues <= ProvinceSystem.Forgiven) { <span>Its dues are forgiven: nothing is owed, no levy is sent, and @(pmine ? "your house is expected to lean" : "it leans") @overName's way in the Senate the more for it.</span> }
-                                        else { <span>@(pmine ? "You owe" : "It owes") @overName @(owed.IsEmpty() ? "nothing this year" : Bundle(owed) + " a year") (@ProvinceSystem.DuesName(pv.Dues) dues)@(warNow ? ", levy included, and a squadron of " + squad + " under one of " + (pmine ? "your" : "its") + " own officers sails for " + (mine ? "you" : "that house") + " until the peace" : "; in a war of " + (mine ? "yours" : "that house's") + ", a levy too and a squadron of " + squad)@(pv.Dues >= ProvinceSystem.Heavy ? ". Heavy dues buy no voice in the Senate." : ", and " + (pmine ? "your house is expected to lean" : "it leans") + " that way in the Senate.")</span> }
-                                    </div>
-                                    @if (mine && !pmine)
-                                    {
-                                        <div class="sw-cost sysp-dues"><span>Its dues</span><span class="seg ui-seg">
-                                            @foreach (var dv in new[] { ProvinceSystem.Forgiven, ProvinceSystem.Customary, ProvinceSystem.Heavy })
-                                            {
-                                                int dvv = dv; string? duno = new SetDuesCommand(me.Id, planet.Id, pi, dv).Refusal(ctx); bool cur = pv.Dues == dv;
-                                                <button class="opt inline tiny @(cur ? "on" : "")" disabled="@(duno != null)" title="@(dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? ("Twice the dues; it leans nowhere, and a house that is your match stops paying. " + HeavySays(holderId)) : "The tithe, the levy in war, and its voice.")" @onclick="() => G.Execute(new SetDuesCommand(me.Id, dkey, pidx, dvv))">@Cap(ProvinceSystem.DuesName(dv))</button>
-                                            }
-                                        </span></div>
-                                    }
-                                    @if (pv.SettledUntil > w.Turn) { <div class="muted small">Settled by a peace: it may not be asked for, nor its dues made heavy, until year @pv.SettledUntil.</div> }
-                                    @if ((pmine || mine) && !pv.Withheld && pv.EasedUntil <= w.Turn && pv.Dues > ProvinceSystem.Forgiven)
-                                    {
-                                        string? cno = new CommuteDuesCommand(me.Id, planet.Id, pi, cat).Refusal(ctx); var ccost = ProvinceSystem.CommuteCost(cat, pv);
-                                        <div class="sw-cost"><span>Commute the dues: @Bundle(ccost) @(pmine ? "from you" : "to you") now, nothing owed for @cat.Provinces.CommuteTerm years</span>
-                                            <button class="opt inline" disabled="@(cno != null)" title="@(cno != null ? Cap(cno) : pmine ? "No tithe, no levy and no squadron for the term. Their side has agreed." : "They pay now and owe nothing for the term: no tithe, no levy, no squadron.")" @onclick="() => G.Execute(new CommuteDuesCommand(me.Id, dkey, pidx, cat))">@(pmine ? "Commute" : "Offer")</button>
-                                        </div>
-                                        @if (cno != null && !cno.StartsWith("needs")) { <div class="sw-no">@Cap(cno)</div> }
-                                    }
-                                    @if (pmine && ProvinceSystem.DuesOf(w, pv) > ProvinceSystem.Forgiven)
-                                    {
-                                        bool wh = pv.Withheld; string? whno = new WithholdDuesCommand(me.Id, planet.Id, pi, !wh).Refusal(ctx);
-                                        <div class="sw-cost"><span>@(wh ? "Pay what is owed again" : "Refuse to pay")</span><button class="opt inline @(wh ? "" : "warn")" disabled="@(whno != null)" title="@(wh ? "The dues, the levy and your voice are theirs again." : "You keep what you owe. " + overName + " may ask you to give up the province at no cost, and if it is your match it will.")" @onclick="() => G.Execute(new WithholdDuesCommand(me.Id, dkey, pidx, !wh))">@(wh ? "Pay again" : "Withhold the dues")</button></div>
-                                    }
-                                }
-                                @if (mine && pmine && pi > 0)
-                                {
-                                    /* a province of your own world that you still hold yourself is yours to give (docs/PLAYTHROUGH.md, Medium, B21) */
-                                    string gkey = planet.Id + "#" + pi; string hidG = planet.Id;
-                                    var takers = w.Houses.Values.Where(x => x.Id != house.Id && !World.Outsider(x.Id) && ProvinceSystem.GrantRefusal(w, house, planet, pidx, x.Id) == null)
-                                        .OrderByDescending(x => RegardFor(x)).ThenBy(x => x.Name, StringComparer.Ordinal).ToList();
-                                    string toG = _grantTo.TryGetValue(gkey, out var gto) && takers.Any(x => x.Id == gto) ? gto : "";
-                                    var grant = new GrantProvinceCommand(me.Id, planet.Id, pi, toG); string? gno = toG.Length == 0 ? "choose a house to give it to" : grant.Refusal(ctx);
-                                    var after = ProvinceSystem.Customary * 1; var tithe = new Resources(); foreach (var rr in Resource.All) tithe.Set(rr, cat.Provinces.Tithe.Get(rr) * Math.Max(1, pv.Level) * after);
-                                    <details class="inline sysp-grant" data-grant="@gkey">
-                                        <summary>Give this province to another house</summary>
-                                        <div class="muted small">It is theirs for life, with what is built in it. You lose what it yields (@(pyield.IsEmpty() ? "nothing now" : "+" + Bundle(pyield) + " a year")) and are owed the customary dues instead (@(tithe.IsEmpty() ? "nothing" : Bundle(tithe) + " a year"), a levy in your wars, and its voice in the Senate). Its head thinks @ProvinceSystem.GrantRegard the better of you, and the house gains @ProvinceSystem.GrantLegitimacy legitimacy for the giving. To have it back you must ask for it, and they may refuse.</div>
-                                        @if (takers.Count == 0) { <div class="small warn">No house can take it now.</div> }
-                                        else
+                                <Row Name="@pv.Name" Class="@("prov-row" + (ck?.Great == true ? " great" : ""))" Tip="@rowTip" Wrap="true">
+                                    <Picture>
+                                        @if (cb != null && G.WorkPicture(cb.Id) is { } cpic) { <span class="prov-pic" style="background-image:url('@cpic')" data-city="@(ck?.Id ?? "")"></span> }
+                                        else { <span class="prov-pic arms" data-city="@(ck?.Id ?? "")">@if (holderHouse != null) { <Sigil HouseId="@holderHouse.Id" Accent="@holderHouse.AccentColor" Size="30" /> } else { <Icon Name="region" Tone="ivory" Size="22" /> }</span> }
+                                    </Picture>
+                                    <NameExtra>@LevelPips(pv.Level)</NameExtra>
+                                    <Sub><span class="prov-l1">@if (ck != null) { <span class="prov-city @(ck.Great ? "great" : "")" title="@cityLine"><b>@pv.City</b>, <span class="city-kind">@ck.Name</span>@(planet.Population > 0 ? " · " + Census.Short(Census.CitizensOfProvince(w, planet, pidx)) : "")</span> } else { <span>@Cap(pf?.Name ?? pv.Focus)</span> }</span><span class="prov-l2">@if (holderHouse != null) { <Sigil HouseId="@holderHouse.Id" Accent="@holderHouse.AccentColor" Size="14" /> }@holds</span></Sub>
+                                    <Cells>
+                                        @if (!under || pmine) { <span class="ui-cell @(atWar ? "bad" : "")" title="@($"[credits] What it yields\n{doesLine}.")"><Icon Name="@(pyield.Get(Resource.Credits) != 0 || pyield.IsEmpty() ? "credits" : YieldIcon(pyield))" Tone="brass" Size="15" />@(pyield.IsEmpty() ? "0" : "+" + YieldMain(pyield))</span> }
+                                        @if (under) { <span class="ui-cell prov-dues @(pv.Withheld ? "warn" : "") @(pmine && !pv.Withheld && duesFig.StartsWith("−") ? "bad" : "")" title="@($"[receive-money] Its dues: {(pv.Withheld ? "withheld" : ProvinceSystem.DuesName(pv.Dues))}\n{owesLine}")"><Icon Name="receive-money" Tone="@(pv.Withheld ? "ember" : "brass")" Size="15" />@duesFig</span> }
+                                        @if (pidx > 0 && pmine) { <span class="ui-cell prov-slots" title="@($"[build] Building slots of the province\n{pbuilt} built · {prising} rising · {pslots} open of {cat.Provinces.SlotMax} at the most. One to begin with; more by the system's development and the rank of the house that holds the province.")"><Icon Name="build" Tone="ivory" Size="15" />@(pbuilt + prising)<small>of @pslots</small></span> }
+                                    </Cells>
+                                    <Action>
+                                        @if (mine && pidx > 0 && !pmine && pending == null)
                                         {
-                                            <div class="row">
-                                                <Select Class="sysp-pick" Placeholder="Choose a house" Value="@toG" Tip="The house to give the province to" Options="@takers.Select(tk => new Select.Option(tk.Id, tk.Name, $"its head thinks {RegardFor(tk):+0;-0} of you")).ToList()" OnChange="v => _grantTo[gkey] = v" />
-                                                <button class="opt inline" data-grant-go disabled="@(gno != null)" title="@(gno != null ? Cap(gno) : "")" @onclick="() => AskGrant(grant, pv.Name, planet.Name, toG)">Give it</button>
-                                            </div>
+                                            <Plate Label="Ask" Small="true" Icon="public-speaker" Locked="@(dno != null)" Disabled="@(dno != null)" Need="@(dno != null ? Cap(dno) : "")" ShowNeed="false" CostIcon="public-speaker" CostText="@cat.Provinces.DemandInfluence.ToString()" Tip="@("[public-speaker] Ask them to step down\nIt was theirs for life. A house that cannot hope to win steps down; one that can, fights. " + YieldSays(holderId) + "\nThe house it is asked for is chosen under the row.")" OnClick="() => G.AskSeat(planet, pidx, giveTo)" />
                                         }
-                                    </details>
+                                        else if (pidx == 0 && over?.Id == house.Id && !mine && pending == null)
+                                        {
+                                            string wfor0 = WorldFor(planet, giveTo);
+                                            <Plate Label="Ask" Small="true" Icon="public-speaker" Locked="@(wno != null)" Disabled="@(wno != null)" Need="@(wno != null ? Cap(wno) : "")" ShowNeed="false" CostIcon="public-speaker" CostText="@cat.Provinces.DemandInfluenceWorld.ToString()" Tip="[public-speaker] Ask its holder to make way\nThe world was theirs for life. They step down and hold a province under the house that rises, or they fight you. The house it is asked for is chosen under the row." OnClick="() => G.AskSeat(planet, 0, wfor0)" />
+                                        }
+                                        else if (pmine && mine && pidx > 0)
+                                        {
+                                            var pfits0 = cat.Works.Count(d => ProvinceSystem.Suits(cat, sys, pv, d) && !pv.Buildings.Contains(d.Id) && !w.Projects.Any(x => x.Kind == Project.ProvinceWork && x.TargetId == ProvinceSystem.Target(planet.Id, pidx) && x.DefId == d.Id));
+                                            bool showAll0 = _provOpen == planet.Id + "#" + pidx; string key0 = planet.Id + "#" + pidx;
+                                            @if (pfits0 > 0) { <Plate Label="@(showAll0 ? "Close" : "Build")" Small="true" Icon="@(showAll0 ? "" : "build")" Tip="@($"[build] Build in {pv.Name}\n{(pslots - pbuilt - prising > 0 ? (pslots - pbuilt - prising) + " of " + pslots + " slot" + (pslots == 1 ? "" : "s") + " free" : "No slot free")} · {pfits0} building{(pfits0 == 1 ? "" : "s")} would suit it")" OnClick="() => _provOpen = showAll0 ? null : key0" /> }
+                                        }
+                                    </Action>
+                                </Row>
+                                @{ bool duesCtl = under && mine && !pmine; bool commuteCtl = under && (pmine || mine) && !pv.Withheld && pv.EasedUntil <= w.Turn && pv.Dues > ProvinceSystem.Forgiven; bool withholdCtl = under && pmine && ProvinceSystem.DuesOf(w, pv) > ProvinceSystem.Forgiven;
+                                   bool askCtl = mine && pidx > 0 && !pmine && pending == null; bool worldAskCtl = pidx == 0 && over?.Id == house.Id && !mine && pending == null; bool grantCtl = mine && pmine && pidx > 0; }
+                                @if (duesCtl || commuteCtl || withholdCtl || askCtl || worldAskCtl || grantCtl || (under && pv.SettledUntil > w.Turn))
+                                {
+                                    <div class="prov-acts">
+                                        @if (duesCtl)
+                                        {
+                                            int dcur = pv.Dues;
+                                            <Segmented Class="sysp-dues" Label="Dues" Value="@dcur.ToString()" Options="@DuesOptions(holderId)" Refusal="@(k => k == dcur.ToString() ? null : new SetDuesCommand(me.Id, dkey, pidx, int.Parse(k)).Refusal(ctx) is { } dr ? Cap(dr) : null)" OnChange="@(k => { if (k != dcur.ToString()) G.Execute(new SetDuesCommand(me.Id, dkey, pidx, int.Parse(k))); })" />
+                                        }
+                                        @if (under && pv.SettledUntil > w.Turn) { <span class="prov-chip" title="@($"Settled by a peace: it may not be asked for, nor its dues made heavy, until year {pv.SettledUntil}.")"><Icon Name="dove" Tone="ivory" Size="14" />Settled to year @pv.SettledUntil</span> }
+                                        @if (commuteCtl)
+                                        {
+                                            string? cno = new CommuteDuesCommand(me.Id, planet.Id, pidx, cat).Refusal(ctx); var ccost = ProvinceSystem.CommuteCost(cat, pv);
+                                            <Plate Label="@(pmine ? "Commute" : "Offer")" Small="true" Locked="@(cno != null)" Disabled="@(cno != null)" Need="@(cno != null ? Cap(cno) : "")" ShowNeed="false" Tip="@($"[receive-money] Commute the dues\n{Bundle(ccost)} {(pmine ? "from you" : "to you")} now, nothing owed for {cat.Provinces.CommuteTerm} years. " + (pmine ? "No tithe, no levy and no squadron for the term. Their side has agreed." : "They pay now and owe nothing for the term: no tithe, no levy, no squadron."))" OnClick="() => G.Execute(new CommuteDuesCommand(me.Id, dkey, pidx, cat))"><Cost>@CostIcons(ccost)</Cost></Plate>
+                                        }
+                                        @if (withholdCtl)
+                                        {
+                                            bool wh = pv.Withheld; string? whno = new WithholdDuesCommand(me.Id, planet.Id, pidx, !wh).Refusal(ctx);
+                                            <Plate Label="@(wh ? "Pay again" : "Withhold the dues")" Small="true" Locked="@(whno != null)" Disabled="@(whno != null)" Need="@(whno != null ? Cap(whno) : "")" ShowNeed="false" Class="@(wh ? "" : "warn")" Tip="@(wh ? "[receive-money] Pay what is owed again\nThe dues, the levy and your voice are theirs again." : "[threat] Refuse to pay\nYou keep what you owe. " + overName + " may ask you to give up the province at no cost, and if it is your match it will.")" OnClick="() => G.Execute(new WithholdDuesCommand(me.Id, dkey, pidx, !wh))" />
+                                        }
+                                        @if (askCtl)
+                                        {
+                                            var giveOpts = new List<Select.Option> { new(house.Id, "Your own house") }; giveOpts.AddRange(w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name).Select(oh => new Select.Option(oh.Id, oh.Name)));
+                                            <span class="prov-for"><span class="prov-l">Ask it for</span><Select Class="sysp-pick" Options="giveOpts" Value="@giveTo" Tip="The house the province is asked for" OnChange="v => SetGive(hid3, pidx, v)" /></span>
+                                        }
+                                        @if (worldAskCtl)
+                                        {
+                                            string wfor = WorldFor(planet, giveTo);
+                                            var forOpts = new List<Select.Option>(); for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh == planet.OwnerId || forOpts.Any(o => o.Key == kh)) continue; forOpts.Add(new(kh, kh == house.Id ? "Your own house" : w.House(kh)?.Name ?? kh)); }
+                                            <span class="prov-for"><span class="prov-l">Make way for</span><Select Class="sysp-pick" Options="forOpts" Value="@wfor" Tip="The house the world is asked for" OnChange="v => SetGive(hid3, pidx, v)" /></span>
+                                        }
+                                        @if (grantCtl)
+                                        {
+                                            /* a province of your own world that you still hold yourself is yours to give (docs/PLAYTHROUGH.md, Medium, B21) */
+                                            string gkey = planet.Id + "#" + pidx;
+                                            var takers = w.Houses.Values.Where(x => x.Id != house.Id && !World.Outsider(x.Id) && ProvinceSystem.GrantRefusal(w, house, planet, pidx, x.Id) == null)
+                                                .OrderByDescending(x => RegardFor(x)).ThenBy(x => x.Name, StringComparer.Ordinal).ToList();
+                                            string toG = _grantTo.TryGetValue(gkey, out var gto) && takers.Any(x => x.Id == gto) ? gto : "";
+                                            var grant = new GrantProvinceCommand(me.Id, planet.Id, pidx, toG); string? gno = toG.Length == 0 ? "choose a house to give it to" : grant.Refusal(ctx);
+                                            var after = ProvinceSystem.Customary * 1; var tithe = new Resources(); foreach (var rr in Resource.All) tithe.Set(rr, cat.Provinces.Tithe.Get(rr) * Math.Max(1, pv.Level) * after);
+                                            string grantRule = $"It is theirs for life, with what is built in it. You lose what it yields ({(pyield.IsEmpty() ? "nothing now" : "+" + Bundle(pyield) + " a year")}) and are owed the customary dues instead ({(tithe.IsEmpty() ? "nothing" : Bundle(tithe) + " a year")}, a levy in your wars, and its voice in the Senate). Its head thinks {ProvinceSystem.GrantRegard} the better of you, and the house gains {ProvinceSystem.GrantLegitimacy} legitimacy for the giving. To have it back you must ask for it, and they may refuse.";
+                                            <details class="inline sysp-grant" data-grant="@gkey">
+                                                <summary title="@("[castle] Give this province to another house\n" + grantRule)">Give it to another house<Icon Name="chev" Size="11" Class="flat" /></summary>
+                                                @if (takers.Count == 0) { <div class="prov-none">No house can take it now.</div> }
+                                                else
+                                                {
+                                                    <div class="row">
+                                                        <Select Class="sysp-pick" Placeholder="Choose a house" Value="@toG" Tip="The house to give the province to" Options="@takers.Select(tk => new Select.Option(tk.Id, tk.Name, $"its head thinks {RegardFor(tk):+0;-0} of you")).ToList()" OnChange="v => _grantTo[gkey] = v" />
+                                                        <Plate Label="Give it" Small="true" Icon="castle" Locked="@(gno != null)" Disabled="@(gno != null)" Need="@(gno != null ? Cap(gno) : "")" ShowNeed="false" Tip="@("[castle] Give it\n" + grantRule)" OnClick="() => AskGrant(grant, pv.Name, planet.Name, toG)" data-grant-go="" />
+                                                    </div>
+                                                }
+                                            </details>
+                                        }
+                                    </div>
                                 }
                                 @if (pv.Buildings.Count > 0 || prising > 0)
                                 {
-                                    string ptarget = ProvinceSystem.Target(planet.Id, pi); var pup = w.Projects.Where(x => x.Kind == Project.Upgrade && x.TargetId == ptarget).ToList();
+                                    string ptarget = ProvinceSystem.Target(planet.Id, pidx); var pup = w.Projects.Where(x => x.Kind == Project.Upgrade && x.TargetId == ptarget).ToList();
                                     @if (pmine)
                                     {
                                         @foreach (var bid in pv.Buildings)
@@ -246,57 +287,37 @@
                                         @foreach (var pp in pup) { <span class="built up">@Cap(pp.Name) · @pp.TurnsLeft y</span> }
                                     </div>
                                 }
-                                @if (pmine && pi > 0)
+                                @if (pmine && pidx > 0 && _provOpen == planet.Id + "#" + pidx)
                                 {
                                     var pfits = cat.Works.Where(d => ProvinceSystem.Suits(cat, sys, pv, d) && !pv.Buildings.Contains(d.Id) && !w.Projects.Any(x => x.Kind == Project.ProvinceWork && x.TargetId == ProvinceSystem.Target(planet.Id, pidx) && x.DefId == d.Id)).OrderByDescending(d => d.Deposit.Length > 0).ThenBy(d => d.Cost.Credits + d.Cost.Materials).ToList();
-                                    bool showAll = _provOpen == planet.Id + "#" + pi; string key = planet.Id + "#" + pi;
-                                    <div class="sw-cost"><span>@(pslots - pbuilt - prising > 0 ? (pslots - pbuilt - prising) + " of " + pslots + " slot" + (pslots == 1 ? "" : "s") + " free" : "No slot free") · @pfits.Count building@(pfits.Count == 1 ? "" : "s") would suit it</span>
-                                        @if (pfits.Count > 0) { <button class="opt inline" @onclick="() => _provOpen = showAll ? null : key">@(showAll ? "Close" : "Build…")</button> }
-                                    </div>
-                                    @if (showAll)
+                                    <div class="prov-build">
+                                    @foreach (var d in pfits)
                                     {
-                                        @foreach (var d in pfits)
-                                        {
-                                            string? bno = new BuildInProvinceCommand(me.Id, planet.Id, pi, d.Id, cat).Refusal(ctx); string bdid = d.Id;
-                                            <div class="sysp-work" data-work="@d.Id">
-                                                @Art(d.Id)
-                                                <div class="sw-text">
-                                                    <div class="sw-head"><b>@d.Name</b></div>
-                                                    <div class="sw-does">@Does(d, sys)</div>
-                                                    <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@Takes(d.BuildTurns, 1)</span>
-                                                        <button class="opt inline" disabled="@(bno != null)" title="@(bno != null ? Cap(bno) : "")" @onclick="() => G.Execute(new BuildInProvinceCommand(me.Id, hid3, pidx, bdid, cat))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button>
-                                                    </div>
-                                                    @if (bno != null) { <div class="sw-no">@Cap(bno)</div> }
+                                        string? bno = new BuildInProvinceCommand(me.Id, planet.Id, pidx, d.Id, cat).Refusal(ctx); string bdid = d.Id;
+                                        <div class="sysp-work" data-work="@d.Id">
+                                            @Art(d.Id)
+                                            <div class="sw-text">
+                                                <div class="sw-head"><b>@d.Name</b></div>
+                                                <div class="sw-does">@Does(d, sys)</div>
+                                                <div class="sw-cost"><span>@CourtProjection.Bundle(d.Cost)@Takes(d.BuildTurns, 1)</span>
+                                                    <button class="opt inline" disabled="@(bno != null)" title="@(bno != null ? Cap(bno) : "")" @onclick="() => G.Execute(new BuildInProvinceCommand(me.Id, hid3, pidx, bdid, cat))">@(d.BuildTurns > 1 ? "Begin" : "Build")</button>
                                                 </div>
+                                                @if (bno != null) { <div class="sw-no">@Cap(bno)</div> }
                                             </div>
-                                        }
+                                        </div>
                                     }
-                                }
-                                @if (mine && pi > 0 && !pmine && pending == null)
-                                {
-                                    var giveOpts = new List<Select.Option> { new(house.Id, "Your own house") }; giveOpts.AddRange(w.Houses.Values.Where(x => !World.Outsider(x.Id) && x.Id != house.Id && x.Id != holderId).OrderBy(x => x.Name).Select(oh => new Select.Option(oh.Id, oh.Name)));
-                                    <div class="sw-cost"><span>Ask them to step down, for</span> <Select Class="sysp-pick" Options="giveOpts" Value="@giveTo" Tip="The house the province is asked for" OnChange="v => SetGive(hid3, pidx, v)" /> <span class="sw-c"><Icon Name="public-speaker" Tone="ivory" Size="14" />@cat.Provinces.DemandInfluence</span>
-                                        <button class="opt inline" disabled="@(dno != null)" title="@(dno != null ? Cap(dno) : "It was theirs for life. A house that cannot hope to win steps down; one that can, fights. " + YieldSays(holderId))" @onclick="() => G.AskSeat(planet, pidx, giveTo)">Ask</button>
                                     </div>
-                                    @if (dno != null) { <div class="sw-no">@Cap(dno)</div> }
-                                }
-                                @if (pi == 0 && over?.Id == house.Id && !mine && pending == null)
-                                {
-                                    string wfor = WorldFor(planet, giveTo);
-                                    var forOpts = new List<Select.Option>(); for (int k = 1; k < planet.Provinces.Count; k++) { string kh = ProvinceSystem.HolderOf(planet, k); if (kh == planet.OwnerId || forOpts.Any(o => o.Key == kh)) continue; forOpts.Add(new(kh, kh == house.Id ? "Your own house" : w.House(kh)?.Name ?? kh)); }
-                                    <div class="sw-cost"><span>Ask its holder to make way for</span> <Select Class="sysp-pick" Options="forOpts" Value="@wfor" Tip="The house the world is asked for" OnChange="v => SetGive(hid3, pidx, v)" /> <span class="sw-c"><Icon Name="public-speaker" Tone="ivory" Size="14" />@cat.Provinces.DemandInfluenceWorld</span>
-                                        <button class="opt inline" disabled="@(wno != null)" title="@(wno != null ? Cap(wno) : "The world was theirs for life. They step down and hold a province under the house that rises, or they fight you.")" @onclick="() => G.AskSeat(planet, 0, wfor)">Ask</button>
-                                    </div>
-                                    @if (wno != null) { <div class="sw-no">@Cap(wno)</div> }
                                 }
                                 @if (pending != null)
                                 {
                                     string did2 = pending.Id; string asker = w.House(pending.ById)?.Name ?? "A house"; string forWhom = pending.ForId == pending.ById ? "itself" : pending.ForId == house.Id ? "you" : w.House(pending.ForId)?.Name ?? "another";
                                     @if (pending.AgainstId == house.Id)
                                     {
-                                        <div class="sysp-demand">
-                                            <div><b>@asker asks you to give this up</b>, for @forWhom. It was yours for life. @(pending.Why.Length > 0 ? "Why: " + pending.Why + ". " : "")@(pi == 0 ? "Step down, and you hold a province under the house that rises, your name is the less for it and your house a rung the lower. Stand, and it is war with " + asker + "." : "Step down and it is gone. Stand, and it is war with " + asker + ".") Left unanswered for a year, it is taken for defiance, and that too is war.</div>
-                                            <div class="row small"><button class="opt inline" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, true, cat))">Step down</button><button class="opt inline warn" @onclick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, false, cat))">Stand, and fight</button></div>
+                                        string stakes = (pending.Why.Length > 0 ? "Why: " + pending.Why + ". " : "") + (pidx == 0 ? "Step down, and you hold a province under the house that rises, your name is the less for it and your house a rung the lower. Stand, and it is war with " + asker + "." : "Step down and it is gone. Stand, and it is war with " + asker + ".") + " Left unanswered for a year, it is taken for defiance, and that too is war.";
+                                        <div class="sysp-demand" title="@stakes">
+                                            <div class="dm-line"><Icon Name="threat" Tone="ember" Size="18" /><span><b>@asker asks you to give this up</b>, for @forWhom. It was yours for life.</span></div>
+                                            <div class="dm-stakes">@stakes</div>
+                                            <div class="row small"><Plate Label="Step down" Small="true" Icon="wooden-chair" Tip="@("[wooden-chair] Step down\n" + stakes)" OnClick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, true, cat))" /><Plate Label="Stand, and fight" Small="true" Icon="crossed-sabres" Class="warn" Tip="@("[crossed-sabres] Stand, and fight\nIt is war with " + asker + ".")" OnClick="() => G.Execute(new AnswerSeatDemandCommand(me.Id, did2, false, cat))" /></div>
                                             <div class="row small" data-demand-answers="@did2">
                                                 <span class="muted">Or:</span>
                                                 @foreach (var (how, label) in new[] { (ProvinceSystem.Coin, "Buy them off"), (ProvinceSystem.Court, "Take it to the praetor's court"), (ProvinceSystem.Bench, "Have your bench stand behind you") })
@@ -307,7 +328,7 @@
                                             </div>
                                         </div>
                                     }
-                                    else { <div class="muted small">@asker has asked for it, for @forWhom. No answer yet.</div> }
+                                    else { <div class="prov-pending" title="@($"{asker} has asked for it, for {forWhom}. No answer yet.")"><Icon Name="hourglass" Tone="brass" Size="14" />@asker has asked for it, for @forWhom. No answer yet.</div> }
                                 }
                             </div>
                         }
@@ -462,6 +483,19 @@
     private static string GlobeClass(Body b) => b.Class switch { "moon" => "barren", "comet" => "frozen", "belt" => "belt", _ => b.Class };
     private static int GlobePx(Body b) => b.IsPrimary ? 30 : b.Orbits >= 0 ? 16 : b.Class == "comet" ? 14 : 18 + Math.Min(3, b.Size) * 3;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>The icon a resource is drawn with (clout is the laurels).</summary>
+    private static string ResIcon(string k) => k == Resource.Influence ? "laurels" : k;
+    /// <summary>A cost as icon-and-number pairs, for inside a plate after its hairline (docs/VISUAL_SYSTEM.md 4.11): "1,000 · 8".</summary>
+    private static RenderFragment CostIcons(Resources r) => __builder =>
+    {
+        foreach (var k in Resource.All) { long v = r.Get(k); if (v == 0) continue; <span class="cost-p"><Icon Name="@ResIcon(k)" Tone="brass" Size="14" />@Money.Of(k, v)</span> }
+    };
+    /// <summary>What a yield is shown by in a row's figure: its credits, or else its first good.</summary>
+    private static string YieldIcon(Resources r) => ResIcon(Resource.All.FirstOrDefault(k => r.Get(k) != 0) ?? Resource.Credits);
+    private static string YieldMain(Resources r) { var k = r.Get(Resource.Credits) != 0 ? Resource.Credits : Resource.All.FirstOrDefault(x => r.Get(x) != 0) ?? Resource.Credits; return Money.Of(k, r.Get(k)); }
+    /// <summary>The three dues a province may owe, as the joined plates (docs/VISUAL_SYSTEM.md 4.11), in sentence case with what each means.</summary>
+    private IReadOnlyList<(string key, string text, string tip)> DuesOptions(string holderId) => new[] { ProvinceSystem.Forgiven, ProvinceSystem.Customary, ProvinceSystem.Heavy }
+        .Select(dv => (dv.ToString(), Cap(ProvinceSystem.DuesName(dv)), dv == ProvinceSystem.Forgiven ? "Nothing is paid; it leans your way the more." : dv == ProvinceSystem.Heavy ? "Twice the dues; it leans nowhere, and a house that is your match stops paying. " + HeavySays(holderId) : "The tithe, the levy in war, and its voice.")).ToList();
     private static string Bundle(Resources r) => r.IsEmpty() ? "nothing" : CourtProjection.Bundle(r);
     private static string Kind(Body b) => b.Class switch
     {
