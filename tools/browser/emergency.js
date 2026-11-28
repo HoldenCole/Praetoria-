@@ -9,8 +9,8 @@ const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1400 }, deviceScaleFactor: 2 }); page.setDefaultTimeout(60000);
+  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-rasterization'] });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1400 }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 2) }); page.setDefaultTimeout(180000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -28,7 +28,7 @@ require('fs').mkdirSync(shots, { recursive: true });
     });
     if (read.danger && !sawDanger) { sawDanger = true; console.log(`year ${year}: ${read.danger}`); const el = await page.$('.panel.consulship'); if (el) await el.screenshot({ path: shots + '/emergency-danger.png' }); }
     if (read.card) { sawPowers = true; console.log(`year ${year}: ${read.card}`); const el = await page.$('.panel.consulship'); if (el) { await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: shots + '/emergency-powers.png' }); } break; }
-    { const before = await page.evaluate(() => { const d = document.querySelector('[data-turn]'); return d ? +d.dataset.turn : -1; }); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 600; i++) { await page.waitForTimeout(50); if (await page.evaluate(() => { const d = document.querySelector('[data-turn]'); return d ? +d.dataset.turn : -1; }) > before) break; } await page.waitForTimeout(300); } await dismiss(); await rail('Senate'); await page.waitForTimeout(350); await consuls(); await page.waitForTimeout(350);
+    { const before = await page.evaluate(() => { const d = document.querySelector('[data-turn]'); return d ? +d.dataset.turn : -1; }); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 1200; i++) { await page.waitForTimeout(50); if (await page.evaluate(() => { const d = document.querySelector('[data-turn]'); return d ? +d.dataset.turn : -1; }) > before) break; } await page.waitForTimeout(300); } await dismiss(); await rail('Senate'); await page.waitForTimeout(350); await consuls(); await page.waitForTimeout(350);
   }
   if (!sawDanger) console.log(`the Reach was in no danger in ${years} years`); else if (!sawPowers) console.log(`no consul was voted the powers in ${years} years`);
   await rail('Chronicle'); await page.waitForTimeout(500);

@@ -9,8 +9,8 @@ const title = process.argv[2] || 'The Old Lion'; const years = parseInt(process.
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1900 } }); page.setDefaultTimeout(60000);
+  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-rasterization'] });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1900 }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 1) }); page.setDefaultTimeout(180000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -21,8 +21,8 @@ require('fs').mkdirSync(shots, { recursive: true });
   // the general and the Senate is a tab of the Military window (docs/VISUAL_SYSTEM.md 4.4): open it after the rail
   const general = () => page.evaluate(() => { const t = document.querySelector('.screen.window .ui-tab[data-tab="general"]') || [...document.querySelectorAll('.ex-tabs .rung')].find(e => /the general/i.test(e.innerText)); if (t) t.click(); return !!t; });
   const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
-  const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.caesar button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.trim() : ''; }, text);
-  const why = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.caesar button')].find(e => e.innerText.trim().startsWith(t)); return b ? (b.disabled ? 'refused: ' + (b.getAttribute('title') || '') : 'open') : 'no such button'; }, text);
+  const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.caesar button')].find(e => !e.disabled && e.innerText.trim().startsWith(t)); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').trim() : ''; }, text);
+  const why = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.caesar button')].find(e => e.innerText.trim().startsWith(t)); return b ? (b.disabled ? 'refused: ' + (b.getAttribute('title') || '').split('\n').pop() : 'open') : 'no such button'; }, text);   // a locked plate's tooltip ends with what it needs
   const panel = () => page.evaluate(() => { const el = document.querySelector('.panel.caesar'); if (!el) return 'NO PANEL'; return el.innerText.replace(/\s+/g, ' ').slice(0, 900); });
   const crews = () => page.evaluate(() => [...document.querySelectorAll('.panel.caesar .crew-row')].map(e => e.innerText.replace(/\s+/g, ' ')).join(' | '));
   const shot = async name => { const box = await page.evaluate(() => { const el = document.querySelector('.panel.caesar'); if (!el) return null; el.scrollIntoView({ block: 'start' }); const r = el.getBoundingClientRect(); return { x: Math.max(0, r.x), y: Math.max(0, r.y), width: r.width, height: Math.min(r.height, 1200) }; }); if (box) await page.screenshot({ path: shots + '/' + name + '.png', clip: box }); };

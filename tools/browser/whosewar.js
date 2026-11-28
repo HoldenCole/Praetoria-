@@ -12,8 +12,8 @@ const title = process.argv[2] || 'The Old Lion';
 const base = process.env.PRAETORIA_URL || 'http://localhost:8112/'; const shots = process.env.PRAETORIA_SHOTS || './shots';
 require('fs').mkdirSync(shots, { recursive: true });
 (async () => {
-  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist'] });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1100 }, deviceScaleFactor: 2 }); page.setDefaultTimeout(60000);
+  const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--ignore-gpu-blocklist', '--disable-gpu-rasterization'] });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1100 }, deviceScaleFactor: +(process.env.PRAETORIA_SCALE || 2) }); page.setDefaultTimeout(180000);
   const errors = []; page.on('console', m => { if (m.type() === 'error') errors.push(m.text().slice(0, 300)); }); page.on('pageerror', e => errors.push('PAGEERROR ' + e.message.slice(0, 300)));
   await page.goto(base, { waitUntil: 'networkidle' }); await page.waitForSelector('.title-screen', { timeout: 90000 });
   await page.evaluate(() => { try { localStorage.setItem('praetoria.primer.seen', '1'); } catch (e) {} });
@@ -32,11 +32,14 @@ require('fs').mkdirSync(shots, { recursive: true });
   const rail = async name => { await page.evaluate(n => { const el = [...document.querySelectorAll('.rail-btn')].find(e => new RegExp('^' + n + '$', 'i').test(e.innerText.trim())); if (el) el.click(); }, name); await page.waitForTimeout(700); };
   await rail('military');
   await page.evaluate(() => { const t = (document.querySelector('.screen.window .ui-tab[data-tab="abroad"]') || [...document.querySelectorAll('.ex-tabs .rung')].find(e => /beyond the reach/i.test(e.innerText))); if (t) t.click(); }); await page.waitForTimeout(600);
-  const card = async name => page.evaluate(n => { const el = [...document.querySelectorAll('.panel.abroad .nation')].find(x => new RegExp(n, 'i').test(x.innerText)); return el ? el.innerText.replace(/\s+/g, ' ') : null; }, name);
-  const press = async (name, label) => page.evaluate(([n, l]) => { const el = [...document.querySelectorAll('.panel.abroad .nation')].find(x => new RegExp(n, 'i').test(x.innerText)); const b = el && [...el.querySelectorAll('button')].find(x => new RegExp(l, 'i').test(x.innerText)); if (b && !b.disabled) { b.click(); return true; } return b ? 'disabled: ' + b.title : false; }, [name, label]);
-  let c = await card('hollow crown'); console.log('orders offered on the Hollow Crown: ' + ((c || '').match(/Make war on your own account|Now they take and hold: Order your fleets to raid|Move for peace|Move for war/g) || []).join(' · '));
+  // a nation's card keeps its ruler, march, seat, fleets and whose war it is under a fold: open it. Each order is a plate of one to three
+  // words ("Private war", "Raid", "Make a client") with its whole wording in its tooltip, and what holds now in the title around it, so a
+  // card is read as its text and the tooltips of its orders, and an order is pressed by its words or its tooltip's.
+  const card = async name => page.evaluate(n => { const el = [...document.querySelectorAll('.panel.abroad .nation')].find(x => new RegExp(n, 'i').test(x.innerText)); if (!el) return null; el.querySelectorAll('details').forEach(d => { d.open = true; }); const tips = [...el.querySelectorAll('.mn-order[title], button[title]')].map(b => (b.getAttribute('title') || '').split('\n')[0].replace(/^\[[a-z-]+\] /, '')); return (el.innerText + ' ' + tips.join(' | ')).replace(/\s+/g, ' '); }, name);
+  const press = async (name, label) => page.evaluate(([n, l]) => { const el = [...document.querySelectorAll('.panel.abroad .nation')].find(x => new RegExp(n, 'i').test(x.innerText)); const b = el && [...el.querySelectorAll('button')].find(x => new RegExp(l, 'i').test(x.innerText) || new RegExp(l, 'i').test(x.title || '')); if (b && !b.disabled) { b.click(); return true; } return b ? 'disabled: ' + (b.title || '').split('\n').pop() : false; }, [name, label]);   // a locked plate's tooltip ends with what it needs
+  let c = await card('hollow crown'); console.log('orders offered on the Hollow Crown: ' + [...new Set((c || '').match(/Make war on your own account|Order your fleets to raid \(now they take and hold\)|Move for peace|Move for war/g) || [])].join(' · '));
   console.log('order the fleets to raid: ' + await press('hollow crown', 'Order your fleets to raid')); await page.waitForTimeout(500);
-  c = await card('hollow crown'); console.log('  the order now reads: ' + ((c || '').match(/Now they raid: Order your fleets to take and hold/) || ['NOT CHANGED'])[0]);
+  c = await card('hollow crown'); console.log('  the order now reads: ' + ((c || '').match(/Order your fleets to take and hold \(now they raid\)/) || ['NOT CHANGED'])[0]);
   console.log('make war on your own account: ' + await press('hollow crown', 'Make war on your own account')); await page.waitForTimeout(700);
   c = await card('hollow crown'); console.log('  whose war: ' + ((c || '').match(/Whose war:? [^.]*/i) || ['NOT SHOWN'])[0].trim());
   console.log('  at war: ' + /at war/i.test(c || '') + ' · the Senate may be moved for peace: ' + /Move for peace/.test(c || ''));
@@ -46,10 +49,13 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('say you would make it a client: ' + await press('hollow crown', 'say you would make it a client')); await page.waitForTimeout(500);
   c = await card('hollow crown'); console.log('  your word now reads: ' + ((c || '').match(/Beaten decisively, you would make it a client/) || ['NOT CHANGED'])[0]);
   const hint = await card('vashti'); console.log('the Khanates\' card says how often a Great Khan comes: ' + ((hint || '').match(/Under a Great Khan[^.]*\./) || ['NOT SHOWN'])[0]);
-  const el = await page.$('.panel.abroad'); if (el) { await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: shots + '/whosewar-card.png' }); }
+  await page.evaluate(() => document.querySelectorAll('.panel.abroad .nation details').forEach(d => { d.open = true; })); await page.waitForTimeout(400);
+  const el = await page.$('.panel.abroad .nation[data-nation="hollow_crown"]') || await page.$('.panel.abroad'); if (el) { await el.scrollIntoViewIfNeeded(); await el.screenshot({ path: shots + '/whosewar-card.png' }); }
   // the Galaxy screen, with two worlds marked as conquered (staged: see the note at the top)
   await page.evaluate(() => { const el = document.querySelector('[data-close-window]'); if (el) el.click(); }); await page.waitForTimeout(2500);   // back to the map: the docked window's close (the rail has no Galaxy socket)
   const staged = await page.evaluate(() => {
+    // the map keeps its model while a window is docked over it, so none may have been sent since the wrap: take the one it holds
+    if (!window.__last) { const e = [...(window.praetoriaSpace.galaxies || new Map()).entries()][0]; if (e && e[1].model) window.__last = { id: e[0], json: JSON.stringify(e[1].model) }; }
     if (!window.__last) return 'the map gave no model';
     const m = JSON.parse(window.__last.json); const khan = m.systems.find(s => /khal/i.test(s.id)); const rim = m.systems.find(s => s.id === 'the_veil') || m.systems.find(s => s.ring === 'rim' && s.ownerId);
     const steppe = m.systems.find(s => s.id === 'the_long_grass'); if (!khan || !rim || !steppe) return 'systems not found';
@@ -61,6 +67,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log(staged); await page.waitForTimeout(1500);
   for (let i = 0; i < 1; i++) { await page.evaluate(() => { const b = document.querySelector('.map-zoom button, button[title="Zoom in"]'); if (b) b.click(); }); await page.waitForTimeout(400); }
   await page.waitForTimeout(2000);
+  await page.evaluate(() => { const b = document.querySelector('[data-map="legend"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click(); }); await page.waitForTimeout(600);   // the legend opens from the console's (i)
   console.log('legend names the mark: ' + await page.evaluate(() => /conquered/i.test(document.querySelector('.legend')?.innerText || '')));
   await page.screenshot({ path: shots + '/whosewar-map.png', timeout: 240000 });
   console.log('wider than the screen: ' + await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2));
