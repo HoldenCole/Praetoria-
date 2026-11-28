@@ -259,24 +259,30 @@ public sealed class DealingsSystem
         w.Log($"{mine.Name} gives {theirs.Name} its word: it votes {(side > 0 ? "for" : "against")} the motion.");
     }
     /// <summary>A word given on a vote: the pledge, judged at the count (<see cref="MotionCounted"/>), and the vote declared that way.
-    /// Given here from the house's window, or in a report (a_vote_for_a_vote, VoteMarks.Bargains).</summary>
-    public static void GiveWord(World w, string byHouseId, string toHouseId, Motion m, int side)
+    /// Given here from the house's window, or in a report (a_vote_for_a_vote, VoteMarks.Bargains). <paramref name="paid"/>: a vote bought
+    /// and paid for (VoteMarks.Sell), which kept leaves no favour owed.</summary>
+    public static void GiveWord(World w, string byHouseId, string toHouseId, Motion m, int side, bool paid = false)
     {
-        w.VotePledges.Add(new VotePledge { ByHouseId = byHouseId, ToHouseId = toHouseId, MotionId = m.Id, Side = side, Turn = w.Turn }); m.Votes[byHouseId] = side; Count(w, PledgesKey);
+        w.VotePledges.Add(new VotePledge { ByHouseId = byHouseId, ToHouseId = toHouseId, MotionId = m.Id, Side = side, Turn = w.Turn, Paid = paid }); m.Votes[byHouseId] = side; Count(w, PledgesKey);
     }
 
     /// <summary>A motion struck from the docket before it was counted (a consul's veto, ElectionSystem.Veto; or withdrawn for foreign
-    /// gold, ForeignGoldSystem): a word given on it is void, and a favour the player owes its mover was not called in there and waits for
-    /// its next motion. The player is told both, since SenateSystem.Add told them this was where the favour was called in.</summary>
-    public static void Struck(World w, Motion m)
+    /// gold, ForeignGoldSystem; or gone with a house that is no more, <paramref name="gone"/>, HouseSystem): a word given on it is void,
+    /// and a favour the player owes its mover was not called in there and waits for its next motion. The player is told both, since
+    /// SenateSystem.Add told them this was where the favour was called in. Of a house that is gone, the favour goes with it at the
+    /// year's end (WealthSystem.LapseFavours), and is told then.</summary>
+    public static void Struck(World w, Motion m, House? gone = null)
     {
         string? mine = w.Protagonist?.HouseId; if (mine == null) return;
         foreach (var p in w.VotePledges.Where(p => p.MotionId == m.Id).OrderBy(p => p.ByHouseId, StringComparer.Ordinal).ThenBy(p => p.ToHouseId, StringComparer.Ordinal).ToList())
         {
             w.VotePledges.Remove(p);
-            if (p.ByHouseId == mine && w.House(p.ToHouseId) is { } to) w.Tell("info", $"The motion you gave {to.Name} your word on was struck before the count. Your word on it is void, and nothing is owed for it.", "houses", to.Id);
+            if (p.ByHouseId != mine || w.House(p.ToHouseId) is not { } to) continue;
+            string what = p.Paid ? $"The motion {to.Name} bought your vote on" : $"The motion you gave {to.Name} your word on", then = p.Paid ? "No vote is asked of you for what was paid." : "Your word on it is void, and nothing is owed for it.";
+            w.Tell("info", gone == null ? $"{what} was struck before the count. {then}" : gone.Id == to.Id ? $"{to.Name} is no more, and {char.ToLowerInvariant(what[0]) + what[1..]} has lapsed with it. {then}"
+                : $"{what} has lapsed with {gone.Name}, which is no more. {then}", "houses", to.Id);
         }
-        if (m.ProposerHouseId != mine && WealthSystem.FavourOwed(w, mine, m.ProposerHouseId) && m.MovedFor != mine && !WealthSystem.StrikesAt(m, mine) && w.House(m.ProposerHouseId) is { } mover)
+        if (gone == null && m.ProposerHouseId != mine && WealthSystem.FavourOwed(w, mine, m.ProposerHouseId) && m.MovedFor != mine && !WealthSystem.StrikesAt(m, mine) && w.House(m.ProposerHouseId) is { } mover)
             w.Tell("info", $"The motion of {mover.Name} was struck before the count, so the favour you owe it was not called in. It waits for the next motion {mover.Name} moves.", "houses", mover.Id);
     }
 
@@ -291,14 +297,18 @@ public sealed class DealingsSystem
             bool kept = m.Votes.GetValueOrDefault(by.Id) == p.Side;
             if (kept)
             {
-                Regard(w, to, by, PledgeKeptRegard); WealthSystem.OweFor(w, to.Id, by.Id); Remember(w, PledgeKeptKind, by.Id, to.Id);
-                if (by.Id == mine) { w.Tell("good", $"You voted as you gave {to.Name} your word you would. Its head thinks {Signed(PledgeKeptRegard)} of you, and it owes your house a favour.", "houses", to.Id); w.Log($"{by.Name} gave {to.Name} its word on a vote, and kept it."); }
+                Regard(w, to, by, PledgeKeptRegard); if (!p.Paid) WealthSystem.OweFor(w, to.Id, by.Id); Remember(w, PledgeKeptKind, by.Id, to.Id);   // a vote bought was paid for: nothing more is owed for it
+                if (by.Id == mine && p.Paid) { w.Tell("good", $"You voted for the motion of {to.Name}, as it had bought your vote. Its head thinks {Signed(PledgeKeptRegard)} of you, and the bargain is done.", "houses", to.Id); w.Log($"{by.Name} gave {to.Name} the vote it had bought."); }
+                else if (by.Id == mine) { w.Tell("good", $"You voted as you gave {to.Name} your word you would. Its head thinks {Signed(PledgeKeptRegard)} of you, and it owes your house a favour.", "houses", to.Id); w.Log($"{by.Name} gave {to.Name} its word on a vote, and kept it."); }
             }
             else
             {
                 Regard(w, to, by, -PledgeBrokenRegard); Remember(w, PledgeBrokenKind, by.Id, to.Id); Count(w, PledgesBrokenKey);
-                w.Log($"{by.Name} gave {to.Name} its word on a vote, and did not keep it.");
-                if (by.Id == mine) w.Tell("warn", $"You gave {to.Name} your word on a vote and did not keep it. Its head thinks {Signed(-PledgeBrokenRegard)} of you, and it takes no pledge of yours for {Counted.Years(PledgeMemoryYears)}.", "houses", to.Id);
+                w.Log(p.Paid ? $"{by.Name} took the price of its vote from {to.Name}, and did not give it." : $"{by.Name} gave {to.Name} its word on a vote, and did not keep it.");
+                if (by.Id == mine) w.Tell("warn", p.Paid ? $"{to.Name} had bought your vote on its motion, and you did not give it. Its head thinks {Signed(-PledgeBrokenRegard)} of you, and it takes no word of yours on a vote for {Counted.Years(PledgeMemoryYears)}."
+                    : $"You gave {to.Name} your word on a vote and did not keep it. Its head thinks {Signed(-PledgeBrokenRegard)} of you, and it takes no pledge of yours for {Counted.Years(PledgeMemoryYears)}.", "houses", to.Id);
+                // a buyer cheated of its vote does not come back to call in another on the same bargain (a_bought_vote_called_in)
+                if (p.Paid) foreach (var c in w.Characters.Values.Where(c => c.HouseId == to.Id)) c.Flags.Remove(VoteMarks.BoughtChar);
             }
         }
         // the player's house, threatened by the house that moved this, voted against it all the same
@@ -503,7 +513,7 @@ public sealed class DealingsSystem
         if (w.WorldCounters.TryGetValue(PolitySystem.CowedKey(mine.Id, theirs.Id), out int toldMe) && w.Turn - toldMe <= CowedYears)
             Say($"It threatened you in year {toldMe}. Vote against what it moves and its head thinks {Signed(-DefiedRegard)} of you.", "warn");
         foreach (var p in w.VotePledges.Where(p => p.ByHouseId == mine.Id && p.ToHouseId == theirs.Id).OrderBy(p => p.MotionId, StringComparer.Ordinal))
-            if (w.Motions.FirstOrDefault(m => m.Id == p.MotionId) is { } pm) Say($"Your vote is pledged to it, {(p.Side > 0 ? "for" : "against")} this motion: {_senate.Describe(w, pm)}");
+            if (w.Motions.FirstOrDefault(m => m.Id == p.MotionId) is { } pm) Say($"Your vote is {(p.Paid ? "bought by" : "pledged to")} it, {(p.Side > 0 ? "for" : "against")} this motion: {_senate.Describe(w, pm)}");
         var sent = Remembered(w, GiftKind, mine.Id, theirs.Id).Where(d => w.Turn - d.Turn <= GiftsShownYears).OrderByDescending(d => d.Turn).ToList();
         if (sent.Count > 0) Say("You sent it " + string.Join(", ", sent.Take(4).Select(d => $"{Money.Credits(d.Amount)} in year {d.Turn}")) + (sent.Count > 4 ? ", and more before" : "") + ".");
         var got = w.Heirlooms.Where(h => h.FromHouseId == theirs.Id && h.Kind is WealthSystem.Plate or WealthSystem.Orrery && w.Char(h.HolderId)?.HouseId == mine.Id).OrderBy(h => h.Id, StringComparer.Ordinal).ToList();

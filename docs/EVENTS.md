@@ -51,6 +51,9 @@ kind, in the pattern of the existing `Mark()` moments.
   `VoteMarks.Bargains`); a favour owed to your house is a vote for your motion (`WealthSystem.VotesFor`); the word given in *A Vote
   for a Vote* is a pledge; `their_house_owes_you_a_vote` (*A Favour Repaid*, *The Whip*, *A Friend at Another Table*) and
   `no_bargain_with_you` (a favour standing, or a broken word) are marked; `whip`, `lender` and `creditor` are outsiders' parts.
+  The bought group (2026-11-28): `sold_your_vote` (*A Vote for a Vote*'s price, *A Bought Vote Called In*'s word, *The
+  Whip*'s purse) makes a vote bought, declared for the buyer's motion and judged at its count (`VoteMarks.Sell`,
+  `VotePledge.Paid`); `wants_your_vote` marks the houses whose motion your vote may be had on, read by those three reports.
 - **Family** (`DynastySystem`, `CourtshipSystem`, `HouseholdSystem`): `born_to_the_house`, `schooling_begins` (a child of six),
   `kin_came_of_age` (sixteen), `grandchild_of_the_head`; `in_law` on the head of your spouse's family; `wedding_remembered` every
   tenth year of your marriage; `left_unpaid` on someone who leaves the household unpaid. In review: `chose_own_road` on one who comes

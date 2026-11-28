@@ -16,7 +16,10 @@ namespace Praetoria.Tests;
 ///
 /// Group "bargain": a vote for a vote, a favour repaid with a house's voice, the gift that asks a favour, the whip's favour named
 /// later, the envoy's friend asked for a vote, a debt paid in favour, the notice when a favour is called in, what the house page and
-/// the Senate window say a favour is, a favour asked for a vote, the seated friend at the door, a motion moved at your asking.</summary>
+/// the Senate window say a favour is, a favour asked for a vote, the seated friend at the door, a motion moved at your asking.
+///
+/// Group "bought": a vote sold in A Vote for a Vote, the bought vote called in, the buyer shown the door, the purse on the Senate floor,
+/// the whip's purse, the gold from beyond the Reach, a bribe and a lobby, a purse that comes out at the count.</summary>
 public class VotePromisesTests
 {
     private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
@@ -449,5 +452,301 @@ public class VotePromisesTests
         var (f, _) = Report(g, "the_doorkeeper", "self"); int lines = g.W.History.Count; Answer(g, f, "ask_a_seated_friend");
         Assert.DoesNotContain(g.W.WorldCounters.Keys, k => k.StartsWith(WealthSystem.FavourPrefix, StringComparison.Ordinal));
         Assert.DoesNotContain("favour", g.W.History.Skip(lines).Last().Text);
+    }
+
+    // ================================================================== group "bought"
+
+    /// <summary>A Vote for a Vote, a price named: the house that moved the motion on the docket, its head cast as the senator, who pays
+    /// for the house's vote on it. The player's own house leans hard against that motion, so a vote left to drift would go against it.</summary>
+    private static (G g, House theirs, Character senator, Motion theirMotion) Sold(ulong seed = 7)
+    {
+        var g = Start(seed); var theirs = Others(g)[0]; g.W.Relationship(g.HeadOf(theirs).Id, g.Me.Id).Disposition = 0; theirs.Treasury.Credits = Math.Max(50, theirs.Treasury.Credits);
+        g.Me.NatureTraits.Remove("Honorable"); g.Me.NatureTraits.Remove("Just");   // the upright do not name a price
+        var theirMotion = TheyMove(g, theirs); Leans(g, theirMotion, g.Mine, -6);
+        var (f, senator) = Report(g, "a_vote_for_a_vote", "senator"); Assert.Equal(g.HeadOf(theirs).Id, senator.Id);
+        int mineHad = g.Mine.Treasury.Credits, theirsHad = theirs.Treasury.Credits;
+        Answer(g, f, "name_a_price");
+        Assert.Equal(mineHad + 4, g.Mine.Treasury.Credits); Assert.Equal(theirsHad - 4, theirs.Treasury.Credits);   // 400 credits, from their treasury to yours
+        return (g, theirs, senator, theirMotion);
+    }
+    private static int ForWeight(G g, Motion m) => g.W.Houses.Values.Where(h => !World.Outsider(h.Id) && m.Votes.GetValueOrDefault(h.Id) > 0).Sum(h => g.Senate.Weight(g.W, h.Id));
+    private static bool Eligible(G g, string eventId, string role, string houseId) =>
+        new EventEngine(Content, WorldBuilder.RngFor(g.W)).GatherEligible(g.W).Any(e => e.def.Id == eventId && e.binding.TryGet(role, out var id) && g.W.Char(id!)?.HouseId == houseId);
+
+    // ------------------------------------------------------------------ a vote sold: a_vote_for_a_vote/name_a_price
+
+    [Fact]
+    public void AVoteSold_IsDeclaredForTheirMotion_YouAreReminded_AndGivingItIsCounted_AcrossASaveAndALoad()
+    {
+        var (g, theirs, senator, theirMotion) = Sold();
+        Assert.Equal(1, theirMotion.Votes[g.Mine.Id]);   // the senator can count on it: declared for their motion, whatever your house leans
+        var bought = DealingsSystem.PledgeOn(g.W, g.Mine.Id, theirMotion.Id); Assert.NotNull(bought); Assert.True(bought!.Paid); Assert.Equal(theirs.Id, bought.ToHouseId);
+        Assert.True(g.Told($"{theirs.Name} has bought your vote on its motion: it is declared for it")); Assert.True(g.Told("-15"));   // the reminder, with what breaking it costs
+        Assert.Contains(g.Tc.Dealings.Lasting(g.W, g.Mine, theirs), x => x.text.StartsWith("Your vote is bought by it, for this motion"));
+        int before = g.Regard(theirs); g = Reload(g); theirs = g.W.House(theirs.Id)!; theirMotion = g.W.Motions.First(m => m.Id == theirMotion.Id);   // a save and a load between the sale and the count
+        Assert.True(g.Senate.Lean(g.W, theirMotion, g.Mine.Id) < 0);
+        Session(g);
+        Assert.True(theirMotion.Resolved); Assert.Equal(1, theirMotion.Votes[g.Mine.Id]); Assert.Equal(ForWeight(g, theirMotion), theirMotion.ForWeight);   // cast and counted
+        Assert.Equal(before + DealingsSystem.PledgeKeptRegard, g.Regard(theirs));
+        Assert.False(WealthSystem.FavourOwed(g.W, theirs.Id, g.Mine.Id));   // the coin paid for it: no favour owed besides
+        Assert.Equal(1, g.W.Dealings.Count(d => d.Kind == DealingsSystem.PledgeKeptKind && d.FromHouseId == g.Mine.Id && d.ToHouseId == theirs.Id));
+        Assert.True(g.Told($"You voted for the motion of {theirs.Name}, as it had bought your vote")); Assert.Contains(g.W.History, h => h.Text.Contains($"gave {theirs.Name} the vote it had bought"));
+        Assert.Contains(VoteMarks.BoughtChar, g.W.Char(senator.Id)!.Flags);   // and they paid once: the thread goes on (a_bought_vote_called_in)
+    }
+
+    [Fact]
+    public void AVoteSold_AndChanged_IsBroken_WrittenDown_AndTheBuyerDoesNotCallInAnother()
+    {
+        var (g, theirs, senator, theirMotion) = Sold();
+        IVote(g, theirMotion, -1); int before = g.Regard(theirs); Session(g);
+        Assert.Equal(-1, theirMotion.Votes[g.Mine.Id]); Assert.Equal(before - DealingsSystem.PledgeBrokenRegard, g.Regard(theirs));
+        Assert.Equal(1, g.W.Dealings.Count(d => d.Kind == DealingsSystem.PledgeBrokenKind && d.FromHouseId == g.Mine.Id && d.ToHouseId == theirs.Id));
+        Assert.True(g.Told($"{theirs.Name} had bought your vote on its motion, and you did not give it")); Assert.Contains(g.W.History, h => h.Text.Contains($"took the price of its vote from {theirs.Name}"));
+        // cheated, the buyer does not come back to call in another vote; their house takes no word of yours for eight years
+        Assert.DoesNotContain(VoteMarks.BoughtChar, senator.Flags);
+        TheyMove(g, theirs, "relief", g.W.Galaxy!.ReachRegions.OrderBy(r => r.Id, StringComparer.Ordinal).First().Id);
+        Assert.Contains(VoteMarks.BargainBarredChar, senator.Flags);
+        Assert.False(Eligible(g, "a_bought_vote_called_in", "buyer", theirs.Id)); Assert.False(Eligible(g, "a_vote_for_a_vote", "senator", theirs.Id));
+    }
+
+    [Fact]
+    public void AVoteSold_IsNotOfferedOnAMotionThatStrikesAtYou_NorOnOneYourVoteIsPledgedOn()
+    {
+        var g = Start(); var theirs = Others(g)[0]; g.W.Relationship(g.HeadOf(theirs).Id, g.Me.Id).Disposition = 0; theirs.Treasury.Credits = 50;
+        TheyMove(g, theirs, "breakup", g.Mine.Id);   // a break-up of your own house: nobody buys your vote for it
+        Assert.DoesNotContain(VoteMarks.VoteWantedChar, g.HeadOf(theirs).Flags);
+        Assert.False(Eligible(g, "a_vote_for_a_vote", "senator", theirs.Id)); Assert.False(Eligible(g, "the_whip", "whip", theirs.Id));
+        // a motion of theirs your vote is already pledged on: nothing left to sell
+        var levy = TheyMove(g, theirs); Assert.Contains(VoteMarks.VoteWantedChar, g.HeadOf(theirs).Flags);
+        foreach (var h in g.W.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != theirs.Id && h.Id != g.Mine.Id)) levy.Votes[h.Id] = 0;   // a close vote, so it wants your word
+        var pledge = new DealingsCommand(g.Me.Id, DealingsCommand.Pledge, theirs.Id, g.Tc.Dealings, levy.Id); Assert.True(g.Do(pledge), pledge.Refusal(g.Ctx));
+        VoteMarks.Docket(g.W, g.Senate, g.Mine.Id);
+        Assert.DoesNotContain(VoteMarks.VoteWantedChar, g.HeadOf(theirs).Flags); Assert.False(Eligible(g, "a_vote_for_a_vote", "senator", theirs.Id));
+    }
+
+    [Fact]
+    public void AVoteSold_TheBuyingHouseGone_TheVoteLapsesWithANotice()
+    {
+        var (g, theirs, _, theirMotion) = Sold(); var into = Others(g).First(h => h.Id != theirs.Id); string name = theirs.Name;
+        HouseSystem.Fold(g.W, theirs, into, $"{name} is no more.");
+        Assert.Null(g.W.House(theirs.Id)); Assert.Null(DealingsSystem.PledgeOn(g.W, g.Mine.Id, theirMotion.Id));
+        Assert.True(g.Told($"{name} is no more, and the motion {name} bought your vote on has lapsed with it. No vote is asked of you for what was paid."));
+        Session(g); Assert.DoesNotContain(g.W.Dealings, d => d.Kind is DealingsSystem.PledgeBrokenKind or DealingsSystem.PledgeKeptKind);
+    }
+
+    [Fact]
+    public void AVoteSold_ANewHeadOfTheBuyingHouse_JudgesIt()
+    {
+        var (g, theirs, senator, theirMotion) = Sold();
+        DynastySystem.Die(g.W, senator.Id); var heir = Economy.HeadOf(g.W, theirs); Assert.NotNull(heir); Assert.NotEqual(senator.Id, heir!.Id);
+        int before = g.W.GetRelationship(heir.Id, g.Me.Id)?.Disposition ?? 0;
+        IVote(g, theirMotion, 0); Session(g);   // stayed away: not the vote they bought
+        Assert.Equal(before - DealingsSystem.PledgeBrokenRegard, g.W.GetRelationship(heir.Id, g.Me.Id)!.Disposition);   // the house remembers, under its new head
+        Assert.Contains(g.W.Dealings, d => d.Kind == DealingsSystem.PledgeBrokenKind && d.FromHouseId == g.Mine.Id && d.ToHouseId == theirs.Id);
+    }
+
+    // ------------------------------------------------------------------ the bought vote called in: a_bought_vote_called_in
+
+    /// <summary>The vote sold and given; the buyer moves another motion, and comes to call in another vote on the same bargain.</summary>
+    private static (G g, House theirs, Character buyer, Motion next, FiredEvent report) CalledIn()
+    {
+        var (g, theirs, senator, _) = Sold(); Session(g);
+        var next = TheyMove(g, theirs, "relief", g.W.Galaxy!.ReachRegions.OrderBy(r => r.Id, StringComparer.Ordinal).First().Id); Leans(g, next, g.Mine, -6);
+        var (f, buyer) = Report(g, "a_bought_vote_called_in", "buyer"); Assert.Equal(senator.Id, buyer.Id);
+        return (g, theirs, buyer, next, f);
+    }
+
+    [Fact]
+    public void ABoughtVoteCalledIn_YourVoteIsDeclaredForTheirNewMotion_AndKeepingItIsCounted_AcrossASaveAndALoad()
+    {
+        var (g, theirs, buyer, next, f) = CalledIn(); News(g);
+        Answer(g, f, "vote_as_they_ask");
+        Assert.Equal(1, next.Votes[g.Mine.Id]); var bought = DealingsSystem.PledgeOn(g.W, g.Mine.Id, next.Id); Assert.True(bought is { Paid: true } && bought.ToHouseId == theirs.Id);
+        Assert.True(g.Told($"{theirs.Name} has bought your vote on its motion: it is declared for it")); Assert.True(g.Told("-15"));   // reminded before the count, this year
+        Assert.False(WealthSystem.FavourOwed(g.W, g.Mine.Id, theirs.Id));   // a vote on this motion, not a favour carried to whatever it moves next
+        int before = g.Regard(theirs); g = Reload(g); theirs = g.W.House(theirs.Id)!; next = g.W.Motions.First(m => m.Id == next.Id);
+        Session(g);
+        Assert.Equal(1, next.Votes[g.Mine.Id]); Assert.Equal(ForWeight(g, next), next.ForWeight); Assert.Equal(before + DealingsSystem.PledgeKeptRegard, g.Regard(theirs));
+        Assert.Equal(2, g.W.Dealings.Count(d => d.Kind == DealingsSystem.PledgeKeptKind && d.FromHouseId == g.Mine.Id && d.ToHouseId == theirs.Id));
+    }
+    private static void News(G g) => g.W.News.Clear();
+
+    [Fact]
+    public void ABoughtVoteCalledIn_VotedOtherwise_TheyRememberIt()
+    {
+        var (g, theirs, buyer, next, f) = CalledIn(); Answer(g, f, "vote_as_they_ask");
+        IVote(g, next, -1); int before = g.Regard(theirs); Session(g);
+        Assert.Equal(before - DealingsSystem.PledgeBrokenRegard, g.Regard(theirs)); Assert.True(g.Told($"{theirs.Name} had bought your vote on its motion, and you did not give it"));
+        // "they will remember it": written down, and a later report reads it: their house strikes no bargain with yours for eight years
+        Assert.Contains(g.Tc.Dealings.Lasting(g.W, g.Mine, theirs), x => x.text.Contains("Your word to it on a vote: kept 1 time, broken 1 time"));
+        TheyMove(g, theirs); Assert.Contains(VoteMarks.BargainBarredChar, buyer.Flags); Assert.False(Eligible(g, "a_vote_for_a_vote", "senator", theirs.Id));
+        for (int y = 1; y < DealingsSystem.PledgeMemoryYears; y++) { g.W.Turn++; VoteMarks.Docket(g.W, g.Senate, g.Mine.Id); Assert.Contains(VoteMarks.BargainBarredChar, buyer.Flags); }
+        g.W.Turn++; VoteMarks.Docket(g.W, g.Senate, g.Mine.Id); Assert.DoesNotContain(VoteMarks.BargainBarredChar, buyer.Flags);   // eight years on, forgotten
+    }
+
+    [Fact]
+    public void ABoughtVoteCalledIn_TheirMotionVetoed_TheVoteIsVoid_AndNotCarriedToTheirNext()
+    {
+        var (g, theirs, buyer, next, f) = CalledIn(); Answer(g, f, "vote_as_they_ask");
+        ElectionSystem.Veto(g.W, g.Senate.Offices, Others(g).First(h => h.Id != theirs.Id).Id, next);
+        Assert.Null(DealingsSystem.PledgeOn(g.W, g.Mine.Id, next.Id)); Assert.True(g.Told($"The motion {theirs.Name} bought your vote on was struck before the count. No vote is asked of you for what was paid."));
+        int before = g.Regard(theirs); Session(g); Assert.Equal(before, g.Regard(theirs));
+        // their next motion asks nothing of your vote: you vote against it, and nothing is judged (a favour would have waited for it)
+        var third = TheyMove(g, theirs); Assert.False(g.Told($"{theirs.Name} has moved a motion, and you owe it a favour")); IVote(g, third, -1); Session(g);
+        Assert.True(third.Resolved); Assert.DoesNotContain(g.W.Dealings, d => d.Kind is DealingsSystem.PledgeBrokenKind or DealingsSystem.FavourBrokenKind && d.FromHouseId == g.Mine.Id);
+    }
+
+    [Fact]
+    public void ABoughtVoteCalledIn_IsNotAskedOnAMotionAgainstYourHouse()
+    {
+        var (g, theirs, senator, _) = Sold(); Session(g); Assert.Contains(VoteMarks.BoughtChar, senator.Flags);
+        TheyMove(g, theirs, "censure", g.Mine.Id);   // their next motion is a censure of yours: nobody asks you to vote for it
+        Assert.Contains(VoteMarks.MovesChar, senator.Flags); Assert.False(Eligible(g, "a_bought_vote_called_in", "buyer", theirs.Id));
+    }
+
+    [Fact]
+    public void ABoughtVoteCalledIn_ShownTheDoor_CostsYourHouseItsStanding_AndTheyRememberIt()
+    {
+        var (g, theirs, buyer, _, f) = CalledIn(); int legit = g.Mine.Legitimacy, regard = g.Regard(theirs);
+        Answer(g, f, "show_them_the_door");
+        Assert.Equal(legit - 2, g.Mine.Legitimacy); Assert.Equal(regard - 10, g.Regard(theirs));   // the chamber heard about the one
+        Assert.Contains(g.Mine.LegitimacyRecord.Changes, c => c.By == -2 && c.Line.Contains("A Bought Vote Called In"));
+        Assert.Contains("grudge_against_you", buyer.Flags); Assert.DoesNotContain(VoteMarks.BoughtChar, buyer.Flags);
+        Assert.Null(DealingsSystem.PledgeOn(g.W, g.Mine.Id, SenateSystem.Docket(g.W).First(m => m.ProposerHouseId == theirs.Id).Id));   // and no vote is owed them
+    }
+
+    // ------------------------------------------------------------------ the whip's purse: the_whip/take_the_coin
+
+    [Fact]
+    public void TheWhip_ThePurseTaken_YourVoteIsSoldForTheirMotion_AndJudged_AlongsideASecondSale()
+    {
+        // first a vote sold to one house in A Vote for a Vote; then a second house moves, and its whip comes with a purse
+        var (g, a, _, onA) = Sold(); var b = Others(g).First(h => h.Id != a.Id && g.W.LivingCharacters().Any(c => c.HouseId == h.Id && c.CareerRank >= 2 && c.Age >= DynastySystem.AgeOfMajority));
+        var onB = g.Senate.Add(g.W, b.Id, "levy", ""); Only(g, onA, onB); Leans(g, onB, g.Mine, -6);
+        Assert.DoesNotContain(VoteMarks.VoteWantedChar, g.HeadOf(a).Flags);   // your vote on theirs is sold already
+        var (f, whip) = Report(g, "the_whip", "whip"); Assert.Equal(b.Id, whip.HouseId);
+        int had = g.Mine.Treasury.Credits; Answer(g, f, "take_the_coin"); Assert.Equal(had + 6, g.Mine.Treasury.Credits);
+        Assert.Equal(1, onB.Votes[g.Mine.Id]); Assert.True(DealingsSystem.PledgeOn(g.W, g.Mine.Id, onB.Id) is { Paid: true } p && p.ToHouseId == b.Id);
+        Assert.True(g.Told($"{b.Name} has bought your vote on its motion: it is declared for it")); Assert.Contains(g.W.History, h => h.Text.Contains($"promised the house's vote for the motion of {b.Name}"));
+        // you give the one and not the other: each judged, by the numbers the reminders named
+        IVote(g, onA, -1); int toA = g.Regard(a), toB = g.Regard(b); Session(g);
+        Assert.Equal(1, onB.Votes[g.Mine.Id]); Assert.Equal(ForWeight(g, onB), onB.ForWeight); Assert.Equal(toB + DealingsSystem.PledgeKeptRegard, g.Regard(b));
+        Assert.Equal(toA - DealingsSystem.PledgeBrokenRegard, g.Regard(a));
+    }
+
+    [Fact]
+    public void TheWhip_ComesOnlyFromAHouseWithAMotionYourVoteMayBeHadOn()
+    {
+        var g = Start(); var mine = IMove(g); Only(g, mine);
+        Assert.True(g.W.HasFlag("motion_open")); Assert.DoesNotContain(new EventEngine(Content, WorldBuilder.RngFor(g.W)).GatherEligible(g.W), e => e.def.Id == "the_whip");   // your own motion: nobody buys your vote on it
+        var theirs = Others(g)[0]; var censure = g.Senate.Add(g.W, theirs.Id, "censure", g.Mine.Id); Only(g, mine, censure);
+        Assert.False(Eligible(g, "the_whip", "whip", theirs.Id));   // nor on a censure of your own house
+    }
+
+    // ------------------------------------------------------------------ a bribe, a lobby, a purse that comes out: LobbyCommand, SenateSystem.BribeComesOut
+
+    /// <summary>The houses whose heads would take a purse on this motion, by whether it comes out at the count.</summary>
+    private static List<House> Takers(G g, Motion m, bool comesOut)
+    {
+        foreach (var h in Others(g)) { var head = g.HeadOf(h); head.NatureTraits.Clear(); head.Ambition = ""; g.W.Relationship(head.Id, g.Me.Id).Disposition = 0; }
+        return Others(g).Where(h => SenateSystem.BribeComesOut(g.W, m, h.Id) == comesOut && SenateSystem.BribeRefused(g.W, h, g.Me) == null && !FactionSystem.Leads(g.W, h.Id)).ToList();
+    }
+
+    [Fact]
+    public void ABribe_LeansTheHouseByThree_AndTheCountShowsWhetherItWasEnough_AcrossASaveAndALoad()
+    {
+        var g = Start(); var m = IMove(g); var quiet = Takers(g, m, comesOut: false); Assert.True(quiet.Count >= 2, "two houses whose purse stays hidden");
+        var near = quiet[0]; var far = quiet[1];
+        Leans(g, m, near, -2); Leans(g, m, far, -6);   // one a little against, one hard against
+        Assert.True(g.Do(new LobbyCommand(g.Me.Id, m.Id, near.Id, 1, bribe: true))); Assert.True(g.Do(new LobbyCommand(g.Me.Id, m.Id, far.Id, 1, bribe: true)));
+        Assert.Equal(-2 + SenateSystem.BribeWeight, g.Senate.Lean(g.W, m, near.Id)); Assert.Equal(-6 + SenateSystem.BribeWeight, g.Senate.Lean(g.W, m, far.Id));
+        Assert.True(g.Told($"{near.Name} has taken the purse: its own vote leans for the motion by 3 more. Whether that is enough shows in the count"));
+        Assert.Contains(g.Senate.Why(g.W, m, far.Id), x => x.why == "its vote has been paid for" && x.by == SenateSystem.BribeWeight);
+        g = Reload(g); m = g.W.Motions.First(x => x.Id == m.Id); Session(g);
+        Assert.Equal(1, m.Votes[near.Id]); Assert.Equal(-1, m.Votes[far.Id]);   // enough for the one; not for the other, as the count shows
+        Assert.Equal(ForWeight(g, m), m.ForWeight);
+    }
+
+    [Fact]
+    public void ALobby_LeansTheHouseByTwo_AndItsBenchByOne_AndTheCountFollows()
+    {
+        var g = Start(); var levy = IMove(g); var leader = Others(g)[0]; var member = Others(g)[1];
+        foreach (var f in g.W.Factions) { f.Members.Remove(leader.Id); f.Members.Remove(member.Id); }
+        g.W.Factions.RemoveAll(f => f.LeaderHouseId == leader.Id || f.LeaderHouseId == member.Id);
+        g.W.Factions.Add(new Faction { Id = "test_bench", Name = "the Test Bench", LeaderHouseId = leader.Id, Members = { leader.Id, member.Id } });
+        g.W.Relationship(g.HeadOf(leader).Id, g.Me.Id).Disposition = 0; levy.Lobby.Remove(leader.Id);
+        int lead = g.Senate.Lean(g.W, levy, leader.Id);
+        Assert.True(g.Do(new LobbyCommand(g.Me.Id, levy.Id, leader.Id, 1)));
+        Assert.Equal(lead + SenateSystem.LobbyWeight, g.Senate.Lean(g.W, levy, leader.Id));
+        Assert.Contains(g.Senate.Why(g.W, levy, member.Id), x => x.why == "its leader has been lobbied" && x.by == SenateSystem.LobbyWeight / 2);   // its bench by half as much
+        Assert.True(g.Told($"{leader.Name} has heard you: it leans for the motion by 2 more, and its bench by half as much"));
+        Session(g);
+        // the count goes as the lean, the lobby in it: the leader by its own, the bench with the leader's lobby halved
+        Assert.Equal(Math.Sign(g.Senate.Lean(g.W, levy, leader.Id)), levy.Votes[leader.Id]); Assert.Equal(Math.Sign(g.Senate.Lean(g.W, levy, member.Id)), levy.Votes[member.Id]);
+        Assert.Contains(g.Senate.Why(g.W, levy, leader.Id), x => x.why == "it has been lobbied" && x.by == SenateSystem.LobbyWeight);
+        Assert.Contains(g.Senate.Why(g.W, levy, member.Id), x => x.why == "its leader has been lobbied" && x.by == SenateSystem.LobbyWeight / 2);
+    }
+
+    [Fact]
+    public void APurseThatComesOut_StrikesTheVote_TheTallyLosesIt_AndThePayerLosesStanding()
+    {
+        var g = Start(); var m = IMove(g); var outed = Takers(g, m, comesOut: true).First();
+        Leans(g, m, outed, 0); Assert.True(g.Do(new LobbyCommand(g.Me.Id, m.Id, outed.Id, 1, bribe: true))); Assert.Equal(SenateSystem.BribeWeight, g.Senate.Lean(g.W, m, outed.Id));   // bought, it would vote for it
+        g = Reload(g); m = g.W.Motions.First(x => x.Id == m.Id); outed = g.W.House(outed.Id)!; Session(g);
+        Assert.Equal(0, m.Votes[outed.Id]); Assert.Equal(ForWeight(g, m), m.ForWeight);   // struck, and the tally is taken without it
+        Assert.Contains(g.Mine.LegitimacyRecord.Changes, c => c.By == -SenateSystem.BribeOutLegitimacy && c.Cause == LegitimacyBook.Scandal && c.Line == "A bought vote came out on the floor");
+        Assert.Contains(g.W.History, h => h.Text.Contains($"It comes out on the floor that {g.Mine.Name} paid {outed.Name} for its vote. The vote is struck"));
+        // and the report that says so names the head who took the purse
+        var (f, bought) = Report(g, "a_purse_on_the_senate_floor", "bought"); Assert.Equal(g.HeadOf(outed).Id, bought.Id); Assert.True(g.W.HasFlag(VoteMarks.PurseOutFlag));
+    }
+
+    // ------------------------------------------------------------------ foreign gold: ForeignGoldSystem.TakeSays
+
+    /// <summary>A war on the Free Cities before the Senate, close, with every house but one and the player's declared to stay away; the
+    /// Cities write, and the player takes the gold on the Senate window. The player's house leans for the war, so it is asked to vote
+    /// against it.</summary>
+    private static (G g, Motion war, GoldOffer offer) GoldTaken()
+    {
+        var g = Start(); var cities = g.W.Nation("thessar")!; cities.PurseOpened = true; cities.Purse = ForeignGoldSystem.Cap(Content.Nations.Def("thessar")!); cities.BoughtOffTurn = g.W.Turn;
+        var others = Others(g); var mover = others.Where(h => g.Senate.MayPropose(g.W, h.Id)).Last(); var open = others.First(h => h.Id != mover.Id);
+        g.HeadOf(open).NatureTraits.Clear(); g.HeadOf(open).NatureTraits.Add("Loyal"); open.Treasury.Credits = 100;
+        var war = g.Senate.Add(g.W, mover.Id, "foreign_war", "thessar");
+        foreach (var h in g.W.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != mover.Id && h.Id != g.Mine.Id && h.Id != open.Id)) war.Votes[h.Id] = 0;
+        for (int i = 0; i < 6; i++) { Leans(g, war, open, 1); war.Lobby[g.Mine.Id] = war.Lobby.GetValueOrDefault(g.Mine.Id) + 1 - g.Senate.Lean(g.W, war, g.Mine.Id); }
+        Assert.Equal(1, g.Senate.Lean(g.W, war, g.Mine.Id));
+        ForeignGoldSystem.Tick(g.W, Content.Nations, g.Senate, Content.Offices);
+        var offer = ForeignGoldSystem.WaitingOn(g.W, war.Id, g.Mine.Id); Assert.NotNull(offer); Assert.Equal(ForeignGoldSystem.Against, offer!.Ask);
+        Assert.Contains($"Vote for the war after all and they send your house nothing for {Counted.Years(ForeignGoldSystem.BrokenYears)}.", ForeignGoldSystem.TakeSays(offer));   // what the button says
+        Assert.True(g.Do(new ForeignGoldCommand(g.Me.Id, offer.Id, ForeignGoldSystem.Take)));
+        Assert.Equal(-1, war.Votes[g.Mine.Id]);
+        Assert.True(g.Told($"You took what {offer.NationName} sent: your house is declared against the war on {offer.WarOnName}. Vote for the war after all and they send your house nothing for 10 years."));   // reminded before the count
+        return (g, war, offer);
+    }
+    private static void GoldYear(G g) { Session(g); ForeignGoldSystem.Tick(g.W, Content.Nations, g.Senate, Content.Offices); }
+
+    [Fact]
+    public void ForeignGold_TakenToVoteAgainst_StayingAwayIsNotVotingForTheWar_OnlyAVoteForItShutsYouOutForTenYears()
+    {
+        var (g, war, offer) = GoldTaken();
+        IVote(g, war, 0); GoldYear(g);   // you stayed away instead of voting against: not a vote for the war
+        Assert.True(war.Resolved && !war.Vetoed); Assert.Equal(0, war.Votes[g.Mine.Id]);
+        Assert.False(offer.Broken); Assert.False(ForeignGoldSystem.Shut(g.W, g.Mine.Id)); Assert.False(g.Told("voted for the war all the same"));
+        // a vote for the war after all: shut out, and told for how long
+        var (g2, war2, offer2) = GoldTaken();
+        IVote(g2, war2, 1); GoldYear(g2); int year = g2.W.Turn;
+        Assert.True(offer2.Broken); Assert.True(g2.Told($"voted for the war all the same. They send your house nothing for {Counted.Years(ForeignGoldSystem.BrokenYears)}"));
+        g2.W.Turn = year + ForeignGoldSystem.BrokenYears - 1; Assert.True(ForeignGoldSystem.Shut(g2.W, g2.Mine.Id));
+        g2.W.Turn = year + ForeignGoldSystem.BrokenYears; Assert.False(ForeignGoldSystem.Shut(g2.W, g2.Mine.Id));   // ten sessions with nothing sent, then the Cities may write again
+    }
+
+    [Fact]
+    public void ForeignGold_AWarVetoedBeforeTheCount_JudgesNoVote()
+    {
+        var (g, war, offer) = GoldTaken();
+        IVote(g, war, 1);   // you changed your mind; then a consul strikes the war before it is voted
+        ElectionSystem.Veto(g.W, g.Senate.Offices, Others(g).First(h => h.Id != war.ProposerHouseId).Id, war);
+        ForeignGoldSystem.Tick(g.W, Content.Nations, g.Senate, Content.Offices);
+        Assert.False(offer.Broken); Assert.False(ForeignGoldSystem.Shut(g.W, g.Mine.Id)); Assert.False(g.Told("voted for the war all the same"));
+        Assert.True(g.Told($"The war on {offer.WarOnName} was vetoed before the count, and no vote was cast: nothing is asked of your house for the gold."));
     }
 }

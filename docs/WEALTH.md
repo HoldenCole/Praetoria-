@@ -434,6 +434,11 @@ count, forecast, tally and count alike; docs/events/votes.md, "Promises"):
   judged; and an orrery is not sent to a house the giver's motion strikes at.
 - **The reports that give or ask a favour** (*A Favour Repaid*, *The Whip*, *A Friend at Another Table*, *The Debt
   Called*) make a real favour owed, one way or the other, and are closed while a favour stands between the two houses.
+- **A vote bought is a pledge paid for** (2026-11-28; `VotePledge.Paid`, `VoteMarks.Sell`). A vote sold in a report (*A Vote
+  for a Vote*'s price, the whip's purse, *A Bought Vote Called In*) is declared for the buyer's motion, you are told what
+  breaking it costs, and the count judges it with the pledge's numbers (+3 given, -15 not, eight years remembered); kept,
+  it leaves no favour owed, since the coin was the price. A buyer cheated does not call in another vote. Struck before
+  the count, or gone with a house that is no more, it is void, with a notice.
 
 ### A favour you owe
 

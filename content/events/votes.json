@@ -1,5 +1,5 @@
 {
-  "//": "VOTES (docs/events/votes.md): the Senate's votes and the elections, before, during and after. The ladder's and the consuls' reports are of the Republic only (era imperium absent); the reports of the Senate's floor come in either era, since the chamber sits under the Imperium too. They read the marks VoteMarks writes: moves_a_motion, moves_against_you and undecided_on_yours on the docket, my_motion_open; voted_with_you and voted_against_you at the count of the player's motion; abstention_noticed with noticed_your_abstention; bribe_out with took_your_purse; act_went_against_houses with act_went_against_them; beat_yours_at_the_count and lost_to_yours_at_the_count at the ladder's count; and the engine's own motion_open, motion_passed_mine, motion_against_me, election_held, consul_elected, ladder_election_held, standing_for_office, office:consul_*, trust_is_low, public_trust. Threads: owes_you_a_vote, made a favour owed each way at the next session by VoteMarks.Bargains, and promised_your_vote, made one owed by your house (a_vote_for_a_vote, a_bought_vote_called_in); bought_your_vote (a_vote_for_a_vote, then a_bought_vote_called_in); grudge_against_you (those_who_voted_against_you, then an_old_grudge_against_your_motion or an_old_grudge_on_the_docket); lost_at_the_count (the one of yours who lost, for the_one_who_won_the_office); dined_with_you (the_consul_elects_feast: the consul once lets a motion of yours stand that they would veto); pamphlet_war (a_smear_after_the_election, then the_pamphlet_scandal); met_as_colleague (your_colleague_the_consul, once a colleague).",
+  "//": "VOTES (docs/events/votes.md): the Senate's votes and the elections, before, during and after. The ladder's and the consuls' reports are of the Republic only (era imperium absent); the reports of the Senate's floor come in either era, since the chamber sits under the Imperium too. They read the marks VoteMarks writes: moves_a_motion, moves_against_you and undecided_on_yours on the docket, my_motion_open; voted_with_you and voted_against_you at the count of the player's motion; abstention_noticed with noticed_your_abstention; bribe_out with took_your_purse; act_went_against_houses with act_went_against_them; beat_yours_at_the_count and lost_to_yours_at_the_count at the ladder's count; and the engine's own motion_open, motion_passed_mine, motion_against_me, election_held, consul_elected, ladder_election_held, standing_for_office, office:consul_*, trust_is_low, public_trust. Threads: owes_you_a_vote, made a favour owed to your house and your word on their motion as the choice is made by VoteMarks.Bargains (a_vote_for_a_vote); sold_your_vote, made your vote bought on their motion, declared for it and judged at its count (a_vote_for_a_vote, a_bought_vote_called_in, and the_whip in senate.json); wants_your_vote, the house of a motion your vote may be had on (VoteMarks.Docket); bought_your_vote (a_vote_for_a_vote, then a_bought_vote_called_in; struck if the vote it bought was not given); grudge_against_you (those_who_voted_against_you, then an_old_grudge_against_your_motion or an_old_grudge_on_the_docket); lost_at_the_count (the one of yours who lost, for the_one_who_won_the_office); dined_with_you (the_consul_elects_feast: the consul once lets a motion of yours stand that they would veto); pamphlet_war (a_smear_after_the_election, then the_pamphlet_scandal); met_as_colleague (your_colleague_the_consul, once a colleague).",
   "events": [
     {
       "id": "a_vote_for_a_vote",
@@ -46,6 +46,12 @@
               "role": "senator",
               "flag": "bought_your_vote",
               "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "senator",
+              "flag": "wants_your_vote",
+              "value": true
             }
           ]
         }
@@ -144,6 +150,12 @@
               "value": true
             },
             {
+              "type": "setCharFlag",
+              "role": "senator",
+              "flag": "sold_your_vote",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} let {senator.name} of {senator.house} pay for the house's vote. It was quietly done, and not quite quietly enough."
             }
@@ -186,6 +198,12 @@
               "role": "buyer",
               "flag": "moves_a_motion",
               "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "buyer",
+              "flag": "wants_your_vote",
+              "value": true
             }
           ]
         }
@@ -221,7 +239,7 @@
             {
               "type": "setCharFlag",
               "role": "buyer",
-              "flag": "promised_your_vote",
+              "flag": "sold_your_vote",
               "value": true
             },
             {

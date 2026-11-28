@@ -6,7 +6,7 @@
       "body": "{senator.name} of {senator.house} has a motion before the Senate this session, and has come to count heads. They want your vote. They do not offer money for it. They offer a vote of their own: give your word, and {senator.house} owes your house a vote. It votes for the next motion your house moves, whichever way it leans, unless that motion strikes at it. Your vote on theirs is declared for it, and is still yours to change until the Senate sits; but a word given and not kept is written down, and {senator.house} takes no word of yours on a vote for eight years.",
       "choices": {
         "give_your_word": "Give your word, and take theirs. Vote for their motion, or they will remember it.",
-        "name_a_price": "Tell them a vote costs more than a vote.",
+        "name_a_price": "Tell them a vote costs more than a vote, and sell them yours for their motion.",
         "keep_your_vote": "Tell them your vote is your own."
       }
     },

@@ -171,6 +171,15 @@ a promise:
   and tells the player a favour owed its mover waits (`DealingsSystem.Struck`).
 - **A word given in a report** (*A Vote for a Vote*) is a pledge (`DealingsSystem.GiveWord`), the player's vote declared,
   judged at the count as any pledge is.
+- **A vote sold in a report** (the bought group, 2026-11-28: *A Vote for a Vote*'s price, *The Whip*'s purse, *A Bought
+  Vote Called In*) is a pledge paid for (`VotePledge.Paid`): declared for the buyer's motion, reminded, judged at its count
+  (+3 / -15, eight years), no favour owed when kept. Only someone of a house with a motion the player's vote may be had on
+  buys it (`wants_your_vote`, written with the docket: not one that strikes at the player's house, nor one the vote is
+  pledged on already), so the whip whips for its own house's motion. A motion taken off the docket with a house that is no
+  more voids a word given on it, with a notice (`HouseSystem` calls `DealingsSystem.Struck`).
+- **A bribe and a lobby** are what the window says: a purse adds 3 to the house's own lean (not its bench's), a lobby 2,
+  and half the leader's lobbying to each member of its bench; a purse that comes out at the count (one in four) strikes the
+  vote before the tally and costs the payer 3 legitimacy. Proved through the count in tests/VotePromisesTests.cs.
 
 ## The lead of a bench by a contest (2026-11-21)
 

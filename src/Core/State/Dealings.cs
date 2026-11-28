@@ -31,6 +31,9 @@ public sealed class VotePledge
     /// <summary>+1 for the motion, -1 against it.</summary>
     public int Side { get; set; }
     public int Turn { get; set; }
+    /// <summary>A vote bought and paid for (a_vote_for_a_vote's price, the whip's purse, a bought vote called in: VoteMarks.Sell): judged
+    /// at the count as any word is, but kept it leaves no favour owed, since the vote was what the coin bought.</summary>
+    public bool Paid { get; set; }
 }
 
 /// <summary>One thing that passed between two houses and is remembered: a gift, a favour kept or broken, a pledge kept or

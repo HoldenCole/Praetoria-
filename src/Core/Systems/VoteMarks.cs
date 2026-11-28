@@ -7,7 +7,8 @@ namespace Praetoria.Core.Systems;
 /// added to Core"). The moments were already there (a motion on the docket, a count, a purse found out, an Act carried, a rung
 /// won and lost); what was missing was a flag on the person, so no role could bind them. Each mark is a character flag that lives
 /// a year, set where the moment happens, and cleared by the system that owns it: the Senate's at its next session, the ladder's
-/// with <see cref="LadderSystem.HeldFlag"/>. Nothing here moves a vote or a count. RNG-free.
+/// with <see cref="LadderSystem.HeldFlag"/>. A mark moves no vote of itself; a bargain struck in a report is made here into the pledge or the
+/// favour the Senate already keeps (<see cref="Bargains"/>), which declares the player's vote where the player gave or sold it. RNG-free.
 /// </summary>
 public static class VoteMarks
 {
@@ -33,10 +34,22 @@ public static class VoteMarks
     /// it in the last <see cref="DealingsSystem.PledgeMemoryYears"/> years (it takes no word of theirs). The reports that strike a bargain
     /// read it. Rewritten every session, and set when a report makes a bargain.</summary>
     public const string BargainBarredChar = "no_bargain_with_you";
+    /// <summary>A vote a report has the player sell, or give again on a sale, to someone of another house (a_vote_for_a_vote/name_a_price,
+    /// the_whip/take_the_coin, a_bought_vote_called_in/vote_as_they_ask): made a vote bought on that house's motion, declared for it and
+    /// judged at its count (<see cref="Sell"/>). The mark goes.</summary>
+    public const string VoteSoldChar = "sold_your_vote";
+    /// <summary>The buyer of the player's vote in a_vote_for_a_vote, read by a_bought_vote_called_in; struck by the count when the vote it
+    /// bought was not given (DealingsSystem.MotionCounted), since a buyer cheated does not come back to call in another.</summary>
+    public const string BoughtChar = "bought_your_vote";
+    /// <summary>On everyone of a house with a motion before the Senate on which the player's vote is to be had: not a petition, not one
+    /// that strikes at the player's house (WealthSystem.StrikesAt), and not one the player's vote is already pledged or sold on. The
+    /// reports that buy or bargain for the player's vote on a house's motion read it (a_vote_for_a_vote, a_bought_vote_called_in,
+    /// the_whip). Rewritten every session, with the docket.</summary>
+    public const string VoteWantedChar = "wants_your_vote";
 
     private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar };
     private static readonly string[] SessionFlags = { AbstainedFlag, PurseOutFlag, ActAgainstFlag };
-    private static readonly string[] DocketChars = { MovesChar, MovesAgainstChar, UndecidedChar };
+    private static readonly string[] DocketChars = { MovesChar, MovesAgainstChar, UndecidedChar, VoteWantedChar };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static Character? Head(World w, string houseId) => w.House(houseId) is { } h ? Economy.HeadOf(w, h) : null;
@@ -53,14 +66,17 @@ public static class VoteMarks
     /// house owes yours a vote (a favour, which votes for your motions: WealthSystem.VotesFor), and your word on their motion now before
     /// the Senate is a pledge (DealingsSystem), your vote declared for it and judged at its count. Someone marked <see cref="HouseOwesChar"/>
     /// gave your house a vote for later: their house owes yours a favour. A head marked <see cref="VotePromisedChar"/> was told you would
-    /// vote for their motion: yours owes theirs. The house keeps its word if the one who gave it has died since. The marks go.</summary>
+    /// vote for their motion: yours owes theirs. Someone marked <see cref="VoteSoldChar"/> bought your vote on their house's motion: it is
+    /// declared for it and judged at its count (<see cref="Sell"/>). The house keeps its word if the one who gave it has died since. The
+    /// marks go.</summary>
     public static void Bargains(World w, string? mine)
     {
-        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar) || c.Flags.Contains(VoteSoldChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
-            bool both = c.Flags.Remove(VoteOwedChar), promised = c.Flags.Remove(VotePromisedChar), owes = c.Flags.Remove(HouseOwesChar);
+            bool both = c.Flags.Remove(VoteOwedChar), promised = c.Flags.Remove(VotePromisedChar), owes = c.Flags.Remove(HouseOwesChar), sold = c.Flags.Remove(VoteSoldChar);
             if (mine == null || c.HouseId == mine || w.House(c.HouseId) is not { } theirs || World.Outsider(c.HouseId)) continue;
             if (both) Word(w, mine, theirs);
+            if (sold) Sell(w, mine, theirs);
             if (promised) WealthSystem.OweFor(w, mine, theirs.Id);
             if (both || owes) WealthSystem.OweFor(w, theirs.Id, mine);
             foreach (var x in w.LivingCharacters().Where(x => x.HouseId == theirs.Id)) x.Flags.Add(BargainBarredChar);
@@ -76,6 +92,21 @@ public static class VoteMarks
         DealingsSystem.GiveWord(w, mine, theirs.Id, m, 1);
         w.Tell("warn", $"You gave {theirs.Name} your word: your vote on its motion is declared for it. Keep it at the count and its head thinks {DealingsSystem.PledgeKeptRegard:+0;-0} of you; "
             + $"change it and its head thinks {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you, it is written down, and {theirs.Name} takes no word of yours on a vote for {Praetoria.Core.Counted.Years(DealingsSystem.PledgeMemoryYears)}. In return {theirs.Name} owes your house a vote.", "senate:chamber", theirs.Id);
+    }
+
+    /// <summary>The player's vote sold to a house, on its motion now before the Senate (not one that strikes at the player's house): a
+    /// pledge bought and paid for (<see cref="VotePledge.Paid"/>), the vote declared for it, and the player told what it binds them to. At
+    /// the count it is judged as a word given is (DealingsSystem.MotionCounted): kept, its head thinks the better of them and the bargain
+    /// is done, with no favour owed, since the coin was the price; broken, its head thinks the worse, it is written down, and the house
+    /// takes no word of theirs on a vote for some years. Nothing, if that house has no such motion before the Senate, or has their vote
+    /// on it already.</summary>
+    private static void Sell(World w, string mine, House theirs)
+    {
+        var m = SenateSystem.Docket(w).FirstOrDefault(x => x.ProposerHouseId == theirs.Id && !WealthSystem.StrikesAt(x, mine)); if (m == null) return;
+        if (DealingsSystem.PledgeOn(w, mine, m.Id) is { } given && given.ToHouseId == theirs.Id) return;
+        DealingsSystem.GiveWord(w, mine, theirs.Id, m, 1, paid: true);
+        w.Tell("warn", $"{theirs.Name} has bought your vote on its motion: it is declared for it. Vote so at the count and its head thinks {DealingsSystem.PledgeKeptRegard:+0;-0} of you; "
+            + $"change it and its head thinks {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you, it is written down, and {theirs.Name} takes no word of yours on a vote for {Praetoria.Core.Counted.Years(DealingsSystem.PledgeMemoryYears)}.", "senate:chamber", theirs.Id);
     }
 
     /// <summary>Who has a motion on the docket, who moves against the player's house, and on the player's own motion who has not
@@ -100,6 +131,9 @@ public static class VoteMarks
             }
             if (SenateSystem.IsPetition(m) || Head(w, m.ProposerHouseId) is not { } mover) continue;
             mover.Flags.Add(MovesChar);
+            // its house wants the player's vote on it, if it is to be had (a report that buys it, or bargains for it, reads this)
+            if (!WealthSystem.StrikesAt(m, mine, senate.Motions.Def(m.Kind)) && DealingsSystem.PledgeOn(w, mine, m.Id) == null)
+                foreach (var c in w.LivingCharacters().Where(c => c.HouseId == m.ProposerHouseId)) c.Flags.Add(VoteWantedChar);
             if (m.TargetId == mine && senate.Motions.Def(m.Kind) is { Target: "house" } d && (d.LegitimacyTarget < 0 || d.EmbargoTurns > 0)) mover.Flags.Add(MovesAgainstChar);
         }
     }

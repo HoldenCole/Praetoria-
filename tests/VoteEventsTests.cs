@@ -248,9 +248,11 @@ public class VoteEventsTests
 
         var settled = EveryChoice("a_bought_vote_called_in", () => VoteForAVote((w, head) => head.Flags.Add("bought_your_vote")));
         Assert.All(settled.Values, x => Assert.DoesNotContain("bought_your_vote", Bound(x.w, x.b, "buyer").Flags));
-        { var (w, b) = settled["vote_as_they_ask"]; var buyer = Bound(w, b, "buyer"); Assert.DoesNotContain(VoteMarks.VotePromisedChar, buyer.Flags);   // made a favour as the choice is
-          VoteMarks.Bargains(w, w.Protagonist!.HouseId);                        // the promise is one the count of their motion will judge (and a second pass makes nothing more)
-          Assert.True(WealthSystem.FavourOwed(w, w.Protagonist!.HouseId, buyer.HouseId)); Assert.False(WealthSystem.FavourOwed(w, buyer.HouseId, w.Protagonist!.HouseId)); }
+        { var (w, b) = settled["vote_as_they_ask"]; var buyer = Bound(w, b, "buyer"); string mine = w.Protagonist!.HouseId; Assert.DoesNotContain(VoteMarks.VoteSoldChar, buyer.Flags);   // made a vote bought as the choice is
+          var theirs = SenateSystem.Docket(w).First(m => m.ProposerHouseId == buyer.HouseId);
+          var bought = DealingsSystem.PledgeOn(w, mine, theirs.Id); Assert.NotNull(bought); Assert.True(bought!.Paid); Assert.Equal(buyer.HouseId, bought.ToHouseId); Assert.Equal(1, theirs.Votes[mine]);
+          VoteMarks.Bargains(w, mine);                                          // the promise is one the count of their motion will judge (tests/VotePromisesTests.cs), and a second pass makes nothing more
+          Assert.Single(w.VotePledges, p => p.MotionId == theirs.Id); Assert.False(WealthSystem.FavourOwed(w, mine, buyer.HouseId)); Assert.False(WealthSystem.FavourOwed(w, buyer.HouseId, mine)); }
         Assert.Contains("grudge_against_you", Bound(settled["show_them_the_door"].w, settled["show_them_the_door"].b, "buyer").Flags);   // spurned in front of the chamber, they remember it
         Assert.DoesNotContain("grudge_against_you", Bound(settled["give_back_the_coin"].w, settled["give_back_the_coin"].b, "buyer").Flags);
     }

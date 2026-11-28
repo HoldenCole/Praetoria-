@@ -64,6 +64,7 @@ public static class HouseSystem
     {
         WarLedger.Strike(w, x => x.Involves(house.Id), $"{house.Name} was no more");
         foreach (var f in w.Factions) f.Members.Remove(house.Id);
+        foreach (var m in w.Motions.Where(m => m.Open && (m.ProposerHouseId == house.Id || m.TargetId == house.Id)).ToList()) DealingsSystem.Struck(w, m, gone: house);   // a word or a vote sold on its business is void, and the player is told
         if (w.Motions.RemoveAll(m => m.Open && m.ProposerHouseId == house.Id) > 0) w.Log($"The motion of {house.Name} lapses: there is no one left to speak to it.");   // a dead house's business leaves the docket
         foreach (var m in w.Motions.Where(m => m.Open && m.TargetId == house.Id).ToList()) { w.Motions.Remove(m); }
         if (w.Offices.RemoveAll(o => o.HouseId == house.Id) > 0) { var back = OfficeSystem.FleetsDefaultOwner(w); foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId == house.Id)) f.OwnerId = back ?? f.OwnerId; }

@@ -1,8 +1,8 @@
 {
   "texts": [
     { "id": "the_whip", "title": "The Whip",
-      "body": "{whip.name} of {whip.house} finds {self.name} in the colonnade before the session with a purse and a smile. There is a motion before the Senate and {self.house}'s vote has a weight. The purse is six hundred credits. The smile says there are other purses.",
-      "choices": { "take_the_coin": "Take the purse and promise the vote. Six hundred credits.", "name_your_price": "No coin. A favour, to be named later.", "show_them_the_door": "Show the whip the door, purse and all." } },
+      "body": "{whip.name} of {whip.house} finds {self.name} in the colonnade before the session with a purse and a smile. {whip.house} has a motion before the Senate, and {self.house}'s vote has a weight. The purse is six hundred credits. The smile says there are other purses.",
+      "choices": { "take_the_coin": "Take the purse and promise your vote for their motion. Six hundred credits.", "name_your_price": "No coin. A favour, to be named later.", "show_them_the_door": "Show the whip the door, purse and all." } },
     { "id": "a_censure_on_the_docket", "title": "A Motion Against the House",
       "body": "The clerk reads the docket and {self.house}'s name is in it: a motion of censure or embargo, moved by a rival, to be voted next session. The benches are already counting. So should {self.name}.",
       "choices": { "answer_in_the_chamber": "Answer it from the floor. Oratory.", "call_in_favours": "Spend the night calling in favours (2 influence).", "let_them_talk": "Let it stand unanswered. Contempt is an argument." } },

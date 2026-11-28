@@ -210,6 +210,8 @@ public static class ForeignGoldSystem
                 if (ours) m.Votes[house.Id] = o.Ask == Against ? -1 : 0;
             }
             if (ours) w.Log($"{head.Name} takes what {nation} sent. It is not spoken of.");
+            // the reminder before the count of what the gold binds the house to, in the words the button gave (TakeSays)
+            if (ours && m != null) w.Tell("warn", $"You took what {nation} sent: your house is declared {(o.Ask == Against ? "against the war on " + warOn : "to stay away from the vote on the war on " + warOn)}. Vote for the war after all and they send your house nothing for {Counted.Years(BrokenYears)}.", "senate:chamber", house.Id);
             return;
         }
         payer.Purse += o.Sum;
@@ -252,12 +254,14 @@ public static class ForeignGoldSystem
             foreach (var o in group.Where(o => o.Answer == Taken && o.Ask != Withdraw))
             {
                 if (m == null || !m.Votes.TryGetValue(o.HouseId, out int v)) continue;   // it did not vote at all: nothing to say of it
-                bool kept = o.Ask == Against ? v < 0 : v <= 0;
+                // vetoed before the count: no vote was cast, so none was broken, whatever was declared
+                if (m.Vetoed) { if (o.HouseId == mine) w.Tell("info", $"The war on {o.WarOnName} was vetoed before the count, and no vote was cast: nothing is asked of your house for the gold.", "senate:chamber"); continue; }
+                bool kept = v <= 0;   // only a vote for the war breaks it, as TakeSays tells it: one paid to vote against that stayed away did not vote for the war
                 if (!kept)
                 {
                     o.Broken = true; Count(w, BrokenKey); w.WorldCounters[BrokenKeyFor(o.HouseId)] = w.Turn + BrokenYears;
                     if (w.Nation(o.NationId) is { } payer) payer.Disposition = Math.Clamp(payer.Disposition - BrokenRegard, -100, 100);
-                    if (o.HouseId == mine) w.Tell("warn", "You took the gold from beyond the Reach and voted for the war all the same. They will not write to your house again for some years, and the gold is still on the record.", "senate:chamber");
+                    if (o.HouseId == mine) w.Tell("warn", $"You took the gold from beyond the Reach and voted for the war all the same. They send your house nothing for {Counted.Years(BrokenYears)}, and the gold is still on the record.", "senate:chamber");
                     continue;
                 }
                 if (v > 0) f -= o.Seats; else if (v < 0) a -= o.Seats;

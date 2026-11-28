@@ -63,7 +63,9 @@ lives a year, set where the moment happens, in a system this theme owns.
 | " | `lost_at_the_count` (char, round 1) | the one of the player's house who stood for that rung and lost to someone of another house | at the count | with `ladder_election_held`; round 2: one pair of victor and loser is live at a time, so where two of the house lose on two rungs of one count the second rung's pair replaces the first's (`VoteMarks.LadderCounted`) and no report pairs one rung's victor with the other's loser |
 | `LadderSystem.Tick` (round 2) | `standing_heard` (char, set by report 10) | a relative whose candidacy you have answered | by the report | struck when they no longer stand (counted or withdrawn), so one candidacy is one report |
 | `VoteMarks.Bargains`, as the choice is made (`EventEngine.Resolve`) and at the start of `SenateSystem.Tick` (round 1; the promises, 2026-11-27) | `owes_you_a_vote` (char, set by report 1) | a head who gave their word for yours | by the report | their house owes yours a favour, which is a vote for your motions (`WealthSystem.VotesFor`, see "Promises"); your word on their motion is a pledge, your vote declared for it and judged at its count (+3 kept, -15 broken: `DealingsSystem.MotionCounted`). The mark goes. |
-| " | `promised_your_vote` (char, set by report 2, and by `the_debt_called`) | a head you told you would vote for their motion | by the report | made one favour owed by your house, judged at their count. The mark goes. |
+| " | `promised_your_vote` (char, set by `the_debt_called`; by report 2 until the bought group, 2026-11-28) | a head you told your house would owe theirs a vote | by the report | made one favour owed by your house, judged at their next motion's count. The mark goes. |
+| " (the bought group, 2026-11-28) | `sold_your_vote` (char, set by report 1's price, report 2's word, and `the_whip`'s purse) | someone of another house who bought your vote on their house's motion | by the report | made a vote bought (`VoteMarks.Sell`): a pledge paid for, your vote declared for their motion and judged at its count (+3 kept, -15 broken, 8 years remembered), with no favour owed when kept. The mark goes. |
+| `VoteMarks.Docket`, every session (the bought group) | `wants_your_vote` (char) | everyone of a house with a motion on the docket your vote may be had on: not a petition, not one that strikes at your house, not one your vote is pledged or sold on already | each year's docket | rewritten every year; read by reports 1 and 2 and `the_whip` |
 | " | `their_house_owes_you_a_vote` (char, set by `a_favour_repaid`, `the_whip`, `the_envoys_friend`) | someone who gave your house a vote for later | by the report | made a favour their house owes yours. The mark goes. |
 | `VoteMarks.Docket`, every session, and `Bargains` | `no_bargain_with_you` (char) | everyone of a house that owes yours a favour or is owed one, or to which you broke your word on a vote in the last 8 years | rewritten every session | the reports that strike a bargain are closed to them. |
 | `ElectionSystem` (round 1) | `dined_with_you` (char, set by report 15) | the Senior Consul at whose table you were seen | by the report | spent the first time they would veto a motion of yours (`RivalVetoes`), which they let stand; struck out at the next consular count |
@@ -107,22 +109,28 @@ credits 2 to 8, public trust 1 or 2, an estate 3 to 6. A credit amount is hundre
     declared for it, a pledge judged at its count, +3 regard if you keep it, -15 if not, written down, and no word of yours taken
     by that house for eight years. The body and the label say both. (+6: a pledge of seats at the consulship is +8,
     ElectionSystem.PledgeRegard; a word not yet kept is a little less.)
-  - Tell them a vote costs more than a vote (not for the Honorable or the Just; needs their house to have 400 credits): +4 credits
-    from their treasury to yours, legitimacy -1, their regard +2; arms `bought_your_vote`. (4: below the 5 that buying the cheapest
-    house's vote costs, SenateSystem.BribeCredits; it was offered at your door. -1: a bought vote that comes out costs 3; one taken
-    quietly is talked of a little. Round 1: the money had come from nowhere.)
+  - Tell them a vote costs more than a vote, and sell them yours for their motion (not for the Honorable or the Just; needs their
+    house to have 400 credits): +4 credits from their treasury to yours, legitimacy -1, their regard +2; arms `bought_your_vote`.
+    (4: below the 5 that buying the cheapest house's vote costs, SenateSystem.BribeCredits; it was offered at your door. -1: a
+    bought vote that comes out costs 3; one taken quietly is talked of a little. Round 1: the money had come from nowhere.) The
+    bought group (2026-11-28): the vote is sold (`sold_your_vote`): declared for their motion, you are told what breaking it costs,
+    and the count judges it, +3 if you give it, -15 and eight years of no word taken if not, and a buyer cheated does not come back
+    (report 2 is closed to them). See "Promises".
   - Tell them your vote is your own: their regard -4. (Less than a broken pledge, 15: nothing was promised.)
 - Differs from `the_whip`: coin from a whip there; here a vote in kind from the mover, a person named, and a thread.
 - Weight 4: on the same flag as `the_whip` (9, 3.4%), and the role binds most years.
 
 **2. `a_bought_vote_called_in` "A Bought Vote Called In"** (thread A, step 2). Situation, weight 30, repeatable.
 - Fires: `motion_open`, and role `buyer` has both `bought_your_vote` (you sold them your vote once) and `moves_a_motion`
-  (they have another motion before the Senate now).
+  (they have another motion before the Senate now), and `wants_your_vote` (the bought group: not a motion that strikes at your
+  house, nor one your vote is pledged on already).
 - What happened: they paid you once and have another motion up; they do not mean to pay again.
 - Choices:
-  - Say you will vote for it: their regard +4, legitimacy -1 (the house is seen as theirs); clears the flag, and arms
-    `promised_your_vote`, a favour your house owes theirs, judged at their count as the word given in report 1 is (round 1:
-    the promise was checked by nothing).
+  - Say you will vote for it: their regard +4, legitimacy -1 (the house is seen as theirs); clears the flag. Round 1 armed
+    `promised_your_vote`, a favour your house owed theirs; the bought group (2026-11-28) arms `sold_your_vote` instead: your vote
+    on this motion is declared for it and judged at its count as a vote bought (+3 given, -15 not, written down, and their
+    house takes no word of yours for eight years: "they will remember it"). Struck before the count, it is void, not carried
+    to their next motion. See "Promises".
   - Send back what they paid, and more (needs 5 credits): -5 credits, legitimacy +1, their regard -2; clears.
   - Tell them the bargain was for one vote: their regard -10, legitimacy -2 (they let it be known your vote is for sale);
     clears, and arms `grudge_against_you` (thread B): spurned in front of the chamber, they remember it.
@@ -491,3 +499,59 @@ another one favour at a time (`WealthSystem.OweFor`), so a second would be nothi
 
 **Not done here.** The whip's report does not bind the motion it whips for, so the vote you give in return for the favour is not
 judged (the label promises only the favour); *take_the_coin*'s "promise the vote" belongs to another group.
+
+### The bought group (2026-11-28)
+
+**The rule these rest on: a vote bought is a word given on a vote, and paid for** (`VotePledge.Paid`, made by `VoteMarks.Sell`
+as the choice is, `EventEngine.Resolve` calling `VoteMarks.Bargains`). When a report has you sell your vote (*A Vote for a
+Vote*'s price, the whip's purse) or give it again on the old sale (*A Bought Vote Called In*), your vote on the buyer's house's
+motion now before the Senate is declared for it, and you are told at once what it binds you to: "X has bought your vote on its
+motion: it is declared for it. Vote so at the count and its head thinks +3 of you; change it and its head thinks -15 of you, it
+is written down, and X takes no word of yours on a vote for 8 years." You still cast your own vote, and may change it. At the
+count (`DealingsSystem.MotionCounted`) it is judged as any word given on a vote: given, +3 and "the bargain is done", with no
+favour owed for it, since the coin was the price (a pledge given for nothing leaves the other house owing yours a favour); not
+given (against, or staying away), -15, a broken word on the house's page, and for 8 years that house takes no word of yours and
+strikes no bargain with yours (`no_bargain_with_you`, which *A Vote for a Vote* and the whip's favour read), and a buyer cheated
+does not come back to call in another vote (`bought_your_vote` is struck from that house). Struck before the count (a veto, or
+withdrawn for foreign gold) it is void and you are told, and the coin stays paid; gone with a house that is no more it is void
+too, with a notice (`HouseSystem` now calls `DealingsSystem.Struck` for the motions it takes off the docket, which it did not:
+the pledge was left to be swept up silently at the year's end). The word is the house's, so a new head of the buying house judges
+it. A war between the two houses does not undo it: a word on a vote is the player's to keep or break, as the house window's
+pledge is, and the brief's lapse at war is for another house's vote on yours.
+
+**Who can buy it** (`wants_your_vote`, written with the docket, `VoteMarks.Docket`): everyone of a house with a motion before the
+Senate that does not strike at your house (`WealthSystem.StrikesAt`: a censure, an embargo, a break-up, a recall or a reconquest
+of it) and that your vote is not already pledged or sold on. *A Vote for a Vote*, *A Bought Vote Called In* and *The Whip* read
+it. So nobody buys your vote on your own break-up or recall (`moves_against_you` covered only a censure or an embargo), nobody
+buys what is sold already, and the whip comes from the house whose motion it whips for: it came from anyone of rank of another
+house, about no motion, and could come in a year when the only motion was your own.
+
+| Promise | Words (where) | Outcome | What keeps it now | Tests |
+|---|---|---|---|---|
+| `a_vote_for_a_vote/name_a_price` | "Tell them a vote costs more than a vote." Log: "let {senator.name} of {senator.house} pay for the house's vote" | was hollow; now kept, the label made exact | The choice marks the senator `sold_your_vote`: your vote is sold on their motion (`VoteMarks.Sell`), declared for it, reminded, and judged at its count. Before, nothing tied the 400 credits to the motion: you could vote against it at no cost and were not reminded. The label now says "and sell them yours for their motion", so the player knows the vote is now theirs. | `AVoteSold_IsDeclaredForTheirMotion_YouAreReminded_AndGivingItIsCounted_AcrossASaveAndALoad`, `AVoteSold_AndChanged_IsBroken_WrittenDown_AndTheBuyerDoesNotCallInAnother`, `AVoteSold_IsNotOfferedOnAMotionThatStrikesAtYou_NorOnOneYourVoteIsPledgedOn`, `AVoteSold_TheBuyingHouseGone_TheVoteLapsesWithANotice`, `AVoteSold_ANewHeadOfTheBuyingHouse_JudgesIt` |
+| `a_bought_vote_called_in/vote_as_they_ask` | "Say you will vote for it. Vote otherwise, and they will remember it." Log: "They will be watching the count." | was partly kept; now kept | A vote bought on this motion (`sold_your_vote`), where it was a favour your house owed (`promised_your_vote`). The favour was not declared, so a player who did not vote was cast by their lean or their chancellor and paid -15 unwarned; it had no reminder (the favour was made after the motion); and a veto carried it to whatever the buyer moved next. Now: declared for it, reminded at once, judged at this count, void if this motion is struck. "They will remember it": the broken word is written down and bars every bargain with that house for 8 years. The report no longer comes for a motion that strikes at your house. | `ABoughtVoteCalledIn_YourVoteIsDeclaredForTheirNewMotion_AndKeepingItIsCounted_AcrossASaveAndALoad`, `ABoughtVoteCalledIn_VotedOtherwise_TheyRememberIt`, `ABoughtVoteCalledIn_TheirMotionVetoed_TheVoteIsVoid_AndNotCarriedToTheirNext`, `ABoughtVoteCalledIn_IsNotAskedOnAMotionAgainstYourHouse` |
+| `a_bought_vote_called_in/show_them_the_door` | "Tell them the bargain was for one vote." Log: "{buyer.name} made sure the chamber heard about the one." | already kept | Legitimacy -2 (entered in the house's record as the report's), their regard -10, `grudge_against_you` (read by `an_old_grudge_*`), and no vote owed them. | `ABoughtVoteCalledIn_ShownTheDoor_CostsYourHouseItsStanding_AndTheyRememberIt` |
+| `a_purse_on_the_senate_floor` | "The vote is struck, and the chamber thinks the less of your house." | already kept | At the count `SenateSystem.BribeComesOut` (one time in four, by a hash of the motion and the house, never with a head for sale by nature) sets the bought vote to 0 before the tally and takes 3 legitimacy (`BribeOutLegitimacy`) from the payer under "Scandal"; `VoteMarks.PurseOut` marks the report's moment and the head who took the purse. | `APurseThatComesOut_StrikesTheVote_TheTallyLosesIt_AndThePayerLosesStanding` |
+| `SenateSystem.BribeComesOut` (the chronicle) | "It comes out on the floor that {payer} paid {house} for its vote. The vote is struck, and {payer} is thought the less of." | already kept | The same. | the same |
+| `the_whip/take_the_coin` | "Take the purse and promise the vote. Six hundred credits." Log: "took {whip.name}'s purse and promised a vote" | was hollow; now kept, the words made exact | The whip is someone of a house with a motion your vote may be had on (`wants_your_vote`), and taking the purse sells your vote on that motion (`sold_your_vote`), declared, reminded and judged. The body says "{whip.house} has a motion before the Senate" (it said "There is a motion", and named none), the label "promise your vote for their motion", and the log "promised the house's vote for the motion of {whip.house}". | `TheWhip_ThePurseTaken_YourVoteIsSoldForTheirMotion_AndJudged_AlongsideASecondSale` (two sales at once, one given and one not), `TheWhip_ComesOnlyFromAHouseWithAMotionYourVoteMayBeHadOn` |
+| `ForeignGoldSystem.TakeSays` | "Your house is declared against the war. ... Vote for the war after all and they send your house nothing for 10 years." | was partly kept; now kept | Only a vote for the war breaks it (`SettleCounted`: kept is a vote of 0 or below, for either ask): a house paid to vote against that stayed away was judged broken, shut out, and told it "voted for the war all the same". A war vetoed before the count is judged on no vote, and you are told so (it was judged on the vote declared, though no vote was cast). Taking it now tells you, before the count, what it binds you to; the broken notice names the ten years ("for some years" before). | `ForeignGold_TakenToVoteAgainst_StayingAwayIsNotVotingForTheWar_OnlyAVoteForItShutsYouOutForTenYears`, `ForeignGold_AWarVetoedBeforeTheCount_JudgesNoVote` |
+| `LobbyCommand.Execute` | "{house} has taken the purse: its own vote leans {for/against} the motion by 3 more. Whether that is enough shows in the count"; a lobby: "it leans {side} the motion by 2 more, and its bench by half as much" | already kept | A bribe adds 3 to `m.Bought` (`BribeWeight`), counted in the house's own lean and not by its bench; a lobby adds 2 to `m.Lobby` (`LobbyWeight`), and every member of a bench the house leads adds half its leader's lobbying, rounded toward nothing (2 / 2 = 1). The lobbied house's declared vote is struck so it reconsiders. At the count each house votes the sign of its lean: a house 2 against, bribed, votes for; one 6 against, bribed, still votes against. | `ABribe_LeansTheHouseByThree_AndTheCountShowsWhetherItWasEnough_AcrossASaveAndALoad`, `ALobby_LeansTheHouseByTwo_AndItsBenchByOne_AndTheCountFollows` |
+
+**Numbers.** None is new. A vote sold is judged with the pledge's numbers: +3 given (`PledgeKeptRegard`), -15 not
+(`PledgeBrokenRegard`), 8 years remembered (`PledgeMemoryYears`). Why: a vote sold is a word given on a vote, and these are what the
+game already charges for one (the house window's pledge, *A Vote for a Vote*'s word); the reminder names them. The words of the
+reports name no figure for keeping or breaking, so none had to be matched. *A Bought Vote Called In* had the favour's +5 kept;
+it is +3 now, since the vote leaves no favour owed either way and is the same kind of word as the others. The prices are as they
+were: 400 credits (*A Vote for a Vote*, below the cheapest bribe of 500), 600 (the whip). The gold's 10 years (`BrokenYears`) are
+as they were. A bribe's 3, a lobby's 2 and the bench's half are as they were.
+
+**Departures from the brief's defaults.** A war does not lapse a vote sold (default 1's lapse at war is for another house's vote
+on yours; a word the player gives is judged as every pledge is). Keeping a vote sold gives +3 regard, which no word named: a word
+kept on a vote gives it everywhere else in the game.
+
+**Outside this group.** `HouseSystem.Strike` now voids, with a notice, a word given on a motion it takes off the docket (one line);
+`ForeignGoldSystem` is changed where the gold's promise lives. One test outside these files was touched:
+`tests/CustomCharacterTests.cs`, `The_upstart_begins_with_nothing_and_is_not_held_to_a_senators_year`, asks for a seed on which
+no report hands the house a rank in its first five years; closing the whip to houses with no motion moved the draw, and on seed 5
+a match with a claim now made the house a count. It now plays seeds 5, 4, 3 and 6 in turn until one leaves the house landless,
+with every check held in each it plays, as `EarnedTitlesTests` does.
