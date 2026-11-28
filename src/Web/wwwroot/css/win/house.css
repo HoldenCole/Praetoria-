@@ -333,3 +333,84 @@ div.hs-buy { display: block; margin: 0; }   /* the WealthPanel's buy row only: t
 .hs-stores .hs-strat { margin-left: .4rem; vertical-align: baseline; }
 /* the allowance row: its name ("What the house gives its own") runs onto a second line beside the three plates rather than be cut short at 1366 */
 .hs-allow-row .ui-row-nm { white-space: normal; overflow: visible; }
+
+/* ---- the Purse in three parts (2026-11-28 mend): a joined switch under the lede, the treasury beside it; each part one short page ---- */
+.hs-parts { display: flex; align-items: center; flex-wrap: wrap; gap: .5333rem 1rem; margin: .5333rem var(--hs-gut-r) .2667rem var(--hs-gut-l); }
+.hs-partseg button { height: 2.1333rem; padding: 0 .9333rem; gap: .4rem; font: 600 .9333rem/1 var(--f-ui); }
+.hs-partseg button .icon { width: 1rem; height: 1rem; }
+.hs-parts-r { margin-left: auto; display: inline-flex; align-items: center; gap: .4rem; font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; cursor: help; }
+.hs-parts-r b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.hs-pane[hidden] { display: none !important; }
+/* shares of your own: one table, one order bar (4.13) */
+.hs-shares { margin: .2667rem var(--hs-gut-r) .4rem var(--hs-gut-l); }
+.hs-shares .ui-table td:first-child { white-space: normal; line-height: 1.25; }
+.hs-shares .ui-table th:nth-child(2), .hs-shares .ui-table td:nth-child(2) { width: 6rem; }
+.hs-shares .ui-table th:nth-child(3), .hs-shares .ui-table td:nth-child(3) { width: 4.4rem; }
+.hs-shares .ui-table th:nth-child(4), .hs-shares .ui-table td:nth-child(4) { width: 9rem; }
+.hs-shares .ui-table td small { margin-left: .2667rem; }
+.hs-shares .ui-order, .hs-loan-bar { flex-wrap: wrap; row-gap: .4rem; }
+.hs-shares .ui-order .ui-step b { min-width: 5.6rem; }
+.hs-shares .ui-order-nm, .hs-loan-bar .ui-order-nm { display: inline-flex; align-items: center; gap: .4rem; color: var(--brass-hi); }
+/* the will: one line, a Change link, the rows it names (or all of them under Change); the two settings as rows */
+.hs-will-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .8rem; }
+.hs-will-p[hidden] { display: none !important; }
+.hs-set-row .ui-seg button { height: 1.8667rem; }
+@container hs (max-width: 45rem) {
+  .hs-set-row, .hs-allow-row { grid-template-rows: auto auto; }
+  .hs-set-row > div:first-child, .hs-allow-row > div:first-child { grid-row: 1 / span 2; align-self: center; }
+  .hs-set-row > div:nth-child(4), .hs-allow-row > div:nth-child(4) { grid-column: 2 / -1; grid-row: 2; justify-self: start; margin-top: .3333rem; }
+}
+/* who a thing is for: the person select, narrower than the shared one; the row's controls go under its name when the window is narrow */
+.hs-who .ui-select-btn { min-width: 11.2rem; }
+.hs-who .ui-menu { min-width: 21rem; }
+.hs-who .ui-menu button small { white-space: nowrap; }
+.hs-town-row > div:nth-child(4) > span.hs-acts { justify-content: flex-start; }
+@container hs (max-width: 45rem) { .hs-town-row .hs-acts > .ui-select { flex: 1 0 100%; } }
+@container hs (max-width: 45rem) {
+  .hs-pick-row { grid-template-rows: auto auto; }
+  .hs-pick-row > div:first-child { grid-row: 1 / span 2; align-self: center; }
+  .hs-pick-row > div:nth-child(4) { grid-column: 2 / -1; grid-row: 2; justify-self: start; margin-top: .3333rem; }
+  .hs-pick-row > div:nth-child(4) .hs-acts { justify-content: flex-start; }
+}
+
+/* ---- the Court: an empty post is one short row, the hatched plate and what the house goes without ---- */
+.hs-court .hs-post.empty { padding: 0; }
+.hs-court .hs-post.empty > .ui-row { padding-top: .2667rem; padding-bottom: .2667rem; }
+.hs-court .hs-post.empty > .ui-row > div:first-child { display: grid; }
+.hs-court .hs-post.empty .ui-row-sub { -webkit-line-clamp: 2; }
+.hs-court .hs-post.empty .portrait.pf-empty { margin: 0 auto; display: grid !important; }
+
+/* ---- the Ledger: what goes out this year only, under what is left, and the year's end at the ledger's foot ---- */
+.hs-led-cap { grid-column: 1 / -1; margin-top: .5333rem; padding-top: .5333rem; border-top: 1px solid rgba(255,255,255,.06); font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.hs-led-src.once { color: var(--ink-dim); }
+.hs-led > .netbar { margin-top: .4rem; }
+.hs-led-neg i.once { background: repeating-linear-gradient(135deg, #c4472f 0 4px, #8e2c1b 4px 7px); opacity: .85; }
+.hs-led-src.end { grid-column: 1; font-weight: 600; color: var(--brass-ink); cursor: help; margin-top: .4rem; padding-top: .5333rem; border-top: 1px solid rgba(201,162,74,.45); }
+.hs-led-src.end.bad { color: #f6c9bd; }
+.hs-led-end-n { grid-column: 2 / 4; margin-top: .4rem; padding-top: .5333rem; border-top: 1px solid rgba(201,162,74,.45); font: 400 .9333rem/1.2 var(--f-ui); color: var(--ink-mute); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: .8rem; }
+.hs-led-amt.end { margin-top: .4rem; padding-top: .5333rem; border-top: 1px solid rgba(201,162,74,.45); font-size: 1.0667rem; color: var(--brass-hi); align-self: stretch; display: flex; align-items: center; justify-content: flex-end; }
+/* last year as a waterfall: a label, a track on which each bar starts where the last ended, the figure */
+.hs-fall { padding: .6667rem var(--hs-gut-r) .2667rem var(--hs-gut-l); display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 2fr) 5.4667rem; row-gap: .4667rem; align-items: center; }
+.hs-fall-l { font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: .6667rem; cursor: help; }
+.hs-fall-l.open, .hs-fall-l.close { font-weight: 600; color: var(--brass-ink); }
+.hs-fall-l.nil { color: var(--ink-dim); }
+.hs-fall-t { position: relative; height: .8rem; background: linear-gradient(90deg, rgba(255,255,255,.03), rgba(255,255,255,.015)); box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.hs-fall-zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: rgba(233,224,200,.35); }
+.hs-fall-b { position: absolute; top: 2px; bottom: 2px; border-radius: 1px; }
+.hs-fall-b.open, .hs-fall-b.close { background: linear-gradient(#e8d8a8 0 1px, #a5813a 1px, #6f5020); }
+.hs-fall-b.close { background: linear-gradient(#f6e2a0 0 1px, #c9a24a 1px, #8a6a2a); }
+.hs-fall-b.up { background: linear-gradient(#d8f2c8 0 1px, #8cc47e 1px, #43723a); }
+.hs-fall-b.down { background: linear-gradient(#f08a6d 0 1px, #c4472f 1px, #8e2c1b); }
+.hs-fall-b.nil { background: rgba(233,224,200,.45); }
+.hs-fall-v { font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.hs-fall-v.close { color: var(--brass-hi); font-size: 1rem; }
+.hs-fall > .close { padding-top: .4rem; border-top: 1px solid rgba(201,162,74,.3); }
+.hs-fall > .hs-fall-t.close-row { margin-top: .4rem; }
+/* the lenders: a row each, the one picked docks its sum and Borrow in the order bar under them */
+.hs-lenders { margin-bottom: .2667rem; }
+.hs-lenders > .ui-row.hs-lender { padding-top: .4rem; padding-bottom: .4rem; }
+.hs-lender.off .ui-row-nm { color: var(--ink-dim); }
+.hs-medal.dim { opacity: .7; }
+.hs-loan-bar { margin: .2667rem var(--hs-gut-r) .4rem var(--hs-gut-l); }
+.hs-loan-bar .hs-terms { flex: 1 0 100%; order: 9; padding-left: 1.6rem; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); white-space: normal; }
+.hs-loan-bar .ui-need { font: 500 .9333rem/1.3 var(--f-ui); color: var(--warn); }

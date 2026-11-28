@@ -96,10 +96,6 @@
 div.hu-good { padding: .5333rem var(--yg-r) .4rem var(--yg-l); border-bottom: 1px solid rgba(255,255,255,.05); display: flex; flex-direction: column; gap: .4rem; }
 .hu-good-nm { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .6667rem; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); } .hu-good-nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
 .hu-good-acts { display: flex; flex-wrap: wrap; gap: .4rem; }
-.hu-venture { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .9333rem; padding: .5333rem var(--yg-r) .4rem var(--yg-l); border-bottom: 1px solid rgba(255,255,255,.05); }
-.hu-venture .hu-good-nm { flex: 1 1 18rem; }
-.hu-venture .ui-cell small { color: var(--ink-mute); font-weight: 500; }
-.hu-venture .vbuy { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
 .hu-win .vbuy input.qty { height: 1.8667rem; padding: 0 .4rem; background: #05070a; color: var(--ink); border: 1px solid #000; box-shadow: var(--sh-inset); font: 600 .8667rem/1 var(--f-ui); }
 .hu-person .hu-person-hd { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .6667rem; }
 .hu-person .hu-person-hd .ui-cell { margin-left: auto; min-width: 0; }
@@ -182,13 +178,6 @@ button.hu-fig { cursor: pointer; } button.hu-fig:hover { background: linear-grad
 .hu-person { display: block; }
 .hu-person .ui-row .hu-acts { flex-wrap: wrap; max-width: 26rem; }
 .hu-person .ui-row-sub .hu-marks { margin-left: .4rem; }
-/* a person of another house (4.7): the name and the subtitle keep the row's width; what may be done with them stands on a second
-   line under the name, so two plates never crush a name to "Luciu..." */
-.hu-person .ui-row { grid-template-rows: auto auto; }
-.hu-person .ui-row > div:first-child { grid-row: 1 / span 2; align-self: center; }
-.hu-person .ui-row > div:nth-child(4) { grid-column: 2 / -1; grid-row: 2; justify-self: start; }
-.hu-person .ui-row > div:nth-child(4):has(.hu-acts:not(:empty)) { margin-top: .3333rem; }
-.hu-person .ui-row .hu-acts { display: flex; flex-wrap: wrap; gap: .4rem; max-width: none; padding: 0; }
 .hu-person .ui-row .ui-row-nm { white-space: normal; }
 /* the standings' column heads stay at the top of the page while it scrolls (they give the bare figures their meaning), and a long name
    takes a second line rather than an ellipsis */
@@ -196,3 +185,76 @@ button.hu-fig { cursor: pointer; } button.hu-fig:hover { background: linear-grad
 .hu-win .ui-table.standings thead th { position: sticky; top: 0; z-index: 4; background: linear-gradient(#141923, #10141c); box-shadow: inset 0 -1px 0 rgba(201,162,74,.45); }
 .hu-win .ui-table.standings td.hn b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.15; overflow-wrap: anywhere; }
 .hu-win .ui-table.standings td.hn .hu-hn { align-items: center; }
+
+/* ---- the house's page, mended (2026-11-28): its standing as the header's plinth, what it is known for as facts, the dealings as rows
+   with one plate each, the trade's order bar on one line, the ventures as a table, one action a person ---- */
+.hu-medal { width: 2.9333rem; height: 2.9333rem; border-width: 2px; margin: 0 auto; }
+.hu-medal .icon { width: 1.4667rem; height: 1.4667rem; }
+.hu-medal.lit { background: radial-gradient(circle at 50% 38%, #3a3220, #0c0b08 74%) padding-box, conic-gradient(from 210deg, #f6e2a0, #8a6a2a, #e9cd84, #5b4316, #f6e2a0) border-box; }
+/* its standing: five figures as the plinth draws them (4.3), the icon at the left, the value, the label under it, brass diamonds between */
+.hu-plinth { display: flex; align-items: center; justify-content: space-between; gap: 0; margin: .5333rem var(--yg-r) .4rem var(--yg-l); padding: .5333rem .2667rem; position: relative; }
+.hu-plinth::before, .hu-plinth::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: var(--gilt-rule); opacity: .45; }
+.hu-plinth::before { top: 0; } .hu-plinth::after { bottom: 0; }
+.hu-plinth .ui-fig.hu-fig { display: flex; justify-items: initial; text-align: left; padding: .2rem .2667rem; gap: .5333rem; color: var(--ink); }
+.hu-plinth .ui-fig.hu-fig > .icon { width: 1.6rem; height: 1.6rem; flex: none; }
+.hu-plinth .hu-fig + .hu-fig { margin-left: .4rem; padding-left: .9333rem; }
+.hu-plinth .hu-fig + .hu-fig::before { left: -.1667rem; }
+.hu-plinth .ui-fig-v { font-size: 1.2rem; } .hu-plinth .ui-fig-v small { font-size: .8333rem; color: var(--ink-mute); font-weight: 500; }
+.hu-plinth .ui-fig-l { display: inline-flex; align-items: center; gap: .2667rem; }
+.hu-plinth button.hu-fig:hover { background: none; } .hu-plinth button.hu-fig:hover .ui-fig-l { color: var(--brass-hi); }
+.hu-plinth .hu-fig[title] { cursor: help; } .hu-plinth button.hu-fig { cursor: pointer; }
+/* what it is known for: facts, an icon and words each (4.2), flowing; never a key and a value in two columns */
+.hu-facts { display: flex; flex-wrap: wrap; gap: .4667rem 1.2rem; padding: .4rem var(--yg-r) .6667rem var(--yg-l); font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.hu-fact { display: inline-flex; align-items: center; gap: .4rem; cursor: help; }
+.hu-fact .icon { flex: none; }
+.hu-fact b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.hu-fact small { font-size: .8667rem; color: var(--ink-mute); }
+.hu-fact.ord.t2 b, .hu-fact.ord.t3 b { color: var(--brass-hi); }
+.hu-fact.warn { color: var(--warn); }
+/* a dealing: a row, one plate at the right; where the plate needs an amount or a choice it opens a menu */
+.hu-deal.warn::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--warn); }
+.hu-deal .ui-row-sub b.ui-up { color: var(--good); }
+.hu-motion .ui-row-nm { white-space: normal; }
+/* the menu plate: a local variant of the shared Select (it has no refused options and no head); the menu is drawn while shut and hidden */
+.hu-mp { position: relative; display: inline-block; }
+.hu-mp.open { z-index: 62; }
+.hu-mp-btn { gap: .4rem; }
+.hu-mp-btn .hu-mp-chev { width: .7333rem; height: .7333rem; transform: rotate(90deg); margin-left: .1333rem; transition: transform .15s; }
+.hu-mp.open .hu-mp-btn { box-shadow: var(--sh-inset), 0 0 0 1px var(--brass-mid); }
+.hu-mp.open .hu-mp-btn .hu-mp-chev { transform: rotate(-90deg); }
+.hu-mp-btn.bare { padding: 0 .5333rem; min-width: 0; }
+.hu-mp-btn.bare .hu-mp-chev { margin-left: 0; }
+.hu-mp-menu { display: none; min-width: 15rem; left: auto; right: 0; }
+.hu-mp.open .hu-mp-menu { display: block; }
+.hu-mp-menu button { height: 2.2667rem; }
+.hu-mp-menu button .hu-mp-t { white-space: nowrap; }
+.hu-mp-menu button.off { color: var(--ink-mute); cursor: not-allowed; }
+.hu-mp-menu button.off:hover { background: none; }
+.hu-mp-menu button .icon { flex: none; opacity: .75; }
+.hu-mp-head { display: flex; align-items: center; gap: .5333rem; padding: .2667rem .5333rem .5333rem; margin-bottom: .2667rem; border-bottom: 1px solid rgba(201,162,74,.25); }
+.hu-mp-l { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.hu-mp-head .ui-seg button { height: 1.7333rem; width: auto; padding: 0 .6rem; justify-content: center; }
+.hu-mp-scrim { position: fixed; inset: 0; z-index: 61; background: transparent; }
+/* the trade's order bar on one line (4.13): the good, the lot on a stepper, Buy, Sell and the Deal menu */
+.hu-orderbar { flex-wrap: nowrap; }
+.hu-orderbar .ui-order-sp { flex: 1; }
+.hu-orderbar .hu-lot .ui-step b { min-width: 2.4rem; }
+.hu-orderbar .hu-mp-menu { min-width: 19rem; }
+.hu-lasting .line .ui-plate-wrap { margin-left: .4rem; }
+/* its ventures: the Exchange's table and order bar */
+.hu-ventures { margin: .2667rem var(--yg-r) .4rem var(--yg-l); }
+.hu-ventures .ui-table td:first-child { white-space: normal; line-height: 1.25; }
+.hu-ventures .ui-table td.ex-td-l { text-align: left; color: var(--ink-dim); font-weight: 500; white-space: normal; line-height: 1.25; }
+.hu-ventures .ui-order { flex-wrap: wrap; row-gap: .4rem; }
+.hu-ventures .ui-order .ui-order-nm { flex: 1 0 100%; white-space: normal; line-height: 1.25; }
+.hu-ventures .ui-order .ui-order-sp { display: none; }
+.hu-ventures .ui-table th:nth-child(2) { text-align: left; }
+/* a person: one plate at the right, the rest under the chevron beside it */
+.hu-person .ui-row .hu-acts { display: inline-flex; flex-wrap: nowrap; gap: .2667rem; max-width: none; padding: 0; }
+.hu-person .ui-row .ui-row-nm { white-space: normal; }
+@container hw (max-width: 46rem) {
+  .hu-plinth .hu-fig + .hu-fig { margin-left: .2rem; padding-left: .6rem; }
+  .hu-plinth .ui-fig.hu-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
+  .hu-plinth .ui-fig-v { font-size: 1.0667rem; }
+  .hu-orderbar { flex-wrap: wrap; row-gap: .4rem; }
+}
