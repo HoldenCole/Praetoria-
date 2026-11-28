@@ -1,0 +1,62 @@
+{
+  "//": "FOREIGN NATIONS (docs/FOREIGN_NATIONS.md; the owner's direction). The Reach is one nation; these are the others, beyond the rim and off the map for now: the targets of its wars, in the mould of LOTGH's one strong neighbour and Rome's many. Each has a strength (hulls the Reach's expeditions must beat), a temper (aggressive nations raid the rim when their regard falls; mercantile ones trade and forgive; decaying ones crumble), a wealth (plunder a victory brings home), a distance (turns an expedition sails before it fights), a disposition toward the Reach, what it holds that the Reach wants, and the tribute it pays when subdued. The Senate makes war by motion; houses send expeditions; score beyond `threshold` subdues the nation for twenty turns. `exports` are what a nation ships into the Reach's markets a turn while at peace and not hostile (docs/ECONOMY_MARKET.md): war or a regard of -30 closes its ports, and a subdued nation ships double. `senateGold` is the years of its wealth a nation keeps in a purse to buy votes in the Reach's Senate, and `favours` the nations whose wars it also pays to stop (docs/BEYOND.md, \"Foreign gold in the Senate\").",
+  "nations": [
+    { "id": "concord",
+      "house": { "name": "The Ardent Concord", "accent": "#9E3350", "title": "duke", "legitimacy": 70 },
+      "worlds": [
+        { "id": "concordia_seat", "system": "concordia", "name": "Concordia", "specialization": "fortress", "population": 56, "capital": true },
+        { "id": "brandt_yards", "system": "brandt", "name": "The Brandt Yards", "specialization": "forge_world", "population": 38 },
+        { "id": "marrek_foundries", "system": "marrek", "name": "The Marrek Foundries", "specialization": "forge_world", "population": 34 },
+        { "id": "ardent_gate_fortress", "system": "ardent_gate", "name": "The Gate Fortress", "specialization": "fortress", "population": 18 }
+      ],
+      "holdYears": 0, "hosts": 2, "strikes": true, "campaigns": true, "hostName": "The Concord Line", "guardName": "The Home Fleet of Concordia",
+      "marches": ["valmont_anvils", "ironhold"], "depth": 2, "rulerTitle": "First Admiral", "commanderTitle": "Admiral", "names": ["Soren Halvard", "Ilse Marrek", "Tomas Brandt", "Katrin Voss", "Anders Kell", "Maren Stahl", "Viktor Lund", "Elsa Rhen", "Henrik Dahl", "Sigrid Ormann", "Lukas Varn", "Greta Holm"], "exports": { "materials": 4, "helium3": 2 }, "name": "The Ardent Concord", "culture": "concordant", "temper": "aggressive", "strength": 26, "regen": 2, "wealth": 6, "distance": 3, "disposition": -25, "tribute": 6, "threshold": 10,
+      "holds": "the Ardent gate and three forge-worlds",
+      "description": "The one strong neighbour: a unified state under a council of admirals, with a fleet the size of half the Reach's and a habit of raiding the rim when the Reach looks divided. Beating it would make a general's name for a generation." },
+    { "id": "thessar",
+      "house": { "name": "The Free Cities of Thessar", "accent": "#2EC4B6", "title": "count", "legitimacy": 60 },
+      "worlds": [
+        { "id": "thessar_city", "system": "thessar", "name": "Thessar", "specialization": "trade_hub", "population": 48, "capital": true },
+        { "id": "pellas_city", "system": "pellas", "name": "Pellas", "specialization": "forge_world", "population": 30 },
+        { "id": "port_meront_city", "system": "port_meront", "name": "Port Meront", "specialization": "trade_hub", "population": 26 }
+      ],
+      "holdYears": 6, "hostName": "The Thessaran Squadron", "guardName": "The Harbour Guard of Thessar",
+      "marches": ["wintermoor", "brackwater"], "depth": 1, "rulerTitle": "Speaker of the Cities", "greatTitle": "Navarch", "greatOneIn": 20, "commanderTitle": "Captain-General", "names": ["Lysander Aphos", "Thais Meront", "Nikanor Dray", "Xanthe Pellas", "Demos Kyre", "Ione Sarant", "Philo Madras", "Kleio Venn", "Arist Tolman", "Melita Orsk", "Stavro Lenn", "Dione Caras"], "exports": { "rare_earths": 2, "exotics": 1, "materials": 3 }, "name": "The Free Cities of Thessar", "culture": "thessaran", "temper": "mercantile", "strength": 12, "regen": 1, "wealth": 9, "distance": 2, "disposition": 10, "tribute": 5, "threshold": 6, "senateGold": 12, "favours": ["hollow_crown"],
+      "holds": "the richest exchanges beyond the rim and a belt of rare earths",
+      "description": "A league of trading cities that would rather buy than fight. Rich, lightly armed, quick to pay tribute and quicker to stop when the fleets go home." },
+    { "id": "vashti",
+      "house": { "name": "The Vashti Khanates", "accent": "#7E9C6A", "title": "duke", "legitimacy": 55 },
+      "worlds": [
+        { "id": "khal_orda_camp", "system": "khal_orda", "name": "The Great Camp", "specialization": "fortress", "population": 34, "capital": true },
+        { "id": "tul_aimag_wells", "system": "tul_aimag", "name": "The Wells of Tul", "specialization": "agri_world", "population": 22 },
+        { "id": "long_grass_camp", "system": "the_long_grass", "name": "The Long Grass Camps", "specialization": "frontier_colony", "population": 14 }
+      ],
+      "marches": ["anvil", "the_veil"], "depth": 1, "rulerTitle": "Khan of Khans", "greatTitle": "Great Khan", "greatOneIn": 8, "commanderTitle": "Noyan", "names": ["Temur Vash", "Borte Khal", "Jochi Arak", "Sorgha Tul", "Batu Erkin", "Altani Dzu", "Kublai Orda", "Mandu Khai", "Berke Sain", "Checheg Uul", "Subedei Narn", "Oyun Tarkh"], "exports": { "manpower": 3 }, "name": "The Vashti Khanates", "culture": "vashti", "temper": "aggressive", "strength": 14, "regen": 2, "wealth": 4, "distance": 2, "disposition": -40, "tribute": 3, "threshold": 6,
+      "holds": "the lanes the raiders use, and little else worth taking",
+      "description": "Horse-lords of the void: a dozen khans who raid the rim for crews and cargo and unite only when someone comes for them. Easy to beat in a season; impossible to hold." },
+    { "id": "compact",
+      "house": { "name": "The Outer Compact", "accent": "#7FD1AE", "title": "count", "legitimacy": 65 },
+      "worlds": [
+        { "id": "wardenry_seat", "system": "the_wardenry", "name": "The Wardenry", "specialization": "fortress", "population": 20, "capital": true },
+        { "id": "mallow_fields", "system": "mallow", "name": "The Mallow Fields", "specialization": "forge_world", "population": 12 },
+        { "id": "wrenn_seams", "system": "wrenn", "name": "The Wrenn Seams", "specialization": "forge_world", "population": 12 },
+        { "id": "pikes_landing_town", "system": "pikes_landing", "name": "Pike's Landing", "specialization": "frontier_colony", "population": 10 }
+      ],
+      "holdYears": 4, "sorties": "never", "walls": 2, "yields": { "isotopes": 2 }, "hostName": "The Compact Militia", "guardName": "The Warden's Guard",
+      "marches": ["sorrow"], "depth": 3, "rulerTitle": "Warden of the Compact", "greatTitle": "High Warden", "greatOneIn": 24, "commanderTitle": "Marshal", "names": ["Edda Corwin", "Josen Pike", "Mirel Tasker", "Abel Wrenn", "Hester Vale", "Coln Ashby", "Ruth Mallow", "Enoch Fenn", "Sabel Crane", "Dov Harker", "Lise Thorn", "Amos Reeve"], "exports": { "isotopes": 1, "helium3": 1 }, "name": "The Outer Compact", "culture": "compact", "temper": "defensive", "strength": 8, "regen": 1, "wealth": 5, "distance": 4, "disposition": 0, "tribute": 4, "threshold": 5,
+      "holds": "deep deposits of isotopes under four small worlds",
+      "description": "Small, far, and sitting on the isotopes every arsenal in the Reach wants. It fights only when invaded, and then well." },
+    { "id": "hollow_crown",
+      "house": { "name": "The Hollow Crown", "accent": "#9B5DE5", "title": "duke", "legitimacy": 45 },
+      "worlds": [
+        { "id": "porphyra_palace", "system": "porphyra", "name": "The Purple Palace", "specialization": "trade_hub", "population": 60, "capital": true },
+        { "id": "chrysopolis_mint", "system": "chrysopolis", "name": "The Mint of Chrysopolis", "specialization": "trade_hub", "population": 36 },
+        { "id": "melitene_estates", "system": "melitene", "name": "The Estates of Melitene", "specialization": "agri_world", "population": 30 },
+        { "id": "chalke_gate", "system": "chalke", "name": "The Bronze Gate", "specialization": "fortress", "population": 14 }
+      ],
+      "holdYears": 0, "treasure": 120, "titles": 8, "regalia": "the diadem of the Autokrators", "mettle": 70, "hostName": "The Tagmata", "guardName": "The Palace Guard of Porphyra",
+      "marches": ["last_harbour", "hollow_reach"], "depth": 2, "rulerTitle": "Autokrator", "greatTitle": "Basileus", "greatOneIn": 12, "commanderTitle": "Grand Domestic", "names": ["Manuel Kantakes", "Theodora Vrana", "Isaak Doukan", "Eudokia Laskar", "Andronik Melis", "Zoe Paleon", "Bardas Skler", "Irene Komnas", "Nikeph Botan", "Anna Dalass", "Alexi Tornik", "Helena Argyr"], "exports": { "exotics": 1, "rare_earths": 1 }, "name": "The Hollow Crown", "culture": "crownish", "temper": "decaying", "strength": 10, "regen": 0, "wealth": 8, "distance": 3, "disposition": -5, "tribute": 5, "threshold": 5,
+      "holds": "the treasuries and titles of an empire that was",
+      "description": "An old empire past its strength, all ceremony and debt. Its fleets are fewer every decade; its vaults are not. The first general to break it will come home very rich." }
+  ]
+}

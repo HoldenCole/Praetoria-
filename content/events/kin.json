@@ -1,0 +1,3061 @@
+{
+  "//": "Each report's moment is also its first role's first test, so that the binder draws no dice outside the moment's year. THE FAMILY: BIRTHS, CHILDREN, THE SPOUSE, ILLNESS, OLD AGE AND THE WILL (docs/events/family.md). Threads: the_other_family_asks_for_the_child may mark a child fostered (and hidden), read at sixteen by the_fostered_child_comes_home; kin_left_behind may mark two of your blood stood_together, read by kin_stand_together when one fails, or mark the other slighted (the_slighted_kinsman, succession.json); a_life_of_their_own may mark a child doubted_by_the_head, read by you_were_wrong_about_them when they have what they wanted; while_you_were_ill may mark the keeper kept_the_house, read by they_ask_you_to_stand_aside, which may mark them promised_the_seat (read by the_day_you_named, whose breaking marks them defiant) or slighted. Once-a-person marks: named_a_child, heard_left_behind, spouse_ambition_heard, torn_between, heard_at_the_will. Core marks: DynastySystem born_to_the_house, schooling_begins, kin_came_of_age, grandchild_of_the_head (char); CourtshipSystem in_law (char), wedding_remembered; HouseholdSystem left_unpaid (char).",
+  "events": [
+    {
+      "id": "the_naming_of_a_child",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "cooldown": 0,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "born_to_the_house",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            },
+            {
+              "type": "charFlag",
+              "role": "spouse",
+              "flag": "named_a_child",
+              "value": false
+            }
+          ]
+        },
+        {
+          "name": "child",
+          "once": true,
+          "when": [
+            {
+              "type": "age",
+              "role": "child",
+              "op": "eq",
+              "value": 0
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "child",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "bond",
+              "from": "spouse",
+              "to": "child",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "child",
+              "vsRole": "self",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "born_to_the_house",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_naming_feast",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "named_a_child",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave a naming feast for {child.name}, and the city heard of it."
+            }
+          ]
+        },
+        {
+          "id": "a_name_from_their_side",
+          "effects": [
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "spouse",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "named_a_child",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{child.name} was named for {spouse.name}'s family."
+            }
+          ]
+        },
+        {
+          "id": "a_name_of_your_line",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "named_a_child",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{child.name} was named for the old line of {self.house}."
+            }
+          ]
+        },
+        {
+          "id": "the_two_of_you_alone",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -6
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "named_a_child",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {spouse.name} named {child.name} with nobody else in the room."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_grandchild_is_born",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "cooldown": 0,
+      "roles": [
+        {
+          "name": "grandchild",
+          "once": true,
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "born_to_the_house",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "grandchild",
+              "op": "lte",
+              "value": 1
+            },
+            {
+              "type": "charFlag",
+              "role": "grandchild",
+              "flag": "grandchild_of_the_head",
+              "value": true
+            }
+          ]
+        },
+        {
+          "name": "parent",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "parent",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "bond",
+              "from": "parent",
+              "to": "grandchild",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "parent",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "parent",
+              "op": "gte",
+              "value": 16
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "born_to_the_house",
+          "value": true
+        },
+        {
+          "type": "charFlag",
+          "role": "self",
+          "flag": "had_a_grandchild",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_to_them",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "parent",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "had_a_grandchild",
+              "value": true
+            },
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to see {grandchild.name}, newly born, on the day."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ]
+        },
+        {
+          "id": "a_gift_from_the_house",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "parent",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "had_a_grandchild",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a gift from the house for {grandchild.name}, newly born."
+            }
+          ]
+        },
+        {
+          "id": "send_your_blessing",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "parent",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "had_a_grandchild",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent a blessing to {parent.name} for the child, and kept to the day's work."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_other_family_asks_for_the_child",
+      "tier": "situation",
+      "weight": 20,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "schooling_begins",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        },
+        {
+          "name": "child",
+          "when": [
+            {
+              "type": "age",
+              "role": "child",
+              "op": "eq",
+              "value": 6
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "child",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "bond",
+              "from": "spouse",
+              "to": "child",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "child",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "child",
+              "flag": "fostered",
+              "value": false
+            }
+          ]
+        },
+        {
+          "name": "in_law",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "in_law",
+              "flag": "in_law",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "schooling_begins",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_them_go",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "hidden",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "fostered",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "in_law",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{child.name} has gone to be raised in {in_law.house}, at {in_law.name}'s asking."
+            }
+          ]
+        },
+        {
+          "id": "keep_them_home",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "in_law",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept {child.name} at home, and thanked {in_law.name} for the offer."
+            }
+          ]
+        },
+        {
+          "id": "bring_the_tutor_here",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "in_law",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 3
+            },
+            {
+              "type": "adjustSkill",
+              "role": "child",
+              "skill": "charisma",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{in_law.name}'s tutor has come to {self.house} to teach {child.name}."
+            }
+          ]
+        },
+        {
+          "id": "ask_something_in_return",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "intrigue",
+                  "op": "gte",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "hidden",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "fostered",
+              "value": true
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "in_law",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -2
+            },
+            {
+              "type": "log",
+              "text": "{child.name} has gone to be raised in {in_law.house}, and {self.name} had something in return for it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_fostered_child_comes_home",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "child",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "kin_came_of_age",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "child",
+              "op": "eq",
+              "value": 16
+            },
+            {
+              "type": "charFlag",
+              "role": "child",
+              "flag": "fostered",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "child",
+              "vsRole": "self",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_came_of_age",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_feast_for_the_homecoming",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "fostered",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave a feast for {child.name}, home from fostering."
+            }
+          ]
+        },
+        {
+          "id": "at_your_side_from_the_first_day",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "fostered",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "child",
+              "skill": "administration",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{child.name}, home from fostering, is at {self.name}'s side from the first day."
+            }
+          ]
+        },
+        {
+          "id": "let_them_keep_both_houses",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "fostered",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{child.name} came home from fostering, and keeps both houses."
+            }
+          ]
+        },
+        {
+          "id": "this_house_is_yours_now",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "fostered",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "child",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {child.name}, home from fostering, that this house is {child.hers} and only this one."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kin_left_behind",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "winner",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "kin_fulfilled",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "self",
+              "op": "gte",
+              "value": 36
+            },
+            {
+              "type": "charFlag",
+              "role": "winner",
+              "flag": "has_what_they_wanted",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "winner",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "age",
+              "role": "winner",
+              "op": "gte",
+              "value": 16
+            },
+            {
+              "type": "age",
+              "role": "winner",
+              "op": "lte",
+              "value": 50
+            }
+          ]
+        },
+        {
+          "name": "other",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "other",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "other",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "other",
+              "op": "gte",
+              "value": 16
+            },
+            {
+              "type": "age",
+              "role": "other",
+              "op": "lte",
+              "value": 50
+            },
+            {
+              "type": "bond",
+              "from": "winner",
+              "to": "other",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "bond",
+              "from": "other",
+              "to": "winner",
+              "bond": "blood",
+              "present": false
+            },
+            {
+              "type": "charFlag",
+              "role": "other",
+              "flag": "has_what_they_wanted",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "other",
+              "flag": "heard_left_behind",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_fulfilled",
+          "value": true
+        },
+        {
+          "type": "age",
+          "role": "self",
+          "op": "gte",
+          "value": 36
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_with_the_one_who_has_it",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "other",
+              "flag": "heard_left_behind",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "winner",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "other",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "other",
+              "flag": "slighted",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stood with {winner.name}, and {other.name} took it as a slight."
+            }
+          ]
+        },
+        {
+          "id": "something_for_the_other",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "other",
+              "flag": "heard_left_behind",
+              "value": true
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "other",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "winner",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found something from the house for {other.name}."
+            }
+          ]
+        },
+        {
+          "id": "tell_them_to_stand_together",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "other",
+              "flag": "heard_left_behind",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "winner",
+              "to": "other",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "other",
+              "to": "winner",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "winner",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "other",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "winner",
+              "flag": "stood_together",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "other",
+              "flag": "stood_together",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {winner.name} and {other.name} to stand together, and they said they would."
+            }
+          ]
+        },
+        {
+          "id": "leave_them_to_it",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "other",
+              "flag": "heard_left_behind",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "other",
+              "to": "winner",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left {winner.name} and {other.name} to settle it between them, and {other.first} thought the worse of {winner.first}."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kin_stand_together",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "fallen",
+          "when": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "all",
+                  "of": [
+                    {
+                      "type": "worldFlag",
+                      "flag": "kin_failed",
+                      "value": true
+                    },
+                    {
+                      "type": "charFlag",
+                      "role": "fallen",
+                      "flag": "has_failed",
+                      "value": true
+                    }
+                  ]
+                },
+                {
+                  "type": "all",
+                  "of": [
+                    {
+                      "type": "worldFlag",
+                      "flag": "kin_thwarted",
+                      "value": true
+                    },
+                    {
+                      "type": "charFlag",
+                      "role": "fallen",
+                      "flag": "thwarted",
+                      "value": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "charFlag",
+              "role": "fallen",
+              "flag": "stood_together",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "fallen",
+              "vsRole": "self",
+              "value": true
+            }
+          ]
+        },
+        {
+          "name": "helper",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "helper",
+              "flag": "stood_together",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "helper",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "helper",
+              "op": "gte",
+              "value": 16
+            },
+            {
+              "type": "relationship",
+              "from": "helper",
+              "to": "fallen",
+              "op": "gte",
+              "value": 5
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "let_them_carry_it_together",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "fallen",
+              "flag": "stood_together",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "helper",
+              "flag": "stood_together",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "fallen",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "fallen",
+              "to": "helper",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "fallen",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{helper.name} saw {fallen.name} through a bad time."
+            }
+          ]
+        },
+        {
+          "id": "go_to_them_both",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "fallen",
+              "flag": "stood_together",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "helper",
+              "flag": "stood_together",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "fallen",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "helper",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to {fallen.name} and {helper.name} together."
+            }
+          ]
+        },
+        {
+          "id": "mend_it_yourself",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "fallen",
+              "flag": "stood_together",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "helper",
+              "flag": "stood_together",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "fallen",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustStress",
+              "role": "fallen",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "helper",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke where it counted for {fallen.name}, before {helper.name} could."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_wedding_remembered",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "wedding_remembered",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "wedding_remembered",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_feast_for_both_families",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "wedding_remembered",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {spouse.name} kept their wedding day with a feast for both families."
+            }
+          ]
+        },
+        {
+          "id": "a_gift_between_the_two_of_you",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "wedding_remembered",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {spouse.name} kept their wedding day between the two of them."
+            }
+          ]
+        },
+        {
+          "id": "a_day_like_any_other",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "wedding_remembered",
+              "value": false
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the wedding day pass like any other."
+            }
+          ]
+        },
+        {
+          "id": "say_what_has_gone_wrong",
+          "requires": [
+            {
+              "type": "worldFlag",
+              "flag": "marriage_cold",
+              "value": true
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "wedding_remembered",
+              "value": false
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "On their wedding day {self.name} and {spouse.name} said aloud what had gone wrong between them."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_spouses_ambition",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "turn",
+              "op": "gte",
+              "value": 4
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "spouse",
+              "vsRole": "self",
+              "value": false
+            },
+            {
+              "type": "rank",
+              "role": "spouse",
+              "op": "gte",
+              "value": 1
+            },
+            {
+              "type": "rank",
+              "role": "spouse",
+              "op": "lte",
+              "value": 3
+            },
+            {
+              "type": "rankYears",
+              "role": "spouse",
+              "op": "gte",
+              "value": 6
+            },
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "spouse",
+                  "trait": "Ambitious",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "spouse",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "spouse",
+                  "trait": "Arrogant",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            },
+            {
+              "type": "charFlag",
+              "role": "spouse",
+              "flag": "spouse_ambition_heard",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "turn",
+          "op": "gte",
+          "value": 4
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_for_them",
+          "cost": {
+            "influence": 2
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "spouse_ambition_heard",
+              "value": true
+            },
+            {
+              "type": "advanceCareer",
+              "role": "spouse"
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "spouse",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke for {spouse.name}, who is {spouse.rankName} now."
+            }
+          ]
+        },
+        {
+          "id": "put_your_own_name_to_it",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "rank",
+                  "role": "self",
+                  "op": "gte",
+                  "value": 3
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "oratory",
+                  "op": "gte",
+                  "value": 3
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "spouse_ambition_heard",
+              "value": true
+            },
+            {
+              "type": "advanceCareer",
+              "role": "spouse"
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 10
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put {self.his} own name to {spouse.name}'s promotion, and it is called favour."
+            }
+          ]
+        },
+        {
+          "id": "their_own_house_should_speak",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "spouse_ambition_heard",
+              "value": true
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {spouse.name} it was for {spouse.his} own family to speak for {spouse.him}."
+            }
+          ]
+        },
+        {
+          "id": "the_house_needs_you_more",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "spouse_ambition_heard",
+              "value": true
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -8
+            },
+            {
+              "type": "adjustStress",
+              "role": "spouse",
+              "delta": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {spouse.name} the house needed {spouse.him} more than {spouse.his} service did."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "between_two_families",
+      "tier": "situation",
+      "weight": 12,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spouse",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "spouse",
+              "bond": "marriage",
+              "present": true
+            },
+            {
+              "type": "charFlag",
+              "role": "spouse",
+              "flag": "torn_between",
+              "value": false
+            }
+          ]
+        },
+        {
+          "name": "in_law",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "in_law",
+              "flag": "in_law",
+              "value": true
+            },
+            {
+              "type": "atWar",
+              "role": "in_law",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "let_them_write_home",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "torn_between",
+              "value": true
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {spouse.name} write home to {spouse.house} through the war."
+            }
+          ]
+        },
+        {
+          "id": "no_letters_while_it_lasts",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "torn_between",
+              "value": true
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "spouse",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} stopped {spouse.name}'s letters to {spouse.house} while the war lasted."
+            }
+          ]
+        },
+        {
+          "id": "ask_them_to_carry_a_peace",
+          "requires": [
+            {
+              "type": "peaceTerm",
+              "role": "in_law",
+              "kind": "white"
+            }
+          ],
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "spouse",
+              "flag": "torn_between",
+              "value": true
+            },
+            {
+              "type": "peaceTerms",
+              "role": "in_law",
+              "kind": "white"
+            },
+            {
+              "type": "marriage",
+              "role": "self",
+              "warmth": 6
+            },
+            {
+              "type": "log",
+              "text": "{spouse.name} carried an offer of peace to {spouse.house}, and it was taken."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_life_of_their_own",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kid",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "kin_came_of_age",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "kid",
+              "op": "eq",
+              "value": 16
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kid",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "kid",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "kid",
+              "flag": "came_of_age",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "kid",
+              "flag": "fostered",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "kid",
+              "flag": "chose_own_road",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_came_of_age",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "bless_it_before_the_house",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kid",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kid",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} blessed {kid.name}'s choice of service before the house."
+            }
+          ]
+        },
+        {
+          "id": "write_to_someone_in_that_service",
+          "cost": {
+            "influence": 1
+          },
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kid",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "advanceCareer",
+              "role": "kid"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kid",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote a letter for {kid.name}, who is {kid.rankName} already."
+            }
+          ]
+        },
+        {
+          "id": "learn_the_house_first",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kid",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "kid",
+              "skill": "administration",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kid",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{kid.name} is to learn the house's business for a year before the service."
+            }
+          ]
+        },
+        {
+          "id": "the_wrong_road",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kid",
+              "flag": "came_of_age",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kid",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "kid",
+              "delta": 8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kid",
+              "flag": "doubted_by_the_head",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kid.name} it was the wrong road. {kid.He} has taken it all the same."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "you_were_wrong_about_them",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kid",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "kin_fulfilled",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "kid",
+              "flag": "has_what_they_wanted",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "kid",
+              "flag": "doubted_by_the_head",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_fulfilled",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_you_were_wrong",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kid",
+              "flag": "doubted_by_the_head",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kid",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said it to {kid.name} in so many words: I was wrong about you."
+            }
+          ]
+        },
+        {
+          "id": "raise_a_cup",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kid",
+              "flag": "doubted_by_the_head",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kid",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} raised a cup to {kid.name}, and said nothing of the old argument."
+            }
+          ]
+        },
+        {
+          "id": "say_they_were_lucky",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kid",
+              "flag": "doubted_by_the_head",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kid",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kid.name} it had been luck."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "while_you_were_ill",
+      "tier": "situation",
+      "weight": 20,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "keeper",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "head_ill",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "keeper",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "keeper",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "keeper",
+              "op": "gte",
+              "value": 20
+            },
+            {
+              "type": "charFlag",
+              "role": "keeper",
+              "flag": "retired",
+              "value": false
+            },
+            {
+              "type": "relationship",
+              "from": "keeper",
+              "to": "self",
+              "op": "gte",
+              "value": -20
+            },
+            {
+              "type": "charFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "keeper",
+              "flag": "promised_the_seat",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "head_ill",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "leave_them_at_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustSkill",
+              "role": "keeper",
+              "skill": "administration",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {keeper.name} for keeping the house, and left {keeper.him} at the work."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_would_change",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {keeper.name} what {keeper.he} would change in the house, and changed it."
+            }
+          ]
+        },
+        {
+          "id": "take_it_all_back",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the house's business back from {keeper.name}, and went through all of it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "they_ask_you_to_stand_aside",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "keeper",
+          "when": [
+            {
+              "type": "age",
+              "role": "self",
+              "op": "gte",
+              "value": 55
+            },
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "age",
+                  "role": "self",
+                  "op": "gte",
+                  "value": 62
+                },
+                {
+                  "type": "worldFlag",
+                  "flag": "head_ill",
+                  "value": true
+                },
+                {
+                  "type": "worldFlag",
+                  "flag": "head_ailing",
+                  "value": true
+                },
+                {
+                  "type": "worldFlag",
+                  "flag": "head_frail",
+                  "value": true
+                }
+              ]
+            },
+            {
+              "type": "charFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "keeper",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "keeper",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "keeper",
+              "op": "gte",
+              "value": 20
+            },
+            {
+              "type": "charFlag",
+              "role": "keeper",
+              "flag": "retired",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "age",
+          "role": "self",
+          "op": "gte",
+          "value": 55
+        },
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "age",
+              "role": "self",
+              "op": "gte",
+              "value": 62
+            },
+            {
+              "type": "worldFlag",
+              "flag": "head_ill",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "head_ailing",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "head_frail",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "lay_the_house_down",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "retired",
+              "value": true
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} laid the house down in life to {keeper.name}, and stays on as its elder."
+            },
+            {
+              "type": "succeed",
+              "role": "keeper"
+            }
+          ]
+        },
+        {
+          "id": "name_a_day",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "promised_the_seat",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} promised {keeper.name} the seat, on a day to come."
+            }
+          ]
+        },
+        {
+          "id": "not_yet",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {keeper.name} that the house was not to be laid down yet, and promised nothing more."
+            }
+          ]
+        },
+        {
+          "id": "not_while_you_live",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ambitious",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Arrogant",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "kept_the_house",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustStress",
+              "role": "keeper",
+              "delta": 8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "slighted",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {keeper.name} {keeper.he} would have the seat when {self.first} was dead, and not before."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_day_you_named",
+      "tier": "situation",
+      "weight": 25,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "keeper",
+          "when": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "age",
+                  "role": "self",
+                  "op": "gte",
+                  "value": 68
+                },
+                {
+                  "type": "all",
+                  "of": [
+                    {
+                      "type": "age",
+                      "role": "self",
+                      "op": "gte",
+                      "value": 60
+                    },
+                    {
+                      "type": "any",
+                      "of": [
+                        {
+                          "type": "worldFlag",
+                          "flag": "head_ill",
+                          "value": true
+                        },
+                        {
+                          "type": "worldFlag",
+                          "flag": "head_ailing",
+                          "value": true
+                        },
+                        {
+                          "type": "worldFlag",
+                          "flag": "head_frail",
+                          "value": true
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "charFlag",
+              "role": "keeper",
+              "flag": "promised_the_seat",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "keeper",
+              "bond": "blood",
+              "present": true
+            },
+            {
+              "type": "inLine",
+              "role": "keeper",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "keeper",
+              "op": "gte",
+              "value": 20
+            },
+            {
+              "type": "charFlag",
+              "role": "keeper",
+              "flag": "retired",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "age",
+              "role": "self",
+              "op": "gte",
+              "value": 68
+            },
+            {
+              "type": "all",
+              "of": [
+                {
+                  "type": "age",
+                  "role": "self",
+                  "op": "gte",
+                  "value": 60
+                },
+                {
+                  "type": "any",
+                  "of": [
+                    {
+                      "type": "worldFlag",
+                      "flag": "head_ill",
+                      "value": true
+                    },
+                    {
+                      "type": "worldFlag",
+                      "flag": "head_ailing",
+                      "value": true
+                    },
+                    {
+                      "type": "worldFlag",
+                      "flag": "head_frail",
+                      "value": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_your_word",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "promised_the_seat",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "retired",
+              "value": true
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept {self.his} word, and laid the house down to {keeper.name}."
+            },
+            {
+              "type": "succeed",
+              "role": "keeper"
+            }
+          ]
+        },
+        {
+          "id": "one_more_year",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {keeper.name} for one more year."
+            }
+          ]
+        },
+        {
+          "id": "break_it",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "promised_the_seat",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "keeper",
+              "to": "self",
+              "delta": -25
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "keeper",
+              "flag": "slighted",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} broke the promise of the seat to {keeper.name}, who will not forget it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_reading_of_the_will",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "sibling",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "will_read",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "sibling",
+              "flag": "passed_over_at_the_will",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "sibling",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "sibling",
+              "op": "gte",
+              "value": 16
+            },
+            {
+              "type": "relationship",
+              "from": "sibling",
+              "to": "self",
+              "op": "lte",
+              "value": 20
+            },
+            {
+              "type": "charFlag",
+              "role": "sibling",
+              "flag": "heard_at_the_will",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "will_read",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_portion_for_them",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "sibling",
+              "flag": "heard_at_the_will",
+              "value": true
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sibling",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave {sibling.name} a portion from the treasury after the reading."
+            }
+          ]
+        },
+        {
+          "id": "a_seat_at_your_counsel",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "sibling",
+              "flag": "heard_at_the_will",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sibling",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept {sibling.name} close after the reading, and asked {sibling.his} advice."
+            }
+          ]
+        },
+        {
+          "id": "speak_to_them_alone",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Diplomat",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "charisma",
+                  "op": "gte",
+                  "value": 3
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "sibling",
+              "flag": "heard_at_the_will",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sibling",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spoke to {sibling.name} alone after the reading."
+            }
+          ]
+        },
+        {
+          "id": "the_house_is_yours",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "sibling",
+              "flag": "heard_at_the_will",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sibling",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {sibling.name} that the house was one, and that it was {self.first}'s."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_household_scandal",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "leaver",
+          "when": [
+            {
+              "type": "worldFlag",
+              "flag": "household_left_unpaid",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "leaver",
+              "flag": "left_unpaid",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "household_left_unpaid",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_what_was_owed",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "leaver",
+              "flag": "left_unpaid",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "leaver",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid {leaver.name} what the house owed, and more."
+            }
+          ]
+        },
+        {
+          "id": "go_to_them_yourself",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "leaver",
+              "flag": "left_unpaid",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "leaver",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to {leaver.name} in person about the unpaid years."
+            }
+          ]
+        },
+        {
+          "id": "let_go_for_cause",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "intrigue",
+                  "op": "gte",
+                  "value": 2
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "leaver",
+              "flag": "left_unpaid",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "leaver",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "It is said in the city that {leaver.name} was let go for cause."
+            }
+          ]
+        },
+        {
+          "id": "let_them_talk",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "leaver",
+              "flag": "left_unpaid",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{leaver.name} told the city how the house pays its people, and the city listened."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

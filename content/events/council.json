@@ -1,0 +1,764 @@
+{
+  "//": "THE COUNCIL (docs/HOUSEHOLD.md, 'The council'; the owner, 2026-11-22). Scenes for the posts of a house's council beyond the steward and the marshal: the spymaster, the envoy, the advocate and the chancellor. Each reads a world flag the post's year raises (spymaster_reports, informer_caught, envoy_made_a_friend, envoy_snubbed, advocate_won, advocate_lost, chancellor_voted) and clears it; the holder carries the char flag post:<role>, the head watched carries spied_on, and the head called on carries envoy_called_on.",
+  "events": [
+    {
+      "id": "the_spymasters_report",
+      "tier": "situation",
+      "weight": 26,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spymaster",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "spymaster",
+              "flag": "post:spymaster",
+              "value": true
+            }
+          ]
+        },
+        {
+          "name": "watched",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "watched",
+              "flag": "spied_on",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "spymaster_reports",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "spymaster_reports",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read what {spymaster.name} had brought about {watched.name}, and put it in the drawer with the others. A thing known is worth most on the day it is needed."
+            }
+          ]
+        },
+        {
+          "id": "sell_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "spymaster_reports",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known, to the right buyer, what {watched.name} would rather was not. Six hundred credits, and one more person who knows where it came from."
+            }
+          ]
+        },
+        {
+          "id": "tell_them",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "spymaster_reports",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "watched",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "spymaster",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {watched.name} plainly what was being said in {watched.his} own household, and by whom. {watched.first} did not ask how {self.first} knew."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_informer_found",
+      "scene": "intrigue",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spymaster",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "spymaster",
+              "flag": "post:spymaster",
+              "value": true
+            }
+          ]
+        },
+        {
+          "name": "watched",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "watched",
+              "flag": "spied_on",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "informer_caught",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "deny_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "informer_caught",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "watched",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said the man was nothing to do with the house. {watched.name} said that was very likely. Neither believed the other."
+            }
+          ]
+        },
+        {
+          "id": "send_a_gift",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "informer_caught",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "watched",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {watched.name} a gift and a short letter that admitted nothing and apologised for it. It was received in the same way."
+            }
+          ]
+        },
+        {
+          "id": "stand_by_your_man",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "informer_caught",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "spymaster",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "watched",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {spymaster.name} that a man lost at that work is the price of the work, and to send another."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_envoys_friend",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "our_envoy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "our_envoy",
+              "flag": "post:envoy",
+              "value": true
+            }
+          ]
+        },
+        {
+          "name": "host",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "host",
+              "flag": "envoy_called_on",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "envoy_made_a_friend",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "ask_for_a_vote",
+          "requires": [
+            {
+              "type": "charFlag",
+              "role": "host",
+              "flag": "no_bargain_with_you",
+              "value": false
+            },
+            { "type": "atWar", "role": "host", "present": false }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "envoy_made_a_friend",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "host",
+              "flag": "their_house_owes_you_a_vote",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "host",
+              "to": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not waste the new warmth of {host.name}: there was a vote coming, and {host.he} was asked for it before the wine was cold. {host.house} owes {self.house} a vote."
+            }
+          ]
+        },
+        {
+          "id": "talk_trade",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "envoy_made_a_friend",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {our_envoy.name} turn the talk at {host.name}'s table to cargoes. It came to six hundred credits and a standing arrangement."
+            }
+          ]
+        },
+        {
+          "id": "leave_it_warm",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "envoy_made_a_friend",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "host",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "our_envoy",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {host.name} for nothing at all. {our_envoy.name} said that was the cleverest thing done all year."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_envoy_turned_away",
+      "tier": "situation",
+      "weight": 34,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "our_envoy",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "our_envoy",
+              "flag": "post:envoy",
+              "value": true
+            }
+          ]
+        },
+        {
+          "name": "host",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "host",
+              "flag": "envoy_called_on",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "envoy_snubbed",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_yourself",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "envoy_snubbed",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "host",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went in person to the door {our_envoy.name} had been kept at. {host.name} could keep an envoy waiting. A head of a house had to be seen."
+            }
+          ]
+        },
+        {
+          "id": "send_them_again",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "envoy_snubbed",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "our_envoy",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {our_envoy.name} back the next season with the same gifts and no remark. Patience is also a message."
+            }
+          ]
+        },
+        {
+          "id": "let_it_lie",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "envoy_snubbed",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "our_envoy",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the matter of {host.name} lie. {our_envoy.name} had expected to be defended, and noticed that {our_envoy.he} was not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_advocates_day",
+      "scene": "court",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "advocate",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "advocate",
+              "flag": "post:advocate",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "advocate_won",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "reward_them",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "advocate_won",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "advocate",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid {advocate.name} a fee as a stranger would have been paid, and said the house had been well served. It had."
+            }
+          ]
+        },
+        {
+          "id": "take_the_credit",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "advocate_won",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "advocate",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "log",
+              "text": "It was {self.name}'s house that had won, and {self.he} let the benches understand whose judgment had chosen the ground. {advocate.name} heard about it."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "advocate_won",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "advocate",
+              "to": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} nodded to {advocate.name} across the hall. The work was the thanks."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_advocate_loses",
+      "scene": "court",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "advocate",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "advocate",
+              "flag": "post:advocate",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "advocate_lost",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "stand_by_them",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "advocate_lost",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "advocate",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {advocate.name} that a case is lost by the law as often as by the pleader, and to be in court for the next one."
+            }
+          ]
+        },
+        {
+          "id": "pay_for_teaching",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "advocate_lost",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustSkill",
+              "role": "advocate",
+              "skill": "law",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid for {advocate.name} to read a year under a better lawyer. It was cheaper than the next judgment would have been."
+            }
+          ]
+        },
+        {
+          "id": "say_what_you_think",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "advocate_lost",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "advocate",
+              "to": "self",
+              "delta": -12
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {advocate.name} exactly how the case had been lost, point by point. It was accurate. It was not forgiven."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_chancellors_voice",
+      "scene": "senate",
+      "tier": "situation",
+      "weight": 10,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "chancellor",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "chancellor",
+              "flag": "post:chancellor",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "chancellor_voted",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_it_stand",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "chancellor_voted",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "chancellor",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} read the list of what {chancellor.name} had declared in the house's name and changed none of it."
+            }
+          ]
+        },
+        {
+          "id": "make_it_yours",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "chancellor_voted",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "chancellor",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose in the chamber to say that the house's votes were the house's head's, whoever had spoken them. The benches took the point. So did {chancellor.name}."
+            }
+          ]
+        },
+        {
+          "id": "ask_to_be_asked",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "chancellor_asks_first",
+              "value": true
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "chancellor_voted",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "chancellor",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {chancellor.name} that the next doubtful vote was to come upstairs first. It was a small leash, and both knew it."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

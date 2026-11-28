@@ -1,0 +1,35 @@
+{
+  // GIVEN NAMES for children born in play (GDD §14). A house's `culture` picks a list (default "reach"); the engine
+  // draws deterministically from the seeded RNG and appends the house's name ("House Vega" → "Vega"). Add a culture
+  // here and name it on a scenario house to flavour a region, zero engine work.
+  "cultures": {
+    "reach": {
+      "male":   ["Aldous", "Cassian", "Darius", "Eamon", "Felix", "Gaius", "Hadrian", "Idris", "Julian", "Kael", "Lucan", "Marcus", "Nero", "Orrin", "Pell", "Quintus", "Rowan", "Severin", "Tiberius", "Ulric", "Varro", "Wendel"],
+      "female": ["Adria", "Brisa", "Cassia", "Delia", "Elara", "Fenna", "Galla", "Helia", "Ione", "Junia", "Kessa", "Livia", "Mira", "Nessa", "Octavia", "Petra", "Quilla", "Rhea", "Sela", "Thessaly", "Una", "Vera"]
+    },
+    "aurelian": {
+      "male":   ["Augustin", "Claudian", "Decimus", "Flavian", "Hadrian", "Lucius", "Maximian", "Octavian", "Priscus", "Septimus", "Valerian", "Vespasian"],
+      "female": ["Aurelia", "Claudia", "Domitia", "Flavia", "Justina", "Lucilla", "Marcella", "Octavia", "Placidia", "Sabina", "Valeria", "Vibia"]
+    },
+    "vashti": {
+      "male":   ["Temur", "Jochi", "Batu", "Kublai", "Berke", "Subedei", "Arik", "Mongke", "Toghrul", "Chagan", "Esen", "Nogai"],
+      "female": ["Borte", "Sorgha", "Altani", "Mandu", "Checheg", "Oyun", "Khulan", "Toregene", "Saran", "Narantu", "Odval", "Tsetseg"]
+    },
+    "thessaran": {
+      "male":   ["Lysander", "Nikanor", "Demos", "Philo", "Arist", "Stavro", "Kleon", "Theron", "Evander", "Milo", "Pelias", "Zenon"],
+      "female": ["Thais", "Xanthe", "Ione", "Kleio", "Melita", "Dione", "Eirene", "Phaedra", "Kallista", "Myrto", "Lyra", "Agathe"]
+    },
+    "concordant": {
+      "male":   ["Soren", "Tomas", "Anders", "Viktor", "Henrik", "Lukas", "Emil", "Kaspar", "Rolf", "Stellan", "Jorn", "Axel"],
+      "female": ["Ilse", "Katrin", "Maren", "Elsa", "Sigrid", "Greta", "Astrid", "Liv", "Freya", "Ingrid", "Runa", "Solveig"]
+    },
+    "compact": {
+      "male":   ["Josen", "Abel", "Coln", "Enoch", "Silas", "Amos", "Jared", "Tobin", "Caleb", "Ezra", "Hale", "Orin"],
+      "female": ["Edda", "Mirel", "Hester", "Ruth", "Sabra", "Tamsin", "Leah", "Dinah", "Marah", "Adah", "Keziah", "Prue"]
+    },
+    "crownish": {
+      "male":   ["Manuel", "Isaak", "Andronik", "Nikeph", "Alexios", "Basil", "Leon", "Romanos", "Michael", "Theodore", "Bardas", "Konstans"],
+      "female": ["Theodora", "Eudokia", "Zoe", "Irene", "Anna", "Helena", "Maria", "Sophia", "Euphro", "Kassia", "Pulcheria", "Thekla"]
+    }
+  }
+}

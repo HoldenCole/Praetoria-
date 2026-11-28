@@ -1,0 +1,416 @@
+/* The House window (docs/VISUAL_SYSTEM.md 4 and 5.1; the mockup docs/ui/house.jpg): the world painting and its plinth, six tabs, and
+   on each tab sections of rows, never cards. Estate: each world one composed entry (a lit globe, its name and acts, three meters beside
+   the building slots, a warn strip when the chair is empty), provinces held under other houses as rows, the land's yields as the
+   signed ledger. Ledger, Household, Council, Court and Purse are sections of rows of the same grid. Loaded after app.css, so a rule
+   here wins over a shared rule of the same weight. Only this window's files (HouseScreen, HouseholdPanel, CouncilPanel, CourtPanel,
+   WealthPanel, RichHousePanel, LegitimacyMade) use the classes below, hs-, lm- and the old hooks the browser scripts read (panel
+   household, panel wealth, duty, purse-row, suit, suit-acts); where a shared part lacks something it is varied here.
+
+   Widths: the window is a container ("hs"), so what gives way when it is narrow is chosen by its width in rem, which counts the text
+   size too. Wide is 1600 by 1000 at the normal size (49rem); "narrow" is under 45rem (1366 wide, or 1600 at the larger sizes). */
+
+/* ---- kept from before: rules other windows still use (the succession banner's tail, the system panel's pips, the borrowing fold) ---- */
+.banner .tail { position: absolute; left: -1px; right: -1px; bottom: -3em; height: 3em; background: inherit; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.pdot { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; vertical-align: middle; margin-right: .2rem; }
+.hc-head .pdot { width: 1.2rem; height: 1.2rem; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 1px rgba(0,0,0,.6); }
+.pips { letter-spacing: .08em; color: var(--gold, #d8b25a); font-size: .8em; white-space: nowrap; }
+details.borrow { display: block; margin-top: .4rem; }
+details.borrow .lender { border-top: 1px solid var(--line, rgba(255,255,255,.08)); padding: .35rem 0; }
+details.borrow .lender.off { opacity: .7; }
+details.borrow .lender .row { align-items: center; gap: .35rem; flex-wrap: wrap; }
+details.borrow .lender-amt { min-width: 2.4rem; text-align: center; font-variant-numeric: tabular-nums; }
+
+/* ---- the window ---- */
+.hs-win { --hs-gut-l: 1.8667rem; --hs-gut-r: 1.6rem; container: hs / inline-size; }
+
+/* the painted header: the world, its night side and the citadel; the shade held dark behind the text, the plinth's five figures spread */
+.hs-win .ui-head-art { background-position: center 46%; }
+.hs-win .ui-plinth { justify-content: space-between; }
+.hs-win .ui-plinth .ui-fig + .ui-fig { margin-left: .6rem; padding-left: 1rem; }
+.hs-win .ui-facts > span { text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9); }
+.hs-win .ui-facts > [title] { cursor: help; }
+.hs-win .ui-title { white-space: nowrap; }
+@container hs (max-width: 46rem) {
+  .hs-win .ui-plinth { padding: 0 1.2rem 0 1.3333rem; }
+  .hs-win .ui-plinth .ui-fig { gap: .4rem; }
+  .hs-win .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
+  .hs-win .ui-plinth .ui-fig + .ui-fig { margin-left: .2667rem; padding-left: .6667rem; }
+  .hs-win .ui-fig-v .d { display: none; }
+  .hs-win .ui-head-text { right: 3.6rem; }
+  .hs-win .ui-facts { gap: .2rem .8rem; }
+}
+
+/* the body: one scrolling page that fades at its foot, and once scrolled at its head too, as the Laws window's does */
+@property --hs-top { syntax: '<length>'; inherits: false; initial-value: 0px; }
+.hs-win .hs-body { padding-bottom: 2.4rem;
+  -webkit-mask-image: linear-gradient(transparent 0, #000 var(--hs-top), #000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(transparent 0, #000 var(--hs-top), #000 calc(100% - 56px), transparent); }
+@supports (animation-timeline: scroll()) { .hs-win .hs-body { animation: hs-topfade linear both; animation-timeline: scroll(self); animation-range: 0 32px; } }
+@supports not (animation-timeline: scroll()) { .hs-win .hs-body { --hs-top: 18px; } }
+@keyframes hs-topfade { from { --hs-top: 0px; } to { --hs-top: 22px; } }
+
+/* the lede, and the notes: one line of plain words under a section, never under 14px */
+.hs-lede { margin-bottom: .2667rem; }
+.hs-lede.good b { color: var(--ink); } .hs-lede.warn { color: #f0dba8; } .hs-lede.bad { color: #f6c9bd; }
+.hs-note { margin: .4rem var(--hs-gut-r) .4rem var(--hs-gut-l); font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.hs-note b { color: var(--ink); font-weight: 600; }
+.hs-note .icon { width: 1rem; height: 1rem; margin-right: .4rem; vertical-align: -.2em; }
+.hs-money { margin-top: .5333rem; color: var(--ink-mute); }
+.hs-mute-s { font: italic 400 .9333rem/1.3 var(--f-prose); color: var(--ink-dim); }
+.hs-win .ui-empty, .hs-win .ui-wstrip { margin-left: var(--hs-gut-l); margin-right: var(--hs-gut-r); }
+.hs-win .ui-empty { padding-left: 0; padding-right: 0; }
+.hs-win .ui-wstrip { margin-top: .5333rem; }
+.hs-win .ui-sec .ui-n { white-space: nowrap; }
+.hs-win .ui-sec-r { white-space: nowrap; min-width: 0; overflow: hidden; } .hs-win .ui-sec-r > span { overflow: hidden; text-overflow: ellipsis; }
+.hs-win .ui-sec-r .icon { width: 1.0667rem; height: 1.0667rem; margin-right: .3rem; vertical-align: -.2em; }
+.hs-win .ui-sec-r .ui-btn { height: 1.6rem; }
+
+/* small tags beside a name: a plain recessed label, warn or bad by their edge and ink, gold for what is yours */
+.hs-tag { display: inline-flex; align-items: center; height: 1.3333rem; padding: 0 .4667rem; margin-left: .5333rem; vertical-align: .1em; font: 600 .8rem/1 var(--f-ui); letter-spacing: .02em; color: var(--ink-dim);
+  background: #07090d; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(255,255,255,.08); border-radius: 2px; white-space: nowrap; }
+.hs-tag.gold { color: var(--brass-hi); box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(201,162,74,.55); }
+.hs-tag.warn { color: var(--warn); box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(227,166,74,.5); }
+.hs-tag.bad { color: #ff8a70; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(224,85,63,.55); }
+.hs-tag.good { color: var(--good); box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(140,196,126,.45); }
+.hs-tag.pill { margin-left: 0; border: 0; font: 600 .8rem/1 var(--f-ui); padding: 0 .4667rem; }
+
+/* a line of controls inside a section: a small-capital label, then plates or joined segments */
+.hs-line { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; margin: .5333rem var(--hs-gut-r) .2667rem var(--hs-gut-l); }
+.hs-lbl { display: inline-flex; align-items: center; gap: .3rem; font: 600 .8rem/1.2 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); white-space: nowrap; }
+.hs-lbl .icon { width: 1rem; height: 1rem; }
+.hs-lbl[title] { cursor: help; }
+.hs-acts { display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .3333rem; }
+.hs-under { display: flex; margin: -.2rem var(--hs-gut-r) .5333rem calc(var(--hs-gut-l) + 3.6rem + .9333rem); justify-content: flex-start; }
+.hs-win .ui-wstrip.hs-under { margin-top: 0; }
+.hs-seg { flex-wrap: wrap; }
+.hs-seg button:disabled { cursor: default; opacity: 1; }
+.hs-seg button.on:disabled { color: var(--brass-hi); }
+.hs-win .ui-btn.hs-danger, .ui-btn.hs-danger { color: #ffb4a3; box-shadow: var(--sh-plate), 0 0 0 1px rgba(224,85,63,.6); }
+.hs-win .ui-plate-wrap { flex-wrap: nowrap; }
+/* a choice of words that is not a command (the will's shares and names): a small recessed chip, lit when chosen */
+.hs-chip { height: 1.8667rem; padding: 0 .6667rem; display: inline-flex; align-items: center; gap: .3rem; font: 600 .8667rem/1 var(--f-ui); color: #c9c3b0; cursor: pointer;
+  background: linear-gradient(#262d3e, #181d29); border: 1px solid #000; border-radius: 2px; box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+.hs-chip:hover:not(:disabled) { color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 0 0 1px var(--brass-mid); }
+.hs-chip.on { color: var(--brass-hi); background: #0b0e14; box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass); }
+.hs-chip:disabled { opacity: .55; cursor: not-allowed; }
+.hs-chip .icon { width: .7333rem; height: .7333rem; }
+.hs-num { width: 6.6667rem; height: 1.8667rem; padding: 0 .5333rem; font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); text-align: right;
+  -webkit-appearance: none; appearance: none; background: #05070a; border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-inset), 0 0 0 1px rgba(201,162,74,.35); }
+.hs-num::-webkit-inner-spin-button, .hs-num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.hs-num:focus { outline: none; box-shadow: var(--sh-inset), 0 0 0 1px var(--brass); }
+
+/* a key and its value on one line: Standing, the accounts */
+.hs-kv { display: flex; align-items: center; justify-content: space-between; gap: 1.0667rem; min-height: 2.4rem; padding: .2667rem var(--hs-gut-r) .2667rem var(--hs-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
+.hs-k { display: inline-flex; align-items: center; gap: .5333rem; min-width: 0; font: 500 .9333rem/1.3 var(--f-ui); color: var(--ink); }
+.hs-k .icon { width: 1.0667rem; height: 1.0667rem; flex: none; }
+.hs-k[title] { cursor: help; }
+.hs-v { display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: .4rem .6667rem; text-align: right; font: 600 .9333rem/1.3 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); }
+.hs-v small { font: 400 .9333rem/1.3 var(--f-ui); }
+.hs-kv.hs-total { border-bottom: 0; box-shadow: inset 0 1px 0 rgba(201,162,74,.3); }
+.hs-kv.hs-total.bad .hs-k { color: #f6c9bd; }
+.hs-succ .ui-seg button { text-transform: none; }
+
+/* rows: the shared grid, with the portraits of people at 46 by 56 */
+.hs-win .ui-row .portrait:not(.pf-empty) { display: block; }
+.hs-win .ui-row-sub { white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.hs-win .ui-row-nm .hs-tag { font-weight: 600; }
+.hs-win .ui-cell small { color: var(--ink-mute); font-weight: 500; }
+.hs-win .ui-cols:empty { display: none; }
+.hs-medal { width: 2.9333rem; height: 2.9333rem; border-width: 2px; margin: 0 auto; }
+.hs-medal .icon { width: 1.4667rem; height: 1.4667rem; }
+.hs-medal.lit { background: radial-gradient(circle at 50% 38%, #3a3220, #0c0b08 74%) padding-box, conic-gradient(from 210deg, #f6e2a0, #8a6a2a, #e9cd84, #5b4316, #f6e2a0) border-box; }
+.hs-arms { display: grid; place-items: center; width: 3.6rem; }
+.hs-thumb-none { display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #1d2330, #07090d); }
+.hs-detail { display: flex; flex-wrap: wrap; gap: .2667rem 1.0667rem; padding: .4rem var(--hs-gut-r) .6667rem calc(var(--hs-gut-l) + 3.6rem + .9333rem); font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim);
+  background: linear-gradient(90deg, rgba(201,162,74,.06), transparent); border-bottom: 1px solid rgba(255,255,255,.05); }
+.hs-detail b { color: var(--ink); font-weight: 600; }
+
+/* ---- Estate: one world, one composed entry (4.8) ---- */
+.hs-world { display: grid; grid-template-columns: 4.1333rem minmax(0, 1fr); column-gap: 1.2rem; padding: 1.0667rem var(--hs-gut-r) 1.0667rem 2rem; border-bottom: 1px solid rgba(201,162,74,.14); }
+.hs-world.besieged { background: linear-gradient(90deg, rgba(224,85,63,.06), transparent 60%); }
+.hs-gl { padding-top: .2667rem; }
+.hs-globe-btn { display: block; padding: 0; margin: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
+.hs-globe-btn:hover .ui-globe { filter: brightness(1.12); }
+.hs-wmain { min-width: 0; }
+.hs-whd { display: flex; align-items: flex-start; gap: .6667rem; }
+.hs-wtt { min-width: 0; flex: 1 1 auto; }
+.hs-wnm { font: 600 1.1333rem/1.2 var(--f-ui); color: var(--ink); }
+.hs-wsub { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); margin-top: .2rem; }
+.hs-wacts { margin-left: auto; display: flex; gap: .4rem; flex: none; }
+.hs-wacts .ui-cost { color: var(--ink-dim); }
+.hs-wmid { display: grid; grid-template-columns: minmax(0, 1fr) 19.3333rem; column-gap: 1.6rem; margin-top: .6667rem; align-items: start; }
+.hs-meters { display: grid; gap: .2rem; padding-top: .1333rem; }
+.hs-meters .ui-meter[title] { cursor: help; }
+.hs-slots .ui-slots-head span:last-child { font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim); letter-spacing: 0; text-transform: none; }
+.hs-world .ui-wstrip { margin: .8rem 0 0; }
+.hs-gov { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; margin-top: .6667rem; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.hs-gov b { color: var(--ink); font-weight: 600; }
+.hs-gov .hs-tag { margin-left: .2667rem; }
+.hs-gov-chg { margin-left: auto; }
+/* what can be begun, the governor's chair, the shipyard: a recessed list under the world */
+.hs-sub-list { margin-top: .6667rem; padding: .4rem .6667rem .5333rem; background: rgba(5,7,10,.55); box-shadow: inset 0 1px 3px #000, inset 0 0 0 1px rgba(201,162,74,.18); }
+.hs-sub-hd { display: flex; align-items: center; gap: .5333rem; margin: .2667rem 0 .2667rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.hs-sub-hd span { color: var(--ink-dim); letter-spacing: 0; }
+.hs-sub-list .hs-note { margin: .4rem 0 0; }
+.hs-pick { display: grid; grid-template-columns: auto minmax(0, auto) minmax(0, 1fr) auto; align-items: center; column-gap: .6667rem; min-height: 2.6667rem; padding: .2rem 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.hs-pick:last-child { border-bottom: 0; }
+.hs-pick-art { width: 3.2rem; height: 2.1333rem; display: grid; place-items: center; }
+.hs-pick-art.none { background: radial-gradient(circle at 50% 40%, #1d2330, #07090d); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.35); }
+.hs-pick-nm { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-pick-nm small { color: var(--ink-mute); font-weight: 500; font-size: .8667rem; }
+.hs-pick-sub { font: 400 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hs-pick .portrait:not(.pf-empty) { display: block; }
+/* provinces held under others: the dues as a loss at the right */
+.hs-dues { display: inline-flex; gap: .6667rem; }
+@container hs (max-width: 45rem) {
+  .hs-wmid { grid-template-columns: minmax(0, 1fr); row-gap: .6667rem; }
+  .hs-world { column-gap: .9333rem; padding-left: 1.6rem; }
+  .hs-wacts .ui-btn { padding: 0 .6rem; }
+}
+
+/* ---- the signed ledger (4.10): losses in ember left of a centre line, gains in brass right of it ---- */
+.hs-led { padding: .6667rem var(--hs-gut-r) .2667rem var(--hs-gut-l); display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) 5.4667rem; row-gap: .5333rem; align-items: center; }
+.hs-led-src { display: flex; align-items: center; gap: .5333rem; min-width: 0; font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: .6667rem; cursor: help; }
+.hs-led-src .icon { flex: none; width: 1rem; height: 1rem; }
+.hs-led-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hs-led-src.net { font-weight: 600; color: var(--brass-ink); cursor: default; padding-left: 1.5333rem; }
+.hs-led-neg, .hs-led-pos { height: .8rem; position: relative; }
+.hs-led-neg { border-right: 1px solid rgba(233,224,200,.35); }
+.hs-led-neg i, .hs-led-pos i { position: absolute; top: 2px; bottom: 2px; border-radius: 1px; }
+.hs-led-neg i { right: 0; background: linear-gradient(#f08a6d 0 1px, #c4472f 1px, #8e2c1b); }
+.hs-led-pos i { left: 0; background: linear-gradient(#f6e2a0 0 1px, #c9a24a 1px, #8a6a2a); }
+.hs-led-amt { font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.hs-led-amt.net { font-size: 1rem; }
+.hs-led > .net { padding-top: .4rem; border-top: 1px solid rgba(201,162,74,.3); }
+.hs-led > .hs-led-neg:nth-last-child(3), .hs-led > .hs-led-pos:nth-last-child(2) { margin-top: .4rem; }
+@container hs (max-width: 45rem) { .hs-led { grid-template-columns: minmax(0, 2.4fr) minmax(0, .8fr) minmax(0, .8fr) 5.2rem; } }
+
+/* ---- Ledger: lenders, the stores, the wealth of the houses ---- */
+.hs-debt .ui-row-nm { color: #ffb4a3; }
+.hs-lender { padding: .6667rem var(--hs-gut-r) .6667rem var(--hs-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); }
+.hs-lender.off .hs-lender-nm b { color: var(--ink-dim); }
+.hs-lender-hd { display: flex; align-items: baseline; flex-wrap: wrap; gap: .2667rem .8rem; }
+.hs-lender-nm { display: inline-flex; align-items: center; gap: .5333rem; font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
+.hs-lender-nm .icon { width: 1.2rem; height: 1.2rem; }
+.hs-lender-sub { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.hs-lender-no { margin-top: .4rem; padding-left: 1.7333rem; font: 400 .9333rem/1.3 var(--f-ui); }
+.hs-lender .hs-acts { margin-top: .5333rem; padding-left: 1.7333rem; justify-content: flex-start; }
+.hs-step b { min-width: 5.2rem; }
+.hs-terms { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.hs-stores { padding: .2667rem var(--hs-gut-r) 0 var(--hs-gut-l); }
+.hs-stores .ui-table td:first-child { display: flex; align-items: center; gap: .4667rem; }
+.hs-stores .ui-table td:first-child .icon { margin-right: 0; }
+.hs-stores .hs-strat { margin-left: .4rem; font: 500 .8rem/1 var(--f-ui); color: var(--steel); letter-spacing: .04em; }
+.hs-stores .ui-table tbody tr { cursor: default; }
+.hs-stores .ui-table th:nth-child(2), .hs-stores .ui-table td:nth-child(2), .hs-stores .ui-table th:nth-child(3), .hs-stores .ui-table td:nth-child(3) { width: 8rem; }
+.hs-wealth { padding: .4rem var(--hs-gut-r) .2667rem var(--hs-gut-l); display: grid; gap: .3333rem; }
+.hs-wl { display: grid; grid-template-columns: 1.6rem 1.3333rem minmax(0, 13rem) 1fr 5.4667rem; align-items: center; column-gap: .6667rem; min-height: 1.8667rem; font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink-dim); }
+.hs-wl .house-sigil, .hs-wl svg { width: 1.2rem; height: 1.2rem; }
+.hs-wl-n { font-variant-numeric: tabular-nums; color: var(--ink-mute); text-align: right; }
+.hs-wl-nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+.hs-wl-v { text-align: right; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+.hs-wl.mine { background: linear-gradient(90deg, rgba(201,162,74,.12), transparent); box-shadow: inset 2px 0 0 var(--brass); }
+.hs-wl.mine .hs-wl-nm, .hs-wl.mine .hs-wl-v { color: var(--brass-hi); }
+@container hs (max-width: 45rem) { .hs-wl { grid-template-columns: 1.6rem 1.3333rem minmax(0, 10rem) 1fr 5rem; } }
+
+/* ---- Household ---- */
+.hs-hh-sum { color: var(--ink-mute); }
+.hs-made { margin: .2667rem var(--hs-gut-r) .5333rem var(--hs-gut-l); padding: .4rem .8rem .5333rem; background: rgba(5,7,10,.55); box-shadow: inset 0 1px 3px #000, inset 0 0 0 1px rgba(201,162,74,.2); }
+.hs-made .hs-note { margin: .5333rem 0 0; }
+.hs-person.on .ui-row-nm { color: var(--brass-hi); }
+.hs-prospects { padding: .2667rem var(--hs-gut-r) 0 var(--hs-gut-l); }
+.hs-prospects .ui-table tbody tr { cursor: default; }
+.hs-prospects .ui-table td { height: 2.6667rem; }
+.hs-td-who { display: inline-flex; align-items: center; gap: .5333rem; }
+.hs-td-who small { color: var(--ink-mute); font-weight: 500; }
+.hs-prospects .ui-table td.hs-td-l, .hs-prospects .ui-table th:nth-child(2), .hs-prospects .ui-table th:nth-child(3) { text-align: left; font-weight: 500; color: var(--ink-dim); }
+.hs-prospects .ui-table td:last-child .ui-btn { height: 1.7333rem; }
+@container hs (max-width: 45rem) { .hs-prospects .ui-table th:nth-child(2), .hs-prospects .ui-table td:nth-child(2) { display: none; } }
+
+/* ---- Council and Court: each post a row, with what it sees and what you have told it under it ---- */
+.hs-post { border-bottom: 1px solid rgba(201,162,74,.12); }
+.hs-post > .ui-row { border-bottom: 0; }
+.hs-post.warn > .ui-row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--bad); }
+.hs-post-body { padding: 0 var(--hs-gut-r) .6667rem calc(var(--hs-gut-l) + 3.6rem + .9333rem); }
+.hs-post-body .hs-line, .hs-post-body .hs-note { margin-left: 0; margin-right: 0; }
+.hs-post-body .ui-wstrip { margin: .4rem 0; }
+.hs-says { display: flex; align-items: flex-start; gap: .5333rem; margin: .1333rem 0 .4rem; font: 400 .9333rem/1.4 var(--f-ui); color: #d8d0bb; }
+.hs-says .icon { flex: none; width: 1rem; height: 1rem; margin-top: .1333rem; }
+.hs-says.bad { color: #f6c9bd; }
+/* a post's state is a short Plex line ("Empty", "Held by Corvin"); the long sentence is in the row's tooltip; a seat with something
+   to say carries the warn mark, not a sentence in amber */
+.hs-state { display: inline; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-mute); white-space: normal; }   /* two lines at most (the row clamps), the whole in the tooltip */
+.hs-state .icon { vertical-align: -.1333rem; margin-right: .2667rem; }
+.hs-state.warn { color: var(--ink-dim); }
+.hs-post.empty .ui-row-sub { font-style: normal; }
+.hs-cands .ui-btn { height: 1.7333rem; }
+.court-offers { display: grid; gap: 0; margin: .2667rem 0 .2667rem; }
+.court-offers .hs-pick { grid-template-columns: auto minmax(0, 1fr) auto; padding: .3333rem 0; }
+.hs-pick-tt { display: flex; flex-direction: column; gap: .1333rem; min-width: 0; }
+.hs-pick-tt .hs-pips { margin-left: .4rem; vertical-align: .05em; }
+.hs-pips { display: inline-flex; gap: 3px; vertical-align: middle; cursor: help; }
+.hs-pips i { width: .5333rem; height: .5333rem; transform: rotate(45deg); background: #0a0c11; box-shadow: inset 0 0 0 1px rgba(201,162,74,.45); }
+.hs-pips i.on { background: linear-gradient(135deg, #f6e2a0, #c9a24a 55%, #8a6a2a); box-shadow: 0 0 0 1px #000; }
+.court-sum b { color: var(--ink); }
+
+/* ---- Purse ---- */
+.purse-row > .ui-row { border-bottom: 0; }
+.purse-row { border-bottom: 1px solid rgba(255,255,255,.05); }
+.purse-row > .hs-under { margin-bottom: .6667rem; }
+.purse-row .ui-btn.sm, .hs-item .ui-btn.sm { height: 1.7333rem; }
+.hs-item { border-bottom: 1px solid rgba(255,255,255,.05); }
+.hs-item > .ui-row { border-bottom: 0; }
+.hs-item > .hs-under { margin-bottom: .4667rem; }
+.hs-item .ui-row-nm { white-space: normal; }
+.hs-favours { margin: .2667rem 0 .4rem; }
+.hs-fav-nm { display: inline-flex; align-items: center; gap: .4rem; font: 600 .9333rem/1 var(--f-ui); color: var(--ink); }
+.hs-legacy { display: inline-flex; align-items: center; gap: .2667rem; margin-right: .6667rem; }
+.hs-legacy > b { font: 600 .9333rem/1 var(--f-ui); margin-right: .2rem; }
+.hs-purse .suit-acts { margin-top: .5333rem; }
+.hs-purse .hs-kv .ui-seg button { height: 1.7333rem; }
+.hs-rich-lede { margin-top: 1.6rem; padding-top: 1.0667rem; border-top: 1px solid rgba(201,162,74,.25); }
+.hs-ladder { padding: .4rem var(--hs-gut-r) .2667rem var(--hs-gut-l); display: grid; gap: .1333rem; }
+.hs-rung { display: grid; grid-template-columns: 1.3333rem auto minmax(0, 1fr); align-items: baseline; column-gap: .6667rem; padding: .2667rem 0; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-mute); cursor: help; }
+.hs-rung-dia { width: .6667rem; height: .6667rem; transform: rotate(45deg) translateY(1px); display: grid; place-items: center; align-self: center; background: #0a0c11; box-shadow: inset 0 0 0 1px rgba(201,162,74,.5); }
+.hs-rung-dia .icon { transform: rotate(-45deg); width: .6rem; height: .6rem; color: #1d1506; }
+.hs-rung.done .hs-rung-dia { background: linear-gradient(135deg, #f6e2a0, #c9a24a 55%, #8a6a2a); box-shadow: 0 0 0 1px #000; }
+.hs-rung.next .hs-rung-dia { box-shadow: inset 0 0 0 1px var(--brass-hi), 0 0 6px rgba(232,196,110,.4); }
+.hs-rung-nm { font-weight: 600; color: var(--ink-dim); white-space: nowrap; }
+.hs-rung.done .hs-rung-nm { color: var(--brass-hi); } .hs-rung.next .hs-rung-nm { color: var(--ink); }
+.hs-rung-sub { min-width: 0; }
+
+/* ---- what a house's legitimacy is made of (LegitimacyMade), wherever it is shown ---- */
+.lm { display: grid; gap: 0; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink); }
+.lm-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; column-gap: .8rem; padding: .3333rem 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.lm-row[title] { cursor: help; }
+.lm-k { min-width: 0; } .lm-k small { color: var(--ink-mute); font-size: .8667rem; margin-left: .4rem; }
+.lm-v { font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; text-align: right; }
+.lm-ends .lm-k { color: var(--ink-dim); } .lm-sum { box-shadow: inset 0 1px 0 rgba(201,162,74,.35); border-bottom: 0; } .lm-sum .lm-v { color: var(--brass-hi); font-size: 1rem; }
+.lm-hd { margin: .6667rem 0 .1333rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.lm-change { grid-template-columns: 4.4rem minmax(0, 1fr) auto; }
+.lm-yr { color: var(--ink-mute); font-variant-numeric: tabular-nums; }
+.lm-note { margin: .4rem 0; font: italic 400 1rem/1.4 var(--f-prose); color: var(--ink-dim); }
+
+/* ---- the Purse rebuilt on the row grid (docs/VISUAL_SYSTEM.md 4.7, 4.12): one row a person with one action; the sum on a joined
+   stepper; the ways of a row (give, lend, borrow; entail, sell, leave) under it only when its plate is pressed ---- */
+.hs-order { display: flex; flex-wrap: wrap; align-items: center; gap: .5333rem; margin: .2667rem var(--hs-gut-r) .6667rem calc(var(--hs-gut-l) + 3.6rem + .9333rem); }
+.purse-row .hs-drawer, .purse-item .hs-drawer { display: none; }
+.purse-row.open .hs-drawer, .purse-item.open .hs-drawer { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; margin: -.1333rem var(--hs-gut-r) .6667rem calc(var(--hs-gut-l) + 3.6rem + .9333rem);
+  padding: .5333rem .6667rem; background: rgba(5,7,10,.55); box-shadow: inset 0 1px 3px rgba(0,0,0,.8), inset 2px 0 0 var(--brass-mid); }
+.purse-item.open .hs-drawer.col { flex-direction: column; align-items: flex-start; }
+.purse-item .hs-drawer .suit-acts { margin: 0; justify-content: flex-start; }
+.purse-row .ui-row-sub .hs-tag, .purse-item .ui-row-sub .hs-tag { margin-left: .4667rem; }
+.hs-buy .hs-subhead, .hs-subhead { margin: .6667rem var(--hs-gut-r) .1333rem var(--hs-gut-l); font: 600 .8rem/1.2 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+div.hs-buy { display: block; margin: 0; }   /* the WealthPanel's buy row only: the stores' column is .hs-buycol */
+.hs-will .ui-row .ui-select-btn { min-width: 11rem; justify-content: space-between; }
+.hs-need { color: var(--warn); font-weight: 600; } .hs-need .icon { margin-right: .4rem; }
+/* the seat: three rows, not a ladder of prose */
+.hs-ladder { padding: 0; display: block; }
+.hs-ladder .hs-rung { display: block; padding: 0; cursor: default; font: inherit; color: inherit; }
+.hs-ladder .hs-rung.next .ui-row { box-shadow: inset 2px 0 0 rgba(232,196,110,.55); }
+.hs-ladder .hs-rung:not(.done):not(.next) .ui-row-nm { color: var(--ink-dim); }
+/* the council's and the court's posts: one row each, the one action an Appoint select whose options carry faces */
+.hs-appoint .ui-select-btn { min-width: 8.5333rem; justify-content: space-between; }
+.hs-appoint .ui-menu { right: 0; left: auto; min-width: 22rem; max-width: 30rem; }
+.hs-appoint .ui-menu button small { white-space: normal; }
+/* the strategic goods bought at once from their own row: "Buy 3", the good's icon, the cost after the hairline */
+.hs-stores .ui-table td.hs-buycol { width: 1%; white-space: nowrap; text-align: right; }
+@media (max-width: 1500px) { .hs-head .ui-facts .hs-culture { display: none; } }   /* the least useful fact steps out, so the facts keep to one line */
+
+/* a part of a tab under its own heading (the Purse's Seat and estates): the title in Cinzel on a gilt rule, one figure at the right */
+.hs-part { position: relative; display: flex; align-items: baseline; gap: 1rem; margin: 2rem 1.6rem .2rem 1.8667rem; padding: 0 0 .5333rem; }
+.hs-part::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--gilt-rule); opacity: .8; }
+.game .win-body .hs-part h3.hs-part-t, .hs-part h3.hs-part-t { display: block; margin: 0; justify-content: flex-start; font: 600 1.3333rem/1.1 var(--f-display); letter-spacing: .04em; text-transform: none; color: #f5e9c9; text-shadow: 0 1px 0 #000; }
+.game .win-body .hs-part h3.hs-part-t::before, .game .win-body .hs-part h3.hs-part-t::after { display: none !important; }
+.hs-part-r { margin-left: auto; display: inline-flex; align-items: center; gap: .3333rem; font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; } .hs-part-r b { color: var(--ink); font-weight: 600; }
+
+/* the stores: 36px rows, every cell centred on one line; the Buy column has its head and a dash where nothing can be bought */
+.hs-stores .ui-table td { height: 2.4rem; padding-top: 0; padding-bottom: 0; vertical-align: middle; white-space: nowrap; }
+.hs-stores .ui-table td:first-child { display: table-cell; } .hs-stores .ui-table td:first-child .icon { vertical-align: -.2rem; }
+.hs-stores .ui-table .ui-btn { height: 1.7333rem; margin: 0; }
+.hs-stores .ui-table th.hs-buycol, .hs-stores .ui-table td.hs-buycol { display: table-cell; text-align: right; width: 1%; vertical-align: middle; }
+.hs-stores .hs-good { display: inline-flex; align-items: center; gap: .5333rem; } .hs-stores .hs-good .hs-strat { margin-left: 0; }
+.hs-stores .hs-strat { margin-left: .4rem; vertical-align: baseline; }
+/* the allowance row: its name ("What the house gives its own") runs onto a second line beside the three plates rather than be cut short at 1366 */
+.hs-allow-row .ui-row-nm { white-space: normal; overflow: visible; }
+
+/* ---- the Purse in three parts (2026-11-28 mend): a joined switch under the lede, the treasury beside it; each part one short page ---- */
+.hs-parts { display: flex; align-items: center; flex-wrap: wrap; gap: .5333rem 1rem; margin: .5333rem var(--hs-gut-r) .2667rem var(--hs-gut-l); }
+.hs-partseg button { height: 2.1333rem; padding: 0 .9333rem; gap: .4rem; font: 600 .9333rem/1 var(--f-ui); }
+.hs-partseg button .icon { width: 1rem; height: 1rem; }
+.hs-parts-r { margin-left: auto; display: inline-flex; align-items: center; gap: .4rem; font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; cursor: help; }
+.hs-parts-r b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.hs-pane[hidden] { display: none !important; }
+/* shares of your own: one table, one order bar (4.13) */
+.hs-shares { margin: .2667rem var(--hs-gut-r) .4rem var(--hs-gut-l); }
+.hs-shares .ui-table td:first-child { white-space: normal; line-height: 1.25; }
+.hs-shares .ui-table th:nth-child(2), .hs-shares .ui-table td:nth-child(2) { width: 6rem; }
+.hs-shares .ui-table th:nth-child(3), .hs-shares .ui-table td:nth-child(3) { width: 4.4rem; }
+.hs-shares .ui-table th:nth-child(4), .hs-shares .ui-table td:nth-child(4) { width: 9rem; }
+.hs-shares .ui-table td small { margin-left: .2667rem; }
+.hs-shares .ui-order, .hs-loan-bar { flex-wrap: wrap; row-gap: .4rem; }
+.hs-shares .ui-order .ui-step b { min-width: 5.6rem; }
+.hs-shares .ui-order-nm, .hs-loan-bar .ui-order-nm { display: inline-flex; align-items: center; gap: .4rem; color: var(--brass-hi); }
+/* the will: one line, a Change link, the rows it names (or all of them under Change); the two settings as rows */
+.hs-will-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .8rem; }
+.hs-will-p[hidden] { display: none !important; }
+.hs-set-row .ui-seg button { height: 1.8667rem; }
+@container hs (max-width: 45rem) {
+  .hs-set-row, .hs-allow-row { grid-template-rows: auto auto; }
+  .hs-set-row > div:first-child, .hs-allow-row > div:first-child { grid-row: 1 / span 2; align-self: center; }
+  .hs-set-row > div:nth-child(4), .hs-allow-row > div:nth-child(4) { grid-column: 2 / -1; grid-row: 2; justify-self: start; margin-top: .3333rem; }
+}
+/* who a thing is for: the person select, narrower than the shared one; the row's controls go under its name when the window is narrow */
+.hs-who .ui-select-btn { min-width: 11.2rem; }
+.hs-who .ui-menu { min-width: 21rem; }
+.hs-who .ui-menu button small { white-space: nowrap; }
+.hs-town-row > div:nth-child(4) > span.hs-acts { justify-content: flex-start; }
+@container hs (max-width: 45rem) { .hs-town-row .hs-acts > .ui-select { flex: 1 0 100%; } }
+@container hs (max-width: 45rem) {
+  .hs-pick-row { grid-template-rows: auto auto; }
+  .hs-pick-row > div:first-child { grid-row: 1 / span 2; align-self: center; }
+  .hs-pick-row > div:nth-child(4) { grid-column: 2 / -1; grid-row: 2; justify-self: start; margin-top: .3333rem; }
+  .hs-pick-row > div:nth-child(4) .hs-acts { justify-content: flex-start; }
+}
+
+/* ---- the Court: an empty post is one short row, the hatched plate and what the house goes without ---- */
+.hs-court .hs-post.empty { padding: 0; }
+.hs-court .hs-post.empty > .ui-row { padding-top: .2667rem; padding-bottom: .2667rem; }
+.hs-court .hs-post.empty > .ui-row > div:first-child { display: grid; }
+.hs-court .hs-post.empty .ui-row-sub { -webkit-line-clamp: 2; }
+.hs-court .hs-post.empty .portrait.pf-empty { margin: 0 auto; display: grid !important; }
+
+/* ---- the Ledger: what goes out this year only, under what is left, and the year's end at the ledger's foot ---- */
+.hs-led-cap { grid-column: 1 / -1; margin-top: .5333rem; padding-top: .5333rem; border-top: 1px solid rgba(255,255,255,.06); font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.hs-led-src.once { color: var(--ink-dim); }
+.hs-led > .netbar { margin-top: .4rem; }
+.hs-led-neg i.once { background: repeating-linear-gradient(135deg, #c4472f 0 4px, #8e2c1b 4px 7px); opacity: .85; }
+.hs-led-src.end { grid-column: 1; font-weight: 600; color: var(--brass-ink); cursor: help; margin-top: .4rem; padding-top: .5333rem; border-top: 1px solid rgba(201,162,74,.45); }
+.hs-led-src.end.bad { color: #f6c9bd; }
+.hs-led-end-n { grid-column: 2 / 4; margin-top: .4rem; padding-top: .5333rem; border-top: 1px solid rgba(201,162,74,.45); font: 400 .9333rem/1.2 var(--f-ui); color: var(--ink-mute); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: .8rem; }
+.hs-led-amt.end { margin-top: .4rem; padding-top: .5333rem; border-top: 1px solid rgba(201,162,74,.45); font-size: 1.0667rem; color: var(--brass-hi); align-self: stretch; display: flex; align-items: center; justify-content: flex-end; }
+/* last year as a waterfall: a label, a track on which each bar starts where the last ended, the figure */
+.hs-fall { padding: .6667rem var(--hs-gut-r) .2667rem var(--hs-gut-l); display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 2fr) 5.4667rem; row-gap: .4667rem; align-items: center; }
+.hs-fall-l { font: 500 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: .6667rem; cursor: help; }
+.hs-fall-l.open, .hs-fall-l.close { font-weight: 600; color: var(--brass-ink); }
+.hs-fall-l.nil { color: var(--ink-dim); }
+.hs-fall-t { position: relative; height: .8rem; background: linear-gradient(90deg, rgba(255,255,255,.03), rgba(255,255,255,.015)); box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.hs-fall-zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: rgba(233,224,200,.35); }
+.hs-fall-b { position: absolute; top: 2px; bottom: 2px; border-radius: 1px; }
+.hs-fall-b.open, .hs-fall-b.close { background: linear-gradient(#e8d8a8 0 1px, #a5813a 1px, #6f5020); }
+.hs-fall-b.close { background: linear-gradient(#f6e2a0 0 1px, #c9a24a 1px, #8a6a2a); }
+.hs-fall-b.up { background: linear-gradient(#d8f2c8 0 1px, #8cc47e 1px, #43723a); }
+.hs-fall-b.down { background: linear-gradient(#f08a6d 0 1px, #c4472f 1px, #8e2c1b); }
+.hs-fall-b.nil { background: rgba(233,224,200,.45); }
+.hs-fall-v { font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.hs-fall-v.close { color: var(--brass-hi); font-size: 1rem; }
+.hs-fall > .close { padding-top: .4rem; border-top: 1px solid rgba(201,162,74,.3); }
+.hs-fall > .hs-fall-t.close-row { margin-top: .4rem; }
+/* the lenders: a row each, the one picked docks its sum and Borrow in the order bar under them */
+.hs-lenders { margin-bottom: .2667rem; }
+.hs-lenders > .ui-row.hs-lender { padding-top: .4rem; padding-bottom: .4rem; }
+.hs-lender.off .ui-row-nm { color: var(--ink-dim); }
+.hs-medal.dim { opacity: .7; }
+.hs-loan-bar { margin: .2667rem var(--hs-gut-r) .4rem var(--hs-gut-l); }
+.hs-loan-bar .hs-terms { flex: 1 0 100%; order: 9; padding-left: 1.6rem; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); white-space: normal; }
+.hs-loan-bar .ui-need { font: 500 .9333rem/1.3 var(--f-ui); color: var(--warn); }

@@ -1,0 +1,236 @@
+/* The Academy year (docs/ACADEMY.md; docs/VISUAL_SYSTEM.md 5.3; AcademyScreen.razor): one framed window over the night, the hall at its
+   head, five tabs of sections and rows, and the end of the term as the gold plate at its foot. Loaded after app.css, so a rule here wins
+   over a shared rule of the same weight. Only the Academy's files use the classes below (ac-); where a shared part lacks something (a
+   report row with the event's painting, a row that opens into who a cadet is, a window with a pinned foot), it is varied here. */
+
+/* the shell gives the Academy the whole screen and the night; the window stands in the middle of it */
+.gs-shell.academy-shell .screen:has(> .ac) { padding: 1.6rem; overflow: hidden; display: flex; justify-content: center; }
+.ac { width: min(1180px, 100%); height: 100%; display: flex; flex-direction: column; min-height: 0; container: ac / inline-size; }
+.ac-win { flex: 0 1 auto; min-height: 0; max-height: 100%; }   /* a short tab ends at its content, the foot under it (4.1); a long one fills the height and scrolls */
+.ac-win > .ui-win-body { display: flex; flex-direction: column; }
+
+/* the header: the hall (the Institute's colonnade), the school's glyph, the term, the cadet; Save and Quit at the top right */
+.ac .ui-head-shade { background:
+  linear-gradient(90deg, rgba(8,10,15,.84) 0%, rgba(8,10,15,.55) 30%, rgba(8,10,15,.06) 60%, rgba(8,10,15,.12) 100%),
+  linear-gradient(180deg, rgba(8,10,15,.3) 0%, rgba(8,10,15,0) 26%, rgba(8,10,15,0) 60%, rgba(8,10,15,.86) 100%); }
+.ac .ui-head-text { right: 12rem; }
+.ac .ui-facts { display: grid; grid-template-columns: repeat(2, max-content); gap: .3333rem 1.6rem; }
+.ac .ui-facts > span { white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 8px rgba(0,0,0,.9); }
+.ac .ui-facts > span[title] { cursor: help; }
+.ac .ui-plinth { justify-content: space-between; padding-right: 2.4rem; }
+.ac-tools { position: absolute; z-index: 6; right: 1.6rem; top: 1.4667rem; display: flex; gap: .4rem; }
+.ac-std { display: inline-block; width: .6667rem; height: .6667rem; border-radius: 50%; margin: 0 .2rem; vertical-align: middle; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(255,255,255,.15); flex: none; }
+@container ac (max-width: 1000px) {
+  .ac .ui-facts { grid-template-columns: max-content; }
+  .ac .ui-facts > span:nth-child(n+3) { display: none; }
+  .ac .ui-plinth .ui-fig + .ui-fig { margin-left: .4rem; padding-left: .8rem; }
+}
+
+.ac-body { flex: 1 1 auto; min-height: 0; padding-bottom: 2.4rem; }
+.ac .ui-sec-r { font-size: .8667rem; color: var(--ink-mute); }
+
+/* reports: a crop of the event's painting, the title, its state, and a brass seal while it waits */
+.ac-report { display: grid; grid-template-columns: 5.0667rem minmax(0, 1fr) auto; align-items: center; column-gap: .9333rem; width: 100%; min-height: 3.8667rem; padding: .4667rem 1.6rem .4667rem 1.8667rem;
+  margin: 0; border: 0; border-bottom: 1px solid rgba(255,255,255,.05); background: none; text-align: left; color: var(--ink); cursor: pointer; position: relative; }
+.ac-report .crop { width: 5.0667rem; height: 3.2rem; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.55), 0 2px 4px #000; }
+.ac-report .crop img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(1.2) contrast(1.05); }
+.ac-report .nm, .ac-subject .nm, .ac-service .nm, .ac-cadet .nm, .ac-standard .nm { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.ac-report .nm b, .ac-subject .nm b, .ac-service .nm b, .ac-cadet .nm b, .ac-standard .nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac .k { font: italic 400 .8667rem/1.25 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-report > .icon { width: 1.4667rem; height: 1.4667rem; }
+.ac-report:hover, .ac-subject:hover, .ac-service:hover, .ac-cadet:hover { background: linear-gradient(90deg, rgba(201,162,74,.10), rgba(255,255,255,.02)); }
+.ac-report:hover::before, .ac-subject:hover::before, .ac-subject.here::before, .ac-service:hover::before, .ac-service.here::before, .ac-cadet:hover::before, .ac-cadet.on::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.ac-report.setpiece .nm b { color: var(--brass-hi); }
+.ac-report.done .nm b { color: var(--ink-dim); } .ac-report.done .crop img { filter: grayscale(.5) brightness(.85); }
+
+/* the timetable: the tracks as small headings, a subject a row; the one read this term lit */
+.ac-track { display: flex; align-items: center; gap: .5333rem; padding: .9333rem 1.6rem .3333rem 1.8667rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
+.ac-track .icon { width: 1rem; height: 1rem; }
+.ac-track i { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(201,162,74,.4), rgba(201,162,74,0)); }
+.ac-subject, .ac-service { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) 7.4667rem 8rem 7.4667rem; align-items: center; column-gap: .9333rem; width: 100%; min-height: 3.2rem;
+  padding: .3333rem 1.6rem .3333rem 1.8667rem; margin: 0; border: 0; border-bottom: 1px solid rgba(255,255,255,.05); background: none; text-align: left; color: var(--ink); cursor: pointer; position: relative; }
+.ac-service { grid-template-columns: 1.6rem minmax(0, 1fr) 9rem 12rem; min-height: 3.8667rem; }
+.ac-subject > .icon, .ac-service > .icon { width: 1.4667rem; height: 1.4667rem; }
+.ac-subject .nm .k, .ac-service .nm .k { font-style: normal; text-transform: capitalize; }
+.ac-service .nm .k { text-transform: none; }
+.ac-marks { font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; text-align: right; color: var(--ink); white-space: nowrap; }
+.ac-next { font: 600 .8667rem/1 var(--f-ui); text-align: right; white-space: nowrap; }
+.ac-subject.here, .ac-service.here { background: linear-gradient(90deg, rgba(201,162,74,.16), rgba(201,162,74,.02)); }
+.ac-subject.here .nm b, .ac-service.here .nm b { color: var(--brass-hi); }
+.ac-tag { justify-self: end; display: inline-flex; align-items: center; height: 1.4667rem; padding: 0 .5333rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+  color: var(--brass-hi); background: linear-gradient(#2b2413, #15110a); box-shadow: inset 0 0 0 1px rgba(201,162,74,.55); border-radius: 1px; }
+.ac-tag.off { visibility: hidden; }
+.ac-tag.warn { color: var(--warn); box-shadow: inset 0 0 0 1px rgba(227,166,74,.5); background: rgba(227,166,74,.08); }
+.ac-note { margin: .6667rem 1.6rem 0 1.8667rem; font: italic 400 1.0667rem/1.45 var(--f-prose); color: var(--ink-dim); }
+
+/* the lecture hall: each lecture a row that opens to its prose */
+.ac-lesson { margin: 0; border: 0; border-bottom: 1px solid rgba(255,255,255,.05); border-radius: 0; background: none; }
+.ac .ac-lesson > summary { display: flex; align-items: center; gap: .6667rem; min-height: 3.2rem; padding: .3333rem 1.6rem .3333rem 1.8667rem; cursor: pointer; font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
+.ac .ac-lesson > summary::before { display: none; }
+.ac .ac-lesson > summary .icon { flex: none; width: .8rem; height: .8rem; transition: transform .12s; }
+.ac .ac-lesson[open] > summary .icon { transform: rotate(90deg); }
+.ac .ac-lesson > summary b { font-weight: 600; white-space: nowrap; }
+.ac .ac-lesson > summary .k { flex: 1 1 auto; min-width: 0; font-style: italic; }
+.ac .ac-lesson.brief > summary .k { white-space: normal; font-style: normal; font-size: .9333rem; color: var(--ink-dim); }
+.ac .ac-lesson > summary:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), transparent); }
+.ac .ac-lesson[open] > summary { color: var(--brass-hi); background: linear-gradient(90deg, rgba(201,162,74,.10), transparent 70%); }
+.ac .ac-lesson.now > summary b { color: var(--brass-hi); }
+.ac-prose { padding: .4rem 2.4rem 1.0667rem 3.4667rem; max-width: 56rem; }
+.ac .ac-prose p { margin: .6667rem 0 0; font: 400 1.1333rem/1.58 var(--f-prose); color: #e3d9c0; font-variant-numeric: lining-nums; }
+
+/* the Reach: facts as rows, the houses as a table with their arms, your house as label and value */
+.ac .ac-fact.ac-row { display: grid; grid-template-columns: 11.3333rem minmax(0, 1fr); gap: 1.0667rem; align-items: baseline; padding: .6667rem 1.6rem .6667rem 1.8667rem; border-top: 0; border-bottom: 1px solid rgba(255,255,255,.05); }
+.ac .ac-fact.ac-row > span { font: 600 .9333rem/1.3 var(--f-ui); color: var(--brass-ink); letter-spacing: 0; }
+.ac .ac-fact.ac-row p { margin: 0; font: 400 .9333rem/1.5 var(--f-ui); color: var(--ink-dim); }
+.ac-houses { padding: .4rem 1.6rem 0 1.8667rem; }
+.ac-houses .ui-table th:not(.n), .ac-houses .ui-table td:not(.n) { text-align: left; }
+.ac-houses .ui-table tbody tr { cursor: default; }
+.ac-houses td.hn { display: flex; align-items: center; gap: .4667rem; } .ac-houses td.hn b { font-weight: 600; }
+.ac-houses td.hn .ac-tag { height: 1.2667rem; margin-left: .2667rem; }
+.ac-party { display: inline-flex; align-items: center; gap: .4rem; } .ac-party i { width: .6rem; height: .6rem; transform: rotate(45deg); background: var(--pc); box-shadow: 0 0 0 1px #000; }
+.ac .ac-kv { display: grid; grid-template-columns: 11.3333rem minmax(0, 1fr); gap: 1.0667rem; padding: .6rem 1.6rem .6rem 1.8667rem; border-bottom: 1px solid rgba(255,255,255,.05); font: 400 .9333rem/1.45 var(--f-ui); }
+.ac .ac-kv span { color: var(--ink-mute); } .ac .ac-kv b { text-align: left; font-weight: 500; color: var(--ink); }
+
+/* the year: the order of merit as rows with each cadet's face; a row opens into who they are */
+.ac-merit { padding-top: .2667rem; }
+.ac-cadet { display: grid; grid-template-columns: 1.6rem 3.0667rem minmax(0, 1fr) 11.3333rem 8rem minmax(0, 9rem); align-items: center; column-gap: .8rem; min-height: 3.2rem; padding: .2667rem 1.6rem .2667rem 1.8667rem;
+  border-bottom: 1px solid rgba(255,255,255,.05); cursor: pointer; position: relative; }
+.ac-cadet.head { min-height: 1.8667rem; cursor: default; border-bottom: 1px solid rgba(201,162,74,.45); font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); }
+.ac-cadet.head:hover { background: none; } .ac-cadet.head:hover::before { display: none; } .ac-cadet.head .r { text-align: right; padding-right: 3rem; }
+.ac-disp .icon { width: 1.0667rem; height: 1.0667rem; align-self: center; }
+.ac-place { font: 600 .9333rem/1 var(--f-ui); color: var(--ink-mute); text-align: right; font-variant-numeric: tabular-nums; }
+.ac-place .icon { width: .9333rem; height: .9333rem; }
+.ac-cadet .nm { flex-direction: row; align-items: baseline; gap: .5333rem; }
+.ac-cadet.mine .nm b { color: var(--brass-hi); } .ac-cadet.on { background: linear-gradient(90deg, rgba(201,162,74,.14), rgba(201,162,74,.02)); }
+.ac-cadet.gone { opacity: .5; }
+.ac-score, .ac-standard .ac-score { display: grid; grid-template-columns: minmax(0, 1fr) 2.4rem; align-items: center; gap: .6rem; }
+.ac-score .ui-trk { height: .5333rem; } .ac-score b { font: 600 .9333rem/1 var(--f-ui); text-align: right; font-variant-numeric: tabular-nums; }
+.ac-disp { display: flex; align-items: baseline; gap: .4rem; min-width: 0; } .ac-disp b { font: 600 .9333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; }
+.ac-flags { display: flex; flex-wrap: wrap; gap: .2667rem; justify-content: flex-end; }
+.ac-focus { position: relative; display: flex; gap: 1.0667rem; align-items: center; padding: .8rem 4rem .8rem 5.8667rem; border-bottom: 1px solid rgba(201,162,74,.3);
+  background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(8,10,15,.4) 70%); box-shadow: inset 2px 0 0 var(--brass); }
+.ac-focus .sc-body { display: flex; flex-direction: column; gap: .2667rem; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink); min-width: 0; }
+.ac-focus .sc-name b { font: 600 1.1333rem/1.2 var(--f-display); letter-spacing: .03em; }
+.ac-focus .ac-x { position: absolute; right: 1.6rem; top: .8rem; width: 1.6rem; height: 1.6rem; }
+.ac-standard { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) 14rem; align-items: center; column-gap: .8rem; min-height: 3rem; padding: .2667rem 1.6rem .2667rem 1.8667rem; border-bottom: 1px solid rgba(255,255,255,.05); }
+.ac-standard .ac-std { width: .9333rem; height: .9333rem; }
+.ac-standard.mine .nm b { color: var(--brass-hi); } .ac-standard.gone { opacity: .5; }
+@container ac (max-width: 1000px) {
+  .ac-cadet { grid-template-columns: 1.6rem 2rem minmax(0, 1fr) 8.5333rem 6.4rem; }
+  .ac-cadet .ac-flags { grid-column: 3 / -1; justify-content: flex-start; }
+  .ac-subject { grid-template-columns: 1.6rem minmax(0, 1fr) 6.4rem 7.4667rem 6.4rem; }
+}
+
+/* so far: one line a happening */
+.ac .ac-line { padding: .6rem 1.6rem .6rem 1.8667rem; border-top: 0; border-bottom: 1px solid rgba(255,255,255,.05); font: 400 .9333rem/1.5 var(--f-ui); color: var(--ink-dim); }
+
+/* the foot: what is left of the year, and the gold plate that ends the term, with the reports it would set aside */
+.ac-foot-t { flex: 1 1 auto; font: italic 400 1.0667rem/1.35 var(--f-prose); color: var(--ink-dim); }
+.ui-btn.ac-end { position: relative; height: 2.6667rem; padding: 0 1.3333rem 0 1.6rem; gap: .6rem; font: 600 1.0667rem/1 var(--f-display); letter-spacing: .1em; text-transform: uppercase; }
+.ui-btn.ac-end .icon { width: .8667rem; height: .8667rem; }
+.ac-badge { position: absolute; right: -.6rem; top: -.6rem; min-width: 1.6rem; height: 1.6rem; padding: 0 .3rem; border-radius: 1rem; display: grid; place-items: center;
+  font: 700 .8667rem/1 var(--f-ui); color: var(--ink-dark); text-shadow: none; letter-spacing: 0; background: radial-gradient(circle at 40% 35%, #fbe9b0, #c9a24a 60%, #7a5a20); box-shadow: 0 0 0 1px #000, 0 2px 4px rgba(0,0,0,.8); }
+
+@media (max-height: 820px) {
+  .ac .ui-head { height: 11.7333rem; }
+  .ac .ui-head-mark { top: 1rem; transform: scale(.8); transform-origin: left top; }
+  .ac .ui-head-text { top: 1.0667rem; }
+  .ac .ui-title { font-size: 1.7333rem; }
+  .ac .ui-facts { margin-top: .4rem; }
+  .gs-shell.academy-shell .screen:has(> .ac) { padding: .8rem 1.0667rem; }
+}
+
+/* the welcome on the first morning is the shell's Box (Pages/Index.razor); here only its width of prose */
+.ac-welcome .epi-text { max-width: 44rem; }
+
+/* kept from before for the outliner's and the event window's set pieces */
+.ol-report.setpiece { border-left-color: #d8705a; background: linear-gradient(90deg, #241820, rgba(17,22,34,.9)); }
+.win.setpiece { border-top-color: #d8705a; }
+.visitor.setpiece .bubble { opacity: 1; background: #e6c77a; }
+.game .ol-report.setpiece { background: none; border-left: 0; }
+/* the two answers side by side at the right, the primary last (VISUAL_SYSTEM.md 4.11) */
+.ac-welcome .box-acts { display: flex; flex-wrap: nowrap; justify-content: flex-end; gap: .6667rem; margin-left: auto; }
+.ac-welcome .box-note { flex: 1 1 100%; }
+/* the hall's painting at the header grade (4.2), not near black */
+.ac .ui-head-art { filter: brightness(1.3) contrast(1.08) saturate(1.04) !important; }
+/* This term: the subject's figures sit beside its name, not across the window */
+.ac-subject, .ac-service { grid-template-columns: 1.6rem minmax(0, 22rem) 7.4667rem 8rem 7.4667rem; justify-content: start; }
+.ac-subject > .icon, .ac-service > .icon { opacity: 1; filter: brightness(1.25); }
+/* the lectures as wide as the window gives */
+.ac-prose { max-width: 72rem; }
+/* the law of the Reach as rows */
+.ac-laws { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.6rem; padding: .2667rem 1.4667rem .4rem 1.8667rem; }
+.ac-law { display: grid; grid-template-columns: 1.2rem minmax(0, 1fr) auto; align-items: center; column-gap: .5333rem; min-height: 2rem; border-bottom: 1px solid rgba(255,255,255,.05); font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.ac-law b { font-weight: 600; color: var(--ink); text-align: right; }
+
+/* ---- This term in two columns: the reports at the door (and the board) beside the timetable; one column where the window is narrow ---- */
+.ac-cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+.ac-col { min-width: 0; }
+.ac-col + .ac-col { box-shadow: inset 1px 0 0 rgba(201,162,74,.16); }
+.ac-col:first-child .ui-sec, .ac-col:first-child .ac-report, .ac-col:first-child .ac-service { padding-right: 1.2rem; }
+@container ac (max-width: 1000px) {
+  .ac-cols { grid-template-columns: minmax(0, 1fr); }
+  .ac-col + .ac-col { box-shadow: none; }
+  .ac-col:first-child .ui-sec, .ac-col:first-child .ac-report, .ac-col:first-child .ac-service { padding-right: 1.6rem; }
+}
+/* the timetable (4.7): the glyph, the name taking the free width, and the figures right-aligned as icon-and-number cells; the subject read
+   this term has a brass bar at its left and a brass wash, and says so under its name */
+.ac-subject { grid-template-columns: 1.6rem minmax(0, 1fr) auto 3.4667rem; justify-content: stretch; column-gap: .8rem; }
+.ac-service { grid-template-columns: 1.6rem minmax(0, 1fr) auto auto; justify-content: stretch; column-gap: .8rem; }
+.ac-subject .nm .k { text-transform: none; } .ac-subject .nm .k em { font-style: normal; color: var(--brass-ink); }
+.ac .ac-subject .ui-cell, .ac .ac-service .ui-cell { min-width: 0; font: 600 1rem/1 var(--f-ui); }
+.ac .ac-marks.none { font: italic 400 .8667rem/1 var(--f-ui); color: var(--ink-mute); }
+.ac .ac-next b { font: 600 1rem/1 var(--f-ui); }
+.ac-subject.here::before { width: 3px !important; background: linear-gradient(var(--brass-hi), var(--brass) 60%, #8f6a26) !important; box-shadow: 0 0 6px rgba(246,226,160,.35); }
+.ac-subject.here { background: linear-gradient(90deg, rgba(201,162,74,.18), rgba(201,162,74,.03) 70%); }
+
+/* ---- the lecture hall: a reading measure of about forty ems, centred, with a two-line drop capital (as the event's prose, 6) ---- */
+.ac .ac-prose { max-width: none; padding: .4rem 1.6rem 1.2rem 1.8667rem; }
+.ac .ac-prose p { max-width: 40em; margin-left: auto; margin-right: auto; }
+.ac .ac-prose > p:first-child::first-letter { -webkit-initial-letter: 2; initial-letter: 2; font-family: var(--f-display); font-weight: 600; color: var(--brass-ink); margin-right: .12em; text-shadow: 0 2px 4px #000; }
+@supports not (initial-letter: 2) { .ac .ac-prose > p:first-child::first-letter { float: left; font-size: 3.1em; line-height: .82; margin: .06em .1em 0 0; } }
+
+/* ---- the Reach: the facts at a reading width; the law of the Reach as rows, each its own glyph, its name and its setting as a chip ---- */
+.ac .ac-fact.ac-row p { max-width: 46rem; }
+.ac-laws { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2.4rem; padding: .2667rem 1.6rem .6rem 1.8667rem; }
+.ac-law { display: flex; align-items: center; gap: .6rem; min-height: 2.4rem; padding: .2rem 0; border-bottom: 1px solid rgba(255,255,255,.05); font: 500 .9333rem/1.25 var(--f-ui); color: var(--ink); cursor: help; }
+.ac-law > .icon { width: 1.2rem; height: 1.2rem; flex: none; }
+.ac-law > span { min-width: 0; }
+.ac-law b.ac-chip { flex: none; margin-left: .1333rem; padding: .2667rem .5333rem; font: 600 .8667rem/1 var(--f-ui); color: var(--ink-dim); text-align: left; white-space: nowrap; background: #090b10; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(201,162,74,.28); border-radius: 1px; }
+@container ac (max-width: 1000px) { .ac-laws { column-gap: 1.6rem; } }
+
+/* a lecture folded to its few lines (docs/ACADEMY.md, "The tutorial"): the fold in reading type, "Read more" a brass link under it */
+.ac .ac-prose p.ac-fold { margin-top: .4rem; font: 400 1.1333rem/1.58 var(--f-prose); color: #ece2c8; }
+/* the rest of the lecture and its link keep the hall's centred reading measure (40em, above) */
+.ac .ac-full { font-size: 1.1333rem; max-width: 40em; margin: .2667rem auto 0; padding-left: .9333rem; box-shadow: inset 2px 0 0 rgba(201,162,74,.35); }
+.ac .ac-full p { color: #d9cfb6; }
+.ac .ac-more-row { font-size: 1.1333rem; max-width: 40em; margin: .6667rem auto 0; }
+.ac .ac-more.on .icon { transform: rotate(-90deg); }
+
+/* a term's report card (docs/ACADEMY.md, "The report card"): a framed plate, the place large and how it moved, what moved it, one tip */
+.ac-card { margin: .6667rem 1.6rem .4rem 1.8667rem; padding: .8rem 1.0667rem .6667rem; background: linear-gradient(180deg, rgba(33,40,54,.65), rgba(14,17,23,.8)); position: relative;
+  box-shadow: inset 0 0 0 1px rgba(165,129,58,.45), inset 0 1px 0 rgba(255,255,255,.06), 0 2px 8px rgba(0,0,0,.5); }
+.ac-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--brass); }
+.ac-card.up::before { background: var(--good); } .ac-card.down::before { background: var(--bad); }
+.ac-card-hd { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; padding-bottom: .5333rem; border-bottom: 1px solid rgba(201,162,74,.22); }
+.ac-card-tt { display: flex; flex-direction: column; gap: .3333rem; min-width: 0; }
+.ac-card-sub { font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.ac-card-place { display: flex; align-items: baseline; gap: .4rem; flex: none; }
+.ac-card-place > .icon { align-self: center; width: 1.4667rem; height: 1.4667rem; }
+.ac-card-place b { font: 600 1.4667rem/1 var(--f-ui); color: #f5e9c9; font-variant-numeric: tabular-nums lining-nums; }
+.ac-card-place .of { font: 500 .9333rem/1 var(--f-ui); color: var(--ink-dim); }
+.ac-card-place .mv { display: inline-flex; align-items: center; gap: .2667rem; margin-left: .4rem; font: 600 .9333rem/1 var(--f-ui); }
+.ac-card-place .arrow { width: 0; height: 0; border-left: .3333rem solid transparent; border-right: .3333rem solid transparent; }
+.ac-card-place .arrow.u { border-bottom: .4667rem solid var(--good); } .ac-card-place .arrow.d { border-top: .4667rem solid var(--bad); }
+.ac-card-why { list-style: none; margin: .4rem 0 0; padding: 0; }
+.ac-card-why li { display: flex; align-items: flex-start; gap: .6rem; padding: .3333rem 0; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink); font-variant-numeric: lining-nums; }
+.ac-card-why li .icon { flex: none; width: 1.0667rem; height: 1.0667rem; margin-top: .1rem; }
+.ac-card-tip { display: flex; align-items: flex-start; gap: .6rem; margin-top: .4667rem; padding: .5333rem .6667rem; background: rgba(201,162,74,.08); box-shadow: inset 2px 0 0 var(--brass);
+  font: italic 400 1rem/1.45 var(--f-prose); color: #e3d9c0; }
+.ac-card-tip .icon { flex: none; width: 1.2rem; height: 1.2rem; margin-top: .1rem; }
+.ac-card-tip b { font: 600 .8rem/1.6 var(--f-ui); font-style: normal; letter-spacing: .08em; text-transform: uppercase; color: var(--brass-ink); margin-right: .3333rem; }
+.ac-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr)); gap: 0; }
+.ac-cards .ac-card { margin-right: .8rem; }
+/* on the passing-out card the last term's report stands inside the box */
+.box .ac-card.last { margin: .4rem 0 .8rem; }

@@ -1,0 +1,127 @@
+{
+  "//": "THE NEW MAN (the purse path; docs/REPUBLIC.md stage 3). Fantasy: Crassus. No land, no rank, no seat: one trading company, a head for figures, and a great banking house that has taken an interest. Rise through Commerce, buy a seat from the census, take clients, and turn the houses that owe you into votes.",
+  "id": "the_new_man",
+  "protagonist": "marcus_crane",
+  "era": "fractured_stars",
+  "galaxy": "the_reach",
+  "houses": [
+    {
+      "id": "crane",
+      "name": "Crane",
+      "accent": "#2EC27E",
+      "treasury": {
+        "credits": 45,
+        "materials": 4,
+        "manpower": 0,
+        "influence": 1,
+        "exotics": 0
+      },
+      "title": "landless",
+      "legitimacy": 4,
+      "patron": "lucent",
+      "origin": "new",
+      "//": "A name nobody's grandfather knew. Coin enough to found a second venture or buy a share of someone else's; nothing else."
+    }
+  ],
+  "characters": [
+    {
+      "id": "marcus_crane",
+      "name": "Marcus Crane",
+      "house": "crane",
+      "age": 24,
+      "sex": "male",
+      "careerTrack": "stewardship",
+      "careerRank": 1,
+      "nature": [
+        "Ambitious",
+        "Ruthless"
+      ],
+      "aptitude": [
+        "Administrator",
+        "Brilliant"
+      ],
+      "skills": {
+        "administration": 3,
+        "economics": 3,
+        "charisma": 2,
+        "intrigue": 1
+      },
+      "ambition": "amass_a_fortune",
+      "//": "The gap inverted from the Risen Officer's: no birth and no sword, but better with a ledger than the counts who look through him."
+    },
+    {
+      "id": "crane_livia",
+      "name": "Livia Crane",
+      "house": "crane",
+      "age": 21,
+      "sex": "female",
+      "careerTrack": "law",
+      "careerRank": 1,
+      "nature": [
+        "Just",
+        "Loyal"
+      ],
+      "aptitude": [
+        "Orator"
+      ],
+      "skills": {
+        "law": 2,
+        "oratory": 2,
+        "charisma": 2
+      },
+      "ambition": "master_the_senate",
+      "//": "The sister reading for the bar: the bench is another door into the Senate, if the purse is slow."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "marcus_crane",
+      "to": "crane_livia",
+      "disposition": 55,
+      "bond": "blood",
+      "strength": 60
+    },
+    {
+      "from": "crane_livia",
+      "to": "marcus_crane",
+      "disposition": 55,
+      "bond": "blood",
+      "strength": 60
+    },
+    {
+      "from": "lucent_head",
+      "to": "marcus_crane",
+      "disposition": 30,
+      "bond": "none",
+      "strength": 0,
+      "//": "The patron: Octavia Lucent lends to clever young men and expects their votes for life."
+    },
+    {
+      "from": "marcus_crane",
+      "to": "lucent_head",
+      "disposition": 20,
+      "bond": "none",
+      "strength": 0
+    },
+    {
+      "from": "aurelian_head",
+      "to": "marcus_crane",
+      "disposition": -20,
+      "bond": "none",
+      "strength": 0,
+      "//": "The old blood, looking through him."
+    }
+  ],
+  "holdings": [],
+  "businesses": [
+    {
+      "id": "biz_crane_trading_company_aurelia_prime",
+      "owner": "crane",
+      "kind": "trading_company",
+      "system": "aurelia_prime",
+      "level": 1,
+      "name": "Crane Trading Company of Aurelia Prime"
+    }
+  ],
+  "fleets": []
+}

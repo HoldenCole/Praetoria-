@@ -1,0 +1,65 @@
+{
+  "texts": [
+    {
+      "id": "what_they_wanted",
+      "title": "What {kin.He} Wanted",
+      "body": "{kin.name} has it: the thing {kin.he} has wanted for years and has talked about, when {kin.he} talked about {kin.himself} at all, as if it were only a matter of time. It was a matter of work. {kin.He} has come to tell you {kin.himself}, trying not to look as pleased as {kin.he} is.",
+      "choices": {
+        "be_glad_for_them": "Be glad for {kin.him}.",
+        "remind_them_who_helped": "Remind {kin.him} who stood behind {kin.him}.",
+        "ask_what_they_want_next": "Ask what {kin.he} wants next."
+      }
+    },
+    {
+      "id": "no_nearer_it",
+      "title": "No Nearer It",
+      "body": "It is ten years since {kin.name} set {kin.his} mind on it, and {kin.he} is no nearer. {kin.He} does not complain to you. {kin.He} has stopped mentioning it, which is worse. The household knows that you were asked for help more than once, and what the answer was.",
+      "choices": {
+        "help_them_now": "Help {kin.him} now, late as it is.",
+        "tell_them_to_want_something_else": "Tell {kin.him} to want something else.",
+        "say_it_will_come": "Say it will come."
+      }
+    },
+    {
+      "id": "a_venture_of_their_own",
+      "title": "A Venture of {kin.His} Own",
+      "body": "{kin.name} has founded something: found the site, struck the bargain, put up the money, all of it without a word to anyone until it was done. It carries the house's name, as everything does. It is {kin.hers} all the same, and {kin.he} would like that to be understood.",
+      "choices": {
+        "wish_them_luck": "Wish {kin.him} luck with it.",
+        "send_the_stewards_eye": "Send the steward to look it over.",
+        "leave_them_to_it": "Leave {kin.him} to it."
+      }
+    },
+    {
+      "id": "the_heir_is_named",
+      "title": "The Heir Is Named",
+      "body": "It is done: you have said who is to have the house, and it is not who the law would have given it to. Every member of the family has spent the day working out what it means for them.",
+      "choices": {
+        "say_it_before_the_house": "Say it before the whole house.",
+        "let_it_be_known_quietly": "Let it be known quietly.",
+        "soften_it_for_the_one_passed_over": "Soften it for the one passed over."
+      }
+    },
+    {
+      "id": "two_of_yours_want_one_thing",
+      "title": "Two of Yours Want One Thing",
+      "body": "{first.Rel}, {first.first}, and {second.rel}, {second.first}, have set their hearts on the same prize, and there is one of it. They have stopped speaking at table. The rest of the house is waiting to see which of them you will be seen to favour, and both of them are waiting hardest of all.",
+      "choices": {
+        "stand_behind_the_first": "Stand behind {first.name}.",
+        "stand_behind_the_second": "Stand behind {second.name}.",
+        "tell_them_both_it_stops": "Tell them both that it stops.",
+        "keep_out_of_it": "Keep out of it. It is theirs."
+      }
+    },
+    {
+      "id": "one_of_yours_fails",
+      "title": "One of Yours Fails",
+      "body": "{kin.Rel}, {kin.first}, tried for something, in {kin.his} own name, and did not get it. It will be written against {kin.him} wherever such things are written. {kin.He} has come home and said very little. What the head of the house says now, or does not say, will be remembered longer than the failure.",
+      "choices": {
+        "go_and_sit_with_them": "Go and sit with {kin.him}.",
+        "say_what_went_wrong": "Tell {kin.him}, plainly, what went wrong.",
+        "leave_them_to_it": "Leave {kin.him} to it."
+      }
+    }
+  ]
+}

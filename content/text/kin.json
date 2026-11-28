@@ -1,0 +1,174 @@
+{
+  "texts": [
+    {
+      "id": "the_naming_of_a_child",
+      "title": "The Naming of a Child",
+      "body": "{child.name} has been born to you and {spouse.name}, and the house is waiting to hear the name said aloud. It is already written in the book. What is left is how it is given, and whose family it is seen to come from. {spouse.first} has said once, quietly, which family {spouse.he} would like it to be.",
+      "choices": {
+        "a_naming_feast": "Hold a naming feast the city hears of. {spouse.name} is glad of it.",
+        "a_name_from_their_side": "Say it is a name from {spouse.name}'s family. Your marriage is the warmer for it.",
+        "a_name_of_your_line": "Say it is a name of your own line, as the house expects. {spouse.name} had hoped for the other.",
+        "the_two_of_you_alone": "Name the child between the two of you, with nobody else in the room. It is a good hour between you."
+      }
+    },
+    {
+      "id": "a_grandchild_is_born",
+      "title": "A Grandchild Is Born",
+      "body": "{parent.Rel}, {parent.first}, has a child: {grandchild.name}. Word came this morning. The house is already speaking of the birth as the line going on, which is true, and which is not what {parent.he} wants to hear from you first.",
+      "choices": {
+        "go_to_them": "Go to them yourself, today, and let the house's business wait (1 influence).",
+        "a_gift_from_the_house": "Send a gift from the house worthy of it.",
+        "send_your_blessing": "Send your blessing, and keep to your work. {parent.first} had hoped you would come."
+      }
+    },
+    {
+      "id": "the_other_family_asks_for_the_child",
+      "title": "The Other Family Asks for the Child",
+      "body": "{child.Rel}, {child.first}, is six, and the schoolroom begins this year. {in_law.name} of {in_law.house}, the head of {spouse.first}'s family, has written to ask that the child be raised in {in_law.his} house until sixteen, as the old families do. {spouse.first} would like it. If {child.first} goes, you will see {child.him} at the feasts and not otherwise for ten years.",
+      "choices": {
+        "let_them_go": "Let {child.first} go to {in_law.first} until sixteen. {spouse.first} is glad.",
+        "keep_them_home": "Keep {child.first} at home, with thanks. {spouse.first} is not glad.",
+        "bring_the_tutor_here": "Keep {child.first} home, and bring {in_law.first}'s tutor here instead. {spouse.first} is content.",
+        "ask_something_in_return": "Let {child.first} go, and ask something of {in_law.first} in return. {spouse.first} knows what you asked."
+      }
+    },
+    {
+      "id": "the_fostered_child_comes_home",
+      "title": "The Fostered Child Comes Home",
+      "body": "{child.Rel}, {child.first}, is sixteen and home again, ten years after going to be raised in another house. {child.He} has that house's manners and some of its opinions, and looks at this one the way a guest does. {child.He} is waiting to be told where {child.he} stands in it.",
+      "choices": {
+        "a_feast_for_the_homecoming": "Give a feast for the homecoming.",
+        "at_your_side_from_the_first_day": "Keep {child.him} at your side from the first day, and teach {child.him} the house.",
+        "let_them_keep_both_houses": "Let {child.him} keep both houses. The house will say {child.he} is half another's.",
+        "this_house_is_yours_now": "Tell {child.him} this house is {child.hers} now, and only this one."
+      }
+    },
+    {
+      "id": "kin_left_behind",
+      "title": "Left Behind",
+      "body": "{winner.Rel}, {winner.first}, has what {winner.he} wanted, and the house has been saying so all week. {other.Rel}, {other.first}, wanted as much and has nothing to show for it yet, and has stopped coming to table. Whatever you say about {winner.first} now, {other.first} will hear it as said about {other.himself}.",
+      "choices": {
+        "stand_with_the_one_who_has_it": "Stand with {winner.first}, and say so. {other.first} will take it as a slight.",
+        "something_for_the_other": "Find something for {other.first} from the house.",
+        "tell_them_to_stand_together": "Tell them both they are to stand together. They will think the better of each other, and a little less of you.",
+        "leave_them_to_it": "Leave them to it. {other.first} will think the worse of {winner.first}."
+      }
+    },
+    {
+      "id": "kin_stand_together",
+      "title": "Blood Stands by Blood",
+      "body": "Things have gone badly for {fallen.name}. By the time you heard, {helper.name} was already with {fallen.him}. You told the two of them once that they were to stand together. They have.",
+      "choices": {
+        "let_them_carry_it_together": "Let {helper.first} see {fallen.him} through it. The two of them will be the closer for it.",
+        "go_to_them_both": "Go to them both.",
+        "mend_it_yourself": "Mend it yourself, where it counts. {helper.first} had wanted to."
+      }
+    },
+    {
+      "id": "the_wedding_remembered",
+      "title": "The Wedding Remembered",
+      "body": "Your wedding day with {spouse.name} has come round again, and it is a round number of years. The house keeps count even when you do not. Somebody has asked whether there is to be anything for the day, and {spouse.first} is waiting to hear the answer as much as anyone.",
+      "choices": {
+        "a_feast_for_both_families": "Give a feast for both families, and let the Reach see it (800 credits). {spouse.name} is glad of it.",
+        "a_gift_between_the_two_of_you": "Give {spouse.name} a gift, and keep the evening for the two of you. It does the marriage good.",
+        "a_day_like_any_other": "Let the day pass like any other. {spouse.name} notices.",
+        "say_what_has_gone_wrong": "Say aloud what has gone wrong between you. It is hard to hear, and it mends something."
+      }
+    },
+    {
+      "id": "a_spouses_ambition",
+      "title": "A Spouse's Ambition",
+      "body": "{spouse.Rel}, {spouse.first}, has been {spouse.rankName} for six years and more, and has watched younger people go past. {spouse.He} has not asked you for anything. {spouse.He} has mentioned, at dinner, who was promoted this year, and who spoke for those who were.",
+      "choices": {
+        "speak_for_them": "Speak for {spouse.first} where it counts. {spouse.He} will have the step, and know who got it for {spouse.him}.",
+        "put_your_own_name_to_it": "Put your own name to it {era:before the Senate|at court}. {spouse.He} will have the step, and it will be called favour.",
+        "their_own_house_should_speak": "Say it is for {spouse.his} own family to speak for {spouse.him}. {spouse.He} hears it as a no.",
+        "the_house_needs_you_more": "Say the house needs {spouse.him} more than {spouse.his} service does. {spouse.He} takes some of your work, and does not thank you for it."
+      }
+    },
+    {
+      "id": "between_two_families",
+      "title": "A Family Divided",
+      "body": "Your house is at war with {spouse.house}, the house {spouse.rel}, {spouse.first}, was born to. {spouse.He} has said nothing about it at table. The household has noticed the letters that still come and go, and is waiting to see what you will say about them.",
+      "choices": {
+        "let_them_write_home": "Let {spouse.him} write to {spouse.his} family. {spouse.He} is grateful, and it will be talked of.",
+        "no_letters_while_it_lasts": "Stop the letters while the war lasts. {spouse.first} will not forgive it soon.",
+        "ask_them_to_carry_a_peace": "Ask {spouse.first} to carry an offer of peace, nothing given on either side."
+      }
+    },
+    {
+      "id": "a_life_of_their_own",
+      "title": "A Life of {kid.His} Own",
+      "body": "{kid.Rel}, {kid.first}, is sixteen, and has been entered on the rolls of a service that neither of {kid.his} parents was in, without asking anyone: {kid.rankName} {kid.name}, from this year. The people of this house choose their own service, and {kid.first} has chosen. What {kid.he} wants now is to hear what you think of it.",
+      "choices": {
+        "bless_it_before_the_house": "Give {kid.him} your blessing before the house.",
+        "write_to_someone_in_that_service": "Write to someone you know in that service. It will put {kid.him} a step ahead.",
+        "learn_the_house_first": "Ask {kid.him} to learn the house's business for a year first.",
+        "the_wrong_road": "Say it is the wrong road for {kid.him}."
+      }
+    },
+    {
+      "id": "you_were_wrong_about_them",
+      "title": "You Were Wrong About {kid.Him}",
+      "body": "{kid.name} has what {kid.he} wanted, by the road you said was the wrong one. {kid.He} has come to tell you {kid.himself}, and has not said a word about what you said then. {kid.He} does not need to.",
+      "choices": {
+        "say_you_were_wrong": "Say you were wrong.",
+        "raise_a_cup": "Raise a cup to {kid.him}, and say nothing of the rest.",
+        "say_they_were_lucky": "Say {kid.he} was lucky."
+      }
+    },
+    {
+      "id": "while_you_were_ill",
+      "title": "While You Were Ill",
+      "body": "You have been ill since the spring, and the house has not stopped. {keeper.Rel}, {keeper.first}, has seen to the letters, the steward and the callers, and signed what had to be signed. The papers are on your desk again this morning, and {keeper.first} is waiting to hear whether {keeper.he} did well.",
+      "choices": {
+        "leave_them_at_it": "Thank {keeper.him} before the house, and leave {keeper.him} at it.",
+        "ask_what_they_would_change": "Ask what {keeper.he} would change, and change it.",
+        "take_it_all_back": "Take it all back, and go through what {keeper.he} did."
+      }
+    },
+    {
+      "id": "they_ask_you_to_stand_aside",
+      "title": "Asked to Stand Aside",
+      "body": "{keeper.Rel}, {keeper.first}, has asked to see you alone. {keeper.He} kept the house when you were ill, and kept it well, and {keeper.he} says what the household has been saying more quietly: that you are not as strong as you were, and that a house laid down in life is better kept than one taken from a deathbed. {keeper.He} asks you to lay it down to {keeper.him}.",
+      "choices": {
+        "lay_the_house_down": "Lay the house down to {keeper.first} from today. You stay on as its elder.",
+        "name_a_day": "Name a day, but not yet.",
+        "not_yet": "Not yet, and promise nothing. {keeper.first} will be disappointed.",
+        "not_while_you_live": "Tell {keeper.him}: not while you live. {keeper.He} will not forget it."
+      }
+    },
+    {
+      "id": "the_day_you_named",
+      "title": "The Day You Named",
+      "body": "You told {keeper.rel}, {keeper.first}, you would stand aside, on a day to come. {keeper.He} has not spoken of it since, and is speaking of it now: you are older, it shows, and if the day is ever going to come it has come.",
+      "choices": {
+        "keep_your_word": "Keep your word. The house is {keeper.first}'s from today, and you stay on as its elder.",
+        "one_more_year": "Ask for one more year.",
+        "break_it": "Break it. The seat is yours while you live, and {keeper.he} will not forget it."
+      }
+    },
+    {
+      "id": "the_reading_of_the_will",
+      "title": "The Reading of the Will",
+      "body": "The will has been read and the house is yours. {sibling.Rel}, {sibling.first}, was in the room when the law gave it to you and not to {sibling.him}, and has not looked at you since. Whatever you say to {sibling.him} in the next few days is what your whole time as head will be measured against.",
+      "choices": {
+        "a_portion_for_them": "Give {sibling.first} a portion from the treasury.",
+        "a_seat_at_your_counsel": "Keep {sibling.him} close, and ask {sibling.his} advice. The house will say it has two voices.",
+        "speak_to_them_alone": "Speak to {sibling.him} alone, before anyone else does.",
+        "the_house_is_yours": "Tell {sibling.him} the house is one, and it is yours."
+      }
+    },
+    {
+      "id": "a_household_scandal",
+      "title": "A Household Scandal",
+      "body": "{leaver.name} went unpaid in your house two years running and has had enough of it. {leaver.He} is telling anyone who will listen how this house treats its people, and in the city people are listening.",
+      "choices": {
+        "pay_what_was_owed": "Pay what was owed, and more (500 credits).",
+        "go_to_them_yourself": "Go to {leaver.him} yourself. It will be seen.",
+        "let_go_for_cause": "Have it said {leaver.he} was let go for cause. It is a lie, and lies are remembered.",
+        "let_them_talk": "Let {leaver.him} talk."
+      }
+    }
+  ]
+}

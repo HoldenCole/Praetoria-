@@ -1,0 +1,62 @@
+{
+  "texts": [
+    {
+      "id": "the_year_sends_for_its_first",
+      "title": "The Year Sends for Its First",
+      "body": "A letter from the instructors, in the hand that used to mark your papers. A new year has mustered. They would like the cadets to hear from someone whose name is on the wall, and yours is the name they thought of.",
+      "choices": {
+        "go_and_speak": "Go back, and speak to them.",
+        "send_a_letter": "Send something to be read at muster.",
+        "decline": "Decline. That was a long time ago."
+      }
+    },
+    {
+      "id": "the_banner_you_took",
+      "title": "The Banner You Took",
+      "body": "{fallen.name} of {fallen.house} is across the room. You were cadets together, and it was your Standard that took {fallen.hers}: {fallen.he} finished the year serving under your colours. {fallen.He} has risen since, and has not forgotten, and is watching to see whether you have.",
+      "choices": {
+        "offer_a_hand": "Say, before others, that it was a banner well kept.",
+        "remind_them": "Let the room remember whose Standard took whose.",
+        "say_nothing": "Say nothing of it."
+      }
+    },
+    {
+      "id": "the_ranks_that_won",
+      "title": "The Ranks That Won",
+      "body": "{comrade.name} of {comrade.house} stood with you when the last banner was held. This year has gone badly for {comrade.him}, and {comrade.he} has come to see you without quite saying why.",
+      "choices": {
+        "stand_by_them": "Give what is needed, and do not make {comrade.him} ask.",
+        "call_on_them": "Remind {comrade.him} who stood beside whom. You need something too.",
+        "let_the_year_lie": "The Institute was a long time ago."
+      }
+    },
+    {
+      "id": "second_of_the_year",
+      "title": "Second of the Year",
+      "body": "The board put you first and {second.name} of {second.house} second, by a margin nobody could afterwards explain. {second.first} has spent the years since proving the board wrong, and is now somewhere it matters what you say about {second.him}.",
+      "choices": {
+        "give_them_their_due": "Say it could as well have been {second.him}.",
+        "stay_first": "Make sure the measure still comes out your way."
+      }
+    },
+    {
+      "id": "the_captain_calls_the_year",
+      "title": "The Captain Calls the Year",
+      "body": "{captain.name} of {captain.house} held the last banner at the Institute, and has never stopped being the year's captain. Word has gone round to everyone who was a cadet with {captain.him}: {captain.first} wants the year behind {captain.him} in a matter, and expects to have it.",
+      "choices": {
+        "answer": "Answer. The year is the year.",
+        "refuse": "Refuse. The Institute ended when you passed out of it."
+      }
+    },
+    {
+      "id": "where_you_passed_out",
+      "title": "Where You Passed Out",
+      "body": "{senior.name} of {senior.house} has looked up your place in the order of merit. It was not a good one, and {senior.he} has found a way to mention it.",
+      "choices": {
+        "prove_them_wrong": "Spend the year making the figure look like a mistake.",
+        "laugh": "Agree that the board had a poor year.",
+        "resent_it": "Remember who brought it up."
+      }
+    }
+  ]
+}

@@ -1,0 +1,454 @@
+{
+  "//": "EDUCATION AND SKILLS (docs/EDUCATION.md). Reads child_resists_lessons (each year), child_prodigy and mastery_gained (deeds), and the character flags resists_lessons and prodigy. setUpbringing changes a child's course. Asking: kin_would_not_study (deed) and the character flag would_not_study.",
+  "events": [
+    {
+      "id": "not_made_for_it",
+      "scene": "family",
+      "tier": "situation",
+      "weight": 14,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "child",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "child",
+              "flag": "resists_lessons",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "child_resists_lessons",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_them_follow_their_bent",
+          "effects": [
+            {
+              "type": "setUpbringing",
+              "role": "child",
+              "course": ""
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {child.name} put the books away and go where {child.his} own head was already going. The tutor was relieved. So was {child.first}."
+            }
+          ]
+        },
+        {
+          "id": "they_will_learn_it",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "child",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that a child does not choose their lessons, and {child.name} went back to them. {child.He} learned something. It was not quite what was on the page."
+            }
+          ]
+        },
+        {
+          "id": "find_a_better_teacher",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} dismissed the tutor and found one who could make the subject live. It helped a little. A bent is a bent."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "far_ahead_of_their_years",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "child",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "child",
+              "flag": "prodigy",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "child_prodigy",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_them_be_a_child",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the tutor to ease off. {child.name} had the rest of a life to be remarkable in."
+            }
+          ]
+        },
+        {
+          "id": "give_them_the_best",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 8
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -8
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent for the best teacher money could bring to the house. {child.name} did not disappoint."
+            }
+          ]
+        },
+        {
+          "id": "let_it_be_known",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "child",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known what {child.name} could do, and had {child.him} do it for guests. The house's name was spoken of. {child.first} began to hate dinners."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_work_of_years",
+      "scene": "family",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "mastery_gained",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pass_it_on",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} began to teach what they had learned to whoever of the house would sit still for it. Knowing a thing and being known to know it are different kinds of wealth."
+            }
+          ]
+        },
+        {
+          "id": "keep_at_it",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} noted the step and went back to work. There was a great deal further to go."
+            }
+          ]
+        },
+        {
+          "id": "allow_yourself_the_evening",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put the work down for one evening, which was not a habit, and enjoyed it more than expected."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "their_study_is_their_own",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "would_not_study",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_would_not_study",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "let_it_be",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it drop, and said so. {kin.name} had expected an argument and was somewhat disarmed not to get one."
+            }
+          ]
+        },
+        {
+          "id": "say_what_the_house_needs",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} set out, once, what the house would want of its people in ten years, and left it there. {kin.name} did not change {kin.his} mind. {kin.He} did not forget the conversation either."
+            }
+          ]
+        },
+        {
+          "id": "offer_to_pay_for_a_teacher",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked what {kin.name} was studying, and offered to pay for somebody good in it. It was not what {self.he} had wanted. It was taken as it was meant."
+            }
+          ],
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "brought_on_by_one_of_the_house",
+      "scene": "family",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "taught_one_of_the_house",
+              "value": true
+            },
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "kin_taught_kin",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_them_before_the_house",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {kin.name} at table, by name, for what {kin.he} had made of a younger one of the house. {kin.first} said it was nothing and was plainly pleased."
+            }
+          ]
+        },
+        {
+          "id": "a_purse_for_their_trouble",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {kin.name} a purse with a line saying what it was for. Teaching is work, and it is not often that anybody says so."
+            }
+          ]
+        },
+        {
+          "id": "take_it_as_their_duty",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took it as no more than one of the house owes the house. {kin.name} had not expected thanks. {kin.He} had noticed there were none."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

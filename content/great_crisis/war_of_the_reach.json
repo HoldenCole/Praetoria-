@@ -1,0 +1,37 @@
+{
+  // THE GREAT CRISIS, V1's human archetype (GDD §11/§16, BuildSpec M6): the galaxy-spanning war for the throne that
+  // reframes every petty squabble. Not a random event and not a calendar: a CLOCK that, from `startTurn`, is moved only by
+  // what is wrong with the Reach (lawless regions, a capital that is not respected, a war abroad going badly, wars between
+  // houses, one house overshadowing the rest, a general's march, a region breaking away), times the intensity multiplier.
+  // With nothing wrong it runs back, and blocs that had formed stand down. Once the war itself begins it runs at
+  // `baseRate` plus the galaxy's turmoil. It crosses
+  // STAGES. Each stage sets a flag content reads, applies effects, and may trigger a map/political BEHAVIOUR the
+  // engine implements: "blocs" sorts the houses into the hegemon's bloc and the alliance against it; "bloc_war"
+  // declares war between the blocs; "resolution" ends the wars. It no longer enthrones anyone (owner's rule, 2026-11-14:
+  // the Republic stands unless the player ends it): the victor holds the field, and the Republic is shaken for years. Later archetypes (Swarm, Plague, Awakening) are new files
+  // here with their own behaviours. The intensity setting is the player's knob (GDD §20 "crisis intensity").
+  "greatCrisis": {
+    "id": "war_of_the_reach",
+    "name": "The War of the Reach",
+    "startTurn": 10,
+    "baseRate": 10,
+    "intensity": { "off": 0, "low": 0.5, "default": 1.0, "dominant": 2.0 },
+    "stages": [
+      { "id": "rumblings",  "at": 40,
+        "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": 1 } ],
+        "log": "Something is shifting under the Reach: fleets refit without orders, old alliances are re-read, and the great houses have begun to count." },
+      { "id": "alliances", "at": 150, "behavior": "blocs",
+        "effects": [ { "type": "adjustCounter", "key": "coalition_pressure", "delta": 1 } ],
+        "log": "The houses sort themselves. One stands over the rest; the rest draw together against it. There are two Reaches now, and no house is in neither." },
+      { "id": "war",       "at": 300, "behavior": "bloc_war",
+        "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": 2 }, { "type": "setWorldFlag", "flag": "realm_unstable", "value": true } ],
+        "log": "THE WAR OF THE REACH. Every lane is a front. The squabbles of a generation become one war, and it will not end until one bloc is broken." },
+      { "id": "climax",    "at": 500, "behavior": "climax",
+        "effects": [ { "type": "adjustCounter", "key": "unrest", "delta": 2 } ],
+        "log": "The war turns on its last battles. Whoever holds the sky when it ends will hold everything beneath it." },
+      { "id": "resolution", "at": 650, "behavior": "resolution",
+        "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 2 } ],
+        "log": "It is over. The fleets that remain stand down, and the Reach learns whose it is." }
+    ]
+  }
+}

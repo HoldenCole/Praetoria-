@@ -1,0 +1,271 @@
+{
+  "//": "A CHARGE AGAINST THE POWERFUL (docs/LADDER.md, 'A charge against the powerful'). Three scenes for the player's house: the head goes into exile rather than wait for a verdict (went_into_exile), the Senate votes one of the house home (called_home_from_exile), and a charge against one of the house's powerful is thrown back (charge_thrown_back). ChargeSystem raises each for a year; each scene clears the flag it reads. No roles: the one abroad or acquitted is named in the house's news, and the scene is the head's.",
+  "events": [
+    {
+      "id": "the_road_abroad",
+      "scene": "steppe",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "went_into_exile",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_the_house_by_letter",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "went_into_exile",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took a writing desk abroad and a courier on retainer, and the house heard from its head every week. Nobody at home was allowed to forget whose house it was."
+            }
+          ]
+        },
+        {
+          "id": "live_quietly",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "went_into_exile",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took a house with a garden at the edge of a foreign capital and was seen at nobody's table. In the Reach it was said that exile suited them. It was meant unkindly, and it was true."
+            }
+          ]
+        },
+        {
+          "id": "make_friends_at_court",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "went_into_exile",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} spent freely at the court that had taken them in, and was soon dining with its ministers. Letters from abroad began to reach the Senate in more than one hand."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "called_home",
+      "scene": "dispatch",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "called_home_from_exile",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "come_home_quietly",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "called_home_from_exile",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "The shuttle came down at night, at a field outside the capital, and nobody was told. By morning the house had its own again, and the Reach found out from the gossip."
+            }
+          ]
+        },
+        {
+          "id": "come_home_in_state",
+          "requires": [
+            {
+              "type": "resource",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "called_home_from_exile",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "The house met its exile at the capital's port with banners and a crowd paid for twice over. Those who had voted for the return were seen at the front of it. Those who had not were seen counting."
+            }
+          ]
+        },
+        {
+          "id": "remember_who_voted",
+          "effects": [
+            { "type": "setWorldFlag", "flag": "names_of_the_division", "value": true },
+            {
+              "type": "setWorldFlag",
+              "flag": "called_home_from_exile",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the roll of the vote copied out and kept in the house's strongbox: who had moved it, who had spoken for it, and who had not."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_charge_thrown_back",
+      "scene": "court",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "charge_thrown_back",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "charge_thrown_back",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the verdict speak for itself and said nothing to anybody. It was taken as contempt, which it was."
+            }
+          ]
+        },
+        {
+          "id": "have_it_cried_in_the_squares",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "charge_thrown_back",
+              "value": false
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "The house had the verdict cried at every corner of the capital, with the accuser's name and what it had cost them. The squares enjoyed it. The accuser's house did not."
+            }
+          ]
+        },
+        {
+          "id": "offer_the_accuser_a_hand",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "charge_thrown_back",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} crossed the Senate floor after the verdict and offered the accuser's head a hand. It was taken, because everyone was watching. Neither of them was deceived."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

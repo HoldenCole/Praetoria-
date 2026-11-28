@@ -1,0 +1,41 @@
+/* The goal under the top bar (docs/GOALS.md; docs/VISUAL_SYSTEM.md 3.12): a plate at the top left of the free map, in the windows'
+   brass on dark steel. The medal's ring fills with the goal's progress; the steps tick as they are done; a red band warns before
+   ruin. Shown on the map only, so it never sits under a docked window; the alerts row starts after it. */
+.gs-shell.game .aim-plate { position: absolute; left: calc(var(--free-l) + 12px); top: calc(var(--top) + 10px); z-index: 25; width: 22rem;
+  display: flex; gap: .8rem; align-items: flex-start; padding: .7333rem .9333rem .8rem .7333rem; color: var(--ink); font: 400 .8667rem/1.35 var(--f-ui);
+  background: linear-gradient(180deg, rgba(23,28,39,.95), rgba(9,12,18,.95)); border: 1px solid rgba(201,162,74,.6); border-radius: 2px;
+  box-shadow: 0 0 0 1px #000, 0 8px 20px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,225,150,.14); }
+.gs-shell.game .aim-plate::before { content: ""; position: absolute; inset: 3px; border: 1px solid rgba(201,162,74,.16); pointer-events: none; }
+.gs-shell.game .aim-plate.folded { width: auto; max-width: 19rem; padding: .4667rem .8rem .4667rem .5333rem; align-items: center; }
+.aim-medal { flex: none; position: relative; width: 2.9333rem; height: 2.9333rem; border-radius: 50%; display: grid; place-items: center; padding: 0; cursor: pointer;
+  background: radial-gradient(circle at 50% 38%, #2a3142, #090b10 74%); border: 0; box-shadow: 0 0 0 1px #000, 0 2px 6px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.08); }
+.aim-medal:hover { filter: brightness(1.15); }
+.aim-medal .aim-ring { position: absolute; inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px); transform: rotate(-90deg); pointer-events: none; }
+.aim-ring circle { fill: none; stroke-width: 2.6; }
+.aim-ring .track { stroke: #3d311a; }
+.aim-ring .fill { stroke: #e9cf86; stroke-linecap: round; filter: drop-shadow(0 0 2px rgba(240,217,150,.5)); }
+.aim-plate.reached .aim-ring .fill { stroke: var(--good); }
+.aim-body { min-width: 0; flex: 1 1 auto; }
+.aim-kick { display: flex; align-items: center; justify-content: space-between; gap: .5333rem; font: 600 .7333rem/1 var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--brass-ink); }
+.aim-count { flex: none; letter-spacing: .06em; color: var(--ink-dim); }
+.aim-title { margin-top: .3333rem; font: 600 1.0667rem/1.18 var(--f-display); letter-spacing: .03em; color: #f5e9c9; text-shadow: 0 1px 6px rgba(0,0,0,.9); }
+.aim-plate.folded .aim-title { font-size: .9333rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.aim-steps { list-style: none; margin: .6rem 0 0; padding: 0; display: grid; gap: .3333rem; }
+.aim-steps li { display: flex; gap: .5333rem; align-items: flex-start; color: var(--ink-dim); }
+.aim-steps li i { flex: none; width: .6667rem; height: .6667rem; margin: .3rem .1333rem 0; border: 1px solid #8a6a2a; transform: rotate(45deg); }
+.aim-steps li.done { color: var(--ink-mute); }
+.aim-steps li.done span { text-decoration: line-through; text-decoration-color: rgba(201,162,74,.55); }
+.aim-steps li.done i { background: linear-gradient(135deg, #f0d996, #a37c30); border-color: #f0d996; }
+.aim-steps li.next { color: var(--ink); }
+.aim-steps li.next i { border-color: #f0d996; box-shadow: 0 0 7px rgba(240,217,150,.65); }
+.aim-next { display: flex; align-items: center; gap: .6667rem; margin-top: .6rem; padding-top: .5333rem; border-top: 1px solid rgba(201,162,74,.24); }
+.aim-stands { flex: 1 1 auto; min-width: 0; color: var(--ink-dim); font-size: .8rem; }
+.aim-was { margin-top: .4667rem; color: var(--good); font-size: .8rem; }
+.aim-ruin { margin-top: .6667rem; padding: .4667rem .6rem; border-left: 3px solid var(--ember); background: linear-gradient(90deg, rgba(150,38,22,.42), rgba(150,38,22,.08)); color: #f1d8cb; font-size: .8rem; }
+.aim-ruin b { color: #ffb197; font-weight: 600; }
+.aim-ways { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .4667rem; }
+.aim-ways .ui-btn { white-space: normal; height: auto; min-height: 1.8667rem; padding: .2667rem .6rem; text-align: left; line-height: 1.2; }
+/* the alerts row starts after the plate, so a badge never sits on it */
+.gs-shell.game:has(.aim-plate) .alerts-row { left: calc(var(--free-l) + 23.4rem); }
+.gs-shell.game:has(.aim-plate.folded) .alerts-row { left: calc(var(--free-l) + 20.4rem); }
+@media (max-width: 760px) { .gs-shell.game .aim-plate { display: none; } }

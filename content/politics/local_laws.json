@@ -1,0 +1,68 @@
+{
+  "//": "LOCAL LAW: A LAW FOR ONE WORLD (docs/POLITICS.md, 'Local law'). A law of scope 'world' in laws.json falls on every world a house holds. These are set on ONE world by the head of the house that holds it (SetLocalLawCommand), and their effects fall on that world alone. Each has a `default` every world keeps until its holder decrees otherwise; changing one costs `cost` influence and settles it on that world for `cooldown` years. A world carries only so many that are off their default (LocalLawSystem.Limit). `effects` are per-world keys the rules read for that holding only: credits_per_world, materials_per_world, manpower_per_world (Economy, the world's line in the ledger), unrest_drift, prosperity_drift, pop_growth (Economy, the yearly drifts), lawlessness_drift (RegionSystem, the world's own region), closed_to_ventures (FoundBusinessCommand: no other house may found a venture there). `opinions` are what each estate thinks of it; they weigh on the holder's estates by the share of its worlds that keep the law. `short` is how the option is named in a list ('a garrison, the tithe remitted'). `model` is the real law it is drawn from. The top-level key is `local_laws`, not `laws`, so that the loader of laws.json does not take these for laws of a house.",
+  "local_laws": [
+    { "id": "local_tithe", "name": "The tithe of this world", "cost": 1, "cooldown": 4,
+      "description": "What this one world pays, apart from what the house takes of all its worlds. A world that has suffered may be let off; a rich and quiet one may be asked for more.",
+      "model": "Tiberius remitted for five years the tribute of the cities of Asia thrown down by the earthquake of AD 17; the later Empire laid the superindiction, an extraordinary levy, on a province that could bear it.",
+      "options": [
+        { "id": "customary", "name": "The customary tithe", "short": "the customary tithe", "default": true },
+        { "id": "remitted", "name": "The tithe remitted", "short": "the tithe remitted", "effects": { "credits_per_world": -2, "unrest_drift": -3, "prosperity_drift": 2 }, "opinions": { "commons": 10, "magistrates": -5 } },
+        { "id": "surcharge", "name": "A surcharge laid on", "short": "a surcharge on the tithe", "effects": { "credits_per_world": 2, "unrest_drift": 5, "prosperity_drift": -2 }, "opinions": { "commons": -15, "merchants": -5, "magistrates": 5 } }
+      ] },
+    { "id": "garrison", "name": "The garrison", "cost": 1, "cooldown": 4,
+      "description": "Whether soldiers of the house are kept on this world, and who rules it. Troops billeted on the households keep the peace and are hated for it; under martial rule the commander's word is the law, the squares are quiet and the markets are empty.",
+      "model": "The Quartering Acts of 1765 and 1774 billeted the king's troops on the American colonies; the rule of the Major-Generals, 1655 to 1657, put the shires of England under soldiers.",
+      "options": [
+        { "id": "none", "name": "No garrison", "short": "no garrison", "default": true },
+        { "id": "quartered", "name": "A garrison quartered", "short": "a garrison", "effects": { "unrest_drift": -2, "manpower_per_world": -1, "prosperity_drift": -1 }, "opinions": { "officers": 5, "commons": -10 } },
+        { "id": "martial_rule", "name": "Martial rule", "short": "martial rule", "effects": { "unrest_drift": -5, "manpower_per_world": -1, "prosperity_drift": -3, "pop_growth": -1 }, "opinions": { "officers": 10, "commons": -20, "magistrates": -15, "frontier": -5 } }
+      ] },
+    { "id": "charter", "name": "The charter", "cost": 1, "cooldown": 6,
+      "description": "Whether this world governs itself. A chartered town keeps its own council and its own courts: it is calmer and richer, it pays the house less, and the old blood do not like to see burghers sit as magistrates.",
+      "model": "The Flavian municipal charter of Irni in Spain, about AD 91, and the Magdeburg rights of the medieval towns; the free imperial cities of the Holy Roman Empire answered to the Emperor alone.",
+      "options": [
+        { "id": "governed", "name": "Governed from the seat", "short": "governed from the seat", "default": true },
+        { "id": "chartered", "name": "A town charter", "short": "a town charter", "effects": { "unrest_drift": -1, "prosperity_drift": 2, "credits_per_world": -1 }, "opinions": { "commons": 5, "merchants": 10, "old_blood": -10 } },
+        { "id": "free_city", "name": "A free city", "short": "a free city", "effects": { "unrest_drift": -2, "prosperity_drift": 3, "credits_per_world": -2, "manpower_per_world": -1 }, "opinions": { "commons": 10, "merchants": 15, "old_blood": -20, "magistrates": -5 } }
+      ] },
+    { "id": "port", "name": "The port", "cost": 1, "cooldown": 6,
+      "description": "What this world's harbour asks of the ships that use it. A free port asks nothing and fills with trade, and with those who trade in what was not theirs; a staple makes every cargo of the region land here and pay.",
+      "model": "Rome made Delos a free port in 166 BC, and it became the great mart of the pirates; Livorno was opened to all nations in 1593. The Staple fixed at Calais in 1363 made all English wool pass one harbour.",
+      "options": [
+        { "id": "customs", "name": "Customs kept", "short": "customs kept", "default": true },
+        { "id": "free_port", "name": "A free port", "short": "a free port", "effects": { "credits_per_world": 1, "prosperity_drift": 3, "lawlessness_drift": 2 }, "opinions": { "merchants": 15, "frontier": 5, "magistrates": -10 } },
+        { "id": "staple", "name": "A staple port", "short": "a staple port", "effects": { "credits_per_world": 2, "prosperity_drift": -2 }, "opinions": { "merchants": -15, "magistrates": 10 } }
+      ] },
+    { "id": "settlers", "name": "Settlement", "cost": 1, "cooldown": 6,
+      "description": "Whether the house gives land on this world to those who will come and work it. Grants bring people and cost the chest; a colony of discharged soldiers brings fewer, who can be called out again, and turns the old tenants off their fields.",
+      "model": "The headright grants of Virginia, 1618, gave fifty acres for every person brought over; Sulla and Augustus settled their discharged legions in colonies on land taken from its holders.",
+      "options": [
+        { "id": "none", "name": "No grants of land", "short": "no grants of land", "default": true },
+        { "id": "land_grants", "name": "Settlers' grants", "short": "settlers' grants", "effects": { "pop_growth": 2, "credits_per_world": -2 }, "opinions": { "frontier": 10, "commons": 5, "old_blood": -10 } },
+        { "id": "veterans", "name": "A veterans' colony", "short": "a veterans' colony", "effects": { "pop_growth": 1, "manpower_per_world": 1, "credits_per_world": -1, "unrest_drift": 2 }, "opinions": { "officers": 15, "commons": -10 } }
+      ] },
+    { "id": "labour_levy", "name": "The labour levy", "cost": 1, "cooldown": 4,
+      "description": "Whether the people of this world owe the house days of work on its roads, docks and walls. The work is done for nothing and is resented for exactly that.",
+      "model": "The royal corvee of France, made general in 1738, took days of unpaid labour for the king's roads; the Highways Act of 1555 laid statute labour on every English parish.",
+      "options": [
+        { "id": "none", "name": "No levy of labour", "short": "no levy of labour", "default": true },
+        { "id": "corvee", "name": "A levy for public works", "short": "a labour levy", "effects": { "materials_per_world": 2, "unrest_drift": 3, "prosperity_drift": -1 }, "opinions": { "commons": -10, "magistrates": 5 } },
+        { "id": "heavy_corvee", "name": "The heavy levy", "short": "a heavy labour levy", "effects": { "materials_per_world": 4, "unrest_drift": 5, "prosperity_drift": -2, "pop_growth": -1 }, "opinions": { "commons": -20, "magistrates": 5, "merchants": 5 } }
+      ] },
+    { "id": "dole", "name": "Bread and games", "cost": 1, "cooldown": 4,
+      "description": "Whether the house feeds and amuses the people of this world at its own cost. It buys quiet with coin, and buys it only for as long as the coin is paid.",
+      "model": "The corn law of Gaius Gracchus, 123 BC, sold grain to the citizens of Rome below its price, and Clodius made it free in 58 BC; Juvenal's bread and circuses.",
+      "options": [
+        { "id": "none", "name": "No dole", "short": "no dole", "default": true },
+        { "id": "corn_dole", "name": "A corn dole", "short": "a corn dole", "effects": { "unrest_drift": -3, "credits_per_world": -2 }, "opinions": { "commons": 10, "magistrates": -5 } },
+        { "id": "dole_and_games", "name": "A corn dole and games", "short": "a corn dole and games", "effects": { "unrest_drift": -5, "credits_per_world": -4 }, "opinions": { "commons": 15, "magistrates": -10, "old_blood": -5 } }
+      ] },
+    { "id": "gates", "name": "The gates", "cost": 2, "cooldown": 8,
+      "description": "Whether this world is open to the other houses of the Reach. A closed world admits no venture but its holder's own: fewer strangers and fewer troubles, and a market that goes slack.",
+      "model": "The edicts of 1633 to 1639 that closed Japan to all but one Dutch factory; the Spanish Crown's closing of the trade of the Indies to every foreigner through the House of Trade at Seville, founded 1503.",
+      "options": [
+        { "id": "open", "name": "Open to the Reach", "short": "open to the Reach", "default": true },
+        { "id": "closed", "name": "A closed world", "short": "a closed world", "effects": { "closed_to_ventures": 1, "unrest_drift": -1, "lawlessness_drift": -1, "prosperity_drift": -3 }, "opinions": { "merchants": -20, "old_blood": 10, "frontier": -5 } }
+      ] }
+  ]
+}

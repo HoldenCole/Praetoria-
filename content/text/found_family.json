@@ -1,0 +1,84 @@
+{
+  "texts": [
+    {
+      "id": "a_child_with_nowhere_to_go",
+      "title": "A Child With Nowhere to Go",
+      "body": "{child.name} of {child.house} is the kind of child houses talk about in lowered voices: a family that cannot keep {child.him}, or will not, and no one stepping forward. A steward mentions it to you in passing, in the tone of someone mentioning the weather, and waits.",
+      "choices": {
+        "take_the_child_in": "Take the child into your house.",
+        "find_them_a_place": "Find {child.him} a place, and pay for it.",
+        "it_is_not_your_affair": "It is not your affair."
+      }
+    },
+    {
+      "id": "the_ward_comes_of_age",
+      "title": "The Ward Comes of Age",
+      "body": "{ward.name} is sixteen, and free to go home to {ward.house}. {ward.He} has come to your study to say, a little stiffly, that {ward.he} would rather stay, if there is a place for {ward.him} here. {ward.He} has clearly rehearsed it.",
+      "choices": {
+        "you_are_family": "\"You are family. There was never a question.\"",
+        "give_them_a_start": "Settle a sum on {ward.him} to begin with.",
+        "say_little": "Say it is sensible of {ward.him}."
+      }
+    },
+    {
+      "id": "the_accounts_do_not_add_up",
+      "title": "The Accounts Do Not Add Up",
+      "body": "It is not much. A few hundred credits a year, for some years, in a column that {steward.name} keeps and nobody else reads. You have read it now. {steward.first} was given the house's purse on trust, and has been treating a little of it as {steward.his} own.",
+      "choices": {
+        "dismiss_them": "Dismiss {steward.him} from the work.",
+        "make_them_repay_it": "Make {steward.him} repay it, and keep {steward.him}.",
+        "look_away": "Look away."
+      }
+    },
+    {
+      "id": "a_place_at_the_table",
+      "title": "A Place at the Table",
+      "body": "There is a formal dinner, and a seating plan, and the steward has brought it to you with one name circled. {member.name} is of the household but not of the blood. Where {member.he} sits tonight will tell the whole house what {member.he} is.",
+      "choices": {
+        "at_the_family_table": "With the family.",
+        "below_the_family": "With the household, below the family.",
+        "let_them_choose": "Let {member.him} choose."
+      }
+    },
+    {
+      "id": "the_protege_is_noticed",
+      "title": "The Protégé Is Noticed",
+      "body": "People have begun to mention {protege.name} to you without being asked. A piece of work well done, a good answer in a hard room. They say it as a compliment to you, who brought {protege.first} on, and they watch to see how it is taken.",
+      "choices": {
+        "say_so_in_public": "Say in public how far {protege.he} will go.",
+        "push_them_harder": "Push {protege.him} harder.",
+        "say_nothing": "Say nothing."
+      }
+    },
+    {
+      "id": "the_wing_withdrawn",
+      "title": "The Wing Withdrawn",
+      "body": "For some years there was someone senior who answered your questions, spoke for you in rooms you were not in, and expected nothing but to be listened to. That is over now.",
+      "choices": {
+        "stand_alone": "Stand alone.",
+        "honour_what_was_taught": "Honour what was taught.",
+        "find_another": "Look for another."
+      }
+    },
+    {
+      "id": "one_of_yours_finds_a_mentor",
+      "title": "One of Yours Finds a Mentor",
+      "body": "{kin.Rel}, {kin.first}, has found somebody senior in {kin.his} own service who will take {kin.him} in hand, and did it without a word to the head of the house. It is how such things are done. It also means there is now a person outside your gift whose good opinion {kin.he} is working for.",
+      "choices": {
+        "be_glad_of_it": "Be glad of it, and say so.",
+        "ask_who_this_person_is": "Ask, carefully, who this person is.",
+        "leave_it_theirs": "Say nothing. It is {kin.hers}."
+      }
+    },
+    {
+      "id": "the_household_goes_unpaid",
+      "title": "The Household Goes Unpaid",
+      "body": "There was not enough in the treasury this year to keep the people the house has taken in, or to pay those who do its head's work for them. They are still here. They eat at the same table and do the same work, and each of them has done the sum of what they are owed.",
+      "choices": {
+        "tell_them_plainly": "Tell them plainly how things stand.",
+        "pay_them_from_your_own": "Find the money somewhere, and pay them late.",
+        "say_nothing": "Say nothing, and let it go on."
+      }
+    }
+  ]
+}

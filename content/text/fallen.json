@@ -1,0 +1,14 @@
+{
+  "texts": [
+    {
+      "id": "the_last_world_lost",
+      "title": "The Last World Lost",
+      "body": "{self.house} holds no world now. It keeps its name, its people, its friends and its debts, and it has lost the thing that made it a house of land. Houses have come back from this, by the roads every new name walks: a command by service, under Military; a marriage into a house with land, under Dynasty; a grant of a world petitioned for, under Worlds; or the money to buy one, under House, Purses and the will. The household is waiting to hear what you say.",
+      "choices": {
+        "swear_to_hold_land_again": "Swear before the household that the house will hold land again.",
+        "say_nothing_and_work": "Say nothing. Go back to work in the morning.",
+        "a_house_is_its_people": "Tell them a house is its people, not its worlds."
+      }
+    }
+  ]
+}

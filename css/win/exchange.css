@@ -1,0 +1,140 @@
+/* The Exchange (docs/VISUAL_SYSTEM.md 4.13 and 5.3): the market hall's painting and its plinth, four tabs, and on each sections of
+   rows and tables. The goods and the companies are each one table of 36px rows whose chosen row docks its order in the order bar at
+   the table's foot. Loaded after app.css (and after house.css, whose small parts it shares: hs-tag, hs-line, hs-note, hs-acts, the
+   medal and the plates' rows). Only this window's files (ExchangeScreen, ExchangeVentures, ExchangeProjects, ExchangeShares,
+   VentureBuy) use the classes below; VentureBuy also stands on a house's page under Houses.
+
+   Widths: the window is a container ("ex"); "narrow" is under 45rem (1366 wide, or 1600 at the larger sizes). */
+
+.spark { display: block; }
+
+.ex-win { --hs-gut-l: 1.8667rem; --hs-gut-r: 1.6rem; container: ex / inline-size; }
+
+/* the painted header: the market hall under its glass dome, the shade held dark behind the text */
+.ex-win .ui-head-art { background-position: center 30%; }
+.ex-win .ui-head-shade { background:
+  linear-gradient(90deg, rgba(8,10,15,.9) 0, rgba(8,10,15,.76) 17rem, rgba(8,10,15,.42) 30rem, rgba(8,10,15,.16) 42rem, rgba(8,10,15,.24) 100%),
+  linear-gradient(180deg, rgba(8,10,15,.35) 0%, rgba(8,10,15,0) 26%, rgba(8,10,15,0) 56%, rgba(8,10,15,.92) 100%); }
+.ex-win .ui-plinth { justify-content: space-between; }
+.ex-win .ui-plinth .ui-fig + .ui-fig { margin-left: .6rem; padding-left: 1rem; }
+.ex-win .ui-facts > span { text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9); }
+.ex-win .ui-facts > [title] { cursor: help; }
+@container ex (max-width: 46rem) {
+  .ex-win .ui-plinth { padding: 0 1.2rem 0 1.3333rem; }
+  .ex-win .ui-plinth .ui-fig { gap: .4rem; }
+  .ex-win .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
+  .ex-win .ui-plinth .ui-fig + .ui-fig { margin-left: .2667rem; padding-left: .6667rem; }
+  .ex-win .ui-fig-v .d { display: none; }
+  .ex-win .ui-head-text { right: 3.6rem; }
+}
+
+@property --ex-top { syntax: '<length>'; inherits: false; initial-value: 0px; }
+.ex-win .ex-body { padding-bottom: 2.4rem;
+  -webkit-mask-image: linear-gradient(transparent 0, #000 var(--ex-top), #000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(transparent 0, #000 var(--ex-top), #000 calc(100% - 56px), transparent); }
+@supports (animation-timeline: scroll()) { .ex-win .ex-body { animation: ex-topfade linear both; animation-timeline: scroll(self); animation-range: 0 32px; } }
+@supports not (animation-timeline: scroll()) { .ex-win .ex-body { --ex-top: 18px; } }
+@keyframes ex-topfade { from { --ex-top: 0px; } to { --ex-top: 22px; } }
+.ex-lede { margin-bottom: .2667rem; } .ex-lede.warn { color: #f0dba8; } .ex-lede.bad { color: #f6c9bd; }
+.ex-win .ui-empty, .ex-win .ui-wstrip { margin-left: var(--hs-gut-l); margin-right: var(--hs-gut-r); }
+.ex-win .ui-empty { padding-left: 0; padding-right: 0; }
+.ex-win .ui-wstrip { margin-top: .5333rem; }
+.ex-win .ui-sec .ui-n { white-space: nowrap; }
+.ex-win .ui-sec-r { white-space: nowrap; min-width: 0; overflow: hidden; } .ex-win .ui-sec-r > span { display: inline-flex; align-items: center; gap: .4rem; overflow: hidden; text-overflow: ellipsis; }
+.ex-win .ui-row-sub { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ex-win .ui-cell small { color: var(--ink-mute); font-weight: 500; }
+
+/* ---- the tables and their order bar (4.13) ---- */
+.ex-goods, .ex-shares, .ex-found { padding: .4rem var(--hs-gut-r) 0 var(--hs-gut-l); }
+.ex-table { box-shadow: inset 0 0 0 1px rgba(201,162,74,.12); background: rgba(5,7,10,.35); }
+.ex-table .ui-table { table-layout: auto; }
+.ex-table .ui-table th { padding-top: .1333rem; background: rgba(8,10,15,.6); }
+.ex-table .ui-table td { color: var(--ink); }
+.ex-table .ui-table td:first-child { white-space: nowrap; }
+.ex-table .ui-table td:first-child > .icon, .ex-table .ui-table td:first-child > svg.icon { vertical-align: -.25em; }
+.ex-table .ui-table td small { font-size: .8667rem; font-weight: 500; }
+.ex-table .ui-table tbody tr:hover td { background: rgba(201,162,74,.06); }
+.ex-table .ui-table tbody tr.on td { background: rgba(201,162,74,.1); }
+.ex-table .ui-table tbody tr.on { background: linear-gradient(90deg, rgba(201,162,74,.12), rgba(201,162,74,.02)); }
+.ex-table .ui-table tbody tr.on td:first-child { box-shadow: inset 2px 0 0 var(--brass); color: var(--brass-hi); }
+.ex-table .ui-table tr.spike td:first-child { color: #ffb4a3; } .ex-table .ui-table tr.slump td:first-child { color: #b9e3ad; }
+.ex-table .ui-table tr.on.spike td:first-child, .ex-table .ui-table tr.on.slump td:first-child { color: var(--brass-hi); }
+.ex-table .ui-table tr.mine td:first-child { color: var(--brass-ink); }
+.ex-table .ui-table td.ex-td-l { text-align: left; font-weight: 500; color: var(--ink-dim); }
+.ex-table .ui-table th:nth-child(2) { text-align: right; }
+.ex-found .ui-table th:nth-child(2) { text-align: left; }
+.ex-of { color: var(--ink-mute); }
+.ex-chip { display: inline-flex; align-items: center; height: 1.2rem; padding: 0 .3333rem; margin-left: .4667rem; font: 600 .8rem/1 var(--f-ui); color: var(--ink-dim); vertical-align: .1em;
+  background: #07090d; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(255,255,255,.08); border-radius: 2px; }
+.ex-chip.warn { color: var(--warn); box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(227,166,74,.5); }
+.ex-chip.gold { color: var(--brass-hi); box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(201,162,74,.55); }
+.ex-co-mark { display: inline-block; width: .5333rem; height: .5333rem; margin-right: .6rem; transform: rotate(45deg); box-shadow: 0 0 0 1px #000; vertical-align: .05em; }
+.ex-table .ui-order { flex-wrap: wrap; row-gap: .4rem; gap: .4rem .5333rem; }
+.ex-table .ui-order .ui-btn { padding: 0 .7333rem; }
+.ex-table .ui-order-nm { display: inline-flex; align-items: center; gap: .4667rem; white-space: nowrap; }
+.ex-quote { font: 400 .9333rem/1 var(--f-ui); color: var(--ink-dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ex-cause { margin: .5333rem 0 0; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.ex-cause b { color: var(--ink); font-weight: 600; }
+.ex-corners { display: flex; align-items: center; gap: .4rem; cursor: help; }
+.ex-swing { color: var(--warn); }
+@container ex (max-width: 45rem) {
+  .ex-goods .ui-table th:nth-child(5), .ex-goods .ui-table td:nth-child(5) { display: none; }
+  .ex-shares .ui-table th:nth-child(5), .ex-shares .ui-table td:nth-child(5) { display: none; }
+  .ex-found .ui-table th:nth-child(5), .ex-found .ui-table td:nth-child(5) { display: none; }
+  .ex-table .ui-spark { width: 3.2rem; }
+  .ex-table .ex-quote { display: none; }
+}
+
+/* who holds what: one line a good, the holders as marks of their house's colour */
+.ex-hold { display: grid; grid-template-columns: minmax(0, 9.3333rem) minmax(0, 1fr); column-gap: .8rem; row-gap: .2667rem; padding: .5333rem var(--hs-gut-r) .5333rem var(--hs-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); }
+.ex-hold-nm { display: inline-flex; align-items: center; gap: .4667rem; font-weight: 600; color: var(--ink); }
+.ex-hold-all b { color: var(--ink); }
+.ex-hold-who { grid-column: 2; display: flex; flex-wrap: wrap; gap: .2667rem .8rem; }
+.ex-hold-word { grid-column: 2; }
+.ex-holder { display: inline-flex; align-items: center; gap: .4rem; color: var(--ink-dim); cursor: help; }
+.ex-holder i { width: .6667rem; height: .6667rem; box-shadow: 0 0 0 1px #000; }
+.ex-holder b { color: var(--ink); font-weight: 600; } .ex-holder.mine { color: var(--brass-hi); }
+
+/* ---- ventures, projects, boards: a row, and what can be done with it under it ---- */
+.vcard { border-bottom: 1px solid rgba(255,255,255,.05); }
+.vcard > .ui-row { border-bottom: 0; }
+.vcard.distress > .ui-row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--bad); }
+.vcard.offer > .ui-row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--good); }
+.ex-under { padding: 0 var(--hs-gut-r) .6667rem calc(var(--hs-gut-l) + 3.6rem + .9333rem); }
+.ex-under .hs-line, .ex-under .hs-note, .ex-under .ui-wstrip { margin-left: 0; margin-right: 0; }
+.ex-under .hs-note { margin-top: 0; }
+.ex-row { display: flex; justify-content: flex-start; margin-top: .4rem; }
+.ex-row .ui-btn.sm, .ex-under .ui-btn.sm { height: 1.7333rem; }
+.ex-built { max-width: 26rem; margin-bottom: .4rem; }
+.ex-mover { display: flex; align-items: flex-start; gap: .5333rem; margin: 0; padding: .5333rem var(--hs-gut-r) .5333rem var(--hs-gut-l); border-bottom: 1px solid rgba(255,255,255,.05); font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink); }
+.ex-mover .icon { flex: none; width: 1rem; height: 1rem; margin-top: .1333rem; }
+.ex-shut .ui-row-nm { color: var(--ink-dim); }
+.ex-empty-links { gap: .4rem 1.6rem; margin-top: -.2rem; margin-left: calc(var(--hs-gut-l) + 3.0667rem + 1.0667rem); }
+.ex-win .ui-sec-r .ui-spark { width: 3.2rem; }
+
+/* ---- buying another house's venture (VentureBuy): one line of plates, the offer typed in credits ---- */
+.vbuy { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; }
+.vbuy .ui-btn.sm { height: 1.7333rem; }
+.vbuy-l { font: 600 .8rem/1.2 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.vbuy-word { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.vbuy-in { width: 6.6667rem; }
+.vbuy-warn { font: 600 .9333rem/1 var(--f-ui); }
+.ex-holders-link { padding: .4rem 1.4667rem .2rem 1.8667rem; }
+
+/* a venture for sale: its name wraps rather than being cut; its plates on one line, the one requirement after them */
+.ex-win .ui-row-nm { white-space: normal; overflow: visible; }
+.vbuy { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; }
+.vbuy .vbuy-need { flex-basis: auto; }
+/* belt claims and ventures for sale as tables with one order bar (round 3) */
+.ex-table .ui-table tr.ex-locked td { color: var(--ink-dim); }
+.ex-table .ui-table td:first-child > :is(.icon, svg, .sigil, span):first-child { margin-right: .4667rem; vertical-align: -.25em; }
+.ex-sale .ui-order .vbuy { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .4rem .5333rem; margin: 0; padding: 0; border: 0; background: none; }
+.ex-order-warn { white-space: normal; max-width: 26rem; }
+.ex-claims, .ex-sale { margin-top: .2667rem; }
+
+/* For sale in the Reach (2026-11-28 mend): a long venture name takes a second line rather than an ellipsis, and the order bar is always
+   the same two lines, the venture's name over its plates, whichever venture is picked, so it never jumps from one shape to another */
+.ex-sale .ui-table td:first-child { white-space: normal; line-height: 1.25; padding-top: .3333rem; padding-bottom: .3333rem; }
+.ex-sale .ui-table td.ex-td-l { white-space: nowrap; }
+.ex-sale .ui-order .ui-order-nm { flex: 1 0 100%; white-space: normal; line-height: 1.25; }
+.ex-sale .ui-order .ui-order-sp { display: none; }

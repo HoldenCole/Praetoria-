@@ -1,0 +1,513 @@
+{
+  "texts": [
+    {
+      "id": "the_war_beyond_the_reach",
+      "title": "War Beyond the Reach",
+      "body": "The Senate has voted war on a nation beyond the rim. The motion carried; the fleets may sail; the chamber is loud with houses deciding, after the fact, how they feel about it. You are asked, in the colonnade, where {self.house} stands.",
+      "choices": {
+        "raise_the_banner": "Rise for the war.",
+        "count_the_cost": "Ask who pays.",
+        "say_nothing": "Let others own it."
+      }
+    },
+    {
+      "id": "the_fleet_sails_beyond",
+      "title": "The Fleet Sails",
+      "body": "The fleet of {self.house} clears the last beacon and turns beyond the Reach. It will be years before it fights and more before word comes back. The crews are on deck; the harbour is on the gallery; the admiral is waiting to be seen off.",
+      "choices": {
+        "pay_the_crews_forward": "Pay the crews a season forward (400 credits).",
+        "a_word_to_the_admiral": "A public word about glory.",
+        "watch_them_go": "Watch them go, and say nothing."
+      }
+    },
+    {
+      "id": "word_of_a_victory_abroad",
+      "title": "Word of a Victory",
+      "body": "A dispatch, two years old by the time it reaches the Reach: the fleet of {self.house} met the enemy in their own space and beat them. Hulls lost, plunder taken, the tally turned a point. The chamber has not heard yet.",
+      "choices": {
+        "let_it_be_known": "Have it read in the chamber.",
+        "share_the_plunder": "Send a share of it to the squares (400 credits).",
+        "keep_it_close": "File it. Victories are followed by defeats."
+      }
+    },
+    {
+      "id": "word_of_a_defeat_abroad",
+      "title": "Word of a Defeat",
+      "body": "A dispatch, late and short: the fleet of {self.house} was beaten in the enemy's space. Hulls lost; the tally turned against the Reach; the admiral alive, or not, the dispatch is unclear. The chamber will ask.",
+      "choices": {
+        "stand_by_the_admiral": "Stand by the admiral.",
+        "relieve_the_admiral_in_words": "Call it a commander's failing.",
+        "send_what_can_be_spared": "Send stores after them (4 materials)."
+      }
+    },
+    {
+      "id": "the_broken_expedition",
+      "title": "The Broken Expedition",
+      "body": "What is left of the fleet of {self.house} has been sighted at the beacons: a hull, maybe two, limping for home from beyond the Reach. The families are at the harbour already. The Senate that sent it is not.",
+      "choices": {
+        "mourn_them": "Go down to the harbour and stand with the families.",
+        "blame_the_senate": "Tell the chamber it sent them too few, too far.",
+        "rebuild_quietly": "Lay down new hulls, and say nothing (600 credits)."
+      }
+    },
+    {
+      "id": "the_fleet_comes_home",
+      "title": "The Fleet Comes Home",
+      "body": "The fleet of {self.house} is home from beyond the Reach, with its plunder and its dead and its stories. The harbour town has turned out; the crews want paying; the admiral wants to be seen.",
+      "choices": {
+        "a_parade": "Give them a parade (500 credits).",
+        "pay_off_the_crews": "Pay the crews in full on the quay (600 credits).",
+        "back_to_stations": "Back on station within the week."
+      }
+    },
+    {
+      "id": "the_triumph",
+      "title": "The Triumph",
+      "body": "The nation has sued for peace and will pay the Reach tribute for twenty years, and the Senate has named {self.house} the house whose fleets won it. The Reach gives a triumph once in a generation: the laurel, the procession, the chamber on its feet. It is waiting on you.",
+      "choices": {
+        "the_laurel": "Take the laurel and the procession.",
+        "the_modest_general": "Decline the procession; give the laurel to the fleet.",
+        "a_share_of_the_tribute": "Ask the chamber for a share of the tribute."
+      }
+    },
+    {
+      "id": "raiders_from_beyond",
+      "title": "Raiders From Beyond",
+      "body": "They came out of the dark beyond the rim, took cargo and crews from a world of {self.house}, and were gone before any fleet could answer. The town is in uproar; the frontier wants to know what the Reach will do; the chamber has not yet heard.",
+      "choices": {
+        "call_for_war": "Stand in the chamber and call for war.",
+        "arm_the_world": "Arm the world and pay a garrison (4 materials, 300 credits).",
+        "bear_it": "Count the cost and bear it."
+      }
+    },
+    {
+      "id": "the_war_abroad_is_lost",
+      "title": "The War Abroad Is Lost",
+      "body": "The tally turned against the Reach and stayed there, and the chair has bought peace from a nation beyond the rim at thrice the tribute it hoped to take. The fleets are coming home. The chamber wants someone to blame.",
+      "choices": {
+        "blame_the_consuls": "Lay it at the consuls' door.",
+        "call_for_the_fleet": "Call for a real fleet of the Reach, paid by the chamber.",
+        "let_it_lie": "Peace is peace. Say nothing."
+      }
+    },
+    {
+      "id": "the_tribute_comes_in",
+      "title": "The Tribute Comes In",
+      "body": "A nation beyond the Reach has sued for peace and its first tribute has reached the chair's coffers, and not yours. The chamber is already arguing about whose war it was and whose credits these are.",
+      "choices": {
+        "move_to_share_it": "Move that the tribute be shared.",
+        "move_to_build_with_it": "Move that it lay down hulls and lanes.",
+        "say_nothing": "Let the chair keep it."
+      }
+    },
+    {
+      "id": "met_at_the_march",
+      "title": "Met at the March",
+      "body": "Raiders came through the march this year and found your fleet standing there. They did not try it. No world of the rim was touched, and most of the houses whose worlds they would have been do not yet know why.",
+      "choices": {
+        "keep_the_station": "Keep the station, and pay the crews early.",
+        "make_it_known": "Let the Senate hear whose fleet it was.",
+        "say_nothing": "Say nothing. It is what the fleet is for."
+      }
+    },
+    {
+      "id": "a_new_hand_beyond_the_rim",
+      "title": "A New Hand Beyond the Rim",
+      "body": "One of the nations beyond the Reach has a new ruler. What kind is in the dispatches: the warlike sour toward the Reach; the wary raid only when the quarrel is real; the grasping raid for twice the cargo; the mild are easier to deal with. Sometimes it is the commander of their fleets who takes the chair, and those are never mild.",
+      "choices": {
+        "send_an_envoy": "Send an envoy with a gift.",
+        "watch_the_march": "Double the watch at the march.",
+        "let_it_pass": "Read the dispatch and turn to the next."
+      }
+    },
+    {
+      "id": "their_commander_falls",
+      "title": "Their Commander Falls",
+      "body": "Your fleet has beaten theirs in their own space, and the commander of their fleets was killed in the rout. Whoever follows will be new to it. For a while the border will be quieter than it has been.",
+      "choices": {
+        "honour_the_dead": "Send the body home under a flag of truce.",
+        "take_the_name": "Let the Reach know whose fleet did it."
+      }
+    },
+    {
+      "id": "the_host_is_through_the_march",
+      "title": "The Host Is Through the March",
+      "body": "Their host has come through the march and is bound for a world of the Reach. It will sit over that world until the world falls, which takes it longer than it would take a fleet of the Reach, and then it will go home with what it took. The houses that mean to stop it have that long.",
+      "choices": {
+        "send_word": "Write to the houses near the march with what is known.",
+        "see_to_our_own": "Look to our own orbits first."
+      }
+    },
+    {
+      "id": "a_world_of_the_reach_is_taken",
+      "title": "A World of the Reach Is Taken",
+      "body": "Their host has taken a world of the Reach. It is theirs until a house of the Reach frees it, or until the peace: if the Reach wins the war the world goes home, and if not it is ceded. Its house is asking who will help.",
+      "choices": {
+        "speak_for_its_house": "Say in the Senate that it was taken from all of us.",
+        "say_nothing": "Say nothing. It was not our world."
+      }
+    },
+    {
+      "id": "our_world_is_taken",
+      "title": "Our World Is Taken",
+      "body": "Their host has taken a world of your own house. It is theirs until a fleet of the Reach frees it, yours or another's, or until the peace. If the war is lost it will be ceded.",
+      "choices": {
+        "appeal_to_the_senate": "Ask the Senate to remember whose war this is.",
+        "swear_to_take_it_back": "Swear the house will take it back itself."
+      }
+    },
+    {
+      "id": "a_world_freed_for_us",
+      "title": "A World Freed for Us",
+      "body": "Another house's fleet has driven them off the world they took from you, and it is yours again. That house asked for nothing. It will remember what you say now.",
+      "choices": {
+        "thank_them_handsomely": "Send a gift and thank them where it will be heard.",
+        "take_it_as_owed": "Take it as one house's due from another."
+      }
+    },
+    {
+      "id": "we_freed_a_world",
+      "title": "We Freed a World",
+      "body": "Your fleet has freed a world they had taken from another house. It has gone home to that house, as a freed world does. What you ask for it is yours to decide.",
+      "choices": {
+        "hand_it_back_with_grace": "Ask nothing for it.",
+        "ask_the_cost_of_the_fleet": "Send them the bill for the fuel and the hulls."
+      }
+    },
+    {
+      "id": "their_host_is_beaten",
+      "title": "Their Host Is Beaten",
+      "body": "Your fleet has met their host and beaten it. That counts for more in the tally of the war than anything short of taking a world, and it will be talked about.",
+      "choices": {
+        "give_the_crews_their_due": "Pay the crews a bounty from the house's purse.",
+        "let_the_reach_know": "See that the Reach knows whose colours led."
+      }
+    },
+    {
+      "id": "ceded_at_the_peace",
+      "title": "Ceded at the Peace",
+      "body": "The war is over and it was not won. A world of the Reach that they held when the peace was made stays theirs. It can be taken back, but only in another war.",
+      "choices": {
+        "call_it_a_shame": "Call it a shame in the Senate, and name no one.",
+        "say_it_will_be_taken_back": "Say it will be taken back in the next."
+      }
+    },
+    {
+      "id": "the_camps_are_restless",
+      "title": "The Camps Are Restless",
+      "body": "The world your house holds beyond the march is restless. No fleet of yours has stood over it this year. Three years without three hulls in its orbit and it will rise and be theirs again, unless they are paying the Reach tribute.",
+      "choices": {
+        "order_a_fleet_there": "Order hulls sent there.",
+        "let_it_go_if_it_goes": "Let it go, if it goes."
+      }
+    },
+    {
+      "id": "the_camps_rise",
+      "title": "The Camps Rise",
+      "body": "The world your house held beyond the march has risen. No fleet stood over it for three years, and it is theirs again without a battle.",
+      "choices": {
+        "shrug_it_off": "It was never going to be easy to keep.",
+        "take_it_hard": "Ask where the garrison was."
+      }
+    },
+    {
+      "id": "their_capital_falls",
+      "title": "Their Capital Falls",
+      "body": "A fleet of the Reach has taken the world where their ruler sat. If there is a war, that ends it. Their ruler sits somewhere else now, and the world itself will need a fleet over it to be kept.",
+      "choices": {
+        "mark_the_day": "Have the day marked.",
+        "ask_what_comes_after": "Ask the Senate who will hold it, and with what."
+      }
+    },
+    {
+      "id": "the_cities_are_hiring",
+      "title": "The Cities Are Hiring",
+      "body": "The Free Cities do not keep a great fleet. Attacked, they buy one: a hull comes into their harbours every year for as long as the war lasts and they hold Thessar. A war with them that is not won quickly is fought against more ships each year.",
+      "choices": {
+        "say_strike_now": "Say the time to go is now.",
+        "let_them_spend": "Let them spend."
+      }
+    },
+    {
+      "id": "the_cities_offer_a_ransom",
+      "title": "The Cities Offer a Ransom",
+      "body": "The war is over and the Cities are paying tribute. They want their city back, the one your house holds, and they have named a price. The offer stands for two years. Take it and the city goes home; refuse and it is yours for as long as you keep a fleet over it, and the Cities will remember.",
+      "choices": {
+        "take_the_money": "Take the money.",
+        "keep_the_city": "Keep the city."
+      }
+    },
+    {
+      "id": "a_city_is_bought_back",
+      "title": "A City Is Bought Back",
+      "body": "A city of the Shore that a house of the Reach took in the war has been bought back by the Cities. The house has its money and the city has its harbour. This is how the Cities end a war they have lost.",
+      "choices": {
+        "call_it_their_way_of_war": "It is their way of war.",
+        "say_it_should_have_been_kept": "Say it should have been kept."
+      }
+    },
+    {
+      "id": "the_cities_stop_paying",
+      "title": "The Cities Stop Paying",
+      "body": "The Free Cities have stopped their tribute. They pay while a fleet of the Reach stands at their march or over their worlds, and for three years none has. Nothing in the treaty has changed; the ships went home.",
+      "choices": {
+        "move_for_a_fleet_at_the_march": "Say what the tribute costs: a squadron at the march.",
+        "shrug": "It was always going to happen."
+      }
+    },
+    {
+      "id": "the_plunder_of_a_city",
+      "title": "The Plunder of a City",
+      "body": "Your fleet has taken a city of the Shore. Its counting-houses were full, as they always are, and what was in them is aboard your ships. The crews are waiting to hear whose it is.",
+      "choices": {
+        "share_it_with_the_crews": "Pay a share to every crew.",
+        "keep_it_for_the_house": "Enter it all in the house's books."
+      }
+    },
+    {
+      "id": "the_city_is_restless",
+      "title": "The City Is Restless",
+      "body": "The city your house holds on the Thessaran Shore is restless. No fleet of yours has stood over it this year. Six years without three hulls in its orbit and its council will shut the gates, unless the Cities are paying the Reach tribute.",
+      "choices": {
+        "order_a_squadron_there": "Order a squadron there.",
+        "let_it_be": "Let it be for now."
+      }
+    },
+    {
+      "id": "the_city_shuts_its_gates",
+      "title": "The City Shuts Its Gates",
+      "body": "The city your house held on the Shore has gone back to the Cities. No fleet stood over it for six years. Its council voted, and that was all it took.",
+      "choices": {
+        "shrug_it_off": "A fair account of a merchant's loyalty.",
+        "take_it_hard": "Ask where the squadron was."
+      }
+    },
+    {
+      "id": "the_cities_buy_their_peace",
+      "title": "The Cities Buy Their Peace",
+      "body": "The Senate voted a war on the Free Cities and it was not fought: no fleet met another, and for years nobody pressed them. The Cities have paid the house that holds the capital to end it. What each side took goes home, their cities for a ransom, and they owe no tribute.",
+      "choices": {
+        "call_it_good_business": "Good business on both sides.",
+        "call_it_a_war_unfought": "Say what a war voted and sold is worth."
+      }
+    },
+    {
+      "id": "the_concord_crosses_the_gate",
+      "title": "The Concord Crosses the Gate",
+      "body": "The Ardent Concord has made war on the Reach. Nobody voted it: the Council of Admirals saw the Reach divided and gave the order. Every house is at war with it. Two divisions will come through the Valmont Anvils and Ironhold, and they will not go home with one world.",
+      "choices": {
+        "call_the_houses_to_the_east": "Say the houses' quarrels can wait.",
+        "say_it_was_always_coming": "It was always coming.",
+        "look_to_our_own_quarrel": "We have a quarrel nearer home."
+      }
+    },
+    {
+      "id": "the_concord_comes_back",
+      "title": "The Concord Comes Back for Its Own",
+      "body": "A house of the Reach holds a world that was the Concord's, and the Concord has made war to take it back. Its worlds do not rise of themselves as the Khanates' camps do. The Concord comes for them, with everything it has.",
+      "choices": {
+        "say_hold_what_was_won": "Say it should be held.",
+        "say_it_was_never_worth_it": "Ask who was consulted."
+      }
+    },
+    {
+      "id": "two_fleets_through_the_marches",
+      "title": "Two Fleets Through the Marches",
+      "body": "The Concord's divisions are through the Ardent Gate and into the Reach. They fight a campaign: each takes a world, slowly, and then the next, for as long as it is supplied and unbeaten. A division is driven home by beating it.",
+      "choices": {
+        "send_what_is_known": "Send the eastern houses what is known.",
+        "keep_our_fleet_where_it_is": "Keep our fleet where it is."
+      }
+    },
+    {
+      "id": "the_isotope_fields",
+      "title": "The Isotope Fields",
+      "body": "Your house holds a world of the Outer Compact. Its fields pay the house two isotopes every year it is held. The Compact's people keep quiet while the Compact pays tribute; after that the world rises in four years without three hulls over it.",
+      "choices": {
+        "work_them_hard": "Run the refinery in three shifts.",
+        "leave_the_miners_their_ways": "Leave the miners their own ways."
+      }
+    },
+    {
+      "id": "the_vaults_of_the_crown",
+      "title": "The Vaults of the Crown",
+      "body": "Your fleet has taken Porphyra, where the Autokrator sat, and the vaults under the Purple Palace are open. They were filled when forty worlds paid tribute. What is in them is yours, and so is the name of having taken them. It can be taken only once.",
+      "choices": {
+        "bring_it_home_in_state": "Bring it home on open decks.",
+        "pay_the_fleet_first": "Pay the fleet out of the first strongroom.",
+        "say_little_and_bank_it": "Say little, and bank it."
+      }
+    },
+    {
+      "id": "the_crown_is_broken",
+      "title": "The Crown Is Broken",
+      "body": "Another house has taken Porphyra and opened the vaults of the Hollow Crown. It comes home very rich, and with a name. The Crown still has whatever worlds it has left, and no strength to take anything back.",
+      "choices": {
+        "note_who_grew_rich": "Note who grew rich, and how rich.",
+        "salute_it": "Send congratulations."
+      }
+    },
+    {
+      "id": "another_hull_from_the_lists",
+      "title": "Another Hull from the Lists",
+      "body": "The Hollow Crown has struck a ship from its lists. It does this every ten years or so. Nothing replaces what it strikes, and what it loses in a war it does not get back.",
+      "choices": {
+        "mark_it": "Keep the count.",
+        "pity_them": "It is hard to hate them."
+      }
+    },
+    {
+      "id": "the_last_of_the_crown",
+      "title": "The Last of the Crown",
+      "body": "The Hollow Crown's last world has been taken. It has no fleet, no Autokrator and no court. Its worlds are held by the houses whose fleets took them, and no law of the Senate runs there yet.",
+      "choices": {
+        "say_an_age_is_over": "Say an age is over.",
+        "ask_who_holds_its_worlds": "Ask who holds its worlds, and by what right."
+      }
+    },
+    {
+      "id": "the_long_dark",
+      "title": "The Long Dark",
+      "body": "The Reach is at war with the Outer Compact. It is the farthest of the Reach's neighbours: past Sorrow, which no house holds, and the Long Dark, an empty system where no fleet is supplied. Its fleets never leave home, its worlds take two years longer to reduce, and hull for hull its militia fights better than the Reach's crews. Under those worlds are the richest isotope fields known.",
+      "choices": {
+        "say_what_it_will_cost": "Tell the Senate what lies between.",
+        "say_the_fields_are_worth_it": "Say the fields are worth it."
+      }
+    },
+    {
+      "id": "a_great_khan",
+      "title": "A Great Khan",
+      "body": "Word from the Steppe: the khanates have raised one man over all of them, and call him Great Khan. Until now they raided: one world, and home with it. A Great Khan musters half as many hulls again, begins his own wars, and keeps what his host takes, world after world. He will need about three years to gather it.",
+      "choices": {
+        "warn_the_senate": "Tell the Senate what is coming.",
+        "see_to_the_house": "See to the house's own defences."
+      }
+    },
+    {
+      "id": "the_great_khan_comes",
+      "title": "The Host Comes to Stay",
+      "body": "The Great Khan has made war on the Reach. Nobody voted it: he began it. His host does not go home with one world this time. It stays in the field and takes the next, and the next, until it is beaten. Because he began it, any house may take worlds of the Steppe in answer, and keep them.",
+      "choices": {
+        "call_every_house": "Call on every house to answer it.",
+        "hold_what_is_ours": "Hold what is yours."
+      }
+    },
+    {
+      "id": "the_great_khan_is_dead",
+      "title": "The Great Khan Is Dead",
+      "body": "The Great Khan of the Vashti is dead. Whoever follows him is a Khan of Khans, first among raiders, unless the khanates raise another. Their host goes home with one world again.",
+      "choices": {
+        "mark_it": "Have it noted.",
+        "give_thanks": "Give thanks."
+      }
+    },
+    {
+      "id": "a_basileus",
+      "title": "A Basileus at Porphyra",
+      "body": "The Hollow Crown has a ruler who has taken the old title, Basileus, and means it. Under him the Crown stops striking hulls from its lists and builds them; it will make war to take back what it has lost, and its fleet will not sit at home. It lasts as long as he does.",
+      "choices": {
+        "warn_the_senate": "Tell the Senate.",
+        "wait_him_out": "Wait him out."
+      }
+    },
+    {
+      "id": "the_senate_votes_peace",
+      "title": "The Senate Votes Peace",
+      "body": "The Senate has voted peace beyond the Reach, and your fleets are in the field. It can order no fleet home: it has told you, and waits for your answer. Come home and the peace is made. Fight on and the war is your house's own: no other house is at war, and your house's standing falls at once and every year it lasts. How far it falls depends on who commands for you. The Senate will take a great deal from a general with battles won and crews that follow him, and little from a man it has not heard of: his crews waver, and the chair moves to recall him. The figures are on the nation's card.",
+      "choices": {
+        "come_home": "Come home.",
+        "fight_on": "Fight on, against the Senate's word."
+      }
+    },
+    {
+      "id": "a_general_does_not_listen",
+      "title": "A General Does Not Listen",
+      "body": "The Senate voted peace, and one house fights on. It is that house's war now and nobody else's. It costs the house its standing every year, and the Senate may vote to recall its general, whatever his name is worth.",
+      "choices": {
+        "speak_for_recall": "Say he should be recalled.",
+        "let_him_win_it": "Let him win it if he can."
+      }
+    },
+    {
+      "id": "a_house_makes_its_own_war",
+      "title": "A War Nobody Voted",
+      "body": "A house of the Reach has made war on a neighbour beyond the rim on its own account. The Senate voted nothing. Only that house is at war: it will sack what it can and come home. The Senate may vote that it stop, and it may or may not listen.",
+      "choices": {
+        "call_it_piracy": "Call it what it is.",
+        "wish_them_luck": "Wish them luck."
+      }
+    },
+    {
+      "id": "the_sack",
+      "title": "The Sack",
+      "body": "Your fleet has sacked a world beyond the rim. It took a season. The world is still theirs, and will not be worth sacking again for six years; what it held is yours, and it counts in the war.",
+      "choices": {
+        "share_it_out": "Share it with the crews.",
+        "bank_it": "Bank it."
+      }
+    },
+    {
+      "id": "a_client_of_the_reach",
+      "title": "A Client of the Reach",
+      "body": "A nation beyond the rim has been beaten decisively, and the peace has made it a client. It keeps its ruler and its worlds. It pays the Reach every year, and half as much again to the house whose fleets won the war; it raids nobody and wars with nobody. The treaty has no end date: it lasts until a warlike ruler with rebuilt fleets throws it off, which is likeliest when the Reach is divided.",
+      "choices": {
+        "praise_the_settlement": "Praise the settlement.",
+        "ask_whose_client": "Ask whose client it really is."
+      }
+    },
+    {
+      "id": "the_client_breaks_away",
+      "title": "The Client Breaks Away",
+      "body": "A client of the Reach has thrown the treaty off. Its ruler is warlike, its fleets are rebuilt, and it pays nobody now. It is a neighbour again, with no love for the Reach, and the house that was its patron has lost what it was paid.",
+      "choices": {
+        "call_for_the_fleets": "Say the treaty must be enforced.",
+        "let_it_go": "Let it go."
+      }
+    },
+    {
+      "id": "the_reach_pays_tribute",
+      "title": "The Reach Pays Tribute",
+      "body": "The war beyond the rim is lost. They hold nothing of the Reach's to keep, so the peace is paid for: tribute, every year for ten years, out of the purse of the house that holds the capital. While it is paid they neither raid nor strike. A war voted on them ends the payments.",
+      "choices": {
+        "call_it_what_it_is": "Have the sum read out.",
+        "pay_and_rebuild": "Pay, and rebuild."
+      }
+    },
+    {
+      "id": "a_white_peace",
+      "title": "A White Peace",
+      "body": "The war beyond the rim is over, and nobody won it. With the tally level, the peace is white: every world goes back to whoever had it before the war, and nobody pays anybody.",
+      "choices": {
+        "count_the_cost": "Count what it cost.",
+        "be_glad_of_it": "Be glad of it."
+      }
+    },
+    {
+      "id": "a_navarch_at_thessar",
+      "title": "A Navarch at Thessar",
+      "body": "The Free Cities have done what they never do: put every hired hull under one captain, and called him Navarch. Under him they do not buy their peace. They hire half as many hulls again, begin their own wars and take worlds. It lasts while he rules.",
+      "choices": {
+        "warn_the_factors": "Warn the houses that trade there.",
+        "doubt_it_lasts": "Doubt it will last."
+      }
+    },
+    {
+      "id": "a_high_warden",
+      "title": "A High Warden",
+      "body": "The Outer Compact has chosen a High Warden. Its fleets have never left their own space; under him they will. They fight better, hull for hull, than any crews in the Reach, and they come through Sorrow.",
+      "choices": {
+        "warn_the_senate": "Tell the Senate.",
+        "watch_sorrow": "Set a watch on Sorrow."
+      }
+    },
+    {
+      "id": "terms_of_our_own",
+      "title": "Terms of Our Own",
+      "body": "Your war beyond the rim is over, and you ended it yourself. No vote began it and none was needed to end it: they agreed to the terms the war had earned. If they pay tribute, they pay it to your house, not to the Reach.",
+      "choices": {
+        "tell_the_senate": "Have the terms read to the Senate.",
+        "tell_nobody": "Tell nobody."
+      }
+    }
+  ]
+}

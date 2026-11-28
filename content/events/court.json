@@ -1,0 +1,598 @@
+{
+  "//": "THE HOUSE'S COURT (docs/COURT.md; the owner, 2026-11-22). Scenes for the small positions of a house's own court: tutor, wet nurse, physician, captain of the guard, duel master, shipwright, master of ceremonies. Each reads a world flag the court raises (court_physician_cured, court_guard_held, court_nurse_at_the_cradle, court_retainer_grown_old, court_duel_masters_pupil, court_feast_well_ordered, court_retainer_left) and clears it. Those of the court are of the commons and are not persons a scene can name; one of the family touched by it carries a char flag (physician_cured, guard_held_for, duel_masters_pupil). The counter court_goodwill is read at the year's end: the household sees how one of its own was treated. What the scenes cost is in single credits (resource 'coin', docs/MONEY.md), as the wages are: only the feast is a house's expense and is in the books' hundreds.",
+  "events": [
+    {
+      "id": "the_physicians_cure",
+      "scene": "family",
+      "tier": "situation",
+      "weight": 26,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "patient",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "patient",
+              "flag": "physician_cured",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "court_physician_cured",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "thank_the_physician",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_physician_cured",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "coin",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "patient",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the physician up to the high table and thanked them before the household. A purse went with it. The household noticed both."
+            }
+          ]
+        },
+        {
+          "id": "take_it_as_owed",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_physician_cured",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that {patient.name} looked better, and went back to the day's papers. It is what a physician is kept for."
+            }
+          ]
+        },
+        {
+          "id": "open_the_dispensary",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_physician_cured",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "coin",
+              "delta": -40
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the house's physician see whoever came to the gate for a month, at the house's cost. {patient.name} had been lucky. It seemed fair to spread it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_guard_between",
+      "scene": "intrigue",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "spared",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "spared",
+              "flag": "guard_held_for",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "court_guard_held",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "reward_the_guard",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_guard_held",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "coin",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the guard a year's wage over again, in front of the rest. {spared.name} was alive to watch it done."
+            }
+          ]
+        },
+        {
+          "id": "double_the_watch",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_guard_held",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "coin",
+              "delta": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} doubled the watch on every door {spared.name} used. It cost ten credits and bought a little sleep."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_guard_held",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": -1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing to the guard. It was their work, and they had done it. The guardroom thought it might have been said."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_nurse_at_the_cradle",
+      "scene": "family",
+      "tier": "situation",
+      "weight": 22,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "court_nurse_at_the_cradle",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_her_close",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_nurse_at_the_cradle",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "coin",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the nurse given a room beside the nursery and a place at the lower table. A child remembers who was there."
+            }
+          ]
+        },
+        {
+          "id": "the_mother_nurses",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_nurse_at_the_cradle",
+              "value": false
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said the child would be nursed by its own mother, as the old families do. The nurse was kept on for the nights."
+            }
+          ]
+        },
+        {
+          "id": "leave_it_to_the_women",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_nurse_at_the_cradle",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} looked into the nursery once, found it in order, and left it to those who understood it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "grown_old_in_service",
+      "tier": "situation",
+      "weight": 34,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "court_retainer_grown_old",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "promise_a_pension",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_retainer_grown_old",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "coin",
+              "delta": -20
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": 2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let it be known that nobody who had given the house their working life would be turned out at the end of it. Twenty credits were set aside. The whole household heard."
+            }
+          ]
+        },
+        {
+          "id": "keep_them_on",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_retainer_grown_old",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the old servant the place was theirs for as long as they could do it. Both knew that was not long."
+            }
+          ]
+        },
+        {
+          "id": "find_someone_younger",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_retainer_grown_old",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} began to ask after a younger pair of hands. The household drew its own conclusions about what service to the house was worth."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_duel_masters_pupil",
+      "scene": "battle",
+      "tier": "situation",
+      "weight": 8,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "pupil",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "pupil",
+              "flag": "duel_masters_pupil",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "court_duel_masters_pupil",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "praise_them",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_duel_masters_pupil",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "pupil",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} watched {pupil.name} at the morning's drill and said, afterwards, that it was well done. It was the first time anyone had."
+            }
+          ]
+        },
+        {
+          "id": "ask_for_more",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_duel_masters_pupil",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "pupil",
+              "skill": "gunnery",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "pupil",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the duel master that {pupil.name} was being let off lightly. The next month's bruises were {self.first}'s doing, and {pupil.first} knew it."
+            }
+          ]
+        },
+        {
+          "id": "leave_them_to_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_duel_masters_pupil",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "pupil",
+              "to": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not go down to the yard. A pupil learns better without a parent at the rail."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_feast_well_ordered",
+      "tier": "situation",
+      "weight": 26,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "court_feast_well_ordered",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "spare_nothing",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_feast_well_ordered",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the master of ceremonies to spare nothing. Nothing was spared, and the houses that came went home saying so."
+            }
+          ]
+        },
+        {
+          "id": "as_it_was_ordered",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_feast_well_ordered",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let the day run as it had been ordered. It ran well. That is what the place is for."
+            }
+          ]
+        },
+        {
+          "id": "cut_it_short",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_feast_well_ordered",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:old_blood",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had two courses struck from the table and the musicians sent home early. A hundred credits were saved. The old families counted the courses."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_retainer_who_left",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "court_retainer_left",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_what_is_owed",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_retainer_left",
+              "value": false
+            },
+            {
+              "type": "adjustResource",
+              "resource": "coin",
+              "delta": -10
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the arrears of the whole household made up to the day, and said it would not happen again. It was believed, mostly."
+            }
+          ]
+        },
+        {
+          "id": "let_them_go",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "court_retainer_left",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "court_goodwill",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said that anyone who would leave over two lean years was no loss. The rest of the household counted how long they themselves had waited."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

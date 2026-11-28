@@ -1,0 +1,62 @@
+{
+  "//": "HOW THE MAP GROWS (docs/GALAXY_SIZE.md). The galaxy file is the SMALL map. A larger size spreads its systems apart and fills the room with new ones, region by region, from the game's seed: `sizes` gives each size's systems in hundredths of the small map's, `names` what the new systems of the Reach are called, `regionNames` what the new systems of one region are called (a nation's own names), `surnames` the houses that are raised to hold some of them, and `descriptions` a line for a world of each kind. `unheld` is the share of a ring's new systems left to nobody (in hundredths): room to colonise. `kept` is the share of a house's worlds it gains again for each doubling of the map; the rest of the new worlds go to new houses.",
+  "sizes": { "small": 100, "medium": 160, "large": 230, "extra_large": 320 },
+  "unheld": { "core": 0, "middle": 12, "rim": 30 },
+  "kept": 55,
+  "nationMight": 60,
+  "names": [
+    "Aldermoor", "Ashford Deep", "Bellwether", "Blackwater Sound", "Briar Gate", "Calder's Reach", "Candlewick", "Carrow", "Corvane", "Cray Hollow",
+    "Dunmere", "Eastlight", "Emberwick", "Fallow Mere", "Farrow's Rest", "Fennick", "Galloway Deep", "Glasswater", "Greyfen", "Halcyon Stair",
+    "Harbourlight", "Hartsmere", "Hawkridge", "Hesper", "Ironwood", "Juno's Lantern", "Kestrel Point", "Kingsmoor", "Lark's Crossing", "Lowmarch",
+    "Lumen Gate", "Marlow", "Merrowdown", "Midwinter", "Mirefall", "Nettlecombe", "Northgate", "Oakhaven", "Old Tarn", "Orrin's Anchor",
+    "Pennant", "Quillon", "Ravensgate", "Redwater", "Rookhaven", "Saffron Reach", "Sable Crossing", "Seacliff", "Shepherd's Lamp", "Silverrun",
+    "Skerry", "Sparrowfall", "Stonehaven", "Summerlea", "Talon's Watch", "Tarrant", "Thornfield", "Tidewell", "Umberhall", "Vesper Gate",
+    "Wardstone", "Westering", "Whitlow", "Windhover", "Wolfsbane Reach", "Yarrow", "Amberline", "Barrowdene", "Coldharbour", "Dovecote",
+    "Elmstead", "Foxglove Sound", "Garnet Stair", "Hollin", "Iverness Deep", "Kellaway", "Linden Cross", "Morrowgate", "Nightjar", "Osprey Hold",
+    "Petrel's Rest", "Quarry Nine", "Rushlight", "Starling Mere", "Teasel", "Underhill Yard", "Verity", "Wren's Passage", "Ashlar", "Bittern Sound",
+    "Cobalt Stair", "Dusk Harbour", "Evenfall", "Flint Crossing", "Gull's Anchor", "Heron Gate", "Ingle", "Jackdaw Yard", "Kite's Landing", "Lodestone",
+    "Mistral", "Needle Rock", "Orchard Deep", "Plover", "Quiet Water", "Reedmace", "Saltire", "Tern Hollow", "Upper Marrow", "Vane",
+    "Whinstone", "Yewgate", "Anchorhold", "Brightmere", "Cairn Light", "Drover's Gate", "Elder Stair", "Forgewater", "Gantry Seven", "Hearthlight",
+    "Ironmere", "Jetty Four", "Keelhaven", "Longshadow", "Millrace", "Narrowdeep", "Oxbow", "Pilot's Rest", "Quayside", "Ridgeway",
+    "Slipway Three", "Tollgate", "Upland", "Vigil", "Watchfire", "Yardarm", "Beacon Twelve", "Causeway", "Deepwell", "Fathom",
+    "Gable", "Highwater", "Kiln Row", "Lantern Row", "Mooring Six", "Outer Marrow", "Postern", "Roadstead", "Sounding", "Threshold"
+  ],
+  "regionNames": {
+    "vashti_steppe": ["Altan Gol", "Bor Tal", "Chagan Nur", "Delger", "Erdene Uul", "Khövsgöl", "Mönkh Tenger", "Naran Tal", "Ongi", "Sain Us", "Temür Khot", "Ulaan Tsav"],
+    "thessaran_shore": ["Akroteri", "Brisa", "Calyce", "Delmara", "Evander's Quay", "Halia", "Kyrene", "Lysara", "Meropé", "Nysa", "Oreia", "Selene's Stair"],
+    "ardent_concord": ["Aldrich", "Bergen Line", "Dahl", "Eisen", "Falk", "Gerhart Yards", "Halvard", "Kessel", "Lund", "Ormann", "Stahl", "Voss"],
+    "outer_compact": ["Bell's Hope", "Cutter's Lot", "Dry Tortuga", "Fallowfield", "Gant's Claim", "Hobb's End", "Long Acre", "Miller's Stake", "No Man's Rest", "Parson's Light", "Quit Rent", "Tucker's Luck", "Widow's Portion", "Yeoman's Rise"],
+    "hollow_crown": ["Amorion", "Basileon", "Caesarea Nova", "Dorylaion", "Euchaita", "Galatea", "Herakleia", "Ikonion", "Laodikeia", "Nikaia", "Philomelion", "Sebasteia"]
+  },
+  "surnames": [
+    "Aldane", "Armitage", "Barrow", "Belmont", "Blackwood", "Calloway", "Carrick", "Corvin", "Cray", "Dacre",
+    "Devereux", "Draycott", "Eastman", "Elwood", "Fairfax", "Farrow", "Fenwick", "Galt", "Garrick", "Greaves",
+    "Hale", "Halloran", "Hargrave", "Hawke", "Ives", "Jessup", "Kell", "Kendrick", "Lark", "Lennox",
+    "Locke", "Lorne", "Maddox", "Mercer", "Montrose", "Nash", "Northcott", "Oakes", "Osric", "Pell",
+    "Penhallow", "Quarles", "Radcliffe", "Redmayne", "Roth", "Sable", "Selwyn", "Shaw", "Stroud", "Talbot",
+    "Tarrant", "Thorne", "Trevane", "Underhill", "Vance", "Vere", "Wainwright", "Ward", "Whitlock", "Yardley",
+    "Ashdown", "Bexley", "Crane", "Dunmore", "Eccles", "Flint", "Gault", "Heron", "Inskip", "Joyce",
+    "Kirby", "Lowell", "Mallory", "Neville", "Orme", "Prynne", "Rudd", "Sterne", "Tolliver", "Usher",
+    "Vaughan", "Wolfe", "Yates", "Arden", "Brandreth", "Coyle", "Dray", "Enright", "Fane", "Gresham"
+  ],
+  "descriptions": {
+    "terran": ["Green hills under a mild sun, settled late and still filling.", "A temperate world of river towns and long harvests.", "Farms to the horizon and a town at every ford."],
+    "ocean": ["One sea and a thousand islands; everything arrives by hull.", "Storm coasts, deep harbours and families who count in tides.", "Floating towns that move with the fishing."],
+    "arid": ["Red rock and wells that are guarded like vaults.", "Dry plateaus, caravan towns and a sky that never clouds.", "A hard world that pays in ore and patience."],
+    "forge": ["Foundries that have not gone cold in a hundred years.", "A world of slag fields and shift bells.", "Ore comes down the wells and hulls go up them."],
+    "frozen": ["Ice to the equator and warm lights under it.", "A cold world of deep vaults and long nights.", "Stations on the ice, and cities beneath."],
+    "barren": ["Airless rock with a garrison on it and a reason for one.", "A dead world, kept for what lies under it.", "Domes on grey dust and a beacon for the lane."],
+    "gas": ["A banded giant and the skimmers that work its clouds.", "Stations in high orbit over a world with no ground.", "Storms the size of worlds, and fuel for whoever dares them."],
+    "belt": ["A shoal of broken rock and the claims staked across it.", "No world here, only a belt and the people who mine it.", "Ten thousand rocks, a hundred claims, one customs post."]
+  },
+  "worldNames": {
+    "agri_world": ["{0} Downs", "{0} Terraces", "The {0} Fields"],
+    "forge_world": ["{0} Foundries", "The {0} Works", "{0} Forge"],
+    "trade_hub": ["{0} Port", "{0} Harbour", "{0} Exchange"],
+    "fortress": ["{0} Bastion", "{0} Garrison", "{0} Keep"],
+    "research_station": ["{0} Observatory", "The {0} College"],
+    "mining_belt": ["{0} Diggings", "The {0} Claims"],
+    "frontier_colony": ["{0} Landing", "{0} Colony", "New {0}"],
+    "orbital_yard": ["{0} Yards", "{0} Drydock"]
+  }
+}

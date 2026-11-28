@@ -1,0 +1,383 @@
+/* The Military window (docs/VISUAL_SYSTEM.md 4 and 5.3: "fleets as rows with the fleet token and the admiral's face"): the bridge
+   painting (a battle at war) and its plinth; six tabs; each fleet a row (its token in a recessed well, its name and state, the admiral's
+   face, its hulls) that opens for its three meters and its ships, its captain, its orders as joined plates, its actions as small plates and
+   a drawer for the rarer orders; the plot, the near and the navies as tables; wars and battles as rows; the general (CaesarPanel), the
+   service (ServicePanel) and the nations beyond as rows (arms, name, temper, strength, regard, one order) that open for the rest. Also the peace terms (PeaceTerms, shown here and on the Houses
+   window) and the marriage contract's joined plates (TermsPicker, on the Dynasty window). Loaded after app.css, so a rule here wins over
+   a shared rule of the same weight. Where a shared part lacks something (a segmented plate that is refused, a meter in a row, a drawer
+   of picks), it is varied here.
+
+   Widths: the window is a container ("mil"); "mid" is under 46rem (1366 wide, or 1600 at the larger text sizes). */
+
+.mil-win { --g-l: 1.8667rem; --g-r: 1.6rem; container: mil / inline-size; }
+
+
+/* ---- the painted header: the bridge (or a battle), the eagle in its medallion, three facts, five figures spread along the plinth ---- */
+.mil-head .ui-head-art { background-position: center 46%; }
+.mil-head .ui-head-shade { background:
+  linear-gradient(90deg, rgba(8,10,15,.9) 0, rgba(8,10,15,.78) 16rem, rgba(8,10,15,.5) 28rem, rgba(8,10,15,.14) 40rem, rgba(8,10,15,.2) 100%),
+  linear-gradient(180deg, rgba(8,10,15,.35) 0%, rgba(8,10,15,0) 26%, rgba(8,10,15,0) 58%, rgba(8,10,15,.9) 100%); }
+.mil-head .ui-title { white-space: nowrap; }
+.mil-head .ui-facts { max-width: 30rem; }
+.mil-head .ui-facts > span { white-space: nowrap; text-shadow: 0 1px 2px #000, 0 0 6px rgba(0,0,0,.9), 0 0 12px rgba(0,0,0,.6); cursor: help; }
+.mil-head .ui-facts > .good { color: #cfe6c6; } .mil-head .ui-facts > .warn { color: #f0d39a; } .mil-head .ui-facts > .bad { color: #f3b3a3; }
+.mil-head .ui-plinth { justify-content: space-between; }
+.mil-head .ui-plinth .ui-fig + .ui-fig { margin-left: .6rem; padding-left: 1rem; }
+.mil-head .ui-fig { cursor: help; }
+@container mil (max-width: 46rem) {
+  .mil-head .ui-plinth { padding: 0 1.2rem 0 1.3333rem; }
+  .mil-head .ui-plinth .ui-fig { gap: .4rem; }
+  .mil-head .ui-plinth .ui-fig > .icon { width: 1.3333rem; height: 1.3333rem; }
+  .mil-head .ui-plinth .ui-fig + .ui-fig { margin-left: .2667rem; padding-left: .6667rem; }
+  .mil-head .ui-fig-l { font-size: .8rem; }
+  .mil-head .ui-head-text { right: 3.6rem; }
+  .mil-head .ui-facts > span:nth-child(3) { display: none; }
+}
+
+/* the body: a scrolling page that fades at its foot, and at its head once scrolled (as the Laws window) */
+@property --mil-top { syntax: '<length>'; inherits: false; initial-value: 0px; }
+.mil-win .mil-body { padding-bottom: 2.4rem;
+  -webkit-mask-image: linear-gradient(transparent 0, #000 var(--mil-top), #000 calc(100% - 56px), transparent);
+  mask-image: linear-gradient(transparent 0, #000 var(--mil-top), #000 calc(100% - 56px), transparent); }
+@supports (animation-timeline: scroll()) { .mil-win .mil-body { animation: mil-topfade linear both; animation-timeline: scroll(self); animation-range: 0 32px; } }
+@supports not (animation-timeline: scroll()) { .mil-win .mil-body { --mil-top: 18px; } }
+@keyframes mil-topfade { from { --mil-top: 0px; } to { --mil-top: 22px; } }
+.mil-win .ui-lede.mil-lede, .mil-caesar .ui-lede.mil-lede, .mil-service .ui-lede.mil-lede { margin-bottom: .2667rem; }
+.mil-lede.bad b { color: #f3b3a3; } .mil-lede.warn b { color: #f0d39a; }
+.mil-win .ui-sec { padding-left: var(--g-l); padding-right: var(--g-r); }
+.mil-win .ui-sec-r { white-space: nowrap; }
+.mil-win .ui-empty { padding-left: var(--g-l); }
+.mil-win .ui-empty.mil-peace { margin-top: .6667rem; }
+.mil-strip { margin: .6667rem var(--g-r) 0 var(--g-l); }
+
+/* a status word: small capitals, coloured by what it says */
+.mil-st { display: inline-flex; align-items: center; height: 1.2rem; padding: 0 .4rem; margin-left: .5333rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim);
+  background: #07090d; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(255,255,255,.06); white-space: nowrap; vertical-align: middle; }
+.mil-st.good { color: var(--good); } .mil-st.warn { color: var(--warn); } .mil-st.bad { color: #f08a72; box-shadow: inset 0 1px 2px #000, 0 0 0 1px rgba(224,85,63,.4); }
+
+/* a small chip: a glyph and a figure (a class of hull, veterancy) */
+.mil-chip { display: inline-flex; align-items: center; gap: .3333rem; height: 1.7333rem; padding: 0 .5333rem 0 .4rem; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-dim);
+  background: #07090d; box-shadow: var(--sh-inset); white-space: nowrap; cursor: help; }
+.mil-chip b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* the fleet's token: a chevron in the house colour in a recessed round well with a brass rim (the outliner's token, at row size) */
+.mil-tok { width: 3.0667rem; height: 3.0667rem; flex: none; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 38%, #232b3b, #07090d 76%) padding-box, linear-gradient(160deg, #c9a24a, #4a3510 50%, #8a6a2a) border-box; border: 2px solid transparent;
+  box-shadow: 0 0 0 1px #000, inset 0 1px 4px #000, 0 2px 4px rgba(0,0,0,.6); }
+.mil-tok svg { width: 1.7333rem; height: 1.7333rem; filter: drop-shadow(0 1px 1px #000); margin-top: -2px; }
+.mil-tok.faint svg { opacity: .45; filter: grayscale(.6) drop-shadow(0 1px 1px #000); }
+
+/* ---- the fleets: one composed entry each ---- */
+.mil-me { display: flex; align-items: center; gap: .9333rem; padding: .6667rem var(--g-r) .6667rem var(--g-l); border-bottom: 1px solid rgba(255,255,255,.05);
+  background: linear-gradient(90deg, rgba(201,162,74,.06), transparent 70%); flex-wrap: wrap; }
+.mil-me .mm-t { flex: 1 1 12rem; min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.mil-me .mm-t b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
+.mil-me .mm-sub { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); } .mil-me .mm-sub > span { cursor: help; }
+.mil-office { display: flex; align-items: flex-start; gap: .6667rem; margin: .5333rem var(--g-r) 0 var(--g-l); padding: .5333rem .6667rem; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim);
+  background: linear-gradient(90deg, rgba(140,196,126,.10), rgba(140,196,126,.02)); box-shadow: inset 2px 0 0 var(--good); }
+.mil-office b { color: var(--ink); font-weight: 600; } .mil-office > .icon { flex: none; margin-top: 1px; }
+
+.mil-fleet { position: relative; padding: 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.mil-fleet.hired { opacity: .95; }
+/* the fleet's row (4.7): its token in the picture column, its name and state, where it lies, the admiral's face, the hulls, and a
+   chevron; a click opens it for the rest. The open part keeps the row's indent, so everything lines up under the name. */
+.mf-top { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) auto auto .8rem; align-items: center; column-gap: .9333rem; min-height: 3.8667rem;
+  padding: .5333rem var(--g-r) .5333rem var(--g-l); position: relative; }
+.mf-top > .mil-tok { justify-self: center; }
+.mil-fleet:not(.hired) > .mf-top { cursor: pointer; }
+.mil-fleet > .mf-top:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.015)); }
+.mil-fleet > .mf-top:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.mil-fleet.warn > .mf-top::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--warn); }
+.mil-fleet.open > .mf-top { background: linear-gradient(90deg, rgba(201,162,74,.06), transparent 70%); }
+.mf-id { min-width: 0; }
+.mf-nm { display: flex; align-items: center; flex-wrap: wrap; row-gap: .2rem; } .mf-nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
+.mf-sub { margin-top: .2rem; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.mf-adm { display: inline-flex; align-items: center; gap: .6rem; min-width: 0; max-width: 13rem; cursor: help; }
+.mf-adm .mw-t { display: flex; flex-direction: column; gap: .2rem; min-width: 0; }
+.mf-adm .mw-t b { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-adm .k { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.mf-fig { display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; min-width: 2.4rem; cursor: help; }
+.mf-fig b { font: 600 1.3333rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); } .mf-fig small { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); }
+.mf-chev { width: .8rem; height: .8rem; color: var(--brass); opacity: .6; transition: transform .12s; }
+.mil-fleet.open .mf-chev { transform: rotate(90deg); opacity: 1; }
+.mil-fleet.shut > .mf-open { display: none; }
+.mf-open { padding: .1333rem var(--g-r) 1.0667rem calc(var(--g-l) + 3.6rem + .9333rem); }
+.mf-note { font: italic 400 .9333rem/1.3 var(--f-ui); color: var(--ink-mute); cursor: help; }
+.mf-standing { margin: 0; font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink-dim); max-width: 46rem; }
+.mil-fleet.hired > .mf-standing { margin: 0 var(--g-r) .9333rem calc(var(--g-l) + 3.6rem + .9333rem); }
+.mf-open > .mil-office { margin: .5333rem 0 0; }
+.mf-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: .6667rem 1.6rem; align-items: start; margin: .8rem 0 0; }
+.mf-meters { display: flex; flex-direction: column; gap: .3333rem; }
+.mf-meters .ui-meter { cursor: help; grid-template-columns: 5.0667rem 1fr 2.4rem; }
+.mf-ships { display: flex; flex-wrap: wrap; gap: .3333rem; align-content: flex-start; }
+.mf-people { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: .6667rem 1.6rem; align-items: center; margin: .8rem 0 0; }
+.mf-who.mf-admline { display: flex; flex-direction: column; align-items: flex-start; gap: .3333rem; }
+.mf-admline .mw-sub b { font: 600 .9333rem/1.3 var(--f-ui); color: var(--ink); white-space: normal; }
+.mf-who { display: flex; align-items: center; gap: .6667rem; min-width: 0; }
+.mf-who .mw-t { display: flex; flex-direction: column; gap: .1333rem; min-width: 0; }
+.mf-who .k { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); }
+.mf-who b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-who .mw-sub { font: 400 .8667rem/1.35 var(--f-ui); color: var(--ink-dim); }
+.mf-who[title] { cursor: help; }
+.mf-orders { display: flex; flex-wrap: wrap; align-items: center; gap: .5333rem 1.2rem; margin: .8667rem 0 0; }
+.mf-orders .mo, .mo { display: inline-flex; align-items: center; gap: .5333rem; }
+.mo-l { font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); white-space: nowrap; }
+.mf-acts { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; margin: .6667rem 0 0; }
+.mf-acts .ui-btn.lit { color: var(--brass-hi); box-shadow: var(--sh-plate), inset 0 -2px 0 var(--brass); }
+.mf-more { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .1333rem; margin-left: auto; }
+.mf-tg { height: 1.8667rem; padding: 0 .5333rem; border: 0; background: none; font: 600 .8667rem/1 var(--f-ui); color: var(--brass-ink); cursor: pointer; border-radius: 2px; white-space: nowrap; }
+.mf-tg:hover { color: var(--brass-hi); background: rgba(201,162,74,.08); }
+.mf-tg.on { color: var(--brass-hi); background: #0b0e14; box-shadow: inset 0 2px 4px #000, inset 0 -2px 0 var(--brass); }
+.mf-drawer { margin: .5333rem 0 0; padding: .6667rem .8rem; background: rgba(5,7,10,.55); box-shadow: var(--sh-inset); display: flex; flex-wrap: wrap; align-items: center; gap: .5333rem .8rem; }
+.mf-drawer.list { flex-direction: column; align-items: stretch; gap: .2rem; }
+.mf-dh { display: flex; align-items: center; gap: .5rem; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: .2667rem; }
+.mf-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5333rem .9333rem; width: 100%; }
+.mf-none { font: italic 400 .9333rem/1.3 var(--f-prose); color: var(--ink-dim); }
+.mf-hire { display: flex; align-items: center; gap: .6rem; padding: .2667rem 0; flex-wrap: wrap; } .mf-hire b { font: 600 .9333rem/1.2 var(--f-ui); color: var(--ink); flex: 1 1 auto; }
+.mil-input { height: 2rem; min-width: 14rem; padding: 0 .6rem; font: 500 .9333rem/1 var(--f-ui); color: var(--ink); background: #05070a; border: 0; border-radius: 2px; box-shadow: var(--sh-inset), 0 0 0 1px rgba(201,162,74,.45); }
+.mil-input:focus { outline: 0; box-shadow: var(--sh-inset), 0 0 0 1px var(--brass); }
+/* a pick in a drawer: a face and the words of the order, one click */
+.mil-pick { display: flex; align-items: center; gap: .6rem; width: 100%; min-height: 2.2667rem; padding: .2rem .5333rem; border: 0; background: none; text-align: left; cursor: pointer;
+  font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink); border-radius: 1px; }
+.mil-pick:hover:not(:disabled) { background: linear-gradient(90deg, rgba(201,162,74,.12), transparent); box-shadow: inset 2px 0 0 var(--brass); }
+.mil-pick:disabled { color: var(--ink-dim); cursor: not-allowed; }
+.mil-pick small { margin-left: auto; padding-left: .8rem; font: 600 .8667rem/1.2 var(--f-ui); white-space: nowrap; }
+.mil-pick .mil-tok { width: 1.8667rem; height: 1.8667rem; border-width: 1px; } .mil-pick .mil-tok svg { width: 1.0667rem; height: 1.0667rem; }
+
+/* joined plates where an option may be refused: the refused one dark, its reason in the tooltip */
+
+@container mil (max-width: 46rem) {
+  .mf-top { grid-template-columns: 3.6rem minmax(0, 1fr) auto auto .8rem; column-gap: .6667rem; }
+  .mf-adm .mw-t { display: none; }
+  .mf-open { padding-left: var(--g-l); }
+  .mil-fleet.hired > .mf-standing { margin-left: var(--g-l); }
+  .mf-body, .mf-people { grid-template-columns: minmax(0, 1fr); }
+  .mf-more { margin-left: 0; }
+}
+
+/* ---- wars and battles ---- */
+.mil-warrow, .mil-war { padding: .8rem var(--g-r) .8rem var(--g-l); border-bottom: 1px solid rgba(255,255,255,.06); position: relative; }
+.mil-war.standing::before, .mil-warrow::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--ember); }
+.mw-top { display: flex; align-items: center; gap: .8rem; }
+.mw-arms { width: 2.2667rem; display: grid; place-items: center; flex: none; }
+.mw-id { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1333rem; } .mw-id b { font: 600 1.0667rem/1.2 var(--f-ui); color: var(--ink); }
+.mw-sub { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.mw-say { flex: 1 1 auto; font: 600 1rem/1.35 var(--f-ui); color: var(--ink); }
+.mw-score { display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; } .mw-score b { font: 600 1.2rem/1 var(--f-ui); font-variant-numeric: tabular-nums; } .mw-score small { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); }
+.mil-warrow .ui-meter { margin: .5333rem 0 .2667rem 3.0667rem; max-width: 28rem; }
+.mil-warrow .mf-row { margin: .4rem 0 0 3.0667rem; }
+.mw-year { display: grid; grid-template-columns: 4.2667rem minmax(0, 1fr); gap: .6667rem; margin: .4rem 0 0 3.0667rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.mw-year .yr, .mil-line .yr { font: 600 .8333rem/1.6 var(--f-ui); color: var(--ink-mute); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mil-battle { display: grid; grid-template-columns: 2.9333rem minmax(0, 1fr) auto; gap: .9333rem; align-items: start; padding: .8rem var(--g-r) .8rem var(--g-l); border-bottom: 1px solid rgba(255,255,255,.06); }
+.mb-med { width: 2.9333rem; height: 2.9333rem; border-radius: 50%; display: grid; place-items: center; --rim: linear-gradient(160deg, #a5813a, #4a3510 50%, #8a6a2a);
+  background: radial-gradient(circle at 50% 38%, #232b3b, #07090d 76%) padding-box, var(--rim) border-box; border: 2px solid transparent; box-shadow: 0 0 0 1px #000, inset 0 1px 4px #000; }
+.mil-battle.lost .mb-med { --rim: conic-gradient(from 210deg, #ffc3a6, #9b2d1a, #ec6c4c, #5a1a0e, #ffc3a6); }
+.mil-battle.won .mb-med { --rim: conic-gradient(from 210deg, #f6e2a0, #8a6a2a, #e9cd84, #5b4316, #f6e2a0); }
+.mb-nm b { font: 600 1rem/1.25 var(--f-ui); color: var(--ink); }
+.mb-sub { margin-top: .1333rem; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.mb-sides { display: grid; grid-template-columns: 1fr 1fr; gap: .2rem 1.2rem; margin-top: .4rem; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); } .mb-sides b { color: var(--ink); font-weight: 600; }
+.mb-note { margin-top: .2rem; font: italic 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); }
+.mb-loss { display: flex; flex-direction: column; align-items: flex-end; gap: .2667rem; white-space: nowrap; cursor: help; } .mb-loss b { font: 600 1.2rem/1 var(--f-ui); font-variant-numeric: tabular-nums; } .mb-loss small { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); }
+@container mil (max-width: 46rem) { .mb-sides { grid-template-columns: 1fr; } }
+.mil-line { display: flex; align-items: baseline; gap: .6667rem; padding: .4667rem var(--g-r) .4667rem var(--g-l); border-bottom: 1px solid rgba(255,255,255,.045); font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.mil-line > .icon { flex: none; align-self: center; } .mil-line b { color: var(--ink); font-weight: 600; }
+.mil-line.warn { box-shadow: inset 2px 0 0 var(--warn); } .mil-line.good { box-shadow: inset 2px 0 0 var(--good); align-items: center; }
+.mil-fold { border-bottom: 1px solid rgba(255,255,255,.045); }
+.mil-fold > summary { list-style: none; display: flex; align-items: center; gap: .5333rem; padding: .5333rem var(--g-r) .5333rem var(--g-l); cursor: pointer; font: 500 .9333rem/1.35 var(--f-ui); color: var(--ink); }
+.mil-fold > summary::-webkit-details-marker { display: none; }
+.mil-fold > summary .icon { flex: none; width: .7333rem; height: .7333rem; color: var(--brass); transition: transform .12s; } .mil-fold[open] > summary .icon { transform: rotate(90deg); }
+.mil-fold > summary:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), transparent); }
+.mil-fold .mw-year { margin-left: calc(var(--g-l) + 1.2rem); margin-right: var(--g-r); padding-bottom: .2667rem; }
+.mil-tally { padding: .6667rem var(--g-r) .6667rem var(--g-l); }
+.mil-tally .mt-line { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); margin-bottom: .4rem; }
+.mil-tally .mt-line b { font: 600 1.2rem/1 var(--f-ui); color: var(--ink); font-variant-numeric: tabular-nums; }
+.mil-tally .mt-note { margin-top: .4rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.mil-campaign { padding: .6667rem var(--g-r) .6667rem var(--g-l); }
+.mil-more { padding: .4rem var(--g-r) 0 var(--g-l); font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+
+/* ---- the tables: what is near and the navies ---- */
+.mil-table { padding: .2667rem var(--g-r) 0 var(--g-l); }
+.mil-table tr.hostile td:first-child { box-shadow: inset 2px 0 0 var(--bad); }
+.mil-table tr.mine td { color: var(--brass-hi); } .mil-table tr.mine { background: linear-gradient(90deg, rgba(201,162,74,.12), transparent); }
+.mil-table.navies .ui-table td:first-child { width: 1.6rem; }
+.mil-table.navies .ui-table td.hn { text-align: left; font-weight: 600; }
+.mil-table.navies .ui-table th:nth-child(2) { text-align: left; }
+.mil-table.navies td.bar { width: 30%; } .mil-table.navies td.bar .ui-trk { display: block; }
+.mil-table td:nth-child(3), .mil-table td:nth-child(4) { white-space: nowrap; }
+.mil-table.near td:nth-child(3), .mil-table.near th:nth-child(3) { text-align: left; }
+
+/* ---- the plot: the lanes near your worlds, drawn in the map's own colours (7.3) ---- */
+.mil-plot { padding: .6667rem var(--g-r) .2667rem var(--g-l); }
+.mil-plot .plot { width: 100%; height: auto; display: block; background: radial-gradient(ellipse at 50% 45%, rgba(40,52,84,.35), rgba(5,7,12,.85)); box-shadow: var(--sh-inset), 0 0 0 1px rgba(165,129,58,.4); }
+.plot .lane { stroke: rgba(168,188,222,.28); stroke-width: 1; } .plot .lane.ours { stroke: rgba(233,185,73,.6); stroke-width: 1.3; } .plot .lane.front { stroke: #e0553f; stroke-width: 2; stroke-dasharray: 5 3; }
+.plot .supply { fill: rgba(233,185,73,.07); stroke: rgba(233,185,73,.25); stroke-width: 1; stroke-dasharray: 2 3; }
+.plot .campaign { fill: none; stroke: #8cc47e; stroke-width: 1.5; stroke-dasharray: 4 3; }
+.plot .node { stroke: rgba(0,0,0,.7); stroke-width: 1; } .plot .node.mine { stroke: #f0c661; stroke-width: 2.5; } .plot .node.enemy { stroke: #e0553f; stroke-width: 2.5; } .plot .node.far { stroke: none; opacity: .85; }
+.plot .nlabel { fill: #ebe6d8; font: 600 12.5px var(--f-ui); text-anchor: middle; paint-order: stroke; stroke: #05070c; stroke-width: 3px; }
+.plot .nlabel.mine { fill: #f3d68e; font-size: 14px; } .plot .nlabel.enemy { fill: #f0937f; } .plot .nlabel.far { fill: #9ba1ab; font-weight: 500; font-size: 12px; }
+.plot .fleet path { stroke: #000; stroke-width: 1.3; stroke-linejoin: round; }
+.plot .fl { fill: #ece4d0; font: 600 12px var(--f-ui); text-anchor: middle; paint-order: stroke; stroke: #05070c; stroke-width: 3px; }
+.plot .flabel { fill: #c3baa4; font: 500 12px var(--f-ui); text-anchor: middle; paint-order: stroke; stroke: #05070c; stroke-width: 3px; } .plot .flabel.mine { fill: #f3d68e; } .plot .flabel.enemy { fill: #f0937f; font-weight: 600; }
+.plot-legend { display: flex; flex-wrap: wrap; gap: .4rem 1.0667rem; margin-top: .5333rem; font: 400 .8667rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.plot-legend > span { display: inline-flex; align-items: center; gap: .4rem; }
+.plot-legend .lg { display: inline-block; width: .8rem; height: .8rem; flex: none; }
+.plot-legend .lg.node.mine { border-radius: 50%; background: var(--accent, #d4a23e); box-shadow: 0 0 0 2px #f0c661; }
+.plot-legend .lg.supply { border-radius: 50%; background: rgba(233,185,73,.12); box-shadow: 0 0 0 1px rgba(233,185,73,.4); }
+.plot-legend .lg.fleet { clip-path: polygon(0 100%, 50% 0, 100% 100%, 50% 72%); background: var(--accent, #d4a23e); }
+.plot-legend .lg.fleet.enemy { background: #c4472f; } .plot-legend .lg.fleet.other { background: #8c9bb8; }
+.plot-legend .lg.front { height: 2px; background: repeating-linear-gradient(90deg, #e0553f 0 5px, transparent 5px 8px); }
+
+/* ---- beyond the Reach: each nation a composed entry ---- */
+.mil-nation { position: relative; padding: 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.mil-nation.war::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--ember); z-index: 1; }
+.mil-nation.tributary::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--good); z-index: 1; }
+.mil-nation.fallen { opacity: .7; }
+/* a nation is one row (4.7): its arms in the picture column, its name and temper (its state in one word), its strength, its regard
+   as a diverging meter, one order, a chevron. A click opens it: its ruler, march, seat and fleets, and the rest of your orders, all
+   under the name, on the row's own grid. */
+.mil-nation > .mn-more { margin: 0; }
+.mn-row { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) 4.2667rem 8rem minmax(0, auto) .8rem; align-items: center; column-gap: .9333rem; min-height: 3.8667rem;
+  padding: .5333rem var(--g-r) .5333rem var(--g-l); position: relative; cursor: pointer; list-style: none; }
+.mn-row::-webkit-details-marker { display: none; }
+.mn-row:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.015)); }
+.mn-row:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.mn-more[open] > .mn-row { background: linear-gradient(90deg, rgba(201,162,74,.06), transparent 70%); }
+.mn-row > .mn-arms, .mn-row > .mn-med { justify-self: center; }
+.mn-med { width: 2.9333rem; height: 2.9333rem; flex: none; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 38%, #232b3b, #07090d 76%); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.35), inset 0 1px 4px #000; }
+.mn-id { min-width: 0; }
+.mn-nm { display: flex; align-items: center; min-width: 0; } .mn-nm > b { font: 600 1rem/1.25 var(--f-ui); color: var(--ink); cursor: help; }
+.mn-sub { margin-top: .2rem; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mn-status { font-weight: 600; color: var(--ink); cursor: help; } .mn-status.bad { color: #f08a72; } .mn-status.good { color: var(--good); } .mn-status.warn { color: var(--warn); }
+.mn-str { display: inline-flex; align-items: center; justify-content: flex-end; gap: .3333rem; white-space: nowrap; cursor: help; }
+.mn-str b { font: 600 1.0667rem/1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; color: var(--ink); } .mn-str small { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); }
+.mn-row .ui-meter.mn-reg { grid-template-columns: minmax(0, 1fr) 2.6667rem; column-gap: .5333rem; cursor: help; }
+.mn-act { display: flex; justify-content: flex-end; min-width: 0; }
+.mn-chev { width: .8rem; height: .8rem; color: var(--brass); opacity: .6; transition: transform .12s; }
+.mn-more[open] .mn-chev { transform: rotate(90deg); opacity: 1; }
+.mn-open { padding: .2667rem var(--g-r) 1.0667rem calc(var(--g-l) + 3.6rem + .9333rem); }
+.mn-ruler { flex: none; display: inline-flex; }
+.mn-ruled { display: flex; align-items: center; gap: .8rem; margin-bottom: .6667rem; cursor: help; }
+.mn-rt { display: flex; flex-direction: column; gap: .2667rem; min-width: 0; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); } .mn-rt b { color: var(--ink); font-weight: 600; }
+.mn-rt .k, .mn-facts .k { font: 600 .8rem/1.75 var(--f-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-mute); white-space: nowrap; } .mn-facts .k.warn { color: var(--warn); }
+.mn-rt .k { line-height: 1; }
+.mn-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .3333rem .9333rem; margin: 0; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.mn-facts .v { min-width: 0; } .mn-facts .v[title] { cursor: help; } .mn-facts b { color: var(--ink); font-weight: 600; }
+.mn-manner { margin: .6667rem 0 0; font: italic 400 1rem/1.45 var(--f-prose); color: var(--ink-dim); max-width: 44rem; }
+.mn-orders { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; margin: .8rem 0 0; }
+.mn-order { display: inline-flex; align-items: center; gap: .5333rem; flex-wrap: wrap; }
+.mn-orders.terms .mn-state { width: 100%; }
+.mn-state { font: 500 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); margin-right: .2667rem; }
+@container mil (max-width: 46rem) {
+  .mn-row { grid-template-columns: 3.6rem minmax(0, 1fr) 3.4667rem 5.3333rem minmax(0, auto) .8rem; column-gap: .6667rem; }
+  .mn-row .mn-str small { display: none; }
+  .mn-row .mn-act .ui-cost { display: none; }
+  .mn-open { padding-left: var(--g-l); }
+}
+
+/* ---- the general and the Senate (CaesarPanel) ---- */
+.mil-caesar { --g-l: 1.8667rem; --g-r: 1.6rem; }
+.mil-caesar .ui-sec { padding-left: var(--g-l); padding-right: var(--g-r); }
+.mc-general { display: flex; align-items: center; gap: .9333rem; padding: .8rem var(--g-r) .4rem var(--g-l); }
+.mc-gt { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: .1333rem; } .mc-gt b { font: 600 1.0667rem/1.25 var(--f-ui); color: var(--ink); }
+.mc-sub { font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); }
+.mc-fig { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; white-space: nowrap; cursor: help; } .mc-fig b { font: 600 1.3333rem/1 var(--f-ui); color: var(--ink); } .mc-fig small { font: 500 .8333rem/1 var(--f-ui); color: var(--ink-dim); }
+.mc-meters { padding: .2667rem var(--g-r) .2667rem calc(var(--g-l) + 4rem); } .mc-meters .ui-meter { cursor: help; }
+.mil-caesar .ac-fact { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .2rem .6667rem; align-items: baseline; padding: .5333rem var(--g-r) .5333rem var(--g-l); margin: 0; border: 0; background: none; }
+.mil-caesar .ac-fact > span, .mil-caesar .ac-fact .k { font: 600 .8rem/1.6 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); white-space: nowrap; }
+.mil-caesar .ac-fact p { margin: 0; font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink-dim); } .mil-caesar .ac-fact p b { color: var(--ink); }
+.mil-caesar .mc-crews { padding-left: calc(var(--g-l) + 4rem); }
+.mil-caesar .mc-fact { grid-template-columns: 1.6rem auto minmax(0, 1fr); align-items: start; border-bottom: 1px solid rgba(255,255,255,.05); }
+.mil-caesar .mc-fact > .icon { margin-top: 1px; } .mil-caesar .mc-fact > p { grid-column: 2 / -1; }
+.mil-caesar .mc-fact.great b { font: 600 .9333rem/1.4 var(--f-ui); color: var(--brass-hi); }
+.mil-caesar .suit-acts, .mil-caesar .mc-acts { display: flex; flex-wrap: wrap; align-items: center; gap: .5333rem .8rem; padding: .4rem var(--g-r) .8rem calc(var(--g-l) + 4rem); margin: 0; }
+.mil-caesar .mc-acts .ui-btn.veto { color: #fff1e0; background: linear-gradient(#8a2f1c, #4f160b); box-shadow: var(--sh-plate), 0 0 0 1px #e0553f; }
+.mc-gate { display: grid; grid-template-columns: 2.1333rem minmax(0, 1fr) auto; gap: .8rem; align-items: center; padding: .5333rem var(--g-r) .5333rem var(--g-l); border-bottom: 1px solid rgba(255,255,255,.045); }
+.mc-mark { width: 2.1333rem; height: 2.1333rem; border-radius: 50%; display: grid; place-items: center; background: #07090d; box-shadow: var(--sh-inset), 0 0 0 1px rgba(165,129,58,.4); cursor: help; }
+.mc-gate.met .mc-mark { box-shadow: var(--sh-inset), 0 0 0 1px var(--good); }
+.mc-gate .mil-st { margin-left: 0; }
+.mc-note { margin: .6667rem var(--g-r) 0 var(--g-l); font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink-dim); }
+.mil-caesar .mc-gate + .mc-note, .mil-caesar .mc-note { padding-left: 0; }
+.mc-war { padding: .8rem var(--g-r) .8rem var(--g-l); box-shadow: inset 2px 0 0 var(--bad); }
+.mc-head { display: flex; align-items: center; gap: .6rem; } .mc-head b { font: 600 1.0667rem/1.25 var(--f-ui); color: var(--ink); }
+.mc-sides { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .3333rem .9333rem; margin: .6667rem 0; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); }
+.mc-sides .k { font: 600 .8rem/1.75 var(--f-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-mute); } .mc-sides b { color: var(--ink); }
+.mc-war .mc-acts { padding-left: 0; } .mc-war .mc-note { margin-left: 0; }
+.mc-recall { padding: .6667rem var(--g-r) 0 var(--g-l); }
+.mc-crew { display: grid; grid-template-columns: 3.0667rem minmax(0, 1fr) minmax(8rem, 12rem) auto; gap: .9333rem; align-items: center; padding: .5333rem var(--g-r) .5333rem var(--g-l); border-bottom: 1px solid rgba(255,255,255,.05); border-top: 0; }
+.mc-crew .ui-meter { grid-template-columns: 1fr 2.4rem; cursor: help; }
+@container mil (max-width: 46rem) { .mc-crew { grid-template-columns: 3.0667rem minmax(0, 1fr) auto; } .mc-crew .ui-meter { grid-column: 2 / -1; grid-row: 2; } }
+/* the triumph at the gate (TriumphGate, shared with the Senate window), here in the window's own rows */
+.mil-caesar > .caesar-recall[data-triumph-asked] { margin: .8rem var(--g-r) 0 var(--g-l); padding: .6667rem .8rem; border: 0; background: linear-gradient(90deg, rgba(201,162,74,.14), rgba(201,162,74,.03)); box-shadow: inset 2px 0 0 var(--brass); }
+.mil-caesar > .caesar-recall[data-triumph-asked] > b { font: 600 1rem/1.3 var(--f-ui); color: var(--brass-hi); }
+.mil-caesar > .caesar-recall .muted.small, .mil-caesar > .caesar-recall .small { font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); margin-top: .2667rem; }
+.mil-caesar > .caesar-recall .suit-acts { padding: .5333rem 0 0; }
+.mil-caesar > .caesar-recall .opt, .mil-caesar > .ac-fact .opt { height: 1.8667rem; padding: 0 .6667rem; font: 600 .8667rem/1 var(--f-ui); color: #eae2cc; background: linear-gradient(#323b50, #1c2231); border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-plate); cursor: pointer; }
+.mil-caesar > .caesar-recall .opt:disabled { color: #b9b4a8; background: linear-gradient(#1d222d, #141821); cursor: not-allowed; }
+
+/* ---- a command by service (ServicePanel) ---- */
+.mil-service { --g-l: 1.8667rem; --g-r: 1.6rem; }
+.mil-service .ui-sec { padding-left: var(--g-l); padding-right: var(--g-r); }
+.mil-service .ui-empty { padding-left: var(--g-l); }
+.sv-row { display: grid; grid-template-columns: 3.0667rem minmax(0, 1fr) auto; gap: .9333rem; align-items: center; min-height: 3.8667rem; padding: .4667rem var(--g-r) .4667rem var(--g-l); border-bottom: 1px solid rgba(255,255,255,.05); position: relative; }
+.sv-row:hover { background: linear-gradient(90deg, rgba(201,162,74,.08), rgba(255,255,255,.01)); }
+.sv-row > .portrait { justify-self: center; }
+.sv-t { font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); min-width: 0; } .sv-t b { color: var(--ink); font-weight: 600; }
+.sv-med { width: 2.6667rem; height: 2.6667rem; border-radius: 50%; display: grid; place-items: center; justify-self: center;
+  background: radial-gradient(circle at 50% 38%, #232b3b, #07090d 76%) padding-box, linear-gradient(160deg, #a5813a, #4a3510 50%, #8a6a2a) border-box; border: 2px solid transparent; box-shadow: 0 0 0 1px #000, inset 0 1px 4px #000; }
+.sv-row.ask::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
+.sv-acts { display: inline-flex; gap: .4rem; flex-wrap: wrap; justify-content: flex-end; }
+.sv-pick { display: flex; align-items: center; gap: .8rem; padding: .6667rem var(--g-r) .4rem var(--g-l); flex-wrap: wrap; }
+.mil-service .ui-sec-r .icon { width: 1rem; height: 1rem; }
+
+/* ---- the terms of a peace with a house (PeaceTerms; the Military window and the Houses window) ---- */
+.peace-terms { margin: .6667rem 0 0 3.0667rem; display: flex; flex-direction: column; gap: .3333rem; flex-basis: 100%; }
+.peace-terms .pt-lead { display: flex; align-items: flex-start; gap: .5333rem; font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); margin-bottom: .2667rem; } .peace-terms .pt-lead .icon { flex: none; margin-top: 2px; }
+.peace-term { display: grid; grid-template-columns: minmax(13rem, max-content) minmax(0, 1fr); gap: .8rem; align-items: center; }
+.peace-term .ui-plate-wrap { min-width: 0; } .peace-term .ui-btn { max-width: 100%; }
+.peace-term .pt-what { font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink-dim); }
+.peace-terms .pt-warn { font-size: .9333rem; }
+@container mil (max-width: 46rem) { .peace-terms { margin-left: 0; } .peace-term { grid-template-columns: minmax(0, 1fr); gap: .2rem; } }
+
+/* ---- the marriage contract (TermsPicker, on the Dynasty window): two choices as joined plates ---- */
+.tp-terms { display: flex; flex-direction: column; gap: .5333rem; margin: .5333rem 0; }
+.tp-row { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem .8rem; }
+.tp-l { min-width: 8.5333rem; text-align: left; font: 600 .8rem/1 var(--f-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-mute); cursor: help; }
+.tp-seg button { display: inline-flex; align-items: center; gap: .4rem; }
+.tp-seg button small { font: 600 .8rem/1 var(--f-ui); color: var(--ink-mute); font-variant-numeric: tabular-nums; } .tp-seg button.on small { color: var(--brass-ink); }
+.tp-note { font: 600 .8667rem/1.2 var(--f-ui); cursor: help; }
+.tp-where { font: 400 .9333rem/1.4 var(--f-ui); color: var(--ink-dim); max-width: 44rem; }
+
+.mil-table .mt-nm { display: inline-flex; align-items: center; gap: .5333rem; vertical-align: middle; }
+/* the navies' strength bar: a 4.10 meter in the toned house colour, wide enough to read */
+.mil-table.navies .ui-table td.bar { width: auto; min-width: 7rem; }
+.mil-table.navies .ui-table td.bar .ui-trk { display: block; width: 100%; min-width: 7rem; }
+.mc-crews-fig { display: flex; align-items: center; gap: .5333rem; padding: .2667rem var(--g-r) .4rem calc(var(--g-l) + 4rem); font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); cursor: help; }
+.mc-crews-fig b { font: 600 1.2rem/1 var(--f-ui); color: var(--ink); font-variant-numeric: tabular-nums lining-nums; }
+/* the lesser orders as small ghost plates, not bare words */
+.mf-tg { border: 1px solid rgba(201,162,74,.32); background: linear-gradient(#171b24, #0f1219); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+.mf-tg:hover { color: var(--brass-hi); border-color: rgba(201,162,74,.6); background: linear-gradient(#1c212c, #12151d); }
+.mf-more { gap: .2667rem; }
+/* a nation's arms in the row's picture column */
+.mn-arms { width: 2.9333rem; height: 2.9333rem; flex: none; display: grid; place-items: center; }
+
+/* the fleet's Orders menu: one plate; the other orders in a list in the medium frame */
+.mf-menu-wrap { position: relative; display: inline-flex; }
+.mf-menu-btn .mf-menu-chev { transform: rotate(90deg); transition: transform .12s; } .mf-menu-btn.on .mf-menu-chev { transform: rotate(-90deg); }
+.mf-menu { position: absolute; z-index: 30; left: 0; top: calc(100% + .4rem); display: flex; flex-direction: column; align-items: stretch; gap: .2667rem; min-width: 13.3333rem; padding: .5333rem;
+  background: linear-gradient(180deg, rgba(24,28,38,.98), rgba(10,12,17,.98)); border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; border-image-outset: 6px; box-shadow: var(--sh-drop); }
+.mf-menu > .ui-btn, .mf-menu .mf-more > .mf-tg { justify-content: flex-start; width: 100%; text-align: left; }
+.mf-menu .mf-more { display: flex; flex-direction: column; gap: .2667rem; margin: .2667rem 0 0; padding-top: .3333rem; border-top: 1px solid rgba(201,162,74,.25); }
+.mf-menu .mf-tg { border: 0; background: none; box-shadow: none; height: 1.8667rem; padding: 0 .5333rem; } .mf-menu .mf-tg:hover { background: rgba(201,162,74,.10); }
+.sv-strip { margin: .2667rem var(--g-r) .2667rem var(--g-l); }
+/* the plot's fleets (7.3): a chevron in the owner's colour over a dark number plate with ivory figures, ringed in the owner's colour
+   (brass for yours); 16 units, 13px and more on screen at 1366. A hairline ties the mark to its system. The names are 14 to 16 units. */
+.plot .fleet .flp { fill: #0b0e15; stroke: var(--fc, #8fa3bd); stroke-width: 1.4; }
+.plot .fleet.mine .flp { stroke: #f0c661; }
+.plot .fleet .fl { fill: #f2ead6; font: 700 16px var(--f-ui); text-anchor: middle; paint-order: normal; stroke: none; }
+.plot .flead { stroke: rgba(236,228,208,.4); stroke-width: 1; stroke-dasharray: 2 2; }
+.plot .nlabel { font-size: 14.5px; } .plot .nlabel.mine { font-size: 16px; } .plot .nlabel.far { font-size: 14px; }
+/* what is near: where it lies, then how far from yours in a dim second part (the whole sentence is the cell's tooltip) */
+.mil-table.near .mt-far { margin-left: .5333rem; font-size: .8667rem; color: var(--ink-mute); } .mil-table.near td[title] { cursor: help; }
+/* the header: the shipyard at peace (the bridge painting is too dark to read as a picture), the battle at war, lifted so the subject shows */
+.mil-head .ui-head-art { background-position: center 55%; filter: brightness(1.42) contrast(1.1) saturate(1.06); }

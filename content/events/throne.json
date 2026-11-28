@@ -1,0 +1,420 @@
+{
+  "//": "A THRONE THAT CAN BE LOST (docs/THRONE.md, stage 1; docs/GAPS.md R5). Fired by ThroneSystem's year flags under a throne: throne_weak (the player's own hold is shaken), pretender_risen with throne_side_asked (another house has risen and the player is neither side; the first two choices set throne_answer_pretender / throne_answer_throne, carried out at the year's end, and the same can be done from the Senate screen), pretender_against_me, pretender_broken, pretender_won, cast_down (the player's house was on the throne and is not).",
+  "events": [
+    {
+      "id": "the_hold_is_shaken",
+      "scene": "unrest",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "throne_weak",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "show_the_fleet",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the fleet pass in review above the capital, every hull that could be spared and some that could not. It was meant to be counted, and it was."
+            }
+          ]
+        },
+        {
+          "id": "open_the_treasury",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -12
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} opened the treasury: arrears paid, a remission here, a gift there. A throne that pays is a throne people would rather keep."
+            }
+          ]
+        },
+        {
+          "id": "carry_on",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} was told the hold on the throne was not what it had been, and went on governing as if it were."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_standard_is_raised",
+      "scene": "battle",
+      "tier": "setpiece",
+      "weight": 70,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "pretender",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "pretender",
+              "flag": "pretender",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "pretender_risen",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "throne_side_asked",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_over",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "throne_answer_pretender",
+              "value": true
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent word to {pretender.name} of {pretender.house}: this house is with you. There is no taking that back, whichever of them sits on the throne at the end."
+            }
+          ]
+        },
+        {
+          "id": "stand_by_the_throne",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "throne_answer_throne",
+              "value": true
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the house's oath to the throne again, unasked, and its fleets with it. {pretender.name} of {pretender.house} will know by morning."
+            }
+          ]
+        },
+        {
+          "id": "stand_aside",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} answered neither side. A house that waits keeps its ships and its choices, and is thanked by nobody."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_standard_against_you",
+      "scene": "battle",
+      "tier": "setpiece",
+      "weight": 70,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "pretender",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "pretender",
+              "flag": "pretender",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "pretender_against_me",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "call_the_houses",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} called the houses of the Reach to the capital to renew their oaths. Those who came were counted, and so were those who sent regrets."
+            }
+          ]
+        },
+        {
+          "id": "name_them_traitor",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "pretender",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had {pretender.name} of {pretender.house} proclaimed a traitor in every forum of the Reach. It changes nothing that fleets will not also change."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{pretender.name} of {pretender.house} raised a standard against the throne. {self.name} made no answer in words."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_pretender_is_broken",
+      "scene": "triumph",
+      "tier": "situation",
+      "weight": 45,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "broken",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "broken",
+              "flag": "broken_pretender",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "pretender_broken",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "be_seen_to_be_glad",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "broken",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "log",
+              "text": "{broken.name} of {broken.house} is broken, and {self.name} was among the first to say how glad of it the house was. It was noted where it was meant to be."
+            }
+          ]
+        },
+        {
+          "id": "say_little",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{broken.name} of {broken.house} is broken. {self.name} said little. Broken houses mend, and remember who crowed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_new_house_on_the_throne",
+      "scene": "triumph",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "pretender_won",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "cast_down",
+          "value": false
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_the_oath_early",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the house's oath to the new throne before it was asked for. An early oath is remembered longer than a late one."
+            }
+          ]
+        },
+        {
+          "id": "wait_and_see",
+          "effects": [
+            {
+              "type": "log",
+              "text": "There is a new house on the throne. {self.name} waited to see whether it would still be there in a year."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cast_down",
+      "scene": "funeral",
+      "tier": "setpiece",
+      "weight": 90,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "cast_down",
+          "value": true
+        },
+        {
+          "type": "era",
+          "era": "imperium",
+          "present": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "go_home",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left the capital with what could be carried and went home. The house holds what it held before it held the throne, and a claim that nobody can strike from the rolls."
+            }
+          ]
+        },
+        {
+          "id": "swear_to_return",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left the capital and said, where it would be heard, that the house would be back. The one who sits there now heard it too."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

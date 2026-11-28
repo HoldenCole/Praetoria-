@@ -1,0 +1,54 @@
+{
+  "texts": [
+    {
+      "id": "not_made_for_it",
+      "title": "Not Made for It",
+      "body": "{child.name}'s tutor has asked for a word. The child is not stupid and not idle, the tutor says carefully, but the course you set is not where {child.first}'s mind goes. Every lesson is a hill. {child.first} has started to dread the schoolroom, and to look at you as the reason for it.",
+      "choices": {
+        "let_them_follow_their_bent": "Let {child.him} follow {child.his} own bent.",
+        "they_will_learn_it": "{child.He} will learn it all the same.",
+        "find_a_better_teacher": "Find a better teacher."
+      }
+    },
+    {
+      "id": "far_ahead_of_their_years",
+      "title": "Far Ahead of {child.His} Years",
+      "body": "The tutor has run out of things to teach {child.name}. It is said without pride, almost with alarm: the child is doing work that grown students stumble over, and asking for more. People will hear of it. What matters is what you make of it first.",
+      "choices": {
+        "let_them_be_a_child": "Let {child.him} be a child a while longer.",
+        "give_them_the_best": "Give {child.him} the best teacher there is.",
+        "let_it_be_known": "Let it be known."
+      }
+    },
+    {
+      "id": "the_work_of_years",
+      "title": "The Work of Years",
+      "body": "It does not arrive as a moment. You simply notice, in the middle of an ordinary day's business, that something which used to be hard is no longer hard, and that people have begun to defer to you on it without being asked. Years went into that.",
+      "choices": {
+        "pass_it_on": "Begin to pass it on.",
+        "keep_at_it": "Keep at it.",
+        "allow_yourself_the_evening": "Allow yourself the evening."
+      }
+    },
+    {
+      "id": "their_study_is_their_own",
+      "title": "{kin.His} Study Is {kin.His} Own",
+      "body": "You asked {kin.rel}, {kin.first}, to give {kin.his} time to something the house has need of, and {kin.he} said no: that what a grown person studies is their own affair, and that {kin.he} had not asked the head of the house what the head read in the evenings.",
+      "choices": {
+        "let_it_be": "Let it be. {kin.He} is right.",
+        "say_what_the_house_needs": "Say what the house needs, and leave {kin.him} to think on it.",
+        "offer_to_pay_for_a_teacher": "Offer to pay for a teacher in what {kin.he} does study."
+      }
+    },
+    {
+      "id": "brought_on_by_one_of_the_house",
+      "title": "Brought On by One of the House",
+      "body": "{kin.Rel}, {kin.first}, has had a younger one of the house in hand for some years, and it has begun to show: the pupil can do this year what they could not do last. Nobody asked the head of the house for anything. The work was done in the evenings, by somebody who had {kin.his} own work in the day.",
+      "choices": {
+        "thank_them_before_the_house": "Thank {kin.him} before the house.",
+        "a_purse_for_their_trouble": "Send {kin.him} a purse for {kin.his} trouble.",
+        "take_it_as_their_duty": "Take it as {kin.his} duty to the house."
+      }
+    }
+  ]
+}

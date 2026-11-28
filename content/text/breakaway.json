@@ -1,0 +1,184 @@
+{
+  "texts": [
+    {
+      "id": "the_declaration",
+      "title": "The Declaration",
+      "body": "It is done. The worlds that follow {self.house} no longer answer to the capital, and the house has given up its seat, its offices and its party to say so. What it has instead is a state of its own, which so far consists of a name, a border nobody else has agreed to, and whatever fleets will defend it.",
+      "choices": {
+        "read_it_in_every_square": "Have it read in every square.",
+        "send_it_to_the_capital_first": "Send it to the capital first.",
+        "say_as_little_as_possible": "Say as little as possible."
+      }
+    },
+    {
+      "id": "they_let_you_go",
+      "title": "They Let You Go",
+      "body": "No fleet has come. The Reach has fought too much too lately, or the region is too far, or what would have to be sent is not worth what would be kept. Whatever the reason, the capital has chosen not to dispute it. {self.house} rules a state, and nobody has died to make it one.",
+      "choices": {
+        "take_it_as_a_gift": "Take it as a gift.",
+        "press_for_a_treaty": "Press for a treaty.",
+        "arm_anyway": "Arm anyway."
+      }
+    },
+    {
+      "id": "the_war_of_independence",
+      "title": "A War of Independence",
+      "body": "The Reach has not accepted it, and its fleets are on the lanes. This war has no end fixed in advance. It is over when the capital tires of sending ships to bring one region back, or when those ships are beaten, or when they take the region and there is no state left to recognise. Every year it goes on costs both sides, and the Reach has more to spend.",
+      "choices": {
+        "hold_what_you_have": "Hold what you have.",
+        "carry_it_to_them": "Carry the war to them.",
+        "ask_what_they_would_take": "Ask what terms they would take."
+      }
+    },
+    {
+      "id": "independence_is_won",
+      "title": "Independence",
+      "body": "The Reach has made peace and named the state in the treaty. It took years, and ships, and people who are not here to see it. But the border is a border now, the capital's maps will have to be redrawn, and {self.house} rules something that answers to nobody.",
+      "choices": {
+        "be_generous_in_it": "Be generous in victory.",
+        "hold_them_to_every_line": "Hold them to every line.",
+        "go_home_to_what_was_fought_for": "Go home to what was fought for."
+      }
+    },
+    {
+      "id": "the_state_falls",
+      "title": "The State Is No More",
+      "body": "The region is the Reach's again. The state that {self.house} led out of it lasted as long as it could be defended and no longer, and the capital has a short way with those who lead provinces out and fail. There are fines. There is a mark against the house's name that will stand for ten years.",
+      "choices": {
+        "answer_for_it_yourself": "Answer for it yourself.",
+        "blame_the_times": "Blame the times.",
+        "keep_the_flag": "Keep the flag."
+      }
+    },
+    {
+      "id": "you_need_not_kneel",
+      "title": "You Need Not Kneel",
+      "body": "The general {self.house} fought is on the throne, and every house in the Reach is expected at the capital. {self.house} holds enough of its own region, with the houses there that would follow, to take it out of the new order altogether. The throne has just come through a civil war and may not want another. Nobody is obliged to live under a master they went to war to stop.",
+      "choices": {
+        "say_you_will_think_on_it": "Say you will think on it.",
+        "kneel_and_have_done": "Kneel, and have done.",
+        "sound_out_the_region": "Sound out the region."
+      }
+    },
+    {
+      "id": "a_state_breaks_away",
+      "title": "A State Breaks Away",
+      "body": "A house has taken its region out of the Reach and called it a state. Whether there will be a war over it depends on what the capital has the will for this year. Either way the maps are wrong tonight, and every house on the rim that has ever thought about it is thinking about it again.",
+      "choices": {
+        "say_it_cannot_stand": "Say it cannot be allowed to stand.",
+        "say_let_them_go": "Say let them go.",
+        "send_them_a_private_word": "Send them a private word."
+      }
+    },
+    {
+      "id": "the_partition",
+      "title": "The Reach Is Partitioned",
+      "body": "The great war is over, and it has ended with a line drawn through the Reach. The side that could not win kept a region and has made a state of it, and the side that won could not reach far enough to stop them. The Senate has ratified the peace because the alternative was more war.",
+      "choices": {
+        "call_it_a_peace": "Call it a peace.",
+        "call_it_a_wound": "Call it a wound.",
+        "mark_the_new_border": "Mark the new border."
+      }
+    },
+    {
+      "id": "they_told_the_capital",
+      "title": "They Told the Capital",
+      "body": "The house that was sounded out heard everything politely, agreed with nothing, and wrote to the capital the same night. Nothing was said that could be charged. But the capital now knows that {self.house} has been talking to its neighbours about how they are governed, and it has a long memory for that kind of talk.",
+      "choices": {
+        "say_it_was_idle_talk": "Say it was idle talk.",
+        "say_nothing_at_all": "Say nothing at all.",
+        "pay_the_visit_back": "Pay the visit back."
+      }
+    },
+    {
+      "id": "a_house_gives_its_word",
+      "title": "A House Gives Its Word",
+      "body": "It took patience, and a certain amount of tact, and it has worked. One of the houses of the region has given its word: if {self.house} takes the region out of the Reach, they go too, worlds and all. Nothing has been declared and nothing may ever be. But the region is that much nearer to being one thing than several.",
+      "choices": {
+        "promise_them_a_voice": "Promise them a voice in it.",
+        "promise_them_nothing_yet": "Promise them nothing yet.",
+        "ask_who_else_might_listen": "Ask who else might listen."
+      }
+    },
+    {
+      "id": "they_come_back_for_it",
+      "title": "They Come Back for It",
+      "body": "The treaty's years ran out, and the Senate has voted. The Reach is rested, it thinks it has the fleets, and it has decided that a border it agreed to once is not a border it agreed to for ever. The state that {self.house} belongs to is at war for its independence a second time, on the same terms as the first: hold the region, and outlast them.",
+      "choices": {
+        "hold_them_to_the_treaty": "Hold them to the treaty, aloud.",
+        "say_it_was_always_coming": "Say it was always coming.",
+        "send_for_terms_at_once": "Send for terms at once."
+      }
+    },
+    {
+      "id": "back_in_the_reach",
+      "title": "Back in the Reach",
+      "body": "The state is no more, by its own ruler's decision. The border is off the maps, the region answers to the capital again, and {self.house} has its seat in the Senate back. Some there will say it should never have left. Others, more quietly, that it should never have come back.",
+      "choices": {
+        "take_your_seat_quietly": "Take your seat quietly.",
+        "say_why_you_came_back": "Say why you came back.",
+        "ask_what_it_was_for": "Ask yourself what it was for."
+      }
+    },
+    {
+      "id": "a_house_comes_over",
+      "title": "A House Comes Over",
+      "body": "A house of the Reach has left its seat in the Senate and come over to the state, of its own will. It holds worlds here already; now it holds them under the state's law and not the capital's. The capital has one voice fewer and one more grievance, and the state has a house it did not have to fight for.",
+      "choices": {
+        "welcome_them_openly": "Welcome them openly.",
+        "welcome_them_quietly": "Welcome them, and say little of it abroad.",
+        "ask_what_they_want_for_it": "Ask what they expect for it."
+      }
+    },
+    {
+      "id": "the_treaty_is_called_broken",
+      "title": "The Treaty Is Called Broken",
+      "body": "A region has gone over to the state, and the Reach has answered that the treaty named one region and not two. Its fleets are on the lanes again. Everything the state won is being fought for a second time, for the sake of what it has just been given.",
+      "choices": {
+        "stand_by_the_new_region": "Say that the state stands by every world in it.",
+        "send_to_the_capital_for_terms": "Send to the capital, to hear what it would take.",
+        "say_nothing_and_arm": "Say nothing, and arm."
+      }
+    },
+    {
+      "id": "the_war_nobody_remembers",
+      "title": "The War Nobody Remembers",
+      "body": "The last of those who commanded in the great war are dead or very old. The young officers have read about it. In the Senate a man who was not born when it ended said this week that the Reach has grown soft with peace, and nobody old enough to answer him was in the chamber.",
+      "choices": {
+        "say_what_it_cost": "Say, in the Senate, what it cost.",
+        "let_them_learn_it": "Let them learn it the way everyone does.",
+        "see_what_can_be_made_of_it": "Consider what a house might make of such a mood."
+      }
+    },
+    {
+      "id": "a_house_leaves_the_state",
+      "title": "A House Leaves the State",
+      "body": "One of the houses that came out of the Reach with the state has gone back to it. It took its worlds, sent no word beforehand, and was in the Senate chamber within the month. The state is smaller by what that house held, and everyone who stayed is asking whether it knew something.",
+      "choices": {
+        "say_the_state_is_better_without_them": "Say the state is the better for it.",
+        "ask_the_others_what_they_want": "Ask the houses that stayed what they want.",
+        "let_it_pass": "Let it pass without remark."
+      }
+    },
+    {
+      "id": "the_place_you_promised",
+      "title": "The Place You Promised",
+      "body": "Before the state existed you promised a house a place in it, and the house came. The place was to be paid for, year by year. This year the treasury did not hold it. The house has said nothing yet. It has, however, been seen to count.",
+      "choices": {
+        "pay_it_from_what_can_be_found": "Find it somewhere.",
+        "ask_them_to_wait_a_year": "Ask them to wait a year.",
+        "say_a_state_is_not_a_counting_house": "Say that a state is not a counting-house."
+      }
+    },
+    {
+      "id": "a_war_over_words",
+      "title": "A War Over Words",
+      "body": "It began as talk, and the talk was paid for. For three years one house heard worse of another than it had ever heard, in every room where it was a guest. It thought ill of them already. Now its fleets have sailed. Nothing was taken and nothing was done: there is no cause but what was said, and the money that said it was yours.",
+      "choices": {
+        "say_nothing_and_watch": "Say nothing, and watch.",
+        "offer_to_mediate": "Offer to stand between them.",
+        "sell_to_both": "Sell to both."
+      }
+    }
+  ]
+}

@@ -1,0 +1,2652 @@
+{
+  "//": "WAR: THE FRONT, THE HOME FRONT, THE SACK AND THE PEACE (docs/events/war.md). Threads: out_of_the_line (in_a_won_battle) or ran_from_the_battle (in_a_lost_battle), on the map or beyond the Reach, marks an officer officer_owed or officer_wronged, read at the house's next peace (our_peace, or our_nation_war_over for a war with a nation the house was in) by a_laurel_at_the_peace or the_other_dispatch; a_place_in_the_fleet marks a young relative at_the_front (or kept_from_war), read by blooded_in_battle (once a relative: blooded), by wounded_aboard_the_fleet when a battle lost wounds them (wounded_at_the_front: FleetSystem.WoundTheFront) and, at the peace, kin_home_from_the_war; taken_in_battle may mark a prisoner on_parole, read by the_parole_broken; plunder_on_the_exchange may mark the sacker war_partner, read by a_scandal_in_the_accounts when a war with a nation is next over (nation_war_over); the_fleet_paid_off comes once a peace (crews_reckoned). Core marks (FleetSystem): in_the_battle, in_a_won_battle, in_a_lost_battle (also for a battle abroad: MarkTheBattleAbroad), ships_counted and ships_known (a_parley_before_the_guns), the war's people (officer_owed, officer_wronged, at_the_front, blooded, wounded_at_the_front) and crews_reckoned struck out once the house is at peace and the news of it is over, taken_prisoner, held_to_the_peace, on_parole, bears_down_on_us and enemy_bears_down, our_peace; (NationSystem) sacked_beyond, nation_war_over, our_nation_war_over.",
+  "events": [
+    {
+      "id": "out_of_the_line",
+      "tier": "situation",
+      "weight": 16,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "officer",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "officer",
+              "flag": "in_a_won_battle",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "officer",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "battle_won",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "expedition_victory",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "name_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} wrote {officer.name}'s name into the dispatch of the victory, and what {officer.he} had done. {officer.first} read it twice."
+            }
+          ]
+        },
+        {
+          "id": "promote_them",
+          "requires": [
+            {
+              "type": "track",
+              "role": "officer",
+              "track": "military",
+              "present": true
+            },
+            {
+              "type": "rank",
+              "role": "officer",
+              "op": "lte",
+              "value": 4
+            },
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "advanceCareer",
+              "role": "officer"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had a word in the Admiralty's ear, and {officer.name} went up a step for the day {officer.he} broke the line."
+            }
+          ]
+        },
+        {
+          "id": "rebuke_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": -12
+            },
+            {
+              "type": "adjustSkill",
+              "role": "officer",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had {officer.name} told, in front of the wardroom, that a battle won against orders is a battle won by luck. The wardroom approved. {officer.first} did not."
+            }
+          ]
+        },
+        {
+          "id": "take_the_credit",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ambitious",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Arrogant",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": -20
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "The dispatch of the victory said the turn of the flank was {self.name}'s plan. {officer.name}, who had been there, knew better, and said nothing yet."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ran_from_the_battle",
+      "tier": "situation",
+      "weight": 16,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "officer",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "officer",
+              "flag": "in_a_lost_battle",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "officer",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "battle_lost",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "expedition_defeat",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "strip_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": -25
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} dressed {officer.name} down on the quarterdeck, in front of the crews. The Reach heard that the house does not keep officers who run. The wardroom heard something else."
+            }
+          ]
+        },
+        {
+          "id": "cover_for_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 15
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s report of the defeat put the break in the line somewhere {officer.name} had not been. {officer.first} knows what it cost to write."
+            }
+          ]
+        },
+        {
+          "id": "ask_them_why",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} asked {officer.name} why, and was told: the signal was wrong, and staying would have lost every ship. {self.first} went over the plots that night and found it was true."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_laurel_at_the_peace",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "officer",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "officer",
+              "vsRole": "self",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "our_peace",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "our_nation_war_over",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "worldFlag",
+          "flag": "at_war_any",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "name_them_to_the_senate",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "addBond",
+              "from": "officer",
+              "to": "self",
+              "bond": "sworn",
+              "strength": 60
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put {officer.name}'s name to the Senate at the peace, and the Senate honoured it. {officer.first} swore to {self.him} that day, in the old form, and meant it."
+            }
+          ]
+        },
+        {
+          "id": "a_purse",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "At the peace {self.name} gave {officer.name} a purse from the house for the war. It was well spent, and {officer.first} said so."
+            }
+          ]
+        },
+        {
+          "id": "thank_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_owed",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} thanked {officer.name} for the war, warmly, and left it there."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_other_dispatch",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "officer",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "officer",
+              "to": "self",
+              "op": "lte",
+              "value": 20
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "our_peace",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "our_nation_war_over",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "worldFlag",
+          "flag": "at_war_any",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "answer_it",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "oratory",
+              "op": "gte",
+              "value": 3
+            },
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} answered {officer.name}'s account in the Senate, point by point, and the chamber believed {self.first}. {officer.first} will not forget the day."
+            }
+          ]
+        },
+        {
+          "id": "make_amends",
+          "requires": [
+            {
+              "type": "trait",
+              "role": "self",
+              "trait": "Proud",
+              "kind": "nature",
+              "present": false
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} went to {officer.name} and said that the account was fair. It was said in private, and repeated everywhere."
+            }
+          ]
+        },
+        {
+          "id": "pay_for_silence",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "officer",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{officer.name}'s account stopped being copied. Four hundred credits of the house's had gone to {officer.him}, and both of them knew why."
+            }
+          ]
+        },
+        {
+          "id": "let_it_stand",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "officer",
+              "flag": "officer_wronged",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said nothing about {officer.name}'s account. People drew their own conclusions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_place_in_the_fleet",
+      "tier": "situation",
+      "weight": 6,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "inLine",
+              "role": "kin",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "kin",
+              "op": "gte",
+              "value": 16
+            },
+            {
+              "type": "age",
+              "role": "kin",
+              "op": "lte",
+              "value": 24
+            },
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "admiral",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "kept_from_war",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "at_war_any",
+              "value": true
+            },
+            {
+              "type": "all",
+              "of": [
+                {
+                  "type": "worldFlag",
+                  "flag": "expedition_away",
+                  "value": true
+                },
+                {
+                  "type": "worldFlag",
+                  "flag": "foreign_war",
+                  "value": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "fleetStrength",
+          "role": "self",
+          "op": "gte",
+          "value": 1
+        }
+      ],
+      "choices": [
+        {
+          "id": "send_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustSkill",
+              "role": "kin",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found {kin.name} a berth in the house's fleet, and watched the shuttle go up."
+            }
+          ]
+        },
+        {
+          "id": "take_them_on_your_staff",
+          "requires": [
+            {
+              "type": "track",
+              "role": "self",
+              "track": "military",
+              "present": true
+            },
+            {
+              "type": "rank",
+              "role": "self",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 12
+            },
+            {
+              "type": "adjustSkill",
+              "role": "kin",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "kin",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took {kin.name} onto the staff, where {kin.he} could be watched, and taught."
+            }
+          ]
+        },
+        {
+          "id": "a_safe_post",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustSkill",
+              "role": "kin",
+              "skill": "logistics",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "kept_from_war",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} found {kin.name} a post at the yards: war work, the fleet's work, and nowhere near the guns. {kin.first} knew exactly what it was."
+            }
+          ]
+        },
+        {
+          "id": "forbid_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -12
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "kept_from_war",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said no. {kin.name} did not argue, which was worse."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blooded_in_battle",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "kin",
+              "vsRole": "self",
+              "value": true
+            },
+            {
+              "type": "age",
+              "role": "kin",
+              "op": "lte",
+              "value": 26
+            },
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": false
+            },
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "battle_won",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "battle_lost",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "expedition_victory",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "expedition_defeat",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_step_up",
+          "requires": [
+            {
+              "type": "track",
+              "role": "kin",
+              "track": "military",
+              "present": true
+            },
+            {
+              "type": "rank",
+              "role": "kin",
+              "op": "lte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "advanceCareer",
+              "role": "kin"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{kin.name} came out of the first battle a step higher in the service. {self.name} had asked, and the Admiralty had agreed that it was earned."
+            }
+          ]
+        },
+        {
+          "id": "bring_them_home",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "kept_from_war",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} brought {kin.name} home after the first battle. {kin.first} came, and has not forgiven it."
+            }
+          ]
+        },
+        {
+          "id": "leave_them_with_the_fleet",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "kin",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": 5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left {kin.name} where {kin.he} was. {kin.He} stayed with the fleet, and grew harder."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wounded_aboard_the_fleet",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "kin",
+              "vsRole": "self",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "battle_lost",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "expedition_defeat",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "choices": [
+        {
+          "id": "bring_them_home_to_mend",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "kept_from_war",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -4
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had {kin.name} brought home from the fleet to mend. {kin.first} came, and asked every week when {kin.he} could go back."
+            }
+          ]
+        },
+        {
+          "id": "send_the_house_physician",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": false
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": -5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the house's own physician out to the fleet for {kin.name}, who stayed aboard, and knew who had sent for help."
+            }
+          ]
+        },
+        {
+          "id": "leave_them_to_the_surgeons",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": false
+            },
+            {
+              "type": "adjustSkill",
+              "role": "kin",
+              "skill": "discipline",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": 6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} left {kin.name} to the fleet's surgeons, as every other family's wounded were left. {kin.first} was back at {kin.his} post before the wound had closed."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kin_home_from_the_war",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "kin",
+              "vsRole": "self",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "our_peace",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "our_nation_war_over",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "worldFlag",
+          "flag": "at_war_any",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "a_feast_for_them",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave a feast for {kin.name}, home from the war, and the house drank to everyone who did not come back."
+            }
+          ]
+        },
+        {
+          "id": "a_place_in_the_service",
+          "requires": [
+            {
+              "type": "track",
+              "role": "kin",
+              "track": "military",
+              "present": true
+            },
+            {
+              "type": "rank",
+              "role": "kin",
+              "op": "lte",
+              "value": 3
+            },
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "advanceCareer",
+              "role": "kin"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 6
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{kin.name} came home from the war to a step in the service, which {self.name} had asked for and the Admiralty did not refuse."
+            }
+          ]
+        },
+        {
+          "id": "let_them_be",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": -6
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 4
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {kin.name}, home from the war, sleep for a week and asked nothing about it."
+            }
+          ]
+        },
+        {
+          "id": "ask_what_they_saw",
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "kin",
+              "delta": 4
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "at_the_front",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "blooded",
+              "value": false
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "wounded_at_the_front",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sat with {kin.name}, home from the war, and had all of it out of {kin.him}, battle by battle. {self.first} learned a good deal. {kin.first} did not sleep well that week."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "taken_in_battle",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "prisoner",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "prisoner",
+              "flag": "taken_prisoner",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "prisoner",
+              "flag": "held_to_the_peace",
+              "value": false
+            },
+            {
+              "type": "atWar",
+              "role": "prisoner",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "battle_won",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "ransom_them",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "prisoner",
+              "resource": "credits",
+              "op": "gte",
+              "value": 4
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 4
+            },
+            {
+              "type": "adjustResource",
+              "role": "prisoner",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "prisoner",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "prisoner",
+              "flag": "taken_prisoner",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{prisoner.house} paid four hundred credits for {prisoner.name}, and {prisoner.he} went home in a hired shuttle."
+            }
+          ]
+        },
+        {
+          "id": "exchange_them",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "manpower",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "prisoner",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "prisoner",
+              "flag": "taken_prisoner",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{prisoner.name} went home to {prisoner.house} in exchange for two companies of the house's crews, taken in an earlier fight."
+            }
+          ]
+        },
+        {
+          "id": "parole_them",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "prisoner",
+              "to": "self",
+              "delta": 20
+            },
+            {
+              "type": "setCharFlag",
+              "role": "prisoner",
+              "flag": "on_parole",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "prisoner",
+              "flag": "taken_prisoner",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {prisoner.name} go home on {prisoner.his} word not to bear arms against {self.house} again while this war lasts."
+            }
+          ]
+        },
+        {
+          "id": "parade_them",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Arrogant",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "prisoner",
+              "to": "self",
+              "delta": -30
+            },
+            {
+              "type": "setCharFlag",
+              "role": "prisoner",
+              "flag": "held_to_the_peace",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{prisoner.name} of {prisoner.house} walked through {self.house}'s capital behind {self.name}'s colours, in chains, and will be held until the peace."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_parole_broken",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "parolee",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "parolee",
+              "flag": "on_parole",
+              "value": true
+            },
+            {
+              "type": "charFlag",
+              "role": "parolee",
+              "flag": "admiral",
+              "value": true
+            },
+            {
+              "type": "atWar",
+              "role": "parolee",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [],
+      "choices": [
+        {
+          "id": "denounce_them",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "parolee",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "parolee",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "setCharFlag",
+              "role": "parolee",
+              "flag": "on_parole",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the Senate what {parolee.name}'s word was worth, and what {parolee.house}'s was. The chamber took note of both."
+            }
+          ]
+        },
+        {
+          "id": "send_a_herald",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "parolee",
+              "delta": 10
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "parolee",
+              "to": "self",
+              "delta": -10
+            },
+            {
+              "type": "setCharFlag",
+              "role": "parolee",
+              "flag": "on_parole",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name}'s herald read {parolee.name} {parolee.his} own parole, aloud, on {parolee.his} own quarterdeck."
+            }
+          ]
+        },
+        {
+          "id": "let_it_go",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "parolee",
+              "flag": "on_parole",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} let {parolee.name}'s broken word go. It is a war, and words are the first thing it breaks."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deserters_from_the_fleet",
+      "tier": "situation",
+      "weight": 20,
+      "repeatable": true,
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "fleet_deserts",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "hang_them",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Cruel",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Proud",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} had the deserters hanged at the port where they were taken, in front of the crews still aboard. Nobody else left that year."
+            }
+          ]
+        },
+        {
+          "id": "take_them_back",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "manpower",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took the deserters back into the fleet with a flogging and their pay stopped. The wardroom thought it soft."
+            }
+          ]
+        },
+        {
+          "id": "pay_what_they_were_owed",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the deserters what the fleet owed them and let them go home. The towns they went home to spoke well of the house."
+            }
+          ]
+        },
+        {
+          "id": "send_them_to_the_yards",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "materials",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent the deserters to work out their years in the house's yards, under guard."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_parley_before_the_guns",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "foe",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "foe",
+              "flag": "bears_down_on_us",
+              "value": true
+            },
+            {
+              "type": "atWar",
+              "role": "foe",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "enemy_bears_down",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "offer_a_white_peace",
+          "requires": [
+            {
+              "type": "peaceTerm",
+              "role": "foe",
+              "kind": "white"
+            }
+          ],
+          "effects": [
+            {
+              "type": "peaceTerms",
+              "role": "foe",
+              "kind": "white"
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "foe",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} met {foe.name} of {foe.house} between the fleets and offered a white peace, and {foe.first} took it. The guns were never run out."
+            }
+          ]
+        },
+        {
+          "id": "meet_under_a_truce",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "foe",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} and {foe.name} of {foe.house} met under a flag of truce and drank to each other's health, and went back to their ships to wait for the battle."
+            }
+          ]
+        },
+        {
+          "id": "count_their_ships",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Schemer",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "skill",
+                  "role": "self",
+                  "skill": "intrigue",
+                  "op": "gte",
+                  "value": 3
+                }
+              ]
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustSkill",
+              "role": "self",
+              "skill": "tactics",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "foe",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "setCharFlag",
+              "role": "foe",
+              "flag": "ships_counted",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} met {foe.name} under a flag of truce and spent the hour counting {foe.house}'s ships. {foe.first} noticed, too late: the order of battle was known before the guns were run out."
+            }
+          ]
+        },
+        {
+          "id": "send_the_herald_back",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "foe",
+              "to": "self",
+              "delta": -5
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 2
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {foe.name}'s herald back without an answer. The answer would come with the guns."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "plunder_on_the_exchange",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "sacker",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "sacker",
+              "flag": "sacked_beyond",
+              "value": true
+            },
+            {
+              "type": "inLine",
+              "role": "sacker",
+              "vsRole": "self",
+              "value": false
+            },
+            {
+              "type": "atWar",
+              "role": "sacker",
+              "present": false
+            },
+            {
+              "type": "charFlag",
+              "role": "sacker",
+              "flag": "war_partner",
+              "value": false
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "world_sacked",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "buy_from_the_plunder",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 5
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -5
+            },
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "materials",
+              "delta": 2
+            },
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "exotics",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sacker",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "sacker",
+              "flag": "sacked_beyond",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought from {sacker.house}'s plunder: metals and a crate of exotics, at half what the Exchange asks."
+            }
+          ]
+        },
+        {
+          "id": "put_money_into_the_next_raid",
+          "requires": [
+            {
+              "type": "any",
+              "of": [
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Greedy",
+                  "kind": "aptitude",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ruthless",
+                  "kind": "nature",
+                  "present": true
+                },
+                {
+                  "type": "trait",
+                  "role": "self",
+                  "trait": "Ambitious",
+                  "kind": "nature",
+                  "present": true
+                }
+              ]
+            },
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -3
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sacker",
+              "to": "self",
+              "delta": 10
+            },
+            {
+              "type": "setCharFlag",
+              "role": "sacker",
+              "flag": "war_partner",
+              "value": true
+            },
+            {
+              "type": "setCharFlag",
+              "role": "sacker",
+              "flag": "sacked_beyond",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} put three hundred credits into {sacker.house}'s next raid beyond the rim, quietly, through a factor."
+            }
+          ]
+        },
+        {
+          "id": "call_for_a_tax_on_plunder",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "influence",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "influence",
+              "delta": -1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "sacker",
+              "to": "self",
+              "delta": -15
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "sacker",
+              "flag": "sacked_beyond",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} rose in the Senate to ask why the houses that sack worlds beyond the rim pay nothing to the Reach that voted the war. {sacker.name} took it personally, which it was."
+            }
+          ]
+        },
+        {
+          "id": "have_nothing_to_do_with_it",
+          "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "sacker",
+              "flag": "sacked_beyond",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} bought nothing from {sacker.house}'s plunder and said nothing about it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "a_scandal_in_the_accounts",
+      "tier": "situation",
+      "weight": 35,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "partner",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "partner",
+              "flag": "war_partner",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "nation_war_over",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "keep_it",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 8
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "partner",
+              "flag": "war_partner",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept the eight hundred credits that {partner.house}'s raids had made the house. The auditors' report named the house, and people read it."
+            }
+          ]
+        },
+        {
+          "id": "give_it_to_the_crews",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 3
+            },
+            {
+              "type": "setCharFlag",
+              "role": "partner",
+              "flag": "war_partner",
+              "value": false
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave every credit the raids had made to the families of the crews who sailed on them. The auditors' report said so."
+            }
+          ]
+        },
+        {
+          "id": "share_it_with_the_auditor",
+          "requires": [
+            {
+              "type": "skill",
+              "role": "self",
+              "skill": "intrigue",
+              "op": "gte",
+              "value": 3
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": 5
+            },
+            {
+              "type": "setCharFlag",
+              "role": "partner",
+              "flag": "war_partner",
+              "value": false
+            },
+            {
+              "type": "adjustCounter",
+              "key": "corruption",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} kept five hundred credits from {partner.house}'s raids, and an auditor of the Senate kept the rest. The report did not mention the house. The auditor will not forget it."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_fleet_paid_off",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "any",
+          "of": [
+            {
+              "type": "worldFlag",
+              "flag": "our_peace",
+              "value": true
+            },
+            {
+              "type": "worldFlag",
+              "flag": "our_nation_war_over",
+              "value": true
+            }
+          ]
+        },
+        {
+          "type": "worldFlag",
+          "flag": "at_war_any",
+          "value": false
+        },
+        {
+          "type": "fleetStrength",
+          "role": "self",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "type": "worldFlag",
+          "flag": "crews_reckoned",
+          "value": false
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_them_off",
+          "requires": [
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 6
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -6
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "crews_reckoned",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} paid the house's crews off in full on the quay, six hundred credits, and the officers drank the house's health."
+            }
+          ]
+        },
+        {
+          "id": "settle_them",
+          "requires": [
+            {
+              "type": "holding",
+              "role": "self",
+              "kind": "planet",
+              "op": "gte",
+              "value": 1
+            },
+            {
+              "type": "resource",
+              "role": "self",
+              "resource": "credits",
+              "op": "gte",
+              "value": 2
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "credits",
+              "delta": -2
+            },
+            {
+              "type": "adjustResource",
+              "role": "self",
+              "resource": "manpower",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": 2
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "crews_reckoned",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} gave the crews land on the house's worlds, and what it took to start them on it. They will be there when the house needs them again."
+            }
+          ]
+        },
+        {
+          "id": "a_war_tax",
+          "requires": [
+            {
+              "type": "holding",
+              "role": "self",
+              "kind": "planet",
+              "op": "gte",
+              "value": 1
+            }
+          ],
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": 3
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -4
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "crews_reckoned",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} laid a war tax on the people of the house's worlds to pay the crews off. The crews were paid in full, and the towns paid for it."
+            }
+          ]
+        },
+        {
+          "id": "turn_them_loose",
+          "effects": [
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:officers",
+              "delta": -4
+            },
+            {
+              "type": "adjustCounter",
+              "key": "estate_offset:commons",
+              "delta": -3
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "crews_reckoned",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} turned the crews loose at the peace without their pay. They went where unpaid crews go."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,477 @@
+{
+  "//": "BLOOD BETWEEN HOUSES (docs/FEUD.md; docs/GAPS.md R4). Fired by FeudSystem's year flags. blood_between_houses and blood_on_our_hands: a debt has begun (feud_begun with blood_owed_to_us or we_owe_blood). the_price_asked, the_price_offered and called_out are another house asking the player something: the choices set feud_answer_* world flags that FeudSystem.Answers carries out at the year's end (the same things can be answered from the panel by FeudCommand). the_dead_unanswered: the player's own dead have waited past the grace years. after_the_field: a duel was fought.",
+  "events": [
+    {
+      "id": "blood_between_houses",
+      "scene": "funeral",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "blamed",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "blamed",
+              "flag": "blood_on_their_hands",
+              "value": true
+            },
+            {
+              "type": "relationship",
+              "from": "self",
+              "to": "blamed",
+              "op": "lte",
+              "value": -10
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "feud_begun",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "blood_owed_to_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "swear_it",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 4
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said before the whole house that {blamed.name} of {blamed.house} would answer for it. It was heard outside the house by nightfall, as it was meant to be."
+            }
+          ]
+        },
+        {
+          "id": "counsel_patience",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told the house that the dead would be answered in the house's time and not in its anger. Some of them heard the first half."
+            }
+          ]
+        },
+        {
+          "id": "say_nothing",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": -1
+            },
+            {
+              "type": "log",
+              "text": "The house waited for {self.name} to say what would be done about {blamed.name} of {blamed.house}. {self.He} said nothing, and the house drew its own conclusions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "blood_on_our_hands",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "feud_begun",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "we_owe_blood",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "double_the_watch",
+          "effects": [
+            {
+              "type": "adjustResource",
+              "resource": "credits",
+              "delta": -4
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} doubled the watch on the house and had the kitchens changed. A house that owes blood sleeps lightly, and pays for the lamps."
+            }
+          ]
+        },
+        {
+          "id": "send_word",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent word that whatever was owed would be answered for in the open, by whatever road the other house chose. It was a proud message, and may be taken up."
+            }
+          ]
+        },
+        {
+          "id": "shrug",
+          "effects": [
+            {
+              "type": "log",
+              "text": "{self.name} was told that another house now counts a death against this one, and went on with the day."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_price_asked",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "asker",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "asker",
+              "flag": "feud_asks_price",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "blood_price_asked",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "pay_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "feud_answer_pay",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {asker.name} of {asker.house} that the price would be paid. To pay is to say whose doing it was. {self.He} said it."
+            }
+          ]
+        },
+        {
+          "id": "refuse_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "feud_answer_refuse",
+              "value": true
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "asker",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent {asker.name} of {asker.house} away with nothing. A house that will not take money will take something else."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_price_offered",
+      "tier": "situation",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "asker",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "asker",
+              "flag": "feud_asks_offer",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "blood_price_offered",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "feud_answer_take",
+              "value": true
+            },
+            {
+              "type": "log",
+              "text": "{self.name} took what {asker.name} of {asker.house} offered. The dead are not brought back by refusing it. Not everyone in the house agreed that this was the point."
+            }
+          ]
+        },
+        {
+          "id": "spurn_it",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "feud_answer_spurn",
+              "value": true
+            },
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "adjustRelationship",
+              "from": "asker",
+              "to": "self",
+              "delta": -8
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {asker.name} of {asker.house} that the house does not sell its dead. The offer will not be made twice."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "called_out",
+      "scene": "battle",
+      "tier": "setpiece",
+      "weight": 60,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "challenger",
+          "when": [
+            {
+              "type": "charFlag",
+              "role": "challenger",
+              "flag": "feud_asks_duel",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "called_out",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "take_the_field",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "feud_answer_fight",
+              "value": true
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 5
+            },
+            {
+              "type": "log",
+              "text": "{self.name} sent back one word to {challenger.name} of {challenger.house}, and named the ground."
+            }
+          ]
+        },
+        {
+          "id": "do_not_come",
+          "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "feud_answer_decline",
+              "value": true
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} did not answer {challenger.name} of {challenger.house}. It will be said that {self.he} would not come, because it is true."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the_dead_unanswered",
+      "scene": "funeral",
+      "tier": "situation",
+      "weight": 30,
+      "repeatable": true,
+      "roles": [
+        {
+          "name": "kin",
+          "when": [
+            {
+              "type": "bond",
+              "from": "self",
+              "to": "kin",
+              "bond": "blood",
+              "present": true
+            }
+          ]
+        }
+      ],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "the_dead_unanswered",
+          "value": true
+        },
+        {
+          "type": "worldFlag",
+          "flag": "blood_owed_to_us",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "promise_it",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": 5
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": 3
+            },
+            {
+              "type": "log",
+              "text": "{kin.name} asked {self.name}, not for the first time, what was being done about the dead. {self.He} promised it would be answered. That is now a second debt."
+            }
+          ]
+        },
+        {
+          "id": "times_change",
+          "effects": [
+            {
+              "type": "adjustRelationship",
+              "from": "kin",
+              "to": "self",
+              "delta": -6
+            },
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -2
+            },
+            {
+              "type": "log",
+              "text": "{self.name} told {kin.name} that houses which answer every death end with nobody left to answer for them. {kin.first} did not think that was the point."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "after_the_field",
+      "scene": "funeral",
+      "tier": "situation",
+      "weight": 40,
+      "repeatable": true,
+      "roles": [],
+      "when": [
+        {
+          "type": "worldFlag",
+          "flag": "duel_fought",
+          "value": true
+        }
+      ],
+      "choices": [
+        {
+          "id": "speak_well_of_them",
+          "effects": [
+            {
+              "type": "adjustLegitimacy",
+              "role": "self",
+              "delta": 1
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said afterwards that the other house had come to the field as it should, and that the matter was ended. People repeat that sort of thing."
+            }
+          ]
+        },
+        {
+          "id": "say_it_is_done",
+          "effects": [
+            {
+              "type": "adjustStress",
+              "role": "self",
+              "delta": -3
+            },
+            {
+              "type": "log",
+              "text": "{self.name} said it was done, and would hear no more of it."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

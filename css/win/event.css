@@ -1,0 +1,165 @@
+/* The event window (docs/VISUAL_SYSTEM.md 6; ui-mock/final/event.png and event.html). Loaded after app.css, so a rule here wins over a
+   shared rule of the same weight. Only EventWindow.razor uses the classes below (ev-*); it borrows the shared window's body, frame and
+   roundel (.ui-win, .ui-win-body, .ui-win-frame, .ui-round) and keeps the old names the scripts know (.event, .win-close, .choice,
+   .win-choices, .done, data-stakes, data-why, data-warn, data-answer, data-facts).
+
+   Sizes: 900px wide (60rem) and as tall as its content, centred over the free map between the rail and the outliner; the painting is
+   clamp(150px, 28vh, 352px) tall, so at 1366 by 768 every choice is on screen with the window about 620px tall. Long prose scrolls in
+   its own area while the choices stay pinned. The cast plates shrink with the painting. */
+
+/* ---- over the map: a flat dim, no blur; the top bar stays lit ---- */
+.ev-veil { position: fixed; left: 0; right: 0; bottom: 0; top: var(--top, 0px); z-index: 34; display: flex; align-items: center; justify-content: center;
+  padding: .8rem calc(var(--ol-w, 0px) + var(--edge, 0px) + .8rem) .8rem calc(var(--rail, 0px) + .8rem);
+  background: radial-gradient(ellipse at 50% 50%, rgba(3,4,8,.52), rgba(3,4,8,.84)); }
+
+/* ---- the window ---- */
+.ev-win.ui-win { width: min(60rem, 100%); max-height: 100%; --art: clamp(150px, 28vh, 352px); --ph: clamp(96px, calc(var(--art) - 92px), 164px); --ps: calc(var(--ph) * .76);
+  filter: drop-shadow(0 18px 40px rgba(0,0,0,.85)); animation: rise .2s ease-out both; }
+.ev-body { position: relative; }
+.ev-x.ui-round { position: absolute; right: 1.0667rem; top: 1.0667rem; z-index: 6; border-radius: 50%; width: 2rem; height: 2rem; color: var(--ink); }
+.ev-x .icon { width: .8667rem; height: .8667rem; stroke-width: 40px; }
+
+/* the painting by subject, brightened like a header, darkening into the body at its foot */
+.ev-art { position: relative; flex: none; height: var(--art); overflow: hidden; }
+.ev-art > i { position: absolute; inset: 0; background: center 42% / cover no-repeat; filter: brightness(1.14) contrast(1.08) saturate(1.05); }
+.ev-art::after { content: ""; position: absolute; inset: 0; background:
+  linear-gradient(0deg, var(--base) 0, rgba(14,17,23,.9) 13%, rgba(14,17,23,.35) 40%, rgba(14,17,23,0) 62%),
+  linear-gradient(180deg, rgba(0,0,0,.4), transparent 22%), radial-gradient(ellipse at 50% 38%, transparent 52%, rgba(0,0,0,.4)); }
+
+/* ---- the cast, standing in the painting: the other party at the left, you at the right ---- */
+.ev-cast { position: absolute; z-index: 3; top: clamp(10px, calc(var(--art) - var(--ph) - 5.6rem), 2.2667rem); width: 12.6667rem; display: flex; flex-direction: column; align-items: center; }
+.ev-cast.l { left: 1.7333rem; } .ev-cast.r { right: 1.7333rem; }
+.ev-cast .portrait { width: calc(var(--ph) * .805) !important; height: var(--ph) !important; filter: drop-shadow(0 8px 14px rgba(0,0,0,.6)); }
+.ev-cast.small { top: calc(clamp(10px, calc(var(--art) - var(--ph) - 5.6rem), 2.2667rem) + var(--ph) - var(--ps)); }
+.ev-cast.small .portrait { width: calc(var(--ps) * .805) !important; height: var(--ps) !important; }
+.ev-plate { margin-top: .6rem; text-align: center; max-width: 100%; }
+.ev-plate b { display: block; font: 600 1.1333rem/1.1 var(--f-display); letter-spacing: .03em; color: #f3e6c4; text-shadow: 0 1px 4px #000, 0 0 10px rgba(0,0,0,.8); }
+.ev-plate span { display: block; margin-top: .2667rem; font: 500 .8667rem/1.25 var(--f-ui); color: var(--ink-dim); text-shadow: 0 1px 3px #000, 0 0 8px rgba(0,0,0,.9); }
+.ev-plate span.you { color: var(--brass-hi); }
+.ev-cast.small .ev-plate b { font-size: 1rem; }
+
+/* ---- the head, centred on the painting's foot: the kicker between laurel sprays, the title, a gilt rule with a centre diamond ---- */
+.ev-head { position: absolute; z-index: 3; left: 15rem; right: 15rem; top: var(--art); transform: translateY(calc(-100% - 1.3333rem)); text-align: center; pointer-events: none; }
+.ev-kick { display: flex; justify-content: center; align-items: center; gap: .6667rem; font: 600 .8333rem/1 var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: var(--brass-ink); text-shadow: 0 1px 3px #000; white-space: nowrap; }
+.ev-kick .ln { flex: 0 1 2.6667rem; min-width: .8rem; height: 1px; background: linear-gradient(90deg, transparent, var(--brass)); } .ev-kick .ln.r { transform: scaleX(-1); }
+.ev-kick .ev-ls { width: .8rem; height: 1.6rem; stroke-width: 26px; flex: none; } .ev-kick .ev-ls.flip { transform: scaleX(-1); }
+.ev-title { margin: .6667rem 0 0; font: 600 2.5333rem/1.08 var(--f-display); letter-spacing: .1em; color: #f8eccd; text-wrap: balance;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.8), 0 1px 0 rgba(255,225,150,.16), 0 3px 14px #000, 0 0 30px rgba(0,0,0,.8); }
+.ev-title.t2 { font-size: 2.1333rem; letter-spacing: .08em; } .ev-title.t3 { font-size: 1.8rem; letter-spacing: .06em; } .ev-title.t4 { font-size: 1.5rem; letter-spacing: .05em; }
+.ev-rule { position: relative; width: min(25.3333rem, 100%); height: 1px; margin: .9333rem auto 0; background: var(--gilt-rule); }
+.ev-rule::after { content: ""; position: absolute; left: 50%; top: -.2667rem; width: .5333rem; height: .5333rem; transform: translateX(-50%) rotate(45deg);
+  background: linear-gradient(135deg, #f3dfa6, #b8923f 50%, #5e4318); box-shadow: 0 0 0 1px #000; }
+
+/* ---- the prose: Alegreya, a two-line drop capital that does not split its word; long prose scrolls here, the choices stay ---- */
+.ev-mid { position: relative; z-index: 3; flex: 1 1 auto; min-height: 4rem; overflow-y: auto; padding: .4rem 3.2rem 1rem 3.0667rem; scrollbar-width: thin; scrollbar-color: #c9a24a #05070a;
+  -webkit-mask-image: linear-gradient(#000 calc(100% - 1rem), transparent); mask-image: linear-gradient(#000 calc(100% - 1rem), transparent); }
+.ev-mid::-webkit-scrollbar { width: 6px; } .ev-mid::-webkit-scrollbar-thumb { background: linear-gradient(90deg, #7a5c24, #d9bd78, #7a5c24); border-radius: 3px; }
+.ev-prose { margin: 0 0 .6rem; font: 400 1.2333rem/1.56 var(--f-prose); color: #e8dfc8; font-variant-numeric: lining-nums; white-space: pre-line; }
+.ev-prose:last-of-type { margin-bottom: 0; }
+.ev-prose.cap::first-letter { -webkit-initial-letter: 2; initial-letter: 2; font-family: var(--f-display); font-weight: 600; color: var(--brass-ink); margin-right: -.08em; text-shadow: 0 2px 4px #000; }
+@supports not (initial-letter: 2) {
+  .ev-prose.cap::first-letter { float: left; font-size: 3.1em; line-height: .82; margin: .06em .1em 0 0; }
+}
+/* the others in it, by their faces */
+.ev-also { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem 1.2rem; margin-top: .8rem; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.ev-also .k { font: 600 .8rem/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
+.ev-also .who { display: inline-flex; align-items: center; gap: .4667rem; } .ev-also .who b { color: var(--ink); font-weight: 600; } .ev-also .who small { font-size: .8667rem; color: var(--ink-mute); }
+/* what the game adds (the occasion's facts): a quote block on a darker band with a brass rule and a small-capital head */
+.ev-quote { margin-top: .9333rem; padding: .6rem .9333rem .6667rem; font: 400 .9333rem/1.45 var(--f-ui); color: var(--ink); white-space: pre-line;
+  background: linear-gradient(90deg, rgba(0,0,0,.42), rgba(0,0,0,.18)); box-shadow: inset 2px 0 0 var(--brass); }
+.ev-quote .qh { font: 600 .8rem/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); margin-bottom: .4rem; }
+
+/* ---- the choices: full-width plates, a gold disc with the digit, the label, the stakes as chips ---- */
+.ev-choices.win-choices { position: relative; z-index: 3; flex: none; display: grid; gap: .5333rem; padding: .6667rem 3.0667rem 0; }
+.ev-ch.choice { position: relative; display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; align-items: center; column-gap: .9333rem; min-height: 3.8667rem; width: 100%;
+  padding: .5333rem .8rem; text-align: left; cursor: pointer; color: inherit;
+  background: linear-gradient(#262e40, #161b27); border: 1px solid #000; border-radius: 2px; box-shadow: var(--sh-plate); }
+.ev-ch .n { width: 1.8667rem; height: 1.8667rem; border-radius: 50%; display: grid; place-items: center; font: 700 .9333rem/1 var(--f-ui); color: var(--ink-dark);
+  background: radial-gradient(circle at 40% 35%, #fbe7a7, #b68c35); box-shadow: 0 0 0 1px #000, inset 0 1px 0 rgba(255,255,255,.5); }
+.ev-ch-t { display: flex; flex-direction: column; min-width: 0; }
+.ev-ch .label { font: 500 1.2rem/1.28 var(--f-prose); color: #f1e8cf; text-wrap: pretty; }   /* no orphan word on a second line */
+.ev-ch .req { display: flex; align-items: flex-start; gap: .4rem; margin-top: .3333rem; font: 600 .8667rem/1.3 var(--f-ui); color: var(--warn); }
+.ev-ch .req .icon { flex: none; width: .9333rem; height: .9333rem; margin-top: 1px; }
+/* a locked answer clicked: the line that says what it needs flashes, ember on the plate, and settles back (docs/EVENTS.md, "Two answers open") */
+.ev-ch .req.flash { margin-left: -.4rem; margin-right: -.4rem; padding: .1333rem .4rem; border-radius: 2px; animation: ev-req-flash 1.1s ease-out 1; }
+@keyframes ev-req-flash {
+  0%, 30% { color: #ffe1bf; background: rgba(214,104,64,.42); box-shadow: 0 0 0 1px rgba(232,140,96,.9), 0 0 14px rgba(214,104,64,.45); }
+  100% { color: var(--warn); background: transparent; box-shadow: 0 0 0 1px transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .ev-ch .req.flash { animation: none; background: rgba(214,104,64,.3); box-shadow: 0 0 0 1px rgba(232,140,96,.9); } }
+.ev-ch .fx { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; justify-content: flex-end; max-width: 22rem; }
+/* the recessed chip (6): the well's colour and inset, 30px high, an 18px glyph and the signed figure in Plex 600 14.5px. Written with
+   .fx so it outweighs the old .game span.chip, which strips every span chip bare */
+.ev-ch .fx .chip { display: inline-flex; align-items: center; gap: .4rem; height: 2rem; padding: 0 .6667rem 0 .5333rem; background: var(--well); border: 0; border-radius: 2px;
+  box-shadow: var(--sh-inset); font: 600 .9667rem/1 var(--f-ui); font-variant-numeric: tabular-nums lining-nums; white-space: nowrap; color: var(--ink); }
+/* a person's effect: their face at 22px, round, ringed in their house's colour */
+.ev-ch .fx .chip.face .portrait { width: 1.4667rem !important; height: 1.4667rem !important; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 0 0 2.5px var(--ring, #a5813a); }
+.ev-ch .fx .chip.face .portrait::after, .ev-ch .fx .chip.face .portrait .pf-band { display: none; }
+.ev-ch .chip .icon { width: 1.2rem; height: 1.2rem; stroke-width: 26px; }
+.ev-ch .chip .up { color: var(--good); } .ev-ch .chip .down { color: var(--bad); }
+.ev-ch .fx .chip.face { padding-left: .4rem; }
+.ev-ch .chip.more b { color: var(--ink-dim); }
+.ev-ch .fx .chip.words { height: auto; min-height: 2rem; padding: .3333rem .6667rem; white-space: normal; font: 500 .9333rem/1.3 var(--f-ui); color: var(--ink); max-width: 20rem; }
+.ev-ch.choice:hover, .ev-ch.choice.hov, .ev-ch.choice:focus-visible { outline: 0; background: linear-gradient(#2f3850, #1b2131); box-shadow: var(--sh-plate), 0 0 0 1px var(--brass), 0 0 18px rgba(232,196,110,.16); }
+.ev-ch.choice:hover::before, .ev-ch.choice.hov::before, .ev-ch.choice:focus-visible::before { content: ""; position: absolute; left: -1px; top: -1px; bottom: -1px; width: .2rem; background: linear-gradient(#f6e2a0, #a5813a); }
+/* a locked choice: the plate darkens, the disc goes grey, the chips drop to half strength, the label keeps full ink */
+.ev-ch.choice.locked { cursor: default; background: linear-gradient(#1a1f2a, #11141b); }
+.ev-ch.choice.locked:hover, .ev-ch.choice.locked.hov { background: linear-gradient(#1d2230, #12161e); box-shadow: var(--sh-plate), 0 0 0 1px rgba(201,162,74,.45); }
+.ev-ch.choice.locked::before { display: none; }
+.ev-ch.locked .n { background: #2a2f39; color: #a9adb6; box-shadow: 0 0 0 1px #000; }
+.ev-ch.locked .fx { opacity: .5; }
+
+/* set it aside: a small underlined line with an hourglass and when it lapses */
+.ev-aside { position: relative; z-index: 3; flex: none; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .4rem .9333rem; padding: 1.0667rem 1rem 1.6rem; font: 600 .9333rem/1 var(--f-ui); }
+.ev-later { padding: 0 0 2px; border: 0; background: none; color: var(--ink-dim); border-bottom: 1px dotted rgba(233,224,200,.4); cursor: pointer; font: inherit; }
+.ev-later:hover { color: var(--brass-hi); border-bottom-color: var(--brass); }
+.ev-aside span { display: inline-flex; align-items: center; gap: .4rem; color: var(--ink-dim); font-weight: 400; font-size: .9rem; } .ev-aside span .icon { width: 1rem; height: 1rem; }
+.ev-aside .dot { width: .3333rem; height: .3333rem; transform: rotate(45deg); background: var(--brass-mid); }
+/* answered: what was said */
+.ev-done.done { display: flex; align-items: center; justify-content: center; gap: .6rem; padding: .8rem 1rem 1.6rem; font: italic 400 1.1333rem/1.4 var(--f-prose); color: var(--ink); }
+.ev-done .icon { flex: none; }
+.ev-win:has(.ev-done) .ev-choices { padding-bottom: .4rem; }
+
+/* ---- the choice's tooltip: every effect in words with its before and after, any requirement against what is there now, the key.
+   It stands beside the window, anchored to the choice (CSS anchor positioning); where there is no room beside, above the choice. ---- */
+.ev-tip { position: absolute; z-index: 60; width: 20rem; pointer-events: none; padding: .8rem .9333rem;
+  position-anchor: --evc0; left: calc(anchor(right) + 22px); top: auto; bottom: auto; align-self: anchor-center;
+  position-try-fallbacks: --ev-tip-up, --ev-tip-down, --ev-tip-above, --ev-tip-below;
+  font: 400 .9333rem/1.35 var(--f-ui); color: var(--ink);
+  background: linear-gradient(180deg, #181c26, #0a0c11); border: 16px solid transparent; border-image: url(../../img/ui/frame-md.svg) 16 / 16px stretch; border-image-outset: 6px; box-shadow: var(--sh-drop);
+  animation: ev-tip-in .12s ease-out both; }
+/* beside the choice but grown upward or downward from it, then above or below it, right-aligned with the window */
+@position-try --ev-tip-up { left: calc(anchor(right) + 22px); top: auto; bottom: anchor(bottom); align-self: auto; }
+@position-try --ev-tip-down { left: calc(anchor(right) + 22px); top: anchor(top); bottom: auto; align-self: auto; }
+@position-try --ev-tip-above { left: auto; right: anchor(right); top: auto; bottom: calc(anchor(top) + 14px); align-self: auto; }
+@position-try --ev-tip-below { left: auto; right: anchor(right); top: calc(anchor(bottom) + 14px); bottom: auto; align-self: auto; }
+@supports not (anchor-name: --a) { .ev-tip { left: auto; top: auto; right: 1rem; bottom: 1rem; } }
+@keyframes ev-tip-in { from { opacity: 0; } to { opacity: 1; } }
+.ev-tip .th { display: flex; align-items: center; gap: .5333rem; margin-bottom: .7333rem; font: 600 .8rem/1.2 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--brass-ink); }
+.ev-tip .th .n { flex: none; width: 1.2rem; height: 1.2rem; border-radius: 50%; display: grid; place-items: center; font: 700 .8rem/1 var(--f-ui); letter-spacing: 0; color: var(--ink-dark);
+  background: radial-gradient(circle at 40% 35%, #fbe7a7, #b68c35); box-shadow: 0 0 0 1px #000; }
+.ev-tip .th .n.off { background: #2a2f39; color: #a9adb6; }
+.ev-tip .th.long { font: 600 .9333rem/1.25 var(--f-ui); letter-spacing: 0; text-transform: none; }
+.ev-tip .fxl { display: grid; grid-template-columns: 1.4667rem 1fr; column-gap: .6rem; align-items: start; margin-bottom: .6rem; }
+.ev-tip .fxl > .icon { width: 1.3333rem; height: 1.3333rem; margin-top: 1px; }
+.ev-tip .fxl > .portrait { margin-top: 1px; }
+.ev-tip .fxl .w { font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink); }
+.ev-tip .fxl .w b { font-weight: 600; } .ev-tip .fxl .w b.up { color: var(--good); } .ev-tip .fxl .w b.down { color: var(--bad); }
+.ev-tip .fxl .w small { display: block; margin-top: 2px; color: var(--ink-dim); font-size: .8667rem; }
+.ev-tip .line { margin-bottom: .6rem; } .ev-tip .line.dim { color: var(--ink-dim); font-style: italic; }
+.ev-tip .need { display: grid; grid-template-columns: 1.4667rem 1fr; column-gap: .6rem; align-items: start; margin: .2rem 0 .4rem; font: 600 .8667rem/1.35 var(--f-ui); color: var(--warn); }
+.ev-tip .need.met { color: var(--ink-dim); font-weight: 500; }
+.ev-tip .need .icon { width: .9333rem; height: .9333rem; margin: 2px 0 0 .2667rem; }
+.ev-tip .foot { margin-top: .5333rem; padding-top: .4667rem; border-top: 1px solid rgba(255,255,255,.08); font: 500 .8667rem/1.3 var(--f-ui); color: var(--ink-dim); }
+.ev-tip kbd { font: 600 .8rem/1 var(--f-ui); color: var(--brass-ink); padding: 2px .3333rem; margin: 0 .1333rem; border: 1px solid rgba(201,162,74,.5); border-radius: 2px; }
+
+/* ---- smaller screens: the cast and the title close in; a phone stacks it ---- */
+@media (max-width: 1100px) {
+  .ev-head { left: 11.5rem; right: 11.5rem; } .ev-cast { width: 10rem; } .ev-cast.l { left: 1rem; } .ev-cast.r { right: 1rem; }
+  .ev-mid { padding-left: 1.8rem; padding-right: 1.8rem; } .ev-choices.win-choices { padding-left: 1.8rem; padding-right: 1.8rem; }
+}
+@media (max-width: 640px) {
+  .ev-veil { padding: .4rem; } .ev-cast { display: none; } .ev-head { left: 1rem; right: 1rem; }
+  .ev-ch.choice { grid-template-columns: 2rem minmax(0, 1fr); } .ev-ch .fx { grid-column: 2; justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) { .ev-win.ui-win, .ev-tip { animation: none; } }
