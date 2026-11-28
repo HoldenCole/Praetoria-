@@ -24,7 +24,12 @@ namespace Praetoria.Tests;
 ///
 /// Group "pledge": the favours called in on a motion against your house, a debt called in and paid with a vote, the favour you owe judged
 /// at the count, your word given on the house window, a favour called in for a vote, a pledge of your seats at the consular election,
-/// and the backing of your patron or bench leader for consul.</summary>
+/// and the backing of your patron or bench leader for consul.
+///
+/// Group "office": one of yours standing for the ladder, spoken for and canvassed; taught to speak; the count read again; the consul's
+/// table and what the Senior Consul does; your colleague in the consulship and the business divided; the other consul courted after a
+/// veto; the emergency powers (no election while they run, the veto, the levy, the lean); the canvass and the good grace at the count;
+/// a motion held over; the attendance record, the committee, the coin behind a canvass.</summary>
 public class VotePromisesTests
 {
     private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
@@ -1096,5 +1101,428 @@ public class VotePromisesTests
         var noms = ElectionSystem.Nominees(w, offices, Wt(g)); Assert.Contains(noms, n => n.houseId == g.Mine.Id && n.partyId == bench.Id); Assert.DoesNotContain(noms, n => n.houseId == leaderId);
         var tally = ElectionSystem.Tally(w, offices, Wt(g), noms); Session(g);
         Assert.Contains(w.History, h => h.Text.StartsWith("The Senate elects its consuls") && h.Text.Contains($"{g.Mine.Name} ({tally[g.Mine.Id]})"));
+    }
+
+    // ================================================================== group "office"
+
+    /// <summary>The player's answer, as the briefing sends it: the cost is paid.</summary>
+    private static void Choose(G g, FiredEvent f, string choice) =>
+        Assert.True(g.Do(new ResolveChoiceCommand(new EventEngine(Content, WorldBuilder.RngFor(g.W)), f, choice, g.Me.Id)), $"{f.Def.Id}/{choice} is not open");
+    /// <summary>A house moves a motion, and nothing else is before the Senate; no session is held for it.</summary>
+    private static Motion Moves(G g, House h, string kind = "levy", string target = "") { var m = g.Senate.Add(g.W, h.Id, kind, target); Only(g, m); return m; }
+    /// <summary>What the count of the ladder gave this person.</summary>
+    private static int AtTheCount(G g, Character c) => g.W.Counts.Single(x => x.CharacterId == c.Id).Votes;
+    /// <summary>Bastien Castellan, of your blood.</summary>
+    private static Character Bastien(G g) => g.W.Char("bastien_castellan")!;
+    private static OfficeDef Seat(string id) => Content.Offices.Def(id)!;
+    private static Character? Holder(G g, string office) => OfficeSystem.Holding(g.W, office) is { } h ? g.W.Char(h.CharacterId) : null;
+
+    // ------------------------------------------------------------------ one of yours stands: one_of_yours_stands_for_office, LadderSystem.Campaign
+
+    /// <summary>Bastien Castellan, of your blood, who has not yet been praetor here, puts his own name down for it in the year before
+    /// the count, and the report comes.</summary>
+    private static (G g, FiredEvent report) Stands()
+    {
+        var g = Start(); var kin = Bastien(g); kin.Cursus.Remove(LadderSystem.Praetor); Assert.Null(LadderSystem.Bar(g.W, g.Senate.Offices, kin, g.Senate.Offices.Rung(LadderSystem.Praetor)));
+        LadderSystem.Stand(g.W, g.Senate.Offices, kin, LadderSystem.Praetor);   // his own doing: the head cannot put a name down for another
+        var (f, cast) = Report(g, "one_of_yours_stands_for_office", "kin"); Assert.Equal(kin.Id, cast.Id);
+        return (g, f);
+    }
+
+    [Fact]
+    public void OneOfYoursStands_TheHouseSpeaksForThemAndPaysForACanvass_AndTheCountHasBoth_AcrossASaveAndALoad()
+    {
+        // two games alike in all but this: in one the house speaks for her and pays for a modest canvass, in the other it does neither
+        var (g0, f0) = Stands(); Answer(g0, f0, "let_them_win_it");
+        var (h0, f1) = Stands(); Answer(h0, f1, "let_them_win_it");
+        var kin = Bastien(h0); int influence = Influence(h0), treasury = h0.Mine.Treasury.Credits;
+        var back = new LadderCommand(h0.Me.Id, LadderCommand.Back, kin.Id, "", h0.Senate.Offices); Assert.True(h0.Do(back), back.Refusal(h0.Ctx));
+        var fund = new FundCampaignCommand(h0.Me.Id, kin.Id, LadderSystem.Modest, h0.Senate.Offices); Assert.True(h0.Do(fund), fund.Refusal(h0.Ctx));
+        Assert.Equal(influence - LadderSystem.BackInfluence, Influence(h0)); Assert.Equal(treasury - LadderSystem.CampaignCost(LadderSystem.Modest), h0.Mine.Treasury.Credits);
+        var h = Reload(h0);   // a save and a load before the count
+        Session(g0); Session(h); Assert.True(h.W.HasFlag(LadderSystem.HeldFlag));
+        Assert.Equal(AtTheCount(g0, Bastien(g0)) + LadderSystem.BackVotes + LadderSystem.CampaignVotes(LadderSystem.Modest), AtTheCount(h, Bastien(h)));   // +6 spoken for, +3 the canvass
+    }
+
+    [Fact]
+    public void TheCoinBehindACanvass_BuysItsVotesAtTheCount_AndALargerOnePaysTheDifferenceForTheLargerOnly()
+    {
+        var (g, f) = Stands(); Answer(g, f, "let_them_win_it"); var (h, f2) = Stands(); Answer(h, f2, "let_them_win_it"); var kin = Bastien(h);
+        Assert.True(h.Do(new FundCampaignCommand(h.Me.Id, kin.Id, LadderSystem.Modest, h.Senate.Offices))); int treasury = h.Mine.Treasury.Credits;
+        Assert.True(h.Do(new FundCampaignCommand(h.Me.Id, kin.Id, LadderSystem.Handsome, h.Senate.Offices)));
+        Assert.Equal(treasury - (LadderSystem.CampaignCost(LadderSystem.Handsome) - LadderSystem.CampaignCost(LadderSystem.Modest)), h.Mine.Treasury.Credits);
+        Assert.Contains(h.W.History, x => x.Text.Contains("a handsome canvass"));
+        Session(g); Session(h);
+        Assert.Equal(AtTheCount(g, Bastien(g)) + LadderSystem.CampaignVotes(LadderSystem.Handsome), AtTheCount(h, Bastien(h)));   // 6, not 3 and 6
+    }
+
+    [Fact]
+    public void TeachThemTheFloor_TheyHaveTwoMoreVotesAtTheCountOfTheirOwn()
+    {
+        var (g, f) = Stands(); Answer(g, f, "let_them_win_it");
+        var (h, f2) = Stands(); int merit = LadderSystem.Merit(Bastien(h)); Answer(h, f2, "teach_them_the_floor");
+        Assert.Equal(merit + 2, LadderSystem.Merit(Bastien(h)));   // a point of oratory, counted twice
+        Session(g); Session(h);
+        Assert.True(AtTheCount(h, Bastien(h)) >= AtTheCount(g, Bastien(g)) + 2, $"{AtTheCount(h, Bastien(h))} against {AtTheCount(g, Bastien(g))}");
+        Assert.Contains(h.W.History, x => x.Text.Contains("They will speak better at the count for it."));
+    }
+
+    // ------------------------------------------------------------------ the count read again: the_one_who_won_the_office/demand_a_recount
+
+    [Fact]
+    public void TheCountReadAgain_YourRelativeThinksEightTheBetter_TheSquaresTrustTheCountLess_AndTheResultStands()
+    {
+        var (g, f) = Stands(); Answer(g, f, "let_them_win_it"); var kin = Bastien(g);
+        foreach (var h in Others(g)) if (LadderSystem.Candidates(g.W, g.Senate.Offices, g.Senate.Offices.Rung(LadderSystem.Praetor)!).FirstOrDefault(c => c.HouseId == h.Id) is { } rival)
+            g.W.Campaigns.Add(new CampaignFund { HouseId = h.Id, CharacterId = rival.Id, RungId = LadderSystem.Praetor, Turn = g.W.Turn, Size = LadderSystem.Lavish, Spent = 40, Votes = 500 });   // the other houses outspend him
+        Session(g); Assert.Contains(VoteMarks.OursLostChar, kin.Flags);
+        var counts = g.W.Counts.Select(c => (c.CharacterId, c.Votes, c.Won)).ToList();
+        var (report, victor) = Report(g, "the_one_who_won_the_office", "victor"); var victorHouse = g.W.House(victor.HouseId)!;
+        int regard = g.W.GetRelationship(kin.Id, g.Me.Id)?.Disposition ?? 0, trust = LadderSystem.Trust(g.W), mine = g.Mine.Legitimacy, theirs = victorHouse.Legitimacy;
+        Choose(g, report, "demand_a_recount");
+        Assert.Equal(regard + 8, g.W.GetRelationship(kin.Id, g.Me.Id)!.Disposition);   // "{kin.name} will know the house fought for them"
+        Assert.Equal(trust - 1, LadderSystem.Trust(g.W));                              // "the squares will doubt the count"
+        Assert.Equal(theirs - 1, victorHouse.Legitimacy); Assert.Equal(mine - 1, g.Mine.Legitimacy);
+        Assert.Equal(counts, g.W.Counts.Select(c => (c.CharacterId, c.Votes, c.Won)).ToList());   // "It stood, as counts do."
+        Assert.DoesNotContain(g.W.Magistrates, x => x.CharacterId == kin.Id);
+    }
+
+    // ------------------------------------------------------------------ the consul's table: the_consul_elects_feast
+
+    /// <summary>The consuls are elected at the end of year ten, your house not standing; the Senior Consul's table, and its report.</summary>
+    private static (G g, Character consul, FiredEvent report) Feast()
+    {
+        var g = Start(); g.W.Turn = ElectionSystem.Every - 1; Session(g); Assert.True(g.W.HasFlag("election_held")); Assert.False(g.W.HasFlag("consul_elected"));
+        var consul = Holder(g, "consul_senior")!; var (f, cast) = Report(g, "the_consul_elects_feast", "grandee"); Assert.Equal(consul.Id, cast.Id);
+        return (g, consul, f);
+    }
+
+    [Fact]
+    public void TheSeniorConsul_Presides_SpeaksFromTheChair_BreaksATie_AndStrikesOneMotionATerm()
+    {
+        var (g, consul, f) = Feast(); Answer(g, f, "stay_away"); var house = g.W.House(consul.HouseId)!;
+        Assert.Equal(consul.Id, LadderSystem.Presiding(g.W)?.Id);   // "they will preside"
+        // "speak from the chair": for a motion of their bench moved by another house of it
+        var bench = FactionSystem.Of(g.W, house.Id)!; var fellow = g.W.House(bench.Members.First(id => id != house.Id && id != g.Mine.Id && Economy.HeadOf(g.W, g.W.House(id)!) != null))!;
+        var theirs = Moves(g, fellow); Session(g);
+        Assert.Equal(1, theirs.Chair); Assert.True(theirs.Resolved);
+        // "break a tied Senate": a motion of their own house, the rest of the chamber away but houses of exactly its weight against
+        var tied = Moves(g, house); int weight = g.Senate.Weight(g.W, house.Id);
+        foreach (var h in g.W.Houses.Values.Where(h => h.Id != house.Id)) tied.Votes[h.Id] = 0;
+        int need = weight; foreach (var h in Others(g).Where(h => h.Id != house.Id).OrderByDescending(h => g.Senate.Weight(g.W, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal)) { int hw = g.Senate.Weight(g.W, h.Id); if (hw <= need && hw > 0) { tied.Votes[h.Id] = -1; need -= hw; } }
+        Assert.Equal(0, need);
+        Session(g); Assert.Equal(tied.ForWeight, tied.AgainstWeight); Assert.True(tied.Passed); Assert.Equal(1, g.W.Counter(LadderSystem.CastingCounter));
+        // "once in their term strike a motion with a veto": the first motion against their house is struck, the second is not
+        var first = IMove(g, "censure", house.Id); Only(g, first); Session(g); Assert.True(first.Vetoed); Assert.Equal(house.Id, first.VetoedBy);
+        var second = IMove(g, "embargo", house.Id); Only(g, second); Session(g); Assert.False(second.Vetoed); Assert.True(second.Resolved);
+    }
+
+    [Fact]
+    public void TheConsulsTable_TheConsulWhoDinedYou_LetsYourMotionStand_EvenWhenAnotherHeadsTheirHouse_AcrossASaveAndALoad()
+    {
+        var (g0, consul0, f) = Feast(); Answer(g0, f, "go_and_be_seen"); Assert.Contains(ElectionSystem.DinedChar, consul0.Flags);
+        var house0 = g0.W.House(consul0.HouseId)!;
+        var heir = g0.W.LivingCharacters().First(c => c.HouseId == house0.Id && c.Id != consul0.Id && c.Age >= DynastySystem.AgeOfMajority);
+        house0.HeadId = heir.Id; Assert.Equal(heir.Id, Economy.HeadOf(g0.W, house0)!.Id);   // a new head, who sat at no table: the consul is not the head of their house
+        var g = Reload(g0); var consul = g.W.Char(consul0.Id)!; var house = g.W.House(house0.Id)!;
+        var censure = IMove(g, "censure", house.Id); Only(g, censure); Session(g);
+        Assert.False(censure.Vetoed); Assert.True(censure.Resolved);   // let stand, and voted
+        Assert.DoesNotContain(ElectionSystem.DinedChar, consul.Flags);   // once in the term
+        Assert.True(g.Told($"{consul.Name}, as Senior Consul, lets your motion stand that they would have struck with the veto"));
+        var embargo = IMove(g, "embargo", house.Id); Only(g, embargo); Session(g); Assert.True(embargo.Vetoed);   // the next one is struck
+    }
+
+    [Fact]
+    public void TheConsulsTable_AGiftAhead_DoesTheSame_AndWithoutTheTableTheMotionIsStruck()
+    {
+        var (g, consul, f) = Feast(); int credits = g.Mine.Treasury.Credits; int regard = g.W.GetRelationship(consul.Id, g.Me.Id)?.Disposition ?? 0;
+        Choose(g, f, "send_a_gift_ahead"); Assert.Equal(credits - 6, g.Mine.Treasury.Credits); Assert.Equal(regard + 10, g.W.GetRelationship(consul.Id, g.Me.Id)!.Disposition);
+        var house = g.W.House(consul.HouseId)!; house.HeadId = g.W.LivingCharacters().First(c => c.HouseId == house.Id && c.Id != consul.Id && c.Age >= DynastySystem.AgeOfMajority).Id;   // and another heads their house
+        var spared = IMove(g, "censure", consul.HouseId); Only(g, spared); Session(g); Assert.False(spared.Vetoed);
+        Assert.True(g.Told($"{consul.Name}, as Senior Consul, lets your motion stand that they would have struck with the veto"));
+        var (h, other, f2) = Feast(); Answer(h, f2, "stay_away");
+        var struck = IMove(h, "censure", other.HouseId); Only(h, struck); Session(h); Assert.True(struck.Vetoed);
+    }
+
+    [Fact]
+    public void TheConsulsTable_LapsesWithANotice_WhenTheConsulDies_OrTheTermEnds()
+    {
+        var (g, consul, f) = Feast(); Answer(g, f, "go_and_be_seen");
+        DynastySystem.Die(g.W, consul.Id); var censure = IMove(g, "censure", consul.HouseId); Only(g, censure); Session(g);
+        Assert.True(g.Told($"{consul.Name} no longer holds the chair, and the motion they would have spared you for coming to their table goes with it."));
+        Assert.DoesNotContain(ElectionSystem.DinedChar, consul.Flags);
+        var (h, c2, f2) = Feast(); Answer(h, f2, "go_and_be_seen");
+        h.W.Turn = 2 * ElectionSystem.Every - 1; Session(h);
+        Assert.True(h.Told($"{c2.Name}'s term as consul is over, and the motion they would have spared you for coming to their table ends with it."));
+        Assert.DoesNotContain(ElectionSystem.DinedChar, c2.Flags);
+    }
+
+    // ------------------------------------------------------------------ your colleague in the consulship: your_colleague_the_consul
+
+    /// <summary>You stand for consul and are elected Senior Consul at the end of year ten; your colleague, the Junior, asks to see you.</summary>
+    private static (G g, Character colleague, FiredEvent report) Colleagues(bool colleaguePresides = false)
+    {
+        var g = Start(); g.W.Turn = ElectionSystem.Every - 1; Assert.True(g.Do(new StandForConsulCommand(g.Me.Id, g.Senate.Offices)));
+        Session(g); Assert.Equal(g.Me.Id, Holder(g, "consul_senior")?.Id); var colleague = Holder(g, "consul_junior")!;
+        if (colleaguePresides)   // the two chairs the other way about: your colleague presides
+        {
+            foreach (var o in g.W.Offices.Where(o => o.OfficeId is "consul_senior" or "consul_junior")) o.OfficeId = o.OfficeId == "consul_senior" ? "consul_junior" : "consul_senior";
+            g.Me.Flags.Remove("office:consul_senior"); g.Me.Flags.Add("office:consul_junior"); colleague.Flags.Remove("office:consul_junior"); colleague.Flags.Add("office:consul_senior");
+            Assert.Equal(colleague.Id, LadderSystem.Presiding(g.W)?.Id);
+        }
+        var (f, cast) = Report(g, "your_colleague_the_consul", "grandee"); Assert.Equal(colleague.Id, cast.Id);
+        return (g, colleague, f);
+    }
+
+    [Fact]
+    public void YourColleague_StrikesWhatStrikesAtTheirHouse_AndTheBusinessDivided_LeavesYoursAlone_AcrossASaveAndALoad()
+    {
+        var (h, other, f2) = Colleagues(); Answer(h, f2, "keep_your_counsel");
+        var struck = IMove(h, "censure", other.HouseId); Only(h, struck); Session(h); Assert.True(struck.Vetoed); Assert.Equal(other.HouseId, struck.VetoedBy);   // what the report says they will strike
+        var (g0, colleague0, f) = Colleagues(); Answer(g0, f, "divide_the_year"); Assert.Contains(ElectionSystem.DividedChar, colleague0.Flags);
+        var g = Reload(g0); var colleague = g.W.Char(colleague0.Id)!;
+        var censure = IMove(g, "censure", colleague.HouseId); Only(g, censure); Session(g);
+        Assert.False(censure.Vetoed); Assert.True(censure.Resolved); Assert.Contains(ElectionSystem.DividedChar, colleague.Flags);   // left alone, and nothing spent
+        var embargo = IMove(g, "embargo", colleague.HouseId); Only(g, embargo); Session(g); Assert.False(embargo.Vetoed);   // for the term, not once
+    }
+
+    [Fact]
+    public void YourColleague_Presiding_DoesNotSpeakAgainstYourMotion_OnceTheBusinessIsDivided()
+    {
+        var (h, other, f2) = Colleagues(colleaguePresides: true); Answer(h, f2, "keep_your_counsel");
+        var against = IMove(h, "censure", other.HouseId); Only(h, against); h.W.WorldCounters["veto_used:" + other.HouseId] = ElectionSystem.TermStart(h.W, h.Senate.Offices, other.HouseId);   // its veto spent: what is left is the chair
+        Session(h); Assert.Equal(-1, against.Chair);
+        var (g, colleague, f) = Colleagues(colleaguePresides: true); Answer(g, f, "divide_the_year");
+        var censure = IMove(g, "censure", colleague.HouseId); Only(g, censure); g.W.WorldCounters["veto_used:" + colleague.HouseId] = ElectionSystem.TermStart(g.W, g.Senate.Offices, colleague.HouseId);
+        Session(g); Assert.Equal(0, censure.Chair); Assert.True(censure.Resolved);
+    }
+
+    [Fact]
+    public void YourColleague_YouAreRemindedWhenTheyMove_AndStrikingTheirMotionBreaksTheDivision_MinusFifteen_AndFreesTheirVeto()
+    {
+        var (g, colleague, f) = Colleagues(); Answer(g, f, "divide_the_year"); var house = g.W.House(colleague.HouseId)!;
+        var theirs = Moves(g, house);
+        Assert.True(g.Told($"{colleague.Name}, your colleague in the consulship, has moved a motion. You divided the consulship's business between you: strike it with the veto, or speak against it from the chair, and the division is broken, they think -15 of you"));
+        int regard = g.W.GetRelationship(colleague.Id, g.Me.Id)?.Disposition ?? 0;
+        var veto = new VetoCommand(g.Me.Id, theirs.Id, g.Senate.Offices, g.Senate); Assert.True(g.Do(veto), veto.Refusal(g.Ctx));
+        Assert.Equal(regard - ElectionSystem.DivisionBroken, g.W.GetRelationship(colleague.Id, g.Me.Id)!.Disposition);
+        Assert.DoesNotContain(ElectionSystem.DividedChar, colleague.Flags);
+        Assert.True(g.Told($"You struck the business of {colleague.Name}, and the division of the consulship you made with them is broken: they think -15 of you, and are free to strike yours."));
+        var censure = IMove(g, "censure", house.Id); Only(g, censure); Session(g); Assert.True(censure.Vetoed);   // and they do
+        // from the chair, the same
+        var (h, c2, f2) = Colleagues(); Answer(h, f2, "divide_the_year"); var m2 = Moves(h, h.W.House(c2.HouseId)!); h.W.Turn++;   // due this year
+        Assert.True(h.Do(new ChairCommand(h.Me.Id, m2.Id, LadderSystem.SpeakAgainst, h.Senate))); Assert.DoesNotContain(ElectionSystem.DividedChar, c2.Flags);
+    }
+
+    [Fact]
+    public void YourColleague_TheDivisionLapsesWithANotice_AtWar()
+    {
+        var (g, colleague, f) = Colleagues(); Answer(g, f, "divide_the_year");
+        g.W.Wars.Add(new War { HouseA = g.Mine.Id, HouseB = colleague.HouseId, Since = g.W.Turn }); Assert.True(g.W.AtWar(g.Mine.Id, colleague.HouseId));
+        var censure = IMove(g, "censure", colleague.HouseId); Only(g, censure); Session(g);
+        Assert.True(g.Told($"{g.W.House(colleague.HouseId)!.Name} is at war with your house, and the division of the consulship's business you made with them goes with it."));
+        Assert.True(censure.Vetoed);
+    }
+
+    // ------------------------------------------------------------------ the other consul courted after a veto: the_veto_falls/court_the_other_consul
+
+    /// <summary>The consuls elected; your censure of the Senior Consul's house is struck by their veto, and the report comes.</summary>
+    private static (G g, Character other, FiredEvent report) Struck()
+    {
+        var (g, senior, f) = Feast(); Answer(g, f, "stay_away");
+        var censure = IMove(g, "censure", senior.HouseId); Only(g, censure); Session(g); Assert.True(censure.Vetoed); Assert.True(g.W.HasFlag("vetoed_mine"));
+        var other = Holder(g, "consul_junior")!; Assert.Contains(ElectionSystem.OtherConsulChar, other.Flags);
+        return (g, other, ReportOf(g, "the_veto_falls"));
+    }
+
+    [Fact]
+    public void TheOtherConsulCourted_StrikesTheNextMotionAgainstYourHouse_HoweverHardItLeansFor_AcrossASaveAndALoad()
+    {
+        var (g0, other0, f) = Struck(); int influence = Influence(g0);
+        Choose(g0, f, "court_the_other_consul"); Assert.Equal(influence - 1, Influence(g0));
+        var g = Reload(g0); var other = g.W.Char(other0.Id)!;
+        var mover = Others(g).First(h => h.Id != other.HouseId && h.Id != Holder(g, "consul_senior")!.HouseId);
+        var censure = Moves(g, mover, "censure", g.Mine.Id); foreach (var h in Others(g).Where(h => h.Id != mover.Id)) Leans(g, censure, h, 6);   // the chamber is for it
+        Session(g);
+        Assert.True(censure.Vetoed); Assert.Equal(other.HouseId, censure.VetoedBy);
+        Assert.True(g.Told($"{other.Name}, as Junior Consul, strikes the motion against your house with their veto, as a friend in the chair"));
+        Assert.DoesNotContain(ElectionSystem.FriendChar, other.Flags);   // once
+        Assert.False(ElectionSystem.MayVeto(g.W, g.Senate.Offices, other.HouseId));   // it was their veto for the term
+    }
+
+    [Fact]
+    public void TheOtherConsulCourted_NotTheirOwnHousesMotion_WhichWaits_AndTheChoiceIsClosedWhenThereIsNoOtherConsulToCourt()
+    {
+        var (g, other, f) = Struck(); Choose(g, f, "court_the_other_consul");
+        var own = Moves(g, g.W.House(other.HouseId)!, "censure", g.Mine.Id); Session(g); Assert.False(own.Vetoed);   // they do not strike their own house's motion
+        Assert.Contains(ElectionSystem.FriendChar, other.Flags);   // the promise waits for the next
+        var third = Moves(g, Others(g).First(h => h.Id != other.HouseId && h.Id != Holder(g, "consul_senior")!.HouseId), "embargo", g.Mine.Id); Session(g); Assert.True(third.Vetoed);
+        // with the other consul's veto spent, there is nobody to court
+        var (h, other2, _) = Feast(); h.W.WorldCounters["veto_used:" + other2.HouseId] = 0;
+        var junior = Holder(h, "consul_junior")!; h.W.WorldCounters["veto_used:" + junior.HouseId] = ElectionSystem.TermStart(h.W, h.Senate.Offices, junior.HouseId);
+        var c = IMove(h, "censure", other2.HouseId); Only(h, c); Session(h); Assert.True(c.Vetoed);
+        Assert.False(h.W.HasFlag(ElectionSystem.CourtFlag)); var report = ReportOf(h, "the_veto_falls");
+        Assert.False(new EventEngine(Content, WorldBuilder.RngFor(h.W)).IsChoiceAvailable(report, h.W, "court_the_other_consul"));
+    }
+
+    // ------------------------------------------------------------------ the emergency powers: emergency_powers_voted, the_powers_are_yours, EmergencySystem.GrantVoted
+
+    private static void InDanger(G g) { foreach (var n in g.W.Nations) n.AtWar = false; g.W.Nations[0].AtWar = true; Assert.NotNull(EmergencySystem.Danger(g.W)); }
+    /// <summary>The year as the turn runs it for the Senate and the powers: the session, then the powers' year.</summary>
+    private static void Year(G g) { Session(g); EmergencySystem.Tick(g.W, g.Senate.Offices); }
+    /// <summary>The chamber leans for a motion: leaders first, so a bench that follows its leader is already where it is set.</summary>
+    private static void AllFor(G g, Motion m) { foreach (var h in Others(g).OrderBy(h => FactionSystem.Of(g.W, h.Id)?.LeaderHouseId == h.Id ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal)) if (h.Id != m.ProposerHouseId) Leans(g, m, h, 2); }
+
+    [Fact]
+    public void ThePowersVotedAnotherConsul_NoElectionIsHeldWhileTheyRun_ThenBothAreHeld_TheSenateLeansTheirWay_AndTheHousesAreLevied()
+    {
+        var (g, _, f) = Feast(); Answer(g, f, "stay_away"); InDanger(g); var holderHouse = g.W.House(Holder(g, "consul_senior")!.HouseId)!;
+        var magistrates = g.W.Magistrates.Select(x => x.CharacterId).OrderBy(x => x).ToList(); int counted = g.W.Counts[0].Turn;
+        g.W.Turn = 2 * ElectionSystem.Every - 3;   // year 17: the powers will run over year 20, when the consuls and the magistrates are both due
+        var grant = Moves(g, holderHouse, "emergency", holderHouse.Id); AllFor(g, grant); Year(g);
+        Assert.NotNull(g.W.Emergency); Assert.Equal(holderHouse.Id, g.W.Emergency!.HouseId);
+        Assert.Contains(g.W.History, x => x.Text.Contains("The other consul's veto is set aside, and no election will be held while they run."));
+        var (_, holder) = Report(g, "emergency_powers_voted", "holder"); Assert.Equal(g.W.Emergency.HolderId, holder.Id);
+        // the Senate leans toward what they move: every other house, by two, and the whip count says why
+        var theirs = Moves(g, holderHouse); var voter = Others(g).First(h => h.Id != holderHouse.Id);
+        Assert.Contains(g.Senate.Why(g.W, theirs, voter.Id), x => x.why.EndsWith(" holds emergency powers") && x.by == EmergencySystem.HolderLeanBy);
+        // the other consul's veto is set aside: a censure of their house is voted, not struck
+        var junior = g.W.House(Holder(g, "consul_junior")!.HouseId)!; var censure = Moves(g, Others(g).First(h => h.Id != junior.Id && h.Id != holderHouse.Id), "censure", junior.Id);
+        Session(g); Assert.True(censure.Resolved); Assert.False(censure.Vetoed);
+        int treasury = g.Mine.Treasury.Credits; EmergencySystem.Tick(g.W, g.Senate.Offices);   // year 19: a levy without a vote
+        Assert.Equal(treasury - EmergencySystem.LevyCredits, g.Mine.Treasury.Credits); Assert.True(g.W.HasFlag(EmergencySystem.LeviedFlag));
+        Year(g);   // year 20: no election of the consuls, none of the magistrates
+        Assert.False(g.W.HasFlag("election_held")); Assert.True(g.W.Emergency!.SkippedElection); Assert.True(g.W.Emergency.SkippedLadder);
+        Assert.All(g.W.Counts, x => Assert.Equal(counted, x.Turn)); Assert.Equal(magistrates, g.W.Magistrates.Select(x => x.CharacterId).OrderBy(x => x).ToList());
+        Year(g);   // year 21: the term is up, and another house's consul lays them down
+        Assert.Null(g.W.Emergency); Assert.Equal(1, g.W.Counter(LadderSystem.OwedKey));
+        Year(g);   // year 22: both elections that fell due are held
+        Assert.True(g.W.HasFlag("election_held")); Assert.All(g.W.Counts, x => Assert.Equal(g.W.Turn, x.Turn)); Assert.Equal(0, g.W.Counter(LadderSystem.OwedKey));
+    }
+
+    [Fact]
+    public void ThePowersAreYours_AVetoEveryYear_YourColleaguesSetAside_ALevyWithoutAVote_TheSenateLeansYourWay_AndNoElection_AcrossASaveAndALoad()
+    {
+        var (g0, colleague0, f) = Colleagues(); Answer(g0, f, "keep_your_counsel"); InDanger(g0);
+        g0.W.Turn = 3 * g0.Senate.Offices.LadderEvery - 2;   // year 13: the magistrates are due at the end of year 15
+        var grant = IMove(g0, "emergency", g0.Mine.Id); Only(g0, grant); AllFor(g0, grant); Year(g0);
+        Assert.True(EmergencySystem.Holds(g0.W, g0.Mine.Id)); ReportOf(g0, "the_powers_are_yours");
+        var g = Reload(g0); var colleague = g.W.Char(colleague0.Id)!; int counted = g.W.Counts[0].Turn;
+        // a veto every year: one this year, refused a second, and one again the next
+        var movers = Others(g).Where(h => h.Id != colleague.HouseId).ToList();
+        var a = Moves(g, movers[0]); var b = g.Senate.Add(g.W, movers[1].Id, "levy", "");
+        Assert.True(g.Do(new VetoCommand(g.Me.Id, a.Id, g.Senate.Offices, g.Senate))); Assert.Equal("you have struck one motion this year", new VetoCommand(g.Me.Id, b.Id, g.Senate.Offices, g.Senate).Refusal(g.Ctx));
+        // a levy on the houses without a vote
+        var payer = Others(g).First(h => h.Treasury.Credits >= EmergencySystem.LevyCredits); int paid = payer.Treasury.Credits, before = g.Mine.Treasury.Credits;
+        Assert.True(g.Do(new EmergencyCommand(g.Me.Id, EmergencyCommand.Levy))); Assert.Equal(paid - EmergencySystem.LevyCredits, payer.Treasury.Credits); Assert.True(g.Mine.Treasury.Credits > before);
+        // the Senate leans your way on what you move
+        var mine = IMove(g); Assert.Contains(g.Senate.Why(g.W, mine, payer.Id), x => x.why.EndsWith("holds emergency powers") && x.by == EmergencySystem.HolderLeanBy);
+        // your colleague's veto is set aside: a censure of their house is voted, not struck
+        var censure = g.Senate.Add(g.W, movers[2].Id, "censure", colleague.HouseId);
+        Year(g);   // year 15: no election of the magistrates
+        Assert.False(censure.Vetoed); Assert.True(censure.Resolved); Assert.True(g.W.Emergency!.SkippedLadder); Assert.All(g.W.Counts, x => Assert.Equal(counted, x.Turn));
+        var c = Moves(g, movers[0]); Assert.True(g.Do(new VetoCommand(g.Me.Id, c.Id, g.Senate.Offices, g.Senate)));   // and a veto again this year
+        // laid down: the election that fell due under them is held at the end of the year
+        Assert.True(g.Do(new EmergencyCommand(g.Me.Id, EmergencyCommand.LayDown))); Assert.Equal(1, g.W.Counter(LadderSystem.OwedKey));
+        Year(g); Assert.All(g.W.Counts, x => Assert.Equal(g.W.Turn, x.Turn)); Assert.True(g.W.HasFlag(LadderSystem.HeldFlag));
+    }
+
+    // ------------------------------------------------------------------ the canvass and the good grace: the_canvass, the_count_goes_against_you
+
+    /// <summary>You put your own name down for quaestor in the year before the count (the Old Lion has climbed nothing, here), and the
+    /// report of the canvass comes.</summary>
+    private static (G g, FiredEvent report) Canvass()
+    {
+        var g = Start(); g.Me.Cursus.Clear();
+        Assert.True(g.Do(new LadderCommand(g.Me.Id, LadderCommand.Stand, g.Me.Id, LadderSystem.Quaestor, g.Senate.Offices)));
+        LadderSystem.Tick(g.W, g.Senate.Offices, Content.Policies); Assert.True(g.W.HasFlag(LadderSystem.StandingFlag));
+        return (g, ReportOf(g, "the_canvass"));
+    }
+
+    [Fact]
+    public void TheCanvass_EveryDoorIsTwoVotesAtTheCount_ALittleSpentIsThree_AndBothAreFive_AcrossASaveAndALoad()
+    {
+        var (g, f) = Canvass(); Answer(g, f, "let_the_record_speak");
+        var (d, f2) = Canvass(); Answer(d, f2, "shake_every_hand");
+        var (c0, f3) = Canvass(); int credits = c0.Mine.Treasury.Credits; Choose(c0, f3, "spend_a_little"); Assert.Equal(credits - 6, c0.Mine.Treasury.Credits);
+        var c = Reload(c0);
+        var (b, f4) = Canvass(); Answer(b, f4, "shake_every_hand"); Answer(b, ReportOf(b, "the_canvass"), "spend_a_little");   // the report came twice
+        Session(g); Session(d); Session(c); Session(b);
+        int plain = AtTheCount(g, g.Me);
+        Assert.Equal(plain + LadderSystem.DoorsVotes, AtTheCount(d, d.Me)); Assert.Equal(plain + LadderSystem.CoinVotes, AtTheCount(c, c.Me)); Assert.Equal(plain + LadderSystem.DoorsVotes + LadderSystem.CoinVotes, AtTheCount(b, b.Me));
+        Assert.DoesNotContain(LadderSystem.DoorsChar, b.Me.Flags); Assert.DoesNotContain(LadderSystem.CoinChar, b.Me.Flags);   // counted at the one count
+    }
+
+    [Fact]
+    public void TheCountGoesAgainstYou_TheGoodGraceIsTwoVotesAtTheNextCount_AndThenGone_AndGoingThroughTheTallyPromisesNothing()
+    {
+        G Lost(string choice)
+        {
+            var g = Start(); g.Me.Cursus.Remove(LadderSystem.Praetor);   // you have not been praetor here, and stand for it
+            Assert.True(g.Do(new LadderCommand(g.Me.Id, LadderCommand.Stand, g.Me.Id, LadderSystem.Praetor, g.Senate.Offices)));
+            foreach (var h in Others(g)) if (LadderSystem.Candidates(g.W, g.Senate.Offices, g.Senate.Offices.Rung(LadderSystem.Praetor)!).FirstOrDefault(x => x.HouseId == h.Id) is { } rival)
+                g.W.Campaigns.Add(new CampaignFund { HouseId = h.Id, CharacterId = rival.Id, RungId = LadderSystem.Praetor, Turn = g.W.Turn, Size = LadderSystem.Lavish, Spent = 40, Votes = 500 });   // outspent at the count
+            Session(g); Assert.True(g.W.HasFlag(LadderSystem.LostFlag));
+            Answer(g, ReportOf(g, "the_count_goes_against_you"), choice);
+            g.W.Turn = 2 * g.Senate.Offices.LadderEvery - 1;   // the year before the next count, and you stand again
+            Assert.True(g.Do(new LadderCommand(g.Me.Id, LadderCommand.Stand, g.Me.Id, LadderSystem.Praetor, g.Senate.Offices)));
+            Session(g); return g;
+        }
+        var grace = Lost("congratulate_the_winner"); var tally = Lost("learn_who_did_not_vote");
+        Assert.Equal(AtTheCount(tally, tally.Me) + LadderSystem.GraceVotes, AtTheCount(grace, grace.Me));
+        Assert.DoesNotContain(LadderSystem.GraceChar, grace.Me.Flags);   // remembered at the next count, not every count
+        Assert.Contains(tally.W.History, x => x.Text.Contains("went through the tally house by house, to see where each house's votes had gone and why"));
+        var words = Content.Events.First(e => e.Id == "the_count_goes_against_you");
+        Assert.DoesNotContain("promise", string.Join(" ", words.Choices.SelectMany(ch => ch.Effects.OfType<LogEffect>().Select(l => l.Text))), StringComparison.OrdinalIgnoreCase);
+    }
+
+    // ------------------------------------------------------------------ a motion held over: my_motion_held_over
+
+    [Fact]
+    public void AMotionHeldOver_ComesToNextYearsSession_AndCannotBeHeldOverASecondTime()
+    {
+        var g = Start(); var speakerHouse = Others(g).First(h => h.Id != g.Mine.Id); var speaker = g.HeadOf(speakerHouse);
+        OfficeSystem.Grant(g.W, Seat("speaker"), speakerHouse.Id, speaker);
+        var censure = IMove(g, "censure", speakerHouse.Id); Only(g, censure); int proposed = censure.ProposedTurn;
+        Session(g); Assert.True(censure.HeldOver); Assert.True(censure.Open); Assert.Equal(proposed + 1, censure.ProposedTurn);
+        ReportOf(g, "my_motion_held_over");
+        Assert.Equal("it has been held over once already, and must be reached", LadderSystem.ChairRefusal(g.W, speaker, censure, LadderSystem.HoldMotion));
+        Session(g); Assert.True(censure.Resolved);   // dealt with at next year's session
+        Assert.Contains("held it over to next year's session, and cannot hold it over a second time", Content.Text("my_motion_held_over")!.Body);
+    }
+
+    // ------------------------------------------------------------------ the record of attendance, the committee: LadderSystem.AttendanceSays, LadderSystem.CommitteeSays
+
+    [Fact]
+    public void TheAttendanceRecord_IsWorthItsVotesAtEveryElection_AsTheWordsSay_NotAtAMotionsCount()
+    {
+        var (g, f) = Canvass(); Answer(g, f, "let_the_record_speak"); var (h, f2) = Canvass(); Answer(h, f2, "let_the_record_speak");
+        h.W.WorldCounters[LadderSystem.SatKey(h.Me.Id)] = 5;   // five years of five in the chamber
+        Assert.EndsWith("It is worth 2 votes to you at every election: for an office you stand for, and for your house when it stands for consul.", LadderSystem.AttendanceSays(h.W, h.Me));
+        var gm = IMove(g); Only(g, gm); var hm = IMove(h); Only(h, hm);
+        Session(g); Session(h);
+        Assert.Equal(AtTheCount(g, g.Me) + 2, AtTheCount(h, h.Me));                 // at the ladder's count
+        Assert.Equal((gm.ForWeight, gm.AgainstWeight), (hm.ForWeight, hm.AgainstWeight));   // not at a motion's
+        var e = ElectionYear(); Assert.True(e.Do(new StandForConsulCommand(e.Me.Id, e.Senate.Offices)));
+        int without = TallyNow(e)[e.Mine.Id]; e.W.WorldCounters[LadderSystem.SatKey(e.Me.Id)] = 5;
+        Assert.Equal(without + 2, TallyNow(e)[e.Mine.Id]);   // and for your house's nominee for consul
+    }
+
+    [Fact]
+    public void TheCommitteesChair_ItsHousesLeanYourWayByTwo_OnItsBusiness_AndTheCountFollows()
+    {
+        G Chaired(int standing)
+        {
+            var g = Start(); Assert.True(g.Do(new CommitteeCommand(g.Me.Id, LadderSystem.Purse))); g.W.WorldCounters[LadderSystem.StandingKey(g.Mine.Id)] = standing; return g;
+        }
+        var g = Chaired(LadderSystem.StandingMax); var h = Chaired(0);
+        Assert.StartsWith("You sit on the Committee of the Purse", LadderSystem.CommitteeSays(g.W, g.Mine)); Assert.Contains("You have the chair: its houses lean your way by two on its business", LadderSystem.CommitteeSays(g.W, g.Mine));
+        var purse = LadderSystem.CommitteeMembers(g.W, LadderSystem.Purse).Select(x => x.Id).ToHashSet();
+        var member = LadderSystem.CommitteeMembers(g.W, LadderSystem.Purse).First(x => x.Id != g.Mine.Id && (FactionSystem.Of(g.W, x.Id) is not { } b || (b.LeaderHouseId != x.Id && !purse.Contains(b.LeaderHouseId))));
+        var levy = IMove(g); Only(g, levy); var levy2 = IMove(h); Only(h, levy2);
+        Assert.Contains(g.Senate.Why(g.W, levy, member.Id), x => x.why == "your standing on its committee" && x.by == 2);
+        Leans(g, levy, member, 1); levy2.Lobby[member.Id] = levy.Lobby[member.Id]; Assert.Equal(-1, h.Senate.Lean(h.W, levy2, member.Id));   // the same house, two points apart
+        Session(g); Session(h);
+        Assert.Equal(1, levy.Votes[member.Id]); Assert.Equal(-1, levy2.Votes[member.Id]);
     }
 }

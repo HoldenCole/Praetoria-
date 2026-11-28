@@ -335,8 +335,8 @@ public class VoteEventsTests
         bool Vetoed(bool dined)
         {
             var (tc, w, me, mine, _, _) = Start(); w.Turn = 10; ElectionSystem.Hold(w, Content.Offices, id => tc.Senate.Weight(w, id));
-            var consul = Content.Offices.Defs.Where(d => d.Veto && OfficeSystem.Holding(w, d.Id) is { } hd && hd.HouseId != mine.Id).Select(d => OfficeSystem.Holding(w, d.Id)!.HouseId).FirstOrDefault();
-            Assert.NotNull(consul); var guest = Head(w, consul!); if (dined) guest.Flags.Add(ElectionSystem.DinedChar);
+            var seat = Content.Offices.Defs.Where(d => d.Veto && OfficeSystem.Holding(w, d.Id) is { } hd && hd.HouseId != mine.Id).Select(d => OfficeSystem.Holding(w, d.Id)!).FirstOrDefault();
+            Assert.NotNull(seat); var consul = seat!.HouseId; var guest = w.Char(seat.CharacterId)!; if (dined) guest.Flags.Add(ElectionSystem.DinedChar);   // the consul who sat at the table, whoever heads their house
             var m = tc.Senate.Add(w, mine.Id, "censure", consul!); w.Turn++;
             ElectionSystem.RivalVetoes(w, Content.Offices, tc.Senate);
             if (dined) Assert.DoesNotContain(ElectionSystem.DinedChar, guest.Flags);   // spent

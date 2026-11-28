@@ -3,7 +3,7 @@
     {
       "id": "emergency_powers_voted",
       "title": "Emergency Powers",
-      "body": "The Senate has voted {holder.name} of {holder.house} its emergency powers. For three years the other consul's veto is set aside, no election will be held, what {holder.name} moves the Senate will mostly pass, and money can be levied from every house without a vote. It was done lawfully, because the Reach is in danger. Everyone in the chamber knows how such things have ended elsewhere.",
+      "body": "The Senate has voted {holder.name} of {holder.house} its emergency powers. For three years the other consul's veto is set aside, no election will be held, the Senate will lean toward whatever {holder.name} moves, and money can be levied from every house without a vote. It was done lawfully, because the Reach is in danger. Everyone in the chamber knows how such things have ended elsewhere.",
       "choices": {
         "stand_with_them": "Say they should be helped to carry it.",
         "warn_the_senate": "Say what three years has a way of becoming.",
@@ -13,7 +13,7 @@
     {
       "id": "the_powers_are_yours",
       "title": "The Powers Are Yours",
-      "body": "The Senate has voted you its emergency powers. For three years your colleague's veto is set aside and you may strike a motion every year; the Senate defers to what you move; you may levy on the houses without a vote; and no election will be held. When the term is up, or the danger is past, you are to lay them down.",
+      "body": "The Senate has voted you its emergency powers. For three years your colleague's veto is set aside and you may strike a motion every year; the Senate leans toward what you move; you may levy on the houses without a vote; and no election will be held. When the term is up, or the danger is past, you are to lay them down.",
       "choices": {
         "swear_to_lay_them_down": "Swear, unasked, to lay them down when it is over.",
         "take_them_and_say_nothing": "Thank the Senate, and say nothing about when."

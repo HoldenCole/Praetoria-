@@ -25,7 +25,7 @@ public static partial class LadderSystem
         w.IsImperium ? null : (OfficeSystem.Holding(w, "consul_senior") ?? OfficeSystem.Holding(w, "consul_junior")) is { } h && w.Char(h.CharacterId) is { Alive: true } c ? c : null;
     public static Character? SpeakerOf(World w) => OfficeSystem.Holding(w, "speaker") is { } h && w.Char(h.CharacterId) is { Alive: true } c ? c : null;
     /// <summary>A motion aimed at a house to its hurt.</summary>
-    private static bool Hostile(MotionDef def) => def.Target == "house" && def.Interest is "censure" or "embargo" or "breakup" or "recall";
+    internal static bool Hostile(MotionDef def) => def.Target == "house" && def.Interest is "censure" or "embargo" or "breakup" or "recall";
     private static void Bump(World w, string key) => w.WorldCounters[key] = w.Counter(key) + 1;
 
     public static string? ChairRefusal(World w, Character? actor, Motion? m, string what)
@@ -66,6 +66,7 @@ public static partial class LadderSystem
             return;
         }
         m.Chair = what == SpeakFor ? 1 : -1; w.WorldCounters[SpokeKey] = w.Turn; Bump(w, SpokeCounter);
+        if (what == SpeakAgainst) ElectionSystem.BreakDivision(w, m, actor.HouseId);   // the player spoke against the business of a colleague who had divided it with them
         if (m.ProposerHouseId != actor.HouseId) Shift(w, w.House(m.ProposerHouseId), house, what == SpeakFor ? SpokenForRegard : SpokenAgainstRegard);
         if (ours) w.Log($"{actor.Name}, presiding, speaks from the chair {(what == SpeakFor ? "for" : "against")} it: {says}");
         if (actor.Life?.Marks.Add("chair:spoke") != false) LifeSystem.Note(w, actor, "office", "Spoke from the chair of the Senate.");
@@ -100,7 +101,8 @@ public static partial class LadderSystem
         if (Presiding(w) is { } pc && pc.Id != me)
         {
             var bench = FactionSystem.Of(w, pc.HouseId);
-            var bad = due.FirstOrDefault(m => Against(m, pc.HouseId, bench) && ChairRefusal(w, pc, m, SpeakAgainst) == null);
+            // a colleague who divided the consulship's business with the player does not speak against the player's motions (ElectionSystem.DividedChar)
+            var bad = due.FirstOrDefault(m => Against(m, pc.HouseId, bench) && ChairRefusal(w, pc, m, SpeakAgainst) == null && !(m.ProposerHouseId == w.Protagonist?.HouseId && pc.Flags.Contains(ElectionSystem.DividedChar)));
             var good = bad != null ? null : due.FirstOrDefault(m => m.ProposerHouseId != pc.HouseId && bench != null && bench.Members.Contains(m.ProposerHouseId) && m.TargetId != pc.HouseId && ChairRefusal(w, pc, m, SpeakFor) == null);
             if (bad != null) Chair(w, pc, bad, SpeakAgainst, senate.Describe(w, bad));
             else if (good != null) Chair(w, pc, good, SpeakFor, senate.Describe(w, good));

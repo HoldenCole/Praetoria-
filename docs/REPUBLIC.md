@@ -192,6 +192,17 @@ a promise:
 - **A bribe and a lobby** are what the window says: a purse adds 3 to the house's own lean (not its bench's), a lobby 2,
   and half the leader's lobbying to each member of its bench; a purse that comes out at the count (one in four) strikes the
   vote before the tally and costs the payer 3 legitimacy. Proved through the count in tests/VotePromisesTests.cs.
+- **What a consul promises** (the office group, 2026-11-28) is the consul's own, while they sit this term: the consul at
+  whose table the player was seen (*The Consul-Elect's Feast*) spares one motion of the player's the veto, read on the
+  consul and not on the head of their house; the colleague who divided the consulship's business with the player (*Your
+  Colleague, the Consul*) neither vetoes the player's motions nor speaks against them from the chair, until the player
+  strikes theirs (-15, told before and after); the other consul courted after a veto (*The Veto Falls*) strikes the next
+  motion against the player's house with their own veto. Each is told when kept, and lapses with a notice at the term's
+  end, when the consul leaves the chair, or at war (`ElectionSystem.Lapses`). What a rival consul strikes is unchanged:
+  what strikes at their house, their bench's leader or their bench's line, and the colleague's report now says so.
+- **No election under emergency powers** means none: the magistrates' count waits as the consuls' does, and is held at
+  the first session after the powers are laid down (`LadderSystem.Due`, `ladder_election_owed`). The Senate's deference is two
+  points of lean toward what the holder moves, and the reports now say it leans, not that it passes.
 
 ## The lead of a bench by a contest (2026-11-21)
 

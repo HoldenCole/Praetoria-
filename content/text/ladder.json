@@ -26,7 +26,7 @@
       "body": "The tellers have finished, and it is not {self.name}. The houses were asked and chose someone else. There will be another election in five years, and {self.name} will be five years older at it.",
       "choices": {
         "congratulate_the_winner": "Congratulate the winner.",
-        "learn_who_did_not_vote": "Learn who did not vote as they promised.",
+        "learn_who_did_not_vote": "Go through the tally, house by house.",
         "say_you_never_wanted_it": "Say you never much wanted it."
       }
     },
@@ -242,7 +242,7 @@
     {
       "id": "my_motion_held_over",
       "title": "Not Reached",
-      "body": "The house's motion was on the order paper and the Senate did not come to it. The Speaker has held it over: it will be voted next year, and cannot be put off a second time. Nothing has been refused. A year has been taken, by somebody who had the right to take it and a reason to.",
+      "body": "The house's motion was on the order paper and the Senate did not come to it. The Speaker has held it over to next year's session, and cannot hold it over a second time. Nothing has been refused. A year has been taken, by somebody who had the right to take it and a reason to.",
       "choices": {
         "protest_from_the_floor": "Ask the Speaker, from the floor, when it will be reached.",
         "use_the_year": "Use the year to whip it.",

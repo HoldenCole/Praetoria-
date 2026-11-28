@@ -424,6 +424,7 @@ public sealed class SenateSystem
     {
         if (_motions.IsEmpty) return;
         var mine = w.Protagonist?.HouseId;
+        ElectionSystem.Courted(w);   // the other consul courted after last session's veto is the player's friend in the chair, before that veto's marks are cleared (docs/events/votes.md)
         // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
         foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags).Concat(NationSystem.SenateTurnFlags)) w.WorldFlags.Remove(f);
         VoteMarks.ClearSession(w);   // and the people in it: who voted with the player, who took its purse (docs/events/votes.md)
@@ -823,6 +824,9 @@ public sealed class SenateSystem
         if (w.Protagonist?.HouseId is { } owing && owing != proposerHouseId && WealthSystem.FavourOwed(w, owing, proposerHouseId) && !w.AtWar(owing, proposerHouseId)
             && !WealthSystem.StrikesAt(m, owing, _motions.Def(kind)) && w.House(proposerHouseId) is { } owed)
             w.Tell("warn", $"{owed.Name} has moved a motion, and you owe it a favour: it is called in at this motion's count. Vote for it and the account is even; vote otherwise and its head thinks {-WealthSystem.FavourBroken:+0;-0} of you. If the motion is struck before the count, the favour waits for the next one it moves.", "senate:chamber", owed.Id);
+        // the colleague who divided the consulship's business with the player has moved: striking it breaks the division, and the player is told so before
+        if (ElectionSystem.Divided(w, m) is { } colleague)
+            w.Tell("warn", $"{colleague.Name}, your colleague in the consulship, has moved a motion. You divided the consulship's business between you: strike it with the veto, or speak against it from the chair, and the division is broken, they think {-ElectionSystem.DivisionBroken:+0;-0} of you, and they are free to strike yours.", "senate:chamber", colleague.HouseId);
         return m;
     }
 

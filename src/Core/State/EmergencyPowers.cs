@@ -22,4 +22,6 @@ public sealed class EmergencyPowers
     public int VetoTurn { get; set; }
     /// <summary>A consular election fell due while they ran, and was not held.</summary>
     public bool SkippedElection { get; set; }
+    /// <summary>An election of the magistrates below the consulship fell due while they ran, and was not held.</summary>
+    public bool SkippedLadder { get; set; }
 }

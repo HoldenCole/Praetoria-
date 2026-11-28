@@ -28,6 +28,12 @@
               "delta": 1
             },
             {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "canvassed_every_door",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} went from door to door for a month, learned four hundred names and was civil to all of them. It is how these things are won."
             }
@@ -72,6 +78,12 @@
               "type": "adjustResource",
               "resource": "influence",
               "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "canvassed_with_coin",
+              "value": true
             },
             {
               "type": "log",
@@ -170,6 +182,12 @@
               "delta": 1
             },
             {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "lost_with_grace",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} congratulated the winner in the open chamber, and was seen to. It will be remembered at the next count."
             }
@@ -190,7 +208,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} went through the tally house by house and found out exactly who had promised and not delivered. It is useful to know."
+              "text": "{self.name} went through the tally house by house, to see where each house's votes had gone and why. It is useful to know."
             }
           ]
         },

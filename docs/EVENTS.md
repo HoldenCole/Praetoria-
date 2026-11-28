@@ -57,7 +57,12 @@ kind, in the pattern of the existing `Mark()` moments.
   The pledge group (2026-11-28): `calling_in_favours` (*A Motion Against the House*) has every house that owes yours a favour
   declare against the motion against your house (`DealingsSystem.CallInAgainst`), open while `favours_to_call` stands;
   `debt_called_in` (*The Favor Called*) pays the debt with the debtor's house's vote where a motion needs it
-  (`DealingsSystem.DebtPaid`).
+  (`DealingsSystem.DebtPaid`). The office group (2026-11-28): `dined_with_you` is read on the consul, not the head of their
+  house; `divided_the_year` (*Your Colleague, the Consul*) keeps the colleague off your motions for the term; `the_other_consul`
+  and `other_consul_to_court`, written when a consul strikes your motion, open *The Veto Falls*' court, which makes that consul
+  `a_friend_in_the_chair` who strikes the next motion against your house; `canvassed_every_door`, `canvassed_with_coin` (*The
+  Canvass*) and `lost_with_grace` (*The Count Goes Against You*) are votes at the next count of the ladder; under emergency powers
+  the ladder's count waits too (`ladder_election_owed`); the Reach's trust is written down from the first.
 - **Family** (`DynastySystem`, `CourtshipSystem`, `HouseholdSystem`): `born_to_the_house`, `schooling_begins` (a child of six),
   `kin_came_of_age` (sixteen), `grandchild_of_the_head`; `in_law` on the head of your spouse's family; `wedding_remembered` every
   tenth year of your marriage; `left_unpaid` on someone who leaves the household unpaid. In review: `chose_own_road` on one who comes
@@ -173,7 +178,9 @@ read and tuned apart. The threads that go out of a set go into reports that were
    censure or embargo of yours, `an_old_grudge_on_the_docket`.
 3. The smear: `a_smear_after_the_election`, answered in kind, starts a year of pamphlets (`pamphlet_war`), which ends in
    `the_pamphlet_scandal`.
-4. The consul's table: `the_consul_elects_feast` marks the consul `dined_with_you`, who once spares a motion of yours the veto.
+4. The consul's table: `the_consul_elects_feast` marks the consul `dined_with_you`, who once spares a motion of yours the veto;
+   `your_colleague_the_consul` may divide the business (`divided_the_year`), and `the_veto_falls` may make the other consul a friend
+   in the chair (`a_friend_in_the_chair`), who strikes the next motion against your house.
 
 **Family** (nine of sixteen)
 1. The fostered child: `the_other_family_asks_for_the_child` at six (`fostered`), then `the_fostered_child_comes_home` at sixteen.

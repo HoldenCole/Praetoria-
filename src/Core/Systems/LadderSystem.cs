@@ -30,7 +30,15 @@ public static partial class LadderSystem
     private static uint Hash(string s) { uint h = 2166136261; foreach (char ch in s) h = (h ^ ch) * 16777619; return h; }
 
     public static bool Active(World w, OfficeCatalog offices) => !w.IsImperium && offices.Rungs.Count > 0;
-    public static bool Due(World w, OfficeCatalog offices) => Active(w, offices) && w.Turn > 0 && w.Turn % offices.LadderEvery == 0;
+    /// <summary>Every fifth year, or the year after emergency powers under which one fell due are laid down. Never while they run: no
+    /// election is held under them (docs/EMERGENCY.md), and the magistrates sit on until it is.</summary>
+    public static bool Due(World w, OfficeCatalog offices)
+    {
+        if (!Active(w, offices) || w.Turn <= 0) return false;
+        if (w.Emergency is { } e) { if (w.Turn % offices.LadderEvery == 0) e.SkippedLadder = true; return false; }
+        return w.Turn % offices.LadderEvery == 0 || w.Counter(OwedKey) > 0;
+    }
+    public const string OwedKey = "ladder_election_owed";
     /// <summary>For a screen, in the year being played: how many years until the count. Nought in the year it is held at the end of
     /// (docs/PLAYTHROUGH.md: the election year itself read "in 5 years", and the alert came a year early and not in the year).</summary>
     public static int CountIn(World w, OfficeCatalog offices) => (offices.LadderEvery - w.Turn % offices.LadderEvery) % offices.LadderEvery;
@@ -41,6 +49,9 @@ public static partial class LadderSystem
     /// <summary>Someone who opens a saga already of an age and a rank to have climbed some of the ladder has climbed it. Once.</summary>
     public static void Seed(World w)
     {
+        // the Reach's trust in its magistrates is written down from the first, so that a report which moves it by a point moves it from
+        // where it stands (60) and not from nought: the count read again cost the squares their whole trust in a game where nothing had moved it yet
+        w.WorldCounters.TryAdd(TrustKey, TrustStart);
         if (w.Counter("cursus_seeded") != 0) return; w.WorldCounters["cursus_seeded"] = 1;
         foreach (var c in w.Characters.Values.Where(c => c.Cursus.Count == 0 && c.CareerRank >= 1))
         {
@@ -116,11 +127,19 @@ public static partial class LadderSystem
         return list;
     }
 
+    // ---------------- what a candidate did for the count in a report (docs/events/votes.md, "Promises", the office group) ----------------
+    /// <summary>The Canvass: went to every door (two votes), or spent a little where it would be remembered (three, as a modest
+    /// canvass buys for less). The Count Goes Against You: congratulated the winner (two at the next count). Each is read at the next
+    /// count of the ladder and goes with it.</summary>
+    public const string DoorsChar = "canvassed_every_door", CoinChar = "canvassed_with_coin", GraceChar = "lost_with_grace";
+    public const int DoorsVotes = 2, CoinVotes = 3, GraceVotes = 2;
+    public static int ReportVotes(Character c) => (c.Flags.Contains(DoorsChar) ? DoorsVotes : 0) + (c.Flags.Contains(CoinChar) ? CoinVotes : 0) + (c.Flags.Contains(GraceChar) ? GraceVotes : 0);
+
     /// <summary>The count: each house's weight to a candidate, and each candidate's own merit, backing and canvass.</summary>
     public static Dictionary<string, int> Tally(World w, OfficeCatalog offices, RungDef rung, List<Character> candidates, Func<string, int> weight)
     {
         var tally = candidates.ToDictionary(c => c.Id, c => Merit(c) + TrustVotes(w, c, rung.Id) + LifeSystem.TieVotes(w, c.HouseId) + AttendanceVotes(w, c) + (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id && cd.RungId == rung.Id)?.Backing ?? 0) + w.Counter(OrderSystem.CanvassKey(c.HouseId))
-            + CampaignVotesFor(w, c, rung.Id) + (WealthSystem.AtTheCapital(w, c.Id) ? WealthSystem.TownHouseVotes : 0));   // coin behind their canvass, and a house at the capital to canvass from (docs/WEALTH.md)
+            + CampaignVotesFor(w, c, rung.Id) + (WealthSystem.AtTheCapital(w, c.Id) ? WealthSystem.TownHouseVotes : 0) + ReportVotes(c));   // coin behind their canvass, and a house at the capital to canvass from (docs/WEALTH.md); what they did for it in a report
         if (candidates.Count == 0) return tally;
         foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal))
         {
@@ -140,7 +159,7 @@ public static partial class LadderSystem
     {
         if (!Active(w, offices)) return;
         var p = w.Protagonist; var mine = p?.HouseId; var taken = new HashSet<string>(); var lines = new List<string>();
-        w.Magistrates.Clear(); w.Counts.Clear();
+        w.Magistrates.Clear(); w.Counts.Clear(); w.WorldCounters.Remove(OwedKey);
         foreach (var rung in offices.Rungs.Reverse())   // the highest first: someone who could have a greater rung is not also given a lesser
         {
             var candidates = Candidates(w, offices, rung, taken).Where(c => !taken.Contains(c.Id)).ToList();
@@ -173,6 +192,7 @@ public static partial class LadderSystem
             if (winners.Count > 0) lines.Add($"{rung.Name.ToLowerInvariant()}s {string.Join(", ", winners.Select(c => $"{c.Name} ({tally[c.Id]})"))}");
         }
         CampaignsCounted(w, taken); w.Candidacies.Clear(); Mark(w, HeldFlag);
+        foreach (var c in w.Characters.Values) { c.Flags.Remove(DoorsChar); c.Flags.Remove(CoinChar); c.Flags.Remove(GraceChar); }   // a canvass and a good grace count at the one count
         if (lines.Count > 0) w.Log($"The Reach elects its magistrates: {string.Join("; ", Enumerable.Reverse(lines))}.");
     }
 

@@ -2289,8 +2289,14 @@
               "value": true
             },
             {
+              "type": "setCharFlag",
+              "role": "grandee",
+              "flag": "divided_the_year",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "{self.name} and {grandee.name} of {grandee.house} divided the consulship's business between them, and kept to it."
+              "text": "{self.name} and {grandee.name} of {grandee.house} divided the consulship's business between them. Neither is to strike the other's."
             }
           ]
         },

@@ -228,11 +228,23 @@
           "cost": {
             "influence": 1
           },
+          "requires": [
+            {
+              "type": "worldFlag",
+              "flag": "other_consul_to_court",
+              "value": true
+            }
+          ],
           "effects": [
             {
               "type": "adjustCounter",
               "key": "senate_influence",
               "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "courted_the_other_consul",
+              "value": true
             },
             {
               "type": "log",

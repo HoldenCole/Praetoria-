@@ -167,9 +167,9 @@
     {
       "id": "your_colleague_the_consul",
       "title": "Your Colleague, the Consul",
-      "body": "You and {grandee.name} of {grandee.house} hold the two chairs of the consulship. Each of you can strike the other's business with a veto, and the chamber is waiting to see which of you will try it first. {grandee.name} has asked to see you before the first session.",
+      "body": "You and {grandee.name} of {grandee.house} hold the two chairs of the consulship. Each of you can strike the other's business with a veto: {grandee.name} will strike whatever of yours strikes at their house, at their bench's leader or at their bench's line, and the chamber is waiting to see which of you will try it first. {grandee.name} has asked to see you before the first session.",
       "choices": {
-        "divide_the_year": "Divide the year's business between you.",
+        "divide_the_year": "Divide the consulship's business between you: neither of you strikes the other's.",
         "the_senior_chair_leads": "Tell them the senior chair leads.",
         "keep_your_counsel": "Keep your own counsel, and watch them. You will learn how they work."
       }
