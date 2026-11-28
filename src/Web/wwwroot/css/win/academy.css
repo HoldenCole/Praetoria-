@@ -203,9 +203,9 @@
 /* a lecture folded to its few lines (docs/ACADEMY.md, "The tutorial"): the fold in reading type, "Read more" a brass link under it */
 .ac .ac-prose p.ac-fold { margin-top: .4rem; font: 400 1.1333rem/1.58 var(--f-prose); color: #ece2c8; }
 /* the rest of the lecture and its link keep the hall's centred reading measure (40em, above) */
-.ac .ac-full { max-width: 40em; margin: .2667rem auto 0; padding-left: .9333rem; box-shadow: inset 2px 0 0 rgba(201,162,74,.35); }
+.ac .ac-full { font-size: 1.1333rem; max-width: 40em; margin: .2667rem auto 0; padding-left: .9333rem; box-shadow: inset 2px 0 0 rgba(201,162,74,.35); }
 .ac .ac-full p { color: #d9cfb6; }
-.ac .ac-more-row { max-width: 40em; margin: .6667rem auto 0; }
+.ac .ac-more-row { font-size: 1.1333rem; max-width: 40em; margin: .6667rem auto 0; }
 .ac .ac-more.on .icon { transform: rotate(-90deg); }
 
 /* a term's report card (docs/ACADEMY.md, "The report card"): a framed plate, the place large and how it moved, what moved it, one tip */
