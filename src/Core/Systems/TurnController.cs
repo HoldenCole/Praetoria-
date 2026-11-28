@@ -124,6 +124,7 @@ public sealed class TurnController
         if (world.Turn == 0 && world.Laws.Count == 0) PolicySystem.ApplyCultures(world, content.Policies);   // every house begins with its culture's laws (GDD §19)
         FactionSystem.Use(world, content.Policies);   // this world's laws, not every world's (see FactionSystem.Policies)
         SenateActs.Use(world, content.Policies, content.Businesses);   // and for the rules that are handed no catalogue: the Acts of the Senate (docs/SENATE.md, "The Senate's law, enlarged")
+        VoteMarks.Use(world, _senate);   // and a word given in a report says what it costs with the bench and the patron (docs/events/votes.md, "Promises", round 2)
         LocalLawSystem.Use(world, content.Policies);   // and the laws of single worlds (docs/POLITICS.md, "Local law")
         if (world.Turn == 0 && world.Factions.Count == 0) FactionSystem.Seed(world, content.Parties, id => _senate.Weight(world, id));   // the four parties of the Republic (docs/REPUBLIC.md)
         _fleets.Policies = content.Policies; _regions.Policies = content.Policies; if (_economy != null) _economy.Policies = content.Policies;
@@ -196,6 +197,8 @@ public sealed class TurnController
         Phase = TurnPhase.Briefing;
         _briefing.Clear();
         DynastySystem.MarkRanks(World);   // how long each has held the rank they hold, before the year's reports are chosen
+        VoteMarks.Leanings(World, _senate, World.Protagonist?.HouseId);   // who leans which way on the player's motion as the year opens, so a report that says so is right (docs/events/votes.md, "Promises")
+        VoteMarks.Refresh(World, World.Protagonist?.HouseId);   // and the bargains and favours as they stand after the year's turn: a war or blood since the session closes a bargain with that house
         using (Perf.Time("begin:events"))
             foreach (var fired in Engine.SelectBriefing(World, _briefingBudget))
                 _briefing.Add(new BriefingItem(fired));

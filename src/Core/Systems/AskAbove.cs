@@ -9,7 +9,8 @@ namespace Praetoria.Core.Systems;
 /// leader of the bench it sits on, for one of three things: coin; its backing for consul (its seats pledged to the house);
 /// or to move a motion in its own name that the house wants moved, which is the way a house with no voice gets a motion
 /// onto the floor. Each is granted where the head asked thinks well enough of the asker and is able; each leaves the asker
-/// owing that house a favour, which is settled by voting for the next motion it moves; and a house that owes one already
+/// owing that house a favour, which is settled by voting for the next motion it moves of its own (not one moved at the asker's asking, nor one
+/// that strikes at the asker's house); and a house that owes one already
 /// is not given another. One asking of each house every <see cref="EveryYears"/> years. RNG-free.
 /// </summary>
 public static class AskAbove
@@ -47,7 +48,7 @@ public static class AskAbove
         var head = Economy.HeadOf(w, of); if (head == null) return $"{of.Name} has no head to ask";
         int regard = RegardOf(w, of, by);
         if (regard < AskAt) return $"{head.Name} thinks {regard:+0;-0} of you, and hears a request at {AskAt:+0;-0} ({AskAt - regard} short)";
-        if (WealthSystem.FavourOwed(w, by.Id, of.Id)) return $"you owe {of.Name} a favour already: vote for the next motion it moves, and ask then";
+        if (WealthSystem.FavourOwed(w, by.Id, of.Id)) return $"you owe {of.Name} a favour already: vote for the next motion it moves of its own, and ask then";
         int last = w.Counter(AskedKey(of.Id, by.Id));
         return last > 0 && w.Turn - last < EveryYears ? $"you asked {of.Name} in year {last}: not again before year {last + EveryYears}" : null;
     }
@@ -69,7 +70,7 @@ public static class AskAbove
     /// <summary>What would be given, said before the asking.</summary>
     public static string Says(World w, Func<string, int> weight, House by, House of, string what) =>
         (what == Coin ? $"{of.Name} gives you {Money.Credits(CoinOf(of))}." : $"{of.Name} pledges its {Counted.Seats(weight(of.Id))} to you for the consulship: they are counted for you, and inside the bench as well.")
-        + $" You owe it a favour: vote for the next motion it moves and the account is even; vote otherwise and its head remembers. You may not ask it again for {EveryYears} years.";
+        + $" You owe it a favour: vote for the next motion it moves of its own, that does not strike at your house, and the account is even; vote otherwise and its head remembers. You may not ask it again for {EveryYears} years.";
 
     private static void Asked(World w, House by, House of)
     {
@@ -95,6 +96,8 @@ public static class AskAbove
     public static void Move(World w, CommandContext ctx, CommandExecutor executor, House by, House of, string kind, string targetId, SenateSystem senate, string officeId, string lawId, string optionId)
     {
         var cmd = AsTheirs(w, of, kind, targetId, senate, officeId, lawId, optionId); if (cmd == null || !executor.TryExecute(cmd, ctx)) return;
+        // the favour is settled on the next motion it moves of its own, not on this one, which the asker is for already (WealthSystem.FavoursCalled)
+        if (w.Motions.LastOrDefault(m => m.Open && m.ProposerHouseId == of.Id) is { } moved) moved.MovedFor = by.Id;
         w.Log($"{of.Name} moves it at the asking of {by.Name}. It is a favour owed."); Asked(w, by, of);
     }
 }

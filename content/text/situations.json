@@ -7,7 +7,7 @@
       "choices": {
         "take_it_well": "Thank the chamber for its attention.",
         "note_who_voted": "Write down every name that voted it down.",
-        "buy_the_house_a_round": "Stand the chamber a round (300 credits)."
+        "buy_the_house_a_round": "Stand the chamber a round (300 credits). The houses that voted it down will lean your way at the count of your next motion."
       }
     },
     {
@@ -35,7 +35,7 @@
       "body": "The gavel is {self.name}'s this session and the docket is a list in {self.name}'s hand. Three houses have asked, with varying subtlety, where their business falls on it.",
       "choices": {
         "order_of_the_day": "Set the order of the day to suit the house (1 influence).",
-        "favour_a_friend": "Let a friend's motion jump the queue.",
+        "favour_a_friend": "Do a friend a favour from the chair.",
         "fair_dealing": "Run the docket in the order it came."
       }
     },
@@ -44,8 +44,8 @@
       "title": "The Leader's Table",
       "body": "{self.house} leads a bench, and a bench wants leading. The members are at the door with grievances, requests, and a quarrel about who sits nearest the leader at the vote.",
       "choices": {
-        "a_dinner": "Feed the bench at the house's table (400 credits).",
-        "the_whip": "Remind them, one by one, who leads.",
+        "a_dinner": "Feed the bench at the house's table (400 credits). It follows your vote the more closely at the next count.",
+        "the_whip": "Remind them, one by one, who leads. They follow your vote the more closely at the next count.",
         "let_them_talk": "Let them argue it out and take the sense of the room."
       }
     },

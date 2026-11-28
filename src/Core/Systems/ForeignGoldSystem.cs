@@ -134,6 +134,7 @@ public static class ForeignGoldSystem
                      .OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             bool theirs = h.Id == mine; if (!theirs && (reached >= MostReached || f < a || m.Votes.ContainsKey(h.Id))) continue;   // a house that has given its word on the vote is not written to
+            if (theirs && DealingsSystem.PledgeOn(w, h.Id, m.Id) != null) continue;   // nor the player's, whose vote on it is pledged or sold: taking it would break that word
             if (Economy.HeadOf(w, h) is not { Alive: true } head) continue;
             int stance = senate.Stance(w, m, h.Id); if (stance < 0) continue;
             int seats = senate.Weight(w, h.Id); int lean = senate.Lean(w, m, h.Id);
@@ -187,6 +188,13 @@ public static class ForeignGoldSystem
         if (w.IsImperium) return "a throne stands now, and the Cities treat with it, not with the benches";
         if (!Answers.Contains(answer)) return "take it, refuse it, or tell the Senate";
         if (w.Motions.FirstOrDefault(x => x.Id == o.MotionId) is not { Open: true }) return "the vote it was sent for is over";
+        // the house's vote on it is pledged or sold another way: taking the gold would turn it, and break that word
+        if (answer == Take && o.Ask != Withdraw && DealingsSystem.PledgeOn(w, house.Id, o.MotionId) is { } p && p.Side != (o.Ask == Against ? -1 : 0))
+            return $"your vote on it is {(p.Paid ? "bought by" : "pledged to")} {w.House(p.ToHouseId)?.Name ?? "another house"}, {(p.Side > 0 ? "for" : "against")} it: take this and you break that word (its head would think {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you)";
+        // a favour the house owes the war's mover, called in at this count (WealthSystem.FavoursCalled): the gold's vote would break it, as a word against it would (DealingsSystem.PledgeRefusal)
+        var war = w.Motions.First(x => x.Id == o.MotionId);
+        if (answer == Take && o.Ask != Withdraw && war.ProposerHouseId != house.Id && WealthSystem.FavourOwed(w, house.Id, war.ProposerHouseId) && WealthSystem.CalledOn(w, house.Id, war.ProposerHouseId) == war && w.House(war.ProposerHouseId) is { } mover)
+            return $"you owe {mover.Name} a favour, and it is called in at this motion's count: take this and you break that (its head would think {-WealthSystem.FavourBroken:+0;-0} of you)";
         return null;
     }
 
@@ -209,7 +217,10 @@ public static class ForeignGoldSystem
                 m.Bought.TryAdd(house.Id, 0);   // a bench does not follow a leader who was paid, whoever paid him (SenateSystem.LeaderStance)
                 if (ours) m.Votes[house.Id] = o.Ask == Against ? -1 : 0;
             }
-            if (ours) w.Log($"{head.Name} takes what {nation} sent. It is not spoken of.");
+            if (ours) { w.Log($"{head.Name} takes what {nation} sent. It is not spoken of."); VoteMarks.Wanted(w, house.Id); }   // the vote is held by the gold: no report asks it of the house again
+            // the reminder before the count of what the gold binds the house to, in the words the button gave (TakeSays)
+            if (ours && m != null) w.Tell("warn", $"You took what {nation} sent: your house is declared {(o.Ask == Against ? "against the war on " + warOn : "to stay away from the vote on the war on " + warOn)}. Vote for the war after all and they send your house nothing for {Counted.Years(BrokenYears)}."
+                + (o.Ask == Away && VoteMarks.StandsOn(w, m) is { } leader ? $" Your house stays in its seat, so if {leader.Name} votes in this one, your word to {w.House(leader.HouseId)?.Name ?? "the leader of your bench"} that your house would vote at the next vote of the bench is broken: they think {FactionSystem.BreakWhipDisposition} the worse of you, and your tie to the bench is weaker by {FactionSystem.BreakWhipAffinity}." : ""), "senate:chamber", house.Id);
             return;
         }
         payer.Purse += o.Sum;
@@ -230,6 +241,7 @@ public static class ForeignGoldSystem
     /// <summary>The mover took the sum: the motion is taken back before it is voted.</summary>
     private static void Withdrawn(World w, Motion m, GoldOffer o)
     {
+        DealingsSystem.Struck(w, m);   // a word given on it is void, and a favour owed its mover waits (docs/WEALTH.md)
         w.Motions.Remove(m); Count(w, BoughtOffKey);
         if (w.Nation(o.NationId) is { } payer) payer.BoughtOffTurn = w.Turn;
         string key = "senate_standing:" + m.ProposerHouseId; w.WorldCounters[key] = Math.Max(0, w.Counter(key) - WithdrawStanding);
@@ -251,12 +263,14 @@ public static class ForeignGoldSystem
             foreach (var o in group.Where(o => o.Answer == Taken && o.Ask != Withdraw))
             {
                 if (m == null || !m.Votes.TryGetValue(o.HouseId, out int v)) continue;   // it did not vote at all: nothing to say of it
-                bool kept = o.Ask == Against ? v < 0 : v <= 0;
+                // vetoed before the count: no vote was cast, so none was broken, whatever was declared
+                if (m.Vetoed) { if (o.HouseId == mine) w.Tell("info", $"The war on {o.WarOnName} was vetoed before the count, and no vote was cast: nothing is asked of your house for the gold.", "senate:chamber"); continue; }
+                bool kept = v <= 0;   // only a vote for the war breaks it, as TakeSays tells it: one paid to vote against that stayed away did not vote for the war
                 if (!kept)
                 {
                     o.Broken = true; Count(w, BrokenKey); w.WorldCounters[BrokenKeyFor(o.HouseId)] = w.Turn + BrokenYears;
                     if (w.Nation(o.NationId) is { } payer) payer.Disposition = Math.Clamp(payer.Disposition - BrokenRegard, -100, 100);
-                    if (o.HouseId == mine) w.Tell("warn", "You took the gold from beyond the Reach and voted for the war all the same. They will not write to your house again for some years, and the gold is still on the record.", "senate:chamber");
+                    if (o.HouseId == mine) w.Tell("warn", $"You took the gold from beyond the Reach and voted for the war all the same. They send your house nothing for {Counted.Years(BrokenYears)}, and the gold is still on the record.", "senate:chamber");
                     continue;
                 }
                 if (v > 0) f -= o.Seats; else if (v < 0) a -= o.Seats;

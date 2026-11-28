@@ -287,13 +287,23 @@ public class CustomCharacterTests
     public void The_upstart_begins_with_nothing_and_is_not_held_to_a_senators_year()
     {
         var c = Preset("The Upstart"); Assert.Equal("modest", CharacterWorkshop.Rating(CharacterWorkshop.Cost(c, Content).total));
-        var (tc, w, house) = Build(c, 5); var p = w.Protagonist!;   // a seed on which no report hands the house a rank, and so a seat, in its first years (seed 4 was one until the other houses began to trade among themselves; about half the seeds are)
-        Assert.Equal("landless", house.Title); Assert.Empty(w.HoldingsOf(house.Id)); Assert.Equal("", house.PatronId); Assert.False(house.Enrolled); Assert.False(OrderSystem.Seated(w, house));
-        Assert.True(w.Char("custom_mother")!.Alive); Assert.Contains("background:clerks_child", p.Flags);
-        // nobody of the house is called by its surname
-        Assert.DoesNotContain(w.Characters.Values.Where(x => x.HouseId == house.Id), x => x.Name.Split(' ')[0] == "Corvane");
-        int legitimacy = house.Legitimacy;
-        Play(tc, 5);
+        // a seed on which no report hands the house a rank, and so a seat, in its first years: about half the seeds are, and which they
+        // are moves with any change to the reports (the binder spends the shared generator on every report it tries: seed 4 was one until
+        // the other houses began to trade among themselves, seed 5 until the vote promises closed the whip to houses with no motion), so
+        // the seeds are played in turn until one is, and every check below holds in each that is played
+        TurnController tc = null!; World w = null!; House house = null!; Character p = null!; int legitimacy = 0;
+        foreach (ulong seed in new ulong[] { 5, 4, 3, 6 })
+        {
+            (tc, w, house) = Build(c, seed); p = w.Protagonist!;
+            Assert.Equal("landless", house.Title); Assert.Empty(w.HoldingsOf(house.Id)); Assert.Equal("", house.PatronId); Assert.False(house.Enrolled); Assert.False(OrderSystem.Seated(w, house));
+            Assert.True(w.Char("custom_mother")!.Alive); Assert.Contains("background:clerks_child", p.Flags);
+            // nobody of the house is called by its surname
+            Assert.DoesNotContain(w.Characters.Values.Where(x => x.HouseId == house.Id), x => x.Name.Split(' ')[0] == "Corvane");
+            legitimacy = house.Legitimacy;
+            Play(tc, 5);
+            if (house.Title == "landless" && !house.Enrolled) break;
+        }
+        Assert.Equal("landless", house.Title);
         Assert.DoesNotContain(w.OfficeWork, b => b.Kind == LadderSystem.SeatKind && b.HolderId == p.Id);                    // no seat, no senator's year
         Assert.Contains(w.OfficeWork, b => b.Kind == LadderSystem.Ledgers && b.HolderId == p.Id);                              // the year is the clerk's
         Assert.DoesNotContain(w.History, e => e.Text.Contains("has not been seen in the Senate"));

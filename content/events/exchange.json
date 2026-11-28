@@ -39,7 +39,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} went down to the floor of the Exchange in person and was seen to buy. It cost a favour to arrange the crowd, and the crowd remembered who had not run."
+              "text": "{self.name} went down to the floor of the Exchange in person and was seen to buy. It took some arranging to have a crowd there to see it, and the crowd remembered who had not run."
             }
           ]
         },

@@ -20,6 +20,9 @@ public sealed class CommandExecutor
         if (ctx.World.InAcademy && command is not (IAcademyCommand or ResolveChoiceCommand)) return false;
         if (!command.CanExecute(ctx)) return false;
         command.Execute(ctx);
+        // a command of the player's can spend or make a favour, a bargain or a war: the gates of the year's reports are written again, so a
+        // choice open on the screen is one the engine can keep (docs/events/votes.md, "Promises", round 2). A choice does it itself (EventEngine.Resolve).
+        if (command.ActorId == ctx.World.ProtagonistId && command is not ResolveChoiceCommand) Systems.VoteMarks.Refresh(ctx.World, ctx.World.Protagonist?.HouseId);
         _log.Add($"T{ctx.World.Turn} {command.ActorId}: {command.Describe()}");
         return true;
     }

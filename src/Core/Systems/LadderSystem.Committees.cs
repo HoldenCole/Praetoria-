@@ -130,7 +130,8 @@ public static partial class LadderSystem
     {
         var (sat, missed) = Attendance(w, c); int years = sat + missed; if (years == 0) return "";
         int votes = AttendanceVotes(w, c);
-        return $"You have sat {sat} of {years} years." + (years < RecordFrom ? "" : votes > 0 ? $" It is worth {votes} votes to you at any count." : votes < 0 ? $" It costs you {-votes} votes at any count." : " It counts neither for you nor against you.");
+        // at every election (LadderSystem.Tally for an office you stand for, ElectionSystem.Tally for your house's nominee for consul); not at a motion's count
+        return $"You have sat {sat} of {years} years." + (years < RecordFrom ? "" : votes > 0 ? $" It is worth {votes} votes to you at every election: for an office you stand for, and for your house when it stands for consul." : votes < 0 ? $" It costs you {-votes} votes at every election: for an office you stand for, and for your house when it stands for consul." : " It counts neither for you nor against you.");
     }
     private static void Sat(World w, Character who) => w.WorldCounters[SatKey(who.Id)] = w.Counter(SatKey(who.Id)) + 1;
     private static void Missed(World w, Character who)

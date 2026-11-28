@@ -20,6 +20,8 @@ public sealed partial class NationSystem
     public const string PlayerRaidsFlag = "we_raid_beyond", PeaceObeyFlag = "peace_answer_obey", PeaceDefyFlag = "peace_answer_defy";
     public const string SackedCounter = "nation_worlds_sacked", PrivateCounter = "private_wars", PeaceVotedCounter = "foreign_peace_voted", PeaceMadeCounter = "foreign_peace_made", DefiedCounter = "foreign_peace_defied", CameHomeCounter = "defiers_came_home";
     public static string SackedKey(string holdingId) => "sacked_turn:" + holdingId;
+    /// <summary>The head of a house of the Reach, not the player's, whose fleet sacked a world beyond the rim this year: struck out with the year's flag.</summary>
+    public const string SackerChar = "sacked_beyond";
     public static string DefiedSinceKey(string houseId) => "defied_since:" + houseId;
     private static string ComeHomeKey(Nation n) => "peace_now:" + n.Id;
 
@@ -50,6 +52,7 @@ public sealed partial class NationSystem
         Plunder(w, raider, n, PlunderPerWorld * n.Wealth, $"out of {h.Name}");
         if (n.AtWar) { n.ScoreReach += ScoreSack; n.LastBattleTurn = w.Turn; w.WorldCounters[WinsKey(raider, n.Id)] = w.Counter(WinsKey(raider, n.Id)) + 1; }
         Bump(w, SackedCounter, n); Mark(w, raider == w.Protagonist?.HouseId ? "world_sacked_by_us" : "world_sacked", n);
+        if (raider != w.Protagonist?.HouseId && w.House(raider) is { } rh && Economy.HeadOf(w, rh) is { Alive: true } rhead) rhead.Flags.Add(SackerChar);   // the head whose fleet came home rich, for the report of it (docs/events/war.md)
         w.Log($"{w.House(raider)?.Name ?? raider} sacks {h.Name} and goes home with what it carried. The world is still {w.House(h.OwnerId)?.Name ?? h.OwnerId}'s.");
     }
 
@@ -78,6 +81,7 @@ public sealed partial class NationSystem
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1; Bump(w, PrivateCounter, n);
         w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war:" + n.Id); Mark(w, houseId == w.Protagonist?.HouseId ? "private_war_by_us" : "private_war", n);
         w.Log($"{house!.Name} makes war on {d.Name} on its own account. The Senate has voted nothing: it is {house.Name}'s war, and nobody else's.");
+        FleetSystem.RefreshWarFlags(w);
     }
 
     // ---- the Senate's peace, and those who do not listen ----

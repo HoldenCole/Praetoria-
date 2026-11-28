@@ -264,6 +264,15 @@
       "choices": [
         {
           "id": "ask_for_a_vote",
+          "requires": [
+            {
+              "type": "charFlag",
+              "role": "host",
+              "flag": "no_bargain_with_you",
+              "value": false
+            },
+            { "type": "atWar", "role": "host", "present": false }
+          ],
           "effects": [
             {
               "type": "setWorldFlag",
@@ -271,9 +280,10 @@
               "value": false
             },
             {
-              "type": "adjustResource",
-              "resource": "influence",
-              "delta": 2
+              "type": "setCharFlag",
+              "role": "host",
+              "flag": "their_house_owes_you_a_vote",
+              "value": true
             },
             {
               "type": "adjustRelationship",
@@ -283,7 +293,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not waste the new warmth of {host.name}: there was a vote coming, and {host.name} was asked for it before the wine was cold."
+              "text": "{self.name} did not waste the new warmth of {host.name}: there was a vote coming, and {host.name} was asked for it before the wine was cold. {host.house} owes your house a vote."
             }
           ]
         },
@@ -721,6 +731,11 @@
         {
           "id": "ask_to_be_asked",
           "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "chancellor_asks_first",
+              "value": true
+            },
             {
               "type": "setWorldFlag",
               "flag": "chancellor_voted",

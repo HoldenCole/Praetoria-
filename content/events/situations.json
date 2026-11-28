@@ -31,6 +31,11 @@
           "id": "note_who_voted",
           "effects": [
             {
+              "type": "setWorldFlag",
+              "flag": "names_of_the_noes",
+              "value": true
+            },
+            {
               "type": "adjustCounter",
               "key": "senate_influence",
               "delta": 1
@@ -49,6 +54,11 @@
         {
           "id": "buy_the_house_a_round",
           "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "a_round_stood",
+              "value": true
+            },
             {
               "type": "adjustResource",
               "resource": "credits",
@@ -242,7 +252,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let a friend's motion jump the docket. The friend was grateful; the clerk was not."
+              "text": "{self.name} did a friend a favour from the chair. The friend was grateful; the clerk was not."
             }
           ]
         },
@@ -279,6 +289,11 @@
           "id": "a_dinner",
           "effects": [
             {
+              "type": "setWorldFlag",
+              "flag": "bench_fed",
+              "value": true
+            },
+            {
               "type": "adjustResource",
               "resource": "credits",
               "delta": -4
@@ -302,6 +317,11 @@
         {
           "id": "the_whip",
           "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "bench_whipped",
+              "value": true
+            },
             {
               "type": "adjustCounter",
               "key": "senate_influence",
@@ -1141,7 +1161,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent word to the chair of the siege, in the Senate's hearing. Nothing came but a motion; the motion was something."
+              "text": "{self.name} sent word to the chair of the siege, in the Senate's hearing. Nothing came of it but talk in the chamber; the talk was something."
             }
           ]
         }

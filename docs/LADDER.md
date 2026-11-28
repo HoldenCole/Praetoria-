@@ -32,7 +32,11 @@ Every fifth year, before the consular election in a year that has both.
 - **The count.** Each house gives its whole weight in the Senate to one candidate: its own, else its patron's, else
   one of its party, else whoever's head its own head likes best. To that each candidate adds their own merit: oratory
   and charisma twice over, career rank twice over, and a sixth of their renown. Canvassing by the house's order
-  (docs/REPUBLIC.md) and the head's backing count too.
+  (docs/REPUBLIC.md) and the head's backing count too, and what the candidate did for the count in a report: 2 votes for
+  going to every door and 3 for a little spent (*The Canvass*), 2 for having congratulated the winner at the count before
+  (*The Count Goes Against You*), each counted at the next count and gone with it (`LadderSystem.ReportVotes`).
+- **No count under emergency powers.** The magistrates sit on, and the count that fell due is held at the first session
+  after the powers are laid down (docs/EMERGENCY.md).
 - The highest rung is filled first, so nobody is given two.
 - The chronicle prints the result with each winner's count.
 - **Nobody stands who commands a fleet away from the capital**, for a rung or for the consulship, unless the Senate has
@@ -198,7 +202,7 @@ over."
 
 | Who | What | Cost and limit |
 |---|---|---|
-| **The Speaker** | **Holds a motion over**: it is not reached this year and is voted next year. | Once a year; a motion can be held over once. Whoever moved it thinks −6 of the Speaker's house; whoever it was aimed at, +4. Holding over what is aimed at the Speaker's own house costs a point of trust. |
+| **The Speaker** | **Holds a motion over**: it is not reached this year and comes to next year's session (where a consul may still strike it, as any motion). | Once a year; a motion can be held over once. Whoever moved it thinks −6 of the Speaker's house; whoever it was aimed at, +4. Holding over what is aimed at the Speaker's own house costs a point of trust. |
 | **The presiding consul** (the senior; the junior when there is no senior) | **Speaks from the chair** for or against one motion: every house that neither moved it nor is its target leans with the chair by 1, and by 2 if it sits on no bench. | Once a year; once on a motion. The mover thinks +3 or −4 of the consul's house. |
 | **The presiding consul** | **The casting vote**: a tied Senate goes as the presiding consul's own house voted. A tie used to fail whoever was in the chair. | None: it is the office. |
 
@@ -398,7 +402,7 @@ attendance, and leaves standing where it was. Another house's standing is reckon
 the house is heard in the committee's sphere, so a chair has to be taken from someone.
 
 **The record.** The years a senator sat and the years they missed are kept. Once there are five of them, one who
-was there four years in five has 2 votes for it at any count, for an office of the ladder or for the consulship; one
+was there four years in five has 2 votes for it at every election, for an office of the ladder or for the consulship; one
 who was there two years in five or fewer loses 2.
 
 Left, and mapped: a committee has no business of its own to decide, only work to be done; and only the player's

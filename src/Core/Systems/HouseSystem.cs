@@ -64,10 +64,12 @@ public static class HouseSystem
     {
         WarLedger.Strike(w, x => x.Involves(house.Id), $"{house.Name} was no more");
         foreach (var f in w.Factions) f.Members.Remove(house.Id);
+        foreach (var m in w.Motions.Where(m => m.Open && (m.ProposerHouseId == house.Id || m.TargetId == house.Id)).ToList()) DealingsSystem.Struck(w, m, gone: house);   // a word or a vote sold on its business is void, and the player is told
         if (w.Motions.RemoveAll(m => m.Open && m.ProposerHouseId == house.Id) > 0) w.Log($"The motion of {house.Name} lapses: there is no one left to speak to it.");   // a dead house's business leaves the docket
         foreach (var m in w.Motions.Where(m => m.Open && m.TargetId == house.Id).ToList()) { w.Motions.Remove(m); }
         if (w.Offices.RemoveAll(o => o.HouseId == house.Id) > 0) { var back = OfficeSystem.FleetsDefaultOwner(w); foreach (var f in w.Fleets.Values.Where(f => f.Office && f.OwnerId == house.Id)) f.OwnerId = back ?? f.OwnerId; }
         foreach (var h in w.Holdings.Values.Where(h => h.FormerOwnerId == house.Id)) h.FormerOwnerId = "";
+        VoteMarks.StandGone(w, house.Id);   // the player's word to vote with it at the bench's next vote, lapsed with a notice before the sweep below would drop it unsaid
         foreach (var k in w.WorldCounters.Keys.Where(k => k.EndsWith(":" + house.Id)).ToList()) w.WorldCounters.Remove(k);
         foreach (var f in w.WorldFlags.Where(f => f.EndsWith(":" + house.Id)).ToList()) w.WorldFlags.Remove(f);
         w.Houses.Remove(house.Id);

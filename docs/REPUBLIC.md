@@ -80,9 +80,11 @@ years. A house that brings up a quarter of the Reach's production of a strategic
   bench** (a head who is a Judge), **the sword** (great in Arms) or **the purse**: a house notable in Commerce
   pays the census 6,000 credits and is enrolled. Every house still votes.
 - **Sway.** A house leans toward whoever it depends on: +3 its patron, +2 its client, +2 its creditor, +1 a fellow
-  client, +1 the house whose helium-3 its fleets burn, +1 the director of a company it holds a tenth of; four at
-  most. Sway counts for a commission, a recognition or a peace for that house, for anything it moves (two at most),
-  and against a censure, embargo or break-up aimed at it. This is how a command is "bought": not with a purchase, with
+  client, +1 the house whose helium-3 its fleets burn, +1 the house whose isotopes its fleets load their torpedoes from
+  (2026-11-28), +1 the director of a company it holds a tenth of; four at most. Sway counts for a commission, a
+  recognition or a peace for that house, for anything it moves (two at most), and against a censure, embargo or break-up
+  aimed at it; and, for the player's house, on every other division the way the player votes (two at most; see "Promises
+  in the Senate", the other group). This is how a command is "bought": not with a purchase, with
   the votes of everyone who owes you.
 - **The obvious man.** For a commission the chamber leans +1 toward a house great in the post's order and −1 against a
   house of no account in it. A banker with no ships needs a lot of sway to be voted a fleet.
@@ -136,7 +138,9 @@ From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P59 and P87).
 `ElectionSystem.Pledge`). `Tally` counts them for that nominee ahead of its patron and its bench. The nominee's head
 thinks 8 the better of the house; pledging away from its own bench's nominee costs 5 with that nominee; taking a pledge
 back costs 10 with the one it was given to. At the count a pledge kept to one who is elected is a favour owed
-(`WealthSystem.OweFor`). Only the player's house pledges; other houses vote as they did.
+(`WealthSystem.OweFor`). Only the player's house pledges; other houses vote as they did. (2026-11-28: a house may not stand
+while its seats are pledged; a nominee pledged to that is not standing at the count lapses the pledge, with a notice; and a
+house that has pledged its seats to the player's, standing, does not stand itself; see "Promises in the Senate".)
 
 **The nomination.** `ElectionSystem.BenchContest`: the player's house, having declared, is its bench's nominee only if
 the bench will have it. A leader who stands is the nominee. Otherwise each other member backs whichever of the two its
@@ -151,6 +155,119 @@ its bench's leader for coin (`CoinOf`: a sixth of the treasury, 1,500 at most, 3
 pledge of its seats, as in the section above), or to move a motion in its own name (`AskToMoveCommand`: the head of
 that house proposes it, at that house's cost). Heard at +10 regard; one favour owed at a time (`WealthSystem.OweFor`);
 once in two years for each house. Other houses do not ask the player.
+
+## Promises in the Senate (2026-11-27)
+
+The owner: "Make sure the vote promises actually work" (docs/events/votes.md, "Promises"). What the chamber now does with
+a promise:
+
+- **An owed vote is a sure vote.** A house that owes the player's house a favour votes for its motions whatever it leans
+  (`SenateSystem.Owes`, `WealthSystem.VotesFor`): `Stance`, `Tally`, `Forecast` and the count read it, the whip count shows
+  it as declared with the line "votes for it: it owes your house a favour", and a house that owes your house a vote is
+  not marked undecided on your motion. The favour is spent at the count only where it changed the vote. Not on a motion
+  that strikes at that house; not while the two are at war.
+- **A bench follows its leader's own mind**, not a vote the leader cast for a favour it owes (`LeaderStance`), as it does
+  not follow a bought one; otherwise the forecast and the count parted on the bench's members.
+- **A favour the player owes** is called in at the count of the creditor's next motion that does not strike at the
+  player's house, and the notice when it is moved says so, and that a motion struck before the count leaves it waiting.
+  A motion moved at the player's asking (`AskToMoveCommand`) is marked `Motion.MovedFor` and does not settle it.
+- **A motion struck before its count** (`ElectionSystem.Veto`, or withdrawn for foreign gold) voids a word given on it
+  and tells the player a favour owed its mover waits (`DealingsSystem.Struck`).
+- **A word given in a report** (*A Vote for a Vote*) is a pledge (`DealingsSystem.GiveWord`), the player's vote declared,
+  judged at the count as any pledge is.
+- **A vote sold in a report** (the bought group, 2026-11-28: *A Vote for a Vote*'s price, *The Whip*'s purse, *A Bought
+  Vote Called In*) is a pledge paid for (`VotePledge.Paid`): declared for the buyer's motion, reminded, judged at its count
+  (+3 / -15, eight years), no favour owed when kept. Only someone of a house with a motion the player's vote may be had on
+  buys it (`wants_your_vote`, written with the docket: not one that strikes at the player's house, nor one the vote is
+  pledged on already), so the whip whips for its own house's motion. A motion taken off the docket with a house that is no
+  more voids a word given on it, with a notice (`HouseSystem` calls `DealingsSystem.Struck`).
+- **A favour called in is a declared vote** (the pledge group, 2026-11-28), on the house window or on the night before a
+  motion against the player's house (*A Motion Against the House*: every house that owes it a favour and can be asked
+  declares against it, `DealingsSystem.CallInAgainst`); a debt called in (*The Favor Called*) is paid with the debtor's
+  house's vote where a motion needs it (`DealingsSystem.DebtPaid`). The count keeps a declared vote; a whip or a bribe on
+  a house declared the player's way is refused, since a lobby strikes the declared vote.
+- **A pledge at the consular election** is counted for its nominee, and lapses with a notice if the nominee is not
+  standing at the count. A patron or bench leader who has pledged its seats to the player's house, standing, does not
+  stand itself, on its own bench or another (`ElectionSystem.Nominees`), so the seats the asking promised are counted
+  for the player; before, a patron on another bench that became its bench's weightiest eligible member stood, and kept
+  them. The player may not stand while their own seats are pledged.
+- **A bribe and a lobby** are what the window says: a purse adds 3 to the house's own lean (not its bench's), a lobby 2,
+  and half the leader's lobbying to each member of its bench; a purse that comes out at the count (one in four) strikes the
+  vote before the tally and costs the payer 3 legitimacy. Proved through the count in tests/VotePromisesTests.cs.
+- **What a consul promises** (the office group, 2026-11-28) is the consul's own, while they sit this term: the consul at
+  whose table the player was seen (*The Consul-Elect's Feast*) spares one motion of the player's the veto, read on the
+  consul and not on the head of their house; the colleague who divided the consulship's business with the player (*Your
+  Colleague, the Consul*) neither vetoes the player's motions nor speaks against them from the chair, until the player
+  strikes theirs (-15, told before and after); the other consul courted after a veto (*The Veto Falls*) strikes the next
+  motion against the player's house with their own veto. Each is told when kept, and lapses with a notice at the term's
+  end, when the consul leaves the chair, or at war (`ElectionSystem.Lapses`). What a rival consul strikes is unchanged:
+  what strikes at their house, their bench's leader or their bench's line, and the colleague's report now says so.
+- **No election under emergency powers** means none: the magistrates' count waits as the consuls' does, and is held at
+  the first session after the powers are laid down (`LadderSystem.Due`, `ladder_election_owed`). The Senate's deference is two
+  points of lean toward what the holder moves, and the reports now say it leans, not that it passes.
+- **Clients and patrons lean the way you vote** (the bench group, 2026-11-28; `SenateSystem.YourWay`, `OrderSystem.Patronage`). On
+  every motion the player's house does not move (sway already leans them toward what it moves, and for or against what is aimed
+  at it), the player's client and the player's patron lean two the way the player voted, a fellow client of the patron one, with
+  the line "it leans the way you vote" in the whip count. Only a vote the player cast, or gave their word on, is a way to lean;
+  at the count the player's house, if the player has not voted, is counted after every other house, so the forecast and the
+  count agree. A lean is a lean: a client against the player by more than two votes its own way. At the elections a client
+  gives its seats to its patron's nominee or candidate before its bench's, but a house votes for its own first, and the reports
+  now say so.
+- **The bench remembers, and can be fed** (`FactionSystem.Followed`, `RemembersWhip`, `SessionDone`). A vote against the
+  player's bench costs -5 with its leader and -2 affinity at once, and at the next count every house of that bench (its leader
+  too, so its members follow what it is for, in the forecast and at the count alike) leans one against each motion the player's
+  house moves. A bench the player leads, fed at the house's table or reminded who leads it (*The Leader's Table*), follows the
+  player's vote by one more than its discipline at the next count. Each lasts that count and no more.
+- **The player's word to the bench's leader** (*The Empty Seat on the Bench*, "it will not happen again"; `VoteMarks.Stand`) is
+  judged at the next vote the leader votes in that the player's house neither moves nor is named in: on its feet, kept and said;
+  in its seat, what a vote against the bench costs (-5, -2), and the leader does not come to ask again. Reminded when given,
+  when a motion it covers is moved, and when the player sits one out; it lapses with a notice when that house no longer leads
+  the player's bench.
+- **A motion against the player moved by a bench's leader** (`SenateSystem.BenchAgainst`, `faction_against_me`) is one that
+  strikes at the player's house and that the count as it stands would carry; the flag is written once the session's motions
+  are moved, so *Across the Aisle* comes while the motion is before the Senate (it never came before). The report says each
+  house of the bench leans the way its leader votes, two points, and votes the other way only for a reason of its own; finding
+  its weakest member (the least weighty house of it that would vote for the motion) declares that house's vote against it.
+
+- **Everyone who depends on you leans the way you vote** (the other group, 2026-11-28; `SenateSystem.YourWay` now reads
+  `OrderSystem.Sway`, not only the patronage in it). A house in the player's debt (a bank debt or a house loan), one holding a
+  tenth of a company the player's house controls, one whose fleets burn the player's helium-3 or load their torpedoes from its
+  isotopes, and one holding a province under it, lean the way the player voted on every division, as a client does: what
+  *A Name in Commerce* ("every house that owes it, or holds a tenth or more of a company it controls, leans its way when the
+  chamber divides"), *A Quarter of the Reach's Supply* and the loan's line on the house page ("while it owes you it leans your
+  way in the chamber") say. At most two, a lean as before. A rare-earth corner sways nobody: rare earths go into a hull once,
+  and the report now says so.
+- **The lean marks are right when the report comes** (`VoteMarks.Leanings`, called with the docket and again by
+  `TurnController.BeginTurn` before the year's reports are chosen): who leans neither way on the player's motion
+  (`undecided_on_yours`) and who leans against it (`against_yours`, new). *The Vote Still Undecided* says they lean neither
+  way, and *An Old Grudge Against Your Motion* that the rival does lean against it, and a year's turn could have moved either.
+  A head's regard of the player's house is the player's own regard (`Economy.HeadOf` is the protagonist for the player's house),
+  so the reports that move what the doubter or the rival thinks of "you" move the lean.
+- **A round stood** after a motion thrown out (*The Motion Thrown Out*) has every house that voted it down lean one the
+  player's way at the count of the player's next motion, within three years (`VoteMarks.RoundLean`), with its line in the
+  whip count; then it is spent, or forgotten with a notice.
+- **A threatened house stays away last.** The fear of a house that threatened it is the last term of its lean, after gold
+  from beyond the Reach, so it never votes against what that house moves (DealingsSystem.ThreatSays).
+- **The chancellor asked to be asked** (*The Chancellor's Voice*) brings the next doubtful vote (one on which the house leans
+  within one of nothing) to the player at the session that puts it on the docket, with how the house leans, and does not
+  declare it; the rest it declares as before (`HouseholdSystem.BringUpstairs`).
+- **The closing round** (2026-11-28; docs/events/votes.md, "Promises"): the friend in the chair is told their promise and
+  keeps their veto for the player's house (spent first only on a motion against their own house, which ends the promise,
+  with a notice); a colleague strikes once a term, the first motion of the player's that strikes at their house, their
+  bench's leader or its line; a vote against the bench is remembered until the count of the player's next motion, and the
+  leader's table lasts until a session counts something; a repeal word gets a year more for each year the chamber could not
+  hear the player's house; only a vote the player cast breaks the whip; the chancellor keeps the player's word to stand.
+- **Round 2** (2026-11-28; docs/events/votes.md, "Promises", round 2): *only a vote the player cast is judged*: a house that
+  threatened yours (`DealingsSystem.MotionCounted`) and the house you hold a province under (`ProvinceSystem.NoteVotes`, which now
+  tells you what it thinks of the vote) read a vote you declared, not your house counted by its lean, as the bench and the patron
+  already did. *A vote for a vote is counted first*: at a session that counts both, the motion you gave your word on is counted
+  before your own (`SenateSystem.Tick`), so a word broken strikes the vote their house owed before it is given; across a war or
+  blood the bargain is void both ways. *Your veto keeps your word*: a consul's veto is refused on a motion your vote is pledged or
+  sold for, and on one at whose count a favour you owe its mover is called in (`VetoCommand`). *A word against your bench says so*:
+  a word given or sold against the line of your bench's leader, or against your patron's wish, says at once what keeping it costs
+  (`VoteMarks.AgainstYourOwn`). *The gates are live*: the marks the reports' bargains read are written again after every command
+  of the player's and as the year's reports are chosen (`VoteMarks.Refresh`), so a war, a blood or a favour spent on a window
+  closes the report's choice with its true reason.
 
 ## The lead of a bench by a contest (2026-11-21)
 

@@ -154,7 +154,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took the chair and spent the first session rewarding the houses that voted the house in. Loyal benches; a programme later."
+              "text": "{self.name} took the chair and spent the first session rewarding the houses that voted the house in. Grateful friends; a programme later."
             }
           ]
         },
@@ -230,11 +230,23 @@
           "cost": {
             "influence": 1
           },
+          "requires": [
+            {
+              "type": "worldFlag",
+              "flag": "other_consul_to_court",
+              "value": true
+            }
+          ],
           "effects": [
             {
               "type": "adjustCounter",
               "key": "senate_influence",
               "delta": 1
+            },
+            {
+              "type": "setWorldFlag",
+              "flag": "courted_the_other_consul",
+              "value": true
             },
             {
               "type": "log",

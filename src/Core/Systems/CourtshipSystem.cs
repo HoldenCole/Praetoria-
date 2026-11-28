@@ -26,13 +26,16 @@ public static class CourtshipSystem
     // world flags raised by a deed, kept through the next events phase
     public const string JustWedFlag = "just_wed", LoveMatchFlag = "love_match", JiltedFlag = "jilted", ElopedFlag = "eloped", DivorcedFlag = "divorced",
         BetrothalBrokenFlag = "betrothal_broken", ExposedFlag = "undermining_exposed", WidowedFlag = "widowed_now", SuitRefusedFlag = "suit_refused",
-        KinAsksFlag = "kin_asks_blessing", KinElopedFlag = "kin_eloped", ForbiddenFlag = "match_forbidden";
+        KinAsksFlag = "kin_asks_blessing", KinElopedFlag = "kin_eloped", ForbiddenFlag = "match_forbidden", RememberedFlag = "wedding_remembered";
+    /// <summary>The head of the player's spouse's family (the house the spouse was born to, if they live in the player's), re-reckoned
+    /// every year so that a report can bind them (docs/events/family.md); and how often a marriage is remembered.</summary>
+    public const string InLawChar = "in_law"; public const int RememberEvery = 10;
     // character flags re-reckoned every year, so an event can bind the person
     public const string CourtedChar = "courted", RivalChar = "rival_suitor", WidowedChar = "widowed", ElopedChar = "eloped_kin";
     public const int KinAdult = 18, BlessingWaitYears = 3, WillNotBelow = 15, UnwillingWish = 25;
     public const string WarmthCounter = "marriage_warmth", StandingCounter = "courtship_standing", OpenedCounter = "marriages_opened";
     private static readonly string[] TickFlags = { CourtingFlag, RivalFlag, SuitFlag, BetrothedFlag, MarriedFlag, WarmFlag, ColdFlag, EstrangedFlag };
-    private static readonly string[] DeedFlags = { JustWedFlag, LoveMatchFlag, JiltedFlag, ElopedFlag, DivorcedFlag, BetrothalBrokenFlag, ExposedFlag, WidowedFlag, SuitRefusedFlag, KinAsksFlag, KinElopedFlag, ForbiddenFlag };
+    private static readonly string[] DeedFlags = { JustWedFlag, LoveMatchFlag, JiltedFlag, ElopedFlag, DivorcedFlag, BetrothalBrokenFlag, ExposedFlag, WidowedFlag, SuitRefusedFlag, KinAsksFlag, KinElopedFlag, ForbiddenFlag, RememberedFlag };
 
     /// <summary>What telling one of the house to wait for a blessing costs with them.</summary>
     public const int WaitRegard = 3;
@@ -646,7 +649,7 @@ public static class CourtshipSystem
     {
         foreach (var f in TickFlags) w.WorldFlags.Remove(f);
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
-        foreach (var ch in w.Characters.Values) { ch.Flags.Remove(CourtedChar); ch.Flags.Remove(RivalChar); if (!w.HasFlag(KinElopedFlag)) ch.Flags.Remove(ElopedChar); }
+        foreach (var ch in w.Characters.Values) { ch.Flags.Remove(CourtedChar); ch.Flags.Remove(RivalChar); ch.Flags.Remove(InLawChar); if (!w.HasFlag(KinElopedFlag)) ch.Flags.Remove(ElopedChar); }
         Sync(w, announce: true);
         var p = w.Protagonist; string? mine = p?.HouseId;
 
@@ -822,6 +825,12 @@ public static class CourtshipSystem
         w.WorldCounters[StandingCounter] = own.Where(c => c.SuitorId == p.Id).Select(c => Standing(w, c)).DefaultIfEmpty(0).Max();
         if (pm != null)
         {
+            if (w.Turn > pm.Since && (w.Turn - pm.Since) % RememberEvery == 0) Mark(w, RememberedFlag);
+            if (DynastySystem.Spouse(w, p) is { } spouse)
+            {
+                string theirs = spouse.HouseId == p.HouseId && spouse.BornHouseId.Length > 0 ? spouse.BornHouseId : spouse.HouseId;
+                if (theirs != p.HouseId && w.House(theirs) is { } family && Economy.HeadOf(w, family) is { Alive: true } head && head.Id != spouse.Id && head.HouseId != p.HouseId) head.Flags.Add(InLawChar);
+            }
             w.WorldFlags.Add(MarriedFlag);
             if (pm.Estranged) w.WorldFlags.Add(EstrangedFlag);
             if (pm.Warmth >= WarmAt) w.WorldFlags.Add(WarmFlag); else if (pm.Warmth <= ColdAt) w.WorldFlags.Add(ColdFlag);

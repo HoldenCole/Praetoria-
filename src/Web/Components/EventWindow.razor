@@ -194,7 +194,7 @@
     /// <summary>The ramp a stake's glyph takes (docs/VISUAL_SYSTEM.md 8.3): the goods by their own, strain and war ember, a step up green.</summary>
     private static string ToneOf(StakeItem it) => it.Kind switch
     {
-        "stress" or "war" => "ember", "career" or "peace" => "good", "claim" => "brass",
+        "stress" or "war" or "death" => "ember", "career" or "peace" => "good", "claim" => "brass",
         "resource:credits" or "resource:coin" => "brass", "resource:materials" or "resource:exotics" or "resource:helium3" => "steel", "resource:isotopes" => "ember",
         _ => "ivory"
     };

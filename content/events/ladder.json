@@ -29,6 +29,12 @@
               "delta": 1
             },
             {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "canvassed_every_door",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} went from door to door for a month, learned four hundred names and was civil to all of them. It is how these things are won."
             }
@@ -73,6 +79,12 @@
               "type": "adjustResource",
               "resource": "influence",
               "delta": 2
+            },
+            {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "canvassed_with_coin",
+              "value": true
             },
             {
               "type": "log",
@@ -173,6 +185,12 @@
               "delta": 1
             },
             {
+              "type": "setCharFlag",
+              "role": "self",
+              "flag": "lost_with_grace",
+              "value": true
+            },
+            {
               "type": "log",
               "text": "{self.name} congratulated the winner in the open chamber, and was seen to. It will be remembered at the next count."
             }
@@ -193,7 +211,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} went through the tally house by house and found out exactly who had promised and not delivered. It is useful to know."
+              "text": "{self.name} went through the tally house by house, to see where each house's votes had gone and why. It is useful to know."
             }
           ]
         },
@@ -432,6 +450,12 @@
               "from": "kin",
               "to": "self",
               "delta": 8
+            },
+            {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "promised_to_be_spoken_for",
+              "value": true
             },
             {
               "type": "adjustStress",
@@ -997,7 +1021,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sat through a full session, spoke twice and stayed to the end. It was dull. It was also counted."
+              "text": "{self.name} sat through a full session, spoke twice and stayed to the end. It was dull, and it was seen."
             }
           ]
         },
@@ -1320,7 +1344,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} moved that the accounts of every sitting magistrate be laid on the table. It carried, because nobody dared be seen to vote against it. A good many senators have not spoken to {self.name} since."
+              "text": "{self.name} rose in the Senate and called for the accounts of every sitting magistrate to be laid open. Nobody dared be seen to speak against it, and the squares heard who had asked. A good many senators have not spoken to {self.name} since."
             }
           ],
           "requires": [

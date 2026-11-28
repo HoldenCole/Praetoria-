@@ -247,6 +247,7 @@
                                     <Sigil HouseId="@st.HouseId" Accent="@st.Accent" Size="16" />
                                     <div class="sn-roll-nm">
                                         <span class="bn" title="@(st.Faction != null ? $"{st.HouseName} · {st.Faction}{(st.FactionLeader ? " (leads)" : "")}" : st.HouseName)">@st.HouseName@if (st.FactionLeader) { <Icon Name="crown" Tone="brass" Size="12" /> }@if (st.Faction != null) { <small>@st.Faction</small> }</span>
+                                        @if (motionNow != null && senate.Owes(w, motionNow, st.HouseId)) { <span class="bench-why ui-up" data-owed-vote="@st.HouseId">votes for it: it owes your house a favour@(leanNow > 0 ? ", and is for it of its own accord, so the favour stays owed" : ", and this vote spends it")</span> }
                                         @if (why.Count > 0) { <span class="bench-why" data-why-vote="@st.HouseId">leans @Signed(leanNow): @string.Join("; ", why.Take(3).Select(x => $"{x.why} ({Signed(x.by)})"))@(why.Count > 3 ? $"; and {Counted.LesserThings(why.Count - 3)} ({Signed(why.Skip(3).Sum(x => x.by))})" : "")</span> }
                                     </div>
                                     <span class="wt" title="@Counted.Seats(st.Weight)">@st.Weight</span>
@@ -300,8 +301,8 @@
         {
             <Section Title="Favours" Count="@((oweMe.Count + iOwe.Count).ToString())" Info="A favour owed leans a house your way on the next motion you move, and is spent at that vote. One you owe is settled by voting for that house's next motion.">
                 <div class="sn-favours" data-favours="@(oweMe.Count + iOwe.Count)">
-                    @if (oweMe.Count > 0) { <div class="sn-note"><Icon Name="shaking-hands" Tone="good" Size="15" /><span><b>Owe you a favour:</b> @string.Join(", ", oweMe.Select(h => $"{h.Name} ({FavourLeft(w, h.Id, house.Id)})")). Each leans @Signed(WealthSystem.FavourLeanBy) for the next motion you move, and the favour is spent at that vote. To call one in for something else, see House, under what is owed.</span></div> }
-                    @if (iOwe.Count > 0) { <div class="sn-note"><Icon Name="shaking-hands" Tone="ivory" Size="15" /><span><b>You owe a favour to:</b> @string.Join(", ", iOwe.Select(h => $"{h.Name} ({FavourLeft(w, house.Id, h.Id)})")). Vote for that house's next motion and the account is even; vote otherwise and its head remembers who kept the gift.</span></div> }
+                    @if (oweMe.Count > 0) { <div class="sn-note"><Icon Name="shaking-hands" Tone="good" Size="15" /><span><b>Owe you a favour:</b> @string.Join(", ", oweMe.Select(h => $"{h.Name} ({FavourLeft(w, h.Id, house.Id)})")). Each votes for every motion you move while it owes it, whatever it leans, and the favour is spent at the count of the first it would not have voted for of its own accord; not on a motion that strikes at that house, and not while you are at war with it or there is blood between your houses, when it is forgotten at the year's end. To call one in for something else, see House, under what is owed.</span></div> }
+                    @if (iOwe.Count > 0) { <div class="sn-note"><Icon Name="shaking-hands" Tone="ivory" Size="15" /><span><b>You owe a favour to:</b> @string.Join(", ", iOwe.Select(h => $"{h.Name} ({FavourLeft(w, house.Id, h.Id)})")). It is called in at the count of that house's next motion that does not strike at yours: vote for it and the account is even; vote otherwise and its head remembers it. Not while you are at war or there is blood between your houses, when it is forgotten at the year's end.</span></div> }
                 </div>
             </Section>
         }
@@ -385,7 +386,7 @@
                                motion onto the floor (docs/PLAYTHROUGH.md, Medium, The Senate, P6) */
                             var askMove = AskMoveCmd(pr, ab.Id); string? askMoveNo = askMove.Refusal(G.Ctx); string abName = ab.Name;
                             <div class="sn-acts" data-ask-move="@(pr.KindId + "|" + ab.Id)">
-                                <Plate Label="@("Ask " + ab.Name + " to move it")" Small="true" Icon="shaking-hands" Locked="@(askMoveNo != null)" Disabled="@(askMoveNo != null)" Tip="@(askMoveNo ?? $"{ab.Name}, {asWhat}, moves it in its own name and at its own cost in influence, with the choices made here. It is counted as that house's motion: the houses lean as they think of {ab.Name}, not of you. You owe it a favour for it.")" OnClick='() => G.Ask("Ask " + abName + " to move it?", abName + " moves this motion in its own name, with the choices made here. The houses lean as they think of " + abName + ", not of you. You owe it a favour: vote for the next motion it moves and the account is even.", "Ask", () => G.Execute(askMove))' />
+                                <Plate Label="@("Ask " + ab.Name + " to move it")" Small="true" Icon="shaking-hands" Locked="@(askMoveNo != null)" Disabled="@(askMoveNo != null)" Tip="@(askMoveNo ?? $"{ab.Name}, {asWhat}, moves it in its own name and at its own cost in influence, with the choices made here. It is counted as that house's motion: the houses lean as they think of {ab.Name}, not of you. You owe it a favour for it.")" OnClick='() => G.Ask("Ask " + abName + " to move it?", abName + " moves this motion in its own name, with the choices made here. The houses lean as they think of " + abName + ", not of you. You owe it a favour: not on this motion, but on the next it moves of its own that does not strike at your house. Vote for that one and the account is even.", "Ask", () => G.Execute(askMove))' />
                                 @if (askMoveNo != null) { <span class="sn-no">@Cap(askMoveNo).</span> }
                             </div>
                         }
@@ -697,7 +698,7 @@
             "Cross the floor", () => G.Execute(new JoinFactionCommand(pid, benchId)));
     }
     private static string FavourLeft(Praetoria.Core.State.World w, string ower, string to)
-    { int left = WealthSystem.FavourYears - (w.Turn - w.Counter(WealthSystem.FavourKey(ower, to))); return left <= 1 ? "forgotten after this year" : $"forgotten in {left} years"; }
+    { int since = w.Counter(WealthSystem.FavourKey(ower, to)), left = WealthSystem.FavourYears - (w.Turn - since); return left <= 0 ? "forgotten after this year" : left == 1 ? "forgotten after next year" : $"forgotten after year {since + WealthSystem.FavourYears}"; }   // WealthSystem.LapseFavours, at the end of year since + 8
     /* where the count for consul stands today: who would be elected, and how far the player's house is from it */
     private string ChancesSay(Praetoria.Core.Presentation.ElectionCard el, Praetoria.Core.Data.OfficeCatalog offices)
     {

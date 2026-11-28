@@ -22,9 +22,9 @@
     {
       "id": "the_senate_listens",
       "title": "The Growing Bloc",
-      "body": "Another senator to your side, another vote that moves when you move. The bloc grows the way blocs grow, one quiet promise at a time, until the day the chamber looks up and finds you can carry a motion alone. {rival_house.name} of {rival_house.house} is counting heads now, and the sum is beginning to alarm them. Influence in the Senate is invisible until, suddenly, it is the only thing in the room.",
+      "body": "Another senator is ready to come over to your side: another vote for what you move, whichever way their house would lean, unless your motion strikes at it. The bloc grows the way blocs grow, one quiet promise at a time, until the day the chamber looks up and finds you can carry a motion alone. {rival_house.name} of {rival_house.house} is counting heads now, and the sum is beginning to alarm them. Influence in the Senate is invisible until, suddenly, it is the only thing in the room.",
       "choices": {
-        "build_bloc": "Add another vote. Let them count heads and worry.",
+        "build_bloc": "Add their vote. Let them count heads and worry.",
         "spread_credit": "Let others wear your wins. Grow a bloc no one can see the shape of."
       }
     },

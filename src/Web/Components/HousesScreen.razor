@@ -143,7 +143,7 @@
                 @if (back.lean > 0) { <div class="you-kv hu-kv"><span class="k">You depend on it</span><span class="v">@string.Join(", ", back.why)</span><span></span></div> }
                 <div class="you-acts hu-acts">
                     @if (fh.PatronId == mine.Id) { <button class="opt inline tiny" title="It is your client no longer" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Release, fid, os))">Turn the client away</button> }
-                    else { <button class="opt inline tiny" disabled="@(take != null)" title="@(take ?? "Pay its debts and a gift: it votes for you at an election and leans your way in the chamber; 100 credits a year to keep")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Take, fid, os))">Take as a client<span class="ui-cost"><Icon Name="credits" Tone="brass" Size="14" />@Money.Show(OrderSystem.ClientCost(fh))</span></button> }
+                    else { <button class="opt inline tiny" disabled="@(take != null)" title="@(take ?? "Pay its debts and a gift: it votes for your house's candidate at an election, unless one of its own stands, and leans the way you vote in the chamber, once you have voted; 100 credits a year to keep")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Take, fid, os))">Take as a client<span class="ui-cost"><Icon Name="credits" Tone="brass" Size="14" />@Money.Show(OrderSystem.ClientCost(fh))</span></button> }
                     @if (mine.PatronId == fh.Id) { <button class="opt inline tiny" title="Leave its protection" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Leave, string.Empty, os))">Leave its protection</button> }
                     else { <button class="opt inline tiny" disabled="@(seek != null)" title="@(seek ?? "100 credits a year from it, its backing and its clients' in the chamber; your vote is expected at the election")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Seek, fid, os))">Seek it as a patron</button> }
                 </div>
@@ -403,6 +403,7 @@
     {
         if (m.ProposerHouseId == h.Id) return "its own motion";
         if (m.Votes.TryGetValue(h.Id, out int cast)) return cast > 0 ? "it has declared for" : cast < 0 ? "it has declared against" : "it has declared that it stays away";
+        if (G.Turn!.Senate.Owes(G.World!, m, h.Id)) return "it votes for it: it owes your house a favour";   // as the Senate window's whip count has it (SenateSystem.Owes)
         int lean = G.Turn!.Senate.Lean(G.World!, m, h.Id); return lean > 0 ? $"it leans for (+{lean})" : lean < 0 ? $"it leans against (−{-lean})" : "it leans neither way";
     }
     private static string RateSays(House h) => $"The rate it bears follows how short it is: {DealingsSystem.BearsShort} in the hundred while it holds under {Money.Show(DealingsSystem.ShortAt)}, {DealingsSystem.BearsPinched} under {Money.Show(DealingsSystem.PinchedAt)}, {DealingsSystem.BearsInTheRed} in the red. It holds {Money.Show(h.Treasury.Credits)}. A low rate is taken as a kindness, a high one as business.";

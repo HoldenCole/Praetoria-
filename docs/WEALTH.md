@@ -251,7 +251,8 @@ standard is ever taken in a war. Both were closed the same day: see the next sec
 - **Sent to ask.** A head with a motion before the Senate and 6,000 credits sends one, in about one such year in ten,
   to the head of the weightiest house that is neither friend nor enemy (−10 to 19). Kept, it is **a favour owed**.
 - **A favour owed is a vote leaned.** A house that owes the proposer a favour leans two further for the motion, and
-  the favour is spent when it is voted.
+  the favour is spent when it is voted. (Since 2026-11-27 this is so between two other houses; a favour owed to your
+  house is a vote, see "A favour owed is a vote" below.)
 - **You can ask one.** Any thing you give to the head of another house puts that house in your debt for one favour,
   spent on the next motion you bring. The panel lists who owes you and whom you owe.
 - **You are judged by your vote.** If you keep an orrery and vote for the motion, the sender thinks 5 better of you;
@@ -275,7 +276,8 @@ that owes it:
 
 - **Money:** 1,500 credits, paid into your treasury, if they have it.
 - **A match:** the family's consent to a suit between your house and theirs rises by 20.
-- Left alone, it is spent on the next motion you bring, as before.
+- Left alone, it is spent on the next motion you bring, as before. (Since 2026-11-27: on the first it would not have
+  voted for of its own accord, see "A favour owed is a vote" below.)
 
 **A favour is forgotten after eight years** if nobody calls it in: what is owed to you, and what you owe.
 
@@ -407,6 +409,79 @@ would be gone when a cousin outranked them.
   what it would owe is no more than two years of what it takes in. The whole sum, interest and all, is owed from the
   day, in five yearly instalments.
 
+### A favour owed is a vote (2026-11-27)
+
+The owner: "Make sure the vote promises actually work." A favour was promised as a vote ("a favour buys a vote"; "it is spent
+on the next motion you bring"), and on your motion it was only two points of lean, which a house that leaned three against
+outweighed, with the favour spent all the same and nothing said. Now (`WealthSystem.VotesFor`, read by the Senate's whip
+count, forecast, tally and count alike; docs/events/votes.md, "Promises"):
+
+- **A house that owes your house a favour votes for your motions**, whatever it leans, for as long as it owes it. The
+  favour is spent at the count of the first motion it would not have voted for of its own accord; on one it was for
+  anyway it is still owed, and you are told. You are told when it is paid ("kept its word"), and the house page counts
+  the favours a house paid with its vote.
+- **Not on a motion that strikes at it** (a censure, an embargo, a break-up, a recall or a reconquest of that house): it
+  waits for your next motion, and you are told.
+- **A favour lapses** after eight years, as before, and also at once if the two houses are at war, or either is gone,
+  with a notice that says why, for what is owed to you and what you owe.
+- **Blood is as war for a favour** (2026-11-28, the other group; `WealthSystem.Apart`). A house with blood between it and
+  yours "owes you nothing in the Senate" (*A Death Counted Against Us*): from the day of the killing its favour is no vote
+  for your motion, no lean between other houses, and cannot be called in on the house window ("there is blood between your
+  houses: they owe you nothing in the Senate"), and at the year's end it lapses, both ways, with a notice. No new bargain is
+  struck with a house you have blood with (`VoteMarks.Standing`).
+- **A bench does not follow its leader's owed vote**, as it does not follow a bought one: the forecast and the count agree.
+- **A favour you owe** is not called in on a motion that strikes at your house, nor between houses at war; on a motion
+  moved at your asking (asking your patron to move it) it waits for that house's own next motion; and you are reminded
+  when you come to owe a house whose motion is already before the Senate, and told when one is struck before its count.
+- **A word given on a vote in a report** (*A Vote for a Vote*) is a pledge, judged as one at the count (+3 kept, -15
+  broken, eight years remembered); struck before the count, it is void.
+- **A gift said to buy nothing, or sent back**, is read before the Senate counts the giver's motion, so the vote is not
+  judged; and an orrery is not sent to a house the giver's motion strikes at.
+- **The reports that give or ask a favour** (*A Favour Repaid*, *The Whip*, *A Friend at Another Table*, *The Debt
+  Called*) make a real favour owed, one way or the other, and are closed while a favour stands between the two houses.
+  So do *The Growing Bloc* (the bench group, 2026-11-28: a senator of a house with no favour standing with yours, who thinks
+  best of you, comes over, and their house owes yours a vote) and *A Client Asks* (the client whose suit you pay for: the first
+  of your clients by name with no favour standing); the engine chooses the house, by regard and then by name, with no draw of
+  the shared RNG.
+- **A vote bought is a pledge paid for** (2026-11-28; `VotePledge.Paid`, `VoteMarks.Sell`). A vote sold in a report (*A Vote
+  for a Vote*'s price, the whip's purse, *A Bought Vote Called In*) is declared for the buyer's motion, you are told what
+  breaking it costs, and the count judges it with the pledge's numbers (+3 given, -15 not, eight years remembered); kept,
+  it leaves no favour owed, since the coin was the price. A buyer cheated does not call in another vote. Struck before
+  the count, or gone with a house that is no more, it is void, with a notice.
+- **A favour called in is a declared vote** (2026-11-28, the pledge group; docs/events/votes.md, "Promises"). On the house
+  window (`DealingsSystem.CallVote`), or on the night before a motion against your house (*A Motion Against the House*,
+  `DealingsSystem.CallInAgainst`), the house that owes it declares as you vote and owes nothing more, and the count takes
+  the vote as declared whatever the house leans. The night calls in every house that owes yours a favour and can be asked:
+  not the house that moved the motion, not one at war with yours, not one declared against it already; the report offers
+  the choice only while there is one. A whip or a bribe on a house declared your way is refused, since a lobby strikes a
+  declared vote. Each counts on the house page among the favours paid with a vote.
+- **A debt called in** (*The Favor Called*) is paid with the vote of the debtor's house where a motion before the Senate
+  needs it (`DealingsSystem.DebtPaid`): against one that strikes at your house, else for your own, else as you declared;
+  never their own motion or one that strikes at them, nor at war or across blood. With none, it is kept as a vote their
+  house owes yours (a favour, for your next motion), and you are told (the closing round, 2026-11-28).
+- **Your word on the house window** tells you at once what it binds you to, and again if you change that vote on the
+  Senate window. A broken word on a vote younger than eight years is never dropped from the record of dealings (the 300
+  newest are kept) to make room, since the eight years are read from it.
+- **A vote is given once** (the closing round, 2026-11-28; docs/events/votes.md, "Promises"). While your vote on a motion
+  is pledged, sold, or held by gold from beyond the Reach (`VoteMarks.Given`), no report asks it of you again, the house
+  window takes no word that would break it (nor one against a motion whose mover calls in a favour you owe at that count),
+  and the gold is neither sent for it nor taken against it. **No bargain across a war or blood**: a vote an enemy promised
+  would be void as it was given. **A vote for a vote is both ways**: break your word and the vote their house owed you for
+  it goes; keep it and nothing more is owed. **A favour owed is a vote, and a consul keeps it**: the consul of a house that
+  owes yours a favour does not veto your motion, and a whip or a bribe on such a house is refused, since it votes for it
+  already. **Seats never counted owe nothing**: the favour owed for a patron's backing goes if your house is not standing
+  at the count, or when a throne stands.
+- **Round 2** (2026-11-28; docs/events/votes.md, "Promises", round 2). *A gift sent back is that giver's*: the report marks the
+  giver, and only that house's gift of that kind goes back (the newest), with only the favour its orrery asked; a plate asks
+  none; a vote said not to be for sale declines only that giver's favour (`WealthSystem.Answered`). *An orrery asks nothing of a
+  vote already given* (pledged, sold, held by gold). *The vote owed for a word waits for the word*: while your word on their
+  motion, given in a vote for a vote, is still to be counted, the vote their house owes for it votes for your own motions but is
+  not called in on another house's motion, nor named for money or a match, nor called against a motion that strikes at you
+  (`DealingsSystem.BargainPending`); if a war or blood comes first, the vote and the word are both void, with a notice. *Gold is
+  not taken against a favour you owe its war's mover* that is called in at that count, and a word against a war is not refused
+  for gold that only asked you to stay away (only a vote for the war breaks the gold). *A favour repaid with their voice*, and
+  *a vote asked of the envoy's friend*, need peace with that house.
+
 ### A favour you owe
 
 A house you owe a favour calls it in, and you are told when it does:
@@ -428,14 +503,21 @@ A house threatened inside the last ten years by one that still has twice its hul
   player's house is never taken out of the Reach this way.
 
 The player's house votes as it pleases, afraid or not. If it votes against a motion moved by a house that had
-threatened it, that head thinks 10 worse of it.
+threatened it, that head thinks 10 worse of it, for the ten years of the threat, whatever the fleets are by then
+(2026-11-28: the threat said "it will be remembered" and the house page "its head thinks -10 of you", and the -10 had
+needed the threatener still to have twice your hulls; the house page now says until which year).
+
+A threatened house's fear is the last thing reckoned in its lean (`SenateSystem.LeanNow`), so nothing after it, such as gold
+from beyond the Reach taken to vote against a war you moved, has it vote against what you move: it stays away.
 
 ### A loan, year by year
 
 - The instalment is paid out of the borrower's treasury into the lender's when the year's books are done. It is a
   line in both ledgers ("instalment from House Wren"), and the line is there only if the borrower has the money as
   things stand.
-- While it owes you, the house leans your way in the chamber ("in its debt", worth 2).
+- While it owes you, the house leans your way in the chamber ("in its debt", worth 2): for what you move, against what
+  is moved at your house, and on every other division the way you vote, once you have voted (`SenateSystem.YourWay`,
+  2026-11-28; it had leaned nothing on a motion you neither moved nor were named in).
 - What is still owed counts in the lender's wealth and against the borrower's.
 - **If it cannot pay**, you are told, with what is still owed. On its page you may then (and not before):
   - **forgive the rest**: its head thinks 10 better of you and the house owes you a favour; or

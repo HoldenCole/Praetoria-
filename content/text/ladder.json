@@ -5,9 +5,9 @@
       "title": "The Canvass",
       "body": "{self.name}'s name is down for the election, and now it must be carried round: to the houses, to the benches, to the men who are owed and the men who owe. A candidate who does not ask is assumed not to want it.",
       "choices": {
-        "shake_every_hand": "Go to every door.",
+        "shake_every_hand": "Go to every door: two votes for you at the count.",
         "let_the_record_speak": "Let the record speak.",
-        "spend_a_little": "Spend a little where it will be remembered."
+        "spend_a_little": "Spend a little where it will be remembered: three votes for you at the count."
       }
     },
     {
@@ -25,8 +25,8 @@
       "title": "The Count Goes Against You",
       "body": "The tellers have finished, and it is not {self.name}. The houses were asked and chose someone else. There will be another election in five years, and {self.name} will be five years older at it.",
       "choices": {
-        "congratulate_the_winner": "Congratulate the winner.",
-        "learn_who_did_not_vote": "Learn who did not vote as they promised.",
+        "congratulate_the_winner": "Congratulate the winner: two votes for you at the next count of the ladder, if you stand at it; they go with that count if you do not.",
+        "learn_who_did_not_vote": "Go through the tally, house by house.",
         "say_you_never_wanted_it": "Say you never much wanted it."
       }
     },
@@ -242,7 +242,7 @@
     {
       "id": "my_motion_held_over",
       "title": "Not Reached",
-      "body": "The house's motion was on the order paper and the Senate did not come to it. The Speaker has held it over: it will be voted next year, and cannot be put off a second time. Nothing has been refused. A year has been taken, by somebody who had the right to take it and a reason to.",
+      "body": "The house's motion was on the order paper and the Senate did not come to it. The Speaker has held it over to next year's session, and cannot hold it over a second time. Nothing has been refused. A year has been taken, by somebody who had the right to take it and a reason to.",
       "choices": {
         "protest_from_the_floor": "Ask the Speaker, from the floor, when it will be reached.",
         "use_the_year": "Use the year to whip it.",

@@ -29,10 +29,14 @@ For three years:
 
 - **The other consul has no veto**, and the holder may strike one motion every year (a consul otherwise has one veto
   a term).
-- **The Senate defers**: two points of lean toward anything the holder's house moves.
+- **The Senate leans their way**: two points of lean, from every other house, toward anything the holder's house moves
+  (the whip count says "{house} holds emergency powers"). It is a lean, not a vote: a motion most houses are hard against
+  still fails, and the reports say "leans toward", not "will pass" (docs/events/votes.md, "Promises").
 - **A levy without a vote**, once a year while the danger lasts: every other house pays up to three hundred credits to the
   holder's house. Each head thinks the worse of the holder, and the Reach a little less of its magistrates.
-- **No election is held.** One that falls due is held the year after the powers end.
+- **No election is held**, of the consuls or of the magistrates below them (`ElectionSystem.Due`, `LadderSystem.Due`):
+  the magistrates sit on, and one that falls due is held at the first session after the powers are laid down. The ladder panel
+  says so while they run.
 
 ## How it ends
 

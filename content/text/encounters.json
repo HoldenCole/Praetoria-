@@ -1,0 +1,186 @@
+{
+  "texts": [
+    {
+      "id": "a_classmate_in_the_city",
+      "title": "A Classmate in the City",
+      "body": "{classmate.name} of {classmate.house} was a cadet of your year. You have hardly seen each other since you passed out. Tonight you are in the same room, both older, {classmate.name} with the rank of {classmate.rankName} now, and they have come over to you.",
+      "choices": {
+        "put_in_a_word": "Put in a word for them where it counts. They will owe you for it.",
+        "gather_your_old_year": "Ask them to help you bring your old year together for a dinner (300 credits). The city will see how far your year has come.",
+        "ask_how_their_house_stands": "Ask how their house stands, and listen closely. They will notice how closely.",
+        "swear_the_old_friendship": "Swear the old friendship again: you stand by each other from now on."
+      }
+    },
+    {
+      "id": "an_old_enemy_across_the_room",
+      "title": "An Old Enemy Across the Room",
+      "body": "{enemy.name} of {enemy.house} is here tonight. They have not had a good word for you in years, and most of the room knows it. They have seen you. The room is waiting to see which of you moves first.",
+      "choices": {
+        "cross_the_room": "Cross the room and offer your hand.",
+        "hold_their_eye": "Hold their eye until they look away.",
+        "leave_before_words": "Leave before it comes to words.",
+        "have_them_watched": "Have someone stand near them all evening, and listen."
+      }
+    },
+    {
+      "id": "words_at_the_feast",
+      "title": "Words at the Feast",
+      "body": "At a feast given by another house, {envious.name} of {envious.house} said something about your house to the end of the table, loudly enough to carry. It is clever, and it is meant to be repeated. Half the room heard it, and the other half will by morning. Everyone near you is waiting to see what you do.",
+      "choices": {
+        "laugh_it_off": "Laugh with the room, and let it pass.",
+        "answer_in_kind": "Answer them in kind, before everyone. They will not forget it.",
+        "take_it_up_in_the_morning": "Take it up with them in the morning. They will not forget that either."
+      }
+    },
+    {
+      "id": "the_quarrel_comes_to_a_head",
+      "title": "The Quarrel Comes to a Head",
+      "body": "{envious.name} of {envious.house} has not let it rest. What was said at the feast has been said again in other rooms, with more added each time, and people have begun to ask why you allow it. It has gone past words, and both houses know it.",
+      "choices": {
+        "send_a_gift": "Send a gift, and an end to it.",
+        "first_blood": "Meet them with blades, to first blood.",
+        "end_it_for_good": "Have {envious.name} killed. Their house will know whose doing it was, and will want blood for it.",
+        "let_them_talk": "Let them talk until they tire of it."
+      }
+    },
+    {
+      "id": "a_veteran_of_the_old_wars",
+      "title": "A Veteran of the Old Wars",
+      "body": "{veteran.name} of {veteran.house}, who rose to {veteran.rankName} and has long been without a command, sits by you at dinner and talks of the wars of their youth: lines that held and lines that broke, and the people who were there, some of whose names you know. The old officer remembers them well, and is glad, for once, of someone who will listen.",
+      "choices": {
+        "ask_how_it_was_done": "Ask how the old battles were won, and go over the plots with them till late.",
+        "ask_them_to_speak_for_you": "Ask them to speak for you in the wardrooms (1 influence). The officers listen to them.",
+        "ask_them_to_join_the_household": "Ask them to join your household, if it has room and they are free to come. The house will keep them.",
+        "listen_and_go_home": "Listen, and go home."
+      }
+    },
+    {
+      "id": "a_painters_great_canvas",
+      "title": "A Painter's Great Canvas",
+      "body": "A famous painter has been given the great wall of a public hall and means to put the whole Reach on it: every house of standing, its head at the front. They have come to ask where you would like to stand. They mention, as painters do, that {sitter.name} of {sitter.house} has already asked for the centre.",
+      "choices": {
+        "pay_for_the_centre": "Pay for the centre (600 credits).",
+        "stand_where_you_are_put": "Stand where the painter puts you.",
+        "stand_beside_them": "Ask to stand beside {sitter.name}, as equals.",
+        "paint_them_small": "Pay the painter to put {sitter.name} small, at the back (200 credits)."
+      }
+    },
+    {
+      "id": "a_merchant_princes_venture",
+      "title": "A Great Merchant's Venture",
+      "body": "{grandee.name} of {grandee.house}, one of the richest houses in the Reach, is raising a venture: hulls, a charter, and a trade in exotics nobody else has found yet. They want partners with a name, and they have come to you. Their ventures mostly pay: in a year when exotics sell a tenth dearer on the Exchange than the year before, if their house is still among the richest and at peace with yours. Mostly is the word they use.",
+      "choices": {
+        "put_money_in": "Put in 800 credits. In a good year it comes back with half as much again.",
+        "lend_your_name": "Lend your name to the charter for a fee from their house, and not your money.",
+        "learn_how_it_is_done": "Ask to see how it is put together.",
+        "decline": "Decline."
+      }
+    },
+    {
+      "id": "the_venture_comes_home",
+      "title": "The Venture Comes Home",
+      "body": "Exotics sell dear on the Exchange this year, and the venture of {grandee.name} of {grandee.house} has come home with its holds full and sold them well. Your share is counted out and waiting: what you put in, and half as much again.",
+      "choices": {
+        "take_your_share": "Take your share.",
+        "take_it_and_dine": "Take a little less, and a place at their table.",
+        "give_the_profit_away": "Keep what you put in, and give the rest to the city's poor."
+      }
+    },
+    {
+      "id": "the_venture_goes_down",
+      "title": "The Venture Goes Down",
+      "body": "The venture of {grandee.name} of {grandee.house} has come to nothing for you. Exotics have fallen on the Exchange, or their house is no longer rich enough to pay you, or no longer at peace with yours. Whichever it is, your 800 credits are gone unless you go after them.",
+      "choices": {
+        "write_it_off": "Write it off.",
+        "press_for_it": "Press their house for what is owed.",
+        "take_it_in_kind": "Take it in kind: goods, a debt, a name on a letter."
+      }
+    },
+    {
+      "id": "a_house_without_lands",
+      "title": "A House Without Lands",
+      "body": "{claimant.name} of {claimant.house} comes to see you in a good coat worn thin. Their house holds no world of its own any more, if it ever did, and a name is most of what it has left. They do not quite ask for anything. They do not need to.",
+      "choices": {
+        "lend_them_coin": "Lend them 300 credits. They will owe you for it, and the old blood will approve.",
+        "take_them_in": "Ask them to join your household, if it has room and they are free to come.",
+        "a_kind_word": "Give them a kind word, and nothing more.",
+        "turn_them_away": "Turn them away. The old blood will hear of it."
+      }
+    },
+    {
+      "id": "a_favour_repaid",
+      "title": "A Favour Repaid",
+      "body": "{debtor.name} of {debtor.house} has not forgotten what you did for them. They have come to say so, and to ask what you would have from them in return.",
+      "choices": {
+        "their_voice": "Ask for their house's vote when you need it.",
+        "the_coin": "Ask for 400 credits, and call it settled.",
+        "ask_nothing": "Ask nothing. It was never a debt.",
+        "not_yet": "Not yet. Keep it owed."
+      }
+    },
+    {
+      "id": "a_secret_for_sale",
+      "title": "A Secret for Sale",
+      "body": "A person who will not give a name has something to sell: a thing {subject.name} of {subject.house} has done and would not want known. There is proof, they say, and the price is 400 credits, and if you will not pay it they know who will.",
+      "choices": {
+        "buy_and_keep": "Buy it, and keep it for the day you need it.",
+        "buy_and_use": "Buy it, and let it be known. Their house's standing falls, and they will know who told.",
+        "buy_and_return": "Buy it, and send it to {subject.name} unread.",
+        "send_them_away": "Send the seller away."
+      }
+    },
+    {
+      "id": "the_secret_you_hold",
+      "title": "The Secret You Hold",
+      "body": "You bought a secret about {subject.name} of {subject.house}, and kept it. Since then they have turned against your house, and openly. What you hold would hurt their house, and it is still in your desk.",
+      "choices": {
+        "use_it": "Let it be known. Their house's standing falls, and they will know who told.",
+        "sell_it_back": "Sell it back to their house for 400 credits.",
+        "burn_it": "Burn it, and tell them you have. They will think the better of you."
+      }
+    },
+    {
+      "id": "a_word_off_the_record",
+      "title": "A Word Off the Record",
+      "body": "{envoy.name} of {envoy.house} has asked to see you alone, with nothing written down. Things between your houses have gone badly enough that people have started to say where it will end. {envoy.name} would like it not to end there, and has come to find out what that would take.",
+      "choices": {
+        "come_to_an_understanding": "Come to an understanding, and give a little ground.",
+        "ask_what_they_offer": "Ask what their house will give to mend it. They will pay, and resent it.",
+        "make_it_known": "Let it be known that they came to you.",
+        "promise_nothing": "Hear them out, and promise nothing."
+      }
+    },
+    {
+      "id": "a_patron_wanted",
+      "title": "A Patron Wanted",
+      "body": "{young.name} of {young.house} is young, able, and of a house that cannot do much for them. They have come to ask if you would put your name behind them: a letter here, a word there, the help that costs you little and is everything to someone starting out.",
+      "choices": {
+        "be_their_patron": "Be their patron. In a few years you will see what they become.",
+        "take_them_in": "Take them into your household as a protégé, if it has room and they are free to come.",
+        "a_letter": "Write them a letter, and wish them well.",
+        "no_time": "Say you have no time for it."
+      }
+    },
+    {
+      "id": "the_one_you_stood_for",
+      "title": "The One You Backed",
+      "body": "{risen.name} of {risen.house}, whom you put your name behind when they had nothing, wears the rank of {risen.rankName} now and is doing well. They have come to tell you so themselves. They have not forgotten who wrote the first letter.",
+      "choices": {
+        "swear_friendship": "Swear friendship: you stand by each other from now on.",
+        "call_on_them": "Call in what they owe you, while it is fresh.",
+        "ask_nothing": "Ask nothing, and let them go their own way."
+      }
+    },
+    {
+      "id": "two_guests_at_odds",
+      "title": "Two Guests at Your Feast",
+      "body": "You have given a feast, and only now does someone tell you that {guest.name} of {guest.house} is held to blame for a death, and that {other_guest.name} of {other_guest.house}, who cannot abide them, is here as well. There is one place of honour left at your right hand, and both of them have seen it.",
+      "choices": {
+        "seat_first": "Give the place to {guest.name}.",
+        "seat_second": "Give it to {other_guest.name}.",
+        "seat_neither": "Give it to neither, and seat them far apart.",
+        "bring_them_together": "Bring them together over the wine. They will think better of each other."
+      }
+    }
+  ]
+}

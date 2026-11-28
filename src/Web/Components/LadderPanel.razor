@@ -45,7 +45,7 @@
         <p class="ui-lede sn-lede" data-next-election="@next">@SenateScreen.Bold((p.Cursus.Count == 0 ? "You have held no office yet." : $"You have been {Held(p)}.") + $" The next election is {when}, and {Counted.Names(w.Candidacies.Count)} {Counted.Are(w.Candidacies.Count)} down so far.")</p>
     }
     <Section Title="The ladder of offices" Info="Each rung is held by a person, for five years, and filled by election: every rung below the consulship at the same count, and names go down before it. The houses vote with their weight in the chamber; a candidate's own speaking, standing and record count besides.">
-        <Right><span>@(active ? $"the next election in {Counted.Years(next)}" : "there are no elections under a throne")</span></Right>
+        <Right><span>@(!active ? "there are no elections under a throne" : w.Emergency != null ? "no election is held while the emergency powers run" : w.Counter(LadderSystem.OwedKey) > 0 ? "the election put off under the emergency powers is held at the end of this year" : $"the next election in {Counted.Years(next)}")</span></Right>
     </Section>
     @if (!active) { <EmptyState Icon="stairs-goal" Text="Under the Imperium offices are the throne's to give. The ladder belongs to the Republic." /> }
     else
@@ -111,7 +111,7 @@
                         @if (TriumphSystem.AwaySays(w, x) is { } awayNow) { <div class="sn-note warn" data-stand-away="@xid"><Icon Name="eagle-emblem" Tone="brass" Size="15" /><span>@Cap(awayNow). The name is taken down at the year's end unless the fleet is brought to the capital, or the command given up, first.</span></div> }
                         <div class="sn-cand">
                             <Portrait Id="@x.Id" Name="@x.Name" Sex="@x.Sex" Age="@x.Age" Accent="@house.AccentColor" Size="24" Height="28" />
-                            <span class="sn-say"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="ui-mute">(the count is @(next <= 0 ? "at this year's end" : "in " + Counted.Years(next) + "") · @Counted.Names(w.Candidacies.Count(o => o.RungId == cd.RungId)) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
+                            <span class="sn-say"><b>@(x.Id == pid ? "You are" : x.Name + " is") standing</b> <span class="ui-mute">(the count is @(next <= 0 ? "at this year's end" : "in " + Counted.Years(next) + "") · @Counted.Names(w.Candidacies.Count(o => o.RungId == cd.RungId)) down for this rung)</span>@(cd.Backing > 0 ? $", with {cd.Backing} votes of your weight behind {(x.Id == pid ? "you" : "them")}" : "")@(LadderSystem.ReportVotes(x) > 0 ? $", and {Counted.Of(LadderSystem.ReportVotes(x), "vote")} of {(x.Id == pid ? "your" : "their")} own canvass and good grace at this count" : "")@(x.Id == pid ? "" : ", of their own accord").</span>
                         </div>
                         <div class="sn-acts suit-acts">
                             <Plate Label="@(x.Id == pid ? "Call in what is owed" : "Speak for them")" Small="true" Icon="public-speaker" Locked="@(back != null)" Disabled="@(back != null)" Tip="@(back ?? $"{LadderSystem.BackVotes} more votes at the count")" CostIcon="public-speaker" CostText="@LadderSystem.BackInfluence.ToString()" OnClick="() => G.Execute(new LadderCommand(pid, LadderCommand.Back, xid, string.Empty, offices))" />

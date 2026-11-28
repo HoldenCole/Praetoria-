@@ -23,6 +23,9 @@ public static partial class WealthSystem
     // each year
     public const string DebtFlag = "kin_in_debt", ResentedFlag = "allowance_resented";
     // deeds
+    /// <summary>A grown child of the dead head, of the house, who is not the heir: passed over at this reading of the will. Lives as long
+    /// as <see cref="WillReadFlag"/> does.</summary>
+    public const string PassedOverAtWillChar = "passed_over_at_the_will";
     public const string KinGaveFlag = "kin_gave_to_the_house", WillReadFlag = "will_read", WillContestedFlag = "will_contested", HeirloomSoldFlag = "heirloom_sold", HeirloomGivenFlag = "heirloom_given", DebtScandalFlag = "debt_scandal";
     public const string InDebtChar = "in_debt", GaveChar = "gave_to_the_house", LegateeChar = "remembered_in_the_will";
     private static readonly string[] DeedFlags = { KinGaveFlag, WillReadFlag, WillContestedFlag, HeirloomSoldFlag, HeirloomGivenFlag, DebtScandalFlag, LoanRepaidFlag, LoanSouredFlag, KinLentFlag, HeadOwesFlag, EntailBrokenFlag, StandardWonFlag, WeddingGiftFlag, StandardAskedFlag, KinMadeFlag, MendFlag, PlunderedFlag, AsksFavourFlag };
@@ -368,6 +371,7 @@ public static partial class WealthSystem
         // kept whole, the grown children passed over already resent the new head (the succession sees to that); one the will
         // remembered minds it less
         else foreach (var c in others.Where(c => c.Flags.Contains(LegateeChar))) Regard(w, c, heir, 10);
+        foreach (var c in others) c.Flags.Add(PassedOverAtWillChar);   // in the room when the house went to another: for the report of the will (docs/events/family.md)
         Mark(w, WillReadFlag);
     }
 
@@ -389,7 +393,7 @@ public static partial class WealthSystem
         foreach (var f in DeedFlags) if (w.WorldFlags.Contains(f) && w.Counter("mark:" + f) < w.Turn - 1) { w.WorldFlags.Remove(f); w.WorldCounters.Remove("mark:" + f); }
         Heirlooms(w); RichYear(w);   // seats, and what other houses spend (docs/WEALTH.md, "Things worth a rich house's money")
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null; if (p is not { Alive: true } || house == null) return;
-        foreach (var c in w.Characters.Values) { if (!w.HasFlag(KinGaveFlag)) c.Flags.Remove(GaveChar); if (!w.HasFlag(WillReadFlag)) c.Flags.Remove(LegateeChar); if (!w.HasFlag(KinLentFlag)) c.Flags.Remove(KinLentChar); if (!w.HasFlag(StandardWonFlag)) c.Flags.Remove(WonStandardChar); if (!w.HasFlag(WeddingGiftFlag)) c.Flags.Remove(GaveGiftChar); if (!w.HasFlag(StandardAskedFlag)) c.Flags.Remove(AsksChar); if (!w.HasFlag(KinMadeFlag)) c.Flags.Remove(KinMadeChar); if (!w.HasFlag(MendFlag)) c.Flags.Remove(MendChar); if (!w.HasFlag(AsksFavourFlag)) c.Flags.Remove(AsksFavourChar); }
+        foreach (var c in w.Characters.Values) { if (!w.HasFlag(KinGaveFlag)) c.Flags.Remove(GaveChar); if (!w.HasFlag(WillReadFlag)) { c.Flags.Remove(LegateeChar); c.Flags.Remove(PassedOverAtWillChar); } if (!w.HasFlag(KinLentFlag)) c.Flags.Remove(KinLentChar); if (!w.HasFlag(StandardWonFlag)) c.Flags.Remove(WonStandardChar); if (!w.HasFlag(WeddingGiftFlag)) c.Flags.Remove(GaveGiftChar); if (!w.HasFlag(StandardAskedFlag)) c.Flags.Remove(AsksChar); if (!w.HasFlag(KinMadeFlag)) c.Flags.Remove(KinMadeChar); if (!w.HasFlag(MendFlag)) c.Flags.Remove(MendChar); if (!w.HasFlag(AsksFavourFlag)) c.Flags.Remove(AsksFavourChar); }
         // the dead keep nothing; a holder who is gone or has left loses nothing, but the dead's things come home
         foreach (var dead in w.Characters.Values.Where(c => !c.Alive && (c.Purse != 0 || w.Heirlooms.Any(h => h.HolderId == c.Id) || CompanySystem.HeldPersonally(w, c.Id).Count > 0 || w.Businesses.Values.Any(b => b.HeldById == c.Id))).OrderBy(c => c.Id, StringComparer.Ordinal).ToList()) Lapse(w, dead);
 

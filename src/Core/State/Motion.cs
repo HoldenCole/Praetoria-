@@ -28,6 +28,9 @@ public sealed class Motion
     /// <summary>What the presiding consul said of it from the chair: +1 for, −1 against, 0 nothing.</summary>
     public int Chair { get; set; }
     public string VetoedBy { get; set; } = "";
+    /// <summary>The house at whose asking the proposer moved it (AskAbove.Move), or "". The favour that asking leaves owed is not called
+    /// in at this motion's count, since the asker is for it already: it waits for the proposer's own next motion (docs/WEALTH.md).</summary>
+    public string MovedFor { get; set; } = "";
     /// <summary>Declared votes: house id → +1 for, −1 against, 0 abstain. Rival houses declare at the vote; the player may declare early.</summary>
     public Dictionary<string, int> Votes { get; set; } = new();
     /// <summary>Lobbying pressure on a house: house id → signed weight added to its lean (positive toward passing).</summary>

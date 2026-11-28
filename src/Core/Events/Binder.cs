@@ -20,9 +20,14 @@ public static class Binder
     /// </summary>
     /// <summary>Parts that are, by what they are, somebody outside the player's house: the one who buys from it, lends to it, envies it,
     /// treats with it or comes to it as an old friend from elsewhere (a rival or an enemy may be of the blood, and is not in this list). One taken into the household is of the house, and a report cast them
-    /// as the outside buyer and the old friend in the city (docs/PLAYTHROUGH.md, Easy, F53 and F76).</summary>
+    /// as the outside buyer and the old friend in the city (docs/PLAYTHROUGH.md, Easy, F53 and F76). The chance meetings' strangers
+    /// (docs/events/chance.md: the classmate, the veteran, the young one wanting a patron, the sitter beside you on the painter's wall,
+    /// the subject of a secret for sale, the two guests at your feast) are here too: a relative struck from the line is still of the house.</summary>
     private static readonly HashSet<string> OutsideParts = new(StringComparer.Ordinal)
-    { "buyer", "rival_house", "envoy", "intruder", "giver", "debtor", "claimant", "grandee", "pretender", "coalition_head", "envious", "friend", "sovereign" };
+    { "buyer", "rival_house", "envoy", "intruder", "giver", "debtor", "claimant", "grandee", "pretender", "coalition_head", "envious", "friend", "sovereign",
+      "classmate", "veteran", "young", "sitter", "subject", "guest", "other_guest",
+      // a whip who comes to buy the house's vote, and the one it borrows from: a favour or a vote owed between them is between two houses (docs/events/votes.md, "Promises")
+      "whip", "lender", "creditor" };
 
     public static Binding? TryBind(EventDef def, World world, IRng rng)
     {

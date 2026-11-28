@@ -40,7 +40,7 @@
     {
         <div class="sn-fact ac-fact"><span>Patronage</span><p>
             @if (patron != null) { <text>The house is the client of <b>@patron.Name</b>: 100 credits a year, its backing in the chamber, and your vote expected at the election. </text> }
-            else if (clients.Count > 0) { <text>The house keeps @clients.Count of @Counted.Clients(OrderSystem.ClientCap(house)): @string.Join(", ", clients.Select(x => x.Name)). They vote for you at an election and lean your way in the chamber. </text> }
+            else if (clients.Count > 0) { <text>The house keeps @clients.Count of @Counted.Clients(OrderSystem.ClientCap(house)): @string.Join(", ", clients.Select(x => x.Name)). They vote for your house's candidate at an election, unless one of their own stands, and lean the way you vote in the chamber, once you have voted. </text> }
             else { <text>No patron and no clients. Take a needy house as a client, or seek a greater house's protection, on the Houses screen. The house could keep @OrderSystem.ClientCap(house). </text> }
             @if (patron != null || clients.Count > 0)
             {
@@ -56,7 +56,7 @@
             string abId = ab.Id; int abRegard = AskAbove.RegardOf(w, ab, house);
             var coin = new AskAboveCommand(pid, abId, AskAbove.Coin, c.Offices, senate); string? coinNo = coin.Refusal(G.Ctx);
             var backing = new AskAboveCommand(pid, abId, AskAbove.Backing, c.Offices, senate); string? backNo = backing.Refusal(G.Ctx);
-            <div class="sn-fact ac-fact" data-ask-above="@abId"><span>Ask @ab.Name</span><p>@Cap(asWhat). Its head thinks <b class="@(abRegard >= AskAbove.AskAt ? "ui-up" : "ui-warn-t")">@SenateScreen.Signed(abRegard)</b> of you and hears a request at @SenateScreen.Signed(AskAbove.AskAt). What is given is a favour owed: you settle it by voting for the next motion that house moves.
+            <div class="sn-fact ac-fact" data-ask-above="@abId"><span>Ask @ab.Name</span><p>@Cap(asWhat). Its head thinks <b class="@(abRegard >= AskAbove.AskAt ? "ui-up" : "ui-warn-t")">@SenateScreen.Signed(abRegard)</b> of you and hears a request at @SenateScreen.Signed(AskAbove.AskAt). What is given is a favour owed: you settle it by voting for the next motion that house moves of its own (not one it moved at your asking, nor one that strikes at your house).
                 <span class="sn-acts">
                     <Plate Label="For coin" Small="true" Icon="credits" Locked="@(coinNo != null)" Disabled="@(coinNo != null)" Tip="@(coinNo ?? coin.Says(w))" CostIcon="credits" CostText="@Money.Show(AskAbove.CoinOf(ab))" OnClick='() => G.Ask("Ask " + ab.Name + " for coin?", coin.Says(w), "Ask", () => G.Execute(coin))' data-ask-coin="1" />
                     <Plate Label="For its backing for consul" Small="true" Icon="podium" Locked="@(backNo != null)" Disabled="@(backNo != null)" Tip="@(backNo ?? backing.Says(w))" OnClick='() => G.Ask("Ask " + ab.Name + " for its backing?", backing.Says(w), "Ask", () => G.Execute(backing))' data-ask-backing="1" />

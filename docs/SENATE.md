@@ -134,7 +134,11 @@ motions build the bench's **record**; its platform remembers the kinds it stood 
 affinity −2, disposition −5), or founds a bench of their own (two influence, two houses with the affinity). Voting against
 your own bench breaks the whip — the same cost — and the bench may drift you out. Flags: `in_faction`, `faction_leader`,
 `faction_formed`, `faction_joined`, `faction_dissolved`, `broke_the_whip`, `faction_against_me` (a bench's leader has a
-motion against you on the docket: the whole bench will follow); counter `factions`. Five events in
+motion on the docket that strikes at your house and that the count as it stands would carry: each house of the bench leans
+two its leader's way; written by `SenateSystem.WriteFlags` once the session's motions are moved); counter `factions`. A vote
+against your bench is remembered at the next count, when every house of it leans one against your motions; a bench you lead,
+fed or whipped at *The Leader's Table*, follows your vote by one more at the next count (docs/REPUBLIC.md, "Promises in the
+Senate"). Five events in
 `content/events/factions.json`, among them *Across the Aisle*.
 
 ## The consulship

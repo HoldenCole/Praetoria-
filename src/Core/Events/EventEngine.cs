@@ -125,6 +125,7 @@ public sealed class EventEngine
         int before = world.History.Count;
         foreach (var effect in choice.Effects)
             effect.Apply(ctx);
+        Systems.VoteMarks.Bargains(world, world.Protagonist?.HouseId);   // a vote given or promised in the choice is owed from now, so the whip count and the reminder have it (docs/events/votes.md, "Promises")
         for (int i = before; i < world.History.Count; i++) world.History[i].EventId ??= fired.Def.Id;   // the chronicle knows which report wrote each line
 
         MarkFired(fired.Def, world);

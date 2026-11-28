@@ -178,8 +178,22 @@ public sealed class OrderSystem
         if (voter.Debt > 0 && voter.LenderId == target.Id || DealingsSystem.LoanBetween(w, target.Id, voter.Id) != null) { lean += 2; why.Add("in its debt"); }
         if (ProvinceSystem.LeanUnder(w, voter.Id, target.Id) is > 0 and var under) { lean += under; why.Add("holds a province under it"); }   // (docs/PROVINCES.md)
         if (target.Corners.Contains(Resource.Helium3) && !voter.Corners.Contains(Resource.Helium3) && w.Fleets.Values.Any(f => f.OwnerId == voter.Id)) { lean += 1; why.Add("its fleets burn that house's fuel"); }
+        // a fleet that loads torpedoes arms from isotopes (FleetSystem: a battle burns one), so a house that makes a quarter of the Reach's
+        // has those fleets' owners depending on it too (content/text/orders.json, the_corner: "every fleet that burns it or arms from it")
+        if (target.Corners.Contains(Resource.Isotopes) && !voter.Corners.Contains(Resource.Isotopes) && w.Fleets.Values.Any(f => f.OwnerId == voter.Id && f.Loadout == "torpedoes")) { lean += 1; why.Add("its fleets arm from that house's isotopes"); }
         if (w.Companies.Any(c => c.ControllerId == target.Id && c.HeldBy(voter.Id) * 10 >= c.Shares)) { lean += 1; why.Add("holds its companies' shares"); }
         return (Math.Min(SwayCap, lean), why);
+    }
+
+    /// <summary>The patronage part of <see cref="Sway"/> alone: three for a client of <paramref name="target"/>, two for its patron, one
+    /// for a fellow client, with the tie in words. What leans a house the way the player votes on any division (SenateSystem.YourWay).</summary>
+    public static int Patronage(House voter, House target, out string tie)
+    {
+        tie = ""; if (voter.Id == target.Id) return 0;
+        if (voter.PatronId == target.Id) { tie = "it is your client"; return 3; }
+        if (target.PatronId == voter.Id) { tie = "it is your patron"; return 2; }
+        if (voter.PatronId.Length > 0 && voter.PatronId == target.PatronId) { tie = "it is a fellow client of your patron"; return 1; }
+        return 0;
     }
 
     /// <summary>Every house that leans the way this one wants, strongest first.</summary>

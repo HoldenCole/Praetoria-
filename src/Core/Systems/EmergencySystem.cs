@@ -54,7 +54,7 @@ public static class EmergencySystem
     /// <summary>The consul of a house, as a person, if it has one.</summary>
     public static Character? ConsulOf(World w, OfficeCatalog offices, string houseId) =>
         ElectionSystem.ConsulOffices(offices).Select(d => OfficeSystem.Holding(w, d.Id)).Where(h => h?.HouseId == houseId).Select(h => w.Char(h!.CharacterId)).FirstOrDefault(c => c is { Alive: true });
-    /// <summary>The Senate defers to what the holder moves, until the powers are due to be laid down.</summary>
+    /// <summary>The Senate leans toward what the holder moves (every other house by <see cref="HolderLeanBy"/>), until the powers are due to be laid down.</summary>
     public static int HolderLean(World w, string proposerHouseId) => w.Emergency is { Due: false } e && e.HouseId == proposerHouseId ? HolderLeanBy : 0;
 
     // ---- the vote ----
@@ -161,6 +161,7 @@ public static class EmergencySystem
         var e = w.Emergency; if (e == null) return;
         if (w.Char(e.HolderId) is { } holder) holder.Flags.Remove(HoldsChar);
         if (e.SkippedElection) w.WorldCounters[ElectionSystem.OwedKey] = 1;
+        if (e.SkippedLadder) w.WorldCounters[LadderSystem.OwedKey] = 1;   // and the magistrates' too (docs/EMERGENCY.md): held at the first session after they are laid down
         w.WorldCounters[EndedKey] = w.Turn; w.Emergency = null; w.WorldFlags.Remove(MineFlag);
     }
 

@@ -151,6 +151,12 @@
               "to": "heir",
               "bond": "blood",
               "present": true
+            },
+            {
+              "type": "charFlag",
+              "role": "heir",
+              "flag": "chose_own_road",
+              "value": false
             }
           ]
         }

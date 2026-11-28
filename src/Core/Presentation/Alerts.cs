@@ -151,7 +151,7 @@ public static class Alerts
         foreach (var (ph, pi) in w.ProvincesOf(me.HouseId).Where(x => x.i < x.h.Provinces.Count && x.h.Provinces[x.i].Dues >= ProvinceSystem.Heavy && !x.h.Provinces[x.i].Withheld).Take(1))
             Add(Holdings, Info, (w.House(ph.OwnerId)?.Name ?? "A house") + " asks heavy dues of " + ph.Provinces[pi].Name, "galaxy:" + ph.SystemId);
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("office_vacant:")).Take(1)) Add(Office, Info, "An office of the Reach stands vacant", "senate:offices");
-        if (w.HasFlag("faction_against_me")) Add(Vote, Danger, "A bench's leader has moved against you: the whole bench will follow", "senate:chamber");
+        if (w.HasFlag("faction_against_me")) Add(Vote, Danger, "A bench's leader has moved against you: its houses lean the way their leader votes", "senate:chamber");
         if (w.HasFlag("faction_formed")) Add(Vote, Info, "A bench has formed with you on it", "senate:chamber");
         if (w.HasFlag("faction_dissolved")) Add(Vote, Info, "Your bench has broken", "senate:chamber");
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("estate_hostile:")).Take(2)) Add(Estates, Danger, $"{content.Policies.Estate(f["estate_hostile:".Length..])?.Name ?? f} are hostile to the house", "laws:estates");
@@ -194,7 +194,7 @@ public static class Alerts
         if (LadderSystem.DutyOf(w, me.Id, LadderSystem.SeatKind) != null) Add(Duty, Info, "Your year in the Senate is not yet spent", "senate:duties");
         if (LadderSystem.BusinessOf(w, me.Id) is { } officeWork)
             Add(Duty, Decision, officeWork.Kind == LadderSystem.Case ? "A case waits for your ruling as praetor" : officeWork.Kind == LadderSystem.Works ? "The works wait on you as aedile" : "The year's accounts wait on you as quaestor", "senate:ladder");
-        if (LadderSystem.Active(w, content.Offices) && LadderSystem.CountIn(w, content.Offices) <= 2 && !w.Candidacies.Any(x => x.CharacterId == me.Id) && LadderSystem.Next(w, content.Offices, me) is { } nextRung)
+        if (LadderSystem.Active(w, content.Offices) && w.Emergency == null && LadderSystem.CountIn(w, content.Offices) <= 2 && !w.Candidacies.Any(x => x.CharacterId == me.Id) && LadderSystem.Next(w, content.Offices, me) is { } nextRung)
             Add(Office, Info, $"You could stand for {nextRung.Name.ToLowerInvariant()}: the election is {(LadderSystem.CountIn(w, content.Offices) is var cin && cin == 0 ? "at the end of this year" : "in " + Counted.Years(cin))}", "senate:ladder");
         if (w.HasFlag(PolitySystem.WarFlag)) Add(War, Danger, "Your state is at war for its independence: hold the region", "senate:orders");
         else if (w.HasFlag(PolitySystem.RefuseFlag)) Add(War, Decision, "You fought the one who now holds the throne, and you hold a region: you need not kneel", "senate:orders");

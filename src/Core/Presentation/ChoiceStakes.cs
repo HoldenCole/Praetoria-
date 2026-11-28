@@ -11,6 +11,7 @@ namespace Praetoria.Core.Presentation;
 public static class ChoiceStakes
 {
     private static string Signed(int n) => (n > 0 ? "+" : "−") + Math.Abs(n);
+    private const string EstatePrefix = "estate_offset:";
     private static string Op(CompareOp op) => op.ToString().ToLowerInvariant() switch { "gte" or "ge" => "at least", "gt" => "more than", "lte" or "le" => "at most", "lt" => "less than", "eq" => "exactly", "neq" or "ne" => "not", _ => "at least" };
 
     /// <summary>What the choice does to the player's house and person, as far as its effects say: "−5 materials · −200 credits · legitimacy +2".</summary>
@@ -47,6 +48,15 @@ public static class ChoiceStakes
                     break;
                 }
                 case GrantClaimEffect g when Mine(g.Role): parts.Add("a claim to a higher rank"); break;
+                // what an estate thinks of the player's house, and the Reach's trust in its magistrates: counters, but ones the player
+                // watches on the Laws screen and the ladder's panel, so a choice that moves them says so (docs/events/war.md and votes.md)
+                case AdjustCounterEffect cnt when cnt.Delta != 0 && cnt.Key.StartsWith(EstatePrefix, StringComparison.Ordinal):
+                {
+                    string id = cnt.Key[EstatePrefix.Length..]; string name = ctx.Content?.Policies.Estates.FirstOrDefault(x => x.Id == id)?.Name ?? id.Replace('_', ' ');
+                    parts.Add((name.StartsWith("The ", StringComparison.Ordinal) ? "the " + name[4..] : name) + " " + Signed(cnt.Delta)); break;
+                }
+                case AdjustCounterEffect trust when trust.Delta != 0 && trust.Key == Systems.LadderSystem.TrustKey: parts.Add("trust in the magistrates " + Signed(trust.Delta)); break;
+                case KillEffect kill when ctx.Actor(kill.Role) is { } dead && dead.Id != player.Id: parts.Add(dead.Name + " is killed"); break;
             }
         var money = Resource.All.Where(k => sums.GetValueOrDefault(k) != 0).Select(k => (sums[k] > 0 ? "+" : "−") + Money.Of(k, Math.Abs(sums[k])) + " " + Resource.Label(k)).ToList();
         if (sums.GetValueOrDefault(Resource.Coin) is var coin && coin != 0) money.Add((coin > 0 ? "+" : "−") + Money.Coin(Math.Abs(coin)));   // single credits (docs/MONEY.md): not one of Resource.All
@@ -111,6 +121,19 @@ public static class ChoiceStakes
                     break;
                 }
                 case GrantClaimEffect g when Mine(g.Role): other.Add(new StakeItem("claim", "claim", 0, "Claim", "A claim to a higher rank", true)); break;
+                // the same three Of says in words: an estate's regard for the house, the Reach's trust in its magistrates, a death
+                case AdjustCounterEffect cnt when cnt.Delta != 0 && cnt.Key.StartsWith(EstatePrefix, StringComparison.Ordinal):
+                {
+                    string id = cnt.Key[EstatePrefix.Length..]; string name = ctx.Content?.Policies.Estates.FirstOrDefault(x => x.Id == id)?.Name ?? Cap(id.Replace('_', ' '));
+                    int now = Systems.PolicySystem.Approval(ctx.World, player.HouseId, id);
+                    other.Add(new StakeItem("estate:" + id, EstateIcon(id), cnt.Delta, Signed(cnt.Delta), name + " " + Signed(cnt.Delta), cnt.Delta > 0,
+                        Counted.Figure(now), Counted.Figure(now + cnt.Delta)));
+                    break;
+                }
+                case AdjustCounterEffect trust when trust.Delta != 0 && trust.Key == Systems.LadderSystem.TrustKey:
+                    other.Add(new StakeItem("trust", "tied-scroll", trust.Delta, Signed(trust.Delta), "Trust in the magistrates " + Signed(trust.Delta), trust.Delta > 0)); break;
+                case KillEffect kill when ctx.Actor(kill.Role) is { } dead && dead.Id != player.Id:
+                    other.Add(new StakeItem("death", "plain-dagger", 0, "Dies", dead.Name + " is killed", false, PersonId: dead.Id)); break;
             }
         foreach (var k in Resource.All.Where(k => sums.GetValueOrDefault(k) != 0))
         {
@@ -153,6 +176,11 @@ public static class ChoiceStakes
     };
     /// <summary>The glyph of a pool of the year's actions (docs/VISUAL_SYSTEM.md 8.3).</summary>
     public static string PoolIcon(string pool) => pool switch { Pool.Influence => "public-speaker", Pool.Treasury => "scroll-quill", Pool.Agents => "cowled", _ => "hourglass" };
+    /// <summary>The estate's glyph, as the Laws window draws it (LawsScreen.EstateIcon).</summary>
+    public static string EstateIcon(string estate) => estate switch
+    {
+        "commons" => "three-friends", "merchants" => "coins-pile", "magistrates" => "tied-scroll", "old_blood" => "crown", "officers" => "crossed-sabres", "frontier" => "flag-objective", _ => "public-speaker"
+    };
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
 
     /// <summary>What the player's treasury would be short of if this choice were taken, or null: a choice that takes more than the
@@ -188,6 +216,20 @@ public static class ChoiceStakes
         var all = c.NatureTraits.Concat(c.AptitudeTraits).Distinct().Select(t => TraitWord(ctx, t)).ToList();
         return all.Count == 0 ? "" : all.Count == 1 ? all[0] : string.Join(", ", all.Take(all.Count - 1)) + " and " + all[^1];
     }
+    /// <summary>Why no bargain is to be had with the role's house (VoteMarks.BargainBarredChar), each cause that holds: a war (in the words
+    /// the atWar requirement uses, so the two are said once), blood, a favour standing either way, a word broken to it lately.</summary>
+    private static string BarredWhy(EvalContext ctx, string role)
+    {
+        var w = ctx.World; string? mine = w.Protagonist?.HouseId; var theirs = ctx.Actor(role) is { } bound ? w.House(bound.HouseId) : null;
+        if (mine == null || theirs == null) return "not while a bargain stands between your house and theirs";
+        var why = new List<string>();
+        if (w.AtWar(mine, theirs.Id)) why.Add($"not while your house is at war with {theirs.Name}");
+        if (Systems.FeudSystem.Between(w, mine, theirs.Id)) why.Add($"not while there is blood between your house and {theirs.Name}: it owes you nothing in the Senate");
+        if (Systems.WealthSystem.FavourOwed(w, mine, theirs.Id) || Systems.WealthSystem.FavourOwed(w, theirs.Id, mine)) why.Add($"not while a favour stands between your house and {theirs.Name}, either way (a house owes another one favour at a time)");
+        if (Systems.DealingsSystem.Remembered(w, Systems.DealingsSystem.PledgeBrokenKind, mine, theirs.Id).OrderByDescending(d => d.Turn).FirstOrDefault() is { } broke && w.Turn - broke.Turn < Systems.DealingsSystem.PledgeMemoryYears)
+            why.Add($"not before year {broke.Turn + Systems.DealingsSystem.PledgeMemoryYears}: you broke your word on a vote to {theirs.Name} in year {broke.Turn}");
+        return why.Count > 0 ? string.Join("; ", why) : $"not while a bargain stands between your house and {theirs.Name} this year";
+    }
     private static string Who(EvalContext ctx, string role) => role is "self" or "" ? "you" : ctx.Actor(role)?.Name ?? "they";
     private static string Say(ICondition c, EvalContext ctx, bool want, bool met = false)
     {
@@ -211,7 +253,7 @@ public static class ChoiceStakes
             case ClaimCondition cl: return want == cl.Present ? "needs a claim to the rank of " + Progression.Title.StyleOf(cl.TitleId, ctx.World.Era) : "not while the house holds that claim";
             case AgeCondition ag: return want ? $"needs an age {Op(ag.Op)} {ag.Value}" : "not at that age";
             case FleetStrengthCondition fl: { var a = ctx.Actor(fl.Role); int have = a != null ? Systems.FleetSystem.StrengthOf(ctx.World, a.HouseId) : 0; return want ? $"needs {Op(fl.Op)} {Counted.Hulls(fl.Value)} (the house has {have})" : "not with a fleet of that size"; }
-            case AtWarCondition aw: return want == aw.Present ? "only in a war" : "not while at war";
+            case AtWarCondition aw: return want == aw.Present ? "only in a war" : aw.Role is "self" or "" ? "not while at war" : $"not while your house is at war with {(ctx.Actor(aw.Role) is { } foe && ctx.World.House(foe.HouseId) is { } foeHouse ? foeHouse.Name : "theirs")}";
             case PeaceTermCondition pc: { var t = pc.Terms(ctx).FirstOrDefault(); return !want ? "" : t == null ? (pc.Kind == Systems.HousePeace.Tribute ? "tribute is asked by the side ahead in the war, and you are not ahead (a battle won is 2, a world taken 3)" : "there is no such term to ask in this war") : t.Why.Length > 0 ? t.Why : "they will not take that term"; }
             case BondCondition: return want ? "needs a tie between the two that is not there" : "not between two so tied";
             case TrackCondition tr: return want == tr.Present ? "needs a career in " + tr.Track.Replace('_', ' ') : "not for one in " + tr.Track.Replace('_', ' ');
@@ -219,8 +261,24 @@ public static class ChoiceStakes
             case DepositCondition dp: return want == dp.Present ? "needs " + Resource.A(dp.ResourceKey) + " deposit on a world of the house" : "";
             case SphereCondition sp: return want ? $"needs standing {Op(sp.Op)} {sp.Value} with {sp.SphereKey.Replace('_', ' ')}" : "";
             case BlocCondition bl: return want == bl.Present ? "needs a seat with " + bl.Bloc.Replace('_', ' ') : "not for one of " + bl.Bloc.Replace('_', ' ');
+            case CharFlagCondition cf when cf.Flag == Systems.VoteMarks.BargainBarredChar: return BarredWhy(ctx, cf.Role);
+            case CharFlagCondition cf when cf.Flag == Systems.VoteMarks.VoteWantedChar && want == cf.Value: return WantedWhy(ctx, cf.Role);
+            case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.FavoursToCallFlag: return want == wf.Value ? "needs a house that owes yours a favour and can vote against the motion: not the house that moved it, nor one at war with yours" : "";
+            case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.ClientFlag: return want == wf.Value ? "needs a client house with no favour standing between it and yours, either way" : "";
+            case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.SplittableFlag: return want == wf.Value ? "needs a house of that bench, not its leader, that would vote for the motion and has not declared" : "";
+            case WorldFlagCondition wf when wf.Flag == Systems.ElectionSystem.CourtFlag: return want == wf.Value ? "needs another consul, of a third house, with a veto still to use this term" : "";
             default: return "";   // a flag, a counter, a turn: something that happened or did not, which the story has told
         }
+    }
+    /// <summary>Why that house may not have the player's vote on its motion now: given elsewhere already, or no such motion before the Senate.</summary>
+    private static string WantedWhy(EvalContext ctx, string role)
+    {
+        var w = ctx.World; string? mine = w.Protagonist?.HouseId; var bound = ctx.Actor(role); var theirs = bound != null ? w.House(bound.HouseId) : null;
+        if (mine == null || theirs == null) return "needs a motion of theirs before the Senate that your vote may be had on";
+        var m = Systems.SenateSystem.Docket(w).FirstOrDefault(x => x.ProposerHouseId == theirs.Id);
+        if (m == null) return $"{theirs.Name} has no motion before the Senate now";
+        if (Systems.VoteMarks.Given(w, mine, m) is { } given) return $"your vote on the motion of {theirs.Name} is {given} already: giving it again would break that";
+        return Systems.WealthSystem.StrikesAt(m, mine) ? $"the motion of {theirs.Name} strikes at your house" : "needs a motion of theirs before the Senate that your vote may be had on";
     }
 }
 

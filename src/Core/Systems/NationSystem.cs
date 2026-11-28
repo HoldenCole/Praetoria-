@@ -179,6 +179,7 @@ public sealed partial class NationSystem
             string was = n.WarOf; n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0;
             w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war_declared"); w.WorldFlags.Add("foreign_war:" + nationId);
             w.Log($"The Senate makes the war with {d.Name} its own, on the motion of {w.House(proposerHouseId)?.Name ?? proposerHouseId}. It was {w.House(was)?.Name ?? was}'s war; it is the Reach's now.");
+            FleetSystem.RefreshWarFlags(w);
             return;
         }
         if (AtWar(w) != null) return;
@@ -187,6 +188,7 @@ public sealed partial class NationSystem
         w.WorldCounters[WarsCounter] = w.Counter(WarsCounter) + 1;
         w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war_declared"); w.WorldFlags.Add("foreign_war:" + nationId);
         w.Log($"The Reach is at war with {d.Name}, on the motion of {w.House(proposerHouseId)?.Name ?? proposerHouseId}. The fleets that sail against it must beat {n.Strength} hulls; a score of {SuesAt(n, d)} subdues it.");
+        FleetSystem.RefreshWarFlags(w);   // a nation on the map is every house's enemy now (World.EnemiesOf): at_war_any follows
     }
 
     public void Tick(World w)
@@ -218,6 +220,7 @@ public sealed partial class NationSystem
         if (AtWar(w) is { } war) { w.WorldFlags.Add("foreign_war"); w.WorldFlags.Add("foreign_war:" + war.Id); }
         if (mine != null && Expeditions(w).Any(f => f.OwnerId == mine)) w.WorldFlags.Add("expedition_away");
         if (w.Nations.Any(n => n.Subdued(w.Turn))) w.WorldFlags.Add("nation_tributary");
+        FleetSystem.RefreshWarFlags(w);   // a nation that struck, a war one house fights on against the Senate's peace: the house's enemies may have changed
     }
 
     /// <summary>Strength regrows toward the content figure (decaying nations lose a hull every ten turns instead); regard drifts by temper, and sours at war.</summary>
@@ -340,7 +343,8 @@ public sealed partial class NationSystem
         double pn = committed * NationPowerPerStrength * temper * CommanderFactor(theirs);   // who leads them counts
         double pWin = pw / Math.Max(0.001, pw + pn);
         bool win = Roll($"abroad:{n.Id}:{f.Id}:{w.Turn}") < pWin;
-        n.LastBattleTurn = w.Turn; w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1;
+        n.LastBattleTurn = w.Turn; w.WorldCounters[BattlesCounter] = w.Counter(BattlesCounter) + 1; w.WorldCounters[FoughtKey(house.Id, n.Id)] = w.Counter(FoughtKey(house.Id, n.Id)) + 1;
+        FleetSystem.MarkTheBattleAbroad(w, f, win, d.Name);   // who of the house was in it, for the reports of the front (docs/events/war.md)
         var commander = f.AdmiralId.Length > 0 ? w.Char(f.AdmiralId) : null; if (commander is { Alive: false }) commander = null;
         if (win)
         {
@@ -491,11 +495,27 @@ top.Glory = Math.Min(12, top.Glory + 4); LegitimacyBook.Move(w, top, LegitimacyT
     /// <summary>The war is over, however it ended: the scores are struck and every expedition against the nation turns for home.</summary>
     private static void EndWar(World w, Nation n, NationDef d)
     {
+        bool ours = WasOurs(w, n);   // read before the war's counters are struck
         n.AtWar = false; n.BeganIt = false; n.LastWarEnd = w.Turn; w.WorldCounters.Remove(UnpressedKey(n));
+        Mark(w, WarOverFlag, n);   // however it ended, it is over: for the reports of what the war left behind (docs/events/war.md)
+        if (ours) Mark(w, OurWarOverFlag, n);   // and it was the player's house's war: for the reports of its own peace
         if (n.WarOf.Length > 0) w.WorldCounters.Remove(DefiedSinceKey(n.WarOf)); n.WarOf = ""; n.Defied = false; n.PeaceVoted = 0; w.WorldCounters.Remove(ComeHomeKey(n));
-        foreach (var h in w.Houses.Keys.ToList()) w.WorldCounters.Remove(WinsKey(h, n.Id));
+        foreach (var h in w.Houses.Keys.ToList()) { w.WorldCounters.Remove(WinsKey(h, n.Id)); w.WorldCounters.Remove(FoughtKey(h, n.Id)); }
         foreach (var f in Expeditions(w, n.Id).ToList()) GoHome(w, f, d, "is recalled: the war is over");
+        FleetSystem.RefreshWarFlags(w);   // a war with a nation on the map ends the house's enmity with it (World.EnemiesOf)
     }
+
+    /// <summary>Was this war the player's house's own, for the reports of its peace (docs/events/war.md)? It was if it was the house's
+    /// private war; or if it was the Reach's and the house was in it: the nation is on the map (every house of the Reach is its enemy,
+    /// World.EnemiesOf), or a fleet of the house sailed against it beyond the Reach (one still away, or one that fought there).</summary>
+    public static bool WasOurs(World w, Nation n)
+    {
+        var mine = w.Protagonist?.HouseId; if (mine == null || !w.OfTheReach(mine)) return false;
+        if (n.WarOf.Length > 0) return n.WarOf == mine;
+        return n.OnMap || Expeditions(w, n.Id).Any(f => f.OwnerId == mine) || w.Counter(FoughtKey(mine, n.Id)) > 0 || w.Counter(WinsKey(mine, n.Id)) > 0;
+    }
+    /// <summary>The battles a house's fleets have fought beyond the Reach in this war with a nation, won or lost: struck with the war.</summary>
+    public static string FoughtKey(string houseId, string nationId) => $"expedition_fought:{houseId}:{nationId}";
 
     private static void Tribute(World w, Nation n, NationDef d, string? mine)
     {

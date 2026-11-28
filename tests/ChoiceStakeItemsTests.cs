@@ -76,7 +76,7 @@ public class ChoiceStakeItemsTests
                 seen++;
                 foreach (var i in ch.Items) { Assert.False(string.IsNullOrWhiteSpace(i.Icon)); Assert.False(string.IsNullOrWhiteSpace(i.Figure)); Assert.DoesNotContain("-", i.Figure.TrimStart('+')); }
                 if (ch.Cost.Length > 0) Assert.Contains(ch.Items, i => i.Kind.StartsWith("pool:"));
-                if (ch.Stakes.Length > 0) Assert.NotEmpty(ch.Items);
+                Assert.True(ch.Stakes.Length == 0 || ch.Items.Count > 0, $"{card.Title}/{ch.Id} says \"{ch.Stakes}\" but shows no items");
             }
             tc.EndTurn(); if (w.IsDynastyDead) break; tc.BeginTurn();
         }

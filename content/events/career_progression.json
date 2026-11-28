@@ -1726,6 +1726,12 @@
               "value": false
             },
             {
+              "type": "setCharFlag",
+              "role": "debtor",
+              "flag": "debt_called_in",
+              "value": true
+            },
+            {
               "type": "adjustResource",
               "resource": "influence",
               "delta": 3
@@ -1743,7 +1749,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} called in what {debtor.name} of {debtor.house} owed, a vote, a signature, a door held open. The debt is paid. {debtor.name} will not forget having been collected from."
+              "text": "{self.name} called in what {debtor.name} of {debtor.house} owed. The debt is paid. {debtor.name} will not forget having been collected from."
             }
           ]
         },

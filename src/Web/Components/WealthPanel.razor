@@ -146,7 +146,7 @@
     }
 
     <div data-purse-sec="heirlooms">
-    <Section Title="Heirlooms" Count="@((mine.Count + others.Count).ToString())" Info="They belong to a person, not to the house, unless the head entails them. Each does something for whoever holds it. A standard is taken in a battle by whoever commanded; plate comes from another house at a wedding. A thing given to the head of another house is a favour asked: that house leans your way on the next motion you bring, and the favour is spent; or call it in now for something else. Uncalled, it is forgotten after eight years.">
+    <Section Title="Heirlooms" Count="@((mine.Count + others.Count).ToString())" Info="They belong to a person, not to the house, unless the head entails them. Each does something for whoever holds it. A standard is taken in a battle by whoever commanded; plate comes from another house at a wedding. A thing given to the head of another house is a favour asked: that house votes for the motions you move whatever it leans, and the favour is spent at the count of the first it would not have voted for of its own accord; or call it in now for something else. Unspent, it is forgotten after eight years.">
         <ChildContent>
         <div class="suit-acts hs-line">
             <span class="hs-lbl">Have one made, out of your own purse</span>
@@ -158,7 +158,7 @@
             <div class="hs-favours" data-favours>
                 @if (oweMe.Count > 0)
                 {
-                    <div class="hs-line" title="A thing given to the head of another house is a favour asked. That house leans your way on the next motion you bring, and the favour is spent. Or call it in now for something else. Uncalled, it is forgotten after eight years.">
+                    <div class="hs-line" title="A house that owes yours a favour votes for every motion you move while it owes it, whatever it leans, and the favour is spent at the count of the first it would not have voted for of its own accord: not on a motion that strikes at that house, and not while you are at war or there is blood between your houses, when it is forgotten at the year's end. Or call it in now for something else. Unspent, it is forgotten after eight years.">
                         <span class="hs-lbl"><Icon Name="charm" Tone="brass" Size="15" />Owe you a favour:</span>
                         @foreach (var oh in oweMe)
                         {
@@ -208,7 +208,7 @@
                         <span class="hs-lbl">Give it now to</span>
                         @foreach (var c in people.Take(6)) { string cid = c.Id; <Plate Label="@First(c.Name)" Small="true" Tip="@($"To {c.Name}, now. They will not forget it.")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, cid))" /> }
                         @if (WealthSystem.IsSpoil(item) && w.House(item.FromHouseId) is { } lostBy && Economy.HeadOf(w, lostBy) is { Alive: true } theirHead) { string thid = theirHead.Id; <Plate Label="@($"Send it home to {lostBy.Name.Replace("House ", "")}")" Small="true" Tip="@($"It was {lostBy.Name}'s. Sent home with nothing asked, {theirHead.Name} will think much better of you. While you keep it, they think a little worse of you each year.")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, thid))" /> }
-                        @foreach (var hd in heads) { string hid = hd.Id; var wont = new WealthCommand(pid, WealthCommand.Give, iid, hid).Refusal(G.Ctx); <Plate Label="@($"{First(hd.Name)} of {w.House(hd.HouseId)?.Name.Replace("House ", "")}")" Small="true" Locked="@(wont != null)" Disabled="@(wont != null)" ShowNeed="false" Need="@(wont ?? "")" Tip="@($"A gift to the head of {w.House(hd.HouseId)?.Name}. They will think much better of you for it, it is theirs for good, and their house owes you a favour: it leans your way on the next motion you bring.")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, hid))" /> }
+                        @foreach (var hd in heads) { string hid = hd.Id; var wont = new WealthCommand(pid, WealthCommand.Give, iid, hid).Refusal(G.Ctx); <Plate Label="@($"{First(hd.Name)} of {w.House(hd.HouseId)?.Name.Replace("House ", "")}")" Small="true" Locked="@(wont != null)" Disabled="@(wont != null)" ShowNeed="false" Need="@(wont ?? "")" Tip="@($"A gift to the head of {w.House(hd.HouseId)?.Name}. They will think much better of you for it, it is theirs for good, and their house owes you a favour: it votes for the motions you move whatever it leans, and the favour is spent on the first it would not have voted for of its own accord.")" OnClick="() => G.Execute(new WealthCommand(pid, WealthCommand.Give, iid, hid))" /> }
                     </div>
                 }
                 </div>
