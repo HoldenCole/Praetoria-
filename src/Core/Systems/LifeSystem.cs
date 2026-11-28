@@ -134,11 +134,13 @@ public static class LifeSystem
         if (spouse != null && m != null) lines.Add(m.Warmth >= CourtshipSystem.WarmAt ? $"{spouse.Name} does not leave the grave until dark." : m.Estranged ? $"{spouse.Name} attends, and stands apart." : $"{spouse.Name} stands with the family.");
         if (children > 0) lines.Add(children == 1 ? "One child follows the bier." : $"{children} children follow the bier.");
         int renown = Renown(c);
-        lines.Add(c.NatureTraits.Contains("Honorable") ? "Nobody present can remember a promise of theirs broken."
+        // a named person is he or she (docs/VISUAL_SYSTEM.md 1, rule 9): "they" only where the record does not say
+        string he = c.Sex == "female" ? "she" : c.Sex == "male" ? "he" : "they", him = c.Sex == "female" ? "her" : c.Sex == "male" ? "him" : "them", his = c.Sex == "female" ? "hers" : c.Sex == "male" ? "his" : "theirs";
+        lines.Add(c.NatureTraits.Contains("Honorable") ? $"Nobody present can remember a promise of {his} broken."
             : c.NatureTraits.Contains("Cruel") ? "Few weep, and those few carefully."
-            : c.NatureTraits.Contains("Loyal") ? "They never once left the house's side, and the house knows it."
-            : c.NatureTraits.Contains("Just") ? "People they ruled against have come to stand in the rain."
-            : renown >= 45 ? "The street outside is full." : renown >= 15 ? "The family is there, and some who served with them." : "It is a small funeral.");
+            : c.NatureTraits.Contains("Loyal") ? $"{char.ToUpperInvariant(he[0]) + he[1..]} never once left the house's side, and the house knows it."
+            : c.NatureTraits.Contains("Just") ? $"People {he} ruled against have come to stand in the rain."
+            : renown >= 45 ? "The street outside is full." : renown >= 15 ? $"The family is there, and some who served with {him}." : "It is a small funeral.");
         return new Funeral { Turn = w.Turn, PersonId = c.Id, Name = c.Name, Age = c.Age, Epithet = epithet, Lines = lines };
     }
 

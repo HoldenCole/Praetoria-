@@ -88,14 +88,18 @@ public static class YearMoments
         {
             if (w.Char(d.PersonId) is not { Alive: false } c) continue;
             bool spouse = Wed(w, head, c), child = ChildOf(c, head), parent = ChildOf(head, c), sibling = Siblings(head, c), elder = FormerHead(c);
-            int weight = spouse ? SpouseDies : d.Heir ? HeirDies : child ? ChildDies : parent || elder ? ParentDies : sibling ? SiblingDies : 0;
+            // kin a start wrote down only as of the head's blood (a brother with no parents on the record): as close as a sibling
+            bool blood = !spouse && !child && !parent && !sibling && w.GetRelationship(head.Id, c.Id)?.Bond == BondType.Blood;
+            int weight = spouse ? SpouseDies : d.Heir ? HeirDies : child ? ChildDies : parent || elder ? ParentDies : sibling || blood ? SiblingDies : 0;
             if (weight == 0) continue;   // a cousin, a niece, one married into a son's family: a line in the year in brief
             string tie = Tie(w, head, c), how = Gendered(d.How, c);
+            if (tie.Length == 0 && blood) tie = "of your blood";
             string title = spouse ? $"Your {(F(c) ? "wife" : "husband")} is dead"
                 : child && d.Heir ? $"Your {(F(c) ? "daughter" : "son")} and heir is dead"
                 : d.Heir ? "Your heir is dead"
                 : tie.StartsWith("your ", StringComparison.Ordinal) ? $"{Cap(tie)} is dead"
-                : "The old head is dead";
+                : elder ? "The old head is dead"
+                : $"{c.Name} is dead";
             var next = DynastySystem.FindHeir(w, head);
             // the years of a marriage made in the saga are known; one that stood when it opened (dated 0) is not counted from there
             var marriage = w.Marriages.FirstOrDefault(m => m.Has(c.Id) && m.Has(head.Id) && m.Since > 0);

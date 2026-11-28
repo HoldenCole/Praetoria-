@@ -70,11 +70,11 @@ public class YearMomentsTests
     }
 
     [Fact]
-    public void A_wifes_death_says_whose_and_a_cousins_death_stays_a_line()
+    public void A_wifes_death_says_whose_and_a_grandsons_death_stays_a_line()
     {
         var (w, _, house, me) = Start();
         DynastySystem.Die(w, "helene_castellan");
-        DynastySystem.Die(w, "bastien_castellan");   // of the blood, but no parent of his is written down: not of the main line
+        DynastySystem.Die(w, "pell_castellan");   // a grandson, not the heir: not of the main line the moments are of
         NextYear(w);
         var moments = YearMoments.For(w, Content);
         var m = Assert.Single(moments, x => x.Kind == YearMoments.Death);
@@ -82,11 +82,23 @@ public class YearMomentsTests
         Assert.Equal("helene_castellan", m.Lead[0].Id); Assert.StartsWith("your wife · died at 61", m.Lead[0].Says);
         Assert.Equal("Mourn her", m.Button);
         Assert.Contains(m.Around, f => f.Id == "corvin_castellan" && f.Says == "your son");
-        // both deaths are lines of the year in brief, the wife's graver than the cousin's
+        // both deaths are lines of the year in brief, the wife's graver than the grandson's
         var brief = YearInBrief.For(w, Content);
         var wife = Assert.Single(brief, l => l.Text.StartsWith("Helene Castellan died at"));
-        var cousin = Assert.Single(brief, l => l.Text.StartsWith("Bastien Castellan died at"));
-        Assert.Equal(YearMoments.SpouseDies, wife.Grave); Assert.Equal(YearInBrief.GraveDeath, cousin.Grave);
+        var grandson = Assert.Single(brief, l => l.Text.StartsWith("Pell Castellan died at"));
+        Assert.Equal(YearMoments.SpouseDies, wife.Grave); Assert.Equal(YearInBrief.GraveDeath, grandson.Grave);
+        Plain(m);
+    }
+
+    [Fact]
+    public void A_brother_the_start_wrote_down_only_as_of_the_blood_is_mourned_as_a_sibling()
+    {
+        var (w, _, house, me) = Start();
+        DynastySystem.Die(w, "bastien_castellan");   // the Lion's younger brother: a blood bond, and no parent written down
+        NextYear(w);
+        var m = Assert.Single(YearMoments.For(w, Content), x => x.Kind == YearMoments.Death);
+        Assert.Equal("Bastien Castellan is dead", m.Title); Assert.Equal(YearMoments.SiblingDies, m.Weight);
+        Assert.StartsWith("of your blood · died at", m.Lead[0].Says);
         Plain(m);
     }
 

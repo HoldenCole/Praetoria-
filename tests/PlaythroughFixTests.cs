@@ -846,7 +846,7 @@ public class PlaythroughFixTests
         var rec = w.Deaths.Single(d => d.PersonId == kin.Id);
         Assert.Equal("in battle", rec.How);
         Assert.Contains(rec.Posts, p => p.What == "the governing of " + world.Name && p.Target == "galaxy:" + world.SystemId);
-        Assert.Contains(rec.Passed, l => l.Contains("purse of 1,400 credits") && l.Contains(me.Name));
+        Assert.Contains(rec.Passed, l => l.Contains("purse of 1,400 credits") && l.EndsWith("comes to you."));   // said to the head who reads it
         tc.EndTurn(); if (w.IsDynastyDead) return; tc.BeginTurn();
         var brief = Praetoria.Core.Presentation.YearInBrief.For(w, Content);
         Assert.Contains(brief, l => l.Text.StartsWith(kin.Name + " died at") && l.Text.Contains("in battle"));

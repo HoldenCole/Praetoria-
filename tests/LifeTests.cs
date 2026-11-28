@@ -122,7 +122,7 @@ public class LifeTests
         LifeSystem.Note(w, k, "victory", "Won a battle in command of a fleet."); LifeSystem.Note(w, k, "venture", "Founded a refinery for the house."); LifeSystem.Note(w, k, "child", "Someone was born.");
         int before = w.Funerals.Count; DynastySystem.Die(w, k.Id);
         Assert.Equal(before + 1, w.Funerals.Count); var f = w.Funerals.Last(); Assert.Equal(k.Id, f.PersonId); Assert.Equal(55, f.Age); Assert.True(w.HasFlag(LifeSystem.FuneralFlag));
-        Assert.StartsWith(k.Name, f.Lines[0]); Assert.Contains(f.Lines, l => l.Contains("won a battle")); Assert.Contains(f.Lines, l => l.Contains("promise of theirs broken"));
+        Assert.StartsWith(k.Name, f.Lines[0]); Assert.Contains(f.Lines, l => l.Contains("won a battle")); Assert.Contains(f.Lines, l => l.Contains($"promise of {(k.Sex == "female" ? "hers" : k.Sex == "male" ? "his" : "theirs")} broken"));
         // nobody is buried by a house they were not of, and the list does not grow without end
         var stranger = w.LivingCharacters().First(c => c.HouseId != mine.Id); DynastySystem.Die(w, stranger.Id); Assert.Equal(before + 1, w.Funerals.Count);
         for (int i = 0; i < 20; i++) { var x = Kin(w, mine, me, "x" + i, 40); DynastySystem.Die(w, x.Id); } Assert.Equal(12, w.Funerals.Count);

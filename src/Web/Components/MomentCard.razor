@@ -1,0 +1,70 @@
+@inject GameClient G
+@* A moment of the year (docs/VISUAL_SYSTEM.md, "The year's moments"), built from the succession screen's parts: the moment's painting
+   full-bleed (SceneArt.ForMoment), darkened toward the middle where the type stands; the kicker with the year between laurel sprays;
+   the title in Cinzel over a gilt rule; the cast: the one it is about in the large plate (the dead in grey with the mourning ribbon,
+   the newborn, the one come of age, the head of the house that declares war), or the couple side by side with the moment's glyph
+   between them, and the family around as smaller plates, each named with their tie to you; where the other side has no face, its
+   arms; one line of prose in Alegreya; one gold plate. Enter or Esc closes it too (Index.Key). The scripts know it by
+   .overlay.mo-veil[data-moment], its plates by [data-face] and its plate's button by [data-moment-go]. *@
+@{
+    var w = G.World!; var m = Moment; var mine = w.Protagonist is { } p ? w.House(p.HouseId) : null; string accent = mine?.AccentColor ?? "#888";
+    var lead = m.Lead.Select(f => (f, c: w.Char(f.Id))).Where(x => x.c != null).Select(x => (x.f, c: x.c!)).ToList();
+    var around = m.Around.Select(f => (f, c: w.Char(f.Id))).Where(x => x.c != null).Select(x => (x.f, c: x.c!)).ToList();
+    var left = around.Take((around.Count + 1) / 2).ToList(); var right = around.Skip(left.Count).ToList();
+    var other = m.House.Length > 0 ? w.House(m.House) : null;
+    string kicker = m.Kicker + (Year >= 1 ? " · Year " + TopBar.Roman(Year) : "");
+    string goTip = $"[{m.Icon}] {m.Button}\n" + (Of > At ? $"The next of the year's moments ({At + 1} of {Of})." : "On to the year in brief, and the year.") + "\nkey: [Enter] or [Esc]";
+}
+<div class="overlay mo-veil" data-moment="@m.Kind" data-moment-key="@m.Key" data-moment-subject="@m.Subject" data-moment-at="@At" data-moment-of="@Of">
+    <div class="mo-art" style="background-image:url('img/scenes/@(m.Scene).webp')" aria-hidden="true"></div>
+    <div class="mo-stage @(m.Bad ? "bad" : "good") @(lead.Count == 2 ? "pair" : "")" style="--accent:@accent" role="dialog" aria-modal="true" aria-label="@m.Title">
+        <div class="succ-kick mo-kick"><i class="ln"></i>@Laurel(false)<span>@kicker</span>@Laurel(true)<i class="ln r"></i></div>
+        <h2 class="mo-title @(m.Title.Length > 24 ? "long" : "")">@m.Title</h2>
+        <div class="succ-rule mo-rule"></div>
+        @* three columns, so the one it is about stands in the middle however many stand at each side *@
+        <div class="mo-cast">
+            <div class="mo-side l">@foreach (var x in left) { @Plate(x.f, x.c, false) }</div>
+            <div class="mo-mid">
+                @if (lead.Count == 0 && other != null)
+                {
+                    <div class="mo-who lead arms" data-arms="@other.Id"><span class="mo-seal"><Sigil HouseId="@other.Id" Accent="@other.AccentColor" Size="150" Mode="seal" /></span><b class="mo-name">@other.Name</b></div>
+                }
+                @for (int i = 0; i < lead.Count; i++)
+                {
+                    if (i > 0) { <span class="mo-join" aria-hidden="true"><Icon Name="@m.Icon" Tone="brass" Size="30" /></span> }
+                    @Plate(lead[i].f, lead[i].c, true)
+                }
+            </div>
+            <div class="mo-side r">@foreach (var x in right) { @Plate(x.f, x.c, false) }</div>
+        </div>
+        <p class="mo-prose">@m.Text</p>
+        <div class="mo-foot">
+            <button class="btn primary ui-btn succ-go mo-go" data-moment-go title="@goTip" @onclick="OnClose"><Icon Name="@m.Icon" Tone="dark" Size="16" />@m.Button</button>
+            @if (Of > 1) { <span class="mo-count" aria-label="@($"{At} of {Of} of the year's moments")">@At of @Of</span> }
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter, EditorRequired] public Moment Moment { get; set; } = default!;
+    /// <summary>The year the moment is of: the one that has just ended.</summary>
+    [Parameter] public int Year { get; set; }
+    /// <summary>Which of the year's cards this is, and how many there are.</summary>
+    [Parameter] public int At { get; set; } = 1;
+    [Parameter] public int Of { get; set; } = 1;
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>A person's plate in the cast: the large one for the one the moment is about, a smaller one for the family around.</summary>
+    private RenderFragment Plate(MomentFace f, Praetoria.Core.State.Character c, bool lead) => __builder =>
+    {
+        var h = G.World!.House(c.HouseId);
+        <div class="mo-who @(lead ? "lead" : "side") @(c.Alive ? "" : "dead")" data-face="@c.Id" data-lead="@(lead ? "1" : null)" data-alive="@(c.Alive ? "1" : "0")">
+            <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@(h?.AccentColor ?? "#888")" Size="@(lead ? 220 : 100)" Height="@(lead ? 274 : 124)" />
+            <b class="mo-name">@c.Name</b>@if (f.Says.Length > 0) { <span class="mo-says">@f.Says</span> }
+        </div>
+    };
+    /// <summary>Half of Lorc's laurels, the spray each side of the kicker (as the succession screen's).</summary>
+    private static RenderFragment Laurel(bool flip) => __builder =>
+    {
+        <svg class="icon ico brass succ-ls @(flip ? "flip" : "")" viewBox="0 0 230 512" aria-hidden="true"><use href="#i-@Icons.Key("laurels")" /></svg>
+    };
+}

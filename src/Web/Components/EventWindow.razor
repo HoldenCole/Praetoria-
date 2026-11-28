@@ -34,7 +34,7 @@
                 var oh = w.House(o.HouseId);
                 <div class="ev-cast l @(o.Alive ? "" : "dead")">
                     <Portrait Id="@o.Id" Name="@o.Name" Sex="@o.Sex" Age="@o.Age" Alive="@o.Alive" Accent="@(oh?.AccentColor ?? "#888")" Size="132" Height="164" />
-                    <div class="ev-plate"><b>@o.Name</b><span>@(oh != null ? oh.Name + " · " : "")@RoleWord(lead.role, oh)@(o.Alive ? "" : $" · died at {o.Age}")</span></div>
+                    <div class="ev-plate"><b>@o.Name</b><span>@(oh != null ? oh.Name + " · " : "")@RoleWord(lead.role, oh, o)@(o.Alive ? "" : $" · died at {o.Age}")</span></div>
                 </div>
             }
             @if (me != null)
@@ -204,9 +204,11 @@
         <svg class="icon ico brass ev-ls @(flip ? "flip" : "")" viewBox="0 0 230 512" aria-hidden="true"><use href="#i-@Icons.Key("laurels")" /></svg>
     };
     /// <summary>The part somebody plays in a report, in the Reach's own words: no "sovereign" where no throne stands; a tie to you is "your".</summary>
-    private string RoleWord(string role, House? h)
+    private string RoleWord(string role, House? h, Character? who = null)
     {
         var w = G.World!;
+        // the dead a funeral buries are named by their tie to you ("your son"), not by the part they play in it
+        if (role == "dead") return who != null && w.Protagonist is { } me && YearMoments.Tie(w, me, who) is { Length: > 0 } tie ? tie : "of the house";
         if (role == "sovereign" && !w.IsImperium) return h != null && RegionSystem.CapitalHolder(w)?.Id == h.Id ? "holds the chair" : h != null ? Praetoria.Core.Progression.Title.StyleOf(h.Title, w.Era) : "of higher rank";
         string r = role.Replace('_', ' ');
         return Yours.Contains(role) ? "your " + r : r;

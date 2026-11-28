@@ -1,45 +1,41 @@
 @inject GameClient G
 @* The year in brief (docs/PLAYTHROUGH.md, Medium): what the year before did to your house, in one place, each line opening where it
    can be seen. A window over the dimmed map (docs/VISUAL_SYSTEM.md 4.1, 4.2): the dispatch painting with the kicker and the title,
-   the year's stocks on the plinth as figures with their signed change, then a section band for each kind of thing and a row for
-   each line: the face of the one it is about (4.7, rule 6), or the occasion's painting when no one is named. The body fades over
-   its last 56px. In the foot, a small check for whether it opens at every year's start, and the one gold plate. *@
+   the year's stocks on the plinth as figures with their signed change, then the worst news of the year first, in a red band (a death
+   in the main line, a war declared on you, a world or the seat lost: YearInBrief.Worst, three at most), then a section band for each
+   kind of thing and a row for each line: the face of the one it is about (4.7, rule 6), or the occasion's painting when no one is
+   named. The body fades over its last 56px. In the foot, a small check for whether it opens at every year's start, and the one gold
+   plate. The year's moments open as cards before it (MomentCard); they stay lines here too. *@
 @{
     var w = G.World!; var lines = YearInBrief.For(w, G.Content!); var house = w.House(w.Protagonist!.HouseId)!;
-    var groups = YearInBrief.Order.Select(k => (k, list: lines.Where(l => l.Kind == k && !(l.Kind == YearInBrief.Money && l.Target == "house:ledger" && l.Text.StartsWith("Over the year"))).ToList()))
+    var worst = YearInBrief.Worst(lines); var banded = new HashSet<BriefLine>(worst, ReferenceEqualityComparer.Instance);
+    var groups = YearInBrief.Order.Select(k => (k, list: lines.Where(l => !banded.Contains(l) && l.Kind == k && !(l.Kind == YearInBrief.Money && l.Target == "house:ledger" && l.Text.StartsWith("Over the year"))).ToList()))
         .Where(g => g.list.Count > 0).ToList();
     var moves = YearInBrief.Moves(w);
-    int year = w.Turn - 1;
+    int year = w.Turn - 1; bool any = groups.Count > 0 || worst.Count > 0;
 }
 <div class="overlay box-veil yb-veil" data-year-brief="1">
-    <WindowFrame Class="@("box brief yb" + (groups.Count == 0 ? " quiet" : ""))" Scrolls="@(groups.Count > 0)" role="dialog" aria-modal="true" aria-label="The year in brief">
+    <WindowFrame Class="@("box brief yb" + (any ? "" : " quiet"))" Scrolls="@any" role="dialog" aria-modal="true" aria-label="The year in brief">
         <Header>
             <WindowHeader Scene="dispatch" Glyph="sundial" Kicker="@(year >= 1 ? $"Year {Roman(year)} in brief" : "The year before in brief")" Title="@house.Name" Figures="Figures(w, house, moves)">
-                <Lede>@(groups.Count == 0 ? "The year before, and what it left in the stores." : "What the year did to the house. Each line opens where it can be seen.")</Lede>
+                <Lede>@(any ? "What the year did to the house. Each line opens where it can be seen." : "The year before, and what it left in the stores.")</Lede>
             </WindowHeader>
         </Header>
         <ChildContent>
+            @if (worst.Count > 0)
+            {
+                @* the worst of the year first, on a band with a red rim: the words stay in ink (docs/VISUAL_SYSTEM.md 1, rule 4) *@
+                <Section Title="The worst of it" Count="@worst.Count.ToString()" Class="yb-sec yb-worst" data-worst="@worst.Count">
+                    @foreach (var l in worst) { @Line(l, l.Kind, true) }
+                </Section>
+            }
             @foreach (var g in groups)
             {
                 <Section Title="@g.k" Count="@g.list.Count.ToString()" Class="yb-sec">
-                    @foreach (var l in g.list)
-                    {
-                        string go = l.Target; var c = l.PersonId.Length > 0 ? w.Char(l.PersonId) : null; var ch = c != null ? w.House(c.HouseId) : null;
-                        <Row Class="@($"yb-line brief-line {l.Tone}")" Wrap="true" Name="@l.Text" Tip="Open the place this can be seen" OnClick="() => OnGo.InvokeAsync(go)">
-                            <Picture>
-                                <span class="yb-pic">
-                                @if (c != null) { <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@(ch?.AccentColor ?? "#888")" Size="46" Height="56" Opens="false" Titled="false" /> }
-                                else { <span class="yb-crop"><img src="img/scenes/@(SceneOf(g.k, l)).webp" alt="" loading="eager" decoding="async" /></span> }
-                                @* a gain or a loss: a small badge on the picture, never a lone glyph at the row's end (it would read as Add) *@
-                                @if (l.Tone is "good" or "warn") { <span class="yb-badge @(l.Tone)" title="@(l.Tone == "good" ? "Good for the house" : "Bad for the house")"><Icon Name="@(l.Tone == "good" ? "plus" : "minus")" Tone="@(l.Tone == "good" ? "good" : "ember")" Size="12" Class="bl-mark" /></span> }
-                                </span>
-                            </Picture>
-                            <Cells><Icon Name="chev" Tone="brass" Size="12" Class="yb-open" /></Cells>
-                        </Row>
-                    }
+                    @foreach (var l in g.list) { @Line(l, g.k, false) }
                 </Section>
             }
-            @if (groups.Count == 0)
+            @if (!any)
             {
                 <EmptyState Icon="sundial" Text="A quiet year. Nothing happened to the house that needs telling." />
             }
@@ -57,6 +53,24 @@
     [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public bool Every { get; set; } = true;
     [Parameter] public EventCallback<bool> OnEvery { get; set; }
+
+    /// <summary>One line of the year: the face of the one it is about, or the painting of its kind, a badge for good or ill, the line,
+    /// and a chevron, all of it opening where it can be seen. In the red band the line keeps its kind's painting.</summary>
+    private RenderFragment Line(BriefLine l, string kind, bool grave) => __builder =>
+    {
+        var w = G.World!; string go = l.Target; var c = l.PersonId.Length > 0 ? w.Char(l.PersonId) : null; var ch = c != null ? w.House(c.HouseId) : null;
+        <Row Class="@($"yb-line brief-line {l.Tone}" + (grave ? " grave" : ""))" Wrap="true" Name="@l.Text" Tip="Open the place this can be seen" OnClick="() => OnGo.InvokeAsync(go)" data-grave="@(grave ? l.Grave.ToString() : null)" data-subject="@(l.PersonId.Length > 0 ? l.PersonId : null)">
+            <Picture>
+                <span class="yb-pic">
+                @if (c != null) { <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@(ch?.AccentColor ?? "#888")" Size="46" Height="56" Opens="false" Titled="false" /> }
+                else { <span class="yb-crop"><img src="img/scenes/@(SceneOf(kind, l)).webp" alt="" loading="eager" decoding="async" /></span> }
+                @* a gain or a loss: a small badge on the picture, never a lone glyph at the row's end (it would read as Add) *@
+                @if (l.Tone is "good" or "warn") { <span class="yb-badge @(l.Tone)" title="@(l.Tone == "good" ? "Good for the house" : "Bad for the house")"><Icon Name="@(l.Tone == "good" ? "plus" : "minus")" Tone="@(l.Tone == "good" ? "good" : "ember")" Size="12" Class="bl-mark" /></span> }
+                </span>
+            </Picture>
+            <Cells><Icon Name="chev" Tone="brass" Size="12" Class="yb-open" /></Cells>
+        </Row>
+    };
 
     /// <summary>The year's stocks on the plinth: credits, materials, manpower and helium-3, where each stands and its signed change.</summary>
     private static IReadOnlyList<WindowHeader.Figure> Figures(Praetoria.Core.State.World w, Praetoria.Core.State.House house, List<YearInBrief.StockMove> moves)
