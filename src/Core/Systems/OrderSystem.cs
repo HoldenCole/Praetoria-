@@ -178,6 +178,9 @@ public sealed class OrderSystem
         if (voter.Debt > 0 && voter.LenderId == target.Id || DealingsSystem.LoanBetween(w, target.Id, voter.Id) != null) { lean += 2; why.Add("in its debt"); }
         if (ProvinceSystem.LeanUnder(w, voter.Id, target.Id) is > 0 and var under) { lean += under; why.Add("holds a province under it"); }   // (docs/PROVINCES.md)
         if (target.Corners.Contains(Resource.Helium3) && !voter.Corners.Contains(Resource.Helium3) && w.Fleets.Values.Any(f => f.OwnerId == voter.Id)) { lean += 1; why.Add("its fleets burn that house's fuel"); }
+        // a fleet that loads torpedoes arms from isotopes (FleetSystem: a battle burns one), so a house that makes a quarter of the Reach's
+        // has those fleets' owners depending on it too (content/text/orders.json, the_corner: "every fleet that burns it or arms from it")
+        if (target.Corners.Contains(Resource.Isotopes) && !voter.Corners.Contains(Resource.Isotopes) && w.Fleets.Values.Any(f => f.OwnerId == voter.Id && f.Loadout == "torpedoes")) { lean += 1; why.Add("its fleets arm from that house's isotopes"); }
         if (w.Companies.Any(c => c.ControllerId == target.Id && c.HeldBy(voter.Id) * 10 >= c.Shares)) { lean += 1; why.Add("holds its companies' shares"); }
         return (Math.Min(SwayCap, lean), why);
     }

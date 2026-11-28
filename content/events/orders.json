@@ -537,18 +537,18 @@
           "id": "lend_where_it_matters",
           "effects": [
             {
+              "type": "setWorldFlag",
+              "flag": "lending_where_it_matters",
+              "value": true
+            },
+            {
               "type": "adjustResource",
               "resource": "credits",
               "delta": -6
             },
             {
-              "type": "adjustResource",
-              "resource": "influence",
-              "delta": 3
-            },
-            {
               "type": "log",
-              "text": "{self.name} began lending to houses with seats and no coin, at terms nobody else would give. None of them will vote against the hand that holds the note."
+              "text": "{self.name} began lending to houses with seats and no coin, at no interest, which nobody else would give. While they owe the house, they lean its way when the chamber divides."
             }
           ],
           "requires": [

@@ -34,7 +34,14 @@ namespace Praetoria.Tests;
 /// Group "bench": your word to the bench's leader that the empty seat will not happen again; the leader's table (a dinner, the whip);
 /// a client at the door and the protection of a patron (the way you vote, and the seats at an election); a client helped with a suit;
 /// the senator brought over to a growing bloc; the bench you found; the whip broken and remembered at the next count; a bench's
-/// leader moving against your house, and its weakest member split from it; the patron's wish and the patron who noticed.</summary>
+/// leader moving against your house, and its weakest member split from it; the patron's wish and the patron who noticed.
+///
+/// Group "other": the vote still undecided and its three ways to bring the doubter over; the old grudge against your motion and its
+/// three answers; the old grudge on the docket and the peace made; the house that voted against you and its grudge; the repeal promised
+/// to a friend an Act fell on; the feast for the houses that voted your recognition; the round stood after a motion thrown out; the
+/// names written down after a censure and a motion thrown out; a name in commerce and its loans; the shares and the corner; the
+/// chancellor asked to be asked; the house you owe blood to; a favour between two other houses in the whip count; your threat and a
+/// threat against you; a loan from the house window; foreign gold shown to the chamber; the accounts called for in the squares.</summary>
 public class VotePromisesTests
 {
     private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
@@ -1940,5 +1947,455 @@ public class VotePromisesTests
         var f = ReportOf(g, "across_the_aisle"); var engine = new EventEngine(Content, WorldBuilder.RngFor(g.W)); Assert.False(engine.IsChoiceAvailable(f, g.W, "split_the_bench"));
         var why = ChoiceStakes.Unmet(f.Def.Choice("split_the_bench")!, new EvalContext(g.W, f.Binding, WorldBuilder.RngFor(g.W), Content));
         Assert.Contains("needs a house of that bench, not its leader, that would vote for the motion", why);
+    }
+
+    // ================================================================== the other group (docs/events/votes.md, "Promises", the other group)
+
+    // ------------------------------------------------------------------ the vote still undecided: the_vote_still_undecided
+
+    /// <summary>Your motion before the Senate, and one head of another house who leans neither way on it and thinks <paramref name="regard"/>
+    /// of you; every other head thinks nothing of you, so the report is about that one.</summary>
+    private static (G g, Motion mine, House theirs) Undecided(int regard, ulong seed = 7)
+    {
+        var g = Start(seed); var mine = IMove(g); var theirs = Others(g)[0];
+        foreach (var h in Others(g)) g.W.Relationship(g.HeadOf(h).Id, g.Me.Id).Disposition = h == theirs ? regard : 0;
+        Leans(g, mine, theirs, 0); Only(g, mine);
+        Assert.Contains(VoteMarks.UndecidedChar, g.HeadOf(theirs).Flags);
+        return (g, mine, theirs);
+    }
+
+    [Theory]
+    [InlineData("have_them_to_dinner", 12, 8, 1)]   // the likeliest: 12 to 19 is 20 or more after it, every time
+    [InlineData("make_your_case", 14, 6, 1)]   // it may be enough
+    [InlineData("make_your_case", 12, 6, 0)]   // and it may not
+    [InlineData("speak_from_the_floor", 16, 4, 1)]   // if they were nearly there
+    [InlineData("speak_from_the_floor", 15, 4, 0)]
+    [InlineData("leave_them_be", 19, 0, 0)]
+    public void TheVoteStillUndecided_EachChoiceMovesTheirRegardByItsNumber_AndAtTwentyTheirHouseVotesForIt_AcrossASaveAndALoad(string choice, int regard, int by, int vote)
+    {
+        var (g0, mine0, theirs) = Undecided(regard);
+        var (f, doubter) = Report(g0, "the_vote_still_undecided", "doubter"); Assert.Equal(g0.HeadOf(theirs).Id, doubter.Id);
+        Choose(g0, f, choice);
+        Assert.Equal(regard + by, g0.Regard(theirs));
+        var g = Reload(g0); var mine = g.W.Motions.First(m => m.Id == mine0.Id);
+        Assert.Equal(vote, g.Senate.Stance(g.W, mine, theirs.Id));   // the whip count has it as it will be counted
+        if (vote > 0) Assert.Contains(g.Senate.Why(g.W, mine, theirs.Id), x => x.why.StartsWith("what its head thinks of") && x.by == 1);
+        Session(g);
+        Assert.True(mine.Resolved); Assert.Equal(vote, mine.Votes[theirs.Id]); Assert.Equal(ForWeight(g, mine), mine.ForWeight);
+    }
+
+    [Fact]
+    public void TheVoteStillUndecided_IsAskedOnlyOfAHouseThatLeansNeitherWayAsTheYearOpens()
+    {
+        var (g, mine, theirs) = Undecided(15); Assert.True(Eligible(g, "the_vote_still_undecided", "doubter", theirs.Id));
+        // between the session and the year's reports its mind is made up (here, someone has had its ear): it leans for your motion now
+        mine.Lobby[theirs.Id] = mine.Lobby.GetValueOrDefault(theirs.Id) + 2; Assert.True(g.Senate.Lean(g.W, mine, theirs.Id) > 0);
+        g.Tc.BeginTurn();
+        Assert.DoesNotContain(VoteMarks.UndecidedChar, g.HeadOf(theirs).Flags);
+        Assert.False(Eligible(g, "the_vote_still_undecided", "doubter", theirs.Id));
+    }
+
+    // ------------------------------------------------------------------ the old grudge: those_who_voted_against_you, an_old_grudge_against_your_motion
+
+    /// <summary>Your motion carried with one house voting against it to the end, and you let them lose: the grudge, by the report.</summary>
+    private static (G g, House theirs) Grudged(ulong seed = 7)
+    {
+        var g = Start(seed); var theirs = Others(g)[0]; var mine = IMove(g);
+        foreach (var h in Others(g)) { g.W.Relationship(g.HeadOf(h).Id, g.Me.Id).Disposition = 0; Leans(g, mine, h, h == theirs ? -3 : 3); }
+        Only(g, mine); Session(g); Assert.True(mine.Passed); Assert.Equal(-1, mine.Votes[theirs.Id]);
+        var (f, loser) = Report(g, "those_who_voted_against_you", "loser"); Assert.Equal(g.HeadOf(theirs).Id, loser.Id);
+        Choose(g, f, "let_them_lose");
+        Assert.Contains("grudge_against_you", loser.Flags); Assert.Equal(-3, g.Regard(theirs));
+        Only(g); return (g, theirs);
+    }
+    /// <summary>Your next motion, a relief of a region, with the rival's house leaning <paramref name="lean"/> on it.</summary>
+    private static Motion NextMotion(G g, House theirs, int lean)
+    {
+        var next = IMove(g, "relief", g.W.Galaxy!.Regions.OrderBy(r => r.Id, StringComparer.Ordinal).First().Id); Leans(g, next, theirs, lean); Only(g, next); return next;
+    }
+
+    [Theory]
+    [InlineData("let_it_cost_you", -22, -3, -1)]   // their house leans against your motion, and the grudge is spent on it
+    [InlineData("answer_them_on_the_floor", -22, -4, -1)]   // they will still lean against it
+    [InlineData("buy_them_off", -22, 12, 0)]   // they may think well enough of you again not to lean against it
+    [InlineData("buy_them_off", -35, 12, -1)]   // and they may not
+    public void TheHouseThatVotedAgainstYou_LetThemLose_ItsGrudgeComesBackAtYourNextMotion_AndEachAnswerIsCountedAsItSays(string choice, int regard, int by, int vote)
+    {
+        var (g, theirs) = Grudged(); var rival = g.HeadOf(theirs);
+        g.W.Relationship(rival.Id, g.Me.Id).Disposition = regard;   // the years have soured it further
+        var next = NextMotion(g, theirs, -1);   // only the old quarrel against it: what its head thinks of you, -1, and nothing more
+        Assert.Contains(g.Senate.Why(g.W, next, theirs.Id), x => x.why.StartsWith("what its head thinks of") && x.by == -1);
+        var (f, cast) = Report(g, "an_old_grudge_against_your_motion", "rival"); Assert.Equal(rival.Id, cast.Id);
+        int legitimacy = g.Mine.Legitimacy; Choose(g, f, choice);
+        Assert.Equal(regard + by, g.Regard(theirs)); Assert.DoesNotContain("grudge_against_you", rival.Flags);
+        if (choice == "answer_them_on_the_floor") Assert.Equal(legitimacy + 1, g.Mine.Legitimacy);   // the chamber thinks the better of you
+        Session(g);
+        Assert.Equal(vote, next.Votes[theirs.Id]); Assert.Equal(AgainstWeight(g, next), next.AgainstWeight);
+        // spent: the grudge comes to neither report again
+        Assert.False(Eligible(g, "an_old_grudge_against_your_motion", "rival", theirs.Id)); Assert.False(Eligible(g, "an_old_grudge_on_the_docket", "rival", theirs.Id));
+    }
+
+    [Fact]
+    public void AnOldGrudgeAgainstYourMotion_IsNotSaidOfAHouseThatLeansForIt_NorOfOneWhoseHeadDoesNotHoldTheGrudge()
+    {
+        var (g, theirs) = Grudged(); var rival = g.HeadOf(theirs); g.W.Relationship(rival.Id, g.Me.Id).Disposition = -22;
+        var next = NextMotion(g, theirs, 2);   // a grudge, and its house is for your motion all the same: "{rival.name} does" lean against it would be false
+        Assert.DoesNotContain(VoteMarks.AgainstYoursChar, rival.Flags); Assert.False(Eligible(g, "an_old_grudge_against_your_motion", "rival", theirs.Id));
+        Leans(g, next, theirs, -1); Only(g, next); Assert.True(Eligible(g, "an_old_grudge_against_your_motion", "rival", theirs.Id));
+        // the grudge held by one of the house who is not its head: their regard leans nothing, so no report says the house leans their way
+        rival.Flags.Remove("grudge_against_you");
+        var kin = g.W.LivingCharacters().First(c => c.HouseId == theirs.Id && c.Id != rival.Id && c.Age >= DynastySystem.AgeOfMajority);
+        kin.Flags.Add("grudge_against_you"); g.W.Relationship(kin.Id, g.Me.Id).Disposition = -40; Only(g, next);
+        Assert.False(Eligible(g, "an_old_grudge_against_your_motion", "rival", theirs.Id));
+    }
+
+    [Fact]
+    public void AnOldGrudgeOnTheDocket_MakeYourPeace_MendsTheQuarrel_ButTheirMotionAgainstYouIsStillCounted_AndTheyVoteForIt()
+    {
+        var g = Start(); var theirs = Others(g).First(h => g.Senate.MayPropose(g.W, h.Id)); var rival = g.HeadOf(theirs);
+        rival.Flags.Add("grudge_against_you"); g.W.Relationship(rival.Id, g.Me.Id).Disposition = -30;   // the grudge, as let_them_lose leaves it (above)
+        var censure = TheyMove(g, theirs, "censure", g.Mine.Id);
+        var (f, cast) = Report(g, "an_old_grudge_on_the_docket", "rival"); Assert.Equal(rival.Id, cast.Id);
+        int credits = g.Mine.Treasury.Credits; Choose(g, f, "make_your_peace");
+        Assert.Equal(-18, g.Regard(theirs)); Assert.Equal(credits - 6, g.Mine.Treasury.Credits); Assert.DoesNotContain("grudge_against_you", rival.Flags);
+        Assert.Equal(3, g.Senate.RawLean(g.W, censure, theirs.Id)); Assert.True(g.Senate.Lean(g.W, censure, theirs.Id) > 0);   // the mover's own lean is what it was
+        Session(g);
+        Assert.True(censure.Resolved); Assert.False(censure.Vetoed); Assert.Equal(1, censure.Votes[theirs.Id]);
+    }
+
+    // ------------------------------------------------------------------ the repeal promised: the_senates_act_falls_on_a_friend/promise_the_repeal
+
+    /// <summary>An Act carries against the votes of a friend's house (another house moves the canvassing law to another option), and the
+    /// friend writes to you; you promise the repeal. Returns the first year the chamber will hear it again.</summary>
+    private static (G g, House theirs, Character friend, LawDef law, string act, int from) RepealPromised(ulong seed = 7)
+    {
+        var g = Start(seed); var others = Others(g); var theirs = others[0]; var mover = others.First(h => h != theirs && g.Senate.MayPropose(g.W, h.Id));
+        var friend = g.HeadOf(theirs); g.W.Relationship(friend.Id, g.Me.Id).Disposition = 30; g.W.Relationship(g.Me.Id, friend.Id).Disposition = 30;
+        var law = Content.Policies.Law("canvassing")!; string was = (PolicySystem.ReachOption(g.W, Content.Policies, law) ?? law.DefaultOption).Id;
+        string act = law.Options.First(o => o.Id != was).Id;
+        var m = g.Senate.Add(g.W, mover.Id, "act", "", lawId: law.Id, lawOption: act); Only(g, m);
+        foreach (var h in others.Where(h => h != mover)) Leans(g, m, h, h == theirs ? -4 : 3); IVote(g, m, 1);
+        Session(g); Assert.True(m.Passed); Assert.Equal(act, (PolicySystem.ReachOption(g.W, Content.Policies, law) ?? law.DefaultOption).Id);
+        Only(g);
+        var (f, cast) = Report(g, "the_senates_act_falls_on_a_friend", "friend"); Assert.Equal(friend.Id, cast.Id);
+        int before = g.Regard(theirs); Choose(g, f, "promise_the_repeal"); Assert.Equal(before + 6, g.Regard(theirs));
+        int from = g.W.Counter($"law_cd:{PolicySystem.SenateHolder}:{law.Id}"); Assert.True(from > g.W.Turn);
+        Assert.True(g.Told($"You promised {friend.Name} of {theirs.Name} to move the repeal of") && g.Told($"from year {from}, and by year {from + VoteMarks.RepealYears - 1}"));
+        return (g, theirs, friend, law, act, from);
+    }
+    private static ProposeMotionCommand RepealOf(G g, LawDef law, string act) => new(g.Me.Id, "act", "", g.Senate, lawId: law.Id, optionId: law.Options.First(o => o.Id != act).Id);
+    /// <summary>The year turns to this one, with nothing of anyone else's before the Senate.</summary>
+    private static void YearOf(G g, int turn) { g.W.Turn = turn - 1; Session(g); Only(g); }
+
+    [Fact]
+    public void TheActFallsOnAFriend_PromiseTheRepeal_WaitsUntilTheChamberWillHearIt_AndMovingItKeepsYourWord_ToANewHead_AcrossASaveAndALoad()
+    {
+        var (g0, theirs, friend, law, act, from) = RepealPromised();
+        Assert.Contains("the Senate settled that lately", RepealOf(g0, law, act).Refusal(g0.Ctx));   // the chamber will not hear it yet
+        var g = Reload(g0);
+        DynastySystem.Die(g.W, friend.Id); var head = g.HeadOf(g.W.House(theirs.Id)!); Assert.NotEqual(friend.Id, head.Id);   // the house's word is held by its next head
+        YearOf(g, from - 1); Assert.True(g.Told($"From next year the chamber will hear the repeal of"));
+        g.W.Turn = from; int regard = g.Regard(theirs); var move = RepealOf(g, law, act);
+        Assert.True(g.Do(move), move.Refusal(g.Ctx));
+        Assert.Equal(regard + DealingsSystem.PledgeKeptRegard, g.Regard(theirs)); Assert.True(g.Told($"as you promised {theirs.Name}: its head thinks +3 of you"));
+        Assert.Single(DealingsSystem.Remembered(g.W, DealingsSystem.PledgeKeptKind, g.Mine.Id, theirs.Id));
+        Assert.DoesNotContain(g.W.WorldCounters.Keys, k => k.StartsWith(VoteMarks.RepealPrefix, StringComparison.Ordinal));
+        YearOf(g, from + VoteMarks.RepealYears); Assert.Equal(regard + DealingsSystem.PledgeKeptRegard, g.Regard(theirs));   // nothing more is asked of you
+    }
+
+    [Fact]
+    public void TheActFallsOnAFriend_PromiseTheRepeal_LetTheLastYearPassWithoutIt_AndItsHeadThinksFifteenTheWorse_ItIsWrittenDown_AndTakesNoWordOfYours()
+    {
+        var (g, theirs, _, law, act, from) = RepealPromised(); int by = from + VoteMarks.RepealYears - 1;
+        YearOf(g, by - 1); Assert.True(g.Told("Next year is the last in which to move the repeal of"));
+        int regard = g.Regard(theirs); YearOf(g, by);
+        Assert.Equal(regard - DealingsSystem.PledgeBrokenRegard, g.Regard(theirs)); Assert.True(g.Told($"and year {by} has passed without it. Its head thinks -15 of you"));
+        Assert.Single(DealingsSystem.Remembered(g.W, DealingsSystem.PledgeBrokenKind, g.Mine.Id, theirs.Id));
+        Assert.Contains(g.Tc.Dealings.Lasting(g.W, g.Mine, theirs), l => l.text == "Your word to it on a vote: kept 0 times, broken 1 time.");
+        Assert.Contains(VoteMarks.BargainBarredChar, g.HeadOf(theirs).Flags);   // and no bargain is struck with it for eight years
+    }
+
+    [Fact]
+    public void TheActFallsOnAFriend_PromiseTheRepeal_IsSpentWithNothingOwed_WhenAnotherHouseMovesItFirst_OrTheHousesGoToWar()
+    {
+        var (g, theirs, _, law, act, from) = RepealPromised(); int regard = g.Regard(theirs);
+        g.W.Turn = from; var other = Others(g).First(h => h != theirs && g.Senate.MayPropose(g.W, h.Id));
+        g.Senate.Add(g.W, other.Id, "act", "", lawId: law.Id, lawOption: law.Options.First(o => o.Id != act).Id);
+        Assert.True(g.Told($"{other.Name} has moved the repeal of")); Assert.Equal(regard, g.Regard(theirs));
+        Assert.DoesNotContain(g.W.WorldCounters.Keys, k => k.StartsWith(VoteMarks.RepealPrefix, StringComparison.Ordinal));
+        var (g2, theirs2, _, _, _, _) = RepealPromised(); g2.W.Wars.Add(new War { HouseA = g2.Mine.Id, HouseB = theirs2.Id, Since = g2.W.Turn }); Session(g2);
+        Assert.True(g2.Told($"You are at war with {theirs2.Name}: your word to move the repeal of"));
+        Assert.DoesNotContain(g2.W.WorldCounters.Keys, k => k.StartsWith(VoteMarks.RepealPrefix, StringComparison.Ordinal));
+    }
+
+    // ------------------------------------------------------------------ the feast: recognised_by_the_senate/a_feast
+
+    [Fact]
+    public void Recognised_AFeastForTheHousesThatVotedIt_TheirHeadsThinkThreeTheBetterOfYou_AndYourNextCountHasIt_AcrossASaveAndALoad()
+    {
+        var g0 = Start(); var others = Others(g0); var mover = others.First(h => g0.Senate.MayPropose(g0.W, h.Id)); var no = others.Last(h => h != mover);
+        foreach (var h in others) g0.W.Relationship(g0.HeadOf(h).Id, g0.Me.Id).Disposition = 17;
+        var m = g0.Senate.Add(g0.W, mover.Id, "recognition", g0.Mine.Id); Only(g0, m);
+        foreach (var h in others.Where(h => h != mover)) Leans(g0, m, h, h == no ? -2 : 2); IVote(g0, m, 1);
+        Session(g0); Assert.True(m.Passed); Assert.True(g0.W.HasFlag("recognised")); Only(g0);
+        var ayes = others.Where(h => m.Votes.GetValueOrDefault(h.Id) > 0).ToList(); Assert.Contains(mover, ayes); Assert.DoesNotContain(no, ayes);
+        var aye = ayes.First(h => h != mover); var next = IMove(g0); Leans(g0, next, aye, 0); Only(g0, next);   // your next motion, on which it leans neither way at 17
+        Choose(g0, ReportOf(g0, "recognised_by_the_senate"), "a_feast");
+        foreach (var h in ayes) Assert.Equal(17 + VoteMarks.FeastRegard, g0.Regard(h)); Assert.Equal(17, g0.Regard(no));
+        Assert.True(g0.Told("The houses that voted the recognition dined at your table"));
+        var g = Reload(g0); next = g.W.Motions.First(x => x.Id == next.Id);
+        Assert.Equal(1, g.Senate.Lean(g.W, next, aye.Id)); Assert.Contains(g.Senate.Why(g.W, next, aye.Id), x => x.why.StartsWith("what its head thinks of") && x.by == 1);
+        Session(g);
+        Assert.Equal(1, next.Votes[aye.Id]);   // a Senate that remembers the wine
+    }
+
+    // ------------------------------------------------------------------ the names written down: censured/remember_who_voted, the_motion_thrown_out/note_who_voted
+
+    [Fact]
+    public void Censured_WriteDownEveryName_EachHouseThatVotedForItIsWrittenOnItsPage_AcrossASaveAndALoad()
+    {
+        var g0 = Start(); var others = Others(g0); var mover = others.First(h => g0.Senate.MayPropose(g0.W, h.Id));
+        var friends = others.Where(h => h != mover).Take(2).ToList();   // two stand with you
+        var m = g0.Senate.Add(g0.W, mover.Id, "censure", g0.Mine.Id); Only(g0, m);
+        foreach (var h in others.Where(h => h != mover)) Leans(g0, m, h, friends.Contains(h) ? -2 : 2); IVote(g0, m, -1);
+        Session(g0); Assert.True(m.Passed); Assert.True(g0.W.HasFlag("censured"));
+        var ayes = others.Where(h => m.Votes.GetValueOrDefault(h.Id) > 0).ToList(); Assert.Contains(mover, ayes);
+        Choose(g0, ReportOf(g0, "censured"), "remember_who_voted");
+        Assert.True(g0.Told("You wrote down the houses that voted for the censure of your house"));
+        var g = Reload(g0); int year = m.ResolvedTurn;
+        foreach (var h in ayes) Assert.Contains(g.Tc.Dealings.Lasting(g.W, g.Mine, g.W.House(h.Id)!), l => l.text == $"It voted for the censure of your house in year {year}, and you wrote the name down.");
+        foreach (var h in friends) Assert.DoesNotContain(g.Tc.Dealings.Lasting(g.W, g.Mine, g.W.House(h.Id)!), l => l.text.Contains("you wrote the name down"));
+    }
+
+    /// <summary>Your motion thrown out: every other house against it but one, the first by name leaning only one against.</summary>
+    private static (G g, Motion thrown, List<House> noes, House aye) ThrownOut(ulong seed = 7)
+    {
+        var g = Start(seed); var others = Others(g); var mine = IMove(g); var aye = others.Last(); var noes = others.Where(h => h != aye).ToList();
+        foreach (var h in others) Leans(g, mine, h, h == aye ? 1 : -3);
+        Only(g, mine); Session(g); Assert.False(mine.Passed); Assert.True(g.W.HasFlag("motion_failed_mine")); Only(g);
+        return (g, mine, noes, aye);
+    }
+
+    [Fact]
+    public void TheMotionThrownOut_WriteDownEveryName_EachHouseThatVotedItDownIsWrittenOnItsPage()
+    {
+        var (g, thrown, noes, aye) = ThrownOut(); Choose(g, ReportOf(g, "the_motion_thrown_out"), "note_who_voted");
+        foreach (var h in noes) Assert.Contains(g.Tc.Dealings.Lasting(g.W, g.Mine, h), l => l.text == $"It voted your motion down in year {thrown.ResolvedTurn}, and you wrote the name down.");
+        Assert.DoesNotContain(g.Tc.Dealings.Lasting(g.W, g.Mine, aye), l => l.text.Contains("you wrote the name down"));
+    }
+
+    [Fact]
+    public void TheMotionThrownOut_StandTheChamberARound_EveryHouseThatVotedItDownLeansOneYourWayAtYourNextCount_SoItIsCloser_ThenItIsSpent_AcrossASaveAndALoad()
+    {
+        var (g0, _, noes, _) = ThrownOut(); var near = noes[0]; var far = noes[1];
+        var next0 = NextMotion(g0, near, -1); Leans(g0, next0, far, -3); Only(g0, next0);   // your next motion, moved the same year
+        int credits = g0.Mine.Treasury.Credits; Choose(g0, ReportOf(g0, "the_motion_thrown_out"), "buy_the_house_a_round");
+        Assert.Equal(credits - 3, g0.Mine.Treasury.Credits); Assert.True(g0.Told("You stood the chamber a round"));
+        var g = Reload(g0); var next = g.W.Motions.First(x => x.Id == next0.Id);
+        foreach (var h in noes) Assert.Equal(VoteMarks.RoundBy, By(g, next, h, "you stood the chamber a round"));
+        Assert.Equal(0, g.Senate.Lean(g.W, next, near.Id)); Assert.Equal(-2, g.Senate.Lean(g.W, next, far.Id));
+        Session(g);
+        Assert.Equal(0, next.Votes[near.Id]); Assert.Equal(-1, next.Votes[far.Id]);   // the one a round could bring over stays away: the count is closer by its seats
+        Assert.Equal(AgainstWeight(g, next), next.AgainstWeight);
+        Assert.DoesNotContain(g.W.WorldCounters.Keys, k => k.StartsWith(VoteMarks.RoundPrefix, StringComparison.Ordinal));   // spent on that count
+    }
+
+    [Fact]
+    public void TheMotionThrownOut_ARoundStoodAndNoMotionAfterIt_IsForgottenAfterThreeYears_WithANotice()
+    {
+        var (g, _, _, _) = ThrownOut(); Choose(g, ReportOf(g, "the_motion_thrown_out"), "buy_the_house_a_round"); int since = g.W.Turn;
+        for (int i = 1; i < VoteMarks.RoundYears; i++) { Session(g); Only(g); }
+        Assert.Contains(g.W.WorldCounters.Keys, k => k.StartsWith(VoteMarks.RoundPrefix, StringComparison.Ordinal));
+        Session(g);
+        Assert.DoesNotContain(g.W.WorldCounters.Keys, k => k.StartsWith(VoteMarks.RoundPrefix, StringComparison.Ordinal));
+        Assert.True(g.Told($"The round you stood the chamber in year {since} is forgotten"));
+    }
+
+    // ------------------------------------------------------------------ a name in commerce: a_name_in_commerce, lend_where_it_matters, DealingsSystem.LendSays
+
+    [Fact]
+    public void ANameInCommerce_LendWhereItMatters_LendsToTheTwoWeightiestHousesShortOfCoin_AtNoInterest_AndTheyLeanYourWayOnEveryDivision_AcrossASaveAndALoad()
+    {
+        var g0 = Start(); var others = Others(g0); foreach (var h in others) h.Treasury.Credits = 50;
+        var poor = others.Where(h => DealingsSystem.LoanOwedBy(g0.W, h.Id) == null).OrderByDescending(h => h.SphereInfluence.GetValueOrDefault("senate") + Praetoria.Core.Progression.Title.RankOf(h.Title)).ThenBy(h => h.Id, StringComparer.Ordinal).Take(3).ToList();
+        foreach (var h in poor) { h.Treasury.Credits = 2; g0.W.Relationship(g0.HeadOf(h).Id, g0.Me.Id).Disposition = 0; }   // three with seats and no coin: the two weightiest are lent to
+        g0.W.WorldFlags.Add(OrderSystem.GreatFlag(OrderSystem.Commerce));   // the house is counted great in commerce
+        int credits = g0.Mine.Treasury.Credits; Choose(g0, ReportOf(g0, "a_name_in_commerce"), "lend_where_it_matters");
+        foreach (var h in poor.Take(2)) { var loan = DealingsSystem.LoanBetween(g0.W, g0.Mine.Id, h.Id)!; Assert.Equal(VoteMarks.LendEach, loan.Lent); Assert.Equal(0, loan.RatePct); Assert.Equal(VoteMarks.LendEach, loan.Owed); }
+        Assert.Null(DealingsSystem.LoanBetween(g0.W, g0.Mine.Id, poor[2].Id)); Assert.Equal(credits - 6, g0.Mine.Treasury.Credits);
+        Assert.True(g0.Told("at no interest"));
+        var g = Reload(g0); var debtor = g.W.House(poor[0].Id)!;
+        // on a motion you neither move nor are named in, once you have voted, the debtor leans your way by two, and the count follows
+        var mover = Others(g).First(h => h.Id != poor[0].Id && h.Id != poor[1].Id); var m = Moves(g, mover); IVote(g, m, -1);
+        Assert.Equal(-2, By(g, m, debtor, "it is in your debt")); Assert.Contains(g.Senate.Why(g.W, m, debtor.Id), x => x.why.StartsWith("it leans the way you vote: ") && x.why.Contains("it is in your debt"));
+        Leans(g, m, debtor, -1);   // for it by one of itself, against it by your two
+        Session(g); Assert.Equal(-1, m.Votes[debtor.Id]);
+    }
+
+    [Fact]
+    public void ANameInCommerce_AHouseHoldingATenthOfACompanyYouControlLeansYourWay_OneHoldingLessDoesNot()
+    {
+        var g = Start(); var others = Others(g).Where(h => OrderSystem.Sway(g.W, h, g.Mine).lean == 0).ToList(); var holder = others[0]; var small = others[1];
+        g.W.Companies.Add(new Company { Id = "test_company", Name = "Test Company", ControllerId = g.Mine.Id, Shares = 100, Holders = { [g.Mine.Id] = 51, [holder.Id] = 10, [small.Id] = 9 } });
+        var m = Moves(g, others[2]); IVote(g, m, 1);
+        Assert.Equal(1, By(g, m, holder, "it leans the way you vote: it holds a tenth of a company you control")); Assert.Equal(0, By(g, m, small, "it holds a tenth"));
+        Leans(g, m, holder, 0); Session(g); Assert.Equal(0, m.Votes[holder.Id]);
+    }
+
+    [Fact]
+    public void ALoanFromTheHouseWindow_WhileItOwesYouTheBorrowerLeansYourWay_OnWhatYouMoveAndOnEveryOtherDivision()
+    {
+        var g = Start(); House? them = null;
+        foreach (var h in Others(g)) { int was = h.Treasury.Credits; h.Treasury.Credits = 2; if (new DealingsCommand(g.Me.Id, DealingsCommand.Lend, h.Id, g.Tc.Dealings, "5", 10).Refusal(g.Ctx) == null) { them = h; break; } h.Treasury.Credits = was; }
+        Assert.NotNull(them); Assert.Contains("While it owes you it leans your way in the chamber", g.Tc.Dealings.LendSays(g.W, them!, 5, 10));
+        Assert.True(g.Do(new DealingsCommand(g.Me.Id, DealingsCommand.Lend, them!.Id, g.Tc.Dealings, "5", 10)));
+        var mover = Others(g).First(h => h != them); var m = Moves(g, mover); IVote(g, m, 1);
+        Assert.Equal(2, By(g, m, them, "it is in your debt")); Leans(g, m, them, 1);
+        Session(g); Assert.Equal(1, m.Votes[them.Id]);
+        Only(g); var mine = IMove(g); Assert.Contains(g.Senate.Why(g.W, mine, them.Id), x => x.why.StartsWith("it depends on") && x.by == 2);
+    }
+
+    // ------------------------------------------------------------------ the corner: the_corner, OrderSystem.Sway
+
+    [Fact]
+    public void TheCorner_FleetsThatLoadTorpedoesFromYourIsotopesOrBurnYourFuelLeanYourWay_ARareEarthCornerLeansNobody()
+    {
+        var g = Start(); g.Mine.Corners.Clear();
+        var them = Others(g).First(h => g.W.Fleets.Values.Any(f => f.OwnerId == h.Id) && !h.Corners.Any() && OrderSystem.Sway(g.W, h, g.Mine).lean == 0);
+        var mine = IMove(g); Leans(g, mine, them, 0); Only(g, mine);
+        foreach (var f in g.W.Fleets.Values.Where(f => f.OwnerId == them.Id)) f.Loadout = "guns";
+        g.Mine.Corners.Clear(); g.Mine.Corners.Add(Resource.Isotopes);
+        Assert.Equal(0, g.Senate.Lean(g.W, mine, them.Id));   // guns: nothing of yours in its magazines
+        g.W.Fleets.Values.First(f => f.OwnerId == them.Id).Loadout = "torpedoes";
+        Assert.Contains("its fleets arm from that house's isotopes", OrderSystem.Sway(g.W, them, g.Mine).why); Assert.Equal(1, g.Senate.Lean(g.W, mine, them.Id));
+        g.Mine.Corners.Clear(); g.Mine.Corners.Add(Resource.RareEarths); Assert.Equal(0, g.Senate.Lean(g.W, mine, them.Id));   // rare earths go into a hull once
+        g.Mine.Corners.Clear(); g.Mine.Corners.Add(Resource.Helium3); Assert.Contains("its fleets burn that house's fuel", OrderSystem.Sway(g.W, them, g.Mine).why);
+        g.W.WorldFlags.Add(OrderSystem.CornerFlag); Choose(g, ReportOf(g, "the_corner"), "remember_who_asks");
+        Session(g); Assert.Equal(1, mine.Votes[them.Id]);
+    }
+
+    // ------------------------------------------------------------------ the chancellor: the_chancellors_voice/ask_to_be_asked
+
+    [Fact]
+    public void TheChancellorsVoice_AskToBeAsked_TheNextDoubtfulVoteIsBroughtToYouBeforeItIsDeclared_AndTheRestAreDeclaredAsBefore()
+    {
+        var g = Start(); var others = Others(g);
+        var k = HouseholdSystem.Eligible(g.W, g.Mine).FirstOrDefault(c => HouseholdSystem.AssignRefusal(g.W, g.Me, HouseholdSystem.Chancellor, c) == null);
+        if (k == null) { k = new Character { Id = "kin_chancellor", Name = "Test Chancellor", HouseId = g.Mine.Id, Age = 30, Sex = "female", CareerTrack = "law" }; g.W.Characters[k.Id] = k; g.Mine.Members.Add(k.Id); g.W.Pools[k.Id] = ActionPools.ForNpc(); g.W.Relationship(k.Id, g.Me.Id).Disposition = 40; }
+        var give = new DelegateCommand(g.Me.Id, HouseholdSystem.Chancellor, k.Id, 0); Assert.True(g.Do(give), give.Refusal(g.Ctx));
+        // a year: the chancellor declares what you left alone, and the report comes
+        var first = Moves(g, others[0]); g.W.Turn++; g.Tc.Household.Tick(g.W, g.Tc.Executor, g.Ctx);
+        Assert.True(first.Votes.ContainsKey(g.Mine.Id)); Assert.True(g.W.HasFlag(HouseholdSystem.ChancellorVotedFlag));
+        g.Senate.Tick(g.W); Only(g);
+        Choose(g, ReportOf(g, "the_chancellors_voice"), "ask_to_be_asked"); Assert.True(g.W.HasFlag(HouseholdSystem.AskFirstFlag));
+        // the session that hears the next year's business: one motion the house leans hard on, one it leans on by a single point
+        var clear = g.Senate.Add(g.W, others[1].Id, "levy", ""); var doubtful = g.Senate.Add(g.W, others[2].Id, "relief", g.W.Galaxy!.Regions.OrderBy(r => r.Id, StringComparer.Ordinal).First().Id);
+        Leans(g, clear, g.Mine, -3); Leans(g, doubtful, g.Mine, 1); g.W.News.Clear();
+        g.Senate.Tick(g.W); Only(g, clear, doubtful);
+        Assert.True(g.Told($"{k.Name}, your chancellor, brings the vote on this motion to you before declaring it, as you asked")); Assert.True(g.Told("the house leans a little for it"));
+        Assert.False(g.W.HasFlag(HouseholdSystem.AskFirstFlag));   // the next doubtful vote: one
+        g.W.Turn++; g.Tc.Household.Tick(g.W, g.Tc.Executor, g.Ctx);
+        Assert.Equal(-1, clear.Votes[g.Mine.Id]); Assert.False(doubtful.Votes.ContainsKey(g.Mine.Id));   // declared as before; and the doubtful one left for you
+        Assert.Contains("brought the doubtful one to you", g.Mine.Duty(HouseholdSystem.Chancellor)!.LastReport);
+        IVote(g, doubtful, -1); g.Senate.Tick(g.W);
+        Assert.True(doubtful.Resolved); Assert.Equal(-1, doubtful.Votes[g.Mine.Id]);
+    }
+
+    // ------------------------------------------------------------------ blood: blood_on_our_hands
+
+    [Fact]
+    public void BloodOnOurHands_TheHouseYouOweBloodToOwesYouNothingInTheSenate_ItsFavourIsNoVote_CannotBeCalled_AndGoesAtTheYearsEnd_AcrossASaveAndALoad()
+    {
+        var g0 = Start(); g0.Mine.Treasury.Credits = 5000; var theirs = Small(g0)[0]; Gives(g0, theirs);
+        var victim = g0.W.LivingCharacters().First(c => c.HouseId == theirs.Id && c.Id != g0.HeadOf(theirs).Id && c.Age >= DynastySystem.AgeOfMajority);
+        Assert.NotNull(FeudSystem.Blood(g0.W, victim, g0.Mine.Id, g0.Me.Id, "hand")); DynastySystem.Die(g0.W, victim.Id);
+        Choose(g0, ReportOf(g0, "blood_on_our_hands"), "shrug");
+        var g = Reload(g0); var mine = IMove(g); Leans(g, mine, theirs, -1);
+        Assert.False(g.Senate.Owes(g.W, mine, theirs.Id)); Assert.Equal(-1, g.Senate.Stance(g.W, mine, theirs.Id));   // the whip count: no vote owed
+        Assert.Contains(g.Senate.Why(g.W, mine, theirs.Id), x => x.why.StartsWith("there is blood between it and") && x.by == -FeudSystem.LeanBy);
+        var call = new DealingsCommand(g.Me.Id, DealingsCommand.CallVote, theirs.Id, g.Tc.Dealings, mine.Id); Assert.Equal("there is blood between your houses: they owe you nothing in the Senate", call.Refusal(g.Ctx));
+        Session(g); Assert.Equal(-1, mine.Votes[theirs.Id]);
+        WealthSystem.Tick(g.W);
+        Assert.False(WealthSystem.FavourOwed(g.W, theirs.Id, g.Mine.Id)); Assert.True(g.Told($"There is blood between your house and {theirs.Name}: it owes you nothing in the Senate now"));
+    }
+
+    // ------------------------------------------------------------------ the whip count's favour: SenateSystem.Why, WealthSystem.FavourLean
+
+    [Fact]
+    public void TheWhipCount_AFavourOwedBetweenTwoOtherHouses_IsTheTwoInTheLeanAndTheCount_AndNothingAcrossBlood()
+    {
+        var g = Start(); var o = Others(g); var owes = o[0]; var mover = o.First(h => h != owes && g.Senate.MayPropose(g.W, h.Id));
+        g.W.Relationship(g.HeadOf(owes).Id, g.HeadOf(mover).Id).Disposition = 50;   // so that the blood below leaves what its head thinks of the mover worth what it was
+        WealthSystem.OweFor(g.W, owes.Id, mover.Id);
+        var m = Moves(g, mover); Leans(g, m, owes, 1);   // for it by one: against it by one without the favour
+        Assert.Contains(g.Senate.Why(g.W, m, owes.Id), x => x.why == $"it owes {mover.Name} a favour" && x.by == WealthSystem.FavourLeanBy);
+        Assert.Equal(g.Senate.Lean(g.W, m, owes.Id), g.Senate.Why(g.W, m, owes.Id).Sum(x => x.by));
+        Session(g); Assert.Equal(1, m.Votes[owes.Id]);
+        // a second favour, and blood between them: the favour leans nothing
+        Only(g); WealthSystem.OweFor(g.W, owes.Id, mover.Id); var n = Moves(g, mover); Leans(g, n, owes, 1);
+        var victim = g.W.LivingCharacters().First(c => c.HouseId == owes.Id && c.Id != g.HeadOf(owes).Id && c.Age >= DynastySystem.AgeOfMajority);
+        FeudSystem.Blood(g.W, victim, mover.Id, g.HeadOf(mover).Id, "hand"); DynastySystem.Die(g.W, victim.Id);
+        Assert.DoesNotContain(g.Senate.Why(g.W, n, owes.Id), x => x.why.StartsWith("it owes"));
+        Assert.Equal(1 - WealthSystem.FavourLeanBy - FeudSystem.LeanBy, g.Senate.Lean(g.W, n, owes.Id));
+    }
+
+    // ------------------------------------------------------------------ threats: DealingsSystem.ThreatSays, DealingsSystem.Threat
+
+    [Fact]
+    public void YourThreat_AHouseAfraidOfYouThatTookGoldToVoteAgainstYourWar_StaysAway_ItDoesNotVoteAgainstWhatYouMove()
+    {
+        var g = Start(); var them = g.W.House("ashgrove")!; Assert.Equal(0, FleetSystem.StrengthOf(g.W, them.Id));
+        if (FleetSystem.StrengthOf(g.W, g.Mine.Id) < DealingsSystem.ThreatOdds) g.W.Fleets.Values.First(f => f.OwnerId == g.Mine.Id).Strength = 5;
+        var threat = new DealingsCommand(g.Me.Id, DealingsCommand.Threat, them.Id, g.Tc.Dealings); Assert.True(g.Do(threat), threat.Refusal(g.Ctx));
+        Assert.True(PolitySystem.Cowed(g.W, them, g.Mine)); Assert.Contains("it does not vote against what you move", g.Tc.Dealings.ThreatSays(g.W, g.Mine, them));
+        var war = IMove(g, "foreign_war", "thessar"); Only(g, war);
+        for (int i = 0; i < 4 && g.Senate.Lean(g.W, war, them.Id) != 2; i++) war.Lobby[them.Id] = war.Lobby.GetValueOrDefault(them.Id) + 2 - g.Senate.Lean(g.W, war, them.Id);
+        Assert.Equal(2, g.Senate.Lean(g.W, war, them.Id));   // of itself it is for the war (a lean against what you move it would not show: it is afraid of you)
+        var head = g.HeadOf(them); var o = new GoldOffer { Id = "gold_test", NationId = "thessar", WarOnId = "thessar", NationName = "the Free Cities of Thessar", WarOnName = "the Free Cities of Thessar", MotionId = war.Id, HouseId = them.Id, CharacterId = head.Id, Ask = ForeignGoldSystem.Against, Sum = 20, Turn = g.W.Turn, Before = 1, Seats = g.Senate.Weight(g.W, them.Id) };
+        g.W.GoldOffers.Add(o); ForeignGoldSystem.Answer(g.W, o, ForeignGoldSystem.Take);   // it takes the gold to vote against your war
+        var why = g.Senate.Why(g.W, war, them.Id);
+        Assert.Contains(why, x => x.why.Contains("taken gold to vote against")); Assert.Contains(why, x => x.why.StartsWith("it is afraid of"));
+        Assert.Equal(0, g.Senate.Lean(g.W, war, them.Id));
+        Session(g); Assert.True(war.Resolved && !war.Vetoed); Assert.Equal(0, war.Votes[them.Id]);
+    }
+
+    [Fact]
+    public void ThreatenedByAHouse_VotingAgainstWhatItMovesCostsTen_ForTheThreatsYears_EvenOnceYouHaveMoreThanHalfItsHulls()
+    {
+        var g = Start(); var them = g.W.House("aurelian")!; foreach (var f in g.W.Fleets.Values.Where(f => f.OwnerId == them.Id)) f.Strength = 40;
+        g.Tc.Dealings.Threat(g.W, them, g.Mine); Assert.True(g.Told("Vote against what it moves and it will be remembered"));
+        g.W.Fleets.Values.First(f => f.OwnerId == g.Mine.Id).Strength += FleetSystem.StrengthOf(g.W, them.Id);   // your fleets grow: you are not afraid of it now
+        Assert.False(PolitySystem.Cowed(g.W, g.Mine, them));
+        Assert.Contains(g.Tc.Dealings.Lasting(g.W, g.Mine, them), l => l.text == $"It threatened you in year {g.W.Turn}. Until year {g.W.Turn + DealingsSystem.CowedYears}, vote against what it moves and its head thinks -10 of you.");
+        var m = Moves(g, them); IVote(g, m, -1); int regard = g.Regard(them);
+        Session(g);
+        Assert.Equal(regard - DealingsSystem.DefiedRegard, g.Regard(them)); Assert.True(g.Told($"You voted against the motion of {them.Name}, which had told you what its fleets could do"));
+    }
+
+    // ------------------------------------------------------------------ foreign gold shown to the chamber: ForeignGoldSystem.Answer
+
+    [Fact]
+    public void ForeignGoldShownToTheChamber_EveryHouseLeansOneMoreForTheWar_AndTheCountHasIt()
+    {
+        var g = Start(); var o = Others(g); var mover = o.First(h => g.Senate.MayPropose(g.W, h.Id)); var teller = o.First(h => h != mover); var waverer = o.First(h => h != mover && h != teller);
+        var war = Moves(g, mover, "foreign_war", "thessar"); Leans(g, war, waverer, 0);
+        var before = o.ToDictionary(h => h.Id, h => g.Senate.Lean(g.W, war, h.Id));
+        var offer = new GoldOffer { Id = "gold_shown", NationId = "thessar", WarOnId = "thessar", NationName = "the Free Cities of Thessar", WarOnName = "the Free Cities of Thessar", MotionId = war.Id, HouseId = teller.Id, CharacterId = g.HeadOf(teller).Id, Ask = ForeignGoldSystem.Against, Sum = 20, Turn = g.W.Turn, Before = 1, Seats = g.Senate.Weight(g.W, teller.Id) };
+        g.W.GoldOffers.Add(offer); ForeignGoldSystem.Answer(g.W, offer, ForeignGoldSystem.Expose);
+        Assert.True(g.Told($"of {teller.Name} has told the Senate of the gold") && g.Told("The chamber leans the more for the war."));
+        foreach (var h in o) Assert.Equal(before[h.Id] + ForeignGoldSystem.ExposeAnger, g.Senate.Lean(g.W, war, h.Id));
+        Session(g); Assert.Equal(1, war.Votes[waverer.Id]);
+    }
+
+    // ------------------------------------------------------------------ the squares: the_squares_turn_on_the_magistrates/call_for_the_accounts_to_be_opened
+
+    [Fact]
+    public void TheSquaresTurn_CallingForTheAccounts_IsACallFromTheFloor_NotAMotionCarried_AndNoMotionIsCounted()
+    {
+        var g = Start(); g.W.WorldFlags.Add("trust_collapsed"); int motions = g.W.Motions.Count;
+        Choose(g, ReportOf(g, "the_squares_turn_on_the_magistrates"), "call_for_the_accounts_to_be_opened");
+        Assert.Equal(motions, g.W.Motions.Count);
+        Assert.Contains(g.W.History, h => h.Text.Contains("called for the accounts of every sitting magistrate to be laid open"));
+        Assert.DoesNotContain(g.W.History, h => h.Text.Contains("It carried"));
     }
 }

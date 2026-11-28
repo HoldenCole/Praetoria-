@@ -31,6 +31,11 @@
           "id": "note_who_voted",
           "effects": [
             {
+              "type": "setWorldFlag",
+              "flag": "names_of_the_noes",
+              "value": true
+            },
+            {
               "type": "adjustCounter",
               "key": "senate_influence",
               "delta": 1
@@ -49,6 +54,11 @@
         {
           "id": "buy_the_house_a_round",
           "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "a_round_stood",
+              "value": true
+            },
             {
               "type": "adjustResource",
               "resource": "credits",

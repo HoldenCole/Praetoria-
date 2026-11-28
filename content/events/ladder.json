@@ -1324,7 +1324,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} moved that the accounts of every sitting magistrate be laid on the table. It carried, because nobody dared be seen to vote against it. A good many senators have not spoken to {self.name} since."
+              "text": "{self.name} rose in the Senate and called for the accounts of every sitting magistrate to be laid open. Nobody dared be seen to speak against it, and the squares heard who had asked. A good many senators have not spoken to {self.name} since."
             }
           ],
           "requires": [

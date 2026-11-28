@@ -87,10 +87,10 @@
     {
       "id": "a_name_in_commerce",
       "title": "A Name in Commerce",
-      "body": "The house is now counted great in commerce: by its wealth, its ventures and its paper. Its voice in the Senate is larger for it, and every house that owes it or holds its shares leans its way when the chamber divides.",
+      "body": "The house is now counted great in commerce: by its wealth, its ventures and its paper. Its voice in the Senate is larger for it, and every house that owes it, or holds a tenth or more of a company it controls, leans its way when the chamber divides.",
       "choices": {
         "stay_in_the_counting_house": "Go on as before.",
-        "lend_where_it_matters": "Lend to houses with seats and no coin."
+        "lend_where_it_matters": "Lend to houses with seats and no coin: 600 credits, at no interest."
       }
     },
     {
@@ -132,7 +132,7 @@
     {
       "id": "the_corner",
       "title": "A Quarter of the Reach's Supply",
-      "body": "A quarter or more of what the Reach brings up of a strategic good now comes from the house's own works. Every fleet that burns it or arms from it depends on the house a little, and their owners know it when the chamber divides.",
+      "body": "A quarter or more of what the Reach brings up of a strategic good now comes from the house's own works. Every fleet that burns it or loads its torpedoes from it depends on the house a little, and their owners know it when the chamber divides. Rare earths go into a hull once, as it is built, and leave no fleet depending on the house after.",
       "choices": {
         "sell_to_all_comers": "Sell to all comers at the market's price.",
         "remember_who_asks": "Keep a list of who depends on it."

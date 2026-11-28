@@ -728,6 +728,11 @@
           "effects": [
             {
               "type": "setWorldFlag",
+              "flag": "chancellor_asks_first",
+              "value": true
+            },
+            {
+              "type": "setWorldFlag",
               "flag": "chancellor_voted",
               "value": false
             },

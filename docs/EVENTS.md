@@ -69,7 +69,14 @@ kind, in the pattern of the existing `Mark()` moments.
   open while `bloc_can_grow`) and `helping_a_client` (*A Client Asks*, open while `client_to_help`) make a house owe yours a vote,
   chosen by the engine, not by a new role; `splitting_the_bench` (*Across the Aisle*, open while `bench_can_be_split`) declares the
   bench's weakest member against the motion; `faction_against_me` is written with the docket, for a motion that strikes at you and
-  would carry; your clients and patron lean the way you vote on every division.
+  would carry; your clients and patron lean the way you vote on every division. The other group (2026-11-28): `against_yours`
+  marks a head whose house leans against your motion, read by *An Old Grudge Against Your Motion*, and it and `undecided_on_yours`
+  are written again as the year's reports are chosen (`VoteMarks.Leanings`); `voted_your_recognition` and `voted_your_censure` mark
+  who voted a motion that named your house; `feasting_the_ayes` (*Recognised*), `a_round_stood` and `names_of_the_noes` (*The Motion
+  Thrown Out*), `names_of_the_censure` (*The Censure Carries*, in place of the unread `grudge_list`), `promised_repeal` (*The
+  Senate's Act Falls on a Friend*), `lending_where_it_matters` (*A Name in Commerce*) and `chancellor_asks_first` (*The
+  Chancellor's Voice*) are each made what the words say (`VoteMarks.Answers`, `HouseholdSystem.BringUpstairs`); every house that
+  depends on yours leans the way you vote; blood is as war for a favour.
 - **Family** (`DynastySystem`, `CourtshipSystem`, `HouseholdSystem`): `born_to_the_house`, `schooling_begins` (a child of six),
   `kin_came_of_age` (sixteen), `grandchild_of_the_head`; `in_law` on the head of your spouse's family; `wedding_remembered` every
   tenth year of your marriage; `left_unpaid` on someone who leaves the household unpaid. In review: `chose_own_road` on one who comes

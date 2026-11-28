@@ -424,6 +424,11 @@ count, forecast, tally and count alike; docs/events/votes.md, "Promises"):
   waits for your next motion, and you are told.
 - **A favour lapses** after eight years, as before, and also at once if the two houses are at war, or either is gone,
   with a notice that says why, for what is owed to you and what you owe.
+- **Blood is as war for a favour** (2026-11-28, the other group; `WealthSystem.Apart`). A house with blood between it and
+  yours "owes you nothing in the Senate" (*A Death Counted Against Us*): from the day of the killing its favour is no vote
+  for your motion, no lean between other houses, and cannot be called in on the house window ("there is blood between your
+  houses: they owe you nothing in the Senate"), and at the year's end it lapses, both ways, with a notice. No new bargain is
+  struck with a house you have blood with (`VoteMarks.Standing`).
 - **A bench does not follow its leader's owed vote**, as it does not follow a bought one: the forecast and the count agree.
 - **A favour you owe** is not called in on a motion that strikes at your house, nor between houses at war; on a motion
   moved at your asking (asking your patron to move it) it waits for that house's own next motion; and you are reminded
@@ -478,14 +483,21 @@ A house threatened inside the last ten years by one that still has twice its hul
   player's house is never taken out of the Reach this way.
 
 The player's house votes as it pleases, afraid or not. If it votes against a motion moved by a house that had
-threatened it, that head thinks 10 worse of it.
+threatened it, that head thinks 10 worse of it, for the ten years of the threat, whatever the fleets are by then
+(2026-11-28: the threat said "it will be remembered" and the house page "its head thinks -10 of you", and the -10 had
+needed the threatener still to have twice your hulls; the house page now says until which year).
+
+A threatened house's fear is the last thing reckoned in its lean (`SenateSystem.LeanNow`), so nothing after it, such as gold
+from beyond the Reach taken to vote against a war you moved, has it vote against what you move: it stays away.
 
 ### A loan, year by year
 
 - The instalment is paid out of the borrower's treasury into the lender's when the year's books are done. It is a
   line in both ledgers ("instalment from House Wren"), and the line is there only if the borrower has the money as
   things stand.
-- While it owes you, the house leans your way in the chamber ("in its debt", worth 2).
+- While it owes you, the house leans your way in the chamber ("in its debt", worth 2): for what you move, against what
+  is moved at your house, and on every other division the way you vote, once you have voted (`SenateSystem.YourWay`,
+  2026-11-28; it had leaned nothing on a motion you neither moved nor were named in).
 - What is still owed counts in the lender's wealth and against the borrower's.
 - **If it cannot pay**, you are told, with what is still owed. On its page you may then (and not before):
   - **forgive the rest**: its head thinks 10 better of you and the house owes you a favour; or

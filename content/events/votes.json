@@ -1000,6 +1000,12 @@
               "value": true
             },
             {
+              "type": "charFlag",
+              "role": "rival",
+              "flag": "against_yours",
+              "value": true
+            },
+            {
               "type": "relationship",
               "from": "rival",
               "to": "self",
@@ -1173,7 +1179,20 @@
       "choices": [
         {
           "id": "promise_the_repeal",
+          "requires": [
+            {
+              "type": "worldFlag",
+              "flag": "no_seat",
+              "value": false
+            }
+          ],
           "effects": [
+            {
+              "type": "setCharFlag",
+              "role": "friend",
+              "flag": "promised_repeal",
+              "value": true
+            },
             {
               "type": "adjustRelationship",
               "from": "friend",

@@ -315,7 +315,12 @@ public static partial class WealthSystem
     /// <summary>A house that owes the proposer a favour leans its way: the favour is what the gift was for. Between two other
     /// houses only: a house that owes the player's house a favour does not lean, it votes (<see cref="VotesFor"/>), and the
     /// player's house votes as the player pleases.</summary>
-    public static int FavourLean(World w, string houseId, string proposerHouseId) => houseId != proposerHouseId && houseId != w.Protagonist?.HouseId && proposerHouseId != w.Protagonist?.HouseId && FavourOwed(w, houseId, proposerHouseId) ? FavourLeanBy : 0;
+    public static int FavourLean(World w, string houseId, string proposerHouseId) => houseId != proposerHouseId && houseId != w.Protagonist?.HouseId && proposerHouseId != w.Protagonist?.HouseId && FavourOwed(w, houseId, proposerHouseId) && !Apart(w, houseId, proposerHouseId) ? FavourLeanBy : 0;
+
+    /// <summary>Two houses with a war or blood between them (FeudSystem.Between): no favour between them is a vote, a lean or a call, and
+    /// it lapses at the year's end (<see cref="LapseFavours"/>). A house with blood against yours "owes you nothing in the Senate"
+    /// (content/text/feud.json, blood_on_our_hands), as an enemy at war does.</summary>
+    public static bool Apart(World w, string a, string b) => w.AtWar(a, b) || FeudSystem.Between(w, a, b);
 
     /// <summary>A motion that strikes at a house: a censure, an embargo, a break-up, a recall or a reconquest of it. No favour is
     /// called in on one, either way: a house is not asked to vote against itself for what it owes (docs/WEALTH.md, "A favour owed is a vote").</summary>
@@ -330,12 +335,12 @@ public static partial class WealthSystem
     {
         string? mine = w.Protagonist?.HouseId;
         return mine != null && m.ProposerHouseId == mine && houseId != mine && FavourOwed(w, houseId, mine) && !World.Outsider(houseId)
-            && w.House(houseId) != null && PolitySystem.InReach(w, houseId) && !w.AtWar(houseId, mine) && !StrikesAt(m, houseId, def);
+            && w.House(houseId) != null && PolitySystem.InReach(w, houseId) && !Apart(w, houseId, mine) && !StrikesAt(m, houseId, def);
     }
 
     /// <summary>The motion now before the Senate at whose count a favour this house owes that one would be called in, or null: that
     /// house's own, not one it moved at the asking of the house that owes (<see cref="Motion.MovedFor"/>), not one that strikes at it.</summary>
-    public static Motion? CalledOn(World w, string owerHouseId, string toHouseId) => w.AtWar(owerHouseId, toHouseId) ? null :
+    public static Motion? CalledOn(World w, string owerHouseId, string toHouseId) => Apart(w, owerHouseId, toHouseId) ? null :
         w.Motions.Where(m => m.Open && m.ProposerHouseId == toHouseId && m.MovedFor != owerHouseId && !StrikesAt(m, owerHouseId)).OrderBy(m => m.ProposedTurn).ThenBy(m => m.Id, StringComparer.Ordinal).FirstOrDefault();
 
     private static void Owe(World w, string owerHouseId, string toHouseId)
@@ -363,7 +368,7 @@ public static partial class WealthSystem
         {
             string ower = key[FavourPrefix.Length..^(proposer.Id.Length + 1)];
             if (proposer.Id == mine) { VotePaid(w, m, def, key, ower, proposer, votedFor); continue; }
-            if (m.MovedFor == ower || StrikesAt(m, ower, def) || w.AtWar(ower, proposer.Id)) continue;   // it waits for the proposer's own next motion, or goes with the war
+            if (m.MovedFor == ower || StrikesAt(m, ower, def) || Apart(w, ower, proposer.Id)) continue;   // it waits for the proposer's own next motion, or goes with the war or the blood
             w.WorldCounters.Remove(key); Count(w, FavoursCalledKey);
             if (ower != mine) continue;
             var theirs = Economy.HeadOf(w, proposer); var me = w.Protagonist; bool kept = m.Votes.TryGetValue(mine!, out int cast) && cast > 0;
@@ -475,8 +480,9 @@ public static partial class WealthSystem
         else { var suit = SuitBetween(w, mine.Id, theirs.Id)!; suit.Consent = Math.Clamp(suit.Consent + FavourConsent, 0, 100); Count(w, FavoursForMatchKey); w.Log($"{me.Name} calls in what {theirs.Name} owes: the family looks more kindly on the match."); }
     }
 
-    /// <summary>A favour nobody has called in is forgotten after <see cref="FavourYears"/> years; one between two houses at war is gone
-    /// with the war; one owed by or to a house that is no more is gone with it. The player is told of their own, and why.</summary>
+    /// <summary>A favour nobody has called in is forgotten after <see cref="FavourYears"/> years; one between two houses at war, or with
+    /// blood between them, is gone with the war or the blood; one owed by or to a house that is no more is gone with it. The player is
+    /// told of their own, and why.</summary>
     private static void LapseFavours(World w)
     {
         string? mine = w.Protagonist?.HouseId;
@@ -484,13 +490,14 @@ public static partial class WealthSystem
         {
             var parts = key[FavourPrefix.Length..].Split('>'); if (parts.Length != 2) continue;
             var ower = w.House(parts[0]); var owed = w.House(parts[1]);
-            bool gone = ower == null || owed == null, war = !gone && w.AtWar(parts[0], parts[1]), old = w.Turn - w.Counter(key) >= FavourYears;
-            if (!gone && !war && !old) continue;
+            bool gone = ower == null || owed == null, war = !gone && w.AtWar(parts[0], parts[1]), blood = !gone && !war && FeudSystem.Between(w, parts[0], parts[1]), old = w.Turn - w.Counter(key) >= FavourYears;
+            if (!gone && !war && !blood && !old) continue;
             w.WorldCounters.Remove(key); w.WorldCounters.Remove(DealingsSystem.CalledKey(parts[0], parts[1])); Count(w, FavoursLapsedKey);
             if (mine == null || (parts[0] != mine && parts[1] != mine)) continue;
             bool toMe = parts[1] == mine; var other = toMe ? ower : owed;
             string line = gone ? (toMe ? "A house that owed yours a favour is no more, and the favour is gone with it." : "A house your house owed a favour is no more, and the favour is gone with it.")
                 : war ? (toMe ? $"You are at war with {other!.Name}: the vote it owed your house will not be given, and the favour is gone." : $"You are at war with {other!.Name}: the favour your house owed it is gone.")
+                : blood ? (toMe ? $"There is blood between your house and {other!.Name}: it owes you nothing in the Senate now, and the vote it owed your house is gone." : $"There is blood between your house and {other!.Name}: the favour your house owed it is gone.")
                 : toMe ? $"What {other!.Name} owed your house has gone {Counted.Years(FavourYears)} unspent, and is forgotten." : $"What your house owed {other!.Name} has gone {Counted.Years(FavourYears)} uncalled, and is no longer spoken of.";
             w.Tell("info", line, "houses", other?.Id ?? ""); w.Log(line);
         }

@@ -7,7 +7,7 @@
       "choices": {
         "take_it_well": "Thank the chamber for its attention.",
         "note_who_voted": "Write down every name that voted it down.",
-        "buy_the_house_a_round": "Stand the chamber a round (300 credits)."
+        "buy_the_house_a_round": "Stand the chamber a round (300 credits). The houses that voted it down will lean your way at the count of your next motion."
       }
     },
     {

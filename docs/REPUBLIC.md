@@ -80,9 +80,11 @@ years. A house that brings up a quarter of the Reach's production of a strategic
   bench** (a head who is a Judge), **the sword** (great in Arms) or **the purse**: a house notable in Commerce
   pays the census 6,000 credits and is enrolled. Every house still votes.
 - **Sway.** A house leans toward whoever it depends on: +3 its patron, +2 its client, +2 its creditor, +1 a fellow
-  client, +1 the house whose helium-3 its fleets burn, +1 the director of a company it holds a tenth of; four at
-  most. Sway counts for a commission, a recognition or a peace for that house, for anything it moves (two at most),
-  and against a censure, embargo or break-up aimed at it. This is how a command is "bought": not with a purchase, with
+  client, +1 the house whose helium-3 its fleets burn, +1 the house whose isotopes its fleets load their torpedoes from
+  (2026-11-28), +1 the director of a company it holds a tenth of; four at most. Sway counts for a commission, a
+  recognition or a peace for that house, for anything it moves (two at most), and against a censure, embargo or break-up
+  aimed at it; and, for the player's house, on every other division the way the player votes (two at most; see "Promises
+  in the Senate", the other group). This is how a command is "bought": not with a purchase, with
   the votes of everyone who owes you.
 - **The obvious man.** For a commission the chamber leans +1 toward a house great in the post's order and −1 against a
   house of no account in it. A banker with no ships needs a lot of sway to be voted a fleet.
@@ -226,6 +228,29 @@ a promise:
   are moved, so *Across the Aisle* comes while the motion is before the Senate (it never came before). The report says each
   house of the bench leans the way its leader votes, two points, and votes the other way only for a reason of its own; finding
   its weakest member (the least weighty house of it that would vote for the motion) declares that house's vote against it.
+
+- **Everyone who depends on you leans the way you vote** (the other group, 2026-11-28; `SenateSystem.YourWay` now reads
+  `OrderSystem.Sway`, not only the patronage in it). A house in the player's debt (a bank debt or a house loan), one holding a
+  tenth of a company the player's house controls, one whose fleets burn the player's helium-3 or load their torpedoes from its
+  isotopes, and one holding a province under it, lean the way the player voted on every division, as a client does: what
+  *A Name in Commerce* ("every house that owes it, or holds a tenth or more of a company it controls, leans its way when the
+  chamber divides"), *A Quarter of the Reach's Supply* and the loan's line on the house page ("while it owes you it leans your
+  way in the chamber") say. At most two, a lean as before. A rare-earth corner sways nobody: rare earths go into a hull once,
+  and the report now says so.
+- **The lean marks are right when the report comes** (`VoteMarks.Leanings`, called with the docket and again by
+  `TurnController.BeginTurn` before the year's reports are chosen): who leans neither way on the player's motion
+  (`undecided_on_yours`) and who leans against it (`against_yours`, new). *The Vote Still Undecided* says they lean neither
+  way, and *An Old Grudge Against Your Motion* that the rival does lean against it, and a year's turn could have moved either.
+  A head's regard of the player's house is the player's own regard (`Economy.HeadOf` is the protagonist for the player's house),
+  so the reports that move what the doubter or the rival thinks of "you" move the lean.
+- **A round stood** after a motion thrown out (*The Motion Thrown Out*) has every house that voted it down lean one the
+  player's way at the count of the player's next motion, within three years (`VoteMarks.RoundLean`), with its line in the
+  whip count; then it is spent, or forgotten with a notice.
+- **A threatened house stays away last.** The fear of a house that threatened it is the last term of its lean, after gold
+  from beyond the Reach, so it never votes against what that house moves (DealingsSystem.ThreatSays).
+- **The chancellor asked to be asked** (*The Chancellor's Voice*) brings the next doubtful vote (one on which the house leans
+  within one of nothing) to the player at the session that puts it on the docket, with how the house leans, and does not
+  declare it; the rest it declares as before (`HouseholdSystem.BringUpstairs`).
 
 ## The lead of a bench by a contest (2026-11-21)
 

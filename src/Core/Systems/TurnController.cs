@@ -196,6 +196,7 @@ public sealed class TurnController
         Phase = TurnPhase.Briefing;
         _briefing.Clear();
         DynastySystem.MarkRanks(World);   // how long each has held the rank they hold, before the year's reports are chosen
+        VoteMarks.Leanings(World, _senate, World.Protagonist?.HouseId);   // who leans which way on the player's motion as the year opens, so a report that says so is right (docs/events/votes.md, "Promises")
         using (Perf.Time("begin:events"))
             foreach (var fired in Engine.SelectBriefing(World, _briefingBudget))
                 _briefing.Add(new BriefingItem(fired));

@@ -16,6 +16,8 @@ public sealed class DealingsSystem
     // what is remembered
     public const string GiftKind = "gift", FavourKeptKind = "favour_kept", FavourBrokenKind = "favour_broken", PledgeKeptKind = "pledge_kept", PledgeBrokenKind = "pledge_broken",
         ThreatKind = "threat", LoanKind = "loan", ForgivenKind = "loan_forgiven", PressedKind = "loan_pressed", DefaultKind = "loan_default", RepaidKind = "loan_repaid";
+    /// <summary>A name the player wrote down (VoteMarks.Answers): the house voted for the censure of the player's, or voted down the player's motion.</summary>
+    public const string VotedCensureKind = "voted_censure", VotedDownKind = "voted_down";
     public const int RememberYears = 20, RememberMost = 300, GiftsShownYears = 10;
 
     // a gift of credits
@@ -181,6 +183,7 @@ public sealed class DealingsSystem
     {
         if (Parties(w, me, theirs, out var mine, out _) is { } no) return no;
         if (!WealthSystem.FavourOwed(w, theirs!.Id, mine.Id)) return "they owe you nothing";
+        if (WealthSystem.Apart(w, theirs.Id, mine.Id)) return w.AtWar(theirs.Id, mine.Id) ? "you are at war with them: what they owed you goes with the war" : "there is blood between your houses: they owe you nothing in the Senate";   // the favour lapses at the year's end (WealthSystem.LapseFavours)
         return VoteRefusal(w, mine, theirs, motionId);
     }
     public void CallVote(World w, Character me, House theirs, string motionId)
@@ -199,7 +202,7 @@ public sealed class DealingsSystem
     {
         var list = new List<(House, Motion)>();
         var against = SenateSystem.Docket(w).Where(m => WealthSystem.StrikesAt(m, mine)).ToList(); if (against.Count == 0) return list;
-        foreach (var h in WealthSystem.OweMe(w, mine).Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && !w.AtWar(h.Id, mine)))
+        foreach (var h in WealthSystem.OweMe(w, mine).Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && !WealthSystem.Apart(w, h.Id, mine)))
             if (against.FirstOrDefault(m => m.ProposerHouseId != h.Id && !(m.Votes.TryGetValue(h.Id, out int cast) && cast < 0)) is { } m) list.Add((h, m));
         return list;
     }
@@ -367,8 +370,9 @@ public sealed class DealingsSystem
                 if (p.Paid) foreach (var c in w.Characters.Values.Where(c => c.HouseId == to.Id)) c.Flags.Remove(VoteMarks.BoughtChar);
             }
         }
-        // the player's house, threatened by the house that moved this, voted against it all the same
-        if (mine != null && m.ProposerHouseId != mine && w.House(mine) is { } me && w.House(m.ProposerHouseId) is { } mover && PolitySystem.Cowed(w, me, mover) && m.Votes.GetValueOrDefault(mine) < 0)
+        // the player's house, threatened by the house that moved this, voted against it all the same: remembered for the threat's years,
+        // whatever the fleets are now (the threat said "it will be remembered", and the house page "its head thinks -10 of you")
+        if (mine != null && m.ProposerHouseId != mine && w.House(mine) is { } me && w.House(m.ProposerHouseId) is { } mover && Threatened(w, me, mover) && m.Votes.GetValueOrDefault(mine) < 0)
         {
             Regard(w, mover, me, -DefiedRegard);
             w.Tell("warn", $"You voted against the motion of {mover.Name}, which had told you what its fleets could do. Its head thinks {Signed(-DefiedRegard)} of you for it.", "houses", mover.Id);
@@ -380,6 +384,8 @@ public sealed class DealingsSystem
     /// <summary>What a house that is afraid of another does about a motion: it will not vote against what that house moves,
     /// nor for a motion aimed at it. It stays away instead. Returns what to add to its lean. The player's house votes as it
     /// pleases, afraid or not.</summary>
+    /// <summary>Was this house threatened by that one within the threat's years (<see cref="CowedYears"/>), whatever their fleets are now.</summary>
+    public static bool Threatened(World w, House h, House by) => w.WorldCounters.TryGetValue(PolitySystem.CowedKey(h.Id, by.Id), out int told) && w.Turn - told <= CowedYears;
     public static int CowedLean(World w, MotionDef? def, Motion m, string houseId, int lean, out string? of)
     {
         of = null; if (lean == 0 || houseId == w.Protagonist?.HouseId || w.House(houseId) is not { } h) return 0;
@@ -449,7 +455,9 @@ public sealed class DealingsSystem
             + "While it owes you it leans your way in the chamber.";
     }
     /// <summary>The loan is made: by the player's head, or by another house's steward.</summary>
-    public HouseLoan Lend(World w, House lender, House borrower, int amount, int ratePct)
+    public HouseLoan Lend(World w, House lender, House borrower, int amount, int ratePct) => Make(w, lender, borrower, amount, ratePct);
+    /// <summary>The loan itself, whoever makes it: the window, a steward, or a report's choice (VoteMarks.Answers, lend_where_it_matters).</summary>
+    public static HouseLoan Make(World w, House lender, House borrower, int amount, int ratePct)
     {
         lender.Treasury.Credits -= amount; borrower.Treasury.Credits += amount; int owed = Lending.Owed(w, amount, ratePct, lender.Id, borrower.Id);
         var loan = new HouseLoan { LenderId = lender.Id, BorrowerId = borrower.Id, Lent = amount, RatePct = ratePct, Owed = owed, Instalment = InstalmentOf(owed), Since = w.Turn };
@@ -567,7 +575,7 @@ public sealed class DealingsSystem
             Say(PolitySystem.Cowed(w, theirs, mine) ? $"It has been afraid of you since year {told}, and is until year {told + CowedYears} while you keep twice its hulls: {CowedDoes}"
                 : $"You threatened it in year {told}. It is not afraid now: you have not twice its hulls.", PolitySystem.Cowed(w, theirs, mine) ? "good" : "");
         if (w.WorldCounters.TryGetValue(PolitySystem.CowedKey(mine.Id, theirs.Id), out int toldMe) && w.Turn - toldMe <= CowedYears)
-            Say($"It threatened you in year {toldMe}. Vote against what it moves and its head thinks {Signed(-DefiedRegard)} of you.", "warn");
+            Say($"It threatened you in year {toldMe}. Until year {toldMe + CowedYears}, vote against what it moves and its head thinks {Signed(-DefiedRegard)} of you.", "warn");
         foreach (var p in w.VotePledges.Where(p => p.ByHouseId == mine.Id && p.ToHouseId == theirs.Id).OrderBy(p => p.MotionId, StringComparer.Ordinal))
             if (w.Motions.FirstOrDefault(m => m.Id == p.MotionId) is { } pm) Say($"Your vote is {(p.Paid ? "bought by" : "pledged to")} it, {(p.Side > 0 ? "for" : "against")} this motion: {_senate.Describe(w, pm)}");
         var sent = Remembered(w, GiftKind, mine.Id, theirs.Id).Where(d => w.Turn - d.Turn <= GiftsShownYears).OrderByDescending(d => d.Turn).ToList();
@@ -582,6 +590,9 @@ public sealed class DealingsSystem
         if (Times(FavourKeptKind, theirs.Id, mine.Id) is > 0 and var paid) Say($"Favours it owed you and paid with its vote: {Counted.Times(paid)}.", "good");
         foreach (var d in w.Dealings.Where(d => d.Kind == ForgivenKind && d.FromHouseId == mine.Id && d.ToHouseId == theirs.Id || d.Kind is DefaultKind or RepaidKind && d.FromHouseId == theirs.Id && d.ToHouseId == mine.Id).OrderByDescending(d => d.Turn).Take(3))
             Say(d.Kind == ForgivenKind ? $"You forgave it {Money.Credits(d.Amount)} in year {d.Turn}." : d.Kind == DefaultKind ? $"It defaulted on {Money.Credits(d.Amount)} it owed you in year {d.Turn}." : $"It paid back in year {d.Turn} the {Money.Credits(d.Amount)} you lent it.", d.Kind == DefaultKind ? "warn" : "");
+        // the names the player wrote down (censured/remember_who_voted, the_motion_thrown_out/note_who_voted)
+        foreach (var d in w.Dealings.Where(d => d.Kind is VotedCensureKind or VotedDownKind && d.FromHouseId == theirs.Id && d.ToHouseId == mine.Id).OrderByDescending(d => d.Turn).Take(3))
+            Say(d.Kind == VotedCensureKind ? $"It voted for the censure of your house in year {d.Turn}, and you wrote the name down." : $"It voted your motion down in year {d.Turn}, and you wrote the name down.", "warn");
         list.AddRange(HouseTradeSystem.Remembered(w, mine, theirs));   // what was bought and sold, and standing deals struck, kept and broken (docs/WEALTH.md, "Trade between houses")
         return list;
     }

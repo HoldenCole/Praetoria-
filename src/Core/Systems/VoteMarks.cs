@@ -10,10 +10,14 @@ namespace Praetoria.Core.Systems;
 /// with <see cref="LadderSystem.HeldFlag"/>. A mark moves no vote of itself; a bargain struck in a report is made here into the pledge or the
 /// favour the Senate already keeps (<see cref="Bargains"/>), which declares the player's vote where the player gave or sold it. RNG-free.
 /// </summary>
-public static class VoteMarks
+public static partial class VoteMarks
 {
     // the docket, rewritten every session (SenateSystem.WriteFlags)
     public const string MovesChar = "moves_a_motion", MovesAgainstChar = "moves_against_you", UndecidedChar = "undecided_on_yours", MyMotionFlag = "my_motion_open";
+    /// <summary>On the head of a house that leans against the player's motion now before the Senate, as the count stands (declared, or by
+    /// its lean): an_old_grudge_against_your_motion reads it, so that "{rival.name} does" lean against it is so when the report comes.
+    /// Rewritten with <see cref="UndecidedChar"/> by <see cref="Leanings"/>, at the session and again as the year's reports are chosen.</summary>
+    public const string AgainstYoursChar = "against_yours";
     // the count, cleared at the next session (SenateSystem.Tick)
     public const string VotedWithChar = "voted_with_you", VotedAgainstChar = "voted_against_you";
     public const string AbstainedFlag = "abstention_noticed", NoticedChar = "noticed_your_abstention";
@@ -82,9 +86,9 @@ public static class VoteMarks
     /// only while there is such a client (<see cref="ClientFlag"/>).</summary>
     public const string HelpFlag = "helping_a_client", ClientFlag = "client_to_help";
 
-    private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar };
+    private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar, VotedYouUpChar, VotedYouDownChar };
     private static readonly string[] SessionFlags = { AbstainedFlag, PurseOutFlag, ActAgainstFlag };
-    private static readonly string[] DocketChars = { MovesChar, MovesAgainstChar, UndecidedChar, VoteWantedChar, BargainOpenChar, WeakestChar };
+    private static readonly string[] DocketChars = { MovesChar, MovesAgainstChar, UndecidedChar, AgainstYoursChar, VoteWantedChar, BargainOpenChar, WeakestChar };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static Character? Head(World w, string houseId) => w.House(houseId) is { } h ? Economy.HeadOf(w, h) : null;
@@ -111,6 +115,7 @@ public static class VoteMarks
         if (w.WorldFlags.Remove(SplitFlag) && mine != null) Split(w, mine);
         if (w.WorldFlags.Remove(BringOverFlag) && mine != null) BringOver(w, mine);
         if (w.WorldFlags.Remove(HelpFlag) && mine != null) HelpClient(w, mine);
+        Answers(w, mine);   // the feast, the round, the names written down, the repeal promised, the loans (VoteMarks.Answers.cs)
         foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar) || c.Flags.Contains(VoteSoldChar) || c.Flags.Contains(DebtCalledChar) || c.Flags.Contains(StandChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
             bool both = c.Flags.Remove(VoteOwedChar), promised = c.Flags.Remove(VotePromisedChar), owes = c.Flags.Remove(HouseOwesChar), sold = c.Flags.Remove(VoteSoldChar), debt = c.Flags.Remove(DebtCalledChar), stand = c.Flags.Remove(StandChar);
@@ -127,10 +132,11 @@ public static class VoteMarks
         Callable(w, mine); Gates(w, mine);
     }
 
-    /// <summary>The houses that stand in a favour with the player's house, either way, or have had the player's word broken to them lately:
-    /// no new bargain is struck with them (a house owes another one favour at a time).</summary>
+    /// <summary>The houses that stand in a favour with the player's house, either way, or have had the player's word broken to them lately,
+    /// or have blood between them and it: no new bargain is struck with them (a house owes another one favour at a time, and across blood
+    /// none at all, WealthSystem.Apart).</summary>
     private static HashSet<string> Standing(World w, string mine) =>
-        w.Houses.Values.Where(h => h.Id != mine && (WealthSystem.FavourOwed(w, h.Id, mine) || WealthSystem.FavourOwed(w, mine, h.Id)
+        w.Houses.Values.Where(h => h.Id != mine && (WealthSystem.FavourOwed(w, h.Id, mine) || WealthSystem.FavourOwed(w, mine, h.Id) || FeudSystem.Between(w, h.Id, mine)
             || DealingsSystem.Remembered(w, DealingsSystem.PledgeBrokenKind, mine, h.Id).Any(d => w.Turn - d.Turn < DealingsSystem.PledgeMemoryYears))).Select(h => h.Id).ToHashSet();
     /// <summary>The head to bring over: marked open to a bargain, thinking no worse than nothing of the player, the one who thinks best of them.</summary>
     private static Character? Senator(World w)
@@ -287,19 +293,31 @@ public static class VoteMarks
         { weakestHead.Flags.Add(WeakestChar); w.WorldFlags.Add(SplittableFlag); }
         foreach (var m in SenateSystem.Docket(w).ToList())
         {
-            if (m.ProposerHouseId == mine)
-            {
-                w.WorldFlags.Add(MyMotionFlag);
-                foreach (var h in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
-                    if (!m.Votes.ContainsKey(h.Id) && !senate.Owes(w, m, h.Id) && senate.Lean(w, m, h.Id) == 0 && Head(w, h.Id) is { } undecided) undecided.Flags.Add(UndecidedChar);   // a house that owes yours a vote has made up its mind
-                continue;
-            }
+            if (m.ProposerHouseId == mine) { w.WorldFlags.Add(MyMotionFlag); continue; }
             if (SenateSystem.IsPetition(m) || Head(w, m.ProposerHouseId) is not { } mover) continue;
             mover.Flags.Add(MovesChar);
             // its house wants the player's vote on it, if it is to be had (a report that buys it, or bargains for it, reads this)
             if (!WealthSystem.StrikesAt(m, mine, senate.Motions.Def(m.Kind)) && DealingsSystem.PledgeOn(w, mine, m.Id) == null)
                 foreach (var c in w.LivingCharacters().Where(c => c.HouseId == m.ProposerHouseId)) c.Flags.Add(VoteWantedChar);
             if (m.TargetId == mine && senate.Motions.Def(m.Kind) is { Target: "house" } d && (d.LegitimacyTarget < 0 || d.EmbargoTurns > 0)) mover.Flags.Add(MovesAgainstChar);
+        }
+        Leanings(w, senate, mine);
+    }
+
+    /// <summary>On the player's motion now before the Senate, the heads of the houses that have not made up their mind (no vote declared,
+    /// no vote owed, a lean of nothing: <see cref="UndecidedChar"/>) and of those that are against it as the count stands
+    /// (<see cref="AgainstYoursChar"/>). Written with the docket, and again as the year's reports are chosen (TurnController.BeginTurn),
+    /// since a year's turn moves leans: the_vote_still_undecided says "they lean neither for it nor against", and
+    /// an_old_grudge_against_your_motion that the rival does lean against it, and both are so when the report comes.</summary>
+    public static void Leanings(World w, SenateSystem senate, string? mine)
+    {
+        foreach (var c in w.Characters.Values) { c.Flags.Remove(UndecidedChar); c.Flags.Remove(AgainstYoursChar); }
+        if (mine == null || SenateSystem.Docket(w).FirstOrDefault(m => m.ProposerHouseId == mine) is not { } m) return;
+        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id)).OrderBy(h => h.Id, StringComparer.Ordinal).ToList())
+        {
+            if (Head(w, h.Id) is not { Alive: true } head) continue;
+            if (!m.Votes.ContainsKey(h.Id) && !senate.Owes(w, m, h.Id) && senate.Lean(w, m, h.Id) == 0) head.Flags.Add(UndecidedChar);   // a house that owes yours a vote has made up its mind
+            else if (senate.Stance(w, m, h.Id) < 0) head.Flags.Add(AgainstYoursChar);
         }
     }
 
@@ -310,8 +328,11 @@ public static class VoteMarks
     {
         if (mine == null) return;
         if (m.ProposerHouseId == mine)
+        {
             foreach (var (houseId, vote) in m.Votes.OrderBy(kv => kv.Key, StringComparer.Ordinal))
                 if (houseId != mine && vote != 0 && Head(w, houseId) is { } head) head.Flags.Add(vote > 0 ? VotedWithChar : VotedAgainstChar);
+            RoundSpent(w);   // a round stood after the last motion thrown out was for this count
+        }
         if (m.ProposerHouseId != mine && m.TargetId != mine && FactionSystem.Of(w, mine) is { } bench
             && bench.LeaderHouseId != mine && m.Votes.GetValueOrDefault(bench.LeaderHouseId) != 0 && Head(w, bench.LeaderHouseId) is { } leader)
         {

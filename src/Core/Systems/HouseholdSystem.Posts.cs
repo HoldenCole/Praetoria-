@@ -103,12 +103,35 @@ public sealed partial class HouseholdSystem
 
     // ---------------- the year's work ----------------
 
+    /// <summary>Asked to be asked (the_chancellors_voice/ask_to_be_asked): the next doubtful vote comes to the head before the chancellor
+    /// declares it. A doubtful vote is one on which the house leans within <see cref="DoubtfulWithin"/> of nothing, so that one reason either
+    /// way would turn it. The world flag waits for the first such motion; that motion is then the head's to declare (<see cref="UpstairsKey"/>),
+    /// and the chancellor declares the rest as before.</summary>
+    public const string AskFirstFlag = "chancellor_asks_first", UpstairsPrefix = "chancellor_upstairs:";
+    public const int DoubtfulWithin = 1;
+    public static string UpstairsKey(string motionId) => UpstairsPrefix + motionId;
+    /// <summary>At the Senate's session, once the motions for the next count are on the docket: the house's chancellor, asked to bring the
+    /// next doubtful vote upstairs first, brings it, and the player is told what it is and how the house leans, with the year to declare it.</summary>
+    public static void BringUpstairs(World w, SenateSystem senate, string? mine)
+    {
+        foreach (var k in w.WorldCounters.Keys.Where(k => k.StartsWith(UpstairsPrefix, StringComparison.Ordinal)).ToList())
+            if (w.Motions.FirstOrDefault(m => m.Id == k[UpstairsPrefix.Length..]) is not { Open: true }) w.WorldCounters.Remove(k);   // counted, struck or gone
+        if (mine == null || !w.HasFlag(AskFirstFlag) || w.House(mine) is not { } house || house.Duty(Chancellor) is not { } d || w.Char(d.HolderId) is not { Alive: true } holder || d.Favour == Abstain) return;
+        var m = SenateSystem.Docket(w).FirstOrDefault(m => m.ProposerHouseId != mine && !m.Votes.ContainsKey(mine) && !w.WorldCounters.ContainsKey(UpstairsKey(m.Id)) && Math.Abs(senate.Lean(w, m, mine)) <= DoubtfulWithin);
+        if (m == null) return;
+        w.WorldFlags.Remove(AskFirstFlag); w.WorldCounters[UpstairsKey(m.Id)] = Math.Max(1, w.Turn);
+        int lean = senate.Lean(w, m, mine);
+        w.Tell("warn", $"{holder.Name}, your chancellor, brings the vote on this motion to you before declaring it, as you asked: {senate.Describe(w, m)} It is a doubtful one: the house leans {(lean > 0 ? "a little for it" : lean < 0 ? "a little against it" : "neither way")}. "
+            + "Declare it yourself before the Senate sits; left alone, the house is counted as it leans.", "senate:chamber", m.ProposerHouseId);
+    }
+
     /// <summary>The chancellor declares the house on what the Senate decides this year and the head has left alone. The head's own
-    /// vote is never overwritten.</summary>
+    /// vote is never overwritten, and a vote brought upstairs to the head (<see cref="BringUpstairs"/>) is left for the head.</summary>
     private void ChancellorActs(World w, House house, Character holder, Duty d)
     {
         var open = w.Motions.Where(m => m.Open && m.ProposedTurn < w.Turn && !m.Votes.ContainsKey(house.Id)).OrderBy(m => m.Id, StringComparer.Ordinal).ToList();
-        if (open.Count == 0) { d.LastReport = "Nothing was decided this year that wanted the house's voice."; return; }
+        int upstairs = house.Id == w.Protagonist?.HouseId ? open.RemoveAll(m => w.WorldCounters.ContainsKey(UpstairsKey(m.Id))) : 0;
+        if (open.Count == 0) { d.LastReport = upstairs > 0 ? "Brought the year's one doubtful vote to you, and declared nothing else: nothing else wanted the house's voice." : "Nothing was decided this year that wanted the house's voice."; return; }
         if (d.Favour == Abstain) { d.LastReport = $"Declared nothing on {Counted.Motions(open.Count)}, as told."; return; }
         string follow = d.Favour == WithPatron && house.PatronId.Length > 0 && w.House(house.PatronId) != null ? house.PatronId : house.Id; int yes = 0, no = 0, none = 0;
         foreach (var m in open)
@@ -117,7 +140,7 @@ public sealed partial class HouseholdSystem
             m.Votes[house.Id] = stance; if (stance > 0) yes++; else if (stance < 0) no++; else none++;
         }
         Mark(w, ChancellorVotedFlag);
-        d.LastReport = $"Declared the house on {Counted.Motions(open.Count)}: for {yes}, against {no}{(none > 0 ? $", standing aside on {none}" : "")}{(follow != house.Id ? $", as {w.House(follow)!.Name} went" : "")}.";
+        d.LastReport = $"Declared the house on {Counted.Motions(open.Count)}: for {yes}, against {no}{(none > 0 ? $", standing aside on {none}" : "")}{(follow != house.Id ? $", as {w.House(follow)!.Name} went" : "")}{(upstairs > 0 ? "; and brought the doubtful one to you" : "")}.";
     }
 
     /// <summary>The spymaster: the Reach at large, one house closely, or the house's own books.</summary>
