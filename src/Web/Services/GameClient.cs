@@ -143,7 +143,7 @@ public sealed class GameClient
         if (!creation.IsEmpty) CharacterCreation.Apply(world, content, creation);
         ScenarioId = scenarioId; Seed = seed;
         MoneySettings.Begin(world);
-        if (FirstGame || world.InAcademy) FirstStepsSystem.Begin(world, content.Academy.FirstYears, scenarioId);   // the first years (docs/ACADEMY.md)
+        if ((FirstGame && Guided) || world.InAcademy) FirstStepsSystem.Begin(world, content.Academy.FirstYears, scenarioId);   // the first years (docs/ACADEMY.md); a sandbox begins without them
         Turn = new TurnController(world, content);
         Turn.SyncRng();
         _base = null; _done.Clear();
@@ -173,7 +173,7 @@ public sealed class GameClient
         CharacterWorkshop.Apply(world, content, spec);
         ScenarioId = "a character of your own"; Seed = seed;
         MoneySettings.Begin(world);
-        if (FirstGame || world.InAcademy) FirstStepsSystem.Begin(world, content.Academy.FirstYears, "custom");   // the first years (docs/ACADEMY.md)
+        if ((FirstGame && Guided) || world.InAcademy) FirstStepsSystem.Begin(world, content.Academy.FirstYears, "custom");   // the first years (docs/ACADEMY.md); a sandbox begins without them
         Turn = new TurnController(world, content);
         CharacterWorkshop.Finish(Turn, spec);
         Turn.SyncRng();
@@ -352,6 +352,10 @@ public sealed class GameClient
     /// begun now carries the first years' list, and shows the rail's labels by themselves. A saga that opens at the Academy carries the list
     /// whatever this says, for the cadet's choice of course decides it.</summary>
     public bool FirstGame { get; set; }
+    /// <summary>The guidance this browser keeps (docs/GOALS.md, "Guided or sandbox"; <see cref="ClientSettings.Guided"/>), set by the page from
+    /// its settings: guided, the map shows the player's aim; a sandbox shows only the warning before ruin, and a saga begun in one has no
+    /// first years' list unless it opens at the Academy.</summary>
+    public bool Guided { get; set; } = true;
     private FirstStepsModel? _steps; private bool _stepsBuilt;
     /// <summary>The first years' list as it stands, or null when it is not on the screen.</summary>
     public FirstStepsModel? FirstSteps()

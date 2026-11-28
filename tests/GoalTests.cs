@@ -109,6 +109,26 @@ public class GoalTests
     }
 
     [Fact]
+    public void A_sandbox_shows_no_aim_but_keeps_the_warning_before_ruin()
+    {
+        // guided or sandbox is the browser's choice (docs/GOALS.md): a sandbox is shown only the warning, alone, and only while there is one
+        var (content, tc) = Start("the_new_man");
+        var aim = Goals.For(tc, content)!;
+        Assert.Null(aim.Ruin);
+        Assert.Null(Goals.Unguided(aim));
+        Assert.Null(Goals.Unguided(null));
+
+        var ruin = Goals.Ruin(-400, 900, new[] { ("fuel for the fleet", 200) }, 0)!;
+        var warned = Goals.Unguided(aim with { Ruin = ruin });
+        Assert.NotNull(warned);
+        Assert.Equal("ruin", warned!.Kind);
+        Assert.Empty(warned.Steps);
+        Assert.Null(warned.Next);
+        Assert.Same(ruin, warned.Ruin);
+        Assert.NotEqual(aim.Title, warned.Title);   // nothing of the aim is left in it
+    }
+
+    [Fact]
     public void A_treasury_that_lasts_three_years_or_grows_gives_no_warning()
     {
         Assert.Null(Goals.Ruin(-100, 300, Array.Empty<(string, int)>(), 0));

@@ -200,6 +200,9 @@
     [Parameter] public EventCallback OnHandbook { get; set; }
     [Parameter] public EventCallback OnContinue { get; set; }
     [Parameter] public EventCallback<string> OnLoadJson { get; set; }
+    /// <summary>The guidance this browser keeps (docs/GOALS.md, "Guided or sandbox"), and the way to change it from here.</summary>
+    [Parameter] public bool Guided { get; set; } = true;
+    [Parameter] public EventCallback<bool> OnGuided { get; set; }
 
     private readonly Dictionary<string, Scenario> _scenarios = new();
     private string _scenario = "";
@@ -349,6 +352,14 @@
     /// <summary>The rules of the world: one row each, the name at the left and the choice at the right; the same for a written start and
     /// a character of one's own (on the workshop's last tab).</summary>
     private RenderFragment Rules() => @<div class="fr-rules-wrap">
+        @* the guidance (docs/GOALS.md, "Guided or sandbox"): kept in this browser for every saga, and changed in Options at any time *@
+        <Section Title="Guidance" Info="Whether the game shows you what to aim for. It is kept for every saga in this browser, and unlike the rules of the world below it can be changed in Options at any time.">
+            <div class="fr-rules">
+                @(Rule("guidance", "laurels", "brass", "Your aim", "Guided: a goal for your first ten years under the top bar, with its steps and Go there, then your ambition; in a first game, the first steps as well. Sandbox: no aim and no first steps, and the map is yours to read. A warning shows either way when the money will run out within three years.", Guided ? "guided" : "sandbox", v => _ = OnGuided.InvokeAsync(v == "guided"),
+                    ("guided", "Guided", "Guided: an aim and its steps on the map, for a first game or a new start"), ("sandbox", "Sandbox", "Sandbox: no aim and no first steps; the map is yours to read")))
+                <p class="fr-guide-says" data-guidance-says><Icon Name="@(Guided ? "flag-objective" : "world")" Tone="brass" Size="18" /><span>@(Guided ? "A goal for your first ten years under the top bar, with its steps, then your ambition." : "No aim and no first steps: the map is yours to read. A warning still shows before ruin.")</span></p>
+            </div>
+        </Section>
         <Section Title="The world" Info="The rules this saga is played by. Hover a choice for what it does. None of them can be changed once the saga begins.">
             <div class="fr-rules">
                 @* each rule is a row (4.7): its glyph, its name, and the choice at the right as joined plates with short words; what a

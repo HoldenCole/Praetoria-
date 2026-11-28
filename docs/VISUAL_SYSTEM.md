@@ -347,7 +347,9 @@ with the aim's progress (green once it is reached), with laurels in it; the meda
 Then the kicker ("Your aim · year 3 of 10" for a start's goal, "Your ambition" after), the title in Cinzel 16px, the steps
 as small diamonds (filled brass when done and struck through; the next one lit), and under a brass hairline where the next
 step stands and a "Go there" plate. When the treasury will run out within three years a band with an ember edge says how
-fast, where the money goes, and two ways out, each a plate to its window. The alerts row starts after the plate.
+fast, where the money goes, and two ways out, each a plate to its window. The alerts row starts after the plate. A round
+close at its top right, as on the first years' list, turns the guidance to a sandbox; in a sandbox the plate stands only for
+the warning, kicked "A warning", with the ember threat in the medal and no close (docs/GOALS.md, "Guided or sandbox").
 (docs/GOALS.md; `GoalPlate.razor`, `css/win/goal.css`.)
 
 ## 4. Window parts

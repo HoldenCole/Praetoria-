@@ -27,7 +27,7 @@ else if (_parts)
 }
 else if (G.Turn == null)
 {
-    <CreationScreen HasAutosave="@_hasAutosave" SaveLabel="@_saveLabel" KeptSaves="@_keptSaves" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" OnSaves="() => _saves = true" OnSettings="() => _settings = true" OnHandbook="() => _primer = true" />
+    <CreationScreen HasAutosave="@_hasAutosave" SaveLabel="@_saveLabel" KeptSaves="@_keptSaves" OnContinue="ContinueAutosave" OnLoadJson="LoadFromJson" OnSaves="() => _saves = true" OnSettings="() => _settings = true" OnHandbook="() => _primer = true" Guided="@_set.Guided" OnGuided="SetGuided" />
     @if (_saves) { <SavesBox InGame="false" OnClose="() => _saves = false" OnLoad="LoadSave" OnChanged="ReadSaves" /> }
     @if (_settings) { <SettingsBox OnClose="() => _settings = false" OnChanged="ReadSettings" /> }
     @if (_primer) { <Primer OnClose="() => _primer = false" Start="glossary" /> }
@@ -144,7 +144,7 @@ else
         }
         <AlertsRow Items="alerts" OnGo="Go" Year="@G.World!.Turn" MaxBadges="@(_screen == "galaxy" ? 10 : WideScreens.Contains(_screen) ? 4 : 6)" />
         @* the goal under the top bar (docs/GOALS.md): on the map only, so it never sits under a docked window *@
-        @if (_screen == "galaxy") { <GoalPlate Goal="@G.Goal()" Year="@G.World!.Turn" OnGo="Go" /> }
+        @if (_screen == "galaxy") { <GoalPlate Goal="@(_set.Guided ? G.Goal() : Goals.Unguided(G.Goal()))" Year="@G.World!.Turn" OnGo="Go" OnPutAway="PutAimAway" /> }
         <Toasts Notes="Notes()" Paused="front" Hidden="@(_brief && G.World is { InAcademy: false, IsDynastyDead: false })" OnGo="Go" />
         <Outliner Model="m" OnOpenReport="OpenReport" OnGo="Go" Folded="@(_screen != "galaxy" || _narrow)" />
         @* the console (3.8): the map tools, the map modes as joined sockets, the legend; the minimap and its caption (the mode, and the
@@ -308,6 +308,7 @@ else
         var n = new List<Toasts.Note>();
         if (G.LastNotice != null) n.Add(new("anticlockwise-rotation", "Notice", G.LastNotice));
         if (_savedFlash) n.Add(new("save", "Saved", _flashText));
+        if (_aimNote.Length > 0) n.Add(new("laurels", "Guidance", _aimNote));
         if (_exportNote.Length > 0) n.Add(new("export", "Export", _exportNote, true));
         return n;
     }
@@ -489,8 +490,24 @@ else
     private async Task ReadSettings()
     {
         try { _set = ClientSettings.Parse(await JS.InvokeAsync<string>("praetoriaSettings.get")); _briefEvery = await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.brief.every") != "0"; _briefAsked = true; } catch { }
+        G.Guided = _set.Guided;
         StateHasChanged();
     }
+    /// <summary>The guidance (docs/GOALS.md, "Guided or sandbox"), chosen on the new-saga screen or by the aim's close on the map; Options
+    /// sets it in its own row.</summary>
+    private async Task SetGuided(bool guided)
+    {
+        try { await JS.InvokeAsync<string>("praetoriaSettings.set", "guided", guided); } catch { }
+        await ReadSettings();
+    }
+    /// <summary>The aim's close: the map is left to the player, and a note says how to have the aim back.</summary>
+    private async Task PutAimAway()
+    {
+        await SetGuided(false);
+        _aimNote = "Your aim is put away and the map is yours. Guidance, in Options, brings it back.";
+        StateHasChanged(); await Task.Delay(6000); _aimNote = ""; StateHasChanged();
+    }
+    private string _aimNote = "";
     /// <summary>What is saved in this browser: whether there is a running saga and what it is called, and how many kept saves there are.</summary>
     private async Task ReadSaves()
     {

@@ -30,6 +30,13 @@
             <Icon Name="scroll-unfurled" Tone="brass" Size="20" /><b>The year in brief</b><span class="ui-info" title="A card as each year opens, saying what the last one did to the house." tabindex="0" aria-label="What it does">i</span>
             <div class="set-pick"><button class="opt inline set-sw @(_brief ? "on" : "")" data-set-brief aria-pressed="@_brief" title="@(_brief ? "Every year: press for only when asked" : "Only when asked: press for every year")" @onclick="ToggleBrief"><i></i>@(_brief ? "Every year" : "Only when asked")</button></div>
         </div>
+        <div class="set-row" data-set-guidance>
+            <Icon Name="laurels" Tone="brass" Size="20" /><b>Guidance</b><span class="ui-info" title="Guided: your aim stands on the map under the top bar, a goal for your first ten years and then your ambition, with its steps and Go there. Sandbox: the map is left to you, with no aim and no steps. Either way, a warning shows when the money will run out within three years. The first steps of a first game have a close of their own." tabindex="0" aria-label="What it does">i</span>
+            <div class="set-pick" data-set="guidance">
+                <button class="opt inline @(_guided ? "on" : "")" data-guidance="guided" aria-pressed="@_guided" title="An aim and its steps on the map" @onclick="() => Set(nameof(_guided), true)">Guided</button>
+                <button class="opt inline @(_guided ? "" : "on")" data-guidance="sandbox" aria-pressed="@(!_guided)" title="The map is yours to read" @onclick="() => Set(nameof(_guided), false)">Sandbox</button>
+            </div>
+        </div>
         <div class="set-row" data-set-sound>
             <Icon Name="public-speaker" Tone="steel" Size="20" /><b>Sound</b><span class="ui-info" title="The game has no music or sound yet, so there is nothing here to turn up or down." tabindex="0" aria-label="What it says">i</span>
             <div class="set-pick"><span class="set-none">None in the game yet</span></div>
@@ -48,7 +55,7 @@
     [Parameter] public EventCallback OnClose { get; set; }
     /// <summary>A setting changed: whoever reads the settings should read them again.</summary>
     [Parameter] public EventCallback OnChanged { get; set; }
-    private string _text = "normal"; private bool _enterEnds = true, _numberKeys = true, _brief = true, _railLabels;
+    private string _text = "normal"; private bool _enterEnds = true, _numberKeys = true, _brief = true, _railLabels, _guided = true;
     /// <summary>The rail's labels are on by themselves, a first game's first years, and the player has not chosen.</summary>
     private bool _railAuto;
 
@@ -59,12 +66,12 @@
     private void Read(string json)
     {
         var s = Praetoria.Web.Services.ClientSettings.Parse(json);
-        _text = s.Text; _enterEnds = s.EnterEnds; _numberKeys = s.NumberKeys; _railLabels = s.RailLabelsChosen ?? (G.Turn != null && G.LabelsByThemselves);
+        _text = s.Text; _enterEnds = s.EnterEnds; _numberKeys = s.NumberKeys; _guided = s.Guided; _railLabels = s.RailLabelsChosen ?? (G.Turn != null && G.LabelsByThemselves);
         _railAuto = s.RailLabelsChosen == null && _railLabels;
     }
     private async Task Set(string field, object value)
     {
-        string key = field switch { nameof(_text) => "text", nameof(_enterEnds) => "enterEnds", nameof(_railLabels) => "railLabels", _ => "numberKeys" };
+        string key = field switch { nameof(_text) => "text", nameof(_enterEnds) => "enterEnds", nameof(_railLabels) => "railLabels", nameof(_guided) => "guided", _ => "numberKeys" };
         try { Read(await JS.InvokeAsync<string>("praetoriaSettings.set", key, value)); } catch { }
         await OnChanged.InvokeAsync();
     }

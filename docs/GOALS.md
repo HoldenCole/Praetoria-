@@ -31,6 +31,23 @@ The world keeps which start it began from (`World.Start`) and the rank and world
 The Old Lion's own ambition was to see the house rich again, while it is the richest house of the Reach; it is now to rise in
 the service and be heard.
 
+## Guided or sandbox (`ClientSettings.Guided`, `Goals.Unguided`)
+
+Added 2026-11-28 at the owner's word: the aim helps a new player who wants to be guided and does not want, or cannot yet handle,
+the sandbox, so a player who does want the sandbox can turn it off. The choice is the browser's (the `guided` key of
+`praetoria.settings`) and holds for every saga played in it. It can be made in three places:
+
+- **Options**, the "Guidance" row: Guided or Sandbox.
+- **The new-saga screen**, the "Guidance" section above the rules of the world. Unlike those rules it can be changed later. A saga
+  begun as a sandbox begins without the first steps of a first game, unless it opens at the Academy, whose terms carry them; the
+  primer can still pin them.
+- **The plate's close**, at its top right: it turns the guidance to Sandbox, and a note says that Guidance in Options brings the
+  aim back.
+
+Guided is the default. In a sandbox the plate stands only while there is a warning before ruin, and then shows the warning alone:
+"A warning" over "The house's money", a medal with the ember threat in it instead of the laurels, and no close. The first steps of
+a first game are not tied to the guidance once a saga is under way: they keep their own close.
+
 ## Before ruin (`Goals.Ruin`)
 
 When, at what the year will add or take (the ledger's forecast less what is being built and paid out, the figure the top bar
@@ -74,7 +91,8 @@ ambition once the house is seated; the Old Lion's goal is over once the seat pas
 world saved before the start was kept shows the ambition; no aim at the Academy; the warning's figures, words and ways out;
 no warning while the treasury lasts three years or grows; a treasury falling two years running warns at its own pace, and the
 yearly record keeps three years; the fallen-house flag is raised for the year after and only then,
-and the report is eligible while it stands.
+and the report is eligible while it stands; a sandbox is shown no aim, and the warning alone while there is one.
+`tools/browser/aim.js` checks the plate, its close, Options and the new-saga screen in a browser.
 
 ## Not done
 

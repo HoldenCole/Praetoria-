@@ -65,8 +65,13 @@ public static class Goals
             var step = new GoalStep(aim.Had ? "Done." : aim.Next.Length > 0 ? aim.Next : "Keep at it.", aim.Had, aim.Stands, aim.Target);
             return new Goal("ambition", AimOf(p.Ambition), aim.Stands, new[] { step }, aim.Progress, aim.Had, was, ruin);
         }
-        return start != null ? start with { Ruin = ruin } : ruin == null ? null : new Goal("ruin", "The house's money", "", Array.Empty<GoalStep>(), 0, false, "", ruin);
+        return start != null ? start with { Ruin = ruin } : ruin == null ? null : RuinOnly(ruin);
     }
+
+    /// <summary>What a sandbox shows of a goal (docs/GOALS.md, "Guided or sandbox"): no aim and no steps, only the warning before
+    /// ruin while there is one.</summary>
+    public static Goal? Unguided(Goal? goal) => goal?.Ruin is { } ruin ? RuinOnly(ruin) : null;
+    private static Goal RuinOnly(RuinWarning ruin) => new("ruin", "The house's money", "", Array.Empty<GoalStep>(), 0, false, "", ruin);
 
     /// <summary>The start's own goal, by the start's id (<see cref="World.Start"/>), or none for a character of one's own and a world
     /// saved before the start was kept. <see cref="Goal.Was"/> is set when the goal is over, reached or not.</summary>

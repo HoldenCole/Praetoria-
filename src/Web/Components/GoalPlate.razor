@@ -4,15 +4,19 @@
    whose ring fills with the goal's progress; the kicker (the start's aim and its year of ten, or the ambition); the title; the
    steps, ticked as they are done, with where each stands in its tooltip; where the next step stands and Go there. When the
    treasury will run out within three years a red band says how fast, where the money goes and two ways out, each a button to the
-   window where it is done. The medal folds the plate to the medal and the title; the fold is kept in this browser. *@
+   window where it is done. The medal folds the plate to the medal and the title; the fold is kept in this browser. The close at the
+   top right turns the guidance to a sandbox (docs/GOALS.md, "Guided or sandbox"): the aim goes, and Guidance in Options brings it back.
+   In a sandbox the plate stands only while there is a warning before ruin, and then shows nothing but the warning; it has no close. *@
 @if (Goal is { } g)
 {
-    string kick = g.Kind == "start" ? (Year <= Goals.Years ? $"Your aim · year {Year} of {Goals.Years}" : "Your aim") : g.Kind == "ambition" ? "Your ambition" : "The house's money";
+    string kick = g.Kind == "start" ? (Year <= Goals.Years ? $"Your aim · year {Year} of {Goals.Years}" : "Your aim") : g.Kind == "ambition" ? "Your ambition" : "A warning";
+    bool aim = g.Kind != "ruin";
     double ring = 2 * Math.PI * 17, fill = ring * Math.Clamp(g.Percent, 0, 100) / 100.0;
-    <section class="aim-plate @(_folded ? "folded" : "") @(g.Ruin != null ? "has-ruin" : "") @(g.Reached ? "reached" : "")" data-aim="@g.Kind" data-aim-percent="@g.Percent" aria-label="@kick">
-        <button class="aim-medal" data-aim-fold title="@(_folded ? "[laurels] Open your aim" : "[laurels] Fold your aim to its medal")" aria-expanded="@(!_folded)" @onclick="Toggle">
+    <section class="aim-plate @(_folded ? "folded" : "") @(g.Ruin != null ? "has-ruin" : "") @(g.Reached ? "reached" : "") @(aim ? "" : "ruin-only")" data-aim="@g.Kind" data-aim-percent="@g.Percent" aria-label="@kick">
+        @if (aim && OnPutAway.HasDelegate) { <button class="aim-x" data-aim-put-away title="@PutAwayTip" aria-label="Put your aim away" @onclick="() => OnPutAway.InvokeAsync()"><Icon Name="close" Tone="ivory" Size="11" /></button> }
+        <button class="aim-medal" data-aim-fold title="@(aim ? (_folded ? "[laurels] Open your aim" : "[laurels] Fold your aim to its medal") : (_folded ? "[threat] Open the warning" : "[threat] Fold the warning to its medal"))" aria-expanded="@(!_folded)" @onclick="Toggle">
             <svg class="aim-ring" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" class="track" /><circle cx="20" cy="20" r="17" class="fill" style="stroke-dasharray:@F(fill) @F(ring)" /></svg>
-            <Icon Name="laurels" Tone="brass" Size="18" />
+            <Icon Name="@(aim ? "laurels" : "threat")" Tone="@(aim ? "brass" : "ember")" Size="18" />
         </button>
         <div class="aim-body">
             <div class="aim-kick">@kick@if (g.Steps.Count > 1) { <span class="aim-count">@g.Done of @g.Steps.Count</span> }</div>
@@ -63,6 +67,9 @@
     /// <summary>The year of the saga, for "year 3 of 10".</summary>
     [Parameter] public int Year { get; set; }
     [Parameter] public EventCallback<string> OnGo { get; set; }
+    /// <summary>The close: the player turns the guidance to a sandbox.</summary>
+    [Parameter] public EventCallback OnPutAway { get; set; }
+    private const string PutAwayTip = "[close] Put your aim away\nThe map is left to you: no aim and no steps. A warning still shows when the money will run out within three years. Guidance in Options brings the aim back.";
     private bool _folded, _read;
     private static string F(double d) => d.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
     protected override async Task OnAfterRenderAsync(bool first)
