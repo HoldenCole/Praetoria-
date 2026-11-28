@@ -331,6 +331,12 @@ public sealed class VetoCommand : ICommand
         if (!ElectionSystem.IsConsul(w, _offices, house.Id)) return "only a consul may veto";
         var m = w.Motions.FirstOrDefault(x => x.Id == _motionId); if (m == null || !m.Open) return "no such motion before the Senate";
         if (m.ProposerHouseId == house.Id) return "not your own motion";
+        // a promise of the player's on this vote, which striking the motion would break as surely as voting against it (docs/events/votes.md, "Promises", round 2)
+        if (house.Id == w.Protagonist?.HouseId && w.House(m.ProposerHouseId) is { } mover)
+        {
+            if (DealingsSystem.PledgeOn(w, house.Id, m.Id) is { Side: > 0 } p) return $"your vote on it is {(p.Paid ? "bought by" : "pledged to")} {w.House(p.ToHouseId)?.Name ?? "another house"}, for it: strike it and you break that word";
+            if (WealthSystem.FavourOwed(w, house.Id, mover.Id) && WealthSystem.CalledOn(w, house.Id, mover.Id) == m) return $"you owe {mover.Name} a favour, and it is called in at this motion's count: strike it and you break that";
+        }
         if (!ElectionSystem.MayVeto(w, _offices, house.Id)) return w.Emergency == null ? "the veto is spent this term" : EmergencySystem.Holds(w, house.Id) ? "you have struck one motion this year" : "the emergency powers have set your veto aside";
         return null;
     }

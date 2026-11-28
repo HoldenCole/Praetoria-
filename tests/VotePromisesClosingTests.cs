@@ -243,24 +243,7 @@ public partial class VotePromisesTests
     }
 
     // ------------------------------------------------------------------ a house that owes you a vote: its consul does not strike your motion
-
-    [Fact]
-    public void AHouseThatOwesYouAVote_ItsConsulDoesNotStrikeYourMotion_AndTheFavourVotesForIt()
-    {
-        var (g, consul, f) = Feast(); Answer(g, f, "stay_away"); var house = g.W.House(consul.HouseId)!;
-        var bench = FactionSystem.Of(g.W, house.Id)!;
-        if (bench.LeaderHouseId == house.Id || bench.LeaderHouseId == g.Mine.Id) bench.LeaderHouseId = bench.Members.First(id => id != house.Id && id != g.Mine.Id && g.W.House(id) != null);
-        var leader = g.W.House(bench.LeaderHouseId)!;
-        // the consul's house owes yours a vote, the way a player comes by one: a senator brought over (the_senate_listens/build_bloc)
-        foreach (var c in g.W.LivingCharacters().Where(c => c.HouseId != house.Id)) c.Flags.Remove(VoteMarks.BargainOpenChar);
-        g.W.Relationship(g.HeadOf(house).Id, g.Me.Id).Disposition = 10; g.HeadOf(house).Flags.Add(VoteMarks.BargainOpenChar);
-        g.W.WorldFlags.Add(VoteMarks.BringOverFlag); VoteMarks.Bargains(g.W, g.Mine.Id); Assert.True(WealthSystem.FavourOwed(g.W, house.Id, g.Mine.Id));
-        Assert.Null(new ProposeMotionCommand(g.Me.Id, "censure", leader.Id, g.Senate).Refusal(g.Ctx));
-        var censure = IMove(g, "censure", leader.Id); Only(g, censure); HardAgainst(g, censure, house);
-        Assert.Equal(1, g.Senate.Stance(g.W, censure, house.Id));   // the whip count: it votes for it
-        Session(g);
-        Assert.False(censure.Vetoed); Assert.True(censure.Resolved); Assert.Equal(1, censure.Votes[house.Id]); Assert.False(WealthSystem.FavourOwed(g.W, house.Id, g.Mine.Id));
-    }
+    // (made the player's way, through the_senate_listens/build_bloc: tests/VotePromisesRound2Tests.cs, AHouseBroughtOverToYourSide_...)
 
     // ------------------------------------------------------------------ a bribe or a whip on an owed vote
 
@@ -403,12 +386,12 @@ public partial class VotePromisesTests
     [Fact]
     public void TheRollOfTheDivision_OnAMotionForYourHouse_TellsWhoVotedEachWay_AndWritesTheNoesDown()
     {
-        var g = Start(); var mover = Others(g)[0]; var noes = Others(g).Skip(1).Take(2).ToList(); var ayes = Others(g).Skip(3).Take(1).ToList();
+        var g = Start(); var mover = Others(g)[0]; var ayes = Others(g).Skip(1).Take(1).ToList(); var noes = Others(g).Skip(2).ToList();
         var home = g.Senate.Add(g.W, mover.Id, "triumph", g.Mine.Id); Only(g, home);
-        foreach (var h in Others(g)) home.Votes[h.Id] = 0; foreach (var h in noes) home.Votes[h.Id] = -1; foreach (var h in ayes) home.Votes[h.Id] = 1;
-        Session(g); Assert.True(home.Resolved);
+        foreach (var h in ayes) Leans(g, home, h, 2); foreach (var h in noes) Leans(g, home, h, -2);   // the houses as they lean: the count casts them
+        Session(g); Assert.True(home.Resolved); Assert.False(home.Passed);
         Assert.Contains(VoteMarks.AgainstYoursHouseChar, g.HeadOf(noes[0]).Flags);
-        g.W.WorldFlags.Add(VoteMarks.DivisionFlag); g.W.News.Clear(); VoteMarks.Bargains(g.W, g.Mine.Id);
+        g.W.News.Clear(); Choose(g, ReportOf(g, "the_triumph_refused"), "learn_who_voted");   // the report, as the briefing answers it
         Assert.True(g.Told("The roll of the division: for it,")); Assert.True(g.Told($"against it, {noes.OrderBy(h => h.Name, StringComparer.Ordinal).First().Name}"));
         Assert.Contains(g.Tc.Dealings.Lasting(g.W, g.Mine, noes[0]), l => l.text == $"It voted against a motion for your house in year {g.W.Turn}, and you wrote the name down.");
         foreach (var e in new[] { ("caesar", "the_triumph_refused", "learn_who_voted"), ("emergency", "stripped_of_the_powers", "remember_who_voted"), ("exile", "called_home", "remember_who_voted") })

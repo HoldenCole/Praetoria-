@@ -73,7 +73,8 @@
           "id": "give_your_word",
           "requires": [
             { "type": "charFlag", "role": "senator", "flag": "wants_your_vote", "value": true },
-            { "type": "atWar", "role": "senator", "present": false }
+            { "type": "atWar", "role": "senator", "present": false },
+            { "type": "charFlag", "role": "senator", "flag": "no_bargain_with_you", "value": false }
           ],
           "effects": [
             {
@@ -247,7 +248,7 @@
             {
               "type": "setCharFlag",
               "role": "buyer",
-              "flag": "sold_your_vote",
+              "flag": "calls_in_your_vote",
               "value": true
             },
             {

@@ -35,7 +35,7 @@
       "body": "The gavel is {self.name}'s this session and the docket is a list in {self.name}'s hand. Three houses have asked, with varying subtlety, where their business falls on it.",
       "choices": {
         "order_of_the_day": "Set the order of the day to suit the house (1 influence).",
-        "favour_a_friend": "Let a friend's motion jump the queue.",
+        "favour_a_friend": "Do a friend a favour from the chair.",
         "fair_dealing": "Run the docket in the order it came."
       }
     },

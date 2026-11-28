@@ -174,6 +174,7 @@ public static partial class LadderSystem
                 if (c.HouseId == mine) { c.Flags.Add(ElectedChar); if (c.Id == p!.Id) Mark(w, ElectedFlag); else Mark(w, KinElectedFlag); }
             }
             VoteMarks.LadderCounted(w, candidates, winners, mine);   // who beat one of the house, and who one of the house beat (docs/events/votes.md)
+            var wordBroken = candidates.Where(c => c.HouseId == mine && SpeakJudged(w, offices, c, rung.Id)).Select(c => c.Id).ToHashSet();   // the head's word to speak for them this time (LadderSystem.Word.cs)
             foreach (var c in winners.Where(c => c.HouseId == mine && c.Id != p!.Id && (w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id)?.Backing ?? 0) > 0))
             { var owed = w.Relationship(c.Id, p!.Id); owed.Disposition = Math.Clamp(owed.Disposition + 6, -100, 100); }   // one who was spoken for and won knows what they owe
             foreach (var c in candidates.Where(c => c.HouseId == mine && !winners.Contains(c)))
@@ -182,8 +183,8 @@ public static partial class LadderSystem
                 if (c.Id == p!.Id) Mark(w, LostFlag);
                 else if ((w.Candidacies.FirstOrDefault(cd => cd.CharacterId == c.Id)?.Backing ?? 0) == 0 && CampaignOf(w, c.Id) == null && w.Candidacies.Any(cd => cd.CharacterId == c.Id))
                 {
-                    // they stood, the head said nothing for them, and they lost: it is the head they blame
-                    var r = w.Relationship(c.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition - BlameRegard, -100, 100);
+                    // they stood, the head said nothing for them, and they lost: it is the head they blame (a word broken to them is that blame, counted once)
+                    if (!wordBroken.Contains(c.Id)) { var r = w.Relationship(c.Id, p.Id); r.Disposition = Math.Clamp(r.Disposition - BlameRegard, -100, 100); }
                     c.Flags.Add(BlamesChar); Mark(w, BlamedFlag);
                     w.Log($"{c.Name} stood alone and lost, and says so: {p.Name} did not speak one word for them.");
                 }
@@ -230,6 +231,7 @@ public static partial class LadderSystem
     {
         if (head?.Alive != true || who?.Alive != true || who.HouseId != head.HouseId || who.Id == head.Id) return "not one of your house";
         if (!w.Candidacies.Any(c => c.CharacterId == who.Id)) return "they are not standing";
+        if (SpeakPromised(w, who.Id)) return "you told them you would speak for them the next time they stood: asking them not to stand would break that";
         return w.Counter(AskedKey(who.Id)) == Term(w, offices) ? "you have asked them once" : null;
     }
     /// <summary>The head asks one of the house not to stand. It is their name and their choice: the loyal withdraw, the wilful
@@ -652,7 +654,7 @@ public static partial class LadderSystem
         if (!w.HasFlag(BlamedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(BlamesChar);
         if (!w.HasFlag(SuitWonFlag) && !w.HasFlag(SuitLostFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(SuedChar);
         if (!w.HasFlag(ChargeAdmittedFlag)) foreach (var c in w.Characters.Values) c.Flags.Remove(AdmittedChar);
-        if (!Active(w, offices)) { w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear(); w.Indictments.Clear(); w.Campaigns.RemoveAll(f => !f.Counted); return; }
+        if (!Active(w, offices)) { LadderEnds(w, offices); w.Magistrates.Clear(); w.Candidacies.Clear(); w.OfficeWork.Clear(); w.OfficeRecord.Clear(); w.Indictments.Clear(); w.Campaigns.RemoveAll(f => !f.Counted); return; }
         var p = w.Protagonist; var house = p != null ? w.House(p.HouseId) : null;
 
         // a seat lapses with its holder; a holder is paid
@@ -687,6 +689,7 @@ public static partial class LadderSystem
             if (w.Char(m.CharacterId) is { } kin && GamesRefusal(w, offices, kin) == null && kin.Purse >= (offices.Rung(m.OfficeId)?.Games ?? 0) + 5) Games(w, offices, kin);
 
         foreach (var cd in w.Candidacies) w.Char(cd.CharacterId)?.Flags.Add(StandingChar);
+        SpeakDue(w, offices, p);   // the head's word to speak for one of the house at their next election: reminded once they stand, or lapsed (LadderSystem.Word.cs)
         foreach (var c in w.Characters.Values.Where(c => !c.Flags.Contains(StandingChar))) c.Flags.Remove(VoteMarks.StandingHeardChar);   // counted or withdrawn: the next candidacy is news again
         if (w.Candidacies.Any(cd => cd.CharacterId == p.Id)) w.WorldFlags.Add(StandingFlag);
         if (Seat(w, p.Id) is { } mine) { w.WorldFlags.Add(MagistrateFlag); if ((offices.Rung(mine.OfficeId)?.Games ?? 0) > 0) w.WorldFlags.Add(AedileFlag); }

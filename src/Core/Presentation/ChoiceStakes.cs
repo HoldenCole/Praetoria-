@@ -82,6 +82,20 @@ public static class ChoiceStakes
         lacks = lacks.Where(x => x.Length > 0).Distinct().ToList();
         return lacks.Count == 0 ? "not open to you as things stand" : string.Join("; ", lacks);
     }
+    /// <summary>Why no bargain is to be had with the role's house (VoteMarks.BargainBarredChar), each cause that holds: a war (in the words
+    /// the atWar requirement uses, so the two are said once), blood, a favour standing either way, a word broken to it lately.</summary>
+    private static string BarredWhy(EvalContext ctx, string role)
+    {
+        var w = ctx.World; string? mine = w.Protagonist?.HouseId; var theirs = ctx.Actor(role) is { } bound ? w.House(bound.HouseId) : null;
+        if (mine == null || theirs == null) return "not while a bargain stands between your house and theirs";
+        var why = new List<string>();
+        if (w.AtWar(mine, theirs.Id)) why.Add($"not while your house is at war with {theirs.Name}");
+        if (Systems.FeudSystem.Between(w, mine, theirs.Id)) why.Add($"not while there is blood between your house and {theirs.Name}: it owes you nothing in the Senate");
+        if (Systems.WealthSystem.FavourOwed(w, mine, theirs.Id) || Systems.WealthSystem.FavourOwed(w, theirs.Id, mine)) why.Add($"not while a favour stands between your house and {theirs.Name}, either way (a house owes another one favour at a time)");
+        if (Systems.DealingsSystem.Remembered(w, Systems.DealingsSystem.PledgeBrokenKind, mine, theirs.Id).OrderByDescending(d => d.Turn).FirstOrDefault() is { } broke && w.Turn - broke.Turn < Systems.DealingsSystem.PledgeMemoryYears)
+            why.Add($"not before year {broke.Turn + Systems.DealingsSystem.PledgeMemoryYears}: you broke your word on a vote to {theirs.Name} in year {broke.Turn}");
+        return why.Count > 0 ? string.Join("; ", why) : $"not while a bargain stands between your house and {theirs.Name} this year";
+    }
     private static string Who(EvalContext ctx, string role) => role is "self" or "" ? "you" : ctx.Actor(role)?.Name ?? "they";
     private static string Say(ICondition c, EvalContext ctx, bool want)
     {
@@ -108,7 +122,7 @@ public static class ChoiceStakes
             case DepositCondition dp: return want == dp.Present ? "needs " + Resource.A(dp.ResourceKey) + " deposit on a world of the house" : "";
             case SphereCondition sp: return want ? $"needs standing {Op(sp.Op)} {sp.Value} with {sp.SphereKey.Replace('_', ' ')}" : "";
             case BlocCondition bl: return want == bl.Present ? "needs a seat with " + bl.Bloc.Replace('_', ' ') : "not for one of " + bl.Bloc.Replace('_', ' ');
-            case CharFlagCondition cf when cf.Flag == Systems.VoteMarks.BargainBarredChar: return $"not while a favour stands between your house and {(ctx.Actor(cf.Role) is { } bound && ctx.World.House(bound.HouseId) is { } boundHouse ? boundHouse.Name : "theirs")}, either way (a house owes another one favour at a time), nor within {Systems.DealingsSystem.PledgeMemoryYears} years of your breaking your word on a vote to it";
+            case CharFlagCondition cf when cf.Flag == Systems.VoteMarks.BargainBarredChar: return BarredWhy(ctx, cf.Role);
             case CharFlagCondition cf when cf.Flag == Systems.VoteMarks.VoteWantedChar && want == cf.Value: return WantedWhy(ctx, cf.Role);
             case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.FavoursToCallFlag: return want == wf.Value ? "needs a house that owes yours a favour and can vote against the motion: not the house that moved it, nor one at war with yours" : "";
             case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.ClientFlag: return want == wf.Value ? "needs a client house with no favour standing between it and yours, either way" : "";

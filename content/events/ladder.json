@@ -446,6 +446,12 @@
               "delta": 8
             },
             {
+              "type": "setCharFlag",
+              "role": "kin",
+              "flag": "promised_to_be_spoken_for",
+              "value": true
+            },
+            {
               "type": "adjustStress",
               "role": "self",
               "delta": 3
@@ -1004,7 +1010,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sat through a full session, spoke twice and stayed to the end. It was dull. It was also counted."
+              "text": "{self.name} sat through a full session, spoke twice and stayed to the end. It was dull, and it was seen."
             }
           ]
         },

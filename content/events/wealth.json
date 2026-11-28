@@ -1296,6 +1296,12 @@
               "flag": "gift_sent_back"
             },
             {
+              "type": "setCharFlag",
+              "role": "giver",
+              "flag": "plate_sent_back",
+              "value": true
+            },
+            {
               "type": "adjustRelationship",
               "from": "giver",
               "to": "self",
@@ -1424,6 +1430,12 @@
               "flag": "favour_declined"
             },
             {
+              "type": "setCharFlag",
+              "role": "giver",
+              "flag": "favour_it_asked_declined",
+              "value": true
+            },
+            {
               "type": "adjustRelationship",
               "from": "giver",
               "to": "self",
@@ -1441,6 +1453,12 @@
             {
               "type": "setWorldFlag",
               "flag": "gift_sent_back"
+            },
+            {
+              "type": "setCharFlag",
+              "role": "giver",
+              "flag": "orrery_sent_back",
+              "value": true
             },
             {
               "type": "adjustRelationship",

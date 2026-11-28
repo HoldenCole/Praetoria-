@@ -524,7 +524,7 @@
             "Cross the floor", () => G.Execute(new JoinFactionCommand(pid, benchId)));
     }
     private static string FavourLeft(Praetoria.Core.State.World w, string ower, string to)
-    { int left = WealthSystem.FavourYears - (w.Turn - w.Counter(WealthSystem.FavourKey(ower, to))); return left <= 1 ? "forgotten after this year" : $"forgotten in {left} years"; }
+    { int since = w.Counter(WealthSystem.FavourKey(ower, to)), left = WealthSystem.FavourYears - (w.Turn - since); return left <= 0 ? "forgotten after this year" : left == 1 ? "forgotten after next year" : $"forgotten after year {since + WealthSystem.FavourYears}"; }   // WealthSystem.LapseFavours, at the end of year since + 8
     /* where the count for consul stands today: who would be elected, and how far the player's house is from it */
     private string ChancesSay(Praetoria.Core.Presentation.ElectionCard el, Praetoria.Core.Data.OfficeCatalog offices)
     {

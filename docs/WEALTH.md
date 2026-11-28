@@ -471,6 +471,16 @@ count, forecast, tally and count alike; docs/events/votes.md, "Promises"):
   owes yours a favour does not veto your motion, and a whip or a bribe on such a house is refused, since it votes for it
   already. **Seats never counted owe nothing**: the favour owed for a patron's backing goes if your house is not standing
   at the count, or when a throne stands.
+- **Round 2** (2026-11-28; docs/events/votes.md, "Promises", round 2). *A gift sent back is that giver's*: the report marks the
+  giver, and only that house's gift of that kind goes back (the newest), with only the favour its orrery asked; a plate asks
+  none; a vote said not to be for sale declines only that giver's favour (`WealthSystem.Answered`). *An orrery asks nothing of a
+  vote already given* (pledged, sold, held by gold). *The vote owed for a word waits for the word*: while your word on their
+  motion, given in a vote for a vote, is still to be counted, the vote their house owes for it votes for your own motions but is
+  not called in on another house's motion, nor named for money or a match, nor called against a motion that strikes at you
+  (`DealingsSystem.BargainPending`); if a war or blood comes first, the vote and the word are both void, with a notice. *Gold is
+  not taken against a favour you owe its war's mover* that is called in at that count, and a word against a war is not refused
+  for gold that only asked you to stay away (only a vote for the war breaks the gold). *A favour repaid with their voice*, and
+  *a vote asked of the envoy's friend*, need peace with that house.
 
 ### A favour you owe
 

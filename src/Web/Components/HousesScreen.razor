@@ -93,7 +93,7 @@
                     var take = os.TakeClientRefusal(w, mine, fh); var seek = os.SeekPatronRefusal(w, mine, fh);
                     <div class="row small">
                         @if (fh.PatronId == mine.Id) { <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Release, fid, os))">Turn the client away</button> }
-                        else { <button class="opt inline tiny" disabled="@(take != null)" title="@(take ?? "pay its debts and a gift: it votes for you at an election and leans your way in the chamber; 100 credits a year to keep")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Take, fid, os))">Take as a client · @Money.Show(OrderSystem.ClientCost(fh))</button> }
+                        else { <button class="opt inline tiny" disabled="@(take != null)" title="@(take ?? "pay its debts and a gift: it votes for your house's candidate at an election, unless one of its own stands, and leans the way you vote in the chamber, once you have voted; 100 credits a year to keep")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Take, fid, os))">Take as a client · @Money.Show(OrderSystem.ClientCost(fh))</button> }
                         @if (mine.PatronId == fh.Id) { <button class="opt inline tiny" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Leave, string.Empty, os))">Leave its protection</button> }
                         else { <button class="opt inline tiny" disabled="@(seek != null)" title="@(seek ?? "100 credits a year from it, its backing and its clients' in the chamber; your vote is expected at the election")" @onclick="() => G.Execute(new ClientCommand(pid, ClientCommand.Seek, fid, os))">Seek it as a patron</button> }
                     </div>

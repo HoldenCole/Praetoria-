@@ -200,11 +200,12 @@ public static class ProvinceSystem
         }
         return list;
     }
-    public static void NoteVotes(World w, HoldingCatalog cat, Motion m, string interest, bool aimedAtHouse, string? mine, int oblige, int defy)
+    public static void NoteVotes(World w, HoldingCatalog cat, Motion m, string interest, bool aimedAtHouse, string? mine, int oblige, int defy, bool playerCast = true)
     {
         foreach (var (houseId, cast) in m.Votes.OrderBy(v => v.Key, StringComparer.Ordinal).ToList())
         {
             if (cast == 0 || World.Outsider(houseId) || w.House(houseId) is not { } under) continue;
+            if (houseId == mine && !playerCast) continue;   // the player left the vote alone and the house was counted by its lean: no vote of theirs to note, as the patron notes none (SenateSystem.Resolve)
             foreach (var over in Overs(w, houseId).ToList())
             {
                 int want = Wish(m, over, interest, aimedAtHouse); if (want == 0) continue;
@@ -214,6 +215,9 @@ public static class ProvinceSystem
                 if (under.PatronId == over.Id) continue;   // (its patron has noted it already)
                 if (Economy.HeadOf(w, over) is { } oh && Economy.HeadOf(w, under) is { } uh) { var rel = w.Relationship(oh.Id, uh.Id); rel.Disposition = Math.Clamp(rel.Disposition + (with ? oblige : defy), -100, 100); }
                 w.WorldFlags.Add(with ? "obliged_overlord" : "defied_overlord");
+                // what the Senate window said it would do, told as it is done
+                w.Tell(with ? "good" : "warn", with ? $"You voted as {over.Name}, which you hold a province under, wished: its head thinks {oblige:+0;-0} of you{(was > now ? ", and one of your votes against it is forgotten" : "")}."
+                    : $"You voted against {over.Name}, which you hold a province under, on what touched it: its head thinks {defy:+0;-0} of you. You have voted against it {Counted.Times(now)}: at {cat.Provinces.Defiances}, if it is at least your match in arms and at peace, it asks for the province back.", "houses", over.Id);
                 w.Log(with ? $"{under.Name} votes as {over.Name}, which it holds a province under, wished. It is noted." : $"{under.Name} votes against {over.Name}, which it holds a province under. It is noted.");
             }
         }

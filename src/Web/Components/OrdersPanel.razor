@@ -27,7 +27,7 @@
     {
         <div class="ac-fact"><span>Patronage</span><p>
             @if (patron != null) { <text>The house is the client of <b>@patron.Name</b>: 100 credits a year, its backing in the chamber, and your vote expected at the election. </text> }
-            else if (clients.Count > 0) { <text>The house keeps @clients.Count of @Counted.Clients(OrderSystem.ClientCap(house)): @string.Join(", ", clients.Select(x => x.Name)). They vote for you at an election and lean your way in the chamber. </text> }
+            else if (clients.Count > 0) { <text>The house keeps @clients.Count of @Counted.Clients(OrderSystem.ClientCap(house)): @string.Join(", ", clients.Select(x => x.Name)). They vote for your house's candidate at an election, unless one of their own stands, and lean the way you vote in the chamber, once you have voted. </text> }
             else { <text>No patron and no clients. Take a needy house as a client, or seek a greater house's protection, on the Houses screen. The house could keep @OrderSystem.ClientCap(house). </text> }
         </p></div>
         @foreach (var (ab, asWhat) in AskAbove.Above(w, house.Id))

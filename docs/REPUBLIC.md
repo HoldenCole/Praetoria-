@@ -257,6 +257,17 @@ a promise:
   bench's leader or its line; a vote against the bench is remembered until the count of the player's next motion, and the
   leader's table lasts until a session counts something; a repeal word gets a year more for each year the chamber could not
   hear the player's house; only a vote the player cast breaks the whip; the chancellor keeps the player's word to stand.
+- **Round 2** (2026-11-28; docs/events/votes.md, "Promises", round 2): *only a vote the player cast is judged*: a house that
+  threatened yours (`DealingsSystem.MotionCounted`) and the house you hold a province under (`ProvinceSystem.NoteVotes`, which now
+  tells you what it thinks of the vote) read a vote you declared, not your house counted by its lean, as the bench and the patron
+  already did. *A vote for a vote is counted first*: at a session that counts both, the motion you gave your word on is counted
+  before your own (`SenateSystem.Tick`), so a word broken strikes the vote their house owed before it is given; across a war or
+  blood the bargain is void both ways. *Your veto keeps your word*: a consul's veto is refused on a motion your vote is pledged or
+  sold for, and on one at whose count a favour you owe its mover is called in (`VetoCommand`). *A word against your bench says so*:
+  a word given or sold against the line of your bench's leader, or against your patron's wish, says at once what keeping it costs
+  (`VoteMarks.AgainstYourOwn`). *The gates are live*: the marks the reports' bargains read are written again after every command
+  of the player's and as the year's reports are chosen (`VoteMarks.Refresh`), so a war, a blood or a favour spent on a window
+  closes the report's choice with its true reason.
 
 ## The lead of a bench by a contest (2026-11-21)
 

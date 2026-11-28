@@ -401,14 +401,39 @@ public static partial class WealthSystem
     /// <summary>The answers to a gift that the reports give with a flag (a_gift_that_asks_a_favour, and the plate sent to mend a quarrel):
     /// said it buys nothing, the favour it asked is gone; sent back, the thing and the favour both. Read when the Senate sits, before its
     /// count (SenateSystem.Tick), so that a vote the player said was not for sale is not judged at the count of the giver's motion; and at
-    /// the year's gifts, as before.</summary>
+    /// the year's gifts, as before.
+    /// <para>Each answer marks the giver the report named (<see cref="OrreryBackChar"/>, <see cref="PlateBackChar"/>, <see cref="DeclinedChar"/>), and only
+    /// that giver's house is answered: its own gift of the kind the report was about, the newest, goes back, and only the favour its orrery
+    /// asked is gone (a plate asks none). A save from before the marks, with the world flag alone, is answered as it was then.</para></summary>
     public static void Answered(World w)
     {
         string? mine = w.Protagonist?.HouseId;
-        if (w.WorldFlags.Remove(DeclineFlag) && mine != null) foreach (var h in IOwe(w, mine).Where(h => Economy.HeadOf(w, h) is { } hd && hd.Flags.Contains(AsksFavourChar))) w.WorldCounters.Remove(FavourKey(mine, h.Id));
-        if (w.WorldFlags.Remove(SendBackFlag) && mine != null && w.Heirlooms.Where(h => h.Id.StartsWith("gift_", StringComparison.Ordinal) && w.Char(h.HolderId)?.HouseId == mine).OrderByDescending(h => h.Id.Length).ThenByDescending(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.House(h.FromHouseId) != null) is { } back)
-        { w.Heirlooms.Remove(back); Count(w, SentBackKey); w.WorldCounters.Remove(FavourKey(mine, back.FromHouseId)); }
+        var declined = w.Characters.Values.Where(c => c.Flags.Remove(DeclinedChar)).Select(c => c.HouseId).ToHashSet();
+        if (w.WorldFlags.Remove(DeclineFlag) && mine != null)
+        {
+            if (declined.Count == 0) declined = IOwe(w, mine).Where(h => Economy.HeadOf(w, h) is { } hd && hd.Flags.Contains(AsksFavourChar)).Select(h => h.Id).ToHashSet();
+            foreach (var id in declined.OrderBy(x => x, StringComparer.Ordinal)) w.WorldCounters.Remove(FavourKey(mine, id));
+        }
+        var givers = w.Characters.Values.Where(c => c.Flags.Contains(OrreryBackChar) || c.Flags.Contains(PlateBackChar)).OrderBy(c => c.Id, StringComparer.Ordinal).Select(c => (c.HouseId, orrery: c.Flags.Remove(OrreryBackChar), plate: c.Flags.Remove(PlateBackChar))).ToList();
+        if (!w.WorldFlags.Remove(SendBackFlag) || mine == null) return;
+        bool Mine(Heirloom h) => h.Id.StartsWith("gift_", StringComparison.Ordinal) && w.Char(h.HolderId)?.HouseId == mine;
+        if (givers.Count == 0)
+        {
+            if (w.Heirlooms.Where(Mine).OrderByDescending(h => h.Id.Length).ThenByDescending(h => h.Id, StringComparer.Ordinal).FirstOrDefault(h => w.House(h.FromHouseId) != null) is { } old)
+            { w.Heirlooms.Remove(old); Count(w, SentBackKey); if (old.Kind == Orrery) w.WorldCounters.Remove(FavourKey(mine, old.FromHouseId)); }
+            return;
+        }
+        foreach (var (houseId, orrery, plate) in givers)
+            foreach (var kind in new[] { orrery ? Orrery : "", plate ? Plate : "" }.Where(k => k.Length > 0))
+            {
+                var back = w.Heirlooms.Where(h => Mine(h) && h.FromHouseId == houseId && h.Kind == kind).OrderByDescending(h => h.Id, StringComparer.Ordinal).FirstOrDefault(); if (back == null) continue;
+                w.Heirlooms.Remove(back); Count(w, SentBackKey);
+                if (kind == Orrery) w.WorldCounters.Remove(FavourKey(mine, houseId));   // the favour the orrery asked goes back with it; a plate asked none
+            }
     }
+    /// <summary>On the giver the report named: their orrery sent back (a_gift_that_asks_a_favour/send_it_back), their plate sent back
+    /// (a_gift_to_mend_a_quarrel/send_it_back), the favour their orrery asked declined (a_gift_that_asks_a_favour/keep_it_and_promise_nothing).</summary>
+    public const string OrreryBackChar = "orrery_sent_back", PlateBackChar = "plate_sent_back", DeclinedChar = "favour_it_asked_declined";
 
     private static void GiftsThatAsk(World w)
     {
@@ -419,7 +444,8 @@ public static partial class WealthSystem
             var head = Economy.HeadOf(w, a); if (head?.Alive != true || !w.Motions.Any(m => m.Open && m.ProposerHouseId == a.Id)) continue;
             if (Hash($"{a.Id}:{w.Turn}:favour") / 7 % FavourOneIn != 0) continue;
             // not to a house its motion strikes at: nobody is asked to vote for their own censure
-            var to = w.Houses.Values.Where(b => b.Id != a.Id && !World.Outsider(b.Id) && !w.AtWar(a.Id, b.Id) && !FavourOwed(w, b.Id, a.Id) && CalledOn(w, b.Id, a.Id) != null).Select(b => (b, c: Economy.HeadOf(w, b))).Where(x => x.c is { Alive: true })
+            // nor to the player's house when its vote on that motion is given already (a word, a sale, gold taken: VoteMarks.Given): the orrery would ask what is not the player's to give
+            var to = w.Houses.Values.Where(b => b.Id != a.Id && !World.Outsider(b.Id) && !w.AtWar(a.Id, b.Id) && !FavourOwed(w, b.Id, a.Id) && CalledOn(w, b.Id, a.Id) is { } asked && !(b.Id == mine && VoteMarks.Given(w, mine, asked) != null)).Select(b => (b, c: Economy.HeadOf(w, b))).Where(x => x.c is { Alive: true })
                 .Where(x => (w.GetRelationship(head.Id, x.c!.Id)?.Disposition ?? 0) is >= FavourFrom and <= FavourTo).OrderByDescending(x => x.b.Legitimacy).ThenBy(x => x.b.Id, StringComparer.Ordinal).Select(x => x.c!).FirstOrDefault();
             if (to == null || w.Heirlooms.Any(h => h.Kind == Orrery && h.FromHouseId == a.Id && h.OfHouseId == to.HouseId)) continue;
             if (Refuses(w, to, head, RefuseFavourAt, mine)) continue;   // they will not be put under an obligation to this house
@@ -469,6 +495,7 @@ public static partial class WealthSystem
     {
         var mine = me != null ? w.House(me.HouseId) : null; if (me?.Alive != true || mine == null || Economy.HeadOf(w, mine)?.Id != me.Id) return "only the head of a house calls in what it is owed";
         if (theirs == null || !FavourOwed(w, theirs.Id, mine.Id)) return "they owe you nothing";
+        if (DealingsSystem.BargainPending(w, mine.Id, theirs.Id) != null) return DealingsSystem.BargainPendingSays(theirs);   // a vote for a vote: your side is not yet counted
         if (what == ForMoney) return theirs.Treasury.Credits >= FavourCredits ? null : "they have not the money to give";
         if (what == ForMatch) return SuitBetween(w, mine.Id, theirs.Id) != null ? null : "there is no suit between your house and theirs";
         return "no such thing to ask";
@@ -495,11 +522,14 @@ public static partial class WealthSystem
             w.WorldCounters.Remove(key); w.WorldCounters.Remove(DealingsSystem.CalledKey(parts[0], parts[1])); Count(w, FavoursLapsedKey);
             if (mine == null || (parts[0] != mine && parts[1] != mine)) continue;
             bool toMe = parts[1] == mine; var other = toMe ? ower : owed;
+            // a vote for a vote: the vote it owed your house is gone with the war or the blood, and so is your word on its motion that bought it (DealingsSystem.MotionCounted voids it at the count too)
+            string voided = "";
+            if (toMe && (war || blood) && DealingsSystem.BargainPending(w, mine, other!.Id) is { } bargain) { w.VotePledges.Remove(bargain); voided = " Your word on its motion, given for that vote, is void with it: vote on it as you please."; }
             string line = gone ? (toMe ? "A house that owed yours a favour is no more, and the favour is gone with it." : "A house your house owed a favour is no more, and the favour is gone with it.")
                 : war ? (toMe ? $"You are at war with {other!.Name}: the vote it owed your house will not be given, and the favour is gone." : $"You are at war with {other!.Name}: the favour your house owed it is gone.")
                 : blood ? (toMe ? $"There is blood between your house and {other!.Name}: it owes you nothing in the Senate now, and the vote it owed your house is gone." : $"There is blood between your house and {other!.Name}: the favour your house owed it is gone.")
                 : toMe ? $"What {other!.Name} owed your house has gone {Counted.Years(FavourYears)} unspent, and is forgotten." : $"What your house owed {other!.Name} has gone {Counted.Years(FavourYears)} uncalled, and is no longer spoken of.";
-            w.Tell("info", line, "houses", other?.Id ?? ""); w.Log(line);
+            w.Tell("info", line + voided, "houses", other?.Id ?? ""); w.Log(line);
         }
     }
 }

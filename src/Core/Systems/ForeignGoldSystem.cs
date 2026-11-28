@@ -191,6 +191,10 @@ public static class ForeignGoldSystem
         // the house's vote on it is pledged or sold another way: taking the gold would turn it, and break that word
         if (answer == Take && o.Ask != Withdraw && DealingsSystem.PledgeOn(w, house.Id, o.MotionId) is { } p && p.Side != (o.Ask == Against ? -1 : 0))
             return $"your vote on it is {(p.Paid ? "bought by" : "pledged to")} {w.House(p.ToHouseId)?.Name ?? "another house"}, {(p.Side > 0 ? "for" : "against")} it: take this and you break that word (its head would think {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you)";
+        // a favour the house owes the war's mover, called in at this count (WealthSystem.FavoursCalled): the gold's vote would break it, as a word against it would (DealingsSystem.PledgeRefusal)
+        var war = w.Motions.First(x => x.Id == o.MotionId);
+        if (answer == Take && o.Ask != Withdraw && war.ProposerHouseId != house.Id && WealthSystem.FavourOwed(w, house.Id, war.ProposerHouseId) && WealthSystem.CalledOn(w, house.Id, war.ProposerHouseId) == war && w.House(war.ProposerHouseId) is { } mover)
+            return $"you owe {mover.Name} a favour, and it is called in at this motion's count: take this and you break that (its head would think {-WealthSystem.FavourBroken:+0;-0} of you)";
         return null;
     }
 
@@ -215,7 +219,8 @@ public static class ForeignGoldSystem
             }
             if (ours) { w.Log($"{head.Name} takes what {nation} sent. It is not spoken of."); VoteMarks.Wanted(w, house.Id); }   // the vote is held by the gold: no report asks it of the house again
             // the reminder before the count of what the gold binds the house to, in the words the button gave (TakeSays)
-            if (ours && m != null) w.Tell("warn", $"You took what {nation} sent: your house is declared {(o.Ask == Against ? "against the war on " + warOn : "to stay away from the vote on the war on " + warOn)}. Vote for the war after all and they send your house nothing for {Counted.Years(BrokenYears)}.", "senate:chamber", house.Id);
+            if (ours && m != null) w.Tell("warn", $"You took what {nation} sent: your house is declared {(o.Ask == Against ? "against the war on " + warOn : "to stay away from the vote on the war on " + warOn)}. Vote for the war after all and they send your house nothing for {Counted.Years(BrokenYears)}."
+                + (o.Ask == Away && VoteMarks.StandsOn(w, m) is { } leader ? $" Your house stays in its seat, so if {leader.Name} votes in this one, your word to {w.House(leader.HouseId)?.Name ?? "the leader of your bench"} that your house would vote at the next vote of the bench is broken: they think {FactionSystem.BreakWhipDisposition} the worse of you, and your tie to the bench is weaker by {FactionSystem.BreakWhipAffinity}." : ""), "senate:chamber", house.Id);
             return;
         }
         payer.Purse += o.Sum;

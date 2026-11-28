@@ -470,7 +470,9 @@ public sealed class SenateSystem
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn)) (m.ForecastFor, m.ForecastAgainst) = Tally(w, m);   // where it stood before the chair spoke
         ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
         LadderSystem.ChairActs(w, this);   // the Speaker orders the docket and the presiding consul speaks from the chair (docs/LADDER.md, "The chair")
-        var counted = Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList();
+        // a motion the player gave their word on in a vote for a vote is counted first: their side of the bargain is judged before the vote
+        // their house owes for it is given on the player's own motion at the same count (docs/events/votes.md, "Promises", round 2)
+        var counted = Docket(w).Where(m => m.ProposedTurn < w.Turn).OrderBy(m => mine != null && w.VotePledges.Any(p => p.MotionId == m.Id && p.ByHouseId == mine && p.Bargain) ? 0 : 1).ToList();
         foreach (var m in counted) Resolve(w, m, mine);
         FactionSystem.SessionDone(w, counted.Count > 0, counted.Any(m => m.ProposerHouseId == mine));   // the bench fed or whipped was for this count, if it counted anything; a vote against the bench at it is remembered at the count of the player's next motion
         OfficeSystem.Tick(w, _offices);
@@ -535,8 +537,8 @@ public sealed class SenateSystem
             w.Log($"It comes out on the floor that {payer?.Name ?? "a house"} paid {w.House(boughtId)?.Name} for its vote. The vote is struck, and {payer?.Name} is thought the less of.");
         }
         WealthSystem.FavoursCalled(w, m, def, owed);   // a favour owed to the proposer is spent on this vote (docs/WEALTH.md "A gift that asks")
-        DealingsSystem.MotionCounted(w, m);   // a vote pledged to another house was kept or broken (docs/WEALTH.md, "Dealings between houses")
-        if (_fleets?.Catalog is { } provinceRules) ProvinceSystem.NoteVotes(w, provinceRules, m, def.Interest, def.Target == "house", mine, ObligeRegard, DefyRegard);   // the houses over those who voted take note (docs/PROVINCES.md)
+        DealingsSystem.MotionCounted(w, m, playerCast: !undeclared);   // a vote pledged to another house was kept or broken (docs/WEALTH.md, "Dealings between houses"); a threat answered only by a vote the player cast
+        if (_fleets?.Catalog is { } provinceRules) ProvinceSystem.NoteVotes(w, provinceRules, m, def.Interest, def.Target == "house", mine, ObligeRegard, DefyRegard, playerCast: !undeclared);   // the houses over those who voted take note (docs/PROVINCES.md): of the player's house, a vote the player cast
         var (f, a) = Tally(w, m);
         Character? casting = null; bool byChair = f == a && f > 0 && LadderSystem.CastingVote(w, m, out casting);   // a tied Senate goes as the presiding consul voted
         m.ForWeight = f; m.AgainstWeight = a; m.Passed = f > a || byChair; m.Resolved = true; m.ResolvedTurn = w.Turn;

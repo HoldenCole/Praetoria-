@@ -269,7 +269,8 @@
               "role": "host",
               "flag": "no_bargain_with_you",
               "value": false
-            }
+            },
+            { "type": "atWar", "role": "host", "present": false }
           ],
           "effects": [
             {

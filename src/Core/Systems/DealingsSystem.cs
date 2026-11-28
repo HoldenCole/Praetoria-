@@ -187,6 +187,7 @@ public sealed class DealingsSystem
         if (WealthSystem.Apart(w, theirs.Id, mine.Id)) return w.AtWar(theirs.Id, mine.Id) ? "you are at war with them: what they owed you goes with the war" : "there is blood between your houses: they owe you nothing in the Senate";   // the favour lapses at the year's end (WealthSystem.LapseFavours)
         // on your own motion a favour owed is a vote already (WealthSystem.VotesFor), spent only if it changes the vote: calling it in would spend it for nothing
         if (w.Motions.FirstOrDefault(x => x.Id == motionId) is { Open: true } own && WealthSystem.VotesFor(w, own, theirs.Id)) return "it votes for your motion already: the favour is kept for one it would not vote for";
+        if (BargainPending(w, mine.Id, theirs.Id) != null) return BargainPendingSays(theirs);
         return VoteRefusal(w, mine, theirs, motionId);
     }
     public void CallVote(World w, Character me, House theirs, string motionId)
@@ -195,6 +196,15 @@ public sealed class DealingsSystem
         w.WorldCounters.Remove(WealthSystem.FavourKey(theirs.Id, mine.Id)); m.Votes[theirs.Id] = side; Count(w, WealthSystem.FavoursCalledKey); Remember(w, FavourKeptKind, theirs.Id, mine.Id);
         w.Log($"{me.Name} calls in what {theirs.Name} owes: it declares {(side > 0 ? "for" : "against")} the motion, and owes nothing more.");
     }
+
+    /// <summary>The player's word on a motion of that house, given in a vote for a vote (VotePledge.Bargain) and not yet counted, or null.
+    /// While it waits, the vote that house owes for it votes for the player's own motions (WealthSystem.VotesFor), but is not called in
+    /// on another house's motion nor named for money or a match: it was given for a word the chamber has not yet seen kept, and if the
+    /// word is broken it is struck (MotionCounted).</summary>
+    public static VotePledge? BargainPending(World w, string byHouseId, string toHouseId) =>
+        w.VotePledges.FirstOrDefault(p => p.ByHouseId == byHouseId && p.ToHouseId == toHouseId && p.Bargain && w.Motions.Any(m => m.Id == p.MotionId && m.Open));
+    public static string BargainPendingSays(House theirs) =>
+        $"{theirs.Name} owes your house that vote for your word on its own motion, which is not counted yet: it votes for your own motions meanwhile, and can be called in otherwise once you have kept your side";
 
     /// <summary>The houses that owe the player's house a favour and could be called on a motion now before the Senate that strikes at
     /// it (a censure, an embargo, a break-up, a recall or a reconquest of it; WealthSystem.StrikesAt), each with the first such motion
@@ -205,7 +215,7 @@ public sealed class DealingsSystem
     {
         var list = new List<(House, Motion)>();
         var against = SenateSystem.Docket(w).Where(m => WealthSystem.StrikesAt(m, mine)).ToList(); if (against.Count == 0) return list;
-        foreach (var h in WealthSystem.OweMe(w, mine).Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && !WealthSystem.Apart(w, h.Id, mine)))
+        foreach (var h in WealthSystem.OweMe(w, mine).Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && !WealthSystem.Apart(w, h.Id, mine) && BargainPending(w, mine, h.Id) == null))
             if (against.FirstOrDefault(m => m.ProposerHouseId != h.Id && !(m.Votes.TryGetValue(h.Id, out int cast) && cast < 0)) is { } m) list.Add((h, m));
         return list;
     }
@@ -214,10 +224,13 @@ public sealed class DealingsSystem
     /// house in <see cref="CallableAgainst"/> declares against the motion, as a favour called in on the house window does
     /// (<see cref="CallVote"/>), and owes nothing more. The count keeps a declared vote, so each is cast whatever the house leans. The
     /// player is told who, or that nobody could be called.</summary>
+    /// <summary>What the night spent calling in favours costs (content/events/senate.json, a_censure_on_the_docket/call_in_favours).</summary>
+    public const int CallInInfluence = 2;
     public static void CallInAgainst(World w, string mine)
     {
         var me = w.House(mine); if (me == null) return; var called = CallableAgainst(w, mine);
-        if (called.Count == 0) { w.Tell("info", "No house that owes yours a favour could be called on the motion against your house, so none was called in.", "senate:chamber"); return; }
+        // the report's gate is written again after every command (VoteMarks.Refresh), so this should not come; if it does, the night's influence is given back
+        if (called.Count == 0) { if (w.Protagonist is { } head) w.PoolsFor(head.Id).Influence += CallInInfluence; w.Tell("info", $"No house that owes yours a favour could be called on the motion against your house, so none was called in, and the {CallInInfluence} influence the night would have cost is still yours.", "senate:chamber"); return; }
         foreach (var (h, m) in called)
         {
             w.WorldCounters.Remove(WealthSystem.FavourKey(h.Id, mine)); m.Votes[h.Id] = -1; Count(w, WealthSystem.FavoursCalledKey); Remember(w, FavourKeptKind, h.Id, mine);
@@ -314,8 +327,9 @@ public sealed class DealingsSystem
         if (PledgeOn(w, mine.Id, m.Id) is { } given) return $"your vote on it is {(given.Paid ? "bought by" : "pledged to")} {w.House(given.ToHouseId)?.Name ?? "another house"} already";
         int wants = Wants(w, m, theirs!); if (wants == 0) return $"{theirs!.Name} does not care enough how it goes to want your word on it";
         // a word that would break another promise on the same vote: gold taken to vote against it or stay away, or a favour its mover calls in at this count
-        if (w.GoldOffers.FirstOrDefault(o => o.MotionId == m.Id && o.HouseId == mine.Id && o.Answer == ForeignGoldSystem.Taken && o.Ask != ForeignGoldSystem.Withdraw) is { } gold && !(gold.Ask == ForeignGoldSystem.Against && wants < 0))
-            return $"you took gold from {gold.NationName} {ForeignGoldSystem.AskSays(gold)}: a word {(wants > 0 ? "for" : "against")} it would break that";
+        // only a vote for the war breaks the gold, either way it asked (ForeignGoldSystem.SettleCounted, TakeSays): a word against it does not
+        if (w.GoldOffers.FirstOrDefault(o => o.MotionId == m.Id && o.HouseId == mine.Id && o.Answer == ForeignGoldSystem.Taken && o.Ask != ForeignGoldSystem.Withdraw) is { } gold && wants > 0)
+            return $"you took gold from {gold.NationName} {ForeignGoldSystem.AskSays(gold)}: a word for it would break that";
         if (wants < 0 && m.ProposerHouseId != theirs!.Id && WealthSystem.FavourOwed(w, mine.Id, m.ProposerHouseId) && WealthSystem.CalledOn(w, mine.Id, m.ProposerHouseId) == m && w.House(m.ProposerHouseId) is { } mover)
             return $"you owe {mover.Name} a favour, and it is called in at this motion's count: a word against it would break that";
         int lead = LeadWithout(w, m, wants, mine.Id), seats = _senate.Weight(w, mine.Id);
@@ -335,7 +349,7 @@ public sealed class DealingsSystem
         // the reminder, as a word given in a report has it (VoteMarks.Word): the count is a year off, and the house page is not the Senate's
         if (mine.Id == w.Protagonist?.HouseId)
             w.Tell("warn", $"You gave {theirs.Name} your word: your vote on its motion is declared {(side > 0 ? "for" : "against")} it. Keep it at the count and {theirs.Name} owes you a favour, and its head thinks {Signed(PledgeKeptRegard)} of you; "
-                + $"change it and its head thinks {Signed(-PledgeBrokenRegard)} of you, and the house takes no pledge of yours for {Counted.Years(PledgeMemoryYears)}.", "senate:chamber", theirs.Id);
+                + $"change it and its head thinks {Signed(-PledgeBrokenRegard)} of you, and the house takes no pledge of yours for {Counted.Years(PledgeMemoryYears)}." + VoteMarks.AgainstYourOwn(w, m, mine.Id, side), "senate:chamber", theirs.Id);
     }
     /// <summary>A word given on a vote: the pledge, judged at the count (<see cref="MotionCounted"/>), and the vote declared that way.
     /// Given here from the house's window, or in a report (a_vote_for_a_vote, VoteMarks.Bargains). <paramref name="paid"/>: a vote bought
@@ -358,7 +372,9 @@ public sealed class DealingsSystem
         {
             w.VotePledges.Remove(p);
             if (p.ByHouseId != mine || w.House(p.ToHouseId) is not { } to) continue;
-            string what = p.Paid ? $"The motion {to.Name} bought your vote on" : $"The motion you gave {to.Name} your word on", then = p.Paid ? "No vote is asked of you for what was paid." : "Your word on it is void, and nothing is owed for it.";
+            // a vote for a vote: their house still owes yours the vote it gave its word for, since the motion was struck and not your word broken
+            string what = p.Paid ? $"The motion {to.Name} bought your vote on" : $"The motion you gave {to.Name} your word on", then = p.Paid ? "No vote is asked of you for what was paid."
+                : p.Bargain && WealthSystem.FavourOwed(w, to.Id, mine) ? $"Your word on it is void; the vote {to.Name} owes your house for it still stands." : "Your word on it is void, and nothing is owed for it.";
             w.Tell("info", gone == null ? $"{what} was struck before the count. {then}" : gone.Id == to.Id ? $"{to.Name} is no more, and {char.ToLowerInvariant(what[0]) + what[1..]} has lapsed with it. {then}"
                 : $"{what} has lapsed with {gone.Name}, which is no more. {then}", "houses", to.Id);
         }
@@ -367,13 +383,22 @@ public sealed class DealingsSystem
     }
 
     /// <summary>A motion is counted (called by the Senate when it is). Every vote pledged on it was kept or broken; and a
-    /// house that voted against the motion of one that had threatened it has defied it.</summary>
-    public static void MotionCounted(World w, Motion m)
+    /// house that voted against the motion of one that had threatened it has defied it. <paramref name="playerCast"/>: the player
+    /// declared their house's vote before the count; a house left alone and counted by its lean has cast no vote of the player's,
+    /// so it has defied nobody (as the patron and the bench read only a vote the player cast: SenateSystem.Resolve).</summary>
+    public static void MotionCounted(World w, Motion m, bool playerCast = true)
     {
         string? mine = w.Protagonist?.HouseId;
         foreach (var p in w.VotePledges.Where(p => p.MotionId == m.Id).OrderBy(p => p.ByHouseId, StringComparer.Ordinal).ThenBy(p => p.ToHouseId, StringComparer.Ordinal).ToList())
         {
             w.VotePledges.Remove(p); var by = w.House(p.ByHouseId); var to = w.House(p.ToHouseId); if (by == null || to == null) continue;
+            // a vote for a vote between houses now at war or in blood: the vote that house owed is void (WealthSystem.Apart), and so is the word given for it
+            if (p.Bargain && WealthSystem.Apart(w, to.Id, by.Id))
+            {
+                w.WorldCounters.Remove(WealthSystem.FavourKey(to.Id, by.Id));
+                if (by.Id == mine) w.Tell("info", $"{(w.AtWar(to.Id, by.Id) ? "You are at war with" : "There is blood between your house and")} {to.Name}: the vote for a vote is void both ways: {to.Name} owes your house no vote for it, and your vote on its motion was not judged.", "houses", to.Id);
+                continue;
+            }
             bool kept = m.Votes.GetValueOrDefault(by.Id) == p.Side;
             if (kept)
             {
@@ -398,11 +423,17 @@ public sealed class DealingsSystem
                     if (by.Id == mine) w.Tell("warn", $"{to.Name} will not give the vote it owed your house for a word you did not keep: it owes your house nothing now.", "houses", to.Id);
                     w.Log($"{to.Name} holds that it owes {by.Name} nothing, since {by.Name} did not keep its side of the bargain.");
                 }
+                // its side was given first (its motion held over past the count of yours): what it gave is not taken back, and the chamber knows who kept the bargain
+                else if (p.Bargain && by.Id == mine)
+                {
+                    w.Tell("warn", $"{to.Name} had given your house the vote it owed for your word before its own motion was counted, and you did not keep your side: the bargain is written down as broken by you.", "houses", to.Id);
+                    w.Log($"{to.Name} kept its side of a vote for a vote, and {by.Name} did not keep its own.");
+                }
             }
         }
         // the player's house, threatened by the house that moved this, voted against it all the same: remembered for the threat's years,
         // whatever the fleets are now (the threat said "it will be remembered", and the house page "its head thinks -10 of you")
-        if (mine != null && m.ProposerHouseId != mine && w.House(mine) is { } me && w.House(m.ProposerHouseId) is { } mover && Threatened(w, me, mover) && m.Votes.GetValueOrDefault(mine) < 0)
+        if (playerCast && mine != null && m.ProposerHouseId != mine && w.House(mine) is { } me && w.House(m.ProposerHouseId) is { } mover && Threatened(w, me, mover) && m.Votes.GetValueOrDefault(mine) < 0)
         {
             Regard(w, mover, me, -DefiedRegard);
             w.Tell("warn", $"You voted against the motion of {mover.Name}, which had told you what its fleets could do. Its head thinks {Signed(-DefiedRegard)} of you for it.", "houses", mover.Id);

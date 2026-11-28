@@ -195,7 +195,9 @@ public partial class VotePromisesTests
         Assert.False(g.Senate.Owes(g.W, levy, theirs.Id)); Session(g);
         Assert.True(levy.Votes[theirs.Id] < 0);   // an enemy at war gives no vote
         WealthSystem.Tick(g.W);   // the year's end
-        Assert.False(WealthSystem.FavourOwed(g.W, theirs.Id, g.Mine.Id)); Assert.True(g.Told($"You are at war with {theirs.Name}: the vote it owed your house will not be given"));
+        // their motion was counted at that session too, first: across the war the vote for a vote is void both ways, and said (DealingsSystem.MotionCounted)
+        Assert.False(WealthSystem.FavourOwed(g.W, theirs.Id, g.Mine.Id)); Assert.True(g.Told($"You are at war with {theirs.Name}: the vote for a vote is void both ways: {theirs.Name} owes your house no vote for it, and your vote on its motion was not judged."));
+        Assert.DoesNotContain(g.W.Dealings, d => d.Kind == DealingsSystem.PledgeBrokenKind && d.FromHouseId == g.Mine.Id);   // your word on their motion was not judged
     }
 
     [Fact]
@@ -317,10 +319,13 @@ public partial class VotePromisesTests
     [Fact]
     public void TheWhip_TheFavourCanBeNamedForSomethingElse_AndThenNoVoteIsOwed()
     {
-        var g = Start(); TheyMove(g, Others(g)[0]);
+        var g = Start(); var theirMotion = TheyMove(g, Others(g)[0]);
         var (f, whip) = Report(g, "the_whip", "whip"); Answer(g, f, "name_your_price"); var theirs = g.W.House(whip.HouseId)!;
-        theirs.Treasury.Credits = Math.Max(100, theirs.Treasury.Credits); int had = g.Mine.Treasury.Credits;
-        Assert.True(g.Do(new WealthCommand(g.Me.Id, WealthCommand.Favour, theirs.Id, WealthSystem.ForMoney)));   // named: money
+        theirs.Treasury.Credits = Math.Max(100, theirs.Treasury.Credits);
+        var named = new WealthCommand(g.Me.Id, WealthCommand.Favour, theirs.Id, WealthSystem.ForMoney);
+        Assert.Equal(DealingsSystem.BargainPendingSays(theirs), named.Refusal(g.Ctx));   // not while your word on its motion, the price of the favour, is still to be counted
+        Session(g); Assert.True(theirMotion.Resolved); Only(g); int had = g.Mine.Treasury.Credits;   // your side kept at its count
+        Assert.True(g.Do(named), named.Refusal(g.Ctx));   // named: money
         Assert.Equal(had + WealthSystem.FavourCredits, g.Mine.Treasury.Credits); Assert.False(WealthSystem.FavourOwed(g.W, theirs.Id, g.Mine.Id));
         Only(g); var levy = IMove(g); HardAgainst(g, levy, theirs); Assert.False(g.Senate.Owes(g.W, levy, theirs.Id)); Session(g);
         Assert.True(levy.Votes[theirs.Id] < 0);
@@ -584,7 +589,7 @@ public partial class VotePromisesTests
         var (g, theirs, buyer, next, f) = CalledIn(); News(g);
         Answer(g, f, "vote_as_they_ask");
         Assert.Equal(1, next.Votes[g.Mine.Id]); var bought = DealingsSystem.PledgeOn(g.W, g.Mine.Id, next.Id); Assert.True(bought is { Paid: true } && bought.ToHouseId == theirs.Id);
-        Assert.True(g.Told($"{theirs.Name} has bought your vote on its motion: it is declared for it")); Assert.True(g.Told("-15"));   // reminded before the count, this year
+        Assert.True(g.Told($"{theirs.Name} calls in the vote it bought from you before: your vote on its motion is declared for it, unpaid this time.")); Assert.False(g.Told($"{theirs.Name} has bought your vote on its motion"));   // told as a vote called in, not a new sale Assert.True(g.Told("-15"));   // reminded before the count, this year
         Assert.False(WealthSystem.FavourOwed(g.W, g.Mine.Id, theirs.Id));   // a vote on this motion, not a favour carried to whatever it moves next
         int before = g.Regard(theirs); g = Reload(g); theirs = g.W.House(theirs.Id)!; next = g.W.Motions.First(m => m.Id == next.Id);
         Session(g);
