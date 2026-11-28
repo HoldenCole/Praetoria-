@@ -3,7 +3,7 @@
     {
       "id": "the_lean_season",
       "title": "The Lean Season",
-      "body": "Your steward lays the accounts before you with the particular flat calm of a man delivering bad news he has rehearsed. The treasury runs dry within a few turns at the present rate. The numbers are not in dispute; only what you do about them is. Every choice on the table balances the books and unbalances something else, the people, the house's future, your own freedom, because in stewardship there is no such thing as free money, only debts wearing different faces.",
+      "body": "Your steward lays the accounts before you with the particular flat calm of someone delivering bad news rehearsed in advance. The treasury runs dry within a few turns at the present rate. The numbers are not in dispute; only what you do about them is. Every choice on the table balances the books and unbalances something else, the people, the house's future, your own freedom, because in stewardship there is no such thing as free money, only debts wearing different faces.",
       "choices": {
         "raise_the_tithe": "Raise the tithe. The coffers breathe; the field-towns remember.",
         "sell_a_holding": "Sell a holding. Solvent today, smaller tomorrow.",
@@ -14,10 +14,10 @@
     {
       "id": "the_debt_called",
       "title": "The Debt Called",
-      "body": "It comes, as you knew it would, at the worst possible moment, that being the only moment a man like {creditor.name} of {creditor.house} ever chooses. The loan that saved you is called in, with the warm and terrible courtesy of someone who holds all the cards and wants you to admire how gently they play them. The debt is real. The question is what currency you settle it in, and what you are willing to become to be free of it.",
+      "body": "It comes, as you knew it would, at the worst possible moment, that being the only moment someone like {creditor.name} of {creditor.house} ever chooses. The loan that saved you is called in, with the warm and terrible courtesy of someone who holds all the cards and wants you to admire how gently {creditor.he} plays them. The debt is real. The question is what currency you settle it in, and what you are willing to become to be free of it.",
       "choices": {
         "pay_in_full": "Pay it in coin, in full. Clean, costly, done.",
-        "pay_with_favor": "Pay in favour: your house will owe theirs a vote. Trade one debt for another.",
+        "pay_with_favor": "Pay in favour: your house will owe {creditor.house} a vote. Trade one debt for another.",
         "refuse_to_pay": "Make the debt disappear. Records, witnesses, leverage, all of it. Keep the enemy."
       }
     },
@@ -37,7 +37,7 @@
       "body": "The discrepancy is small, then consistent, then unmistakable: {steward.name} of {steward.house}, who has kept your accounts faithfully for years, has been keeping a little of them too. The sums are not ruinous. The principle is. How a {era:senator|lord} answers theft from within the house tells the whole house what kind of master they serve, and the answer, once given, is very hard to revise.",
       "choices": {
         "make_example": "Make it public and final. Honesty enforced by fear is still honesty.",
-        "quiet_dismissal": "Let them return the coin and resign with their name. Mercy, unadvertised.",
+        "quiet_dismissal": "Let {steward.him} return the coin and resign with {steward.his} name. Mercy, unadvertised.",
         "take_a_cut": "Don't stop it, partner in it, on your terms. Profitable. Until it isn't."
       }
     },
@@ -72,11 +72,11 @@
     {
       "id": "the_auditors_visit",
       "title": "The Audit",
-      "body": "{auditor.name} of {auditor.house} arrives with the polite implacability of someone who already knows the answer and only wants to watch you say it. The house's books have grown a second life beneath the first, small diversions, useful lies, the ordinary rot of running anything for long enough. The auditor will find it. The only question left is what you do in the hours before they do.",
+      "body": "{auditor.name} of {auditor.house} arrives with the polite implacability of someone who already knows the answer and only wants to watch you say it. The house's books have grown a second life beneath the first, small diversions, useful lies, the ordinary rot of running anything for long enough. The auditor will find it. The only question left is what you do in the hours before {auditor.he} does.",
       "choices": {
         "buy_silence": "Buy the auditor. The books come back clean, and one more person owns you.",
         "confess_and_reform": "Open the true books first. Name the rot, name the cure. Survive the cleaning.",
-        "blame_the_steward": "Hand them a culprit whose ruin won't touch the family name."
+        "blame_the_steward": "Hand {auditor.him} a culprit whose ruin won't touch the family name."
       }
     },
     {
@@ -112,9 +112,9 @@
     {
       "id": "the_influence_broker",
       "title": "The Broker",
-      "body": "{broker.name} of {broker.house} deals in the one currency that doesn't mint: influence, favor, the soft power of who owes whom. They have come with the usual proposition, that your accumulated standing could be so much more useful as something else, if you'd only let it move. Influence is wealth in its most patient form. Spending it is easy. Knowing when is the whole game.",
+      "body": "{broker.name} of {broker.house} deals in the one currency that doesn't mint: influence, favour, the soft power of who owes whom. {broker.He} has come with the usual proposition, that your accumulated standing could be so much more useful as something else, if you'd only let it move. Influence is wealth in its most patient form. Spending it is easy. Knowing when is the whole game.",
       "choices": {
-        "spend_influence": "Trade standing for coin. Favors that leave no fingerprints.",
+        "spend_influence": "Trade standing for coin. Favours that leave no fingerprints.",
         "hoard_influence": "Let it sit and compound. The powerful accumulate; the poor spend.",
         "call_in_everything": "Call in every debt at once. A king's gambit, it works exactly once."
       }
@@ -122,11 +122,11 @@
     {
       "id": "the_inherited_debt",
       "title": "The Old Paper",
-      "body": "{claimant.name} of {claimant.house} comes bearing a debt older than you, paper your grandfather signed, an obligation sworn by a man now dust and never honored. The ink has faded. The claim has not. Nothing forces your hand here except the thing that has always bound {era:great|noble} houses to their own history: the name at the top of the page, which is also the name at the top of yours.",
+      "body": "{claimant.name} of {claimant.house} comes bearing a debt older than you, paper your grandfather signed, an obligation sworn by a man now dust and never honoured. The ink has faded. The claim has not. Nothing forces your hand here except the thing that has always bound {era:great|noble} houses to their own history: the name at the top of the page, which is also the name at the top of yours.",
       "choices": {
         "honor_it": "Pay your grandfather's debt. A house that pays its dead's word keeps its own.",
         "dispute_it": "Argue it to dust in the courts. The debt voids; the enmity is freshly yours.",
-        "repudiate_it": "Simply refuse. The dead made no promise you'll keep. They'll wait, and plan."
+        "repudiate_it": "Simply refuse. The dead made no promise you'll keep. {claimant.He} will wait, and plan."
       }
     },
     {

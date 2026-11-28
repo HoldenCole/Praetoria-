@@ -72,7 +72,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wrote {officer.name}'s name into the dispatch of the victory, and what {officer.name} had done. {officer.name} read it twice."
+              "text": "{self.name} wrote {officer.name}'s name into the dispatch of the victory, and what {officer.he} had done. {officer.first} read it twice."
             }
           ]
         },
@@ -124,7 +124,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had a word in the Admiralty's ear, and {officer.name} went up a step for the day {officer.name} broke the line."
+              "text": "{self.name} had a word in the Admiralty's ear, and {officer.name} went up a step for the day {officer.he} broke the line."
             }
           ]
         },
@@ -156,7 +156,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had {officer.name} told, in front of the wardroom, that a battle won against orders is a battle won by luck. The wardroom approved. {officer.name} did not."
+              "text": "{self.name} had {officer.name} told, in front of the wardroom, that a battle won against orders is a battle won by luck. The wardroom approved. {officer.first} did not."
             }
           ]
         },
@@ -323,7 +323,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name}'s report of the defeat put the break in the line somewhere {officer.name} had not been. {officer.name} knows what it cost to write."
+              "text": "{self.name}'s report of the defeat put the break in the line somewhere {officer.name} had not been. {officer.first} knows what it cost to write."
             }
           ]
         },
@@ -344,7 +344,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked {officer.name} why, and was told: the signal was wrong, and staying would have lost every ship. {self.name} went over the plots that night and found it was true."
+              "text": "{self.name} asked {officer.name} why, and was told: the signal was wrong, and staying would have lost every ship. {self.first} went over the plots that night and found it was true."
             }
           ]
         }
@@ -441,7 +441,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put {officer.name}'s name to the Senate at the peace, and the Senate honoured it. {officer.name} swore to {self.name} that day, in the old form, and meant it."
+              "text": "{self.name} put {officer.name}'s name to the Senate at the peace, and the Senate honoured it. {officer.first} swore to {self.him} that day, in the old form, and meant it."
             }
           ]
         },
@@ -477,7 +477,7 @@
             },
             {
               "type": "log",
-              "text": "At the peace {self.name} gave {officer.name} a purse from the house for the war. It was well spent, and {officer.name} said so."
+              "text": "At the peace {self.name} gave {officer.name} a purse from the house for the war. It was well spent, and {officer.first} said so."
             }
           ]
         },
@@ -591,7 +591,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} answered {officer.name}'s account in the Senate, point by point, and the chamber believed {self.name}. {officer.name} will not forget the day."
+              "text": "{self.name} answered {officer.name}'s account in the Senate, point by point, and the chamber believed {self.first}. {officer.first} will not forget the day."
             }
           ]
         },
@@ -662,7 +662,7 @@
             },
             {
               "type": "log",
-              "text": "{officer.name}'s account stopped being copied. Four hundred credits of the house's had gone to {officer.name}, and both of them knew why."
+              "text": "{officer.name}'s account stopped being copied. Four hundred credits of the house's had gone to {officer.him}, and both of them knew why."
             }
           ]
         },
@@ -845,7 +845,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} took {kin.name} onto the staff, where they could be watched, and taught."
+              "text": "{self.name} took {kin.name} onto the staff, where {kin.he} could be watched, and taught."
             }
           ]
         },
@@ -887,7 +887,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} found {kin.name} a post at the yards: war work, the fleet's work, and nowhere near the guns. {kin.name} knew exactly what it was."
+              "text": "{self.name} found {kin.name} a post at the yards: war work, the fleet's work, and nowhere near the guns. {kin.first} knew exactly what it was."
             }
           ]
         },
@@ -1057,7 +1057,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} brought {kin.name} home after the first battle. {kin.name} came, and has not forgiven it."
+              "text": "{self.name} brought {kin.name} home after the first battle. {kin.first} came, and has not forgiven it."
             }
           ]
         },
@@ -1083,7 +1083,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} left {kin.name} where they were. They stayed with the fleet, and grew harder."
+              "text": "{self.name} left {kin.name} where {kin.he} was. {kin.He} stayed with the fleet, and grew harder."
             }
           ]
         }
@@ -1177,7 +1177,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had {kin.name} brought home from the fleet to mend. {kin.name} came, and asked every week when they could go back."
+              "text": "{self.name} had {kin.name} brought home from the fleet to mend. {kin.first} came, and asked every week when {kin.he} could go back."
             }
           ]
         },
@@ -1261,7 +1261,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} left {kin.name} to the fleet's surgeons, as every other family's wounded were left. {kin.name} was back at their post before the wound had closed."
+              "text": "{self.name} left {kin.name} to the fleet's surgeons, as every other family's wounded were left. {kin.first} was back at {kin.his} post before the wound had closed."
             }
           ]
         }
@@ -1503,7 +1503,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sat with {kin.name}, home from the war, and had all of it out of them, battle by battle. {self.name} learned a good deal. {kin.name} did not sleep well that week."
+              "text": "{self.name} sat with {kin.name}, home from the war, and had all of it out of {kin.him}, battle by battle. {self.first} learned a good deal. {kin.first} did not sleep well that week."
             }
           ]
         }
@@ -1584,7 +1584,7 @@
             },
             {
               "type": "log",
-              "text": "{prisoner.house} paid four hundred credits for {prisoner.name}, and {prisoner.name} went home in a hired shuttle."
+              "text": "{prisoner.house} paid four hundred credits for {prisoner.name}, and {prisoner.he} went home in a hired shuttle."
             }
           ]
         },
@@ -1638,7 +1638,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {prisoner.name} go home on their word not to bear arms against {self.house} again while this war lasts."
+              "text": "{self.name} let {prisoner.name} go home on {prisoner.his} word not to bear arms against {self.house} again while this war lasts."
             }
           ]
         },
@@ -1792,7 +1792,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name}'s herald read {parolee.name} their own parole, aloud, on {parolee.name}'s own quarterdeck."
+              "text": "{self.name}'s herald read {parolee.name} {parolee.his} own parole, aloud, on {parolee.his} own quarterdeck."
             }
           ]
         },
@@ -2018,7 +2018,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} met {foe.name} of {foe.house} between the fleets and offered a white peace, and {foe.name} took it. The guns were never run out."
+              "text": "{self.name} met {foe.name} of {foe.house} between the fleets and offered a white peace, and {foe.first} took it. The guns were never run out."
             }
           ]
         },
@@ -2091,7 +2091,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} met {foe.name} under a flag of truce and spent the hour counting {foe.house}'s ships. {foe.name} noticed, too late: the order of battle was known before the guns were run out."
+              "text": "{self.name} met {foe.name} under a flag of truce and spent the hour counting {foe.house}'s ships. {foe.first} noticed, too late: the order of battle was known before the guns were run out."
             }
           ]
         },

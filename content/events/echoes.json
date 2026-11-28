@@ -55,7 +55,7 @@
             },
             {
               "type": "log",
-              "text": "{era:The chair's due|The crown's due} came to {self.name} with interest, and {self.name} paid it in coin that had been meant for other things. {sovereign.name} of {sovereign.house} received it as {era:the chair|the crown} receives everything: as its right."
+              "text": "{era:The chair's due|The crown's due} came to {self.name} with interest, and {self.he} paid it in coin that had been meant for other things. {sovereign.name} of {sovereign.house} received it as {era:the chair|the crown} receives everything: as its right."
             }
           ]
         },
@@ -138,7 +138,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {sovereign.name} of {sovereign.house}, through intermediaries and then without them, that the debt would not be paid. {era:The Senate|The court} went very quiet. A house that defies {era:the chair|the crown} has either grown very strong or made a very large mistake, and no one yet knows which {self.name} is."
+              "text": "{self.name} told {sovereign.name} of {sovereign.house}, through intermediaries and then without them, that the debt would not be paid. {era:The Senate|The court} went very quiet. A house that defies {era:the chair|the crown} has either grown very strong or made a very large mistake, and no one yet knows which {self.first} has done."
             }
           ]
         }
@@ -223,7 +223,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sold the thing from the rock to someone who asked no questions and paid as if they knew the answers. The treasury is heavier. Somewhere, the thing is being studied by hands {self.name} will never see."
+              "text": "{self.name} sold the thing from the rock to someone who asked no questions and paid as if they knew the answers. The treasury is heavier. Somewhere, the thing is being studied by hands {self.he} will never see."
             }
           ]
         },
@@ -242,7 +242,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had the thing sealed, logged, and forgotten under three locks and a false label. A prudent steward's decision. {self.name} slept badly anyway, and could not have said why."
+              "text": "{self.name} had the thing sealed, logged, and forgotten under three locks and a false label. A prudent steward's decision. {self.He} slept badly anyway, and could not have said why."
             }
           ]
         }
@@ -327,7 +327,7 @@
             },
             {
               "type": "log",
-              "text": "{comrade.name} needed the oath more than {self.name} did this year, and {self.name} stood for them at a cost, publicly, expensively, the way oaths are meant to be kept. The cohort that watched the swearing has long since scattered. The ones who hear of this will understand what it was."
+              "text": "{comrade.name} needed the oath more than {self.name} did this year, and {self.first} stood for {comrade.him} at a cost, publicly, expensively, the way oaths are meant to be kept. The cohort that watched the swearing has long since scattered. The ones who hear of this will understand what it was."
             }
           ]
         },
@@ -580,7 +580,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} never again left a locker, a ledger, or a back unwatched. The spoiled kit at the academy had taught a lesson, and {self.name} had learned it thoroughly, perhaps too thoroughly."
+              "text": "{self.name} never again left a locker, a ledger, or a back unwatched. The spoiled kit at the academy had taught a lesson, and {self.he} had learned it thoroughly, perhaps too thoroughly."
             }
           ]
         },
@@ -606,7 +606,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} set the old sabotage down at last. It had made {self.name} harder, and that was enough; it did not need to make {self.name} smaller too."
+              "text": "{self.name} set the old sabotage down at last. It had made {self.him} harder, and that was enough; it did not need to make {self.him} smaller too."
             }
           ]
         }
@@ -676,7 +676,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} worked through the evening again. {spouse.name} did not remark on it, which {self.name} chose to read as understanding."
+              "text": "{self.name} worked through the evening again. {spouse.name} did not remark on it, which {self.first} chose to read as understanding."
             }
           ]
         }
@@ -798,7 +798,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} withdrew, from {era:the Senate|the court}, the ledgers, the thousand demands, and let the house run itself for a season. It ran badly. {self.name} came back able to run it."
+              "text": "{self.name} withdrew, from {era:the Senate|the court}, the ledgers, the thousand demands, and let the house run itself for a season. It ran badly. {self.He} came back able to run it."
             }
           ]
         }
@@ -858,7 +858,7 @@
             },
             {
               "type": "log",
-              "text": "Unfamiliar sails in {self.name}'s own sky, and {self.name} answered them the old way: every hull crewed, every battery manned, the harbour lights burning all night so that {intruder.name} of {intruder.house} could count them. Nothing was fired. Everything was said."
+              "text": "Unfamiliar sails in {self.name}'s own sky, and {self.he} answered them the old way: every hull crewed, every battery manned, the harbour lights burning all night so that {intruder.name} of {intruder.house} could count them. Nothing was fired. Everything was said."
             }
           ]
         },
@@ -952,7 +952,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} walked the decks of the house's ships and asked the questions a crew does not expect from a name. The answers were uneven. {self.name} wrote them down."
+              "text": "{self.name} walked the decks of the house's ships and asked the questions a crew does not expect from a name. The answers were uneven. {self.He} wrote them down."
             }
           ]
         },
@@ -1536,7 +1536,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent {envoy.name} back to {envoy.house} with nothing. The war went on. Whatever {self.name} wanted from it, it was not yet in hand."
+              "text": "{self.name} sent {envoy.name} back to {envoy.house} with nothing. The war went on. Whatever {self.first} wanted from it, it was not yet in hand."
             }
           ]
         }
@@ -1955,7 +1955,7 @@
             },
             {
               "type": "log",
-              "text": "The feast was {self.name}'s, and so were the doors. When they closed, {enemy.name} of {enemy.house} understood, too late, what the invitation had meant. The Reach would call it the Red Feast for a hundred years, and would never again accept {self.name}'s hospitality without counting the exits."
+              "text": "The feast was {self.name}'s, and so were the doors. When they closed, {enemy.name} of {enemy.house} understood, too late, what the invitation had meant. The Reach would call it the Red Feast for a hundred years, and would never again accept {self.first}'s hospitality without counting the exits."
             }
           ]
         },
@@ -1991,7 +1991,7 @@
             },
             {
               "type": "log",
-              "text": "The blades came out at the toast, and they were not {self.name}'s. {enemy.name} of {enemy.house} had planned the feast more carefully than the host. {self.name} lived. {kin.name} did not. There is a kind of grief that is only the first draft of a plan."
+              "text": "The blades came out at the toast, and they were not {self.name}'s. {enemy.name} of {enemy.house} had planned the feast more carefully than the host. {self.first} lived. {kin.name} did not. There is a kind of grief that is only the first draft of a plan."
             }
           ]
         },
@@ -2047,7 +2047,7 @@
             },
             {
               "type": "log",
-              "text": "Everyone at the feast knew why {enemy.name} of {enemy.house} had been invited, and everyone watched the toast. {self.name} raised a cup to the quarrel's end, and {enemy.name}, after a long moment the whole hall held its breath through, raised one back."
+              "text": "Everyone at the feast knew why {enemy.name} of {enemy.house} had been invited, and everyone watched the toast. {self.name} raised a cup to the quarrel's end, and {enemy.first}, after a long moment the whole hall held its breath through, raised one back."
             }
           ]
         }

@@ -202,7 +202,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sought out {rival.name} of {rival.house} and said plainly that they both wanted the same thing and one of them would be disappointed. {rival.name} respected it. So did {beloved.name}'s family when they heard."
+              "text": "{self.name} sought out {rival.name} of {rival.house} and said plainly that they both wanted the same thing and one of them would be disappointed. {rival.first} respected it. So did {beloved.name}'s family when they heard."
             }
           ]
         },
@@ -227,7 +227,7 @@
             },
             {
               "type": "log",
-              "text": "Certain things about {rival.name} of {rival.house} reached {beloved.name}'s family by a route that could not be followed back. {rival.name} guessed all the same."
+              "text": "Certain things about {rival.name} of {rival.house} reached {beloved.name}'s family by a route that could not be followed back. {rival.first} guessed all the same."
             }
           ]
         },
@@ -358,7 +358,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {beloved.name}'s family exactly how things stood with the house, the good and the bad. They were not impressed. {beloved.name} was."
+              "text": "{self.name} told {beloved.name}'s family exactly how things stood with the house, the good and the bad. They were not impressed. {beloved.first} was."
             }
           ]
         }
@@ -555,7 +555,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} and {spouse.name} signed the contract before witnesses and were back at work by the afternoon. {spouse.name} noticed."
+              "text": "{self.name} and {spouse.name} signed the contract before witnesses and were back at work by the afternoon. {spouse.first} noticed."
             }
           ]
         }
@@ -800,7 +800,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} denied it so well that {spouse.name} apologised for asking. {self.name} did not feel better for it."
+              "text": "{self.name} denied it so well that {spouse.name} apologised for asking. {self.first} did not feel better for it."
             }
           ]
         },
@@ -1265,7 +1265,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had {kin.name} and the new spouse to dinner the week they came back, and let the house see it. Some thought it weak. {kin.name} did not."
+              "text": "{self.name} had {kin.name} and the new spouse to dinner the week they came back, and let the house see it. Some thought it weak. {kin.first} did not."
             }
           ]
         },
@@ -1305,7 +1305,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that {kin.name} was of age and it was {kin.name}'s life, and went back to work."
+              "text": "{self.name} said that {kin.name} was of age and it was {kin.his} life, and went back to work."
             }
           ]
         }
