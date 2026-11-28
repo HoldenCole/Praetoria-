@@ -3,7 +3,7 @@
     {
       "id": "the_war_beyond_the_reach",
       "title": "War Beyond the Reach",
-      "body": "The Senate has voted war on a nation beyond the rim. The motion carried; the fleets may sail; the chamber is loud with houses deciding, after the fact, how they feel about it. {self.name} is asked, in the colonnade, where {self.house} stands.",
+      "body": "The Senate has voted war on a nation beyond the rim. The motion carried; the fleets may sail; the chamber is loud with houses deciding, after the fact, how they feel about it. You are asked, in the colonnade, where {self.house} stands.",
       "choices": {
         "raise_the_banner": "Rise for the war.",
         "count_the_cost": "Ask who pays.",
@@ -63,7 +63,7 @@
     {
       "id": "the_triumph",
       "title": "The Triumph",
-      "body": "The nation has sued for peace and will pay the Reach tribute for twenty years, and the Senate has named {self.house} the house whose fleets won it. The Reach gives a triumph once in a generation: the laurel, the procession, the chamber on its feet. It is waiting on {self.name}.",
+      "body": "The nation has sued for peace and will pay the Reach tribute for twenty years, and the Senate has named {self.house} the house whose fleets won it. The Reach gives a triumph once in a generation: the laurel, the procession, the chamber on its feet. It is waiting on you.",
       "choices": {
         "the_laurel": "Take the laurel and the procession.",
         "the_modest_general": "Decline the procession; give the laurel to the fleet.",

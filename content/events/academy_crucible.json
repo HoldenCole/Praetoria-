@@ -955,7 +955,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent {junior.name} back to find his own feet. Not cruelty, a kindness shaped like a refusal. A banner you are carried to is not yours."
+              "text": "{self.name} sent {junior.name} back to find {junior.his} own feet. Not cruelty, a kindness shaped like a refusal. A banner you are carried to is not yours."
             }
           ]
         }
@@ -1453,7 +1453,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} came to the infirmary where {rival.name} of {rival.house} lay mending, and brought no triumph, only an arm, and an end to it. The man you beat fairly and then forgave is the man who will hold the line beside you when it matters. Steel made the wound; this healed something older."
+              "text": "{self.name} came to the infirmary where {rival.name} of {rival.house} lay mending, and brought no triumph, only an arm, and an end to it. The rival you beat fairly and then forgave is the one who will hold the line beside you when it matters. Steel made the wound; this healed something older."
             }
           ]
         },
@@ -1577,7 +1577,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid {proctor.name} of {proctor.house} what the rank was quietly worth, and the marks came back exactly as needed. A rung climbed in the dark is still a rung, and the man who sold it remembers the price, and that you were willing to pay it."
+              "text": "{self.name} paid {proctor.name} of {proctor.house} what the rank was quietly worth, and the marks came back exactly as needed. A rung climbed in the dark is still a rung, and the proctor who sold it remembers the price, and that you were willing to pay it."
             }
           ]
         },

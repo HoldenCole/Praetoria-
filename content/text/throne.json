@@ -23,10 +23,10 @@
     {
       "id": "a_standard_against_you",
       "title": "A Standard Against You",
-      "body": "{pretender.name} of {pretender.house} has raised a standard against your throne. To take it they must be winning the war, outmatch your fleet, and bring ships to the capital. If the war goes against them, or their fleet is spent, or eight years pass, they are broken, and you are the firmer for it.",
+      "body": "{pretender.name} of {pretender.house} has raised a standard against your throne. To take it {pretender.he} must be winning the war, outmatch your fleet, and bring ships to the capital. If the war goes against {pretender.him}, or {pretender.his} fleet is spent, or eight years pass, {pretender.he} is broken, and you are the firmer for it.",
       "choices": {
         "call_the_houses": "Call the houses to renew their oaths.",
-        "name_them_traitor": "Proclaim them a traitor.",
+        "name_them_traitor": "Proclaim {pretender.him} a traitor.",
         "say_nothing": "Answer with fleets only."
       }
     },

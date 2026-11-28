@@ -55,7 +55,7 @@
       "roles": [ { "name": "buyer", "when": [ { "type": "not", "of": { "type": "atWar", "role": "buyer", "present": true } } ] } ],
       "choices": [
         { "id": "sell_four", "effects": [ { "type": "adjustResource", "resource": "helium3", "delta": -4 }, { "type": "adjustResource", "resource": "credits", "delta": 16 }, { "type": "adjustRelationship", "from": "buyer", "to": "self", "delta": 10 },
-            { "type": "log", "text": "{self.name} sold four tanks to {buyer.house} at sixteen hundred credits and a kind word. Their fleet sails on the house's fuel this season." } ] },
+            { "type": "log", "text": "{self.name} sold four tanks to {buyer.house} at sixteen hundred credits and a kind word. Its fleet sails on the house's fuel this season." } ] },
         { "id": "sell_dear", "requires": [ { "type": "skill", "role": "self", "skill": "economics", "op": "gte", "value": 2 } ],
           "effects": [ { "type": "adjustResource", "resource": "helium3", "delta": -4 }, { "type": "adjustResource", "resource": "credits", "delta": 24 }, { "type": "adjustRelationship", "from": "buyer", "to": "self", "delta": -8 },
             { "type": "log", "text": "{self.name} named a price that made {buyer.name} wince, and got it. Twenty-four hundred credits, and a buyer who will remember the wince." } ] },

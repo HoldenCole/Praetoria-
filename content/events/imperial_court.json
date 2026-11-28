@@ -58,7 +58,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} served, and was seen to serve. {sovereign.name} said a sentence in {self.name}'s hearing that the whole court would spend a week interpreting. A knight's house is made of such sentences."
+              "text": "{self.name} served, and was seen to serve. {sovereign.name} said a sentence in {self.his} hearing that the whole court would spend a week interpreting. A knight's house is made of such sentences."
             }
           ]
         },
@@ -92,7 +92,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} found the words {sovereign.name} wished to hear and said them beautifully. The court noted that the knight's heir could be bought in the currency of praise, and priced {self.name} accordingly."
+              "text": "{self.name} found the words {sovereign.name} wished to hear and said them beautifully. The court noted that the knight's heir could be bought in the currency of praise, and priced {self.him} accordingly."
             }
           ]
         },

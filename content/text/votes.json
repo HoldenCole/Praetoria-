@@ -7,7 +7,7 @@
       "choices": {
         "give_your_word": "Give your word, and take {senator.hers}. Vote for {senator.his} motion, or {senator.he} will remember it.",
         "name_a_price": "Tell {senator.him} a vote costs more than a vote, and sell {senator.him} yours for {senator.his} motion.",
-        "keep_your_vote": "Tell them your vote is your own."
+        "keep_your_vote": "Tell {senator.him} your vote is your own."
       }
     },
     {

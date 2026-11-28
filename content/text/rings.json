@@ -61,7 +61,7 @@
     {
       "id": "the_knife_traced_home",
       "title": "The Knife Traced Home",
-      "body": "The assassin is dead and the household is counting its blessings, but the steward has done more than count. A seal on the hilt, a letter in a lining, a payment through a counting-house that keeps records: the knife has been traced to a house, and {self.name} now holds a proof that could be read aloud in the chamber, kept for a better day, or answered in the only language its senders respect.",
+      "body": "The assassin is dead and the household is counting its blessings, but the steward has done more than count. A seal on the hilt, a letter in a lining, a payment through a counting-house that keeps records: the knife has been traced to a house, and you now hold a proof that could be read aloud in the chamber, kept for a better day, or answered in the only language its senders respect.",
       "choices": {
         "name_them": "Lay the proof before the chamber and name them.",
         "keep_the_proof": "Keep it. A proof is worth most on the day it is needed.",
@@ -71,7 +71,7 @@
     {
       "id": "the_coalition_gathers",
       "title": "The Coalition Gathers",
-      "body": "The envoys of four houses have taken the same inn on the same world and are not pretending otherwise. The rise of {self.house} has frightened them into each other's company. {self.name} can break the seam before it sets, show them the fleet and let fear do the rest, or give them something large enough to send them home satisfied and the house diminished.",
+      "body": "The envoys of four houses have taken the same inn on the same world and are not pretending otherwise. The rise of {self.house} has frightened them into each other's company. You can break the seam before it sets, show them the fleet and let fear do the rest, or give them something large enough to send them home satisfied and the house diminished.",
       "choices": {
         "divide_them": "Find the weakest seam and pay for it.",
         "show_strength": "Hold a fleet review within sight of their envoys.",
@@ -81,7 +81,7 @@
     {
       "id": "the_keys_of_the_capital",
       "title": "The Keys of the Capital",
-      "body": "The capital is {self.house}'s. The marble is older than the title, the counting-houses older than the marble, and every house in the Reach is already composing the letter it will send. What {self.name} does in the first week will be the first thing anyone says about {era:the new holder of the chair|the new master of the court}.",
+      "body": "The capital is {self.house}'s. The marble is older than the title, the counting-houses older than the marble, and every house in the Reach is already composing the letter it will send. What you do in the first week will be the first thing anyone says about {era:the new holder of the chair|the new master of the court}.",
       "choices": {
         "open_court": "{era:Open the capital|Open the court} to every house that will come.",
         "garrison_it": "Put the household troops on every gate first.",
@@ -91,7 +91,7 @@
     {
       "id": "the_capital_falls",
       "title": "The Capital Falls",
-      "body": "The capital is lost. Whether by siege, by rising or by a treaty signed in a hurry, {era:the chair|the court} is someone else's now, and {self.house} is a house that used to hold it. There is a ship waiting, a treasury half-emptied, and a household watching {self.name} to learn how this is to be borne.",
+      "body": "The capital is lost. Whether by siege, by rising or by a treaty signed in a hurry, {era:the chair|the court} is someone else's now, and {self.house} is a house that used to hold it. There is a ship waiting, a treasury half-emptied, and a household watching you to learn how this is to be borne.",
       "choices": {
         "swear_to_return": "Swear, before the household, to see it again.",
         "salvage_the_treasury": "Empty what can be emptied before the gates close.",

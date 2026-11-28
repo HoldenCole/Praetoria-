@@ -107,7 +107,7 @@
             },
             {
               "type": "log",
-              "text": "{lender.name} of {lender.house} was happy, too happy, to help. The credits arrived within the hour. So did the smile of a man who has just acquired something more useful than coin: a hold over {self.name}, to be called in at the worst possible moment, which is the only moment such men ever choose."
+              "text": "{lender.name} of {lender.house} was happy, too happy, to help. The credits arrived within the hour. So did {lender.his} smile, the smile of someone who has just acquired something more useful than coin: a hold over {self.name}, to be called in at the worst possible moment, which is the only moment such lenders ever choose."
             }
           ]
         },
@@ -209,7 +209,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid {creditor.name} of {creditor.house} every credit owed, on the day demanded, with interest counted to the hour. It emptied the treasury and bought something a treasury cannot: the end of the obligation, and the quiet respect of a hard man who expected a harder time collecting."
+              "text": "{self.name} paid {creditor.name} of {creditor.house} every credit owed, on the day demanded, with interest counted to the hour. It emptied the treasury and bought something a treasury cannot: the end of the obligation, and the quiet respect of a hard creditor who expected a harder time collecting."
             }
           ]
         },

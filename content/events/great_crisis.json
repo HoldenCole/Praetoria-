@@ -92,7 +92,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said aloud what {informant.name} had whispered: that the Reach was arming, and that someone should ask why. The chambers did not thank {self.name} for it. They did begin to listen."
+              "text": "{self.name} said aloud what {informant.name} had whispered: that the Reach was arming, and that someone should ask why. The chambers did not thank {self.him} for it. They did begin to listen."
             }
           ]
         },
@@ -165,7 +165,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} declared for {hegemon.name} of {hegemon.house} and the order they meant to impose. The lesser houses called it cowardice or wisdom according to which side of the lane they stood on."
+              "text": "{self.name} declared for {hegemon.name} of {hegemon.house} and the order {hegemon.he} meant to impose. The lesser houses called it cowardice or wisdom according to which side of the lane they stood on."
             }
           ]
         },
@@ -340,7 +340,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sold hulls, grain and lanes to whoever paid. Both blocs did. The war made {self.name} rich and made the house's name a curse in the towns that fed it."
+              "text": "{self.name} sold hulls, grain and lanes to whoever paid. Both blocs did. The war made {self.him} rich and made the house's name a curse in the towns that fed it."
             }
           ]
         }
@@ -403,7 +403,7 @@
             },
             {
               "type": "log",
-              "text": "The War of the Reach ended with {self.name}'s bloc on the field, and {self.name} took the share a victor takes."
+              "text": "The War of the Reach ended with {self.name}'s bloc on the field, and {self.he} took the share a victor takes."
             }
           ]
         },

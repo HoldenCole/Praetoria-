@@ -153,7 +153,7 @@
     },
     {
       "id": "the_marked_man",
-      "title": "The Marked Man",
+      "title": "Marked for Death",
       "body": "There is someone in this academy who wants you dead. Not the figurative wanting of rivals, the literal kind, earned by something you did or chose, and now {enemy.name} of {enemy.house} watches you the way you have learned to watch exits. It cannot go on. One of you will end it, one way or another, before the term does. The only choice left is which kind of person walks out the gates: the one who finished it, the one who unmade it, or the one who learned to sleep with one eye open.",
       "choices": {
         "finish_it": "End it where the lights don't reach. A made enemy, unmade, and a weight that stays.",
