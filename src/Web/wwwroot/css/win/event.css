@@ -80,6 +80,13 @@
 .ev-ch .label { font: 500 1.2rem/1.28 var(--f-prose); color: #f1e8cf; text-wrap: pretty; }   /* no orphan word on a second line */
 .ev-ch .req { display: flex; align-items: flex-start; gap: .4rem; margin-top: .3333rem; font: 600 .8667rem/1.3 var(--f-ui); color: var(--warn); }
 .ev-ch .req .icon { flex: none; width: .9333rem; height: .9333rem; margin-top: 1px; }
+/* a locked answer clicked: the line that says what it needs flashes, ember on the plate, and settles back (docs/EVENTS.md, "Two answers open") */
+.ev-ch .req.flash { margin-left: -.4rem; margin-right: -.4rem; padding: .1333rem .4rem; border-radius: 2px; animation: ev-req-flash 1.1s ease-out 1; }
+@keyframes ev-req-flash {
+  0%, 30% { color: #ffe1bf; background: rgba(214,104,64,.42); box-shadow: 0 0 0 1px rgba(232,140,96,.9), 0 0 14px rgba(214,104,64,.45); }
+  100% { color: var(--warn); background: transparent; box-shadow: 0 0 0 1px transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .ev-ch .req.flash { animation: none; background: rgba(214,104,64,.3); box-shadow: 0 0 0 1px rgba(232,140,96,.9); } }
 .ev-ch .fx { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; justify-content: flex-end; max-width: 22rem; }
 /* the recessed chip (6): the well's colour and inset, 30px high, an 18px glyph and the signed figure in Plex 600 14.5px. Written with
    .fx so it outweighs the old .game span.chip, which strips every span chip bare */

@@ -89,7 +89,7 @@
                             <span class="n">@(n <= 9 ? n.ToString() : "")</span>
                             <span class="ev-ch-t">
                                 <span class="label">@ch.Label</span>
-                                @if (!ch.Available) { <span class="req" data-why="@ch.Id"><Icon Name="padlock" Tone="ember" Size="14" />@Cap(ch.Reason ?? "")</span> }
+                                @if (!ch.Available) { <span class="req @(_flash == ch.Id ? "flash" : "")" data-why="@ch.Id" @key="@(ch.Id + ":" + (_flash == ch.Id ? _flashes : 0))"><Icon Name="padlock" Tone="ember" Size="14" />@Cap(ch.Reason ?? "")</span> }
                                 @if (ch.Warn != null) { <span class="req" data-warn="@ch.Id"><Icon Name="threat" Tone="ember" Size="14" />@Cap(ch.Warn)</span> }
                             </span>
                             @if (ch.Items.Count > 0 || ch.Stakes.Length > 0)
@@ -114,6 +114,8 @@
                     }
                 }
             </div>
+            @* what a locked answer needs, said aloud when it is clicked: the line under it flashes, and a reader hears it *@
+            <span class="sr-only" role="status" aria-live="polite" data-locked-said="1">@_said</span>
             @if (!b.Resolved)
             {
                 <div class="ev-aside">
@@ -168,7 +170,22 @@
     /// <summary>The choice whose tooltip is open (hovered or focused), or -1.</summary>
     private int _tip = -1;
     private void Leave(int at) { if (_tip == at) _tip = -1; }
-    private Task Choose(ChoiceCard ch) => ch.Available && !Card.Resolved ? OnChoose.InvokeAsync((Card, ch.Id)) : Task.CompletedTask;
+    /// <summary>The locked answer last clicked, how many times one has been (so a second click flashes its line again), and what was said.</summary>
+    private string _flash = ""; private int _flashes; private string _said = ""; private object? _shown;
+    private Task Choose(ChoiceCard ch)
+    {
+        if (Card.Resolved) return Task.CompletedTask;
+        if (ch.Available) return OnChoose.InvokeAsync((Card, ch.Id));
+        // a locked answer does not do nothing: the line under it that says what it needs flashes, and is said for a reader
+        _flash = ch.Id; _flashes++; _said = Cap(ch.Reason is { Length: > 0 } why ? why : "This answer is not open to you as things stand").TrimEnd('.') + ".";
+        return Task.CompletedTask;
+    }
+    /// <summary>Another report in the same window: nothing of the last one's locked answers flashes or is said.</summary>
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_shown, Card.Item)) return;
+        _shown = Card.Item; _flash = ""; _said = "";
+    }
 
     /* The digits 1 to 9 pick a choice (docs/VISUAL_SYSTEM.md 6): the shell's keys (index.html, Index.Key) give them to the open report,
        not to the rail behind it, so nothing here listens for keys. */
