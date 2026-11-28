@@ -20,6 +20,9 @@ EFF={"sellAtMarket","peaceTerms","setUpbringing","takeIn","courtship","marriage"
 TIERS={"ambient","situation","setpiece"}; POOLS={"influence","treasury","agents"}
 RES={"credits","materials","manpower","influence","exotics","helium3","rare_earths","isotopes"}; BONDS={"none","blood","sworn","marriage"}; ERAS={"fractured_stars","imperium"}
 SPHERES={"navy","treasury","senate"}; TITLES={"landless","knight","baron","count","duke","archduke","emperor"}
+# the fields a {role.field} token may name (src/Core/Events/TextRenderer.cs, docs/CONTENT_GUIDE.md "Tokens"): the name, the given
+# name, the house, the ranks, the pronouns by the person's sex (a capital opens a sentence), and how the person stands to you
+TOKEN_FIELDS={"name","first","house","rank","rankName","title","rel","Rel","he","him","his","hers","himself","He","Him","His","Hers","Himself"}
 # §4b: engine-written projections of the player's house — gate on them, but never adjustCounter them.
 READONLY_COUNTERS={"title_rank","house_legitimacy","title_instability"}
 
@@ -107,7 +110,7 @@ def walk(conds,ctx,roles):
 def check_tokens(text,roles,ctx):
     for role,field in re.findall(r"\{(\w+)\.(\w+)\}",text):
         if role not in roles: errors.append(f"[{ctx}] token role '{role}' undeclared")
-        if field not in ("name","house","rank","rankName","title"): errors.append(f"[{ctx}] token bad field '{field}'")
+        if field not in TOKEN_FIELDS: errors.append(f"[{ctx}] token bad field '{field}'")
     # {era:Republic wording|Imperium wording} — exactly two plain alternatives, no nested tokens (docs/TITLES.md)
     for body in re.findall(r"\{era:([^}]*)\}",text):
         if body.count("|")!=1 or "{" in body: errors.append(f"[{ctx}] malformed era token '{{era:{body}}}' (want {{era:A|B}}, no nesting)")

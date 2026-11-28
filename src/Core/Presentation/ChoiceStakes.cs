@@ -61,7 +61,7 @@ public static class ChoiceStakes
         var money = Resource.All.Where(k => sums.GetValueOrDefault(k) != 0).Select(k => (sums[k] > 0 ? "+" : "−") + Money.Of(k, Math.Abs(sums[k])) + " " + Resource.Label(k)).ToList();
         if (sums.GetValueOrDefault(Resource.Coin) is var coin && coin != 0) money.Add((coin > 0 ? "+" : "−") + Money.Coin(Math.Abs(coin)));   // single credits (docs/MONEY.md): not one of Resource.All
         if (legit != 0) money.Add("legitimacy " + Signed(legit));
-        if (stress != 0) money.Add("stress " + Signed(stress));
+        if (stress != 0) money.Add("strain " + Signed(stress));
         return string.Join(" · ", money.Concat(parts));
     }
 

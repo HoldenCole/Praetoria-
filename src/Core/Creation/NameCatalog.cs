@@ -18,4 +18,13 @@ public sealed class NameCatalog
         if (list == null || list.Count == 0) return "Scion";
         return list[rng.NextInt(0, list.Count)];
     }
+
+    /// <summary>"male" or "female" when some culture gives this name to one sex only, else "". Prose asks it of a person whose sex
+    /// was never set, so that a pronoun follows the name.</summary>
+    public string SexOf(string given)
+    {
+        bool m = false, f = false;
+        foreach (var (male, female) in _cultures.Values) { m |= male.Contains(given); f |= female.Contains(given); }
+        return m == f ? "" : m ? "male" : "female";
+    }
 }

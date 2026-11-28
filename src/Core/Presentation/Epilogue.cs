@@ -44,7 +44,7 @@ public static class Epilogue
         int births = w.Counter("dynasty_births"), marriages = w.Counter("marriages");
         if (births > 0) sb.Add(births == 1 ? "one child was born to the name" : $"{births} children were born to the name");
         if (marriages > 0) sb.Add(marriages == 1 ? "a marriage bound it to another house" : $"{marriages} marriages bound it to other houses");
-        if (w.Counter("honors") > 0) sb.Add($"its heads were invested with {Plural(w.Counter("honors"), "honor")}");
+        if (w.Counter("honors") > 0) sb.Add($"its heads were invested with {Plural(w.Counter("honors"), "honour")}");
         if (w.Counter("megastructures") > 0) sb.Add("it raised a great work the whole Reach could see");
         if (w.Counter("assassinations_attempted") > 0) sb.Add("knives were bought, and some found their mark");
         if (w.Counter("breakdowns") > 0) sb.Add($"{Plural(w.Counter("breakdowns"), "time")} the weight of it broke the one who carried it");

@@ -6,7 +6,7 @@
   // Lance, no one questions the right to command.
   "honors": [
     { "id": "burning_lance", "name": "Order of the Burning Lance",
-      "description": "The highest martial honor: three victories under one's own command.",
+      "description": "The highest martial honour: three victories under one's own command.",
       "when": [ { "type": "counter", "key": "battles_won", "op": "gte", "value": 3 } ],
       "effects": [ { "type": "adjustLegitimacy", "role": "self", "delta": 10 }, { "type": "adjustCounter", "key": "standing", "delta": 3 }, { "type": "adjustCounter", "key": "navy_influence", "delta": 2 } ] },
     { "id": "iron_ledger", "name": "Keeper of the Iron Ledger",

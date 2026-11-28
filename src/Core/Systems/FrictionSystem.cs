@@ -20,7 +20,7 @@ public sealed class FrictionTable
         foreach (var kv in For(act)) if (c.NatureTraits.Contains(kv.Key)) delta += kv.Value;
         if (delta == 0) return 0;
         c.Stress = Math.Clamp(c.Stress + delta, 0, 100);
-        if (delta > 0) w.Log($"{c.Name} bears the weight of it ({act.Replace('_', ' ')}: +{delta} stress).");
+        if (delta > 0) w.Log($"{c.Name} bears the weight of it ({act.Replace('_', ' ')}: +{delta} strain).");
         return delta;
     }
 }

@@ -147,7 +147,7 @@
                     <span class="hs-k"><Icon Name="threat" Tone="@(s.Threat >= 60 ? "ember" : "ivory")" Size="16" />How dangerous others think us</span><b class="hs-v @(s.Threat >= 60 ? "ui-warn-t" : "")">@s.Threat</b>
                 </div>
                 @if (s.Instability > 0) { <div class="hs-kv"><span class="hs-k"><Icon Name="alert" Tone="ember" Size="16" />Title instability</span><b class="hs-v ui-down">@s.Instability</b></div> }
-                @if (s.Honors.Count > 0) { <div class="hs-kv"><span class="hs-k"><Icon Name="medal" Tone="brass" Size="16" />Honors</span><span class="hs-v">@string.Join(", ", s.Honors)</span></div> }
+                @if (s.Honors.Count > 0) { <div class="hs-kv"><span class="hs-k"><Icon Name="medal" Tone="brass" Size="16" />Honours</span><span class="hs-v">@string.Join(", ", s.Honors)</span></div> }
                 @if (s.Claims.Count > 0) { <div class="hs-kv"><span class="hs-k"><Icon Name="claim" Tone="ivory" Size="16" />Claims</span><span class="hs-v">@string.Join(", ", s.Claims.Select(tid => c.Titles.NameOf(tid, G.World!.Era)))</span></div> }
                 <div class="hs-kv">
                     <span class="hs-k"><Icon Name="legitimacy" Tone="ivory" Size="16" />Legitimacy</span>

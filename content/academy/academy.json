@@ -587,13 +587,13 @@
           "id": "trait",
           "group": "Family",
           "term": "Trait",
-          "means": "A mark of character. A trait of nature is who the person is, and acting against it costs stress. A trait of aptitude opens choices others do not have.",
+          "means": "A mark of character. A trait of nature is who the person is, and acting against it costs strain. A trait of aptitude opens choices others do not have.",
           "where": "character"
       },
       {
           "id": "stress",
           "group": "Family",
-          "term": "Stress",
+          "term": "Strain",
           "means": "From 0 to 100: what a life is costing the person living it. It rises when someone acts against their nature.",
           "where": "character"
       },

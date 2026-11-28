@@ -112,7 +112,7 @@ public partial class CreationScreen : Control
         col.AddChild(_backgroundText);
 
         // ---- traits ----
-        col.AddChild(CourtTheme.Heading($"Nature — who you are (pick up to {CharacterCreation.MaxPickedNature}; acting against it costs stress)", CourtTheme.Ink(era), 15));
+        col.AddChild(CourtTheme.Heading($"Nature — who you are (pick up to {CharacterCreation.MaxPickedNature}; acting against it costs strain)", CourtTheme.Ink(era), 15));
         col.AddChild(TraitGrid(content.Traits.Nature, _nature, CharacterCreation.MaxPickedNature, era));
         col.AddChild(CourtTheme.Heading($"Aptitude — what you're good at (pick up to {CharacterCreation.MaxPickedAptitude}; opens options, costs nothing)", CourtTheme.Ink(era), 15));
         col.AddChild(TraitGrid(content.Traits.Aptitude, _aptitude, CharacterCreation.MaxPickedAptitude, era));

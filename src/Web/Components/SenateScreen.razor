@@ -605,7 +605,7 @@
                 }
                 @if (s.Instability > 0) { <div class="sn-need kv warn"><span><Icon Name="crisis" Tone="ember" Size="13" />Instability</span><b>@s.Instability</b></div> }
                 @if (s.Claims.Count > 0) { <div class="sn-need kv"><span><Icon Name="claim" Tone="ivory" Size="13" />Claims held</span><b>@string.Join(", ", s.Claims.Select(cl => c.Titles.NameOf(cl, w.Era)))</b></div> }
-                @if (s.Honors.Count > 0) { <div class="sn-need kv"><span><Icon Name="honor" Tone="brass" Size="13" />Honors</span><b>@string.Join(", ", s.Honors)</b></div> }
+                @if (s.Honors.Count > 0) { <div class="sn-need kv"><span><Icon Name="honor" Tone="brass" Size="13" />Honours</span><b>@string.Join(", ", s.Honors)</b></div> }
                 @if (s.NextTitle != null && s.Paths.Count > 0)
                 {
                     <div class="sn-paths">
