@@ -13,7 +13,7 @@
     {
       "id": "the_banner_you_took",
       "title": "The Banner You Took",
-      "body": "{fallen.name} of {fallen.house} is across the room. You were cadets together, and it was your Standard that took {fallen.his}: {fallen.he} finished the year serving under your colours. {fallen.He} has risen since, and has not forgotten, and is watching to see whether you have.",
+      "body": "{fallen.name} of {fallen.house} is across the room. You were cadets together, and it was your Standard that took {fallen.hers}: {fallen.he} finished the year serving under your colours. {fallen.He} has risen since, and has not forgotten, and is watching to see whether you have.",
       "choices": {
         "offer_a_hand": "Say, before others, that it was a banner well kept.",
         "remind_them": "Let the room remember whose Standard took whose.",

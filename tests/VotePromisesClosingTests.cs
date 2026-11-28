@@ -65,7 +65,7 @@ public partial class VotePromisesTests
     {
         var (g, colleague, f) = Colleagues(); Answer(g, f, "keep_your_counsel");
         var (_, leader) = ColleaguesBench(g, colleague);
-        Assert.Contains("once in the term, {grandee.name} will strike the first motion of yours", Content.Text("your_colleague_the_consul")!.Body);
+        Assert.Contains("once in the term, {grandee.first} will strike the first motion of yours", Content.Text("your_colleague_the_consul")!.Body);
         var first = IMove(g, "censure", leader.Id); Only(g, first); Session(g);
         Assert.True(first.Vetoed); Assert.Equal(colleague.HouseId, first.VetoedBy);   // "at their bench's leader"
         var second = IMove(g, "embargo", leader.Id); Only(g, second); Session(g);

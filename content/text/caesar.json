@@ -112,7 +112,7 @@
     },
     {
       "id": "the_crews_are_theirs",
-      "title": "The Crews Are {kin.His}",
+      "title": "The Crews Are {kin.Hers}",
       "body": "It is said aboard the house's fleets, and now ashore as well, that the crews under {kin.name} would follow {kin.him} anywhere. They are paid by {self.house} and they sail under its colours. Asked whose they are, they give the commander's name.",
       "choices": {
         "be_glad_of_it": "Be glad of it.",

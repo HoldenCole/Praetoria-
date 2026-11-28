@@ -74,7 +74,7 @@
     {
       "id": "the_slighted_kinsman",
       "title": "A Slight in the Family",
-      "body": "{kin.Rel}, {kin.first}, has not forgotten. Refused something {kin.he} believed was {kin.his} by blood, {kin.he} has been correct and courteous and absent, missing from the table, present at every gathering where your name might be weighed. A grievance in a stranger is a nuisance. A grievance in family is a crack in the foundation, and it is still, for the moment, small enough to mend.",
+      "body": "{kin.Rel}, {kin.first}, has not forgotten. Refused something {kin.he} believed was {kin.hers} by blood, {kin.he} has been correct and courteous and absent, missing from the table, present at every gathering where your name might be weighed. A grievance in a stranger is a nuisance. A grievance in family is a crack in the foundation, and it is still, for the moment, small enough to mend.",
       "choices": {
         "make_amends": "Go to {kin.him} first. Mend it before the household learns it was broken.",
         "bind_with_coin": "Settle it with money quietly spent. Turn a grievance into a debt.",

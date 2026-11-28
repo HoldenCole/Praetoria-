@@ -96,7 +96,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} granted the claim, but bound it with quiet conditions {petitioner.name} of {petitioner.house} was too eager to refuse. The {era:legateship|county} is {petitioner.his} in name; the strings are {self.first}'s in fact. To give a gift that is also a leash is the whole art of raising kin without arming them."
+              "text": "{self.name} granted the claim, but bound it with quiet conditions {petitioner.name} of {petitioner.house} was too eager to refuse. The {era:legateship|county} is {petitioner.hers} in name; the strings are {self.first}'s in fact. To give a gift that is also a leash is the whole art of raising kin without arming them."
             }
           ]
         },
@@ -218,7 +218,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wed {bride.name} of {bride.house}, a union the heralds called love and the ledgers called strategy, and both were a little right. The match raised {self.his} standing and, by the old laws of blood, carried a claim to lands that were never {self.his} to want until this morning. The most powerful weddings are the ones where the dowry is a title."
+              "text": "{self.name} wed {bride.name} of {bride.house}, a union the heralds called love and the ledgers called strategy, and both were a little right. The match raised {self.his} standing and, by the old laws of blood, carried a claim to lands that were never {self.hers} to want until this morning. The most powerful weddings are the ones where the dowry is a title."
             }
           ]
         },
@@ -832,7 +832,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} would not loosen the grip. The title is {self.his} until {self.his} last breath, and {heir.name} of {heir.house} may wait, and age, and watch the inheritance recede. A {era:senator|lord} who will not let go teaches the heir only one lesson, impatience, and trains, without meaning to, the very hunger that ends houses."
+              "text": "{self.name} would not loosen the grip. The title is {self.hers} until {self.his} last breath, and {heir.name} of {heir.house} may wait, and age, and watch the inheritance recede. A {era:senator|lord} who will not let go teaches the heir only one lesson, impatience, and trains, without meaning to, the very hunger that ends houses."
             }
           ]
         }
