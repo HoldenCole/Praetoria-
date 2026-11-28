@@ -72,7 +72,7 @@ const NOISE = `
 vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;} vec2 mod289(vec2 x){return x-floor(x*(1.0/289.0))*289.0;} vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}
 float snoise(vec2 v){ const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439); vec2 i=floor(v+dot(v,C.yy)); vec2 x0=v-i+dot(i,C.xx); vec2 i1=(x0.x>x0.y)?vec2(1.0,0.0):vec2(0.0,1.0); vec4 x12=x0.xyxy+C.xxzz; x12.xy-=i1; i=mod289(i); vec3 p=permute(permute(i.y+vec3(0.0,i1.y,1.0))+i.x+vec3(0.0,i1.x,1.0)); vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0); m=m*m; m=m*m; vec3 x=2.0*fract(p*C.www)-1.0; vec3 h=abs(x)-0.5; vec3 ox=floor(x+0.5); vec3 a0=x-ox; m*=1.79284291400159-0.85373472095314*(a0*a0+h*h); vec3 g; g.x=a0.x*x0.x+h.x*x0.y; g.yz=a0.yz*x12.xz+h.yz*x12.yw; return 130.0*dot(m,g); }
 float fbm(vec2 p){ float v=0.0, a=0.5; for(int i=0;i<6;i++){ v+=a*snoise(p); p=p*2.03+vec2(17.1,9.3); a*=0.5; } return v; }`;
-const NEBULA_FS = `precision highp float; varying vec2 vUv; uniform float uTime; uniform vec3 uA; uniform vec3 uB; uniform vec3 uC; ${NOISE}
+const NEBULA_FS = `precision highp float; varying vec2 vUv; uniform float uTime; uniform vec3 uA; uniform vec3 uB; uniform vec3 uC; uniform float uDesat; uniform float uDim; ${NOISE}
 void main(){
   vec2 p = vUv * 3.0;
   float n1 = fbm(p + uTime*0.004);
@@ -88,14 +88,15 @@ void main(){
   // the plate the mocks were drawn on (map-plate-open.png at brightness 1.6): blue cloud and violet wisps under the whole Reach, so
   // the holders' cells carry the nebula and do not read as a diagram; a faint navy floor where the cloud is thin
   col = col * 4.4 + uA * (0.3 + 0.3 * smoothstep(-0.4, 0.4, n3));
-  gl_FragColor = vec4(col * vign, 1.0);
+  col *= vign; col = mix(col, vec3(dot(col, vec3(0.3, 0.59, 0.11))), uDesat) * uDim;
+  gl_FragColor = vec4(col, 1.0);
 }`;
 
 // ---- the territory (7.2) ----
 const TERR_VS = `varying vec2 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xy; gl_Position = projectionMatrix * viewMatrix * w; }`;
 const TERR_FS = `
 uniform sampler2D uCand; uniform sampler2D uField; uniform sampler2D uSites; uniform sampler2D uPal;
-uniform vec4 uBox; uniform vec3 uTier; uniform float uDpr; uniform float uSupply;
+uniform vec4 uBox; uniform vec3 uTier; uniform float uDpr; uniform float uSupply; uniform float uRegions;
 varying vec2 vW;
 const vec3 IVORY = vec3(0.890, 0.827, 0.643);   // the Reach's outer edge, #E3D3A4
 const vec3 OWN = vec3(0.914, 0.725, 0.286);     // your land, #E9B949
@@ -173,6 +174,17 @@ void main(){
     if (seam) { over(d, vec3(0.0), clamp(1.0 - pOwn, 0.0, 1.0) * 0.5); if (!none) over(d, hl.rgb, band(pOwn, 0.6, mine ? 2.6 : 1.9) * (mine ? 0.92 : 0.56)); }
     realmEdge(d, reach, outer, rl.rgb, er, inside);
     ownEdge(d, mine, pOwn, er, inside, 1.0);
+    // the Regions mode (3.8): each region of the Reach tinted in its own colour, brightest inside its edge, its ivory hairline lit;
+    // your own land keeps its gold line so you know where you are
+    if (uRegions > 0.001) {
+      vec4 dr = vec4(0.0); vec4 gf = texelFetch(uPal, ivec2(int(a1.x + 0.5), 4), 0);
+      float bndR = exp(-max(min(pReg, pOut), 0.0) / 18.0);
+      if (reach && inside) over(dr, gf.rgb, (0.13 + 0.30 * bndR) * cover); else if (!none) over(dr, hf.rgb, (0.04 + 0.08 * bnd) * cover);
+      if (reach && inside && pReg < pOut - 0.01) { over(dr, vec3(0.0), clamp(1.0 - pReg, 0.0, 1.0) * 0.45); over(dr, vec3(0.96, 0.92, 0.80), band(pReg, 0.5, 1.9) * 0.6); }
+      realmEdge(dr, reach, outer, rl.rgb, er, inside);
+      ownEdge(dr, mine, pOwn, er, inside, 0.75);
+      d = mix(d, dr, uRegions);
+    }
     outc += d * uTier.y;
   }
   if (uTier.z > 0.001) {   // close to: the systems, a faint tint and a fine line round each cell
@@ -284,7 +296,7 @@ export class Galaxy {
     textures();
     const geo = new THREE.PlaneGeometry(6000, 4000);
     this.nebula = new THREE.Mesh(geo, new THREE.ShaderMaterial({ vertexShader: NEBULA_VS, fragmentShader: NEBULA_FS, depthWrite: false,
-      uniforms: { uTime: { value: 0 }, uA: { value: new THREE.Color(0x1d2c66) }, uB: { value: new THREE.Color(0x4a2f6e) }, uC: { value: new THREE.Color(0x1f6a7a) } } }));
+      uniforms: { uTime: { value: 0 }, uA: { value: new THREE.Color(0x1d2c66) }, uB: { value: new THREE.Color(0x4a2f6e) }, uC: { value: new THREE.Color(0x1f6a7a) }, uDesat: { value: 0 }, uDim: { value: 1 } } }));
     this.nebula.position.set(600, -350, -900); this.scene.add(this.nebula);
     // stars in depth for parallax
     const r = rnd(1234); const n = 2600; const pos = new Float32Array(n * 3); const col = new Float32Array(n * 3); const size = new Float32Array(n);
@@ -377,7 +389,7 @@ export class Galaxy {
     const sites = new Float32Array(N * 2 * 4); S.forEach((s, i) => { sites.set([sx[i], sy[i], sh[i], sr[i]], i * 4); sites.set([sg[i], s.isPlayer ? 1 : 0, s.supply ? 1 : 0, 0], (N + i) * 4); });
     const siteTex = new THREE.DataTexture(sites, N, 2, THREE.RGBAFormat, THREE.FloatType); siteTex.minFilter = siteTex.magFilter = THREE.NearestFilter; siteTex.needsUpdate = true;
     // the palette: a holder's fill and line by kind (0 nobody, 1 a house, 2 yours, 3 a nation), a realm's line and fill by kind (0 the Reach, 1 a nation, 2 a state, 3 nobody's)
-    const PW = Math.max(hk.length, rk.length), pal = new Float32Array(PW * 4 * 4); this.holderCol = {};
+    const PW = Math.max(hk.length, rk.length, nreg), pal = new Float32Array(PW * 5 * 4); this.holderCol = {};
     const any = k => S.find(s => holderOf(s) === k), anyR = k => S.find(s => realmOf(s) === k);
     hk.forEach((k, i) => {
       let kind = 0, fill = [0, 0, 0], line = [0, 0, 0];
@@ -393,10 +405,12 @@ export class Galaxy {
       const line = kind === 0 ? rgb01('#E3D3A4') : kind === 1 ? tone(col, .6, .85) : tone(col, .8, .9), fill = kind === 1 ? tone(col, .55, .62) : tone(col, .8, .88);
       pal.set([...line, kind], (2 * PW + i) * 4); pal.set([...fill, 1], (3 * PW + i) * 4);
     });
-    const palTex = new THREE.DataTexture(pal, PW, 4, THREE.RGBAFormat, THREE.FloatType); palTex.minFilter = palTex.magFilter = THREE.NearestFilter; palTex.needsUpdate = true;
+    // the regions' own colours (row 4), for the Regions mode
+    for (const [rid, i] of Object.entries(regions)) { const rg = (model.regions || []).find(r => r.id === rid); pal.set([...tone(rgb01(rg ? rg.accent : '#8fa8d8'), .85, .95), 1], (4 * PW + i) * 4); }
+    const palTex = new THREE.DataTexture(pal, PW, 5, THREE.RGBAFormat, THREE.FloatType); palTex.minFilter = palTex.magFilter = THREE.NearestFilter; palTex.needsUpdate = true;
     if (this.terrMesh) { this.terrMesh.geometry.dispose(); for (const u of ['uCand', 'uField', 'uSites', 'uPal']) this.terrMesh.material.uniforms[u].value?.dispose?.(); this.terrMesh.material.dispose(); }
     const mat = new THREE.ShaderMaterial({ vertexShader: TERR_VS, fragmentShader: TERR_FS, transparent: true, premultipliedAlpha: true, depthWrite: false, depthTest: false,
-      uniforms: { uCand: { value: candTex }, uField: { value: fieldTex }, uSites: { value: siteTex }, uPal: { value: palTex }, uBox: { value: new THREE.Vector4(x0, y0, GW * cell, GH * cell) }, uTier: { value: new THREE.Vector3(0, 1, 0) }, uDpr: { value: this.renderer.getPixelRatio() }, uSupply: { value: this.supply ? 1 : 0 } } });
+      uniforms: { uCand: { value: candTex }, uField: { value: fieldTex }, uSites: { value: siteTex }, uPal: { value: palTex }, uBox: { value: new THREE.Vector4(x0, y0, GW * cell, GH * cell) }, uTier: { value: new THREE.Vector3(0, 1, 0) }, uDpr: { value: this.renderer.getPixelRatio() }, uSupply: { value: this.supply ? 1 : 0 }, uRegions: { value: this.regionsOn ? 1 : 0 } } });
     mat.__shared = true;
     this.terrMesh = new THREE.Mesh(new THREE.PlaneGeometry(GW * cell, GH * cell), mat); this.terrMesh.position.set(x0 + GW * cell / 2, y0 + GH * cell / 2, 0); this.terrMesh.renderOrder = 1; this.terrMesh.frustumCulled = false;
     this.objects.add(this.terrMesh);
@@ -654,6 +668,38 @@ export class Galaxy {
   /** The whole map in the free part of the screen. */
   fit() { if (this.sys) { this.focused = null; this.sysFitD = this.sysFit(); return; } const b = this.bounds; if (!b) return; this.target.set((b.minX + b.maxX) / 2, (b.minY + b.maxY) / 2, 0); this.distance = this.fitDistance(); this.updateCamera(); }
   focus(x, y) { this.distance = Math.min(this.distance, 1200); const t = this.clampTarget(x, -y, this.distance, 0.32); this.target.set(t.x, t.y, 0); this.updateCamera(); }
+  /** The Regions mode of the console (3.8): the middle distance, each region tinted in its own colour with its name and its edge lit. */
+  setRegions(on) {
+    on = !!on; if (on === !!this.regionsOn) return; this.regionsOn = on;
+    if (this.terrMesh) this.terrMesh.material.uniforms.uRegions.value = on ? 1 : 0;
+    this.labelRenderer.domElement.classList.toggle('regions-on', on);
+    if (on && !this.sys && (this.distance > 1700 || this.distance < 700)) { this.distance = Math.min(HOME_D, Math.max(this.fitDistance() * 0.6, 900)); const t = this.clampTarget(this.target.x, this.target.y, this.distance); this.target.set(t.x, t.y, 0); this.updateCamera(); }
+    this.dirty = true; this.relabel = true; this.tierChanged = true;
+  }
+  /** A small picture of each region for the list of regions: the region's own cells in its colour, the rest of the land dim, its stars as points. */
+  regionThumbs() {
+    const t = this.terr; if (!t || !this.model) return;
+    for (const el of document.querySelectorAll('[data-region-thumb]')) {
+      const rid = el.getAttribute('data-region-thumb'), key = rid + '|' + this.terrKey; if (el.__thumb === key) continue; el.__thumb = key;
+      const ri = t.regIdx[rid]; if (ri == null) continue; const sys = this.model.systems.filter(s => s.regionId === rid); if (!sys.length) continue;
+      const rg = (this.model.regions || []).find(r => r.id === rid), col = css(tone(rgb01(rg ? rg.accent : '#8fa8d8'), .85, 1));
+      let x0 = Math.min(...sys.map(s => s.x)), x1 = Math.max(...sys.map(s => s.x)), y0 = Math.min(...sys.map(s => -s.y)), y1 = Math.max(...sys.map(s => -s.y));
+      const pad = t.nn * 1.1, W = 108, H = 76; x0 -= pad; x1 += pad; y0 -= pad; y1 += pad;
+      const k = Math.min(W / (x1 - x0), H / (y1 - y0)), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+      const c = document.createElement('canvas'); c.width = W; c.height = H; const ctx = c.getContext('2d'), img = ctx.createImageData(W, H), px = img.data, own = new Int16Array(W * H).fill(-1);
+      const rc = rgb01(rg ? rg.accent : '#8fa8d8');
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const wx = cx + (x + .5 - W / 2) / k, wy = cy - (y + .5 - H / 2) / k; if (this.eoutAt(wx, wy) <= 0) continue; const si = this.siteAt(wx, wy); if (si >= 0) own[y * W + x] = t.sg[si] === ri ? 1 : 0; }
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const i = y * W + x, o = i * 4, v = own[i]; if (v < 0) continue;
+        const edge = [x > 0 ? own[i - 1] : -1, x < W - 1 ? own[i + 1] : -1, y > 0 ? own[i - W] : -1, y < H - 1 ? own[i + W] : -1].some(n => n !== v);
+        const c3 = v ? (edge ? [.96, .92, .8] : rc) : [.36, .4, .5], a = v ? (edge ? .95 : .5) : (edge ? .35 : .16);
+        px[o] = c3[0] * 255; px[o + 1] = c3[1] * 255; px[o + 2] = c3[2] * 255; px[o + 3] = a * 255;
+      }
+      ctx.putImageData(img, 0, 0);
+      for (const s of sys) { const sx = (s.x - cx) * k + W / 2, sy = (cy + s.y) * k + H / 2; ctx.fillStyle = s.isPlayer ? '#f3d68e' : '#f4f0ff'; ctx.beginPath(); ctx.arc(sx, sy, s.isPlayer ? 2.2 : 1.6, 0, 7); ctx.fill(); }
+      el.style.backgroundImage = `url(${c.toDataURL()})`; el.style.setProperty('--rc', col); el.classList.add('drawn');
+    }
+  }
   /** The Supply mode of the console (3.8): the territory shaded by where your fleets are fed. */
   setSupply(on) { this.supply = !!on; if (this.terrMesh) this.terrMesh.material.uniforms.uSupply.value = this.supply ? 1 : 0; this.dirty = true; }
   /** The interface's rectangles (js/shell.js): the map re-offsets to the free part of the screen and keeps its names out from under them. */
@@ -688,21 +734,32 @@ export class Galaxy {
     for (const s of this.model.systems) { const p = this.screenOf(s.x, -s.y); const d = (p.x - px) ** 2 + (p.y - py) ** 2; if (d < bd) { bd = d; best = s; } }
     return best ? { kind: 'system', id: best.id } : null;
   }
-  hideTip() { if (this.tipEl) this.tipEl.style.display = 'none'; if (this.sysTip) { this.sysTip.visible = false; this.sysTip.element.style.display = 'none'; } }
+  hideTip() { if (this.tipEl) this.tipEl.style.display = 'none'; this.unhideUnderTip(); if (this.sysTip) { this.sysTip.visible = false; this.sysTip.element.style.display = 'none'; } }
+  /** Rule 5: a name the open note would cut is hidden whole while the note is open, and shown again when it goes. */
+  hideUnderTip() {
+    this.unhideUnderTip(); const el = this.tipEl; if (!el || el.style.display === 'none') return;
+    const r = el.getBoundingClientRect(), T = { x: r.left - 6, y: r.top - 6, w: r.width + 12, h: r.height + 12 }, hidden = [];
+    const cut = e => { if (!e || e.style.visibility === 'hidden') return; const b = e.getBoundingClientRect(); if (!b.width) return; if (b.left < T.x + T.w && T.x < b.right && b.top < T.y + T.h && T.y < b.bottom) { e.style.visibility = 'hidden'; hidden.push(e); } };
+    for (const p of this.pins || []) { cut(p.name); for (const m of p.el.querySelectorAll('.cap, .stn, .jumps')) cut(m); }
+    for (const t of this.tokens || []) cut(t.el);
+    for (const r2 of (this.regionPins || []).concat(this.realmPins || [])) cut(r2.inner);
+    this.tipHidden = hidden;
+  }
+  unhideUnderTip() { for (const e of this.tipHidden || []) e.style.visibility = ''; this.tipHidden = []; }
   /** The note on what is under the pointer (7.4): a system's globe, name, kind and region, who holds it and what is in it; a fleet's strength. */
   showTip(hit) {
     // inside a system, the close map's own note
     if (this.sys) { const t = this.sysTip; if (!t) return; if (!hit || !hit.tip) { t.visible = false; t.element.style.display = 'none'; return; } t.visible = true; t.element.innerHTML = hit.tip; t.position.set(hit.at[0], hit.at[1] + (hit.up || 16), 20); return; }
     const el = this.tipEl; if (!el || !this.model) return;
-    if (!hit) { el.style.display = 'none'; this.tipFor = null; return; }
+    if (!hit) { el.style.display = 'none'; this.unhideUnderTip(); this.tipFor = null; return; }
     const key = hit.kind + ':' + hit.id; let ax, ay;
     if (hit.kind === 'system') {
       const s = this.byId[hit.id]; if (!s) return; const p = this.screenOf(s.x, -s.y); ax = p.x; ay = p.y;
       if (this.tipFor !== key) {
         const hc = this.holderCol?.[(s.realm || '').startsWith('nation:') ? s.realm : (s.ownerId || '')]; const sw = s.isPlayer ? '#e9b949' : hc && hc.kind ? css(hc.line) : 'transparent';
         const kind = [sentence(s.industry || (s.planetClass + ' world')), s.regionName].filter(Boolean).join(' · ') + (s.capital ? ' · the capital' : '');
-        const row = (icon, t, k, v) => `${ico(icon, t)}<span class="k">${k}</span><span class="v">${v}</span>`;
-        let kv = row('flying-flag', 'ivory', 'Held by', s.ownerName ? `<i class="own" style="background:${sw}"></i><b>${esc(s.ownerName)}</b>` : 'No one');
+        const row = (icon, t, k, v, cls = '') => `${ico(icon, t)}<span class="k">${k}</span><span class="v${cls ? ' ' + cls : ''}">${v}</span>`;
+        let kv = row('flying-flag', 'ivory', 'Held by', s.ownerName ? `<i class="own" style="background:${sw}"></i><b>${esc(s.ownerName)}</b>` : 'No one', 'hold');
         if (s.governor) kv += row('office-chair', 'ivory', 'Governor', esc(s.governor));
         if (s.citizens) kv += row('population', 'ivory', 'Citizens', `<b>${esc(s.citizens)}</b>`);
         if (s.pop) kv += row('loyalty', 'good', 'Loyalty', `<b>${100 - (s.unrest || 0)}</b>`);
@@ -722,12 +779,21 @@ export class Galaxy {
         el.innerHTML = `<div class="hd"><span class="chev" style="--fc:${f.isPlayer ? '#e9b949' : esc(f.accent)}"><svg viewBox="0 0 22 22"><path d="M11 2.2 L20 19 L11 14.6 L2 19 Z"/></svg></span><div><div class="nm">${esc(f.name)}</div><div class="sb">${f.isPlayer ? 'Your fleet' : 'Reported'} · at ${esc(s.name)}</div></div></div><div class="kv">${kv}</div><div class="foot">${f.isPlayer ? 'Click to pick it, then a world to see the way there' : 'Click to see the system it is in'}</div><i class="arr"></i>`;
       }
     }
-    this.tipFor = key; el.style.display = 'block'; el.classList.add('on');
-    // beside the star, on the side with room, within the free map
+    const same = this.tipFor === key && el.style.display === 'block'; this.tipFor = key; el.style.display = 'block'; el.classList.add('on'); if (same) return;
+    this.unhideUnderTip();
+    // beside the star and clear of its own name, on the side with room, within the free map
     const host = this.renderer.domElement.getBoundingClientRect(), f = this.freeRect(), L = host.left + f.x0 + 8, R = host.left + f.x1 - 8, T = host.top + f.y0 + 8, B = host.top + f.y1 - 8;
-    const w = el.offsetWidth, h = el.offsetHeight; let side = 'right', x = ax + 26; if (x + w > R) { side = 'left'; x = ax - 26 - w; } if (x < L) x = Math.max(L, Math.min(R - w, x));
-    const y = Math.max(T, Math.min(B - h, ay - h * 0.32)); el.dataset.side = side; el.style.left = x + 'px'; el.style.top = y + 'px';
+    let rightAt = ax + 26, leftAt = ax - 26;
+    if (hit.kind === 'system') { const pin = (this.pins || []).find(p => p.s.id === hit.id); if (pin && pin.name.style.visibility !== 'hidden') { const lb = pin.name.getBoundingClientRect(); if (lb.width) { rightAt = Math.max(rightAt, lb.right + 12); leftAt = Math.min(leftAt, lb.left - 12); } } }
+    const w = el.offsetWidth, h = el.offsetHeight; let side = 'right', x = rightAt; if (x + w > R) { side = 'left'; x = leftAt - w; } if (x < L) x = Math.max(L, Math.min(R - w, x));
+    let y = Math.max(T, Math.min(B - h, ay - h * 0.32));
+    // clear of the console and End Year at the foot of the screen: the note rises above them
+    const cv = this.cover || window.praetoriaShell?.covered?.() || {}, cs = cv.console, ol = cv.outliner;
+    if (cs && x + w > cs.x - 60 && y + h > cs.y - 8) y = Math.max(T, cs.y - 8 - h);
+    if (ol && ol.w > 0 && x + w > ol.x - 8 && y < ol.y + ol.h + 8) x = Math.max(host.left + 8, ol.x - 8 - w);   // and clear of the outliner it rose beside
+    el.dataset.side = side; el.style.left = x + 'px'; el.style.top = y + 'px';
     const arr = el.querySelector('.arr'); if (arr) arr.style.top = Math.max(10, Math.min(h - 22, ay - y - 6)) + 'px';
+    this.hideUnderTip();
   }
   resize() {
     const w = this.container.clientWidth, h = this.container.clientHeight; if (!w || !h) return; this.vw = w; this.vh = h;
@@ -743,6 +809,11 @@ export class Galaxy {
     const c = this.cover || window.praetoriaShell?.covered?.(); if (c) for (const k of Object.keys(c)) add(c[k]);
     for (const e of document.querySelectorAll('.gs-shell.game .endturn-dock, .galaxy .order-bar, .galaxy .crumbs-in, .galaxy .world-strip, .galaxy .legend, .galaxy .map-side:not(.idle)')) { if (getComputedStyle(e).display === 'none') continue; const r = e.getBoundingClientRect(); add({ x: r.left, y: r.top, w: r.width, h: r.height }); }
     return out;
+  }
+  /** Where the map's own furniture stands, as a key: when it changes (the legend opened, the order bar shown) the names are placed again. */
+  furnitureKey() {
+    let k = ''; for (const e of document.querySelectorAll('.galaxy .order-bar, .galaxy .crumbs-in, .galaxy .world-strip, .galaxy .legend')) { if (getComputedStyle(e).display === 'none') { k += '-|'; continue; } const r = e.getBoundingClientRect(); k += Math.round(r.left) + ',' + Math.round(r.top) + ',' + Math.round(r.width) + ',' + Math.round(r.height) + '|'; }
+    return k;
   }
   declutter() {
     if (!this.model || this.sys) return;
@@ -779,17 +850,22 @@ export class Galaxy {
     const segs = []; for (const l of this.model.lanes) { const a = this.byId[l.a], b = this.byId[l.b]; if (!a || !b) continue; const pa = this.screenOf(a.x, -a.y), pb = this.screenOf(b.x, -b.y); segs.push([pa.x, pa.y, pb.x, pb.y]); }
     const crosses = r => { let n = 0; for (const [x1, y1, x2, y2] of segs) { if (Math.max(x1, x2) < r.x || Math.min(x1, x2) > r.x + r.w || Math.max(y1, y2) < r.y || Math.min(y1, y2) > r.y + r.h) continue; const dx = x2 - x1, dy = y2 - y1; let t0 = 0, t1 = 1; for (const [p, q] of [[-dx, x1 - r.x], [dx, r.x + r.w - x1], [-dy, y1 - r.y], [dy, r.y + r.h - y1]]) { if (p === 0) { if (q < 0) { t0 = 2; break; } } else { const t = q / p; if (p < 0) t0 = Math.max(t0, t); else t1 = Math.min(t1, t); } } if (t0 <= t1) n++; } return n; };
     // where a stretch of a name lies on the map: which system's cell, which holder's land, which region (null off the territory)
-    const t = this.terr, cellAt = (px, py) => { const pt = this.planePoint(px, py); if (!pt || !t) return null; const i = this.siteAt(pt.x, pt.y); return i < 0 ? null : { site: i, holder: t.sh[i], region: t.sg[i], mine: t.mine ? t.mine[i] : 0 }; };
+    const t = this.terr, cellAt = (px, py) => { const pt = this.planePoint(px, py); if (!pt || !t) return null; const i = this.siteAt(pt.x, pt.y); return i < 0 ? null : { site: i, holder: t.sh[i], region: t.sg[i], mine: t.mine ? t.mine[i] : 0, land: this.eoutAt(pt.x, pt.y) > 0 }; };
     // a region's name lies inside its own region, across as few cells as it can, off the seams of a holder's land (the gold border of
     // yours above all) and off the lanes: sampled at five points along its middle
     const lie = (b, rid) => {
       if (!t || rid == null || !(rid in t.regIdx)) return 0; const ri = t.regIdx[rid], cy = b.y + b.h / 2, sites = new Set(), holders = new Set();
       const pts = [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6, 1].map(f => [b.x - 4 + (b.w + 8) * f, cy]).concat([[b.x - 4, b.y - 3], [b.x + b.w + 4, b.y - 3], [b.x - 4, b.y + b.h + 3], [b.x + b.w + 4, b.y + b.h + 3]]);
       let mine = -1;
-      for (const [px, py] of pts) { const c = cellAt(px, py); if (!c || c.region !== ri) return null; sites.add(c.site); holders.add(c.holder); if (mine < 0) mine = c.mine; else if (mine !== c.mine) return null; }
+      for (const [px, py] of pts) { const c = cellAt(px, py); if (!c || !c.land || c.region !== ri) return null; sites.add(c.site); holders.add(c.holder); if (mine < 0) mine = c.mine; else if (mine !== c.mine) return null; }
       // your own gold border and the Reach's ivory edge are obstacles with a pad: a ring of points 9px out must lie in the region
       // and on the same side of your border
       for (const [px, py] of [[b.x - 9, cy], [b.x + b.w + 9, cy], [b.x + b.w / 2, b.y - 8], [b.x + b.w / 2, b.y + b.h + 8], [b.x + b.w * .25, b.y - 8], [b.x + b.w * .75, b.y + b.h + 8]]) { const c = cellAt(px, py); if (!c || c.region !== ri || c.mine !== mine) return null; }
+      // your own gold border (its ivory hairline lies 4px inside it) and the Reach's ivory edge are obstacles with a band round the
+      // whole name, its corners too: 8px of the same side of your border (the hairline 4px inside it stays clear of the letters), 6px of land
+      const ring = P => { const r = [[b.x - P, cy], [b.x + b.w + P, cy], [b.x - P, b.y - P * .7], [b.x + b.w + P, b.y - P * .7], [b.x - P, b.y + b.h + P * .7], [b.x + b.w + P, b.y + b.h + P * .7]]; for (const f of [0, .25, .5, .75, 1]) r.push([b.x + b.w * f, b.y - P], [b.x + b.w * f, b.y + b.h + P]); return r; };
+      for (const [px, py] of ring(8)) { const c = cellAt(px, py); if (!c || c.mine !== mine) return null; }
+      for (const [px, py] of ring(6)) { const c = cellAt(px, py); if (!c || !c.land) return null; }
       // a holder's seam through the name costs dearly: one cell's land is the place for it
       return (sites.size - 1) * 18 + (holders.size - 1) * 70;
     };
@@ -813,17 +889,62 @@ export class Galaxy {
       }
     };
     this.places ||= {};
-    if (tier === 'far') { place(this.realmPins.slice().sort((a, b) => b.big - a.big), true); for (const r of this.regionPins) { r.inner.style.visibility = 'hidden'; this.places[r.key] = null; } }
+    if (tier === 'far' && !this.regionsOn) { place(this.realmPins.slice().sort((a, b) => b.big - a.big), true); for (const r of this.regionPins) { r.inner.style.visibility = 'hidden'; this.places[r.key] = null; } }
     else { place(this.regionPins, false); for (const r of this.realmPins) { r.inner.style.visibility = 'hidden'; this.places[r.key] = null; } }
+    this.tipHidden = []; if (this.tipEl && this.tipEl.style.display === 'block') this.hideUnderTip();
   }
 
-  /** Inside a system: its names never over one another either. The world looked at and the system's own world first, then the gates,
-      the worlds, the belt and the fleets; a comet's or a moon's name gives way. */
+  /** Inside a system: its names never over one another, nor over a world's disc, the sun's core, a fleet or the interface (rule 5).
+      Each name is anchored at what it names and placed round it: a world's outward from the sun first, then below, above and to either
+      side; a province's plate out to its side with a short leader; a fleet's beside its flagship. A name that finds no clear place
+      drops its second lines and tries again, and is not drawn if it still finds none. The world looked at and the system's own world
+      come first, then the provinces, the gates, the worlds, the belt and the fleets; a comet's or a moon's name gives way. */
   declutterSystem() {
-    const rank = e => e.classList.contains('looked') ? 0 : e.classList.contains('primary') ? 1 : e.classList.contains('sysv-prov') ? 1 : e.classList.contains('sysv-exit') ? 2 : e.classList.contains('moon') ? 6 : e.classList.contains('comet') ? 5 : e.classList.contains('sysv-fleet') ? 4 : 3;
-    const els = this.sysLabels.filter(l => l !== this.sysTip && l.element.style.display !== 'none').map(l => l.element).filter(e => e.firstChild).sort((a, b) => rank(a) - rank(b));
+    if (!this.sys || !this.sysGroup) return;
+    const host = this.renderer.domElement.getBoundingClientRect(), view = { x: host.left, y: host.top, w: host.width, h: host.height };
     const ui = this.obstacles(), placed = [], hits = (a, b, p) => a.x < b.x + b.w + p && b.x < a.x + a.w + p && a.y < b.y + b.h + p && b.y < a.y + a.h + p;
-    for (const e of els) { const r = e.firstChild.getBoundingClientRect(); if (!r.width) continue; const b = { x: r.left, y: r.top, w: r.width, h: r.height }; const bad = ui.some(u => hits(b, u, 4)) || placed.some(q => hits(b, q, 2)); e.firstChild.style.visibility = bad ? 'hidden' : ''; if (!bad) placed.push(b); }
+    const v3 = new THREE.Vector3(), scr = (obj, dx = 0) => { obj.getWorldPosition(v3); v3.x += dx; const q = v3.project(this.camera); return { x: host.left + (q.x + 1) / 2 * host.width, y: host.top + (1 - q.y) / 2 * host.height }; };
+    const radPx = (obj, r) => { const a = scr(obj), b = scr(obj, r); return Math.hypot(b.x - a.x, b.y - a.y); };
+    // the round things no name may cover: each world's disc (a giant's rings too), the sun's core, each fleet
+    const discs = [], sun = scr(this.sysGroup), sunR = radPx(this.sysGroup, this.sysSunR * 1.5); discs.push({ x: sun.x, y: sun.y, r: sunR, ry: sunR });
+    for (const sb of Object.values(this.sysBodies)) { if (sb.fixed || !sb.group.visible) continue; const c = scr(sb.group), r = radPx(sb.group, sb.r) * 1.06; if (r < 1) continue; sb.at = c; sb.rpx = r; discs.push({ x: c.x, y: c.y, r: sb.body.cls === 'gas' ? r * 2.05 : r, ry: sb.body.cls === 'gas' ? r * 1.3 : r }); }   // a giant's rings, tilted toward the eye, stand higher than its disc
+    const boxes = [];
+    for (const f of this.sysFleetSprites || []) { const c = scr(f.spr), k = radPx(f.spr, f.sc); boxes.push({ x: c.x - k * .6, y: c.y - k * .55, w: k * 1.2, h: k * (.6 + Math.ceil(f.n / 2) * .6 + .3) }); }
+    const overDisc = b => discs.some(d => { const cx = Math.max(b.x, Math.min(d.x, b.x + b.w)), cy = Math.max(b.y, Math.min(d.y, b.y + b.h)); return ((cx - d.x) / d.r) ** 2 + ((cy - d.y) / d.ry) ** 2 < 1; });
+    const inView = b => b.x >= view.x + 2 && b.y >= view.y + 2 && b.x + b.w <= view.x + view.w - 2 && b.y + b.h <= view.y + view.h - 2;
+    const rank = e => e.classList.contains('looked') ? 0 : e.classList.contains('primary') ? 1 : e.classList.contains('sysv-prov') ? 1.5 : e.classList.contains('sysv-exit') ? 2 : e.classList.contains('moon') ? 6 : e.classList.contains('comet') ? 5 : e.classList.contains('sysv-fleet') ? 4 : 3;
+    const labs = this.sysLabels.filter(l => l !== this.sysTip && l.element.firstChild && l.element.style.display !== 'none' && getComputedStyle(l.element).display !== 'none').sort((a, b) => rank(a.element) - rank(b.element));
+    for (const lab of labs) {
+      const el = lab.element, inner = el.querySelector('.in'); if (!inner) continue; const pl = lab.userData.place || { kind: 'free' };
+      const a = scr(lab); el.classList.remove('lean');
+      const tryAll = () => {
+        const w = inner.offsetWidth, h = inner.offsetHeight; if (!w) return null; const cands = [];
+        const around = (cx, cy, rr, dirs) => { for (const [ux, uy] of dirs) { const l = Math.hypot(ux, uy) || 1, nx = ux / l, ny = uy / l, ext = Math.abs(nx) * w / 2 + Math.abs(ny) * h / 2; cands.push([cx + nx * (rr + 5 + ext) - w / 2, cy + ny * (rr + 5 + ext) - h / 2]); } };
+        if (pl.kind === 'body') {
+          const sb = this.sysBodies[pl.index], rr = sb && sb.rpx ? sb.rpx * (sb.body.cls === 'gas' ? 1.0 : 1) : 6, ux = a.x - sun.x, uy = a.y - sun.y;
+          const out = Math.hypot(ux, uy) > 2 ? [ux, uy] : [0, 1];
+          around(a.x, a.y, sb && sb.body.cls === 'gas' ? rr * .55 : rr, [out, [0, 1], [0, -1], [1, 0], [-1, 0], [out[0] + out[1] * .7, out[1] - out[0] * .7], [out[0] - out[1] * .7, out[1] + out[0] * .7], [1, 1], [-1, 1], [1, -1], [-1, -1]]);
+          if (sb && sb.body.cls === 'gas') around(a.x, a.y, rr * 1.95, [out, [0, 1], [0, -1], [1, 0], [-1, 0]]);
+        } else if (pl.kind === 'prov') {
+          // out to its side, clear of the globe and its ring, with a short leader back to the pin
+          const sb = this.sysBodies[pl.body], gc = sb && sb.at ? sb.at : a, gr = sb && sb.rpx ? sb.rpx * 1.22 : 20, L = 18, dir = pl.side === 'left' ? -1 : pl.side === 'right' ? 1 : 0;
+          for (const dy of [0, 18, -18, 36, -36, 54, -54, 72, -72, 96, -96]) { if (dir) cands.push([dir > 0 ? Math.max(a.x + L, gc.x + gr + 10) : Math.min(a.x - L, gc.x - gr - 10) - w, a.y - h / 2 + dy]); else cands.push([a.x - w / 2 + dy * 1.6, Math.max(a.y + L, gc.y + gr + 10)]); }
+          if (!dir) for (const dx of [0, -60, 60]) cands.push([a.x - w / 2 + dx, Math.min(a.y - L, gc.y - gr - 10) - h]);
+          // no room at its own side (a narrow free map): under the globe or over it, side by side, still led back to its pin
+          for (const row of [0, 1, 2]) for (const dx of [0, -(w / 2 + 8), w / 2 + 8, -(w + 12), w + 12]) { cands.push([gc.x - w / 2 + dx, gc.y + gr + 10 + row * (h + 8)]); cands.push([gc.x - w / 2 + dx, gc.y - gr - 10 - h - row * (h + 8)]); }
+        } else if (pl.kind === 'fleet') {
+          const k = radPx(lab, pl.sc); around(a.x, a.y, k * .65, [[1, 0], [-1, 0], [1, -.6], [-1, -.6], [0, -1], [1, .8], [-1, .8], [0, 1]]);
+        } else { cands.push([a.x - w / 2, a.y - h / 2]); around(a.x, a.y, 4, [[0, 1], [0, -1], [1, 0], [-1, 0]]); }
+        for (const [x, y] of cands) { const b = { x, y, w, h }; if (!inView(b) || ui.some(u => hits(b, u, 4)) || placed.some(q => hits(b, q, 3)) || boxes.some(q => hits(b, q, 2)) || overDisc(b)) continue; return b; }
+        return null;
+      };
+      let b = tryAll(); if (!b && (inner.querySelector('.o, .m, .c'))) { el.classList.add('lean'); b = tryAll(); }
+      el.classList.remove('unplaced');
+      if (!b) { inner.style.visibility = 'hidden'; const ld = el.querySelector('.lead'); if (ld) ld.style.visibility = 'hidden'; continue; }
+      inner.style.visibility = ''; inner.style.left = Math.round(b.x - a.x) + 'px'; inner.style.top = Math.round(b.y - a.y) + 'px'; placed.push(b);
+      const ld = el.querySelector('.lead');
+      if (ld) { const ex = Math.max(b.x, Math.min(a.x, b.x + b.w)) - a.x, ey = Math.max(b.y, Math.min(a.y, b.y + b.h)) - a.y, len = Math.hypot(ex, ey); ld.style.visibility = ''; ld.style.width = Math.max(0, len) + 'px'; ld.style.transform = `rotate(${Math.atan2(ey, ex)}rad)`; }
+    }
   }
 
   // ---------------- the minimap (7.5) ----------------
@@ -881,7 +1002,7 @@ export class Galaxy {
     const t = this.clock.getElapsedTime(); this.nebula.material.uniforms.uTime.value = t; this.stars.material.uniforms.uTime.value = t; const wasSettled = this.settled();
     const now = performance.now(), dt = Math.min(0.3, (now - (this.lastT || now)) / 1000); this.lastT = now; this.applyCamera(1 - Math.exp(-dt / 0.11));
     const pr = this.renderer.getPixelRatio();
-    if (this.sys) { this.tickSystem(t); this.final.uniforms.uGlow.value = 0; this.composer.render(); this.labelRenderer.render(this.scene, this.camera); if ((this.miniTick = (this.miniTick || 0) + 1) % 6 === 0) { this.drawMinimap(); this.declutterSystem(); } return; }
+    if (this.sys) { this.tickSystem(t); this.final.uniforms.uGlow.value = 0; this.composer.render(); this.labelRenderer.render(this.scene, this.camera); if (this.sysRelabel) { this.sysRelabel = false; this.declutterSystem(); } if ((this.miniTick = (this.miniTick || 0) + 1) % 6 === 0) { this.drawMinimap(); this.declutterSystem(); } return; }
     // which drawing of the territory shows (7.2), and what the names and the systems show: far, the realms; the middle, the houses; close, the systems
     const d = this.cur ? this.cur.d : this.distance, far = ss(1750, 2300, d), near = 1 - ss(560, 780, d), mid = Math.max(0, 1 - far - near);
     if (this.terrMesh) { this.terrMesh.material.uniforms.uTier.value.set(far, mid, near); this.terrMesh.material.uniforms.uDpr.value = pr; }
@@ -897,6 +1018,7 @@ export class Galaxy {
     this.composer.render(); this.labelRenderer.render(this.scene, this.camera);
     // the names are placed when the camera stops, and again when the interface moves
     const settled = this.settled(); if (!settled) this.moving = true;
+    if (settled && now - (this.lastFurn || 0) > 450) { this.lastFurn = now; const fk = this.furnitureKey(); if (fk !== this.furnKey) { if (this.furnKey != null) this.relabel = true; this.furnKey = fk; } }
     if ((settled && (this.moving || this.relabel)) || this.tierChanged || (!settled && now - (this.lastDeclutter || 0) > 700)) { if (settled) { this.moving = false; this.relabel = false; } this.tierChanged = false; this.lastDeclutter = now; this.declutter(); }
     if (settled && this.keepZoom && performance.now() - this.keepZoom > 800) { this.keepZoom = 0; try { localStorage.setItem('praetoria.map.zoom.' + (this.model?.key || ''), String(Math.round(this.distance))); } catch { /* the zoom is not kept */ } }
     if ((this.miniTick = (this.miniTick || 0) + 1) % 3 === 0 || !wasSettled) this.drawMinimap();
@@ -908,6 +1030,7 @@ export class Galaxy {
   applyMode() {
     const inside = !!this.sys; this.objects.visible = !inside; for (const l of this.labels) l.visible = !inside; if (inside) this.hideTip();
     if (this.sysGroup) this.sysGroup.visible = inside; this.bloom.enabled = inside;
+    const small = Math.max(0, Math.min(1, (1600 - (this.vw || 1600)) / 500)), nu = this.nebula.material.uniforms; nu.uDesat.value = inside ? .5 + .3 * small : 0; nu.uDim.value = inside ? .62 - .22 * small : 1;
     this.labelRenderer.domElement.classList.toggle('in-system', inside); this.miniBase = null;
   }
   // how much of the map lies under the window at the left, the list at the right and the bar on top (the free map, as js/shell.js tells it)
@@ -923,7 +1046,10 @@ export class Galaxy {
   // view fitted to the gates left them a small cluster in a black field (the gates' names are read by panning or from the window)
   sysFit() {
     const orbs = this.sys.bodies.filter(b => b.parent < 0 && b.cls !== 'comet').map(b => b.orbit), outer = orbs.length ? Math.max(...orbs) : this.sys.edge * .6;
-    return this.frame(this.sysAt.x, this.sysAt.y, Math.min(this.sys.edge * 1.34, Math.max(outer * 1.3 + 40, 120)));
+    // in a narrow free map (a window open on a small screen) the worlds are what is fitted, and the margin for the names is less:
+    // the names are placed round their worlds, and the gates are reached by panning
+    const i = this.insets(), narrow = Math.max(0, Math.min(1, (760 - (i.W - i.L - i.R)) / 360));
+    return this.frame(this.sysAt.x, this.sysAt.y, Math.min(this.sys.edge * 1.34, Math.max(outer * (1.3 - .2 * narrow) + 40 - 26 * narrow, 110)));
   }
   clearSystem() {
     for (const l of this.sysLabels) l.element.remove(); this.sysLabels = []; this.sysHits = []; this.sysBodies = {}; this.sysTip = null;
@@ -950,7 +1076,8 @@ export class Galaxy {
   focusBody(index) { const b = this.sysBodies[index]; if (!b) return; this.focused = index; this.frame(this.sysAt.x + b.group.position.x, this.sysAt.y + b.group.position.y, b.reach || Math.max(40, b.r * 4.2)); }
   buildSystem(chart, at, from) {
     const T = textures(); const g = new THREE.Group(); g.position.set(at.x, at.y, 0); this.sysGroup = g; this.scene.add(g);
-    const label = (html, cls, x, y, z, parent) => { const el = document.createElement('div'); el.className = cls; el.innerHTML = `<div class="in">${html}</div>`; const lab = new CSS2DObject(el); lab.position.set(x, y, z || 0); (parent || g).add(lab); this.sysLabels.push(lab); return lab; };
+    const label = (html, cls, x, y, z, parent, place) => { const el = document.createElement('div'); el.className = cls + ' unplaced'; el.innerHTML = `<div class="in">${html}</div>`; const lab = new CSS2DObject(el); lab.position.set(x, y, z || 0); lab.userData.place = place || { kind: 'free' }; (parent || g).add(lab); this.sysLabels.push(lab); return lab; };
+    this.sysSunR = sunRadius(chart); this.sysFleetSprites = []; this.sysRelabel = true;
     const hitAt = (x, y, r, data, parent) => { const m = new THREE.Mesh(new THREE.SphereGeometry(r, 10, 8), new THREE.MeshBasicMaterial({ visible: false })); m.position.set(x, y, 2); m.userData = data; (parent || g).add(m); this.sysHits.push(m); return m; };
     const circle = (r, color, opacity, dashed) => {
       const pts = Array.from({ length: 129 }, (_, i) => { const a = i / 128 * Math.PI * 2; return new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r, 0); });
@@ -961,7 +1088,7 @@ export class Galaxy {
 
     // the sun
     const tint = [[0xfff4e0, 1.0], [0xffe2a8, 0.92], [0xffb070, 0.84], [0xbfd4ff, 1.12], [0xffffff, 1.05], [0xffd0a0, 0.88]][chart.sunTint % 6];
-    const sunR = 30 * tint[1], close = chart.focusBody != null && chart.focusBody >= 0;   // looking at one world, the sun is turned down so the world is what is seen
+    const sunR = sunRadius(chart), close = chart.focusBody != null && chart.focusBody >= 0;   // looking at one world, the sun is turned down so the world is what is seen
     const corona = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.sun, color: tint[0], transparent: true, opacity: close ? .5 : 1, blending: THREE.AdditiveBlending, depthWrite: false })); corona.scale.set(sunR * (close ? 3.4 : 3.9), sunR * (close ? 3.4 : 3.9), 1); g.add(corona);   // kept tight, so the names of the inner worlds are not written on its glare
     const core = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: 0xffffff, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); core.scale.set(sunR * 1.5, sunR * 1.5, 1); g.add(core);
     const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.flare, color: tint[0], transparent: true, opacity: close ? 0 : .1, blending: THREE.AdditiveBlending, depthWrite: false })); flare.scale.set(sunR * 5, sunR * .26, 1); g.add(flare);
@@ -978,7 +1105,7 @@ export class Galaxy {
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: col, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(46, 46, 1); glow.position.set(e.x, e.y, 0.5); glow.userData.pulse = true; g.add(glow);
       const arrow = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.ship, color: col, transparent: true, opacity: .9, depthWrite: false, rotation: e.angle - Math.PI / 2 })); arrow.scale.set(11, 11, 1); arrow.position.set(e.x + ux * 22, e.y + uy * 22, 1); g.add(arrow);
       const who = e.ring === 'beyond' ? "a nation's space" : e.holderName || 'unclaimed';
-      label(`<span class="n">${e.chokepoint ? '◆ ' : ''}${esc(e.name)}</span><span class="o" style="color:${esc(e.accent)}">${esc(who)}</span>`, 'sysv-exit', e.x + ux * 46, e.y + uy * 46, 2);
+      label(`<span class="n">${e.chokepoint ? '◆ ' : ''}${esc(e.name)}</span><span class="o" style="color:${esc(e.accent)}">${esc(who)}</span>`, 'sysv-exit', e.x + ux * 46, e.y + uy * 46, 2, g, { kind: 'free' });
       hitAt(e.x, e.y, 20, { kind: 'exit', id: e.id, tip: `<b>The lane to ${esc(e.name)}</b><div>${esc(who)}${e.chokepoint ? ' · a key of the lanes' : ''}</div><div>click to go there</div>`, at: [e.x, e.y], up: 22 });
     }
 
@@ -996,7 +1123,7 @@ export class Galaxy {
         const rocks = new THREE.Points(geo, new THREE.PointsMaterial({ size: 2.1, vertexColors: true, transparent: true, opacity: .9, sizeAttenuation: true })); rocks.userData.spinZ = 0.012; g.add(rocks);
         for (let q = 0; q < 9; q++) { const a = rr() * Math.PI * 2, r2 = b.orbit + (rr() - .5) * 20; const rock = new THREE.Sprite(new THREE.SpriteMaterial({ map: window.praetoriaFx ? new THREE.TextureLoader().load(window.praetoriaFx.planet('moon', chart.id + 'rock' + q, 48)) : T.glow, color: 0xb8ab98, transparent: true, depthWrite: false })); const sc = 3 + rr() * 3.5; rock.scale.set(sc, sc * (.7 + rr() * .3), 1); rock.position.set(Math.cos(a) * r2, Math.sin(a) * r2, 1); g.add(rock); }
         const lx = Math.cos(b.angle) * b.orbit, ly = Math.sin(b.angle) * b.orbit;
-        label(`<span class="n">${esc(b.name)}</span><span class="o">${b.deposit ? esc(depositName(b.deposit)) + ' · ' : ''}${chart.belt || 0} claim${chart.belt === 1 ? '' : 's'}${b.works ? ' · ' + b.works + ' built' : ''}</span>`, 'sysv-label belt', lx, ly - 22, 2);
+        label(`<span class="n">${esc(b.name)}</span><span class="o">${b.deposit ? esc(depositName(b.deposit)) + ' · ' : ''}${chart.belt || 0} claim${chart.belt === 1 ? '' : 's'}${b.works ? ' · ' + b.works + ' built' : ''}</span>`, 'sysv-label belt', lx, ly - 22, 2, g, { kind: 'free' });
         hitAt(lx, ly, 24, { kind: 'body', id: String(b.index), tip: `<b>${esc(b.name)}</b><div>an asteroid belt · room for ${chart.belt || 0} claim${chart.belt === 1 ? '' : 's'}</div>`, at: [lx, ly], up: 20 });
         this.sysBodies[b.index] = { group: { position: new THREE.Vector3(lx, ly, 0) }, r: 20, fixed: true };
         continue;
@@ -1033,16 +1160,18 @@ export class Galaxy {
       if (String(b.index) === String(chart.selectedBody) && !looked) { const sel = new THREE.Mesh(new THREE.RingGeometry(r * 2.15, r * 2.3, 64), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: .95, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })); sel.userData.spinZ = 0.5; sel.position.z = 2; grp.add(sel); }
       const kind = b.parent >= 0 ? 'moon' : b.cls === 'gas' ? 'gas giant' : b.cls === 'comet' ? 'comet' : b.cls + ' world';
       const marks = [b.featureName ? esc(b.featureName) : '', b.deposit ? esc(depositName(b.deposit)) : '', b.works ? b.works + ' built' : '', b.rising ? b.rising + ' rising' : ''].filter(Boolean).join(' · ');
-      label(`<span class="n">${b.primary && chart.capital ? '♛ ' : ''}${esc(b.name)}</span>${b.primary && chart.holderName ? `<span class="o" style="color:${esc(chart.accent)}">${esc(chart.holderName)}</span>` : ''}${marks ? `<span class="m">${marks}</span>` : ''}`, 'sysv-label' + (b.primary ? ' primary' : '') + (b.parent >= 0 ? ' moon' : '') + (looked ? ' looked' : '') + (b.parent >= 0 && b.parent === chart.focusBody ? ' of-looked' : '') + (b.cls === 'comet' ? ' comet' : ''), 0, -(r + 5), 4, grp);
+      label(`<span class="n">${b.primary && chart.capital ? '♛ ' : ''}${esc(b.name)}</span>${b.primary && chart.holderName ? `<span class="o" style="color:${esc(chart.accent)}">${esc(chart.holderName)}</span>` : ''}${marks ? `<span class="m">${marks}</span>` : ''}`, 'sysv-label' + (b.primary ? ' primary' : '') + (b.parent >= 0 ? ' moon' : '') + (looked ? ' looked' : '') + (b.parent >= 0 && b.parent === chart.focusBody ? ' of-looked' : '') + (b.cls === 'comet' ? ' comet' : ''), 0, 0, 4, grp, { kind: 'body', index: b.index });
       const hit = hitAt(0, 0, Math.max(7, r * 1.15), { kind: 'body', id: String(b.index), tip: `<b>${esc(b.name)}</b><div>${esc(kind)}${b.parent < 0 && b.cls !== 'comet' ? ` · ${b.period} years to go round` : ''}</div>${marks ? `<div>${marks}</div>` : ''}<div>click to pick · twice to go to it</div>`, at: [0, 0], up: r + 8 }, grp);
       // the provinces of the world looked at: a pin on its face for each, and beside it whose it is and what city it has
       if (looked && b.primary && chart.provinces && chart.provinces.length) {
         const n = chart.provinces.length; chart.provinces.forEach((pv, k) => {
           const a = Math.PI / 2 + (k - (n - 1) / 2) * 1.5, px = Math.cos(a) * r * .5, py = Math.sin(a) * r * .46 - r * .08, ox = Math.cos(a) * r * 2.3, oy = Math.sin(a) * r * 1.6 + r * .2;
           const pin = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: pv.accent || '#ffe8a3', transparent: true, opacity: 1, depthWrite: false })); pin.scale.set(Math.max(7, r * .5), Math.max(7, r * .5), 1); pin.position.set(px, py, 5); grp.add(pin);   // a pin that reads on the globe: two or three times the first
-          const lead = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(px, py, 5), new THREE.Vector3(ox, oy, 5)]), new THREE.LineBasicMaterial({ color: pv.accent || '#ffe8a3', transparent: true, opacity: .7 })); grp.add(lead);
-          label(`<span class="n">${esc(pv.name)}</span><span class="c">${pv.great ? '★ ' : ''}${esc(pv.city)}${pv.kind ? ' · ' + esc(pv.kind) : ''}</span><span class="o" style="color:${esc(pv.accent)}">${esc(pv.holderName || 'held by the house')}</span><span class="m">${esc(pv.citizens || '')}${pv.level > 1 ? ' · level ' + pv.level : ''}</span>`, 'sysv-prov ' + (ox < -1 ? 'left' : ox > 1 ? 'right' : 'mid'), ox, oy, 6, grp);
-          hitAt(ox, oy, 7, { kind: 'province', id: String(k), tip: `<b>${esc(pv.name)}</b><div>a province of ${esc(b.name)} · ${esc(pv.holderName || '')}</div><div>click for the world's provinces</div>`, at: [b.x + ox, b.y + oy], up: 8 }, grp);
+          const side = ox < -1 ? 'left' : ox > 1 ? 'right' : 'mid';
+          const pl = label(`<span class="n">${esc(pv.name)}</span><span class="c">${pv.great ? '★ ' : ''}${esc(pv.city)}${pv.kind ? ' · ' + esc(pv.kind) : ''}</span><span class="o" style="color:${esc(pv.accent)}">${esc(pv.holderName || 'held by the house')}</span><span class="m">${esc(pv.citizens || '')}${pv.level > 1 ? ' · level ' + pv.level : ''}</span>`, 'sysv-prov ' + side, px, py, 6, grp, { kind: 'prov', side, k, body: b.index });
+          pl.element.insertAdjacentHTML('afterbegin', `<i class="lead" style="--pc:${esc(pv.accent || '#ffe8a3')}"></i>`);
+          const plate = pl.element.querySelector('.in'); plate.title = `[region] ${pv.name}\na province of ${b.name} · ${pv.holderName || ''}\nClick for the world's provinces`;
+          plate.addEventListener('click', ev => { ev.stopPropagation(); this.dotnet?.invokeMethodAsync('OnPick', 'province', String(k)); });
         });
       }
       const mine = chart.bodies.filter(o => o.parent === b.index), reach = (mine.length ? Math.max(...mine.map(o => o.orbit)) : r * 2) + 34;
@@ -1065,7 +1194,8 @@ export class Galaxy {
         const wing = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.hull, color: f.accent, transparent: true, opacity: seen * .8, depthWrite: false })); wing.scale.set(ws, ws, 1); wing.position.set(px + side * row * sc * .62, py - row * sc * .58, 5.8); parent.add(wing); }
       const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: T.glow, color: f.accent, transparent: true, opacity: f.isPlayer ? .6 : .28, blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.set(sc * 2.2, sc * 2.2, 1); glow.position.set(px, py, 5); if (!f.laidUp) glow.userData.pulse = true; parent.add(glow);
       if (f.id === chart.selectedFleet) { const sel = new THREE.Mesh(new THREE.RingGeometry(sc * .9, sc * 1.02, 48), new THREE.MeshBasicMaterial({ color: 0xffe8a3, transparent: true, opacity: .95, side: THREE.DoubleSide })); sel.position.set(px, py, 5.5); sel.userData.spinZ = 0.8; parent.add(sel); }
-      label(`${esc(f.name)} · ${f.strength}${f.isPlayer ? '' : '?'}${f.laidUp ? ' · laid up' : f.moving ? ' · under way' : ''}`, 'sysv-fleet', px + sc * .58, py, 6, parent).element.style.color = f.accent;   // beside its flagship, as on the galaxy map
+      this.sysFleetSprites.push({ spr, sc, n: pirate ? 0 : Math.min(6, Math.max(0, (f.strength | 0) - 1)) });
+      label(`${esc(f.name)} · ${f.strength}${f.isPlayer ? '' : '?'}${f.laidUp ? ' · laid up' : f.moving ? ' · under way' : ''}`, 'sysv-fleet', px, py, 6, parent, { kind: 'fleet', sc }).element.style.color = f.accent;   // beside its flagship, as on the galaxy map, placed clear of the worlds and the names
       hitAt(px, py, sc * .9, { kind: 'fleet', id: f.id, tip: `<b>${esc(f.name)}</b><div>${esc(f.ownerName || '')} · ${f.strength} hull${f.strength === 1 ? '' : 's'}${f.isPlayer ? '' : ` · reported, ${f.confidence}% sure`}</div>${f.laidUp ? '<div>laid up: no crews aboard</div>' : f.moving ? '<div>making for the lane</div>' : ''}`, at: home ? [hb.x + px, hb.y + py] : [px, py], up: 14 }, parent);
     }
     for (const p of chart.posts) {
@@ -1094,6 +1224,8 @@ export class Galaxy {
   dispose() { this.disposed = true; this.resizeObserver.disconnect(); try { this.clearSystem(); this.setModel(null); this.renderer.dispose(); } catch { /* a renderer whose context is gone may not tidy up cleanly */ } this.renderer.domElement.remove(); this.labelRenderer.domElement.remove(); this.tipEl?.remove(); }
 }
 
+/** The sun of a close map: its radius in the map's units, by its tint (the same as it is drawn). */
+function sunRadius(chart) { return 30 * [1.0, 0.92, 0.84, 1.12, 1.05, 0.88][(chart.sunTint || 0) % 6]; }
 function esc(s) { return String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 /** A deposit's name as the game writes it on a screen (Resource.Label): never the data key. */
 function depositName(d) { return ({ helium3: 'Helium-3', rare_earths: 'Rare earths', isotopes: 'Isotopes' })[d] || (d ? d.charAt(0).toUpperCase() + d.slice(1).replace(/_/g, ' ') : ''); }
@@ -1116,6 +1248,8 @@ window.praetoriaSpace = {
     return true;
   },
   setModel(id, json) { const g = this.galaxies.get(id); if (!g) return false; const m = JSON.parse(json); g.setSelection(m.selected); g.setModel(m); return true; },
+  /** The Regions mode (the map's list of regions is open), and the small pictures of the regions in that list. */
+  regions(id, on) { this.galaxies.get(id)?.setRegions(on); }, thumbs(id) { try { this.galaxies.get(id)?.regionThumbs(); } catch { /* a list without pictures */ } },
   // the close map of one system: a chart to go into it (or to draw it again as it now stands), null to come back out to the Reach
   setSystem(id, json) { const g = this.galaxies.get(id); if (!g) return false; g.setSystem(json ? JSON.parse(json) : null); return true; },
   zoom(id, f) { this.galaxies.get(id)?.zoom(f); }, home(id) { this.galaxies.get(id)?.home(); }, fit(id) { this.galaxies.get(id)?.fit(); }, focus(id, x, y) { this.galaxies.get(id)?.focus(x, y); },
