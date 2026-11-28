@@ -44,6 +44,7 @@ public sealed class FirstYearsCatalog
     /// Academy, and the list for a character of the player's own making otherwise.</summary>
     public IReadOnlyList<FirstStep> ListFor(string start, World w)
     {
+        if (start == "custom" && w.Academy != null) start = w.IsImperium ? "the_institute" : "the_academy";   // one's own cadet carries the four terms too
         if (Starts.TryGetValue(start, out var own)) return own;
         if (w.InAcademy || w.Academy != null) return Starts.TryGetValue(w.IsImperium ? "the_institute" : "the_academy", out var a) ? a : Array.Empty<FirstStep>();
         return Starts.TryGetValue("custom", out var c) ? c : Array.Empty<FirstStep>();

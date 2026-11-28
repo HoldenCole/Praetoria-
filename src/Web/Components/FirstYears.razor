@@ -13,7 +13,7 @@
 }
 @if (fy != null && (!fy.AllDone || celebrate))
 {
-    <section class="ol-sec fy @(_open ? "" : "shut") @(celebrate ? "fy-all" : "") @(Folded ? "fy-folded" : "")" data-ol="firstyears" data-first-years data-done="@fy.DoneCount" data-of="@fy.Steps.Count">
+    <section class="ol-sec fy @(_open ? "" : "shut") @(celebrate ? "fy-all" : "") @(Folded ? "fy-folded" : "")" data-ol="firstyears" data-first-years data-done="@fy.DoneCount" data-of="@fy.Steps.Count" data-done-steps="@string.Join(",", fy.Steps.Where(x => x.Done).Select(x => x.Id))">
         <div class="ol-head fy-head">
             <button class="fy-fold" aria-expanded="@_open" title="@HeadTip(fy)" @onclick="() => _open = !_open">
                 <i class="chev"></i><Icon Name="flag-objective" Tone="brass" Size="16" /><span class="t">First years</span>
@@ -110,7 +110,7 @@
         int i = at.IndexOf(':'); string w = i < 0 ? at : at[..i], tab = i < 0 ? "" : at[(i + 1)..];
         if (w is "galaxy" or "fleet" or "map") return "On the map";
         if (w == "exchange") return "On the Exchange";
-        return "In " + Place(w) + ((w, tab) switch { ("house", "ledger") => ", the ledger", ("senate", "ladder") => ", the ladder", _ => "" });
+        return "In " + Place(w) + (w == "house" && tab == "ledger" ? ", the ledger" : "");
     }
     private static string Place(string w) => w switch
     {

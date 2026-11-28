@@ -26,11 +26,17 @@
     return l;
   }
   const put = (box, r, pad) => { box.style.left = (r.left - pad) + 'px'; box.style.top = (r.top - pad) + 'px'; box.style.width = (r.width + 2 * pad) + 'px'; box.style.height = (r.height + 2 * pad) + 'px'; };
-  /** A box or an event window over the game (not the primer while it points). */
-  const covered = () => !!document.querySelector('.box-veil:not(.hb-point), .overlay:not(.box-veil), .confirm-veil');
+  /** A box, an event window or a profile over the game (not the primer while it points). */
+  const covered = () => !!document.querySelector('.box-veil:not(.hb-point), .overlay:not(.box-veil), .confirm-veil, .ev-veil, .profile.pc');
 
+  /** Place every ring and the spotlight where their controls are now. Run each frame while anything is lit, and at once when it is asked
+   *  for, so a ring is on the screen the moment Show me is pressed even when the frames come slowly (a busy machine drawing the map). */
   function frame() {
     raf = 0;
+    try { place(); }
+    finally { if (rings.length || spot) raf = requestAnimationFrame(frame); }
+  }
+  function place() {
     const now = performance.now();
     if (rings.length && now > until) clearRings();
     const under = rings.length && covered();
@@ -47,9 +53,8 @@
       if (u) { spot.box.classList.remove('none'); put(spot.box, { left: u.left, top: u.top, width: u.right - u.left, height: u.bottom - u.top }, 6); }
       else spot.box.classList.add('none');   // nothing to point at on this screen: the whole is dimmed evenly
     }
-    if (rings.length || spot) raf = requestAnimationFrame(frame);
   }
-  const go = () => { if (!raf) raf = requestAnimationFrame(frame); };
+  const go = () => { try { place(); } catch (e) { /* the next frame tries again */ } if (!raf) raf = requestAnimationFrame(frame); };
 
   function clearRings() { for (const g of rings) g.box.remove(); rings = []; label = ''; }
   /** A press on what a ring lights puts that ring out: the player has found it. */

@@ -71,10 +71,25 @@ public class FirstStepsTests
                 foreach (var r in step.Ring) Assert.True(rings.Contains(r) || (r.StartsWith("rail:") && windows.Contains(r[5..])) || r.StartsWith("tab:"), $"{s}/{step.Id}: {r}");
                 // what a player reads: plain, with no em dash, no "(s)", a sentence that ends, a title of a few words
                 foreach (var text in new[] { step.Title, step.Text })
-                { Assert.DoesNotContain("—", text); Assert.DoesNotContain("(s)", text); }
+                { Assert.DoesNotContain("\u2014", text); Assert.DoesNotContain("(s)", text); }
                 Assert.EndsWith(".", step.Text); Assert.InRange(step.Title.Split(' ').Length, 2, 6);
             }
         }
+    }
+
+    [Fact]
+    public void OnesOwnCharacter_HasTheListForWhatTheHouseHas_OrTheFourTermsWhenBegunAtTheAcademy()
+    {
+        var w = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(Root, "custom_republic"), 1);
+        FirstStepsSystem.Begin(w, Cat, "custom");
+        var steps = FirstStepsSystem.StepsOf(w, Cat);
+        Assert.InRange(steps.Count, 4, 6);
+        Assert.Contains(steps, s => s.Id == "coin"); Assert.DoesNotContain(steps, s => s.Id is "build" or "fleet");   // a landless house with no ships
+        var wa = WorldBuilder.FromScenario(ScenarioLoader.LoadFromContent(Root, "custom_republic"), 1);
+        AcademySystem.Enter(wa);
+        FirstStepsSystem.Begin(wa, Cat, "custom");
+        Assert.True(wa.FirstSteps!.Academy);
+        Assert.Equal(new[] { 1, 1, 2, 2, 3, 3, 4, 4 }, FirstStepsSystem.StepsOf(wa, Cat).Select(s => s.Term));
     }
 
     [Fact]
@@ -276,7 +291,7 @@ public class FirstStepsTests
                 Assert.Contains(c.Moved, l => l.Kind == "year" && l.Text.StartsWith("The other "));   // what the rest of the year did
                 Assert.Equal(r.ScoreFrom + r.Marks + AcademySystem.StandingWeight * (Math.Max(0, r.StandingTo) - Math.Max(0, r.StandingFrom)), r.ScoreTo);
                 Assert.NotEmpty(c.Tip); Assert.DoesNotContain("{", c.Tip);
-                foreach (var l in c.Moved.Select(x => x.Text).Append(c.Tip)) { Assert.DoesNotContain("—", l); Assert.DoesNotContain("(s)", l); Assert.DoesNotContain("-1", l); }
+                foreach (var l in c.Moved.Select(x => x.Text).Append(c.Tip)) { Assert.DoesNotContain("\u2014", l); Assert.DoesNotContain("(s)", l); Assert.DoesNotContain("-1", l); }
             }
             Assert.Equal(w.Academy.Place, seen[^1].PlaceTo);   // the last card ends where the passing out says
             Assert.Equal(Cat.Tip("last"), seen[^1].Tip);
@@ -294,7 +309,7 @@ public class FirstStepsTests
             foreach (bool imperium in new[] { false, true })
             {
                 string s = folded!.For(imperium);
-                Assert.InRange(Sentences(s), 2, 3); Assert.EndsWith(".", s); Assert.DoesNotContain("—", s);
+                Assert.InRange(Sentences(s), 2, 3); Assert.EndsWith(".", s); Assert.DoesNotContain("\u2014", s);
                 Assert.True(s.Length < AcademyCatalog.Read(l, imperium).paragraphs.Sum(x => x.Length) / 2, l.Id);   // a fold, not the lecture again
             }
             if (l.ImperiumFull.Count > 0) Assert.NotEqual(folded!.Republic, folded.Imperium);   // a lecture the Imperium reads otherwise folds otherwise

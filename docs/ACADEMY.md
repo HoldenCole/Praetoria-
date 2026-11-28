@@ -56,6 +56,10 @@ When the year opens the player is asked once: *First time here: teach me everyth
 me* (`SetTutorialCommand`; the browser remembers a previous graduation and offers the short course first).
 - **Full**: this term's two lessons are open in the lecture hall; earlier ones fold away.
 - **Brief**: one line a lesson, each openable.
+- **Either course reads a lecture folded** (2026-11-28, from docs/STEAM_REVIEW.md 5): two or three sentences, and **Read more** under them
+  for the whole of it. The folds are content (`lectures` in `content/academy/first_years.json`, with the Imperium's own where the lecture
+  reads otherwise) and `AcademyProjection` hands them on as `AcademyLessonCard.Summary`; a test holds each to two or three sentences and to
+  less than half the lecture.
 - **Either way** the lecture hall shows the orientation, built from the live world by `AcademyProjection`: the state of
   the Reach (who holds the chair or the throne, the parties with their seats and leaders, the consuls and when the next
   election falls, the offices, the law of the Reach, wars, the nations beyond), the seven houses that matter by seats,
@@ -63,6 +67,85 @@ me* (`SetTutorialCommand`; the browser remembers a previous graduation and offer
 
 The screen has no rail and no world screens. It closes with a passing-out card: place, service, friends made, and
 those who will remember you otherwise. A player who took the full course is not shown the old primer.
+
+## The report card
+
+The review found the Academy ranked a cadet 7th, then 12th of 12, and never said why (docs/STEAM_REVIEW.md 5). Each term now ends
+with a report card. `AcademySystem` writes where the order of merit stood as the term opened (`AcademyState.Opening`: the cadet's score,
+place, standing and Standard, and every classmate's score) and, as the term closes, a `TermReport`: the subject read and its marks,
+standing before and after, the score before and after, the place before and after, the least, most and average the rest of the year
+gained, how many passed whom, and under the Imperium the banner taken that term. `AcademyProjection.Card` says it in words, each line with
+its figures:
+
+- "You read Fleet Tactics: 4 marks." "Your standing rose from 0 to 2: 4 more marks on your score, since standing counts twice."
+- "Your score went from 0 to 8." "The other 11 cadets gained 6 to 10 each, 8 on average." "2 cadets passed you, and you passed 4 cadets."
+- "The Wolf Standard took the banner of the Bull Standard." (and, when it was yours, that you serve under the victor and lost 2 standing)
+
+and one tip, the first that fits: your own banner taken; the last term (what honours and first place bring); a subject that would give
+2 marks more than the one read; standing that did not rise ("Standing counts twice ..."); a lead to hold; a climb to keep up; the pace of
+the year. The tips are content (`tips` in `first_years.json`). The card stands at the head of **This term** from the second term on (the
+term just ended), every card is under **So far**, and the passing-out card carries the last (`TermCard.razor`).
+
+## The first years
+
+The Academy taught by lectures on a screen of its own; the real map was not seen until passing out, and the primer that a first game
+opened was pages of text pointing at nothing, its "three things to do first" gone when it closed (docs/STEAM_REVIEW.md 5). The first years
+teach on the real screen instead.
+
+**The list.** In a first game a short list is pinned at the top of the list on the right (`FirstYears.razor` in the outliner): four to six
+steps written for the start (`starts` in `content/academy/first_years.json`, by scenario id), eight for the two Academy starts, which carry
+the four terms onto the real screen, two steps a term, each wearing its term's numeral:
+
+| Start | The steps |
+|---|---|
+| The Old Lion | Answer a report · See who comes after you (Dynasty) · Begin a building · Order your fleet · Read the House ledger · Declare your vote |
+| The Fallen House | Answer a report · Read the House ledger · Open the Laws · Order your fleet · Declare your vote |
+| The Circling Heir | Answer a report · See who circles (Dynasty) · Open Houses · Begin a building · Read the House ledger · Declare your vote |
+| The Risen Officer | Answer a report · Open the You window · Open Military · See the ladder of offices · Declare your vote |
+| The Imperial Court | Answer a report · Open the Senate · Open the Laws · Begin a building · Read the House ledger · Declare your vote |
+| The New Man | Answer a report · Open the You window · Read the House ledger · Put your coin to work (buy goods or a share, or found a venture) · See what a seat would take (the ladder) · Declare your vote |
+| The Academy, The Institute | I: Answer a report, Open the You window · II: Declare your vote, Open the Laws · III: Order your squadron (or, for a house with no fleet, Find your world on the map), Open Military · IV: Read the House ledger, Buy on the Exchange |
+| A character of one's own | Answer a report · Open the You window · Begin a building (a house with a world) or Put your coin to work (one without) · Order your fleet (a house with one) · Read the House ledger · Declare your vote |
+
+The New Man holds no world and no fleet, so nothing on his list asks for either: a step's `needs` keeps it to a house that has (or lacks)
+a world or a fleet, read when the list begins.
+
+**What ticks a step** is what the player really did (`FirstStepsSystem`; the state is `World.FirstSteps`):
+
+- an act: the command bus calls `FirstStepsSystem.Acted` for every command it carries out, and one done in the player's own name is written
+  down by its kind: a report answered, a vote declared (moving a motion or pledging seats declares one too), an order to a fleet, something
+  bought (goods, shares, a bond, a venture), a venture founded or enlarged, a building or a work begun, a law changed. The steward who
+  begins a building, the marshal who buys fuel and the chancellor who declares the house's votes act in their own names, so none of it ticks
+  a step; a test plays two years with nothing done and finds nothing ticked;
+- a window or a tab opened: the shared `Tabs` part tells the client which window (the shell cascades its id) and which tab is showing
+  (`GameClient.Saw("house:ledger")`), and a world picked on the map is `"map"`.
+
+What is kept is what happened, not which boxes are ticked; which step that ticks is read from the content each time. So the list is kept
+with the saga: a save between years or in the middle of one remembers it, and undo takes an act back but not having found where it is
+done (`FirstStepsSystem.Carry`).
+
+**Show me.** Each step still to do has a Show me: it opens the window the step is done in and lights the control with a pulsing brass ring
+(`js/guide.js`): the vote of the motion before the chamber, a world's Build, the Exchange's order bar, the picked fleet's order bar, the
+first unanswered report in the list. A step that is the opening of a window lights its socket on the rail and leaves the opening to the
+player, and a step that is a tab opens the window and lights the tab, so Show me never does the step itself. A ring goes out when its
+control is pressed, when the step ticks, or after twelve seconds. A step that cannot be done yet says why under it ("Not yet: no motion":
+nothing is before the Senate in year 1, and what the houses move then is voted in year 2).
+
+**How long.** The list stays until every step is done (it says so for a few seconds, then folds away), the player puts it away (its close),
+or the third year ends (`years` in the content). Help can pin it again while the first three years last. With a window open, or on a screen
+under 1500 pixels wide, it shows only the steps left to do, a line each.
+
+**A first game** is the browser's: one that has not seen the primer, and has not had a first game's list end (by every step done, put away
+or its third year over), begins a new saga with the list. A saga that opens at the Academy has it whatever the browser has done, if the
+cadet takes the full course: the list waits until passing out, and a cadet who asked only to be briefed has none (docs/WEB_CLIENT.md,
+"The first years").
+
+**The primer points.** Opened by itself in a first game (as before), each page about a part of the screen now points at it: the rest is
+dimmed and that part ringed, and the box stands aside from it: your portrait and house, the reports on the right, the year's pools, the
+treasury, the windows down the left, the Laws, your house's rank, End Year. Its last page, which used to be "three things to do first" and
+was gone when the box closed, is the list: it points at it and lists its steps as they stand (or, in a saga without one, offers to pin it).
+
+**Rail labels** are on by themselves in a first game for its first three years (`labelYears`), unless the player has chosen in Options.
 
 ## The handbook: the primer, the glossary, the lectures
 
@@ -132,6 +215,10 @@ Republic's Academy, where there is no banner, the bold cadet is first of the yea
 `Presentation/AcademyProjection.cs`; `content/academy/academy.json`, `content/events/academy_republic.json`,
 `academy_institute.json`, `academy_crucible.json` (re-gated to the Institute) and their texts; `tests/AcademyTests.cs`;
 `src/Web/Components/AcademyScreen.razor` and the Academy shell in `Pages/Index.razor`.
+The first years and the report cards: `src/Core/State/FirstSteps.cs`, `Systems/FirstStepsSystem.cs`, `Data/FirstYearsCatalog.cs`,
+`Presentation/FirstStepsProjection.cs`, `AcademyProjection.Card`; `content/academy/first_years.json`; `tests/FirstStepsTests.cs`;
+`src/Web/Components/FirstYears.razor` (in the outliner), `TermCard.razor`, the primer's pages in `Primer.razor`, `wwwroot/js/guide.js`,
+`wwwroot/css/win/firstyears.css`; `tools/browser/firststeps.js`.
 
 ## Not yet
 - Only the player's own year is remembered. Other people's children do not go through an Institute year of their
@@ -142,4 +229,7 @@ Republic's Academy, where there is no banner, the bold cadet is first of the yea
 - Five Institute chain events (the oath, the blooding, the humiliated returns, the marked man, the frame unravels) need
   more than four terms to line up and were not reached in the soak.
 - Character creation's choice of service is overwritten at passing out by what the cadet read or asked for.
-- The other four scenarios start in the world with older characters and still use the short primer.
+- The other starts begin in the world with older characters: they have the primer, now pointing at the screen, and the first years' list,
+  but no Academy.
+- The first years' list teaches the first windows only. Nothing yet walks a player through a war, a marriage or a succession the first
+  time each comes (the moments the review asks for, docs/STEAM_REVIEW.md 4), and the steps do not change once the list has begun.
