@@ -3,32 +3,32 @@
     {
       "id": "a_vote_for_a_vote",
       "title": "A Vote for a Vote",
-      "body": "{senator.name} of {senator.house} has a motion before the Senate this session, and has come to count heads. They want your vote. They do not offer money for it. They offer a vote of their own: give your word, and {senator.house} owes your house a vote. It votes for the next motion your house moves, whichever way it leans, unless that motion strikes at it. Your vote on theirs is declared for it, and is still yours to change until the Senate sits; but a word given and not kept is written down, and {senator.house} takes no word of yours on a vote for eight years.",
+      "body": "{senator.name} of {senator.house} has a motion before the Senate this session, and has come to count heads. {senator.He} wants your vote. {senator.He} does not offer money for it. {senator.He} offers a vote of {senator.his} own: give your word, and {senator.house} owes your house a vote. It votes for the next motion your house moves, whichever way it leans, unless that motion strikes at it. Your vote on {senator.his} motion is declared for it, and is still yours to change until the Senate sits; but a word given and not kept is written down, and {senator.house} takes no word of yours on a vote for eight years.",
       "choices": {
-        "give_your_word": "Give your word, and take theirs. Vote for their motion, or they will remember it.",
-        "name_a_price": "Tell them a vote costs more than a vote, and sell them yours for their motion.",
+        "give_your_word": "Give your word, and take {senator.hers}. Vote for {senator.his} motion, or {senator.he} will remember it.",
+        "name_a_price": "Tell {senator.him} a vote costs more than a vote, and sell {senator.him} yours for {senator.his} motion.",
         "keep_your_vote": "Tell them your vote is your own."
       }
     },
     {
       "id": "a_bought_vote_called_in",
       "title": "A Bought Vote Called In",
-      "body": "{buyer.name} of {buyer.house} has another motion before the Senate. They paid for your vote once, and they have not forgotten it. They do not mean to pay again. A house that sells its vote once, they say, has told the chamber what it is, and they are sure you would not want the chamber reminded. The vote itself is cast in the chamber, as always, and they will be watching how you cast it.",
+      "body": "{buyer.name} of {buyer.house} has another motion before the Senate. {buyer.He} paid for your vote once, and {buyer.he} has not forgotten it. {buyer.He} does not mean to pay again. A house that sells its vote once, {buyer.he} says, has told the chamber what it is, and {buyer.he} is sure you would not want the chamber reminded. The vote itself is cast in the chamber, as always, and {buyer.he} will be watching how you cast it.",
       "choices": {
-        "vote_as_they_ask": "Say you will vote for it. Vote otherwise, and they will remember it.",
-        "give_back_the_coin": "Send back what they paid, and more, and be done with them.",
-        "show_them_the_door": "Tell them the bargain was for one vote."
+        "vote_as_they_ask": "Say you will vote for it. Vote otherwise, and {buyer.he} will remember it.",
+        "give_back_the_coin": "Send back what {buyer.he} paid, and more, and be done with {buyer.him}.",
+        "show_them_the_door": "Tell {buyer.him} the bargain was for one vote."
       }
     },
     {
       "id": "the_vote_still_undecided",
       "title": "The Vote Still Undecided",
-      "body": "Your motion comes to the vote at the end of the session, and {doubter.name} of {doubter.house} has not said which way their house will go. They lean neither for it nor against. In a close count that is the vote that decides it. A head who thinks well enough of you leans your way, and {doubter.name} is not far off it.",
+      "body": "Your motion comes to the vote at the end of the session, and {doubter.name} of {doubter.house} has not said which way {doubter.his} house will go. {doubter.He} leans neither for it nor against. In a close count that is the vote that decides it. A head who thinks well enough of you leans your way, and {doubter.first} is not far off it.",
       "choices": {
-        "make_your_case": "Go and make your case to them in person (1 influence). It may be enough to bring them over.",
-        "have_them_to_dinner": "Have them to dinner, and talk of anything but the motion (400 credits). It is the likeliest to bring them over.",
-        "speak_from_the_floor": "Speak for it from the floor, and let them hear it there. It may bring them over, if they were nearly there.",
-        "leave_them_be": "Leave them to make up their own mind."
+        "make_your_case": "Go and make your case to {doubter.him} in person (1 influence). It may be enough to bring {doubter.him} over.",
+        "have_them_to_dinner": "Have {doubter.him} to dinner, and talk of anything but the motion (400 credits). It is the likeliest to bring {doubter.him} over.",
+        "speak_from_the_floor": "Speak for it from the floor, and let {doubter.him} hear it there. It may bring {doubter.him} over, if {doubter.he} was nearly there.",
+        "leave_them_be": "Leave {doubter.him} to make up {doubter.his} own mind."
       }
     },
     {
@@ -38,7 +38,7 @@
       "choices": {
         "it_was_conscience": "Say you could not vote for it, and would not vote against your friends.",
         "say_it_will_not_happen_again": "Say it will not happen again.",
-        "send_a_gift": "Send a gift to their house, and no letter with it.",
+        "send_a_gift": "Send a gift to {leader.his} house, and no letter with it.",
         "your_vote_is_your_own": "Say your vote is your own to cast or keep."
       }
     },
@@ -48,48 +48,48 @@
       "body": "Your motion carried. The houses that carried it expect to be thanked, and in the Reach that is done at a table. {ally.name} of {ally.house}, who voted with you, has asked whose table it will be.",
       "choices": {
         "your_table": "Give the dinner yourself, and seat {ally.name} at your right hand.",
-        "their_table": "Let {ally.name} give it, and go as their guest. The city will say it was their motion.",
+        "their_table": "Let {ally.first} give it, and go as {ally.his} guest. The city will say it was {ally.his} motion.",
         "a_letter": "Thank them by letter, and keep your evening for yourself."
       }
     },
     {
       "id": "those_who_voted_against_you",
       "title": "The House That Voted Against You",
-      "body": "Your motion carried, and {loser.name} of {loser.house} voted against it to the end. They have lost in front of the whole chamber, and {loser.house} remembers who it lost to.",
+      "body": "Your motion carried, and {loser.name} of {loser.house} voted against it to the end. {loser.He} has lost in front of the whole chamber, and {loser.house} remembers who it lost to.",
       "choices": {
-        "offer_them_something": "Go to them and offer them something for their trouble.",
-        "let_them_lose": "Let them lose. It is what a vote is.",
+        "offer_them_something": "Go to {loser.him} and offer {loser.him} something for {loser.his} trouble.",
+        "let_them_lose": "Let {loser.him} lose. It is what a vote is.",
         "remind_the_chamber": "Remind the chamber who lost."
       }
     },
     {
       "id": "an_old_grudge_on_the_docket",
       "title": "An Old Grudge Moves a Motion",
-      "body": "There is a motion before the Senate against your house, and it is {rival.name} of {rival.house} who moved it. Nobody in the chamber is surprised. They have held a grudge against your house since the chamber last saw them come off worse against you, and they have been waiting.",
+      "body": "There is a motion before the Senate against your house, and it is {rival.name} of {rival.house} who moved it. Nobody in the chamber is surprised. {rival.He} has held a grudge against your house since the chamber last saw {rival.him} come off worse against you, and {rival.he} has been waiting.",
       "choices": {
-        "answer_them_on_the_floor": "Answer them on the floor, and name the old quarrel.",
-        "make_your_peace": "Go to them and make your peace. It will not stop this vote.",
-        "let_them_have_their_day": "Let them have their day."
+        "answer_them_on_the_floor": "Answer {rival.him} on the floor, and name the old quarrel.",
+        "make_your_peace": "Go to {rival.him} and make your peace. It will not stop this vote.",
+        "let_them_have_their_day": "Let {rival.him} have {rival.his} day."
       }
     },
     {
       "id": "an_old_grudge_against_your_motion",
       "title": "An Old Grudge Against Your Motion",
-      "body": "Your motion comes to the vote this session, and {rival.name} of {rival.house} is speaking against it in every corridor of the Senate. It is not the motion they mind. They have held a grudge against your house since the chamber last saw them come off worse against you, and this is the first chance they have had to make you pay for it. A head who thinks ill enough of you leans against what you move, and {rival.name} does.",
+      "body": "Your motion comes to the vote this session, and {rival.name} of {rival.house} is speaking against it in every corridor of the Senate. It is not the motion {rival.he} minds. {rival.He} has held a grudge against your house since the chamber last saw {rival.him} come off worse against you, and this is the first chance {rival.he} has had to make you pay for it. A head who thinks ill enough of you leans against what you move, and {rival.first} does.",
       "choices": {
-        "buy_them_off": "Send them something to let it go (600 credits). They may think well enough of you again not to lean against it.",
-        "answer_them_on_the_floor": "Answer them on the floor, and name the old quarrel. They will still lean against it; the chamber will think the better of you.",
-        "let_it_cost_you": "Let them talk. Their house leans against your motion, and the grudge is spent on it."
+        "buy_them_off": "Send {rival.him} something to let it go (600 credits). {rival.He} may think well enough of you again not to lean against it.",
+        "answer_them_on_the_floor": "Answer {rival.him} on the floor, and name the old quarrel. {rival.He} will still lean against it; the chamber will think the better of you.",
+        "let_it_cost_you": "Let {rival.him} talk. {rival.His} house leans against your motion, and the grudge is spent on it."
       }
     },
     {
       "id": "the_senates_act_falls_on_a_friend",
       "title": "The Senate's Act Falls on a Friend",
-      "body": "An Act of the Senate has carried, against the votes of {friend.house}. {friend.name} fought it to the last, and has written to you: not to complain, they say, but because a friend should hear it from them first. They would like to know what you mean to do. An Act is undone as it was made: by another Act, moved in the Senate.",
+      "body": "An Act of the Senate has carried, against the votes of {friend.house}. {friend.name} fought it to the last, and has written to you: not to complain, {friend.he} says, but because a friend should hear it from {friend.him} first. {friend.He} would like to know what you mean to do. An Act is undone as it was made: by another Act, moved in the Senate.",
       "choices": {
         "promise_the_repeal": "Promise to move its repeal when the chamber will hear it.",
-        "help_them_through": "Send them help to carry it through the year, and ask nothing.",
-        "the_law_is_the_law": "Tell them the law is the law, for your house as for theirs."
+        "help_them_through": "Send {friend.him} help to carry it through the year, and ask nothing.",
+        "the_law_is_the_law": "Tell {friend.him} the law is the law, for your house as for {friend.hers}."
       }
     },
     {
@@ -97,19 +97,19 @@
       "title": "A Purse on the Senate Floor",
       "body": "On the floor today it came out that you paid {bought.house} for its vote. The vote is struck, and the chamber thinks the less of your house. {bought.name} is the one who had to walk out past everyone, and is waiting to hear what you will say.",
       "choices": {
-        "take_it_on_yourself": "Say before the chamber that it was your doing, not theirs.",
-        "make_it_good": "Pay them for what it has cost them.",
-        "say_they_named_the_price": "Say they named the price."
+        "take_it_on_yourself": "Say before the chamber that it was your doing, not {bought.hers}.",
+        "make_it_good": "Pay {bought.him} for what it has cost {bought.him}.",
+        "say_they_named_the_price": "Say {bought.he} named the price."
       }
     },
     {
       "id": "one_of_yours_stands_for_office",
       "title": "One of Yours Stands for Office",
-      "body": "{kin.name} has put their name down for office at the coming count. They have not asked your leave, and they do not need it: it is their name. The house can speak for them at the count, or pay for a canvass, as it can for anyone of the house who stands. What they have come to ask is what you will do yourself.",
+      "body": "{kin.Rel}, {kin.first}, has put {kin.his} name down for office at the coming count. {kin.He} has not asked your leave, and does not need it: it is {kin.his} name. The house can speak for {kin.him} at the count, or pay for a canvass, as it can for anyone of the house who stands. What {kin.he} has come to ask is what you will do yourself.",
       "choices": {
-        "walk_the_wards": "Walk the wards with them, so the city sees the house behind them.",
-        "teach_them_the_floor": "Teach them how a crowd is won.",
-        "let_them_win_it": "Tell them an office is won by the one who stands."
+        "walk_the_wards": "Walk the wards with {kin.him}, so the city sees the house behind {kin.him}.",
+        "teach_them_the_floor": "Teach {kin.him} how a crowd is won.",
+        "let_them_win_it": "Tell {kin.him} an office is won by the one who stands."
       }
     },
     {
@@ -118,27 +118,27 @@
       "body": "{accuser.name} of {accuser.house} lost at the count to one of your house, and is saying in every square that the count was bought. It was not, or not more than any count is. But it is being said, and the squares like to hear it.",
       "choices": {
         "open_the_accounts": "Open the house's accounts to the praetors.",
-        "answer_in_kind": "Pay a pamphleteer to say what is known of their own canvass.",
+        "answer_in_kind": "Pay a pamphleteer to say what is known of {accuser.his} own canvass.",
         "let_it_blow_over": "Let it blow over."
       }
     },
     {
       "id": "the_pamphlet_scandal",
       "title": "The Pamphlet Scandal",
-      "body": "Your pamphleteer and the one {accuser.name} of {accuser.house} pays have been at it all year. The squares have enjoyed it. Nobody believes either side, which is to say that both houses are now believed to have bought what votes they could. {accuser.name} has sent word that they will stop if you will.",
+      "body": "Your pamphleteer and the one {accuser.name} of {accuser.house} pays have been at it all year. The squares have enjoyed it. Nobody believes either side, which is to say that both houses are now believed to have bought what votes they could. {accuser.first} has sent word that {accuser.he} will stop if you will.",
       "choices": {
         "call_off_your_writer": "Call off your writer. The squares will say your house blinked first.",
-        "before_a_praetor": "Have their pamphlets brought before a praetor.",
+        "before_a_praetor": "Have {accuser.his} pamphlets brought before a praetor.",
         "let_the_writers_write": "Let the writers write. {accuser.house} will come out of it no better than yours."
       }
     },
     {
       "id": "the_one_who_won_the_office",
       "title": "The One Who Won the Office",
-      "body": "{victor.name} of {victor.house} took the office {kin.name} stood for. The count is posted on the Senate doors. {kin.name} wants to know whether the house will ask for it to be read again, and so do your people.",
+      "body": "{victor.name} of {victor.house} took the office {kin.rel}, {kin.first}, stood for. The count is posted on the Senate doors. {kin.first} wants to know whether the house will ask for it to be read again, and so do your people.",
       "choices": {
-        "congratulate_them": "Go and congratulate them where the city can see. {kin.name} will see it too.",
-        "demand_a_recount": "Demand the count be read again. {kin.name} will know the house fought for them, and the squares will doubt the count.",
+        "congratulate_them": "Go and congratulate {victor.him} where the city can see. {kin.first} will see it too.",
+        "demand_a_recount": "Demand the count be read again. {kin.first} will know the house fought for {kin.him}, and the squares will doubt the count.",
         "say_nothing": "Say nothing."
       }
     },
@@ -156,10 +156,10 @@
     {
       "id": "the_consul_elects_feast",
       "title": "The Consul-Elect's Feast",
-      "body": "The count is done, and {grandee.name} of {grandee.house} is Senior Consul for ten years: they will preside, speak from the chair, break a tied Senate, and once in their term strike a motion with a veto. Tonight they dine the Senate. Everyone who means to have anything of the consuls in those ten years will be at that table, and everyone will see who is not.",
+      "body": "The count is done, and {grandee.name} of {grandee.house} is Senior Consul for ten years: {grandee.he} will preside, speak from the chair, break a tied Senate, and once in {grandee.his} term strike a motion with a veto. Tonight {grandee.he} dines the Senate. Everyone who means to have anything of the consuls in those ten years will be at that table, and everyone will see who is not.",
       "choices": {
-        "go_and_be_seen": "Go, and be seen to go. A consul remembers who came to their table.",
-        "send_a_gift_ahead": "Send a gift ahead of you that the table will talk about. A consul remembers who came to their table.",
+        "go_and_be_seen": "Go, and be seen to go. A consul remembers who came to {grandee.his} table.",
+        "send_a_gift_ahead": "Send a gift ahead of you that the table will talk about. A consul remembers who came to {grandee.his} table.",
         "ask_for_your_bench": "Go, and ask across the table what the consulship will do for your bench. It will not be liked.",
         "stay_away": "Stay away."
       }
@@ -167,11 +167,11 @@
     {
       "id": "your_colleague_the_consul",
       "title": "Your Colleague, the Consul",
-      "body": "You and {grandee.name} of {grandee.house} hold the two chairs of the consulship. Each of you can strike the other's business with a veto: once in the term, {grandee.name} will strike the first motion of yours that strikes at their house, at their bench's leader or at their bench's line, and the chamber is waiting to see which of you will try it first. {grandee.name} has asked to see you before the first session.",
+      "body": "You and {grandee.name} of {grandee.house} hold the two chairs of the consulship. Each of you can strike the other's business with a veto: once in the term, {grandee.first} will strike the first motion of yours that strikes at {grandee.his} house, at {grandee.his} bench's leader or at {grandee.his} bench's line, and the chamber is waiting to see which of you will try it first. {grandee.He} has asked to see you before the first session.",
       "choices": {
         "divide_the_year": "Divide the consulship's business between you: neither of you strikes the other's.",
-        "the_senior_chair_leads": "Tell them the senior chair leads.",
-        "keep_your_counsel": "Keep your own counsel, and watch them. You will learn how they work."
+        "the_senior_chair_leads": "Tell {grandee.him} the senior chair leads.",
+        "keep_your_counsel": "Keep your own counsel, and watch {grandee.him}. You will learn how {grandee.he} works."
       }
     }
   ]

@@ -253,7 +253,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {buyer.name} of {buyer.house} the house would vote with them again, unpaid this time. They will be watching the count."
+              "text": "{self.name} told {buyer.name} of {buyer.house} the house would vote with {buyer.him} again, unpaid this time. {buyer.He} will be watching the count."
             }
           ]
         },
@@ -324,7 +324,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {buyer.name} of {buyer.house} that one vote had been sold and no more. {buyer.name} made sure the chamber heard about the one."
+              "text": "{self.name} told {buyer.name} of {buyer.house} that one vote had been sold and no more. {buyer.first} made sure the chamber heard about the one."
             }
           ]
         }
@@ -477,7 +477,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {doubter.name} of {doubter.house} make up their own mind on the motion."
+              "text": "{self.name} let {doubter.name} of {doubter.house} make up {doubter.his} own mind on the motion."
             }
           ]
         }
@@ -713,7 +713,7 @@
             },
             {
               "type": "log",
-              "text": "{ally.name} of {ally.house} gave the dinner for the motion that carried, and {self.name} went as a guest and let them have the evening. The city said it had been their motion."
+              "text": "{ally.name} of {ally.house} gave the dinner for the motion that carried, and {self.name} went as a guest and let {ally.him} have the evening. The city said it had been {ally.his} motion."
             }
           ]
         },
@@ -792,7 +792,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} went to {loser.name} of {loser.house} after the vote with an offer for their trouble. Nobody lost twice that day."
+              "text": "{self.name} went to {loser.name} of {loser.house} after the vote with an offer for {loser.his} trouble. Nobody lost twice that day."
             }
           ]
         },
@@ -813,7 +813,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {loser.name} of {loser.house} lose the vote and said nothing to them. They have not forgotten it."
+              "text": "{self.name} let {loser.name} of {loser.house} lose the vote and said nothing to {loser.him}. {loser.He} has not forgotten it."
             }
           ]
         },
@@ -987,7 +987,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {rival.name} of {rival.house} have their day in the chamber, and kept the grudge where it was."
+              "text": "{self.name} let {rival.name} of {rival.house} have {rival.his} day in the chamber, and kept the grudge where it was."
             }
           ]
         }
@@ -1062,7 +1062,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent {rival.name} of {rival.house} six hundred credits' worth of reasons to let the old quarrel go before the vote. They took them."
+              "text": "{self.name} sent {rival.name} of {rival.house} six hundred credits' worth of reasons to let the old quarrel go before the vote. {rival.He} took them."
             }
           ]
         },
@@ -1344,7 +1344,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid {bought.name} of {bought.house} for what the bought vote had cost them on the floor."
+              "text": "{self.name} paid {bought.name} of {bought.house} for what the bought vote had cost {bought.him} on the floor."
             }
           ]
         },
@@ -1375,7 +1375,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let it be said that {bought.name} of {bought.house} had named the price. Half the chamber believed it. {bought.name} did not have to."
+              "text": "{self.name} let it be said that {bought.name} of {bought.house} had named the price. Half the chamber believed it. {bought.first} did not have to."
             }
           ]
         }
@@ -1454,7 +1454,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} walked the wards with {kin.name} for a month before the count. They learned more of the city in that month than in a year of speeches."
+              "text": "{self.name} walked the wards with {kin.name} for a month before the count. {kin.He} learned more of the city in that month than in a year of speeches."
             }
           ]
         },
@@ -1495,7 +1495,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} taught {kin.name} how a crowd is won and how it is lost. They will speak better at the count for it."
+              "text": "{self.name} taught {kin.name} how a crowd is won and how it is lost. {kin.He} will speak better at the count for it."
             }
           ]
         },
@@ -1642,7 +1642,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid a pamphleteer to say what was known of the canvass of {accuser.name} of {accuser.house}. Their pamphleteer answered by the end of the week."
+              "text": "{self.name} paid a pamphleteer to say what was known of the canvass of {accuser.name} of {accuser.house}. {accuser.His} pamphleteer answered by the end of the week."
             }
           ]
         },
@@ -1720,7 +1720,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} called off the house's pamphleteer, and {accuser.name} of {accuser.house} called off theirs. The squares found something else to read."
+              "text": "{self.name} called off the house's pamphleteer, and {accuser.name} of {accuser.house} called off {accuser.hers}. The squares found something else to read."
             }
           ]
         },
@@ -2364,7 +2364,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {grandee.name} of {grandee.house} that the senior chair led the consulship. {grandee.name} agreed, and did not like it."
+              "text": "{self.name} told {grandee.name} of {grandee.house} that the senior chair led the consulship. {grandee.first} agreed, and did not like it."
             }
           ]
         },
@@ -2390,7 +2390,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} kept their own counsel with {grandee.name} of {grandee.house}, and watched, and learned a good deal about how {grandee.name} works."
+              "text": "{self.name} kept {self.his} own counsel with {grandee.name} of {grandee.house}, and watched, and learned a good deal about how {grandee.first} works."
             }
           ]
         }

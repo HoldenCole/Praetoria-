@@ -131,7 +131,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} heard a good deal about {classmate.house} from {classmate.name}, who noticed how closely {self.name} listened."
+              "text": "{self.name} heard a good deal about {classmate.house} from {classmate.name}, who noticed how closely {self.first} listened."
             }
           ]
         },
@@ -263,7 +263,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} crossed the room and offered {enemy.name} a hand. After all those years, {enemy.name} took it."
+              "text": "{self.name} crossed the room and offered {enemy.name} a hand. After all those years, {enemy.first} took it."
             }
           ]
         },
@@ -288,7 +288,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} held {enemy.name}'s eye across the room until {enemy.name} looked away."
+              "text": "{self.name} held {enemy.name}'s eye across the room until {enemy.first} looked away."
             }
           ]
         },
@@ -446,7 +446,7 @@
             },
             {
               "type": "log",
-              "text": "{envious.name} of {envious.house} made a joke of {self.name}'s house at a feast, and {self.name} laughed with the room."
+              "text": "{envious.name} of {envious.house} made a joke of {self.name}'s house at a feast, and {self.first} laughed with the room."
             }
           ]
         },
@@ -493,7 +493,7 @@
             },
             {
               "type": "log",
-              "text": "{envious.name} of {envious.house} made a joke of {self.name}'s house at a feast. {self.name}'s answer was the one the room repeated."
+              "text": "{envious.name} of {envious.house} made a joke of {self.name}'s house at a feast. {self.first}'s answer was the one the room repeated."
             }
           ]
         },
@@ -784,7 +784,7 @@
             },
             {
               "type": "log",
-              "text": "{veteran.name} of {veteran.house} told {self.name} how the old battles were won, and {self.name} listened."
+              "text": "{veteran.name} of {veteran.house} told {self.name} how the old battles were won, and {self.first} listened."
             }
           ]
         },
@@ -944,7 +944,7 @@
           "effects": [
             {
               "type": "log",
-              "text": "{self.name} stands on the great canvas where the painter put them, among the rest."
+              "text": "{self.name} stands on the great canvas where the painter put {self.him}, among the rest."
             }
           ]
         },
@@ -1011,7 +1011,7 @@
             },
             {
               "type": "log",
-              "text": "On the great canvas in the public hall, {sitter.name} of {sitter.house} is small, and at the back. {sitter.name} knows why."
+              "text": "On the great canvas in the public hall, {sitter.name} of {sitter.house} is small, and at the back. {sitter.first} knows why."
             }
           ]
         }
@@ -1272,7 +1272,7 @@
             },
             {
               "type": "log",
-              "text": "The venture of {grandee.name} of {grandee.house} came home. {self.name} took a share and a place at their table."
+              "text": "The venture of {grandee.name} of {grandee.house} came home. {self.name} took a share and a place at {grandee.his} table."
             }
           ]
         },
@@ -1380,7 +1380,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wrote off the 800 credits put into the venture of {grandee.name} of {grandee.house}, and did not press them."
+              "text": "{self.name} wrote off the 800 credits put into the venture of {grandee.name} of {grandee.house}, and did not press {grandee.him}."
             }
           ]
         },
@@ -1413,7 +1413,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} pressed {grandee.name} of {grandee.house} for the money lost in their venture, and had 300 credits of it."
+              "text": "{self.name} pressed {grandee.name} of {grandee.house} for the money lost in {grandee.his} venture, and had 300 credits of it."
             }
           ],
           "requires": [
@@ -1666,7 +1666,7 @@
             },
             {
               "type": "log",
-              "text": "{debtor.name} of {debtor.house} will pay what they owed {self.name} with their house's voice: {debtor.house} owes your house a vote."
+              "text": "{debtor.name} of {debtor.house} will pay what {debtor.he} owed {self.name} with {debtor.his} house's voice: {debtor.house} owes {self.house} a vote."
             }
           ]
         },
@@ -1873,7 +1873,7 @@
             },
             {
               "type": "log",
-              "text": "What {subject.name} of {subject.house} had done is known now, and {subject.house} is the less for it. {subject.name} knows who told."
+              "text": "What {subject.name} of {subject.house} had done is known now, and {subject.house} is the less for it. {subject.first} knows who told."
             }
           ]
         },
@@ -1903,7 +1903,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} bought a secret about {subject.name} of {subject.house} and sent it to them, unread."
+              "text": "{self.name} bought a secret about {subject.name} of {subject.house} and sent it to {subject.him}, unread."
             }
           ]
         },
@@ -1984,7 +1984,7 @@
             },
             {
               "type": "log",
-              "text": "What {subject.name} of {subject.house} had done is known now, and {subject.house} is the less for it. {subject.name} knows who told."
+              "text": "What {subject.name} of {subject.house} had done is known now, and {subject.house} is the less for it. {subject.first} knows who told."
             }
           ]
         },
@@ -2026,7 +2026,7 @@
             },
             {
               "type": "log",
-              "text": "{subject.house} paid {self.name} 400 credits for what {self.name} knew of {subject.name}, and had the proof back."
+              "text": "{subject.house} paid {self.name} 400 credits for what {self.he} knew of {subject.name}, and had the proof back."
             }
           ]
         },
@@ -2047,7 +2047,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} burned what was known of {subject.name} of {subject.house}, and told them so."
+              "text": "{self.name} burned what was known of {subject.name} of {subject.house}, and told {subject.him} so."
             }
           ]
         }
@@ -2307,7 +2307,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put their name behind {young.name} of {young.house}, who had nothing else to start with."
+              "text": "{self.name} put {self.his} name behind {young.name} of {young.house}, who had nothing else to start with."
             }
           ]
         },

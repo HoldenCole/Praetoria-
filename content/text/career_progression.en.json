@@ -16,14 +16,14 @@
       "body": "A post has opened above you, and you are not the only one reaching for it. {competitor.name} of {competitor.house} wants it as badly, deserves it nearly as much, and stands precisely where you mean to stand. Promotions like this are never just about the better candidate; they are about what each of you is willing to do to be chosen, and what that doing will cost you both afterward.",
       "choices": {
         "win_on_merit": "Win it on the record alone. The most galling way to beat someone.",
-        "undermine_rival": "Ensure they lose it. A doubt planted, a failure resurfaced.",
-        "defer_gracefully": "Tell the board they're the better fit, this once. Buy something rarer."
+        "undermine_rival": "Ensure {competitor.he} loses it. A doubt planted, a failure resurfaced.",
+        "defer_gracefully": "Tell the board {competitor.he} is the better fit, this once. Buy something rarer."
       }
     },
     {
       "id": "the_loyalty_test",
       "title": "The Test",
-      "body": "{superior.name} of {superior.house} gives you an order, and you understand at once that the order is not the point. It is a question wearing an order's clothes, about how far you will go on another's authority, about whether you are the kind of subordinate that powerful people can truly use. Your answer will define the rest of your service under them, and something quieter that you will have to live with regardless.",
+      "body": "{superior.name} of {superior.house} gives you an order, and you understand at once that the order is not the point. It is a question wearing an order's clothes, about how far you will go on another's authority, about whether you are the kind of subordinate that powerful people can truly use. Your answer will define the rest of your service under {superior.him}, and something quieter that you will have to live with regardless.",
       "choices": {
         "obey": "Carry it out. Earn the trust; learn the thing about yourself.",
         "refuse_on_principle": "Refuse, respectfully, immovably. Lose the post, become unbendable.",
@@ -42,10 +42,10 @@
     {
       "id": "the_admirals_shadow",
       "title": "The Admiral's Shadow",
-      "body": "{admiral.name} of {admiral.house} has commanded fleets since before you were born, a living institution, the kind of figure whose doctrine outlives them. And lately the old admiral has been watching you the way the great watch for an heir. To stand in that shadow is shelter and stricture both. To step out of it is a thing the ambitious eventually must do, and the grateful never quite forgive themselves for.",
+      "body": "{admiral.name} of {admiral.house} has commanded fleets since before you were born, a living institution, the kind of figure whose doctrine outlives {admiral.him}. And lately the old admiral has been watching you the way the great watch for an heir. To stand in that shadow is shelter and stricture both. To step out of it is a thing the ambitious eventually must do, and the grateful never quite forgive themselves for.",
       "choices": {
-        "earn_their_trust": "Become the heir to their thinking. Rarer than blood, harder to deserve.",
-        "eclipse_them": "Step out of the shadow with a victory they couldn't have won."
+        "earn_their_trust": "Become the heir to {admiral.his} thinking. Rarer than blood, harder to deserve.",
+        "eclipse_them": "Step out of the shadow with a victory {admiral.he} couldn't have won."
       }
     },
     {
@@ -61,7 +61,7 @@
     {
       "id": "the_ministers_dilemma",
       "title": "The Policy Fight",
-      "body": "A ministry hangs on a single contested policy, and across the chamber {rival_minister.name} of {rival_minister.house} argues the opposite case with everything they have. The seat will go to whoever's vision prevails. You have the figures to win it on truth, or the tongue to win it on something warmer and less durable.",
+      "body": "A ministry hangs on a single contested policy, and across the chamber {rival_minister.name} of {rival_minister.house} argues the opposite case with everything {rival_minister.he} has. The seat will go to whoever's vision prevails. You have the figures to win it on truth, or the tongue to win it on something warmer and less durable.",
       "choices": {
         "sound_policy": "Win on the merits. The dull, unanswerable force of being correct.",
         "popular_policy": "Win on the policy people can cheer. Ride the wave; mind the fall."
@@ -90,30 +90,30 @@
     {
       "id": "the_great_trial",
       "title": "The Great Trial",
-      "body": "The case of your career so far: {accused.name} of {accused.house}, a power above your station, who walked in assuming that station was armor, and may be right, unless you prove otherwise before the whole court. Convict them and the Reach learns your law reaches upward. Let them buy their way clear and you learn what your robe is really worth.",
+      "body": "The case of your career so far: {accused.name} of {accused.house}, a power above your station, who walked in assuming that station was armour, and may be right, unless you prove otherwise before the whole court. Convict {accused.him} and the Reach learns your law reaches upward. Let {accused.him} buy {accused.his} way clear and you learn what your robe is really worth.",
       "choices": {
         "convict_the_mighty": "Make the conviction stick. Show the Reach your law reaches up.",
-        "accept_the_bribe": "Let them pay. Advance as a reliable friend to the powerful, and their hostage.",
+        "accept_the_bribe": "Let {accused.him} pay. Advance as a reliable friend to the powerful, and their hostage.",
         "prosecute_by_the_book": "Prosecute by the book. Narrow, careful, defensible, and still upward."
       }
     },
     {
       "id": "the_praetors_robe",
       "title": "The Justice's Robe",
-      "body": "A justice's seat is within reach, and {patron.name} of {patron.house} stands ready to place the robe on your shoulders, for they have backed your rise, and a backed rise is rarely a free one. You can take it clean, on a record that needs no patron, or take it faster on the strength of a debt you will be paying for years.",
+      "body": "A justice's seat is within reach, and {patron.name} of {patron.house} stands ready to place the robe on your shoulders, for {patron.he} has backed your rise, and a backed rise is rarely a free one. You can take it clean, on a record that needs no patron, or take it faster on the strength of a debt you will be paying for years.",
       "choices": {
         "take_robe_clean": "Take it on your record alone. Owe this one no debt.",
-        "take_robe_owed": "Rise faster on the patronage. Answer for it later, at their convenience."
+        "take_robe_owed": "Rise faster on the patronage. Answer for it later, at {patron.his} convenience."
       }
     },
     {
       "id": "the_passed_over_rival",
       "title": "The One You Beat",
-      "body": "{rival.name} of {rival.house} reached for the same post you took, and lost, and now serves on, a competent person nursing the specific resentment of someone passed over. They are not your enemy yet. Whether they become one, or become something better, depends largely on what you do now that you've won.",
+      "body": "{rival.name} of {rival.house} reached for the same post you took, and lost, and now serves on, a competent person nursing the specific resentment of someone passed over. {rival.He} is not your enemy yet. Whether {rival.he} becomes one, or becomes something better, depends largely on what you do now that you've won.",
       "choices": {
-        "offer_a_post": "Offer them a place worth having under you. Win the back-guard, not just the post.",
-        "watch_them": "Keep them under quiet surveillance. Sleep easier; perhaps build the threat you fear.",
-        "ignore_them": "Let them fade into a busy career. Most grudges die of neglect. Most."
+        "offer_a_post": "Offer {rival.him} a place worth having under you. Win the back-guard, not just the post.",
+        "watch_them": "Keep {rival.him} under quiet surveillance. Sleep easier; perhaps build the threat you fear.",
+        "ignore_them": "Let {rival.him} fade into a busy career. Most grudges die of neglect. Most."
       }
     },
     {
@@ -128,10 +128,10 @@
     {
       "id": "the_old_mentor",
       "title": "The Teacher, Outgrown",
-      "body": "The one who taught you has grown old, and you have grown past them, the natural, melancholy arithmetic of any real mentorship. {mentor.name} of {mentor.house} is outranked now, by you among others, and the moment has come to decide what you do with a debt that can no longer be repaid in kind, only in honor or in its absence.",
+      "body": "The one who taught you has grown old, and you have grown past {mentor.him}, the natural, melancholy arithmetic of any real mentorship. {mentor.name} of {mentor.house} is outranked now, by you among others, and the moment has come to decide what you do with a debt that can no longer be repaid in kind, only in honour or in its absence.",
       "choices": {
-        "honor_them": "Make the world remember what you owe them. Prove the teaching took.",
-        "surpass_them": "Take the post that was theirs. Unkindly is not the word. Unmistakably is."
+        "honor_them": "Make the world remember what you owe {mentor.him}. Prove the teaching took.",
+        "surpass_them": "Take the post that was {mentor.hers}. Unkindly is not the word. Unmistakably is."
       }
     },
     {
@@ -140,15 +140,15 @@
       "body": "No crisis today, no rival, no test, only the work. The inspections, the reports, the hundred small correct decisions that earn no story and prevent a dozen. This is what a career actually is, between the moments anyone remembers.",
       "choices": {
         "do_the_work": "Do the work. Set-pieces are rare; the days between are the career.",
-        "delegate_it": "Push the routine down. Learn what to stop doing. Lead, don't just labor."
+        "delegate_it": "Push the routine down. Learn what to stop doing. Lead, don't just labour."
       }
     },
     {
       "id": "the_favor_called",
-      "title": "The Favor Called",
+      "title": "The Favour Called",
       "body": "There is a ledger no treasury keeps, and {debtor.name} of {debtor.house} is written in yours. The moment has come when the thing you are owed could be spent: a vote where you need one, a silence, a name struck from a list. Every court runs on these debts, and everyone in it knows the two ways a debt can be ruined: by calling it too soon, or by never calling it at all.",
       "choices": {
-        "call_it_in": "Collect. Turn the debt into something you can hold: their house's vote, where a motion before the Senate needs it.",
+        "call_it_in": "Collect. Turn the debt into something you can hold: {debtor.his} house's vote, where a motion before the Senate needs it.",
         "forgive_it": "Forgive it, openly. Let {debtor.name} owe you nothing, and everything.",
         "let_it_ride": "Say nothing. Let {debtor.name} go on owing. The waiting is the point."
       }
