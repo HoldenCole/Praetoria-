@@ -208,7 +208,7 @@ crop of their painting, fleets, holdings, the council's count; it folds to its h
 the bottom-right (your seat, fit, the map's modes, the legend, the minimap with its caption) with **End Year** on its rim.
 Reports open as event windows with the cast's portraits; the first visitor steps forward when a turn begins.
 
-- `Components/MomentCard.razor` — a moment of the year, staged as a card before the year in brief (see "After End Year").
+- `Components/MomentCard.razor`: a moment of the year, staged as a card before the year in brief (see "After End Year").
 - `Pages/Index.razor` — the shell and its state: current screen, open report, succession interstitial, epilogue; the rail,
   the docked-window host, the console and End Year.
 - `Components/TopBar.razor`, `Outliner.razor`, `AlertsRow.razor`, `Toasts.razor`, `EventWindow.razor` — the frame;
