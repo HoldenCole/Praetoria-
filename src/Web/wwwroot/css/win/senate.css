@@ -347,7 +347,8 @@ p.sn-say { margin: .2667rem 0; }
 /* ---- the orders: each a meter row; voice, sway and patronage as a label and a sentence ---- */
 .sn-order { display: grid; grid-template-columns: var(--sn-ic) minmax(0, 1fr) auto; column-gap: .8667rem; align-items: center; padding: .6rem var(--sn-gr) .6rem var(--sn-gl); border-bottom: 1px solid rgba(255,255,255,.05); cursor: help; }
 .sn-order-main { min-width: 0; }
-.sn-order-l1 { display: grid; grid-template-columns: 7.3333rem minmax(0, 1fr) 4.2667rem; align-items: center; column-gap: .8rem; }
+.sn-order-l1 { display: grid; grid-template-columns: 12rem minmax(0, 1fr) 4.2667rem; align-items: center; column-gap: .8rem; }
+.sn-order-nm { display: inline-flex; align-items: center; gap: .4rem; min-width: 0; white-space: nowrap; }   /* the name and the Calling tag share the first column, so the gauge and the value keep theirs */
 .sn-gauge { height: .5333rem; }
 .sn-order-v { text-align: right; font: 600 1rem/1 var(--f-ui); font-variant-numeric: tabular-nums; color: var(--ink); }
 .sn-order-v small { font-size: .8333rem; color: var(--ink-mute); font-weight: 500; }

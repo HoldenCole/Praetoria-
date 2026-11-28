@@ -12,10 +12,10 @@
     int year = w.Turn - 1;
 }
 <div class="overlay box-veil yb-veil" data-year-brief="1">
-    <WindowFrame Class="box brief yb" Scrolls="true" role="dialog" aria-modal="true" aria-label="The year in brief">
+    <WindowFrame Class="@("box brief yb" + (groups.Count == 0 ? " quiet" : ""))" Scrolls="@(groups.Count > 0)" role="dialog" aria-modal="true" aria-label="The year in brief">
         <Header>
             <WindowHeader Scene="dispatch" Glyph="sundial" Kicker="@(year >= 1 ? $"Year {Roman(year)} in brief" : "The year before in brief")" Title="@house.Name" Figures="Figures(w, house, moves)">
-                <Lede>@(groups.Count == 0 ? "A quiet year: nothing happened to the house that needs telling." : "What the year did to the house. Each line opens where it can be seen.")</Lede>
+                <Lede>@(groups.Count == 0 ? "The year before, and what it left in the stores." : "What the year did to the house. Each line opens where it can be seen.")</Lede>
             </WindowHeader>
         </Header>
         <ChildContent>
@@ -27,12 +27,14 @@
                         string go = l.Target; var c = l.PersonId.Length > 0 ? w.Char(l.PersonId) : null; var ch = c != null ? w.House(c.HouseId) : null;
                         <Row Class="@($"yb-line brief-line {l.Tone}")" Wrap="true" Name="@l.Text" Tip="Open the place this can be seen" OnClick="() => OnGo.InvokeAsync(go)">
                             <Picture>
+                                <span class="yb-pic">
                                 @if (c != null) { <Portrait Id="@c.Id" Name="@c.Name" Sex="@c.Sex" Age="@c.Age" Alive="@c.Alive" Accent="@(ch?.AccentColor ?? "#888")" Size="46" Height="56" Opens="false" Titled="false" /> }
                                 else { <span class="yb-crop"><img src="img/scenes/@(SceneOf(g.k, l)).webp" alt="" loading="eager" decoding="async" /></span> }
+                                @* a gain or a loss: a small badge on the picture, never a lone glyph at the row's end (it would read as Add) *@
+                                @if (l.Tone is "good" or "warn") { <span class="yb-badge @(l.Tone)" title="@(l.Tone == "good" ? "Good for the house" : "Bad for the house")"><Icon Name="@(l.Tone == "good" ? "plus" : "minus")" Tone="@(l.Tone == "good" ? "good" : "ember")" Size="12" Class="bl-mark" /></span> }
+                                </span>
                             </Picture>
-                            <Cells>
-                                @if (l.Tone is "good" or "warn") { <Icon Name="@(l.Tone == "good" ? "plus" : "minus")" Tone="@(l.Tone == "good" ? "good" : "ember")" Size="14" Class="bl-mark" /> }
-                            </Cells>
+                            <Cells><Icon Name="chev" Tone="brass" Size="12" Class="yb-open" /></Cells>
                         </Row>
                     }
                 </Section>

@@ -79,7 +79,7 @@
                 @if (c.Academy) { <span class="ws-v" title="A cadet at the Academy is sixteen">16</span> }
                 else { <Stepper Value="@c.Age" Min="@CharacterWorkshop.MinAge" Max="@CharacterWorkshop.MaxAge" Format="@(v => v + " years")" OnChange="v => { c.Age = v; Changed(); }" /> }
                 <span class="ws-k">Service</span>
-                <span class="fr-picks ws-tracks">@foreach (var t in content.Careers.Defs) { var tid = t.Id; <button class="fr-pick @(c.Track == tid ? "on" : "")" title="@t.NameIn(era)" @onclick="() => { c.Track = tid; c.Rank = Math.Min(c.Rank, content.Careers.MaxRank(tid) ?? 0); Changed(); }"><Icon Name="@TrackIcon(tid)" Tone="@(c.Track == tid ? "brass" : "ivory")" Size="18" />@t.NameIn(era)</button> }</span>
+                <span class="fr-picks ws-tracks">@foreach (var t in content.Careers.Defs) { var tid = t.Id; <button class="fr-pick @(c.Track == tid ? "on" : "")" title="@t.NameIn(era)" @onclick="() => { c.Track = tid; c.Rank = Math.Min(c.Rank, content.Careers.MaxRank(tid) ?? 0); Changed(); }"><Icon Name="@TrackIcon(tid)" Tone="@(c.Track == tid ? "brass" : "ivory")" Size="18" />@Cap(t.NameIn(era))</button> }</span>
                 <span class="ws-k">Rank in it</span>
                 @* the career ladder (docs/VISUAL_SYSTEM.md 4.18): the ranks below as brass diamonds, the one chosen lit, the rest hollow *@
                 <span class="ws-ladder @(c.Academy ? "off" : "")" title="@(c.Academy ? "A cadet holds no rank yet" : "How far up the service they have got")">
@@ -92,7 +92,7 @@
         <Section Title="Where they come from" Count="@content.Backgrounds.Defs.Count.ToString()" Info="A background: it moves the house's standing and purse, and gives them a little of what that life teaches.">
             <p class="fr-note">A background: it moves the house's standing and purse, and gives them a little of what that life teaches.</p>
             <div class="chips fr-picks" data-backgrounds="@content.Backgrounds.Defs.Count">
-                <button class="chip @(c.Background.Length == 0 ? "on" : "")" title="No background: only what you set on these pages." @onclick="() => { c.Background = string.Empty; Changed(); }"><Icon Name="close" Tone="@(c.Background.Length == 0 ? "brass" : "ivory")" Size="14" />none</button>
+                <button class="chip @(c.Background.Length == 0 ? "on" : "")" title="No background: only what you set on these pages." @onclick="() => { c.Background = string.Empty; Changed(); }"><Icon Name="close" Tone="@(c.Background.Length == 0 ? "brass" : "ivory")" Size="14" />None</button>
                 @foreach (var b in content.Backgrounds.Defs) { var bid = b.Id; bool on = c.Background == bid; <button class="chip @(on ? "on" : "")" data-background="@bid" title="@b.Description" @onclick="() => { c.Background = bid; Changed(); }"><Icon Name="@BackgroundIcon(bid)" Tone="@(on ? "brass" : "ivory")" Size="18" />@b.Name</button> }
             </div>
             @if (content.Backgrounds.ById(c.Background) is { } bgd)
@@ -348,7 +348,7 @@
         else
         {
             <Section Title="Spouse" Info="A husband or a wife; name a house and the marriage is a tie to it.">
-                <div class="chips fr-picks"><button class="chip @(c.Spouse == null ? "on" : "")" @onclick="() => { c.Spouse = null; Changed(); }">unwed</button><button class="chip @(c.Spouse != null ? "on" : "")" @onclick="Wed"><Icon Name="charm" Tone="@(c.Spouse != null ? "brass" : "ivory")" Size="16" />wed</button></div>
+                <div class="chips fr-picks"><button class="chip @(c.Spouse == null ? "on" : "")" @onclick="() => { c.Spouse = null; Changed(); }">Unwed</button><button class="chip @(c.Spouse != null ? "on" : "")" @onclick="Wed"><Icon Name="charm" Tone="@(c.Spouse != null ? "brass" : "ivory")" Size="16" />Wed</button></div>
                 @if (c.Spouse is { } sp)
                 {
                     <div class="ws-line"><Portrait Id="@(CharacterWorkshop.SelfId + "_spouse")" Name="@(sp.Name.Length > 0 ? sp.Name : "spouse")" Sex="@(c.Sex == "female" ? "male" : "female")" Age="@sp.Age" Accent="@c.Accent" Size="46" Height="56" Opens="false" /><input class="fr-in" value="@sp.Name" placeholder="a name by the dice" @onchange="e => { sp.Name = Text(e); Changed(); }" /><span class="ui-dim">aged</span><input class="fr-in" type="number" min="16" max="80" value="@sp.Age" @onchange="e => { sp.Age = Num(e, 16, 80); Changed(); }" /></div>
@@ -388,7 +388,7 @@
         {
             string w = who; var par = w == "father" ? c.Father : c.Mother;
             <div class="ws-line"><b class="ws-kin-what">@label</b>
-                <span class="chips ui-seg"><button class="chip tiny @(par == null ? "on" : "")" @onclick="() => { SetParent(w, false); Changed(); }">dead</button><button class="chip tiny @(par != null ? "on" : "")" data-parent-living="@w" @onclick="() => { SetParent(w, true); Changed(); }">living</button></span>
+                <span class="chips ui-seg"><button class="chip tiny @(par == null ? "on" : "")" @onclick="() => { SetParent(w, false); Changed(); }">Dead</button><button class="chip tiny @(par != null ? "on" : "")" data-parent-living="@w" @onclick="() => { SetParent(w, true); Changed(); }">Living</button></span>
                 @if (par != null)
                 {
                     <input class="fr-in" value="@par.Name" placeholder="a name by the dice" @onchange="e => { par.Name = Text(e); Changed(); }" />
@@ -533,7 +533,7 @@
     /// <summary>A relative as a row (docs/VISUAL_SYSTEM.md 4.7): their face, a name they may be given, their age on a stepper, what they
     /// are in one Select popover (sex, service, rank, nature, gift) and one action, Remove.</summary>
     private RenderFragment KinRow(KinSpec k, string what, string pid, (string m, string f) word, int maxAge, Action remove) => @<div class="ws-kin" data-kin-detail="@what">
-        <Row Name="@(k.Name.Length > 0 ? k.Name : (k.Sex == "female" ? word.f : word.m))" Class="ws-kin-row">
+        <Row Name="@(k.Name.Length > 0 ? k.Name : Cap(k.Sex == "female" ? word.f : word.m))" Class="ws-kin-row">
             <Picture><Portrait Id="@pid" Name="@(k.Name.Length > 0 ? k.Name : word.m)" Sex="@k.Sex" Age="@k.Age" Accent="@Spec.Accent" Size="46" Height="56" Opens="false" Ancestry="@Spec.Ancestry" /></Picture>
             <Sub><input class="fr-in ws-kin-nm" value="@k.Name" aria-label="Their name" placeholder="A name by the dice" @onchange="e => { k.Name = Text(e); Changed(); }" /></Sub>
             <Cells><Stepper Value="@k.Age" Min="0" Max="@maxAge" Format="@(v => v + " yrs")" OnChange="v => { k.Age = v; Changed(); }" /></Cells>

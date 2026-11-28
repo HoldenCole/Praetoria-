@@ -23,7 +23,7 @@
         <div class='ll-row lw-row @(now.Default ? string.Empty : "custom") @(left > 0 ? "settled" : string.Empty) @(mine ? string.Empty : "ro")' data-local-law="@law.Id">
             <span class="lw-ic" title="@law.Name"><Icon Name="@Glyph(law.Id)" Tone="@(now.Default ? "ivory" : "brass")" Size="20" /></span>
             <div class="lw-hd"><b class="ll-name lw-nm" title="@nameTip">@law.Name</b>@if (!now.Default) { <span class="lw-st cust" title="A decree other than the custom is in force on this world">off the custom</span> }</div>
-            <span class="lw-lad @(mine ? "" : "ro")">
+            <span class="lw-lad @(mine ? "" : "ro")" style="--n:@Math.Max(3, law.Options.Count)">
             @for (int i = 0; i < law.Options.Count; i++)
             {
                 var o = law.Options[i]; var fx = o.Opinions.OrderByDescending(kv => Math.Abs(kv.Value)).Select(kv => (kv.Key, kv.Value));

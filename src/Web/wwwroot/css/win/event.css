@@ -132,6 +132,7 @@
 .ev-tip .th .n { flex: none; width: 1.2rem; height: 1.2rem; border-radius: 50%; display: grid; place-items: center; font: 700 .8rem/1 var(--f-ui); letter-spacing: 0; color: var(--ink-dark);
   background: radial-gradient(circle at 40% 35%, #fbe7a7, #b68c35); box-shadow: 0 0 0 1px #000; }
 .ev-tip .th .n.off { background: #2a2f39; color: #a9adb6; }
+.ev-tip .th.long { font: 600 .9333rem/1.25 var(--f-ui); letter-spacing: 0; text-transform: none; }
 .ev-tip .fxl { display: grid; grid-template-columns: 1.4667rem 1fr; column-gap: .6rem; align-items: start; margin-bottom: .6rem; }
 .ev-tip .fxl > .icon { width: 1.3333rem; height: 1.3333rem; margin-top: 1px; }
 .ev-tip .fxl > .portrait { margin-top: 1px; }

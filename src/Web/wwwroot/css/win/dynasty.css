@@ -26,7 +26,7 @@
 
 /* ---- the tree: plates on brass lines, a row a generation ---- */
 .dy-tree-wrap { overflow-x: auto; padding: .8rem var(--yg-r) .4rem var(--yg-l); scrollbar-width: thin; scrollbar-color: #c9a24a #05070a; }
-.tree.dy-tree { position: relative; display: block; width: auto; height: calc(var(--rows) * 8rem); margin: 0 auto; background: radial-gradient(ellipse at 50% 0%, rgba(201,162,74,.07), transparent 62%); border-radius: 0; }
+.tree.dy-tree { position: relative; display: block; width: auto; height: calc(var(--rows) * 9.3333rem); margin: 0 auto; background: radial-gradient(ellipse at 50% 0%, rgba(201,162,74,.07), transparent 62%); border-radius: 0; }
 .dy-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .dy-lines .ln { fill: none; stroke: #a5813a; stroke-width: 1.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; opacity: .9; }
 .dy-lines .wd { fill: none; stroke: #c9a24a; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
@@ -46,6 +46,7 @@
 .dy-key i { display: inline-block; width: .8rem; height: .8rem; margin-left: .4rem; box-shadow: 0 0 0 1px #000; }
 .dy-key i.you, .dy-key i.heir { background: #0b0e14; box-shadow: 0 0 0 1px #000, 0 0 0 2px var(--brass); }
 .dy-key i.heir { background: var(--brass-hi); }
+.dy-key i.mk { width: .5333rem; height: .5333rem; margin-left: .2667rem; transform: rotate(45deg); background: linear-gradient(135deg, #f6e2a0, #c9a24a 55%, #8f6a26); box-shadow: 0 0 0 1px #000; }   /* the diamond under the names of you and your heir on the tree */
 .dy-key i.wed { width: 1.2rem; height: 5px; background: none; border-top: 1px solid #c9a24a; border-bottom: 1px solid #c9a24a; box-shadow: none; }
 
 /* ---- whoever is picked on the tree ---- */

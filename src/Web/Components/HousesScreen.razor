@@ -359,7 +359,7 @@
                 @foreach (var hd in worlds)
                 {
                     var sys = w.Galaxy?.System(hd.SystemId);
-                    <Row Name="@hd.Name" SubText="@($"{(c.Holdings.Spec(hd.Specialization)?.Name ?? hd.Specialization)} · {sys?.Name}")" Class="line hu-world">
+                    <Row Name="@hd.Name" SubText="@($"{Labels.Sentence(c.Holdings.Spec(hd.Specialization)?.Name ?? hd.Specialization)} · {sys?.Name}")" Class="line hu-world">
                         <Picture><Globe Class="@(sys?.PlanetClass ?? "terran")" Size="40" /></Picture>
                         <Cells><span class="ui-cell @(100 - hd.Unrest < 50 ? "ui-warn-t" : "")" title="Loyalty"><Icon Name="shaking-hands" Tone="good" Size="17" />@(100 - hd.Unrest)</span></Cells>
                     </Row>

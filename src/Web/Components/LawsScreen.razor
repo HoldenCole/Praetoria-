@@ -67,8 +67,8 @@
         <Facts>
             @* four facts in two columns; where the header is narrow (1366 wide, or a larger text size) two in one column and the rest in a tooltip *@
             @for (int i = 0; i < Math.Min(4, positions.Count); i++) { var (icon, text) = positions[i]; <span class="@(i >= 2 ? "lw-fx2" : "")"><Icon Name="@icon" Tone="ivory" Size="16" />@text</span> }
-            @if (positions.Count > 4) { <span class="lw-fmore4" title="@string.Join("\n", positions.Skip(4).Select(x => x.text))"><Icon Name="podium" Tone="ivory" Size="16" />@($"and {positions.Count - 4} more")</span> }
-            @if (positions.Count > 2) { <span class="lw-fmore2" title="@string.Join("\n", positions.Skip(2).Select(x => x.text))"><Icon Name="podium" Tone="ivory" Size="16" />@($"and {positions.Count - 2} more")</span> }
+            @if (positions.Count > 4) { <span class="lw-fmore4" title="@string.Join("\n", positions.Skip(4).Select(x => x.text))"><Icon Name="podium" Tone="ivory" Size="16" />@($"{positions.Count - 4} more positions")</span> }
+            @if (positions.Count > 2) { <span class="lw-fmore2" title="@string.Join("\n", positions.Skip(2).Select(x => x.text))"><Icon Name="podium" Tone="ivory" Size="16" />@($"{positions.Count - 2} more positions")</span> }
         </Facts>
     </WindowHeader>
     @if (ch != null) { <Tabs Items="tabs" Active="@_tab" OnPick="Pick" /> }
@@ -141,7 +141,7 @@
                             <b class="lw-nm" data-law-open="@l.Id" title="@nameTip">@l.Name</b><span class="lw-sub" title="@nameTip">@Over(l.Scope)</span>
                             @if (custom) { <span class="lw-st cust" title="An option other than the custom is in force">off the custom</span> }
                         </div>
-                        <div class="lw-lad" role="radiogroup" aria-label="@l.Name">
+                        <div class="lw-lad" role="radiogroup" aria-label="@l.Name" style="--n:@Math.Max(3, l.Options.Count)">
                             @for (int i = 0; i < l.Options.Count; i++)
                             {
                                 var opt = l.Options[i]; bool locked = opt.Refusal != null && !opt.InForce; string tip = PlateTip(law, opt, def);
@@ -155,8 +155,8 @@
                                     @MarksOf(opt.Opinions.Select(x => (x.Estate, x.Opinion)))
                                     @if (opt.InForce)
                                     {
-                                        if (l.CooldownLeft > 0) { <span class="lw-in yrs"><Icon Name="hourglass" Tone="dark" Size="13" />@l.CooldownLeft yr</span> }
-                                        else { <span class="lw-in">In force</span> }
+                                        if (l.CooldownLeft > 0) { <span class="lw-in yrs" title="@($"In force, settled for {Counted.MoreYears(l.CooldownLeft)}")"><Icon Name="hourglass" Tone="dark" Size="13" />@l.CooldownLeft</span> }
+                                        else { <span class="lw-in" title="In force"><Icon Name="check" Tone="dark" Size="13" /></span> }
                                     }
                                     else if (l.CooldownLeft > 0) { <span class="lw-pc lock"><Icon Name="padlock" Tone="ivory" Size="13" /></span> }
                                     else { <span class="lw-pc @(l.Cost > pool ? "short" : "")"><Icon Name="public-speaker" Tone="ivory" Size="14" />@l.Cost</span> }
@@ -312,7 +312,7 @@
     }
     /// <summary>A law's options as a ladder to read, not to press: the law of the Reach, and the laws beyond the house's gift. <paramref name="mark"/>
     /// is the quiet word on the plate in force ("no Act yet" for a law of the Senate at its custom, no Act yet carried); otherwise it says "In force".</summary>
-    public static RenderFragment ReadLadderOf(LawCard l, bool mine, string? mark) => @<span class="lw-lad ro">@for (int i = 0; i < l.Options.Count; i++)
+    public static RenderFragment ReadLadderOf(LawCard l, bool mine, string? mark) => @<span class="lw-lad ro" style="--n:@Math.Max(3, l.Options.Count)">@for (int i = 0; i < l.Options.Count; i++)
     {
         var o = l.Options[i]; if (i > 0) { <i class="lw-step" aria-hidden="true"></i> }
         <span class="lw-pl @(o.InForce ? "on" : "") @(o.InForce && mine ? "mine" : "")" title="@ReadTip(l, o)">@if (o.InForce) { <i class="lw-stud" aria-hidden="true"></i> }<span class="lw-pn">@PlateName(o.Name)</span>@MarksOf(o.Opinions.Select(x => (x.Estate, x.Opinion)))@if (o.InForce && mark != null) { <span class="lw-in yrs">@mark</span> }</span>

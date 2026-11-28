@@ -97,7 +97,7 @@
                 <div class="sn-ent-main">
                     <div class="sn-hd"><b class="sn-nm" title="@rung.Description">@rung.Name</b><span class="sn-sub">@Counted.Seats(rung.Seats) · from @SenateActs.AgeFor(w, rung.MinAge)@(rung.Requires.Length > 0 ? $" · must have been {offices.Rung(rung.Requires)?.Name.ToLowerInvariant()}" : "")@(rung.Stipend > 0 ? $" · pays {Money.Show(rung.Stipend)} a year" : "")</span>
                         @if (sitsHere) { <span class="sn-tag mine">you sit</span> }</div>
-                    <div class="sn-sitting"><span class="sn-lbl">Sitting:</span>
+                    <div class="sn-sitting"><span class="sn-lbl">Sitting</span>
                         @if (holders.Count == 0) { <i class="ui-mute">nobody</i> }
                         @foreach (var h in holders)
                         {

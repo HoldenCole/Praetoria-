@@ -134,6 +134,12 @@
 /* the worlds: every figure in a fixed column, a dash where there is none, deposits in their own column */
 .ww-cells { grid-template-columns: 3.4667rem 3.4667rem 4.2667rem 9.6rem; }
 .ww-riches { display: grid; grid-template-columns: repeat(4, 2.2rem); justify-items: start; gap: 0; }
+/* the narrow window (1366 by 768): repeated after the wide columns so it wins, two fixed columns, the citizens and deposits into the
+   row's tooltip and the open row */
+@container wl (max-width: 46rem) {
+  .ww-cells { grid-template-columns: 3.4667rem 3.4667rem; }
+  .ww-cells .ww-pop, .ww-cells > .ui-cell:nth-child(3), .ww-cells > :nth-child(3), .ww-cells > .ww-riches, .ww-riches { display: none; }
+}
 .ww-empty::before { content: "–"; color: var(--ink-mute); }
 
 /* a city: its kind in the subtitle with where it is and who holds it; its special work as a small glyph after the name, hollow while

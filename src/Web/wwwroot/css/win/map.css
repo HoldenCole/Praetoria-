@@ -190,3 +190,7 @@
 .gs-shell.game:not(.legend-on) .galaxy .legend { padding: .45rem .8rem; }
 @media (max-width: 1500px) { .sys-win .ui-plinth .ui-fig + .ui-fig { margin-left: .7rem; padding-left: .7rem; } .sys-win .ui-plinth { padding: 0 1.2rem 0 1.3333rem; } }
 .mw-globe { display: grid; place-items: center; width: 3.6rem; height: 2.5333rem; } .mw-globe img { width: 2.9333rem; height: 2.9333rem; object-fit: contain; filter: drop-shadow(0 2px 4px rgba(0,0,0,.8)); }
+
+/* round 3: the breadcrumb stays inside the free map (between the docked window and the outliner) and under the alerts row, which now
+   keeps to one line: it is clipped to the free map, centred only when it fits, and its crumbs step out by the container's width */
+.gs-shell.game .galaxy .crumbs { top: calc(var(--top) + 3.9rem); overflow: hidden; justify-content: safe center; }

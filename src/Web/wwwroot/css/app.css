@@ -1200,7 +1200,7 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
 .outliner .ol-row:hover, .outliner .ol-row:focus-visible { background: linear-gradient(90deg, rgba(201,162,74,.12), rgba(255,255,255,.02)); box-shadow: inset 2px 0 0 var(--brass); color: var(--ink); outline: 0; }
 .outliner .ol-row .nm { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the class of a holding gives way before its name does: it shrinks first and is cut to nothing rather than the name */
-.outliner .ol-row .m { flex: 0 1000 auto; min-width: 0; overflow: hidden; font: 500 .8333rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; } .outliner .ol-row .m.warn { color: var(--warn); }
+.outliner .ol-row .m { flex: none; max-width: 48%; text-overflow: ellipsis; min-width: 0; overflow: hidden; font: 500 .8333rem/1 var(--f-ui); color: var(--ink-mute); white-space: nowrap; } .outliner .ol-row .m.warn { color: var(--warn); }
 .outliner .ol-row .tok { width: 18px; height: 18px; flex: none; filter: drop-shadow(0 1px 1px #000); }
 .outliner .ol-row .ui-globe { margin: 0 1px; }
 .outliner .ol-row.rep { min-height: 3.2rem; height: auto; align-items: center; }
@@ -1291,7 +1291,13 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
 .yb .yb-crop { display: block; width: 3.0667rem; height: 3.7333rem; overflow: hidden; box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.45); }
 .yb .yb-crop img { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.15) contrast(1.06); }
 .yb .ui-row > div:first-child { display: grid; place-items: center; }
-.yb .bl-mark { width: .9333rem; height: .9333rem; }
+.yb .bl-mark { width: .8rem; height: .8rem; }
+.yb .yb-pic { position: relative; display: block; }
+.yb .yb-badge { position: absolute; right: -.4rem; top: -.4rem; z-index: 3; width: 1.2rem; height: 1.2rem; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #2a3142, #0b0e15); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(165,129,58,.55); }
+.yb .yb-badge.good { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(140,196,126,.7); } .yb .yb-badge.warn { box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(224,85,63,.7); }
+.yb .yb-open { width: .8rem; height: .8rem; opacity: .7; } .yb .yb-line:hover .yb-open { opacity: 1; }
+.ui-win.box.yb.quiet .ui-wbody { padding-bottom: .8rem; min-height: 0; }
+.ui-win.box.yb.quiet .ui-empty { padding-top: 1.2rem; padding-bottom: 1.2rem; }
 .yb .ui-win-foot .brief-opt { font: 500 .8667rem/1.2 var(--f-ui); color: var(--ink-dim); }
 .yb .ui-win-foot .btn.primary { margin-left: auto; }
 .ui-win.box.yb .ui-plinth .ui-fig .d { margin-left: .3333rem; font: 600 .8333rem/1 var(--f-ui); }
@@ -1408,7 +1414,7 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
 /* tabs never run under the frame (2.4): the row is a container; as it narrows against how many tabs it holds, the tabs drop their icons,
    then their padding closes up, before any tab would pass the window's right padding */
 .ui-tabs { container: tabs / inline-size; }
-@container tabs (max-width: 47rem) { .ui-tabs[data-n="6"] .ui-tab > .icon { display: none; } }
+@container tabs (max-width: 40rem) { .ui-tabs[data-n="6"] .ui-tab > .icon { display: none; } }   /* the House keeps its tab icons at 740px, as in the mock */
 @container tabs (max-width: 41rem) { .ui-tabs[data-n="5"] .ui-tab > .icon { display: none; } .ui-tabs[data-n="6"] .ui-tab { padding: 0 .6rem; } }
 @container tabs (max-width: 34rem) { .ui-tabs[data-n="4"] .ui-tab > .icon { display: none; } .ui-tabs[data-n="5"] .ui-tab, .ui-tabs[data-n="6"] .ui-tab { padding: 0 .5333rem; } }
 @container tabs (max-width: 30rem) { .ui-tabs .ui-tab { padding: 0 .4rem; } .ui-tabs .ui-tab .ui-cnt { margin-left: -.1333rem; } }
@@ -1425,4 +1431,17 @@ button.toast { cursor: pointer; } button.toast:hover { filter: brightness(1.08);
   .ui-plinth .ui-fig-v { font-size: 1.2rem; }
   .ui-plinth .ui-fig-l { white-space: normal; max-width: 6.4rem; line-height: 1.1; }
   .ui-plinth .ui-fig + .ui-fig, .ui-plinth button.ui-fig + .ui-fig, .ui-plinth .ui-fig + button.ui-fig { margin-left: .5333rem; padding-left: .5333rem; }
+}
+
+/* the alerts keep to one line however narrow the free map (beside a docked window at 1366): the first six, then the first four, and a
+   "+N" badge that holds the rest */
+.gs-shell.game .alerts-row { container: alerts / inline-size; flex-wrap: nowrap; }
+.alerts-row > .alert-badge.more.cut6, .alerts-row > .alert-badge.more.cut4 { display: none; }
+@container alerts (max-width: 32.6rem) {
+  .alerts-row:has(> .cut6) > :is(.ab-i6, .ab-i7, .ab-i8, .more.full) { display: none; }
+  .alerts-row > .alert-badge.more.cut6 { display: grid; }
+}
+@container alerts (max-width: 22.6rem) {
+  .alerts-row:has(> .cut4) > :is(.ab-i4, .ab-i5, .ab-i6, .ab-i7, .ab-i8, .more.full, .more.cut6) { display: none; }
+  .alerts-row > .alert-badge.more.cut4 { display: grid; }
 }

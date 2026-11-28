@@ -75,22 +75,22 @@
     {
         <p class="ui-lede dy-lede @(storyWarn ? "warn" : "")">@LawsScreen.Bold(story)</p>
         <Section Title="The family tree" Count="@kin.Count.ToString()" Info="A row a generation; children stand under their parents, the eldest of each family at the left; the wed are joined by a double line, one wed in from another house wears their house's colour on the plate's foot. The dead are in grey with a black ribbon. Click a face for who they are and what can be done.">
-            <Right><span class="dy-key"><i class="you"></i>you <i class="heir"></i>your heir <i class="wed"></i>wed</span></Right>
+            <Right><span class="dy-key"><i class="mk"></i>you and your heir <i class="wed"></i>wed</span></Right>
             <ChildContent>
             <div class="dy-tree-wrap">
                 <div class="tree dy-tree" style="--rows:@tree.rows; min-width:@Rem(needPx); max-width:@Rem(Math.Max(needPx, treeW * 1.15))">
-                    <svg class="dy-lines" viewBox="@F(x0) 0 @F(treeW) @(tree.rows * 120)" preserveAspectRatio="none" aria-hidden="true">
+                    <svg class="dy-lines" viewBox="@F(x0) 0 @F(treeW) @F(tree.rows * RowH)" preserveAspectRatio="none" aria-hidden="true">
                         @foreach (var l in tree.links)
                         {
-                            double pr = Row(l.y1), cr = Row(l.y2); double top = l.two ? pr * 120 + 41 : pr * 120 + 110, bus = cr * 120 - 3, foot = cr * 120 + 7;
+                            double pr = Row(l.y1), cr = Row(l.y2); double top = l.two ? pr * RowH + 41 : pr * RowH + 124, bus = cr * RowH - 9, foot = cr * RowH + 7;
                             <path d="M @F(l.x1) @F(top) V @F(bus) H @F(l.x2) V @F(foot)" class="ln" />
                         }
-                        @foreach (var s in tree.spouses) { double y = Row(s.y) * 120 + 41; <path d="M @F(s.x1) @F(y - 2) H @F(s.x2) M @F(s.x1) @F(y + 2) H @F(s.x2)" class="wd" /> }
+                        @foreach (var s in tree.spouses) { double y = Row(s.y) * RowH + 41; <path d="M @F(s.x1) @F(y - 2) H @F(s.x2) M @F(s.x1) @F(y + 2) H @F(s.x2)" class="wd" /> }
                     </svg>
                     @foreach (var n in tree.nodes)
                     {
                         var tc = w.Char(n.id); string nid = n.id; bool isHeir = heirs.Count > 0 && heirs[0].Id == n.id;
-                        <button class="tn @(n.me ? "me" : "") @(n.alive ? "" : "dead") @(n.id == _focus ? "focus" : "") @(isHeir ? "heir" : "") @(n.inHouse ? "" : "wed")" style="left:@Pc((n.x - x0) / treeW * 100);top:calc(@Row(n.y) * 8rem)"
+                        <button class="tn @(n.me ? "me" : "") @(n.alive ? "" : "dead") @(n.id == _focus ? "focus" : "") @(isHeir ? "heir" : "") @(n.inHouse ? "" : "wed")" style="left:@Pc((n.x - x0) / treeW * 100);top:calc(@Row(n.y) * 9.3333rem)"
                                 title="@($"{n.name}{(n.alive ? $", {tc?.Age}" : ", remembered")}{(n.inHouse ? "" : " · " + n.house)}{(n.me ? " · you" : isHeir ? " · your heir" : "")}\nClick for who they are")" @onclick="() => _focus = nid">
                             @if (tc != null) { <Portrait Id="@tc.Id" Name="@tc.Name" Sex="@tc.Sex" Age="@tc.Age" Alive="@tc.Alive" Accent="@n.accent" Size="58" Height="70" Opens="false" /> }
                             <b class="nm">@First(n.name)</b><span class="sub">@n.sub</span>
@@ -230,8 +230,11 @@
     private static string F(double v) => v.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
     private static string Pc(double v) => v.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "%";
     private static string Rem(double px) => (px / 15.0).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "rem";
-    /// <summary>The generation a layout y stands for (the layout puts a row every 120 units from 50).</summary>
-    private static double Row(double y) => Math.Round((y - 50) / 120.0);
+    /// <summary>The height of a generation's row in the tree's units (1 unit = 1px at the normal text size): the plate, its name, its
+    /// line and the heir's diamond, and below them room for the line to the children, which never crosses a caption.</summary>
+    private const double RowH = 140;
+    /// <summary>The generation a layout y stands for (the layout puts a row every RowH units from 50).</summary>
+    private static double Row(double y) => Math.Round((y - 50) / RowH);
 
     public static List<Character> Heirs(World w, House house)
     {
@@ -250,6 +253,14 @@
     private static (List<TreeNode> nodes, List<TreeLink> links, List<Wed> spouses, int rows) Tree(World w, Character p, House house, List<Character> kin)
     {
         var ids = kin.Select(k => k.Id).ToHashSet(); var gen = new Dictionary<string, int>();
+        // the partner as the marriages record them, the dead and the widowed included (Spouse() knows only the living), so a dead couple
+        // stands side by side with its double line and the line to their children falls from between them
+        Character? Mate(Character k)
+        {
+            if (DynastySystem.Spouse(w, k) is { } living) return living;  
+            var m = w.Marriages.Where(x => x.Has(k.Id)).OrderByDescending(x => x.Since).FirstOrDefault();
+            return m != null ? w.Char(m.Other(k.Id)) : null;
+        }
         int Gen(Character ch, int depth)
         {
             if (gen.TryGetValue(ch.Id, out var g)) return g; if (depth > 8) return 0;
@@ -260,7 +271,7 @@
         foreach (var k in kin) Gen(k, 0);
         // one who married in has no parent in the house: they stand in their partner's generation, not with the founders
         foreach (var k in kin.OrderBy(k => k.Id, StringComparer.Ordinal))
-            if (gen[k.Id] == 0 && !ids.Contains(k.MotherId) && !ids.Contains(k.FatherId) && DynastySystem.Spouse(w, k) is { } partner && gen.TryGetValue(partner.Id, out var pg) && pg > 0) gen[k.Id] = pg;
+            if (gen[k.Id] == 0 && !ids.Contains(k.MotherId) && !ids.Contains(k.FatherId) && Mate(k) is { } partner && gen.TryGetValue(partner.Id, out var pg) && pg > 0) gen[k.Id] = pg;
         var rows = kin.GroupBy(k => gen[k.Id]).OrderBy(g => g.Key).ToList(); int rowCount = Math.Max(1, (rows.LastOrDefault()?.Key ?? 0) + 1);
         var nodes = new List<TreeNode>(); var pos = new Dictionary<string, (double x, double y)>(); var spouses = new List<Wed>();
         foreach (var row in rows)
@@ -271,7 +282,7 @@
             {
                 var ps = new[] { k.MotherId, k.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x].x).ToList();
                 if (ps.Count > 0) return ps.Average();
-                if (DynastySystem.Spouse(w, k) is { } partner && ids.Contains(partner.Id)) { var pp = new[] { partner.MotherId, partner.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x].x).ToList(); if (pp.Count > 0) return pp.Average() + 0.5; }
+                if (Mate(k) is { } partner && ids.Contains(partner.Id)) { var pp = new[] { partner.MotherId, partner.FatherId }.Where(x => x.Length > 0 && pos.ContainsKey(x)).Select(x => pos[x].x).ToList(); if (pp.Count > 0) return pp.Average() + 0.5; }
                 return double.MaxValue;
             }
             var sorted = row.OrderBy(Under).ThenByDescending(k => k.Age).ThenBy(k => k.Id, StringComparer.Ordinal).ToList();
@@ -280,19 +291,19 @@
             foreach (var k in sorted)
             {
                 if (members.Any(m => m.Id == k.Id)) continue; members.Add(k);
-                if (DynastySystem.Spouse(w, k) is { } mate && sorted.FirstOrDefault(m => m.Id == mate.Id) is { } inRow && !members.Any(m => m.Id == inRow.Id)) members.Add(inRow);
+                if (Mate(k) is { } mate && sorted.FirstOrDefault(m => m.Id == mate.Id) is { } inRow && !members.Any(m => m.Id == inRow.Id)) members.Add(inRow);
             }
             // each member may bring a spouse from outside the house; lay the row out as slots
             var slots = new List<(Character ch, bool inHouse)>();
-            foreach (var k in members) { slots.Add((k, true)); var sp = DynastySystem.Spouse(w, k); if (sp != null && !ids.Contains(sp.Id) && !slots.Any(s => s.ch.Id == sp.Id)) slots.Add((sp, false)); }
-            double step = Math.Min(130, 940.0 / Math.Max(1, slots.Count)); double x0 = 500 - step * (slots.Count - 1) / 2; double y = 50 + row.Key * 120;
+            foreach (var k in members) { slots.Add((k, true)); var sp = Mate(k); if (sp != null && !ids.Contains(sp.Id) && !slots.Any(s => s.ch.Id == sp.Id)) slots.Add((sp, false)); }
+            double step = Math.Min(130, 940.0 / Math.Max(1, slots.Count)); double x0 = 500 - step * (slots.Count - 1) / 2; double y = 50 + row.Key * RowH;
             for (int i = 0; i < slots.Count; i++)
             {
                 var (ch, inHouse) = slots[i]; double x = x0 + i * step; pos[ch.Id] = (x, y);
                 string hn = w.House(ch.HouseId)?.Name ?? "";
                 string sub = (ch.Alive ? ch.Age.ToString() : "Remembered") + (inHouse ? "" : " · " + hn.Replace("House ", "")) + (ch.Id == p.Id ? " · you" : "");
                 nodes.Add(new TreeNode(ch.Id, ch.Name, sub, inHouse ? house.AccentColor : (w.House(ch.HouseId)?.AccentColor ?? "#55617a"), ch.Id == p.Id, ch.Alive, inHouse, hn, x, y));
-                var sp2 = DynastySystem.Spouse(w, ch); if (inHouse && sp2 != null && pos.TryGetValue(sp2.Id, out var sppos) && Math.Abs(sppos.y - y) < 1) spouses.Add(new Wed(Math.Min(x, sppos.x), Math.Max(x, sppos.x), y));
+                var sp2 = Mate(ch); if (inHouse && sp2 != null && pos.TryGetValue(sp2.Id, out var sppos) && Math.Abs(sppos.y - y) < 1) spouses.Add(new Wed(Math.Min(x, sppos.x), Math.Max(x, sppos.x), y));
             }
         }
         var links = new List<TreeLink>();

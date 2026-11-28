@@ -334,7 +334,7 @@
                             <Picture><span class="ui-medal sn-medal"><Icon Name="@KindIcon(pr.KindId)" Tone="@(picked ? "brass" : "ivory")" Size="22" /></span></Picture>
                             <Action>
                                 @if (pr.TargetType == "none" && !pr.NeedsLaw) { <Plate Label="Move it" Small="true" Icon="scroll-quill" Stop="true" Locked="@(pr.Refusal != null)" Disabled="@(pr.Refusal != null)" Need="@(pr.Refusal != null ? Cap(pr.Refusal) : "")" ShowNeed="false" Tip="@(pr.Refusal ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveNone(prk)" /> }
-                                else { <Plate Label="@(picked ? "Close" : "Move…")" Small="true" Icon="scroll-quill" Stop="true" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" Tip="@(picked ? "Put it away" : "Choose what it is about, then move it")" OnClick="() => _pickMotion = picked ? null : prk" /> }
+                                else { <Plate Label="@(picked ? "Close" : "Move")" Small="true" Icon="scroll-quill" Stop="true" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" Tip="@(picked ? "Put it away" : "Choose what it is about, then move it")" OnClick="() => _pickMotion = picked ? null : prk" /> }
                             </Action>
                         </Row>
                         @if (pr.TargetType == "none" && !pr.NeedsLaw && pr.Refusal != null) { <div class="sn-mneed"><Icon Name="padlock" Tone="ember" Size="13" />@Cap(pr.Refusal)</div> }

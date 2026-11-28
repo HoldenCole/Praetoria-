@@ -95,7 +95,7 @@
                     </button>
                 }
                 </div>
-                @if (absentLine.Length > 0) { <div class="sn-note bad"><Icon Name="alert" Tone="ember" Size="15" /><span>@absentLine</span></div> }
+                @if (absentLine.Length > 0) { <WarnStrip Icon="alert" Lead="Absent." Class="sn-absent">@absentLine</WarnStrip> }   @* a warn strip (4.9), never a whole sentence in red *@
                 @{ var curCom = LadderSystem.CommitteeOf(w, w.House(p.HouseId)!); }
                 <div class="sn-acts suit-acts sn-committee" title="@($"{LadderSystem.CommitteeSays(w, w.House(p.HouseId)!)} {LadderSystem.AttendanceSays(w, p)}")">
                     <Segmented Label="Committee" Value="@curCom" Options="@LadderSystem.Committees.Select(cm => (cm, CommitteeShort(cm), cm == curCom ? "Your house sits on it" : MoveTip)).ToList()" Refusal="@(cm => cm == curCom ? null : new CommitteeCommand(pid, cm).Refusal(G.Ctx) is { } r ? LawsScreen.Say(r) : null)" OnChange="cm => { if (cm != curCom) G.Execute(new CommitteeCommand(pid, cm)); }" />

@@ -164,16 +164,37 @@
     <Section Title="Belt claims" Count="@cl.Count.ToString()" Info="@($"A claim brings up {cbase} materials a year and one more for each mark of the belt's richness, with some of any rare earths the belt holds and an exotic a year from the richest (richness 3). It costs {Money.Credits(ckeep)} a year to keep, and a belt takes as many claims as it has marks of richness.")">
         <Right><span>A claim costs <b>@Money.Show(c.Businesses.Finance.ClaimCredits)</b> credits, <b>@c.Businesses.Finance.ClaimMaterials</b> materials</span></Right>
         <ChildContent>
-        <p class="hs-note" data-claim-yield>A claim brings up @cbase materials a year and one more for each mark of the belt's richness, and costs @Money.Credits(ckeep) a year to keep.</p>
-        @foreach (var k in cl)
-        {
-            string ksys = k.SystemId;
-            <Row Name="@($"{k.SystemName} belt")" SubText="@($"richness {k.Belt} · {k.Staked} of {k.Belt} staked")">
-                <Picture><Globe Class="belt" Size="40" Ringed="false" Rich="@k.Belt" /></Picture>
-                <Cells><Cell Icon="materials" Tone="steel" Value="@($"+{cbase + k.Belt} a year")" Class="ui-up" Tip="Materials a year" /></Cells>
-                <Action><Plate Label="Stake a claim" Icon="build" Small="true" CostIcon="credits" CostText="@Money.Show(c.Businesses.Finance.ClaimCredits)" Locked="@(k.Refusal != null)" Disabled="@(k.Refusal != null)" ShowNeed="false" Need="@(k.Refusal ?? "")" Tip="@($"Stake a claim in the {k.SystemName} belt: {Money.Show(c.Businesses.Finance.ClaimCredits)} credits and {c.Businesses.Finance.ClaimMaterials} materials")" OnClick="() => G.Execute(new StakeClaimCommand(pid, ksys, c.Holdings, c.Businesses))" /></Action>
-            </Row>
-        }
+        @{ var claimsShown = _allClaims ? cl : cl.OrderBy(k => k.Refusal != null).ThenByDescending(k => k.Belt).ThenBy(k => k.SystemName, StringComparer.Ordinal).Take(6).ToList();
+           var claim = cl.FirstOrDefault(k => k.SystemId == _claim) ?? claimsShown.FirstOrDefault(k => k.Refusal == null) ?? claimsShown.FirstOrDefault(); }
+        @* one row a belt and one order bar under them (docs/VISUAL_SYSTEM.md 4.13): the chosen belt's Stake plate with its cost, and why not *@
+        <div class="ex-found ex-claims" data-claim-yield title="@($"A claim brings up {cbase} materials a year and one more for each mark of the belt's richness, and costs {Money.Credits(ckeep)} a year to keep.")">
+        <DataTable Class="ex-table">
+            <Head><th>Belt</th><th title="Marks of richness: a belt takes as many claims">Richness</th><th>Staked</th><th title="Materials a year from a claim">A year</th></Head>
+            <ChildContent>
+            @foreach (var k in claimsShown)
+            {
+                string ksys = k.SystemId; bool on = claim == k;
+                <tr class="@(on ? "on" : "") @(k.Refusal != null ? "ex-locked" : "")" title="@($"The {k.SystemName} belt: richness {k.Belt}, {k.Staked} of {k.Belt} staked{(k.Refusal != null ? $"\nYou cannot stake it: {k.Refusal}" : "")}\nkey: Click to put it in the order bar")" @onclick="() => _claim = ksys">
+                    <td>@if (k.Refusal != null) { <Icon Name="padlock" Tone="ivory" Size="14" /> } else { <Icon Name="materials" Tone="steel" Size="16" /> }@k.SystemName belt</td>
+                    <td>@k.Belt</td>
+                    <td>@k.Staked of @k.Belt</td>
+                    <td class="ui-up">+@(cbase + k.Belt)</td>
+                </tr>
+            }
+            </ChildContent>
+            <OrderBar>
+            @if (claim != null)
+            {
+                string csys = claim.SystemId;
+                <span class="ui-order-nm"><Icon Name="materials" Tone="steel" Size="18" />@claim.SystemName belt</span>
+                @if (claim.Refusal != null) { <span class="ui-need ex-order-warn">@Cap(claim.Refusal)</span> } else { <span class="ex-quote">+@(cbase + claim.Belt) materials a year · @Money.Credits(ckeep) a year to keep</span> }
+                <span class="ui-order-sp"></span>
+                <Plate Label="Stake a claim" Icon="build" CostIcon="credits" CostText="@Money.Show(c.Businesses.Finance.ClaimCredits)" Locked="@(claim.Refusal != null)" Disabled="@(claim.Refusal != null)" ShowNeed="false" Need="@(claim.Refusal ?? "")" Tip="@($"Stake a claim in the {claim.SystemName} belt: {Money.Show(c.Businesses.Finance.ClaimCredits)} credits and {c.Businesses.Finance.ClaimMaterials} materials")" OnClick="() => G.Execute(new StakeClaimCommand(pid, csys, c.Holdings, c.Businesses))" />
+            }
+            </OrderBar>
+        </DataTable>
+        </div>
+        @if (cl.Count > 6) { <p class="hs-note"><button class="ui-link" @onclick="() => _allClaims = !_allClaims">@(_allClaims ? "Show the six best" : $"Show all {cl.Count}")<Icon Name="chev" Size="11" Class="flat" /></button></p> }
         </ChildContent>
     </Section>
     </div>
@@ -183,26 +204,40 @@
          IsEmpty="@(assets == null || assets.ForSale.Count == 0)" EmptyLine="No house has a venture it would part with to you." EmptyIcon="trade">
     <Right><span>Every house has its price</span></Right>
     <ChildContent>
-    @foreach (var f in assets!.ForSale)
-    {
-        <div class="vcard ex-forsale @(f.Distressed ? "distress" : "")">
-            <Row Name="@f.Name" SubText="@($"{f.KindName} · level {f.Level}{(f.SystemName != null ? $" · {f.SystemName}" : "")} · {f.OwnerName}{(f.Distressed ? " · short of coin" : "")}{(f.OnYourWorld ? " · works your world" : "")}")">
-                <Picture><span class="hs-arms"><Sigil HouseId="@f.OwnerId" Accent="@f.OwnerAccent" Size="32" /></span></Picture>
-                <Cells>
-                    <Cell Icon="credits" Value="@($"{HouseScreen.Sg(f.PerYear)} a year")" Class="@(f.PerYear > 0 ? "ui-up" : "ui-warn-t")" Tip="Credits' worth a year to you, in goods at today's prices" />
-                    <span class="ui-cell" title="How long until it has paid for itself at this price">@(f.Payback == "never" ? "never pays back" : "back in " + f.Payback)</span>
-                </Cells>
-            </Row>
-            <div class="ex-under"><VentureBuy BusinessId="@f.BusinessId" /></div>
-        </div>
-    }
+    @{ var sale = assets!.ForSale.FirstOrDefault(f => f.BusinessId == _sale) ?? assets.ForSale.FirstOrDefault(); }
+    @* one row a venture and one order bar under them (4.13): Buy at the asking price, then an offer on the stepper and its Offer plate *@
+    <div class="ex-found ex-sale">
+    <DataTable Class="ex-table">
+        <Head><th>Venture</th><th>Holder</th><th title="Credits' worth a year to you, in goods at today's prices">A year</th><th title="How long until it has paid for itself at the asking price">Pays back</th></Head>
+        <ChildContent>
+        @foreach (var f in assets.ForSale)
+        {
+            string fid = f.BusinessId; bool on = sale == f;
+            <tr class="@(on ? "on" : "") @(f.Distressed ? "distress" : "")" title="@($"{f.Name}: {f.KindName}, level {f.Level}{(f.SystemName != null ? $", at {f.SystemName}" : "")}, of {f.OwnerName}{(f.Distressed ? ", which is short of coin" : "")}{(f.OnYourWorld ? ". It works your world" : "")}\nkey: Click to put it in the order bar")" @onclick="() => _sale = fid">
+                <td><Sigil HouseId="@f.OwnerId" Accent="@f.OwnerAccent" Size="16" />@f.Name</td>
+                <td class="ex-td-l">@f.OwnerName.Replace("House ", "")@if (f.Distressed) { <small class="ui-warn-t"> · short</small> }</td>
+                <td class="@(f.PerYear > 0 ? "ui-up" : "ui-warn-t")">@HouseScreen.Sg(f.PerYear)</td>
+                <td>@(f.Payback == "never" ? "never" : f.Payback)</td>
+            </tr>
+        }
+        </ChildContent>
+        <OrderBar>
+        @if (sale != null)
+        {
+            <span class="ui-order-nm"><Icon Name="factory" Tone="brass" Size="18" />@sale.Name</span>
+            <span class="ui-order-sp"></span>
+            <VentureBuy BusinessId="@sale.BusinessId" />
+        }
+        </OrderBar>
+    </DataTable>
+    </div>
     </ChildContent>
 </Section>
 
 @code {
     [Parameter, EditorRequired] public CourtModel Model { get; set; } = default!;
-    private bool _all, _shut;
-    private string? _pick;
+    private bool _all, _shut, _allClaims;
+    private string? _pick, _claim, _sale;
     private string _payFrom = string.Empty;
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     /// <summary>The open market's price for a venture: four-fifths of its worth, as the Sell option's own label reckons it.</summary>

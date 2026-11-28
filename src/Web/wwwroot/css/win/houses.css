@@ -190,3 +190,9 @@ button.hu-fig { cursor: pointer; } button.hu-fig:hover { background: linear-grad
 .hu-person .ui-row > div:nth-child(4):has(.hu-acts:not(:empty)) { margin-top: .3333rem; }
 .hu-person .ui-row .hu-acts { display: flex; flex-wrap: wrap; gap: .4rem; max-width: none; padding: 0; }
 .hu-person .ui-row .ui-row-nm { white-space: normal; }
+/* the standings' column heads stay at the top of the page while it scrolls (they give the bare figures their meaning), and a long name
+   takes a second line rather than an ellipsis */
+.hu-win .hu-table { overflow: visible; }
+.hu-win .ui-table.standings thead th { position: sticky; top: 0; z-index: 4; background: linear-gradient(#141923, #10141c); box-shadow: inset 0 -1px 0 rgba(201,162,74,.45); }
+.hu-win .ui-table.standings td.hn b { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.15; overflow-wrap: anywhere; }
+.hu-win .ui-table.standings td.hn .hu-hn { align-items: center; }

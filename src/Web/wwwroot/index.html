@@ -212,6 +212,8 @@
           a.download = name; a.click(); URL.revokeObjectURL(a.href);
         },
         scrollTop: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+        /* a window's own scrolling body back to its top (a new tab opens at its start, not where the last one was left) */
+        scrollHome: (sel) => { const e = document.querySelector(sel); if (e) e.scrollTop = 0; },
         size: (el) => { const r = el.getBoundingClientRect(); return [r.width, r.height]; },
         ready: (name) => new Promise(res => { let n = 0; const t = setInterval(() => { if (window[name] || ++n > 200) { clearInterval(t); res(!!window[name]); } }, 50); }),
         keys: (ref) => { window.addEventListener('keydown', e => { if (e.target && ['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return; if (e.ctrlKey || e.metaKey || e.altKey) return; if (e.key === 'Enter' || e.key === 'Escape' || e.key === '?' || /^[0-9=-]$/.test(e.key)) ref.invokeMethodAsync('Key', e.key); }); }

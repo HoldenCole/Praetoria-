@@ -342,6 +342,7 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
 .ws-grid .ws-v { font: 600 1rem/1 var(--f-ui); color: var(--ink); }
 .ws-grid > .ui-select, .ws-grid > .ui-seg-wrap, .ws-grid > .ui-step-wrap { justify-self: start; }
 .ws-tracks { margin: 0; }
+.ws-grid .ws-tracks.fr-picks { padding: 0; }   /* the service plates on the same control column as Sex, Age and Ambition */
 .ws-ladder { display: flex; align-items: center; flex-wrap: wrap; gap: .2rem; }
 .ws-rung { display: inline-flex; align-items: center; gap: .4rem; height: 1.8667rem; padding: 0 .3333rem; border: 0; background: none; color: var(--ink); cursor: pointer; font: 600 .9333rem/1 var(--f-display); letter-spacing: .03em; }
 .ws-rung i { width: .6667rem; height: .6667rem; transform: rotate(45deg); background: #0a0c11; box-shadow: inset 0 0 0 1px rgba(201,162,74,.6); }
@@ -397,17 +398,27 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
 /* a short screen (under 800px): the header closes to a strip, the portrait small, the title and lede on one line, the plinth inline,
    so the body has the room (as You collapses to a strip) */
 @media (max-height: 800px) {
-  .fr-win .ui-head, .fr-win .ui-head.tall { height: 9.0667rem; }
+  .fr-win .ui-head, .fr-win .ui-head.tall { height: 10.4rem; }
   .fr-win .ui-head-who .portrait { width: 5.0667rem !important; height: 6.4rem !important; }
   .fr-win .ui-head-who { top: .9333rem !important; }
-  .fr-win .ui-head.portrait-head .ui-head-text, .fr-win .ui-head-text { left: 8rem; top: .9333rem; right: 24rem; }
+  /* the text column: the kicker, then the title with its lede on the same line, then the mode switch and the rating (the facts, kept:
+     they are the only place to choose Standard or Free) */
+  .fr-win .ui-head.portrait-head .ui-head-text, .fr-win .ui-head-text { left: 8rem; top: .8rem; right: 4.4rem; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 1.0667rem; }
+  .fr-win .ui-head-text > .ui-kick { flex: 0 0 100%; }
   .fr-win .ui-head-mark { top: .8rem; transform: scale(.72); transform-origin: top left; }
-  .fr-win .ui-title { font-size: 1.4667rem; margin-top: .2rem; }
-  .fr-win .ui-lede-head { font-size: .9333rem; margin-top: .2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .fr-win .ui-facts { display: none; }
-  .fr-win .ui-plinth { left: auto; right: 0; top: 0; bottom: auto; height: 9.0667rem; padding: 0 1.6rem; flex-wrap: wrap; align-content: center; justify-content: flex-end; max-width: 24rem; gap: .4rem 0; }
-  .fr-win .ui-plinth::before, .fr-win .ui-plinth::after { display: none; }
-  .fr-win .ui-plinth .ui-fig + .ui-fig { margin-left: .8rem; padding-left: .8rem; }
+  .fr-win .ui-title { flex: 0 1 auto; max-width: 60%; font-size: 1.4667rem; margin-top: .2rem; }
+  .fr-win .ui-lede-head { flex: 1 1 0; min-width: 0; font-size: .9333rem; margin-top: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fr-win .ui-facts { flex: 0 0 100%; margin-top: .4rem; flex-wrap: nowrap; }
+  .fr-win .ui-facts .chip { min-height: 1.7333rem; padding-top: 0; padding-bottom: 0; }
+  /* the plinth: one row of the five figures along the painting's foot, starting under the text column */
+  .fr-win .ui-plinth { left: 6.9333rem; height: 3.0667rem; padding: 0 4.4rem 0 1.0667rem; flex-wrap: nowrap; justify-content: flex-start; }
+  .fr-win .ui-plinth::after { display: none; }
+  .fr-win .ui-plinth .ui-fig > .icon { width: 1.2rem; height: 1.2rem; }
+  .fr-win .ui-plinth .ui-fig { gap: .4rem; }
+  .fr-win .ui-plinth .ui-fig-vv { flex-direction: row; align-items: baseline; gap: .4rem; }
+  .fr-win .ui-plinth .ui-fig-v { font-size: 1.1333rem; }
+  .fr-win .ui-plinth .ui-fig-l { font-size: .8333rem; }
+  .fr-win .ui-plinth .ui-fig + .ui-fig { margin-left: 1.0667rem; padding-left: 1.0667rem; }
 }
 
 /* the workshop's house: two columns, the facts at the left, the colour and the arms at the right */
@@ -430,4 +441,4 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
 /* the start plates are sized by the height of the screen as well as its width, so their names and their era and hardness lines stand
    above the screen's foot at every text size */
 .fr-plate-pic { max-height: clamp(8rem, 26vh, 16rem); }
-@media (max-height: 820px) { .fr-plate .sc-name { min-height: 0; margin-top: .4rem; } }
+@media (max-height: 820px) { .fr-plate .sc-name { margin-top: .4rem; } }

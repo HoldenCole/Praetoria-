@@ -487,13 +487,13 @@ public static class CharacterWorkshop
             ("The Heir", "Born to a name: a rank, a little standing, a sister, and everything still to prove.", new CustomCharacter
             {
                 Name = "Lucan Varro", Sex = "male", Age = 22, Track = "law", Rank = 1, Ambition = Amb("master_the_senate"), Nature = { Nat("Proud"), Nat("Just") }, Aptitude = { Apt("Orator") },
-                Skills = { ["law"] = 2, ["oratory"] = 2, ["charisma"] = 2 }, HouseName = "Varro", Accent = "#3A86FF", Origin = "old", Title = "knight", Legitimacy = 30, Party = "optimates",
+                Skills = { ["law"] = 2, ["oratory"] = 2, ["charisma"] = 2 }, HouseName = "Varro", Accent = Presentation.Palette.Player, Origin = "old", Title = "knight", Legitimacy = 30, Party = "optimates",
                 Treasury = { ["credits"] = 30, ["materials"] = 8, ["manpower"] = 6, ["influence"] = 3 }, Siblings = { new KinSpec { Sex = "female", Age = 19 } }
             }),
             ("The Officer", "No name and no land: a commission, a head for battle, and four hulls that answer to you.", new CustomCharacter
             {
                 Name = "Kessa Brand", Sex = "female", Age = 26, Track = "military", Rank = 2, Ambition = Amb("earn_a_command"), Nature = { Nat("Ambitious"), Nat("Just") }, Aptitude = { Apt("Tactician") },
-                Skills = { ["tactics"] = 3, ["discipline"] = 2, ["leadership"] = 2, ["gunnery"] = 1 }, HouseName = "Brand", Accent = "#FFBE0B", Origin = "new", Title = "landless", Legitimacy = 8, Party = "sword",
+                Skills = { ["tactics"] = 3, ["discipline"] = 2, ["leadership"] = 2, ["gunnery"] = 1 }, HouseName = "Brand", Accent = Presentation.Palette.Player, Origin = "new", Title = "landless", Legitimacy = 8, Party = "sword",
                 Treasury = { ["credits"] = 12, ["materials"] = 4, ["manpower"] = 6, ["influence"] = 0, ["helium3"] = 6 }
             }),
             ("The New Man", "A ledger, a trading company and a patron. No seat in the Senate, yet.", new CustomCharacter
@@ -505,7 +505,7 @@ public static class CharacterWorkshop
             ("The Upstart", "Nothing but a name nobody knows: no land, no seat, no patron, two thousand credits, and a mother who kept another house's books. Everything is still to do.", new CustomCharacter
             {
                 Name = "Tam Corvane", Sex = "male", Age = 22, Track = "stewardship", Rank = 0, Ambition = Amb("restore_house_fortunes"), Nature = { Nat("Ambitious") }, Background = content.Backgrounds.ById("clerks_child") != null ? "clerks_child" : "",
-                Skills = { ["administration"] = 2, ["economics"] = 1 }, HouseName = "Corvane", Accent = "#8AC926", Origin = "new", Title = "landless", Legitimacy = 5,
+                Skills = { ["administration"] = 2, ["economics"] = 1 }, HouseName = "Corvane", Accent = "#A7E34B", Origin = "new", Title = "landless", Legitimacy = 5,
                 Treasury = { ["credits"] = 20, ["materials"] = 6, ["manpower"] = 4, ["influence"] = 1 },
                 Mother = new KinSpec { Age = 49, Track = "stewardship", Rank = 1, Nature = Nat("Just") }, Siblings = { new KinSpec { Sex = "female", Age = 19 } }
             }),

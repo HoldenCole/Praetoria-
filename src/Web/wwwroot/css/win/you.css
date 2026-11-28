@@ -215,3 +215,13 @@
 .you-study .ui-select-btn { min-width: 8.5333rem; justify-content: space-between; }
 .you-study .ui-menu { left: 0; right: auto; min-width: 16rem; max-height: 22rem; overflow-y: auto; }
 .you-study .ui-medal { width: 3.0667rem; height: 3.0667rem; } .you-study .ui-medal .icon { width: 1.3333rem; height: 1.3333rem; }
+
+/* the header fades as the page moves, so once the 64px strip holds at the top nothing of the portrait, the seal, the traits or the kin
+   shows sliced between the strip and the plinth (a named timeline: the header clips its own overflow, so scroll(nearest) would find it) */
+@supports (animation-timeline: scroll()) {
+  .you-scroll { scroll-timeline: --you-sc block; }
+  .you-scroll > .ui-head :is(.ui-head-who, .ui-head-mark, .ui-head-text) { animation: you-head-out linear both; animation-timeline: --you-sc; animation-range: 0px 6.4rem; }
+}
+@keyframes you-head-out { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
+/* a study's line says what the choice does: it wraps whole, never cut inside a word */
+.you-win .ui-row .ui-row-sub { white-space: normal; overflow: visible; text-overflow: clip; }

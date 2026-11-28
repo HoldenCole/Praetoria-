@@ -31,21 +31,21 @@
         <div class="tb-sub">@(G.Content!.Titles.NameOf(house.Title, G.World!.Era)) · <span title="Legitimacy, from 0 to 100: how rightful the Reach holds your house's place to be. It is asked for at every step up in rank, and it falls when the house is caught doing what it should not.">Legitimacy <b>@house.Legitimacy</b></span></div>
     </div>
     <div class="well tb-res" title="@(ledgerTip + outTip)">
-        @Res("credits", "brass", t.Credits, fc?.Credits, "Credits — the one you run out of. Upkeep, hulls, bribes. The small figure is what the year will add or take, the shares of what is being built counted.", Money.Held(t))
+        @Res("credits", "brass", t.Credits, fc?.Credits, "[credits] Credits — the one you run out of. Upkeep, hulls, bribes. The small figure is what the year will add or take, the shares of what is being built counted.", Money.Held(t))
         <span class="res purse" title="@purseTip" data-purse="@p.Purse"><Icon Name="swap-bag" Tone="brass" Size="21" /><span class="v">@Money.Show(p.Purse)</span></span>
-        @Res("materials", "steel", t.Materials, fc?.Materials, "Materials — building and shipbuilding.")
-        @Res("manpower", "ivory", t.Manpower, fc?.Manpower, $"Manpower: {t.Manpower} of the {muster} your worlds can muster: {Census.Say(Census.CitizensOf(w, house.Id))} citizens, reckoned on the rules' scale of their people{(cityMuster > 0 ? $", and {cityMuster} more for their garrison and breadbasket cities" : "")}, and never fewer than {Economy.MusterFloor}. A point of manpower is about a thousand trained hands. It crews hulls, founds colonies and can be put to work as a gang to hasten what is building. It is not sold." + (t.Manpower > muster ? $" You hold more than they can keep: a quarter of the excess stands down each year." : t.Manpower == muster ? " It is full: it grows only as your worlds' people do." : ""), null, muster)
-        @Res("laurels", "ivory", t.Influence, fc?.Influence, "Clout: the house's political capital in store. Seats and standing earn it; decrees and the Exchange spend it. It is not this year's influence (at the right), which is how much you can act in the Senate this year.", null, null, "influence")
-        @Res("exotics", "steel", t.Exotics, fc?.Exotics, "Exotics — rare finds; sell dear or study them.")
+        @Res("materials", "steel", t.Materials, fc?.Materials, "[materials] Materials — building and shipbuilding.")
+        @Res("manpower", "ivory", t.Manpower, fc?.Manpower, $"[manpower] Manpower — {t.Manpower} of the {muster} your worlds can muster: {Census.Say(Census.CitizensOf(w, house.Id))} citizens, reckoned on the rules' scale of their people{(cityMuster > 0 ? $", and {cityMuster} more for their garrison and breadbasket cities" : "")}, and never fewer than {Economy.MusterFloor}. A point of manpower is about a thousand trained hands. It crews hulls, founds colonies and can be put to work as a gang to hasten what is building. It is not sold." + (t.Manpower > muster ? $" You hold more than they can keep: a quarter of the excess stands down each year." : t.Manpower == muster ? " It is full: it grows only as your worlds' people do." : ""), null, muster)
+        @Res("laurels", "ivory", t.Influence, fc?.Influence, "[laurels] Clout — the house's political capital in store. Seats and standing earn it; decrees and the Exchange spend it. It is not this year's influence (at the right), which is how much you can act in the Senate this year.", null, null, "influence")
+        @Res("exotics", "steel", t.Exotics, fc?.Exotics, "[exotics] Exotics — rare finds; sell dear or study them.")
     </div>
     <div class="tb-pools-wrap">
     <button class="tb-more-btn" data-pools title="The strategic three and the year's pools: what you can do this year" aria-expanded="@_more" @onclick="TogglePools"><Icon Name="helium3" Tone="steel" Size="18" /><Icon Name="public-speaker" Tone="ivory" Size="18" /><span>Pools</span><Icon Name="chev" Tone="brass" Size="10" Class="tb-chev" /></button>
     <div class="tb-more">
         <i class="stud"></i>
         <div class="well tb-res strat @(w.HasFlag("fuel_short") ? "dry" : "")" title="The strategic three — dug or skimmed only where the galaxy put them. Helium-3 fuels the fleet (three hulls burn one a turn); rare earths build the heavy hulls and the clever buildings; isotopes arm battleships and bastions and are never on the open market.">
-            @Res("helium3", "steel", t.Helium3, fc?.Helium3, w.HasFlag("fuel_short") ? "Helium-3 — THE TANKS ARE DRY: the fleet rides at anchor." : "Helium-3 — fusion fuel; the fleet burns it every turn.")
-            @Res("rare_earths", "ivory", t.RareEarths, fc?.RareEarths, "Rare earths — drives, sensors, electronics; cruisers, carriers, foundries.")
-            @Res("isotopes", "ember", t.Isotopes, fc?.Isotopes, "Isotopes — weapons-grade; battleships, bastion guns, arsenals. Never sold on the open market.")
+            @Res("helium3", "steel", t.Helium3, fc?.Helium3, w.HasFlag("fuel_short") ? "[helium3] Helium-3 — the tanks are dry: the fleet rides at anchor." : "[helium3] Helium-3 — fusion fuel; the fleet burns it every turn.")
+            @Res("rare_earths", "ivory", t.RareEarths, fc?.RareEarths, "[rare_earths] Rare earths — drives, sensors, electronics; cruisers, carriers, foundries.")
+            @Res("isotopes", "ember", t.Isotopes, fc?.Isotopes, "[isotopes] Isotopes — weapons-grade; battleships, bastion guns, arsenals. Never sold on the open market.")
         </div>
         <i class="stud"></i>
         <div class="well tb-pools" title="What you can do this year: treasury actions, influence and agents. Reading is free; acting spends them, and they come back each year.">

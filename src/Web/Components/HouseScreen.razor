@@ -301,17 +301,17 @@
             @if (m.Treasury.Insolvent) { <WarnStrip Icon="credits" Lead="Insolvent." Bad="true">Unrest climbs on every populated world and unpaid crews will desert.</WarnStrip> }
             <div class="ui-table-wrap hs-stores">
                 <table class="ui-table">
-                    <thead><tr><th>Good</th><th>Held</th><th>A year</th>@if (m.Procure is { Count: > 0 }) { <th class="hs-buy" title="What can be bought on the market for the house now; a dash where nothing can">Buy</th> }</tr></thead>
+                    <thead><tr><th>Good</th><th>Held</th><th>A year</th>@if (m.Procure is { Count: > 0 }) { <th class="hs-buycol" title="What can be bought on the market for the house now; a dash where nothing can">Buy</th> }</tr></thead>
                     <tbody>
                     @foreach (var (name, val, d) in new[] { ("credits", m.Treasury.Credits, fc?.Credits), ("materials", m.Treasury.Materials, fc?.Materials), ("manpower", m.Treasury.Manpower, fc?.Manpower), ("influence", m.Treasury.Influence, fc?.Influence), ("exotics", m.Treasury.Exotics, fc?.Exotics), ("helium3", m.Treasury.Helium3, fc?.Helium3), ("rare_earths", m.Treasury.RareEarths, fc?.RareEarths), ("isotopes", m.Treasury.Isotopes, fc?.Isotopes) })
                     {
                         <tr class="@(Resource.IsStrategic(name) ? "strat" : "")">
-                            <td><Icon Name="@name" Tone="@ResTone(name)" Size="17" />@Cap(Resource.Label(name))@if (Resource.IsStrategic(name)) { <small class="hs-strat">strategic</small> }</td>
+                            <td><span class="hs-good"><Icon Name="@name" Tone="@ResTone(name)" Size="17" />@Cap(Resource.Label(name))@if (Resource.IsStrategic(name)) { <small class="hs-strat">strategic</small> }</span></td>
                             <td>@(name == Resource.Credits ? Money.Held(house.Treasury) : Money.Of(name, val))</td>
                             <td class="@(d > 0 ? "ui-up" : d < 0 ? "ui-down" : "ui-mute")">@(d is { } dd && dd != 0 ? (dd > 0 ? Money.SignedOf(name, dd) : "−" + Money.Of(name, -dd)) : "0")</td>
                             @if (m.Procure is { Count: > 0 })
                             {
-                                <td class="hs-buy">@if (m.Procure.FirstOrDefault(o => o.Id == "procure_" + name) is { } po)
+                                <td class="hs-buycol">@if (m.Procure.FirstOrDefault(o => o.Id == "procure_" + name) is { } po)
                                 {
                                     var q = new BuyGoodCommand(pid, name, 3, c.Trade).Quote(w);
                                     <Plate Label="Buy 3" Icon="@name" IconTone="@ResTone(name)" CostIcon="credits" CostText="@(q.Credits > 0 ? Money.Show(q.Credits) : "")" Small="true" Locked="@(po.Refusal != null)" Disabled="@(po.Refusal != null)" ShowNeed="false" Need="@(po.Refusal ?? "")" Tip="@($"Buy 3 {Resource.Label(name)} on the market at once, for {(q.Credits > 0 ? Money.Show(q.Credits) : "nothing")} credits")" data-procure="@name" OnClick="() => G.Execute(new BuyGoodCommand(pid, name, 3, c.Trade))" />
@@ -399,7 +399,7 @@
                 int ready = nowBuild?.Count ?? h.Builds.Count(b => b.Available);
                 bool noGov = h.GovernorName == null || h.GovernorName.StartsWith("nobody", StringComparison.Ordinal);
                 var uw = G.Turn?.Economy?.UnrestWhy(w, holding) ?? new(); var pw = G.Turn?.Economy?.ProsperityWhy(w, holding) ?? new();
-                var subParts = new List<string> { h.SpecName }; if (h.Kind == "station") subParts.Add("station"); if (h.Kind == "claim") subParts.Add("claim"); if (h.SystemName != null) subParts.Add(h.SystemName); if (h.Culture.Length > 0) subParts.Add(Cap(h.Culture) + " culture"); if (works > 0) subParts.Add($"{works} work{(works == 1 ? "" : "s")} round its sun"); if (h.Belt > 0) subParts.Add($"belt richness {h.Belt}");
+                var subParts = new List<string> { Labels.Sentence(h.SpecName) }; if (h.Kind == "station") subParts.Add("station"); if (h.Kind == "claim") subParts.Add("claim"); if (h.SystemName != null) subParts.Add(h.SystemName); if (h.Culture.Length > 0) subParts.Add(Cap(h.Culture) + " culture"); if (works > 0) subParts.Add($"{works} work{(works == 1 ? "" : "s")} round its sun"); if (h.Belt > 0) subParts.Add($"belt richness {h.Belt}");
                 <div class="hs-world @(h.Besieged ? "besieged" : "") @(h.Unrest >= 50 ? "restless" : "")" data-world="@h.Id">
                     <div class="hs-gl"><button class="hs-globe-btn" title="@($"Open {h.SystemName ?? h.Name} on the map")" @onclick='() => OnGo.InvokeAsync("galaxy:" + holding.SystemId)'><Globe Class="@gcls" Size="62" Ringed="@(h.Kind == "planet")" Rich="@Math.Max(1, h.Belt)" /></button></div>
                     <div class="hs-wmain">

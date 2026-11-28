@@ -124,11 +124,11 @@
     };
 }
 <div class="mil-win" data-view="@_view" style="--accent:@m.HouseAccent">
-    <WindowHeader Scene="@(atWar ? "battle" : "bridge")" Kicker="@("Military · navy of " + house.Name)" Title="The Command Deck" Glyph="eagle-emblem" Figures="figures" Class="mil-head">
+    <WindowHeader Scene="@(atWar ? "battle" : "shipyard")" Kicker="@("Military · navy of " + house.Name)" Title="The Command Deck" Glyph="eagle-emblem" Figures="figures" Class="mil-head">
         <Facts>
             <span class="@conditionTone" title="@($"[heart-beats] {condition}\nReadiness {avgReady}, loyalty {avgLoyal}, supply {avgSupply} on average.")"><Icon Name="checked-shield" Tone="ivory" Size="16" />@condition</span>
             <span class="@(m.Wars.Count > 0 || warAbroad != null ? "bad" : "")" title="The wars your house is in and how each stands. At peace, the house whose head thinks worst of yours.@(coldest != null && m.Wars.Count == 0 ? $"\n{coldest.Name} thinks worst of you ({Signed(RegardOf(coldest.Id))})" : "")"><Icon Name="@(m.Wars.Count > 0 ? "crossed-sabres" : "dove")" Tone="ivory" Size="16" />@(m.Wars.Count == 0 ? (warAbroad != null ? "War beyond the Reach" : "At peace") : m.Wars.Count == 1 ? "At war with " + m.Wars[0].EnemyName : Counted.Wars(m.Wars.Count))</span>
-            <span class="@(!anyDanger ? "" : danger.j.d <= 1 ? "bad" : "warn")" title="The nearest fleet of raiders or of a house you are at war with, counted in jumps from the nearest world of yours."><Icon Name="threat" Tone="ivory" Size="16" />@(anyDanger ? $"{Who(danger.f!)}, {JumpWord(danger.j.d)} {danger.j.from}" : "Nothing hostile near")</span>
+            <span class="@(!anyDanger ? "" : danger.j.d <= 1 ? "bad" : "warn")" title="The nearest fleet of raiders or of a house you are at war with, counted in jumps from the nearest world of yours."><Icon Name="@(anyDanger ? "threat" : "checked-shield")" Tone="@(anyDanger ? "ember" : "good")" Size="16" />@(anyDanger ? $"{Who(danger.f!)}, {JumpWord(danger.j.d)} {danger.j.from}" : "Nothing hostile near")</span>
         </Facts>
     </WindowHeader>
     <Tabs Items="tabs" Active="@_view" OnPick="Pick" Class="mil-tabs" />
@@ -338,9 +338,9 @@
                     @foreach (var f in mapFleets.Where(f => byId.ContainsKey(f.SystemId) && inFocus.Contains(f.SystemId)))
                     {
                         var n = byId[f.SystemId]; bool hostile = Hostile(f);
-                        double x = PX(n.X) + (f.IsPlayer ? -17 : 17), y = PY(n.Y) + 15;
+                        double x = PX(n.X) + (f.IsPlayer ? -38 : 38), y = PY(n.Y) - 6;   /* beside the node and clear of its supply ring, never over it */
                         <g class="fleet @(f.IsPlayer ? "mine" : hostile ? "enemy" : "other")" transform="translate(@F(x),@F(y))">
-                            <path d="M-8 9 L0 -9 L8 9 L0 4 Z" style="fill:@(hostile ? "#c4472f" : f.AccentColor)" /><rect x="-9" y="11" width="18" height="15" rx="1" class="flp" />@((MarkupString)$"<text y=\"23\" class=\"fl\">{f.Strength}</text>")
+                            <path d="M-9 8 L0 -11 L9 8 L0 3 Z" style="fill:@(hostile ? "#c4472f" : f.AccentColor)" /><rect x="-12" y="11" width="24" height="19" rx="1.5" class="flp" />@((MarkupString)$"<text y=\"26\" class=\"fl\">{f.Strength}</text>")
                             <title>@f.Name · @f.OwnerHouseName · @Counted.Hulls(f.Strength)@(f.IsPlayer ? "" : $" · confidence {f.Confidence}%")@(f.Moving ? $" · under way, {Counted.Jumps(f.Eta)}" : "")</title>
                         </g>
                     }

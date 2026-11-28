@@ -343,3 +343,11 @@
 .mf-menu .mf-more { display: flex; flex-direction: column; gap: .2667rem; margin: .2667rem 0 0; padding-top: .3333rem; border-top: 1px solid rgba(201,162,74,.25); }
 .mf-menu .mf-tg { border: 0; background: none; box-shadow: none; height: 1.8667rem; padding: 0 .5333rem; } .mf-menu .mf-tg:hover { background: rgba(201,162,74,.10); }
 .sv-strip { margin: .2667rem var(--g-r) .2667rem var(--g-l); }
+/* the plot's fleet plates (spec 7.3): ivory with dark figures for yours, steel with ivory figures for every other, the figure 15 units
+   (13px and more at 1366) */
+.plot .fleet .flp { fill: #5d6b80; stroke: #000; stroke-width: 1.2; }
+.plot .fleet.mine .flp { fill: #ece4d0; }
+.plot .fleet .fl { fill: #f2ead6; font: 700 15px var(--f-ui); text-anchor: middle; paint-order: normal; stroke: none; }
+.plot .fleet.mine .fl { fill: #1d1506; }
+/* the header: the shipyard at peace (the bridge painting is too dark to read as a picture), the battle at war, lifted so the subject shows */
+.mil-head .ui-head-art { background-position: center 55%; filter: brightness(1.42) contrast(1.1) saturate(1.06); }

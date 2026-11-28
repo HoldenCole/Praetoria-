@@ -21,6 +21,11 @@
     string scene = r.Cause == "death" ? "funeral" : "audience";
     string rank = house != null ? c.Titles.NameOf(house.Title, G.World!.Era) : "";
     string credits = house != null ? Money.Held(house.Treasury) : Money.Show(0);
+    string lost = (oldRank.Length > 0 ? "Lost: the " + oldRank + "'s career. " : "Lost: ") + "The heir begins again" + (heirRank.Length > 0 ? " as " + heirRank : "") + (heir?.CareerTrack is { Length: > 0 } tr ? " on the " + tr + " track" : "") + ".";
+    string yearly = heir != null && w.Pools.TryGetValue(heir.Id, out var hp0) ? "\nEach year: " + hp0.InfluenceRegen + " influence, " + Counted.TreasuryActions(hp0.TreasuryRegen) + " and " + Counted.Agents(hp0.AgentsRegen) + " " + Counted.Come(hp0.AgentsRegen) + " back each year, as for every new head. The last head's reach was their own, and does not pass with the name." : "";
+    string passTip = "What passes with the name: " + rank + " · " + Counted.Worlds(worlds) + " · " + Counted.Hulls(hulls) + " · " + credits + " credits · legitimacy " + (house?.Legitimacy ?? 0) + "\n" + lost + yearly;
+    string goTip = "The year goes on under the new head.\nYour screen: " + RoleTheme.Describe(heir?.CareerTrack ?? "");
+    string rankTip = "[crown] Rank — " + rank + ". The house's title passes with the name.";
 }
 <div class="overlay succ-veil" data-succession="@r.Generation">
     <div class="succ-art" style="background-image:url('img/scenes/@(scene).webp')" aria-hidden="true"></div>
@@ -47,10 +52,11 @@
                     </div>
                 }
             </div>
-            <div class="succ-pass" title="What passes with the name: @rank · @Counted.Worlds(worlds) · @Counted.Hulls(hulls) · @(house != null ? Money.Held(house.Treasury) : Money.Show(0)) credits · legitimacy @(house?.Legitimacy ?? 0)">
+            @* what is lost and what comes each year are in the plinth's tooltip; what changes on the screen is in the gold plate's (5 rows at most beside the cast) *@
+            <div class="succ-pass" data-pools-after="@(yearly.Length > 0 ? "1" : null)" title="@passTip">
                 <div class="succ-sub">What passes with the name</div>
                 <div class="succ-plinth">
-                    <div class="succ-fig"><Icon Name="crown" Tone="brass" Size="24" /><span><b class="txt">@rank</b><small>Rank</small></span></div>
+                    <div class="succ-fig" title="@rankTip"><Icon Name="crown" Tone="brass" Size="24" /><span><b>@rank</b><small>Rank</small></span></div>
                     <div class="succ-fig"><Icon Name="ringed-planet" Tone="ivory" Size="24" /><span><b>@worlds</b><small>@(worlds == 1 ? "World" : "Worlds")</small></span></div>
                     <div class="succ-fig"><Icon Name="fleet" Tone="steel" Size="24" /><span><b>@hulls</b><small>@(hulls == 1 ? "Hull" : "Hulls")</small></span></div>
                     <div class="succ-fig"><Icon Name="credits" Tone="brass" Size="24" /><span><b>@credits</b><small>Credits</small></span></div>
@@ -60,13 +66,7 @@
             </div>
             <div class="succ-side">
                 <div class="succ-grid">
-                    <div class="succ-row"><span class="pic"><Icon Name="scroll-unfurled" Tone="ivory" Size="20" /></span><span class="tx"><span class="k">Lost</span><span class="v">@(oldRank.Length > 0 ? $"The {oldRank}'s career. " : "")The heir begins again@(heirRank.Length > 0 ? $" as {heirRank}" : "")@(heir?.CareerTrack is { Length: > 0 } t ? $" on the {t} track" : "").</span></span></div>
-                    @if (heir != null && G.World!.Pools.TryGetValue(heir.Id, out var hp))
-                    {
-                        <div class="succ-row" data-pools-after="1" title="The last head's reach was their own, and does not pass with the name."><span class="pic"><Icon Name="hourglass" Tone="brass" Size="20" /></span><span class="tx"><span class="k">Each year</span><span class="v">@hp.InfluenceRegen influence, @Counted.TreasuryActions(hp.TreasuryRegen) and @Counted.Agents(hp.AgentsRegen) @Counted.Come(hp.AgentsRegen) back each year, as for every new head.</span></span></div>
-                    }
                     @if (heir != null && (heir.NatureTraits.Count > 0 || heir.Ambition.Length > 0)) { <div class="succ-row"><span class="pic face"><Portrait Id="@heir.Id" Name="@heir.Name" Sex="@heir.Sex" Age="@heir.Age" Accent="@accent" Size="30" Height="36" Opens="false" /></span><span class="tx"><span class="k">The heir</span><span class="v">@string.Join(" · ", heir.NatureTraits.Concat(heir.AptitudeTraits))@(heir.Ambition.Length > 0 ? $" · wants to {heir.Ambition.Replace('_', ' ')}" : "")</span></span></div> }
-                    <div class="succ-row"><span class="pic"><Icon Name="spyglass" Tone="ivory" Size="20" /></span><span class="tx"><span class="k">Your screen</span><span class="v">@RoleTheme.Describe(heir?.CareerTrack ?? "")</span></span></div>
                     @if (regent != null) { <div class="succ-row warn"><span class="pic face"><Portrait Id="@regent.Id" Name="@regent.Name" Sex="@regent.Sex" Age="@regent.Age" Accent="@accent" Size="30" Height="36" Opens="false" /></span><span class="tx"><span class="k">A regent</span><span class="v">@regent.Name rules as regent until @heir!.Name comes of age at @DynastySystem.AgeOfMajority.</span></span></div> }
                     @if (handed.Friends.Length > 0) { <div class="succ-row good" data-inherited-friends="@friendsN" title="@handed.FriendsTitle"><span class="pic faces">@Faces(ties.Where(t => t.Kind is InheritedRegard.Friend or InheritedRegard.Unseen))</span><span class="tx"><span class="k">Friends</span><span class="v">@handed.Friends</span></span></div> }
                     @if (handed.Enemies.Length > 0) { <div class="succ-row warn" data-inherited-enemies="@enemiesN" title="@handed.EnemiesTitle"><span class="pic faces">@Faces(ties.Where(t => t.Kind is InheritedRegard.Enemy or InheritedRegard.Vengeful or InheritedRegard.LetGo))</span><span class="tx"><span class="k">Enemies</span><span class="v">@handed.Enemies</span></span></div> }
@@ -77,7 +77,7 @@
                 }
             </div>
         </div>
-        <div class="row succ-foot"><button class="btn primary ui-btn succ-go" title="The year goes on under the new head" @onclick="OnClose"><Icon Name="laurels" Tone="dark" Size="16" />Take up the name</button></div>
+        <div class="row succ-foot"><button class="btn primary ui-btn succ-go" title="@goTip" @onclick="OnClose"><Icon Name="laurels" Tone="dark" Size="16" />Take up the name</button></div>
     </div>
 </div>
 @code {

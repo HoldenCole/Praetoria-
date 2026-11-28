@@ -350,3 +350,57 @@ select.lw-sel option { background: #12161f; color: var(--ink); }
    hole in the column of ladders) */
 .lw-lad { width: 100%; box-sizing: border-box; }
 .lw-cell.on { flex: 1 0 auto; } .lw-cell.on .lw-pl, .lw-cell .lw-pl { justify-content: flex-start; }
+
+/* ---- fixed columns (round 3): every ladder in a section has the same columns, one per option (three, a two-option law leaving the
+   third empty), the chevron in a fixed gutter; each plate fills its column, its name at the left, the estates' marks in a fixed slot
+   (warm left, cool right) and the cost, or the lit plate's "in force" mark, in a fixed slot at the right, so each reads straight down
+   the page and the lit plate never zigzags ---- */
+.lw-lad, .local-laws.lw-local .lw-lad { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); column-gap: .9333rem; align-items: center; flex-wrap: nowrap; height: 2.2667rem; padding: 0 2px; }
+.lw-lad > .lw-step { display: none; }
+.lw-lad > .lw-cell, .lw-lad > .lw-pl { position: relative; min-width: 0; width: 100%; }
+.lw-lad > .lw-cell:not(:first-child)::before, .lw-lad > .lw-pl:not(:first-child)::before { content: ""; position: absolute; left: -.9333rem; top: 0; bottom: 0; width: .9333rem; pointer-events: none;
+  background: center / .4rem .6667rem no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 10'%3E%3Cpath d='M1.2 1.2 4.6 5 1.2 8.8' fill='none' stroke='%23a5813a' stroke-opacity='.8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.lw-lad > .lw-pl:not(:first-child)::before { left: -.9333rem; }
+.lw-lad .lw-cell > .lw-pl, .lw-lad .lw-cell > .lw-tipwrap { width: 100%; min-width: 0; }
+.lw-lad .lw-pl, .lw-lad.ro > .lw-pl, .lw-lad.ro > .lw-pl.on, .lw-cell.on { flex: none; min-width: 0; }
+.lw-lad .lw-pl.on { margin: 0; }
+.lw-lad .lw-pn { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lw-lad .lw-mks, .lw-lad .lw-mks:empty { display: grid; grid-template-columns: 1.4667rem 1.4667rem; column-gap: .2rem; flex: none; width: 3.6667rem; margin-left: auto; padding: 0 .5333rem 0 0; box-sizing: content-box; justify-items: center; }
+.lw-lad .lw-mk.up { grid-column: 1; } .lw-lad .lw-mk.down { grid-column: 2; }
+.lw-lad .lw-pc, .lw-lad .lw-in { flex: none; width: 2.6667rem; min-width: 0; margin-left: 0; justify-content: flex-end; box-sizing: border-box; }
+.lw-lad .lw-in { letter-spacing: 0; padding-left: .4rem; }
+.lw-lad .lw-mks + .lw-in, .lw-lad .lw-mks + .lw-pc { margin-left: 0; }
+.lw-lad .lw-pn + .lw-in, .lw-lad .lw-pn + .lw-pc { margin-left: auto; }
+.lw-lad .lw-pl:not(:has(.lw-in, .lw-pc))::after { content: ""; flex: none; width: 2.6667rem; }   /* a read-only plate keeps the cost slot empty, so its marks line up with a pressable law's */
+/* the marks, larger (22px), the direction a notch outside the ring (up at the top right, down at the bottom right) */
+.lw-mk { width: 1.4667rem; height: 1.4667rem; }
+.lw-mk .icon { width: 1rem; height: 1rem; }
+.lw-mk::after { right: -.4667rem; width: .5333rem; height: .5333rem; }
+.lw-mk.up::after { top: -.3333rem; } .lw-mk.down::after { bottom: -.3333rem; }
+.lw-mk.up.hi::after { height: .8rem; top: -.5333rem; } .lw-mk.down.hi::after { height: .8rem; bottom: -.5333rem; }
+@container lw (max-width: 46rem) {
+  .lw-lad { column-gap: .6667rem; }
+  .lw-lad > .lw-cell:not(:first-child)::before, .lw-lad > .lw-pl:not(:first-child)::before { left: -.6667rem; width: .6667rem; }
+  .lw-lad .lw-mks, .lw-lad .lw-mks:empty { grid-template-columns: 1.2667rem 1.2667rem; width: 2.7333rem; padding-right: .4667rem; }
+  .lw-mk { width: 1.2667rem; height: 1.2667rem; } .lw-mk .icon { width: .8667rem; height: .8667rem; }
+  .lw-lad .lw-pc, .lw-lad .lw-in, .lw-lad .lw-pl:not(:has(.lw-in, .lw-pc))::after { width: 2.1333rem; }
+}
+@container llb (max-width: 40rem) {
+  .lw-lad { column-gap: .6667rem; }
+  .lw-lad > .lw-cell:not(:first-child)::before, .lw-lad > .lw-pl:not(:first-child)::before { left: -.6667rem; width: .6667rem; }
+  .lw-lad .lw-mks, .lw-lad .lw-mks:empty { grid-template-columns: 1.2667rem 1.2667rem; width: 2.7333rem; padding-right: .4667rem; }
+  .lw-mk { width: 1.2667rem; height: 1.2667rem; } .lw-mk .icon { width: .8667rem; height: .8667rem; }
+}
+/* local law in the system window and the Worlds card: the window's own Section, no inner frame */
+.local-laws.lw-local { margin: .4rem 0 0; padding: 0; background: none; box-shadow: none; }
+.local-laws.lw-local .ll-row.lw-row { --lw-gut-l: 1.8667rem; --lw-gut-r: 1.6rem; }
+.local-laws.lw-local .lw-pc:not(.lock) { display: inline-flex; }
+/* a ladder to read only (the Reach, the laws beyond your gift) has no cost on any plate: no empty slot, the name has the room */
+.lw-lad.ro .lw-pl:not(:has(.lw-in, .lw-pc))::after { display: none; }
+@container lw (max-width: 46rem) { .lw-lad .lw-pl { padding: 0 .4rem 0 .5333rem; gap: .3333rem; } .lw-lad .lw-pl.on { padding: 0 .4rem 0 .5333rem; } }
+/* an empty marks slot gives its room to the name (the marks that are shown stay right-anchored beside the cost, so a column still reads
+   straight); the cost slot a little narrower */
+.lw-lad .lw-mks:empty { display: none; }
+.lw-lad .lw-mks { column-gap: .1333rem; width: 3.0667rem; padding-right: .4667rem; }
+.lw-lad .lw-pc, .lw-lad .lw-in { width: 2.2667rem; padding-left: .3333rem; }
+.lw-lad .lw-pl { padding-left: .5333rem; padding-right: .4rem; gap: .3333rem; }

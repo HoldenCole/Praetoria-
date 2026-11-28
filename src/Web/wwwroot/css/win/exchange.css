@@ -125,3 +125,9 @@
 .ex-win .ui-row-nm { white-space: normal; overflow: visible; }
 .vbuy { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .5333rem; }
 .vbuy .vbuy-need { flex-basis: auto; }
+/* belt claims and ventures for sale as tables with one order bar (round 3) */
+.ex-table .ui-table tr.ex-locked td { color: var(--ink-dim); }
+.ex-table .ui-table td:first-child > :is(.icon, svg, .sigil, span):first-child { margin-right: .4667rem; vertical-align: -.25em; }
+.ex-sale .ui-order .vbuy { display: inline-flex; align-items: center; flex-wrap: wrap; gap: .4rem .5333rem; margin: 0; padding: 0; border: 0; background: none; }
+.ex-order-warn { white-space: normal; max-width: 26rem; }
+.ex-claims, .ex-sale { margin-top: .2667rem; }

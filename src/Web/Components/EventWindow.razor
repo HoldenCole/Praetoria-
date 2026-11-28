@@ -131,7 +131,7 @@
     {
         var ch = b.Choices[_tip]; int n = _tip + 1;
         <div class="ev-tip" role="tooltip" style="position-anchor:--evc@(_tip)">
-            <div class="th"><span class="n @(ch.Available ? "" : "off")">@(n <= 9 ? n.ToString() : "")</span>@Short(ch.Label)</div>
+            @{ string head = Short(ch.Label); }<div class="th @(head.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length > 4 ? "long" : "")"><span class="n @(ch.Available ? "" : "off")">@(n <= 9 ? n.ToString() : "")</span>@head</div>
             @if (ch.Items.Count == 0 && ch.Stakes.Length > 0) { <div class="line">@Cap(ch.Stakes)</div> }
             @foreach (var it in ch.Items)
             {
@@ -177,10 +177,11 @@
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     /// <summary>The register's voice for the kicker, in sentence case: "Dispatch", "The court".</summary>
     private static string Voice(string k) => k.Length == 0 ? k : k[0] + k[1..].ToLowerInvariant();
-    /// <summary>A choice's label cut to its first clause, for the tooltip's head: "Carry it out".</summary>
+    /// <summary>A choice's label cut to its first clause, for the tooltip's head: "Carry it out". A head of more than four words is set in
+    /// sentence case, not spaced capitals (docs/VISUAL_SYSTEM.md 2.3).</summary>
     private static string Short(string label)
     {
-        int cut = label.IndexOfAny(new[] { '.', ';', ':', '!', '?' });
+        int cut = label.IndexOfAny(new[] { '.', ';', ':', '!', '?', ',', '(' });
         string s = (cut > 0 ? label[..cut] : label).Trim();
         if (s.Length <= 52) return s;
         int sp = s.LastIndexOf(' ', 48); return (sp > 20 ? s[..sp] : s[..48]).TrimEnd(',', ' ') + "…";

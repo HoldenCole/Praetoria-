@@ -29,7 +29,7 @@
             Tip: "[ringed-planet] Your worlds\n" + (ours.Count == 0 ? "A fief is won, granted, or married into." : Counted.Worlds(ours.Count) + " of the Reach" + Apos + "s " + worlds.Count + ", in " + Counted.Regions(ours.Select(n => n.RegionId).Distinct().Count()) + ".")),
         new("shaking-hands", worst == null ? "0" : (100 - worst.Unrest).ToString(), worst == null ? "No world held" : "Least loyal", worst == null ? "ivory" : worst.Unrest >= 50 ? "ember" : worst.Unrest >= 35 ? "brass" : "good",
             Tip: $"[shaking-hands] Your least loyal world\n{(worst == null ? "You hold no world." : $"{worst.Name}, at {100 - worst.Unrest}.")} Loyalty is a hundred less the unrest. Below 50 a world is restless: it yields less and may rise."),
-        new("threat", restless.ToString(), "Restless", restless > 3 ? "ember" : "ivory", Of: peopled.Count.ToString(),
+        new(restless > 0 ? "threat" : "dove", restless.ToString(), "Restless", restless > 3 ? "ember" : restless > 0 ? "ivory" : "good", Of: peopled.Count.ToString(),
             Tip: $"[threat] Restless in the Reach\n{restless} of {peopled.Count} peopled worlds{(unruly != null && unruly.Unrest > 0 ? $". The worst region is {unruly.Name}" : "")}."),
         new("flag-objective", unclaimed.ToString(), "Unclaimed", "ivory",
             Tip: $"[flag-objective] Unclaimed systems\n{(unclaimed == 0 ? "Every system has a master." : "Systems with no master: to be settled or taken.")}{(sites.Count > 0 ? $" {sites.Count} lie within reach of a colony of yours." : "")}"),
@@ -75,7 +75,7 @@
                         </div>
                         <div class="wr-meters">
                             @if (r.Unrest > 0) { <Meter Label="Unrest" Value="@r.Unrest" Text="@r.Unrest.ToString()" Color="@(r.Unrest >= 50 ? "#c4472f" : "#c9a24a")" ValueClass="@(r.Unrest >= 50 ? "ui-down" : "")" Tip="[threat] Regional unrest, 0 to 100" /> }
-                            else { <span class="wr-calm" title="[threat] Regional unrest, 0 to 100"><Icon Name="threat" Tone="ivory" Size="14" />No unrest</span> }
+                            else { <span class="wr-calm" title="[dove] Regional unrest, 0 to 100"><Icon Name="dove" Tone="good" Size="14" />No unrest</span> }
                             @if (rt >= 0) { <Meter Label="Magistrates" Value="@rt" Target="@LadderSystem.TrustLow" Text="@rt.ToString()" Color="@(rt < LadderSystem.TrustLow ? "#c4472f" : "#8cc47e")" Tip="@($"[scales] What this region thinks of the magistrates\nAgainst the Reach's {LadderSystem.Trust(w)}. Under {LadderSystem.TrustLow} (the tick) it holds a little less closely to the Reach each year; at {LadderSystem.TrustHigh} or more, a little closer.")" /> }
                         </div>
                         <Icon Name="chev" Size="12" Class="flat wr-chev" />
@@ -187,7 +187,7 @@
                                 <div class="ww-facts">
                                     <span class="k">Held by</span><span>@(owner != null ? owner.Name : "nobody: it is unclaimed")@(n.Culture.Length > 0 ? $" · {n.Culture} culture" : "")</span>
                                     @if (n.GovernorName != null) { <span class="k">Governor</span><span>@n.GovernorName</span> }
-                                    @if (planet != null) { <span class="k">Industry</span><span>@(c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization)</span> }
+                                    @if (planet != null) { <span class="k">Industry</span><span>@Labels.Sentence(c.Holdings.Spec(planet.Specialization)?.Name ?? planet.Specialization)</span> }
                                     @if (n.Population > 0) { <span class="k">Citizens</span><span>@(planet != null ? Census.Say(Census.Citizens(w, planet)) : n.Population.ToString()) · loyalty @(100 - n.Unrest)@(n.Rebellion > 0 ? $" · rebellion {n.Rebellion}" : "")</span> }
                                     @if (planet != null) { <span class="k">Built</span><span>@(planet.Buildings.Count == 0 ? "nothing" : string.Join(", ", planet.Buildings.Select(b => c.Holdings.Building(b)?.Name ?? b)))</span> }
                                     @if (stations.Count > 0) { <span class="k">Stations</span><span>@string.Join(", ", stations.Select(s => s.Name))</span> }

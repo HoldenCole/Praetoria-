@@ -1,4 +1,5 @@
 @inject GameClient G
+@inject IJSRuntime JS
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var p = w.Protagonist!; var house = w.House(p.HouseId)!;
     var track = c.Careers.ById(p.CareerTrack); int maxRank = track?.MaxRank ?? 0;
@@ -189,7 +190,7 @@
 
 @code {
     private string _tab = "life";
-    private void Pick(string k) => _tab = k;
+    private async Task Pick(string k) { bool moved = _tab != k; _tab = k; if (moved) { try { await JS.InvokeVoidAsync("praetoria.scrollHome", ".you-scroll"); } catch { } } }
     // an alert opens this window on its subject (docs/PLAYTHROUGH.md 15): "window:tab", or "window:tab:person"
     [Parameter] public EventCallback<string> OnGo { get; set; }
     [Parameter] public string Tab { get; set; } = "";

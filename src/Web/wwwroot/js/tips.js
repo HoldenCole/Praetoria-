@@ -67,8 +67,10 @@
     // "[icon] Title — text": a head in brass small capitals with its glyph (docs/VISUAL_SYSTEM.md 4.14)
     const ic = /^\[([\w-]+)\] (.+)$/.exec(lines[0]); let headIcon = '';
     if (ic && !/ = /.test(lines[0])) { headIcon = ic[1]; lines[0] = ic[2]; }
-    const m = /^(.{2,40}?) (?:—|·) (.+)$/.exec(lines[0]);
-    if (m && (lines.length === 1 && m[2].length > 24 || headIcon)) { const h = document.createElement('b'); if (headIcon) h.innerHTML = glyph(headIcon, 'ivory'); h.append(m[1]); tipEl.appendChild(h); lines[0] = m[2]; const own = idOf(m[1]); if (own) skip.add(own); }
+    // a short title before an em dash is always the head, however many lines follow (no dash is ever shown); before a middle dot only
+    // when the tooltip is one line
+    const m = /^(.{2,40}?) (—|·) (.+)$/.exec(lines[0]);
+    if (m && (m[2] === '—' || lines.length === 1 && m[3].length > 24 || headIcon)) { const h = document.createElement('b'); if (headIcon) h.innerHTML = glyph(headIcon, 'ivory'); h.append(m[1]); tipEl.appendChild(h); lines[0] = m[3].charAt(0).toUpperCase() + m[3].slice(1); const own = idOf(m[1]); if (own) skip.add(own); }
     else if (headIcon) { const h = document.createElement('b'); h.innerHTML = glyph(headIcon, 'ivory'); h.append(lines.shift()); tipEl.appendChild(h); if (!lines.length) return ''; }
     for (const ln of lines) {
       // "[icon] words = value": an effect line, its value red or green by its sign; "=+ value" and "=- value" say outright whether it is
