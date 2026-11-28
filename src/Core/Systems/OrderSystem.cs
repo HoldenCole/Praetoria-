@@ -182,6 +182,17 @@ public sealed class OrderSystem
         return (Math.Min(SwayCap, lean), why);
     }
 
+    /// <summary>The patronage part of <see cref="Sway"/> alone: three for a client of <paramref name="target"/>, two for its patron, one
+    /// for a fellow client, with the tie in words. What leans a house the way the player votes on any division (SenateSystem.YourWay).</summary>
+    public static int Patronage(House voter, House target, out string tie)
+    {
+        tie = ""; if (voter.Id == target.Id) return 0;
+        if (voter.PatronId == target.Id) { tie = "it is your client"; return 3; }
+        if (target.PatronId == voter.Id) { tie = "it is your patron"; return 2; }
+        if (voter.PatronId.Length > 0 && voter.PatronId == target.PatronId) { tie = "it is a fellow client of your patron"; return 1; }
+        return 0;
+    }
+
     /// <summary>Every house that leans the way this one wants, strongest first.</summary>
     public static List<(House house, int lean, List<string> why)> Swayed(World w, House target) =>
         w.Houses.Values.Where(h => Real(h) && h.Id != target.Id).Select(h => { var s = Sway(w, h, target); return (house: h, s.lean, s.why); }).Where(x => x.lean > 0)

@@ -545,6 +545,12 @@
           "id": "say_it_will_not_happen_again",
           "effects": [
             {
+              "type": "setCharFlag",
+              "role": "leader",
+              "flag": "promised_to_stand",
+              "value": true
+            },
+            {
               "type": "adjustRelationship",
               "from": "leader",
               "to": "self",

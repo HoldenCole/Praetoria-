@@ -143,7 +143,7 @@
             },
             {
               "type": "log",
-              "text": "The head of the new client house came to {self.name}'s door at first light, as clients do. {self.name} received him in the hall, not the yard."
+              "text": "The head of the new client house came to {self.name}'s door at first light, as clients do. {self.name} received them in the hall, not the yard."
             }
           ]
         },
@@ -315,8 +315,13 @@
               "delta": 1
             },
             {
+              "type": "setWorldFlag",
+              "flag": "helping_a_client",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "A client came to {self.name} with a lawsuit he could not afford. {self.name} paid the advocate. The client's vote was never in doubt afterwards."
+              "text": "A client came to {self.name} with a lawsuit they could not afford, and {self.name} paid the advocate. The client's house owes the house a vote for it: its vote on the house's next motion is not in doubt, unless that motion strikes at it."
             }
           ],
           "requires": [
@@ -325,6 +330,11 @@
               "resource": "credits",
               "op": "gte",
               "value": 3
+            },
+            {
+              "type": "worldFlag",
+              "flag": "client_to_help",
+              "value": true
             }
           ]
         },
@@ -333,7 +343,7 @@
           "effects": [
             {
               "type": "log",
-              "text": "A client came to {self.name} with his troubles and was sent to the steward, who listened. Sometimes that is all a client wants."
+              "text": "A client came to {self.name} with their troubles and was sent to the steward, who listened. Sometimes that is all a client wants."
             }
           ]
         },

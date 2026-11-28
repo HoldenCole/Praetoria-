@@ -113,6 +113,8 @@ public sealed class VoteCommand : ICommand
         // a vote the house has given its word on, or sold: the reminder before the count, at the moment it is changed (docs/events/votes.md, "Promises")
         if (actor.HouseId == w.Protagonist?.HouseId && DealingsSystem.PledgeOn(w, actor.HouseId, m.Id) is { } p && p.Side != _stance && w.House(p.ToHouseId) is { } to)
             w.Tell("warn", $"Your vote on this motion is {(p.Paid ? "bought by" : "pledged to")} {to.Name}, {(p.Side > 0 ? "for" : "against")} it. Leave it so at the count, or its head thinks {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you, it is written down, and {to.Name} takes no word of yours on a vote for {Counted.Years(DealingsSystem.PledgeMemoryYears)}.", "houses", to.Id);
+        // the word given to the bench's leader that the house will vote at the next vote: the reminder, as the player sits it out
+        if (actor.HouseId == w.Protagonist?.HouseId && _stance == 0 && VoteMarks.StandsOn(w, m) is { } leader) w.Tell("warn", VoteMarks.StandSays(w, leader), "senate:chamber", leader.HouseId);
     }
 }
 

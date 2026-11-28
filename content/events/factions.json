@@ -1,5 +1,5 @@
 {
-  "//": "SENATE FACTIONS (GDD §6.1 'voting blocs'; GAP §12 item 8). These read FactionSystem's flags: faction_formed / faction_joined / faction_dissolved / broke_the_whip (one turn), in_faction and faction_leader while so, faction_against_me while a bench's leader has a motion on the docket against you.",
+  "//": "SENATE FACTIONS (GDD §6.1 'voting blocs'; GAP §12 item 8). These read FactionSystem's flags: faction_formed / faction_joined / faction_dissolved / broke_the_whip (one turn), in_faction and faction_leader while so, faction_against_me while a bench's leader has a motion on the docket that strikes at your house and the count as it stands would carry it (SenateSystem.WriteFlags); bench_can_be_split while a house of that bench, not its leader, would vote for it (VoteMarks.Docket).",
   "events": [
     {
       "id": "an_invitation_to_the_benches", "tier": "situation", "weight": 8, "repeatable": true,
@@ -51,8 +51,8 @@
       "choices": [
         { "id": "offer_a_deal", "cost": { "influence": 2 }, "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": 1 },
             { "type": "log", "text": "{self.name} crossed the aisle before the vote with an offer. The bench's leader listened, which is more than the motion deserved." } ] },
-        { "id": "split_the_bench", "requires": [ { "type": "skill", "role": "self", "skill": "intrigue", "op": "gte", "value": 2 } ], "cost": { "agents": 1 },
-          "effects": [ { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "threat", "delta": 1 },
+        { "id": "split_the_bench", "requires": [ { "type": "skill", "role": "self", "skill": "intrigue", "op": "gte", "value": 2 }, { "type": "worldFlag", "flag": "bench_can_be_split", "value": true } ], "cost": { "agents": 1 },
+          "effects": [ { "type": "setWorldFlag", "flag": "splitting_the_bench", "value": true }, { "type": "adjustResource", "resource": "influence", "delta": 1 }, { "type": "adjustCounter", "key": "threat", "delta": 1 },
             { "type": "log", "text": "{self.name} spent the night finding the bench's weakest member and what they wanted. By morning the whip count had changed." } ] },
         { "id": "face_them", "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 1 },
             { "type": "log", "text": "{self.name} faced the bench in open session and let the Reach see who had moved against the house, and why." } ] }

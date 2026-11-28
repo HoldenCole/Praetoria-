@@ -203,6 +203,29 @@ a promise:
 - **No election under emergency powers** means none: the magistrates' count waits as the consuls' does, and is held at
   the first session after the powers are laid down (`LadderSystem.Due`, `ladder_election_owed`). The Senate's deference is two
   points of lean toward what the holder moves, and the reports now say it leans, not that it passes.
+- **Clients and patrons lean the way you vote** (the bench group, 2026-11-28; `SenateSystem.YourWay`, `OrderSystem.Patronage`). On
+  every motion the player's house does not move (sway already leans them toward what it moves, and for or against what is aimed
+  at it), the player's client and the player's patron lean two the way the player voted, a fellow client of the patron one, with
+  the line "it leans the way you vote" in the whip count. Only a vote the player cast, or gave their word on, is a way to lean;
+  at the count the player's house, if the player has not voted, is counted after every other house, so the forecast and the
+  count agree. A lean is a lean: a client against the player by more than two votes its own way. At the elections a client
+  gives its seats to its patron's nominee or candidate before its bench's, but a house votes for its own first, and the reports
+  now say so.
+- **The bench remembers, and can be fed** (`FactionSystem.Followed`, `RemembersWhip`, `SessionDone`). A vote against the
+  player's bench costs -5 with its leader and -2 affinity at once, and at the next count every house of that bench (its leader
+  too, so its members follow what it is for, in the forecast and at the count alike) leans one against each motion the player's
+  house moves. A bench the player leads, fed at the house's table or reminded who leads it (*The Leader's Table*), follows the
+  player's vote by one more than its discipline at the next count. Each lasts that count and no more.
+- **The player's word to the bench's leader** (*The Empty Seat on the Bench*, "it will not happen again"; `VoteMarks.Stand`) is
+  judged at the next vote the leader votes in that the player's house neither moves nor is named in: on its feet, kept and said;
+  in its seat, what a vote against the bench costs (-5, -2), and the leader does not come to ask again. Reminded when given,
+  when a motion it covers is moved, and when the player sits one out; it lapses with a notice when that house no longer leads
+  the player's bench.
+- **A motion against the player moved by a bench's leader** (`SenateSystem.BenchAgainst`, `faction_against_me`) is one that
+  strikes at the player's house and that the count as it stands would carry; the flag is written once the session's motions
+  are moved, so *Across the Aisle* comes while the motion is before the Senate (it never came before). The report says each
+  house of the bench leans the way its leader votes, two points, and votes the other way only for a reason of its own; finding
+  its weakest member (the least weighty house of it that would vote for the motion) declares that house's vote against it.
 
 ## The lead of a bench by a contest (2026-11-21)
 

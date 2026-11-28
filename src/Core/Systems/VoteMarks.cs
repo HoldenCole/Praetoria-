@@ -56,10 +56,35 @@ public static class VoteMarks
     /// <summary>A debt called in from someone of another house (the_favor_called/call_it_in): paid with their house's vote where you need
     /// one, on a motion now before the Senate, as the choice is made (DealingsSystem.DebtPaid). The mark goes.</summary>
     public const string DebtCalledChar = "debt_called_in";
+    /// <summary>The leader of the player's bench, who saw the house's seat empty, told it will not happen again (the_empty_seat_on_the_bench/
+    /// say_it_will_not_happen_again): made the player's word that the house will vote at the next vote of the bench (<see cref="StandKey"/>),
+    /// judged at that count (<see cref="Counted"/>). The mark goes.</summary>
+    public const string StandChar = "promised_to_stand";
+    public const string StandPrefix = "stand_promised:";
+    /// <summary>The player's word to the house that leads their bench, that their house will vote at the next vote the bench's leader votes
+    /// in: a world counter, the turn it was given.</summary>
+    public static string StandKey(string leaderHouseId) => StandPrefix + leaderHouseId;
+    /// <summary>On the head of every house of the Reach with which a bargain may be struck: not the player's, not at war with it, not one
+    /// that stands in a favour with it either way or has had the player's word broken to it lately (<see cref="BargainBarredChar"/>). A
+    /// report that brings a house over to the player's side reads it (the_senate_listens/build_bloc). Rewritten with the docket.</summary>
+    public const string BargainOpenChar = "may_bargain_with_you";
+    /// <summary>A bench's leader has moved against the player's house (across_the_aisle): the least weighty house of that bench that would
+    /// vote for the motion is marked on its head, and the report's gate is set; finding what it wants (split_the_bench, which sets
+    /// <see cref="SplitFlag"/>) declares its vote against the motion as the choice is made (<see cref="Split"/>). Rewritten with the docket.</summary>
+    public const string WeakestChar = "weakest_on_the_bench", SplittableFlag = "bench_can_be_split", SplitFlag = "splitting_the_bench";
+    /// <summary>Another senator brought over to the player's side (the_senate_listens/build_bloc, spread_credit set <see cref="BringOverFlag"/>):
+    /// the head marked <see cref="BargainOpenChar"/> who thinks best of the player, of a house of the Reach with no favour standing with
+    /// the player's, is chosen as the choice is made, and their house owes the player's a favour, which is a vote. The report comes only
+    /// while there is such a head (<see cref="BlocFlag"/>). Chosen by regard, then name: no draw of the shared RNG.</summary>
+    public const string BringOverFlag = "bringing_a_senator_over", BlocFlag = "bloc_can_grow";
+    /// <summary>A client of the player's house helped with its suit (a_client_asks/help_him sets <see cref="HelpFlag"/>): the first client by
+    /// name with no favour standing with the player's house owes it a favour, which is a vote, as the choice is made. The choice is open
+    /// only while there is such a client (<see cref="ClientFlag"/>).</summary>
+    public const string HelpFlag = "helping_a_client", ClientFlag = "client_to_help";
 
     private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar };
     private static readonly string[] SessionFlags = { AbstainedFlag, PurseOutFlag, ActAgainstFlag };
-    private static readonly string[] DocketChars = { MovesChar, MovesAgainstChar, UndecidedChar, VoteWantedChar };
+    private static readonly string[] DocketChars = { MovesChar, MovesAgainstChar, UndecidedChar, VoteWantedChar, BargainOpenChar, WeakestChar };
 
     private static void Mark(World w, string flag) { w.WorldFlags.Add(flag); w.WorldCounters["mark:" + flag] = w.Turn; }
     private static Character? Head(World w, string houseId) => w.House(houseId) is { } h ? Economy.HeadOf(w, h) : null;
@@ -83,19 +108,130 @@ public static class VoteMarks
     {
         // favours called in on the motion against the house, before any bargain below makes a new one
         if (w.WorldFlags.Remove(CallInFlag) && mine != null) DealingsSystem.CallInAgainst(w, mine);
-        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar) || c.Flags.Contains(VoteSoldChar) || c.Flags.Contains(DebtCalledChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        if (w.WorldFlags.Remove(SplitFlag) && mine != null) Split(w, mine);
+        if (w.WorldFlags.Remove(BringOverFlag) && mine != null) BringOver(w, mine);
+        if (w.WorldFlags.Remove(HelpFlag) && mine != null) HelpClient(w, mine);
+        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar) || c.Flags.Contains(VoteSoldChar) || c.Flags.Contains(DebtCalledChar) || c.Flags.Contains(StandChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
-            bool both = c.Flags.Remove(VoteOwedChar), promised = c.Flags.Remove(VotePromisedChar), owes = c.Flags.Remove(HouseOwesChar), sold = c.Flags.Remove(VoteSoldChar), debt = c.Flags.Remove(DebtCalledChar);
+            bool both = c.Flags.Remove(VoteOwedChar), promised = c.Flags.Remove(VotePromisedChar), owes = c.Flags.Remove(HouseOwesChar), sold = c.Flags.Remove(VoteSoldChar), debt = c.Flags.Remove(DebtCalledChar), stand = c.Flags.Remove(StandChar);
             if (mine == null || c.HouseId == mine || w.House(c.HouseId) is not { } theirs || World.Outsider(c.HouseId)) continue;
+            if (stand) Stand(w, mine, theirs);
             if (debt) DealingsSystem.DebtPaid(w, mine, c, theirs);
             if (!both && !sold && !promised && !owes) continue;
             if (both) Word(w, mine, theirs);
             if (sold) Sell(w, mine, theirs);
             if (promised) WealthSystem.OweFor(w, mine, theirs.Id);
             if (both || owes) WealthSystem.OweFor(w, theirs.Id, mine);
-            foreach (var x in w.LivingCharacters().Where(x => x.HouseId == theirs.Id)) x.Flags.Add(BargainBarredChar);
+            foreach (var x in w.LivingCharacters().Where(x => x.HouseId == theirs.Id)) { x.Flags.Add(BargainBarredChar); x.Flags.Remove(BargainOpenChar); }
         }
-        Callable(w, mine);
+        Callable(w, mine); Gates(w, mine);
+    }
+
+    /// <summary>The houses that stand in a favour with the player's house, either way, or have had the player's word broken to them lately:
+    /// no new bargain is struck with them (a house owes another one favour at a time).</summary>
+    private static HashSet<string> Standing(World w, string mine) =>
+        w.Houses.Values.Where(h => h.Id != mine && (WealthSystem.FavourOwed(w, h.Id, mine) || WealthSystem.FavourOwed(w, mine, h.Id)
+            || DealingsSystem.Remembered(w, DealingsSystem.PledgeBrokenKind, mine, h.Id).Any(d => w.Turn - d.Turn < DealingsSystem.PledgeMemoryYears))).Select(h => h.Id).ToHashSet();
+    /// <summary>The head to bring over: marked open to a bargain, thinking no worse than nothing of the player, the one who thinks best of them.</summary>
+    private static Character? Senator(World w)
+    {
+        var me = w.Protagonist; if (me == null) return null;
+        return w.LivingCharacters().Where(c => c.Flags.Contains(BargainOpenChar) && c.HouseId != me.HouseId).Select(c => (c, by: w.GetRelationship(c.Id, me.Id)?.Disposition ?? 0)).Where(x => x.by >= 0)
+            .OrderByDescending(x => x.by).ThenBy(x => x.c.Id, StringComparer.Ordinal).Select(x => x.c).FirstOrDefault();
+    }
+    /// <summary>The client to help: the first by name with no favour standing with the player's house.</summary>
+    private static House? ClientToHelp(World w, string mine)
+    {
+        var standing = Standing(w, mine);
+        return OrderSystem.ClientsOf(w, mine).FirstOrDefault(h => !standing.Contains(h.Id) && !World.Outsider(h.Id) && Head(w, h.Id) != null && !w.AtWar(h.Id, mine));
+    }
+    /// <summary>The gates of the reports that bring a house over or help a client, as things stand now.</summary>
+    private static void Gates(World w, string? mine)
+    {
+        if (mine != null && Senator(w) != null) w.WorldFlags.Add(BlocFlag); else w.WorldFlags.Remove(BlocFlag);
+        if (mine != null && ClientToHelp(w, mine) != null) w.WorldFlags.Add(ClientFlag); else w.WorldFlags.Remove(ClientFlag);
+    }
+    private static void BringOver(World w, string mine)
+    {
+        if (Senator(w) is not { } senator || w.House(senator.HouseId) is not { } theirs) { w.Tell("info", "Nobody would come over to your side this year: every house of the Reach stands in a favour with yours, is at war with it, or thinks ill of you.", "senate:chamber"); return; }
+        WealthSystem.OweFor(w, theirs.Id, mine);
+        foreach (var x in w.LivingCharacters().Where(x => x.HouseId == theirs.Id)) { x.Flags.Add(BargainBarredChar); x.Flags.Remove(BargainOpenChar); }
+        w.Tell("good", $"{senator.Name} of {theirs.Name} has come over to your side: {theirs.Name} owes your house a vote. It votes for your next motion whichever way it leans, unless that motion strikes at it.", "senate:chamber", theirs.Id);
+        w.Log($"{senator.Name} of {theirs.Name} comes over to the side of {w.House(mine)?.Name}.");
+    }
+    private static void HelpClient(World w, string mine)
+    {
+        if (ClientToHelp(w, mine) is not { } client) return;
+        WealthSystem.OweFor(w, client.Id, mine);
+        foreach (var x in w.LivingCharacters().Where(x => x.HouseId == client.Id)) { x.Flags.Add(BargainBarredChar); x.Flags.Remove(BargainOpenChar); }
+        w.Tell("good", $"{Head(w, client.Id)?.Name} of {client.Name}, your client, owes the house a vote for the advocate you paid: {client.Name} votes for your next motion whichever way it leans, unless that motion strikes at it.", "houses", client.Id);
+    }
+
+    // ---------------- the player's word to the bench: on its feet at the next vote (docs/events/votes.md, "Promises", the bench group) ----------------
+
+    /// <summary>The player's word to the house that leads their bench: their house will vote at the next vote of the bench, and the player
+    /// is told what breaking it costs. Judged at that count (<see cref="Counted"/>); it lapses, with a notice, if the house no longer
+    /// leads the player's bench (<see cref="StandLapses"/>). The word is to the house: a new head of it holds the player to it.</summary>
+    private static void Stand(World w, string mine, House leader)
+    {
+        w.WorldCounters[StandKey(leader.Id)] = Math.Max(1, w.Turn);
+        string bench = FactionSystem.Of(w, leader.Id)?.Name ?? "your bench";
+        w.Tell("warn", $"You promised {leader.Name} that your house will vote at the next vote of {bench} that {leader.Name} votes in, for or against. Vote, and the word is kept; "
+            + $"stay in your seat, and {Head(w, leader.Id)?.Name ?? "its head"} thinks {FactionSystem.BreakWhipDisposition} the worse of you and your tie to the bench is weaker by {FactionSystem.BreakWhipAffinity}, as for a vote against it.", "senate:chamber", leader.Id);
+    }
+    /// <summary>The head of the house the player has promised to vote with at the next vote of the bench, if this motion would be that
+    /// vote (not the player's own motion, nor one that names the player's house), or null: for the reminder when it is moved and when
+    /// the player would stay in their seat on it.</summary>
+    public static Character? StandsOn(World w, Motion m)
+    {
+        string? mine = w.Protagonist?.HouseId; if (mine == null || m.ProposerHouseId == mine || m.TargetId == mine || FactionSystem.Of(w, mine) is not { } bench || bench.LeaderHouseId == mine) return null;
+        return w.Counter(StandKey(bench.LeaderHouseId)) > 0 ? Head(w, bench.LeaderHouseId) : null;
+    }
+    /// <summary>What the reminder says of the word to the bench, on a motion it covers.</summary>
+    public static string StandSays(World w, Character leader) =>
+        $"You promised {w.House(leader.HouseId)?.Name ?? "the leader of your bench"} that your house would vote at the next vote of the bench: stay in your seat on this one, if {leader.Name} votes in it, and they think {FactionSystem.BreakWhipDisposition} the worse of you and your tie to the bench is weaker by {FactionSystem.BreakWhipAffinity}.";
+    /// <summary>A word to the bench's leader that can no longer be kept as given: that house is gone, or leads the player's bench no longer.</summary>
+    public static void StandLapses(World w, string? mine)
+    {
+        foreach (var key in w.WorldCounters.Keys.Where(k => k.StartsWith(StandPrefix, StringComparison.Ordinal)).OrderBy(k => k, StringComparer.Ordinal).ToList())
+        {
+            string leaderId = key[StandPrefix.Length..]; var leader = w.House(leaderId); var bench = mine != null ? FactionSystem.Of(w, mine) : null;
+            if (mine != null && leader != null && bench?.LeaderHouseId == leaderId) continue;
+            w.WorldCounters.Remove(key); if (mine == null) continue;
+            w.Tell("info", leader == null ? "The house you promised to vote with at the next vote of your bench is no more, and your word goes with it."
+                : $"Your word to {leader.Name}, that your house would vote at the next vote of its bench, lapses: {(bench == null ? "your house sits on no bench now" : $"{leader.Name} no longer leads {bench.Name}")}.", "senate:offices", leader?.Id ?? "");
+        }
+    }
+    /// <summary>The count of the first vote the bench's leader voted in after the player's word: on its feet, the word is kept; in its
+    /// seat, broken, at the cost of a vote against the bench (the leader's regard and the tie to the bench), and said. In place of the
+    /// abstention noticed: the leader does not come to ask a second time.</summary>
+    private static void Stood(World w, Motion m, string mine, Faction bench, Character leader)
+    {
+        var house = w.House(mine); var leaderHouse = w.House(bench.LeaderHouseId); string you = house?.Name ?? "Your house", them = leaderHouse?.Name ?? "the leader of your bench";
+        if (m.Votes.GetValueOrDefault(mine) != 0)
+        {
+            w.Tell("good", $"You kept your word to {them}: your house was on its feet at the vote.", "senate:offices", bench.LeaderHouseId);
+            w.Log($"{you} was on its feet at the vote, as it had promised {them}.");
+            return;
+        }
+        FactionSystem.AddAffinity(w, mine, bench.LeaderHouseId, -FactionSystem.BreakWhipAffinity);
+        if (w.Protagonist is { } me) { var r = w.Relationship(leader.Id, me.Id); r.Disposition = Math.Clamp(r.Disposition - FactionSystem.BreakWhipDisposition, -100, 100); }
+        w.Tell("warn", $"You promised {them} that your house would vote at the next vote of {bench.Name}, and it stayed in its seat: {leader.Name} thinks {FactionSystem.BreakWhipDisposition} the worse of you, and your tie to the bench is weaker by {FactionSystem.BreakWhipAffinity}.", "senate:offices", bench.LeaderHouseId);
+        w.Log($"{you} stayed in its seat at the vote, though it had promised {them} it would not.");
+    }
+
+    // ---------------- the bench's weakest member (across_the_aisle/split_the_bench) ----------------
+
+    /// <summary>The house marked as the weakest of the bench whose leader moved against the player's house: given what it wanted, it
+    /// declares its vote against that motion, whatever its bench does. The mark and the gate go.</summary>
+    private static void Split(World w, string mine)
+    {
+        var head = w.LivingCharacters().Where(c => c.Flags.Contains(WeakestChar)).OrderBy(c => c.Id, StringComparer.Ordinal).FirstOrDefault();
+        foreach (var c in w.Characters.Values) c.Flags.Remove(WeakestChar); w.WorldFlags.Remove(SplittableFlag);
+        if (head == null || w.House(head.HouseId) is not { } weakest || FactionSystem.Of(w, weakest.Id) is not { } bench) return;
+        var m = SenateSystem.Docket(w).FirstOrDefault(x => x.ProposerHouseId == bench.LeaderHouseId && WealthSystem.StrikesAt(x, mine)); if (m == null) return;
+        m.Votes[weakest.Id] = -1;
+        w.Tell("good", $"{weakest.Name}, the least of {bench.Name}'s houses, has been found what it wanted: it votes against the motion against your house, whatever its bench does.", "senate:chamber", weakest.Id);
     }
 
     /// <summary>The gate of the night spent calling in favours (<see cref="FavoursToCallFlag"/>), as things stand now.</summary>
@@ -139,9 +275,16 @@ public static class VoteMarks
         Callable(w, mine);
         if (mine == null) return;
         // who stands in a favour with the player's house, either way, or has had the player's word broken to it lately
-        var standing = w.Houses.Values.Where(h => h.Id != mine && (WealthSystem.FavourOwed(w, h.Id, mine) || WealthSystem.FavourOwed(w, mine, h.Id)
-            || DealingsSystem.Remembered(w, DealingsSystem.PledgeBrokenKind, mine, h.Id).Any(d => w.Turn - d.Turn < DealingsSystem.PledgeMemoryYears))).Select(h => h.Id).ToHashSet();
+        var standing = Standing(w, mine);
         foreach (var c in w.Characters.Values) { if (c.Alive && standing.Contains(c.HouseId)) c.Flags.Add(BargainBarredChar); else c.Flags.Remove(BargainBarredChar); }
+        foreach (var h in w.Houses.Values.Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && !standing.Contains(h.Id) && !w.AtWar(h.Id, mine)))
+            if (Head(w, h.Id) is { Alive: true } open) open.Flags.Add(BargainOpenChar);
+        w.WorldFlags.Remove(SplittableFlag);
+        Gates(w, mine);
+        if (SenateSystem.Docket(w).FirstOrDefault(m => senate.BenchAgainst(w, m, mine)) is { } against && FactionSystem.Of(w, against.ProposerHouseId) is { } bench && bench.LeaderHouseId == against.ProposerHouseId
+            && bench.Members.Where(id => id != bench.LeaderHouseId && id != mine && w.House(id) != null && !against.Votes.ContainsKey(id) && senate.Stance(w, against, id) > 0)
+                .OrderBy(id => senate.Weight(w, id)).ThenBy(id => senate.Lean(w, against, id)).ThenBy(id => id, StringComparer.Ordinal).FirstOrDefault() is { } least && Head(w, least) is { Alive: true } weakestHead)
+        { weakestHead.Flags.Add(WeakestChar); w.WorldFlags.Add(SplittableFlag); }
         foreach (var m in SenateSystem.Docket(w).ToList())
         {
             if (m.ProposerHouseId == mine)
@@ -161,16 +304,20 @@ public static class VoteMarks
     }
 
     /// <summary>At the count. On the player's own motion: the heads of the houses that voted for it and against it. On a motion the
-    /// leader of the player's bench voted on, and the player's house did not: the leader saw it.</summary>
+    /// leader of the player's bench voted on, and the player's house did not: the leader saw it; or, where the player had given that
+    /// house their word to vote at this vote, the word is judged (<see cref="Stood"/>).</summary>
     public static void Counted(World w, Motion m, string? mine)
     {
         if (mine == null) return;
         if (m.ProposerHouseId == mine)
             foreach (var (houseId, vote) in m.Votes.OrderBy(kv => kv.Key, StringComparer.Ordinal))
                 if (houseId != mine && vote != 0 && Head(w, houseId) is { } head) head.Flags.Add(vote > 0 ? VotedWithChar : VotedAgainstChar);
-        if (m.ProposerHouseId != mine && m.TargetId != mine && m.Votes.GetValueOrDefault(mine) == 0 && FactionSystem.Of(w, mine) is { } bench
+        if (m.ProposerHouseId != mine && m.TargetId != mine && FactionSystem.Of(w, mine) is { } bench
             && bench.LeaderHouseId != mine && m.Votes.GetValueOrDefault(bench.LeaderHouseId) != 0 && Head(w, bench.LeaderHouseId) is { } leader)
-        { leader.Flags.Add(NoticedChar); Mark(w, AbstainedFlag); }
+        {
+            if (w.WorldCounters.Remove(StandKey(bench.LeaderHouseId))) Stood(w, m, mine, bench, leader);   // the word given that it will not happen again
+            else if (m.Votes.GetValueOrDefault(mine) == 0) { leader.Flags.Add(NoticedChar); Mark(w, AbstainedFlag); }
+        }
     }
 
     /// <summary>A vote the player's house paid for came out on the floor: the head of the house that took the purse.</summary>

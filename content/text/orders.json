@@ -22,16 +22,16 @@
     {
       "id": "a_client_at_the_door",
       "title": "A Client at the Door",
-      "body": "The house has paid another's debts and taken it as a client. Its head will call at first light with the others, will vote for the house at an election whatever his party says, and will lean the house's way when the chamber divides. He costs a hundred credits a year to keep, and he expects to be kept.",
+      "body": "The house has paid another's debts and taken it as a client. Its head will call at first light with the others. At an election it gives its seats to the house's candidate whatever its bench says, unless one of its own is standing, and whenever the chamber divides it leans the way you vote. A client costs a hundred credits a year to keep, and expects to be kept.",
       "choices": {
-        "receive_him_well": "Receive him in the hall.",
+        "receive_him_well": "Receive them in the hall.",
         "set_out_what_is_owed": "Set out plainly what each owes the other."
       }
     },
     {
       "id": "under_protection",
       "title": "Under Protection",
-      "body": "The house has put itself under a greater one's protection. The patron and the patron's other clients will lean the house's way in the chamber, and there are a hundred credits a year in it. In return the house's vote is the patron's at an election, and the patron will ask for things.",
+      "body": "The house has put itself under a greater one's protection. Whenever the chamber divides, the patron and the patron's other clients lean the way you vote, and there are a hundred credits a year in it. In return the house's seats go to the patron at an election, unless one of your own stands or you pledge them elsewhere, and the patron will ask for things.",
       "choices": {
         "be_a_good_client": "Call at first light with the others.",
         "keep_your_own_counsel": "Take the protection and keep your own ledger."
@@ -50,10 +50,10 @@
     {
       "id": "a_client_asks",
       "title": "A Client Asks",
-      "body": "One of the house's clients is at the door with a difficulty: a suit he cannot fund, a creditor he cannot face. He does not say that he votes as the house wishes. He does not need to.",
+      "body": "One of the house's clients is at the door with a difficulty: a suit they cannot fund, a creditor they cannot face. They do not say that their house leans the way you vote. They do not need to.",
       "choices": {
-        "help_him": "Pay for it.",
-        "send_him_to_the_steward": "Send him to the steward.",
+        "help_him": "Pay for it, and their house owes yours a vote.",
+        "send_him_to_the_steward": "Send them to the steward.",
         "make_an_example_of_generosity": "Settle it in the open forum."
       }
     },

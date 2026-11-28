@@ -62,7 +62,14 @@ kind, in the pattern of the existing `Mark()` moments.
   and `other_consul_to_court`, written when a consul strikes your motion, open *The Veto Falls*' court, which makes that consul
   `a_friend_in_the_chair` who strikes the next motion against your house; `canvassed_every_door`, `canvassed_with_coin` (*The
   Canvass*) and `lost_with_grace` (*The Count Goes Against You*) are votes at the next count of the ladder; under emergency powers
-  the ladder's count waits too (`ladder_election_owed`); the Reach's trust is written down from the first.
+  the ladder's count waits too (`ladder_election_owed`); the Reach's trust is written down from the first. The bench group
+  (2026-11-28): `promised_to_stand` (*The Empty Seat on the Bench*) is your word to vote at the bench's next vote, judged at that
+  count; `bench_fed` and `bench_whipped` (*The Leader's Table*) have your bench follow your vote one point more at the next count;
+  a vote against your bench is remembered at the next count (`whip_remembered:`); `bringing_a_senator_over` (*The Growing Bloc*,
+  open while `bloc_can_grow`) and `helping_a_client` (*A Client Asks*, open while `client_to_help`) make a house owe yours a vote,
+  chosen by the engine, not by a new role; `splitting_the_bench` (*Across the Aisle*, open while `bench_can_be_split`) declares the
+  bench's weakest member against the motion; `faction_against_me` is written with the docket, for a motion that strikes at you and
+  would carry; your clients and patron lean the way you vote on every division.
 - **Family** (`DynastySystem`, `CourtshipSystem`, `HouseholdSystem`): `born_to_the_house`, `schooling_begins` (a child of six),
   `kin_came_of_age` (sixteen), `grandchild_of_the_head`; `in_law` on the head of your spouse's family; `wedding_remembered` every
   tenth year of your marriage; `left_unpaid` on someone who leaves the household unpaid. In review: `chose_own_road` on one who comes

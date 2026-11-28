@@ -276,6 +276,11 @@
           "id": "a_dinner",
           "effects": [
             {
+              "type": "setWorldFlag",
+              "flag": "bench_fed",
+              "value": true
+            },
+            {
               "type": "adjustResource",
               "resource": "credits",
               "delta": -4
@@ -299,6 +304,11 @@
         {
           "id": "the_whip",
           "effects": [
+            {
+              "type": "setWorldFlag",
+              "flag": "bench_whipped",
+              "value": true
+            },
             {
               "type": "adjustCounter",
               "key": "senate_influence",

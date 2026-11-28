@@ -226,6 +226,11 @@
           "key": "senate_influence",
           "op": "lt",
           "value": 6
+        },
+        {
+          "type": "worldFlag",
+          "flag": "bloc_can_grow",
+          "value": true
         }
       ],
       "choices": [
@@ -250,8 +255,13 @@
               "delta": -10
             },
             {
+              "type": "setWorldFlag",
+              "flag": "bringing_a_senator_over",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "Another senator to {self.name}'s side, another vote that moves when {self.name} moves. The bloc grows the way blocs grow — one quiet promise at a time, until the chamber looks up one day and finds {self.name} can carry a motion alone. {rival_house.name} of {rival_house.house} is counting heads now, and not liking the sum."
+              "text": "Another senator came over to {self.name}'s side, and their house owes the house a vote: for its next motion, whichever way that house leans, unless the motion strikes at it. The bloc grows the way blocs grow, one quiet promise at a time, until the chamber looks up one day and finds {self.name} can carry a motion alone. {rival_house.name} of {rival_house.house} is counting heads now, and not liking the sum."
             }
           ]
         },
@@ -273,8 +283,13 @@
               "delta": 2
             },
             {
+              "type": "setWorldFlag",
+              "flag": "bringing_a_senator_over",
+              "value": true
+            },
+            {
               "type": "log",
-              "text": "{self.name} let others take the public credit for {self.name}'s motions — a rival's name on {self.name}'s policy, a friend's face on {self.name}'s win. The bloc grows and no one fears it, because no one can quite see its shape. The most dangerous power is the kind that has arranged not to look like power at all."
+              "text": "{self.name} let others take the public credit for {self.name}'s motions: a rival's name on {self.name}'s policy, a friend's face on {self.name}'s win. The friend's house owes the house a vote for it, for its next motion, whichever way that house leans, unless the motion strikes at it. The bloc grows and no one fears it, because no one can quite see its shape. The most dangerous power is the kind that has arranged not to look like power at all."
             }
           ]
         }

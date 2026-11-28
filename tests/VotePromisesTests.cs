@@ -29,7 +29,12 @@ namespace Praetoria.Tests;
 /// Group "office": one of yours standing for the ladder, spoken for and canvassed; taught to speak; the count read again; the consul's
 /// table and what the Senior Consul does; your colleague in the consulship and the business divided; the other consul courted after a
 /// veto; the emergency powers (no election while they run, the veto, the levy, the lean); the canvass and the good grace at the count;
-/// a motion held over; the attendance record, the committee, the coin behind a canvass.</summary>
+/// a motion held over; the attendance record, the committee, the coin behind a canvass.
+///
+/// Group "bench": your word to the bench's leader that the empty seat will not happen again; the leader's table (a dinner, the whip);
+/// a client at the door and the protection of a patron (the way you vote, and the seats at an election); a client helped with a suit;
+/// the senator brought over to a growing bloc; the bench you found; the whip broken and remembered at the next count; a bench's
+/// leader moving against your house, and its weakest member split from it; the patron's wish and the patron who noticed.</summary>
 public class VotePromisesTests
 {
     private static readonly ContentDatabase Content = ContentLoader.LoadFromDirectory(ContentLocator.FindContentDir());
@@ -1524,5 +1529,416 @@ public class VotePromisesTests
         Leans(g, levy, member, 1); levy2.Lobby[member.Id] = levy.Lobby[member.Id]; Assert.Equal(-1, h.Senate.Lean(h.W, levy2, member.Id));   // the same house, two points apart
         Session(g); Session(h);
         Assert.Equal(1, levy.Votes[member.Id]); Assert.Equal(-1, levy2.Votes[member.Id]);
+    }
+
+    // ================================================================== group "bench"
+
+    /// <summary>The player's house sits on a bench that another house leads: the first house of the Reach by name leads it, and the third
+    /// sits with them. The second is left to move the motions.</summary>
+    private static (G g, House leader, House mover, House other, Faction bench) Seated(ulong seed = 7)
+    {
+        var g = Start(seed); var o = Others(g); var leader = o[0]; var mover = o[1]; var other = o[2];
+        foreach (var f in g.W.Factions) { f.Members.Remove(leader.Id); f.Members.Remove(other.Id); f.Members.Remove(g.Mine.Id); }
+        g.W.Factions.RemoveAll(f => f.LeaderHouseId == leader.Id || f.LeaderHouseId == other.Id || f.LeaderHouseId == g.Mine.Id);
+        var bench = new Faction { Id = "test_bench", Name = "the Test Bench", LeaderHouseId = leader.Id, Members = { leader.Id, other.Id, g.Mine.Id } };
+        g.W.Factions.Add(bench); g.W.Relationship(g.HeadOf(leader).Id, g.Me.Id).Disposition = 0;
+        return (g, leader, mover, other, bench);
+    }
+    /// <summary>The player founds a bench, as the window does: two houses that have voted with theirs often enough, and no bench of their own.</summary>
+    private static (G g, Faction bench, List<House> members) Leading(ulong seed = 7)
+    {
+        var g = Start(seed); var members = Others(g).Skip(1).Take(2).ToList();
+        foreach (var f in g.W.Factions) { f.Members.Remove(g.Mine.Id); foreach (var h in members) f.Members.Remove(h.Id); }
+        foreach (var h in members) g.W.WorldCounters[FactionSystem.AffinityKey(h.Id, g.Mine.Id)] = FactionSystem.FormThreshold;
+        var found = new FoundFactionCommand(g.Me.Id); Assert.True(g.Do(found), found.Refusal(g.Ctx));
+        var bench = FactionSystem.Of(g.W, g.Mine.Id)!; Assert.Equal(g.Mine.Id, bench.LeaderHouseId); Assert.True(members.All(h => bench.Members.Contains(h.Id)));
+        return (g, bench, members);
+    }
+    private static int By(G g, Motion m, House h, string because) => g.Senate.Why(g.W, m, h.Id).Where(x => x.why.Contains(because)).Sum(x => x.by);
+    private static int Affinity(G g, House h) => FactionSystem.Affinity(g.W, g.Mine.Id, h.Id);
+
+    // ------------------------------------------------------------------ the empty seat: the_empty_seat_on_the_bench/say_it_will_not_happen_again
+
+    /// <summary>The house sits out a vote its bench's leader votes in, and the leader's report comes; the player says it will not happen again.</summary>
+    private static (G g, House leader, House mover, Faction bench) Promised()
+    {
+        var (g, leader, mover, _, bench) = Seated();
+        var m = TheyMove(g, mover); Leans(g, m, leader, 3); IVote(g, m, 0); Session(g);
+        Assert.Equal(0, m.Votes[g.Mine.Id]); Assert.Contains(VoteMarks.NoticedChar, g.HeadOf(leader).Flags);
+        var (f, cast) = Report(g, "the_empty_seat_on_the_bench", "leader"); Assert.Equal(g.HeadOf(leader).Id, cast.Id);
+        int regard = g.Regard(leader); g.W.News.Clear(); Answer(g, f, "say_it_will_not_happen_again");
+        Assert.Equal(regard + 3, g.Regard(leader)); Assert.True(g.W.Counter(VoteMarks.StandKey(leader.Id)) > 0);
+        Assert.True(g.Told($"You promised {leader.Name} that your house will vote at the next vote of the Test Bench that {leader.Name} votes in"));
+        Assert.True(g.Told($"thinks {FactionSystem.BreakWhipDisposition} the worse of you and your tie to the bench is weaker by {FactionSystem.BreakWhipAffinity}"));   // what breaking it costs, said as it is given
+        return (g, leader, mover, bench);
+    }
+
+    [Fact]
+    public void TheEmptySeat_YourWordBroken_CostsWhatAVoteAgainstTheBenchCosts_YouAreReminded_AndTheLeaderDoesNotAskAgain()
+    {
+        var (g, leader, mover, bench) = Promised();
+        g.W.News.Clear(); var m = g.Senate.Add(g.W, mover.Id, "levy", ""); Only(g, m);
+        Assert.True(g.Told($"{mover.Name} has moved a motion. You promised {leader.Name} that your house would vote at the next vote of the bench"));   // the reminder, when it is moved
+        Leans(g, m, leader, 3); g.W.News.Clear(); IVote(g, m, 0); Assert.True(g.Told("stay in your seat on this one"));   // and as you sit it out
+        int regard = g.Regard(leader), affinity = Affinity(g, leader); g.HeadOf(leader).Flags.Remove(VoteMarks.NoticedChar); Session(g);
+        Assert.Equal(0, m.Votes[g.Mine.Id]); Assert.Equal(1, m.Votes[leader.Id]);
+        Assert.Equal(regard - FactionSystem.BreakWhipDisposition, g.Regard(leader)); Assert.Equal(affinity - FactionSystem.BreakWhipAffinity, Affinity(g, leader));   // -5 and -2
+        Assert.True(g.Told($"You promised {leader.Name} that your house would vote at the next vote of the Test Bench, and it stayed in its seat"));
+        Assert.Contains(g.W.History, h => h.Text.Contains("stayed in its seat at the vote, though it had promised"));
+        Assert.Equal(0, g.W.Counter(VoteMarks.StandKey(leader.Id))); Assert.DoesNotContain(VoteMarks.NoticedChar, g.HeadOf(leader).Flags);   // judged, and the leader does not come to ask again
+    }
+
+    [Fact]
+    public void TheEmptySeat_YourWordKept_ToANewHeadOfTheLeadersHouse_AcrossASaveAndALoad_AndAMotionAgainstYourHouseIsNotTheVote()
+    {
+        var (g0, leader0, mover0, _) = Promised();
+        // the next vote is a censure of your house: not the bench's vote you promised, and the word waits
+        var censure = g0.Senate.Add(g0.W, mover0.Id, "censure", g0.Mine.Id); Only(g0, censure); Leans(g0, censure, leader0, 3); IVote(g0, censure, 0); Session(g0);
+        Assert.True(g0.W.Counter(VoteMarks.StandKey(leader0.Id)) > 0); Assert.False(g0.Told("it stayed in its seat"));
+        var old = g0.HeadOf(leader0); DynastySystem.Die(g0.W, old.Id); var heir = g0.HeadOf(leader0); Assert.NotEqual(old.Id, heir.Id);
+        var g = Reload(g0); var leader = g.W.House(leader0.Id)!; var mover = g.W.House(mover0.Id)!;   // a save and a load between the word and the vote
+        var m = g.Senate.Add(g.W, mover.Id, "levy", ""); Only(g, m); Leans(g, m, leader, 3); IVote(g, m, 1);
+        int regard = g.Regard(leader); g.W.News.Clear(); Session(g);
+        Assert.Equal(1, m.Votes[g.Mine.Id]); Assert.True(g.Told($"You kept your word to {leader.Name}: your house was on its feet at the vote."));
+        Assert.Equal(regard, g.Regard(leader)); Assert.Equal(0, g.W.Counter(VoteMarks.StandKey(leader.Id)));
+    }
+
+    [Fact]
+    public void TheEmptySeat_YourWordLapsesWithANotice_WhenYouLeaveTheBench()
+    {
+        var (g, leader, mover, bench) = Promised();
+        Assert.True(g.Do(new LeaveFactionCommand(g.Me.Id))); var m = g.Senate.Add(g.W, mover.Id, "levy", ""); Only(g, m); Leans(g, m, leader, 3); IVote(g, m, 0);
+        g.W.News.Clear(); int regard = g.Regard(leader); Session(g);
+        Assert.True(g.Told($"Your word to {leader.Name}, that your house would vote at the next vote of its bench, lapses: your house sits on no bench now."));
+        Assert.Equal(0, g.W.Counter(VoteMarks.StandKey(leader.Id))); Assert.Equal(regard, g.Regard(leader)); Assert.False(g.Told("it stayed in its seat"));
+    }
+
+    // ------------------------------------------------------------------ the leader's table: the_leaders_table/a_dinner, the_whip
+
+    /// <summary>The player leads a bench; another house moves a motion; the leader's report comes, and is answered.</summary>
+    private static (G g, Faction bench, List<House> members, Motion m) AtTheTable(string choice)
+    {
+        var (g, bench, members) = Leading(); var mover = Others(g).First(h => !bench.Members.Contains(h.Id));
+        var m = TheyMove(g, mover); FactionSystem.Tick(g.W, Wt(g)); Assert.True(g.W.HasFlag("faction_leader"));
+        var f = ReportOf(g, "the_leaders_table"); Answer(g, f, choice);
+        return (g, bench, members, m);
+    }
+
+    [Theory]
+    [InlineData("a_dinner", "has fed its bench at the house's table")]
+    [InlineData("the_whip", "has reminded its bench, one house at a time, who leads it")]
+    public void TheLeadersTable_YourBenchFollowsYourVoteByOneMore_AtTheNextCount_AcrossASaveAndALoad_AndThenNoMore(string choice, string because)
+    {
+        var (g0, _, members0, m0) = AtTheTable(choice); var member0 = members0[0];
+        IVote(g0, m0, 1);
+        Assert.Equal(FactionSystem.Discipline, By(g0, m0, member0, $"{g0.Mine.Name}, who leads")); Assert.Equal(FactionSystem.FollowedBy, By(g0, m0, member0, because));   // the whip count's reason
+        Leans(g0, m0, member0, 1);   // for it, by the one the table gave: without it the house would sit it out
+        g0.W.WorldFlags.Remove(choice == "a_dinner" ? FactionSystem.FedFlag : FactionSystem.WhippedFlag); Assert.Equal(0, g0.Senate.Lean(g0.W, m0, member0.Id));
+        g0.W.WorldFlags.Add(choice == "a_dinner" ? FactionSystem.FedFlag : FactionSystem.WhippedFlag);
+        var g = Reload(g0); var m = g.W.Motions.First(x => x.Id == m0.Id); var member = g.W.House(member0.Id)!;   // a save and a load before the count
+        int forecast = g.Senate.Stance(g.W, m, member.Id); Assert.Equal(1, forecast);
+        Session(g);
+        Assert.Equal(forecast, m.Votes[member.Id]);   // counted as the whip count showed it
+        // the count is done, and with it what the table bought
+        Assert.False(g.W.HasFlag(FactionSystem.FedFlag)); Assert.False(g.W.HasFlag(FactionSystem.WhippedFlag));
+        var next = IMove(g, "relief", g.W.Galaxy!.ReachRegions.OrderBy(r => r.Id, StringComparer.Ordinal).First().Id); var other = Others(g).First(h => h.Id != member.Id && FactionSystem.Of(g.W, h.Id) is { } b && b.LeaderHouseId != h.Id);
+        var mover = Others(g).First(h => FactionSystem.Of(g.W, h.Id)?.LeaderHouseId != g.Mine.Id); var third = g.Senate.Add(g.W, mover.Id, "levy", ""); Only(g, third); IVote(g, third, 1);
+        Assert.Equal(0, By(g, third, member, because)); Assert.Equal(FactionSystem.Discipline, By(g, third, member, $"{g.Mine.Name}, who leads"));
+    }
+
+    // ------------------------------------------------------------------ the bench takes shape: the_bench_forms
+
+    [Fact]
+    public void TheBenchForms_YouLeadIt_AndItsHousesLeanTheWayYouVote_SoTheCountFollows()
+    {
+        var (g, bench, members) = Leading(); Assert.True(g.W.HasFlag("faction_formed"));
+        var f = ReportOf(g, "the_bench_forms"); Answer(g, f, "a_dinner_for_the_bench");
+        var mover = Others(g).First(h => !bench.Members.Contains(h.Id)); var m = TheyMove(g, mover); var member = members[0];
+        IVote(g, m, -1);
+        Assert.Equal(-FactionSystem.Discipline, By(g, m, member, $"it follows {g.Mine.Name}, who leads {bench.Name}"));   // the line the whip count shows
+        Leans(g, m, member, -1); Assert.Equal(1, g.Senate.Lean(g.W, m, member.Id) + 2 * FactionSystem.Discipline - 2);   // without your lead it would be for it
+        Session(g);
+        Assert.Equal(-1, m.Votes[member.Id]); Assert.False(g.W.HasFlag("broke_the_whip"));   // the bench follows you; you are its whip, not its member
+    }
+
+    // ------------------------------------------------------------------ the whip's displeasure: FactionSystem.BreakWhip, the_whips_displeasure
+
+    [Fact]
+    public void TheWhipsDispleasure_AVoteAgainstYourBench_IsFiveAndTwo_AndEveryHouseOfItLeansOneAgainstYourMotionAtTheNextCount_ThenForgets()
+    {
+        var (g, leader, mover, other, bench) = Seated();
+        var theirs = TheyMove(g, mover); Leans(g, theirs, leader, 3); IVote(g, theirs, -1);
+        int regard = g.Regard(leader), affinity = Affinity(g, leader); Session(g);
+        Assert.Equal(1, theirs.Votes[leader.Id]); Assert.True(g.W.HasFlag("broke_the_whip"));
+        Assert.Equal(regard - FactionSystem.BreakWhipDisposition, g.Regard(leader));
+        Assert.Equal(affinity - FactionSystem.BreakWhipAffinity - 1, Affinity(g, leader));   // the whip's two, and the vote apart itself
+        Assert.True(g.Told($"You voted against the Test Bench, your bench: {g.HeadOf(leader).Name} thinks 5 the worse of you, and your tie to the bench is weaker by 2. At the next count every house of the Test Bench leans 1 against any motion of yours"));
+        var (f, _) = (ReportOf(g, "the_whips_displeasure"), 0); Answer(g, f, "say_nothing");
+        // the next count: your motion, moved before it
+        var mine = IMove(g); Only(g, mine);
+        Assert.Equal(-FactionSystem.WhipRemembered, By(g, mine, leader, "it remembers that you voted against the Test Bench"));
+        Assert.Equal(-FactionSystem.WhipRemembered, By(g, mine, other, "it remembers that you voted against the Test Bench"));
+        Assert.Equal(0, By(g, mine, mover, "it remembers"));   // not a house of the bench
+        g = Reload(g); mine = g.W.Motions.First(x => x.Id == mine.Id); other = g.W.House(other.Id)!; leader = g.W.House(leader.Id)!;   // a save and a load before it
+        Leans(g, mine, leader, 1); Leans(g, mine, other, 0); int forecast = g.Senate.Stance(g.W, mine, other.Id);   // the leader is for your motion still, so voting for it breaks no whip
+        g.W.WorldCounters.Remove(FactionSystem.WhipKey(bench.Id)); Assert.True(g.Senate.Lean(g.W, mine, other.Id) > 0); g.W.WorldCounters[FactionSystem.WhipKey(bench.Id)] = FactionSystem.WhipActive;   // its own one, and what its leader remembers too
+        Session(g);
+        Assert.Equal(forecast, mine.Votes[other.Id]); Assert.Equal(0, mine.Votes[other.Id]);   // it sat on its hands, where it would have voted for you
+        Assert.Equal(0, g.W.Counter(FactionSystem.WhipKey(bench.Id)));   // and it is forgotten after that count
+        g.W.WorldCounters.Remove($"motion_cd:{g.Mine.Id}:levy:"); var later = IMove(g); Only(g, later); Assert.Equal(0, By(g, later, other, "it remembers"));
+    }
+
+    // ------------------------------------------------------------------ patrons and clients: a_client_at_the_door, under_protection, SenateSystem.YourWay
+
+    /// <summary>The player's house takes a needy house as its client, as the window does.</summary>
+    private static House TakeClient(G g, IEnumerable<string>? not = null)
+    {
+        g.Mine.Wealth = Math.Max(1000, g.Mine.Wealth); var skip = not?.ToHashSet() ?? new HashSet<string>();
+        var c = Others(g).First(h => !skip.Contains(h.Id) && h.PatronId.Length == 0 && !OrderSystem.ClientsOf(g.W, h.Id).Any());
+        c.Wealth = 10; c.Debt = Math.Max(1, c.Debt); g.W.Relationship(g.HeadOf(c).Id, g.Me.Id).Disposition = 0;
+        var take = new ClientCommand(g.Me.Id, ClientCommand.Take, c.Id, g.Tc.Orders); Assert.True(g.Do(take), take.Refusal(g.Ctx));
+        Assert.Equal(g.Mine.Id, c.PatronId); return c;
+    }
+    /// <summary>Whom a house gives its seats to at a count: the one tally with only its weight in it.</summary>
+    private static string SeatsOf(Dictionary<string, int> tally) => tally.Single(kv => kv.Value >= 1000).Key;
+
+    [Fact]
+    public void AClientAtTheDoor_LeansTheWayYouVote_OnEveryDivision_AndTheCountFollows_ButALeanIsALean()
+    {
+        var g = Start(); var c = TakeClient(g); Assert.True(g.W.HasFlag(OrderSystem.ClientTakenFlag));
+        var f = ReportOf(g, "a_client_at_the_door"); Answer(g, f, "receive_him_well");
+        var mover = Others(g).First(h => h.Id != c.Id); var m = TheyMove(g, mover);   // a motion your house neither moves nor is named in
+        Assert.Equal(0, By(g, m, c, "it leans the way you vote"));   // no vote of yours yet, so no way to lean
+        IVote(g, m, -1); Assert.Equal(-2, By(g, m, c, "it leans the way you vote: it is your client"));   // the whip count's reason
+        Leans(g, m, c, -1);   // for it by one of itself, against it by your two
+        int forecast = g.Senate.Stance(g.W, m, c.Id); Assert.Equal(-1, forecast);
+        // and one that leans against you by more than two votes its own way: the words promise a lean, not a vote
+        var second = Others(g).First(h => h.Id != c.Id && h.Id != mover.Id); var n = g.Senate.Add(g.W, second.Id, "levy", ""); Only(g, m, n);
+        IVote(g, n, 1); Leans(g, n, c, -1); Assert.Equal(2, By(g, n, c, "it leans the way you vote"));
+        Session(g);
+        Assert.Equal(forecast, m.Votes[c.Id]); Assert.Equal(-1, n.Votes[c.Id]);
+    }
+
+    [Fact]
+    public void YourClientsAndPatron_LeanTheWayYouVoteOnlyWhenYouHaveVoted_AndTheForecastAndTheCountAgreeWhenYouHaveNot()
+    {
+        // you lead a bench, so before the count was mended your house was counted among the first; your client sits on no bench of yours
+        var (g, bench, _) = Leading(); var c = TakeClient(g, bench.Members.Concat(g.W.Factions.Select(f => f.LeaderHouseId))); var mover = Others(g).First(h => h.Id != c.Id && !bench.Members.Contains(h.Id));
+        var m = TheyMove(g, mover); Leans(g, m, g.W.House(g.Mine.Id)!, 1); Leans(g, m, c, -1);   // your house leans for it, and you have not voted; your client leans against it of itself
+        int forecast = g.Senate.Stance(g.W, m, c.Id); Assert.Equal(-1, forecast);
+        Session(g);
+        Assert.Equal(1, m.Votes[g.Mine.Id]); Assert.Equal(forecast, m.Votes[c.Id]);   // your house's vote was cast for you at the count, after your client's: no way you had chosen
+    }
+
+    [Fact]
+    public void AClientAtTheDoor_AtAnElection_GivesItsSeatsToYourHouseWhateverItsBenchSays_UnlessOneOfItsOwnStands()
+    {
+        // the consuls: your house stands, and your client's seats are counted for it, not for its own bench's nominee
+        var g = Start(); g.W.Turn = ElectionSystem.Every - 1; Assert.True(g.Do(new StandForConsulCommand(g.Me.Id, g.Senate.Offices)));
+        var c = TakeClient(g, ElectionSystem.Nominees(g.W, g.Senate.Offices, Wt(g)).Select(n => n.houseId).Concat(FactionSystem.Of(g.W, g.Mine.Id)!.Members));   // a client that is not its own bench's nominee, nor of your bench
+        var noms = ElectionSystem.Nominees(g.W, g.Senate.Offices, Wt(g)); Assert.Contains(noms, n => n.houseId == g.Mine.Id); Assert.DoesNotContain(noms, n => n.houseId == c.Id);
+        Assert.Equal(g.Mine.Id, SeatsOf(ElectionSystem.Tally(g.W, g.Senate.Offices, id => id == c.Id ? 1000 : 0, noms)));
+        var tally = TallyNow(g); Session(g);
+        Assert.Contains(g.W.History, h => h.Text.StartsWith("The Senate elects its consuls") && h.Text.Contains($"{g.Mine.Name} ({tally[g.Mine.Id]})"));   // counted so at the count
+        // the ladder: one of yours stands for praetor, and your client's seats go to them, unless the client house has one of its own standing
+        var (h, rep) = Stands(); Answer(h, rep, "let_them_win_it"); var client = TakeClient(h, FactionSystem.Of(h.W, h.Mine.Id)!.Members); var rung = h.Senate.Offices.Rung(LadderSystem.Praetor)!;
+        h.W.Relationship(h.HeadOf(client).Id, h.Me.Id).Disposition = -50;   // its head thinks ill of you: what it gives you, it gives as your client
+        var cands = LadderSystem.Candidates(h.W, h.Senate.Offices, rung, new HashSet<string>());
+        string seats = SeatsOf(LadderSystem.Tally(h.W, h.Senate.Offices, rung, cands, id => id == client.Id ? 1000 : 0));
+        var own = cands.Where(x => x.HouseId == client.Id).OrderByDescending(LadderSystem.Merit).ThenBy(x => x.Id, StringComparer.Ordinal).FirstOrDefault();
+        Assert.Equal(own?.Id ?? Bastien(h).Id, seats);
+        foreach (var x in h.W.LivingCharacters().Where(x => x.HouseId == client.Id)) x.CareerTrack = "";   // none of its own can stand now
+        cands = LadderSystem.Candidates(h.W, h.Senate.Offices, rung, new HashSet<string>()); Assert.DoesNotContain(cands, x => x.HouseId == client.Id);
+        Assert.Equal(Bastien(h).Id, SeatsOf(LadderSystem.Tally(h.W, h.Senate.Offices, rung, cands, id => id == client.Id ? 1000 : 0)));
+        int expected = LadderSystem.Tally(h.W, h.Senate.Offices, rung, cands, Wt(h))[Bastien(h).Id];
+        Session(h); Assert.True(h.W.HasFlag(LadderSystem.HeldFlag)); Assert.Equal(expected, AtTheCount(h, Bastien(h)));
+    }
+
+    /// <summary>The player's house puts itself under a greater house's protection, as the window does; that house has another client.</summary>
+    private static (G g, House patron, House fellow) Protected(ulong seed = 7, Func<G, House>? pick = null)
+    {
+        var g = Start(seed); g.Mine.Wealth = 10;
+        var patron = pick?.Invoke(g) ?? Others(g).First(h => h.PatronId.Length == 0 && !OrderSystem.ClientsOf(g.W, h.Id).Any());
+        patron.Wealth = Math.Max(1000, patron.Wealth); patron.Treasury.Credits = Math.Max(200, patron.Treasury.Credits); g.W.Relationship(g.HeadOf(patron).Id, g.Me.Id).Disposition = 20;
+        var seek = new ClientCommand(g.Me.Id, ClientCommand.Seek, patron.Id, g.Tc.Orders); Assert.True(g.Do(seek), seek.Refusal(g.Ctx)); Assert.Equal(patron.Id, g.Mine.PatronId);
+        var fellow = Others(g).First(h => h.Id != patron.Id && h.PatronId.Length == 0 && !OrderSystem.ClientsOf(g.W, h.Id).Any()); fellow.Wealth = 10; fellow.Debt = Math.Max(1, fellow.Debt);
+        g.Tc.Orders.TakeClient(g.W, patron, fellow); Assert.Equal(patron.Id, fellow.PatronId);
+        return (g, patron, fellow);
+    }
+
+    [Fact]
+    public void UnderProtection_YourPatronAndItsOtherClients_LeanTheWayYouVote_ByTwoAndOne_AcrossASaveAndALoad()
+    {
+        var (g0, patron0, fellow0) = Protected(); Assert.True(g0.W.HasFlag(OrderSystem.BecameClientFlag));
+        var f = ReportOf(g0, "under_protection"); Answer(g0, f, "be_a_good_client");
+        var mover = Others(g0).First(h => h.Id != patron0.Id && h.Id != fellow0.Id); var m0 = TheyMove(g0, mover); IVote(g0, m0, 1);
+        Assert.Equal(2, By(g0, m0, patron0, "it leans the way you vote: it is your patron")); Assert.Equal(1, By(g0, m0, fellow0, "it leans the way you vote: it is a fellow client of your patron"));
+        Leans(g0, m0, patron0, 1); Leans(g0, m0, fellow0, 1);   // against it of themselves, by one and by nothing; for it by your lead
+        var g = Reload(g0); var m = g.W.Motions.First(x => x.Id == m0.Id);   // a save and a load before the count
+        Assert.Equal(1, g.Senate.Stance(g.W, m, patron0.Id)); Assert.Equal(1, g.Senate.Stance(g.W, m, fellow0.Id));
+        Session(g);
+        Assert.Equal(1, m.Votes[patron0.Id]); Assert.Equal(1, m.Votes[fellow0.Id]);
+    }
+
+    [Fact]
+    public void UnderProtection_AtTheConsulsElection_YourSeatsGoToThePatron_UnlessYouStandOrPledgeThemElsewhere()
+    {
+        G Year(out House patron)
+        {
+            var probe = Start(); probe.W.Turn = ElectionSystem.Every - 1; string pid = ElectionSystem.Nominees(probe.W, probe.Senate.Offices, Wt(probe)).Select(n => n.houseId).First(id => id != probe.Mine.Id && probe.W.House(id)!.PatronId.Length == 0);
+            var (g, p, _) = Protected(7, x => x.W.House(pid)!); g.W.Turn = ElectionSystem.Every - 1; patron = p; return g;
+        }
+        var g = Year(out var patron); var noms = ElectionSystem.Nominees(g.W, g.Senate.Offices, Wt(g)); Assert.Contains(noms, n => n.houseId == patron.Id);
+        Assert.Equal(patron.Id, SeatsOf(ElectionSystem.Tally(g.W, g.Senate.Offices, id => id == g.Mine.Id ? 1000 : 0, noms)));   // your seats are the patron's
+        var tally = TallyNow(g); Session(g);
+        Assert.Contains(g.W.History, h => h.Text.StartsWith("The Senate elects its consuls") && h.Text.Contains($"{patron.Name} ({tally[patron.Id]})"));
+        // pledged elsewhere, they go where you pledged them
+        var p2 = Year(out var patron2); var to = ElectionSystem.Nominees(p2.W, p2.Senate.Offices, Wt(p2)).Select(n => n.houseId).First(id => id != patron2.Id);
+        Assert.True(p2.Do(new PledgeVotesCommand(p2.Me.Id, to, p2.Senate.Offices, p2.Senate)));
+        Assert.Equal(to, SeatsOf(ElectionSystem.Tally(p2.W, p2.Senate.Offices, id => id == p2.Mine.Id ? 1000 : 0, ElectionSystem.Nominees(p2.W, p2.Senate.Offices, Wt(p2)))));
+        // standing yourself, they are your own
+        var s3 = Year(out _); Assert.True(s3.Do(new StandForConsulCommand(s3.Me.Id, s3.Senate.Offices)));
+        Assert.Equal(s3.Mine.Id, SeatsOf(ElectionSystem.Tally(s3.W, s3.Senate.Offices, id => id == s3.Mine.Id ? 1000 : 0, ElectionSystem.Nominees(s3.W, s3.Senate.Offices, Wt(s3)))));
+    }
+
+    // ------------------------------------------------------------------ the patron's wish: SenateSystem.PatronWish, the_patron_noticed
+
+    [Fact]
+    public void ThePatronsWish_YourVoteOnWhatTouchesIt_IsPlusFiveWith_MinusFifteenAgainst_AndThePatronNoticedComes()
+    {
+        var (g, patron, _) = Protected(); var m = TheyMove(g, patron); IVote(g, m, -1);
+        int regard = g.Regard(patron); Session(g);
+        Assert.Equal(regard + SenateSystem.DefyRegard, g.Regard(patron)); Assert.True(g.W.HasFlag(SenateSystem.DefiedPatronFlag));
+        Assert.Contains(g.W.History, h => h.Text.Contains($"{g.Mine.Name} votes against the wishes of its patron, {patron.Name}. It is noted."));
+        var f = ReportOf(g, "the_patron_noticed"); Answer(g, f, "stand_by_it");
+        // a censure of the patron moved by another: against it is the patron's wish
+        var mover = Others(g).First(h => h.Id != patron.Id && h.PatronId != patron.Id); var censure = g.Senate.Add(g.W, mover.Id, "censure", patron.Id); Only(g, censure); IVote(g, censure, -1);
+        regard = g.Regard(patron); Session(g);
+        Assert.Equal(regard + SenateSystem.ObligeRegard, g.Regard(patron)); Assert.True(g.W.HasFlag(SenateSystem.ObligedPatronFlag)); Assert.False(g.W.HasFlag(SenateSystem.DefiedPatronFlag));
+        // a motion that does not touch it: no wish, and nothing noted
+        var other = g.Senate.Add(g.W, mover.Id, "levy", ""); Only(g, other); IVote(g, other, -1); regard = g.Regard(patron); Session(g);
+        Assert.Equal(regard, g.Regard(patron)); Assert.False(g.W.HasFlag(SenateSystem.ObligedPatronFlag)); Assert.False(g.W.HasFlag(SenateSystem.DefiedPatronFlag));
+    }
+
+    // ------------------------------------------------------------------ a client asks: a_client_asks/help_him
+
+    [Fact]
+    public void AClientAsks_PaidFor_TheClientsHouseVotesForYourNextMotion_HoweverHardItLeansAgainst_AndCannotBeAskedTwice()
+    {
+        var g = Start(); var c = TakeClient(g); g.Tc.Orders.Tick(g.W); Assert.True(g.W.HasFlag(OrderSystem.IsPatronFlag));
+        Only(g); Assert.True(g.W.HasFlag(VoteMarks.ClientFlag));
+        var f = ReportOf(g, "a_client_asks"); int credits = g.Mine.Treasury.Credits; g.W.News.Clear(); Answer(g, f, "help_him");
+        Assert.Equal(credits - 3, g.Mine.Treasury.Credits); Assert.True(WealthSystem.FavourOwed(g.W, c.Id, g.Mine.Id));
+        Assert.True(g.Told($"{g.HeadOf(c).Name} of {c.Name}, your client, owes the house a vote for the advocate you paid"));
+        Assert.Contains(g.W.History, h => h.Text.Contains("The client's house owes the house a vote for it"));
+        // a favour stands now: the choice is closed, and says why
+        Assert.False(g.W.HasFlag(VoteMarks.ClientFlag)); var engine = new EventEngine(Content, WorldBuilder.RngFor(g.W)); Assert.False(engine.IsChoiceAvailable(f, g.W, "help_him"));
+        Assert.Contains("needs a client house with no favour standing between it and yours", ChoiceStakes.Unmet(f.Def.Choice("help_him")!, new EvalContext(g.W, f.Binding, WorldBuilder.RngFor(g.W), Content)));
+        var g1 = Reload(g); var c1 = g1.W.House(c.Id)!;   // a save and a load before the count
+        var levy = IMove(g1); HardAgainst(g1, levy, c1); Assert.Equal(1, g1.Senate.Stance(g1.W, levy, c1.Id)); Session(g1);
+        Assert.Equal(1, levy.Votes[c1.Id]); Assert.False(WealthSystem.FavourOwed(g1.W, c1.Id, g1.Mine.Id)); Assert.True(g1.Told($"{c1.Name} kept its word"));
+    }
+
+    // ------------------------------------------------------------------ the growing bloc: the_senate_listens/build_bloc, spread_credit
+
+    [Theory]
+    [InlineData("build_bloc")]
+    [InlineData("spread_credit")]
+    public void TheGrowingBloc_TheSenatorBroughtOver_TheirHouseVotesForYourNextMotion_HoweverHardItLeansAgainst(string choice)
+    {
+        var g = Start(); g.W.WorldCounters["senate_influence"] = 0; if (choice == "spread_credit") g.Me.AptitudeTraits.Add("Schemer");
+        Only(g); Assert.True(g.W.HasFlag(VoteMarks.BlocFlag));
+        // the one who comes over: of a house with no favour standing, who thinks best of you
+        var best = Others(g).Where(h => !WealthSystem.FavourOwed(g.W, h.Id, g.Mine.Id) && !WealthSystem.FavourOwed(g.W, g.Mine.Id, h.Id) && !g.W.AtWar(h.Id, g.Mine.Id))
+            .Select(h => g.HeadOf(h)).OrderByDescending(c => g.W.GetRelationship(c.Id, g.Me.Id)?.Disposition ?? 0).ThenBy(c => c.Id, StringComparer.Ordinal).First();
+        var f = ReportOf(g, "the_senate_listens"); g.W.News.Clear(); Answer(g, f, choice);
+        var theirs = g.W.House(best.HouseId)!; Assert.True(WealthSystem.FavourOwed(g.W, theirs.Id, g.Mine.Id));
+        Assert.True(g.Told($"{best.Name} of {theirs.Name} has come over to your side: {theirs.Name} owes your house a vote"));
+        Assert.DoesNotContain(VoteMarks.BargainOpenChar, best.Flags);   // and no second bargain with that house while it stands
+        var levy = IMove(g); HardAgainst(g, levy, theirs); Session(g);
+        Assert.Equal(1, levy.Votes[theirs.Id]); Assert.False(WealthSystem.FavourOwed(g.W, theirs.Id, g.Mine.Id)); Assert.True(g.Told($"{theirs.Name} kept its word"));
+    }
+
+    [Fact]
+    public void TheGrowingBloc_BringsOverOnlyAHouseOfTheReachWithWhichABargainMayBeStruck_AndComesOnlyWhileThereIsOne()
+    {
+        var g = Start(); Only(g); var standing = Others(g)[0]; WealthSystem.OweFor(g.W, standing.Id, g.Mine.Id); var enemy = Others(g)[1]; g.Tc.Fleets.DeclareWar(g.W, g.Mine.Id, enemy.Id);
+        VoteMarks.Docket(g.W, g.Senate, g.Mine.Id);
+        Assert.DoesNotContain(VoteMarks.BargainOpenChar, g.HeadOf(standing).Flags); Assert.DoesNotContain(VoteMarks.BargainOpenChar, g.HeadOf(enemy).Flags);
+        Assert.DoesNotContain(g.W.LivingCharacters(), c => c.Flags.Contains(VoteMarks.BargainOpenChar) && (c.HouseId == g.Mine.Id || World.Outsider(c.HouseId) || !PolitySystem.InReach(g.W, c.HouseId)));
+        Assert.Contains(VoteMarks.BargainOpenChar, g.HeadOf(Others(g)[2]).Flags);
+        // every head that could come over thinks ill of you: nobody is ready to, and the report does not come
+        foreach (var c in g.W.LivingCharacters().Where(c => c.HouseId != g.Mine.Id)) g.W.Relationship(c.Id, g.Me.Id).Disposition = -5;
+        VoteMarks.Docket(g.W, g.Senate, g.Mine.Id); Assert.False(g.W.HasFlag(VoteMarks.BlocFlag));
+        g.W.WorldCounters["senate_influence"] = 0; Assert.DoesNotContain(new EventEngine(Content, WorldBuilder.RngFor(g.W)).GatherEligible(g.W), e => e.def.Id == "the_senate_listens");
+    }
+
+    // ------------------------------------------------------------------ across the aisle: across_the_aisle, split_the_bench
+
+    /// <summary>The leader of a bench of three or more, not yours, moves a censure of your house, and the chamber leans for it.</summary>
+    private static (G g, House leader, Faction bench, Motion censure) Aisle(Action<G, Motion, Faction>? leans = null)
+    {
+        var g = Start(); var bench = g.W.Factions.Where(f => !f.Members.Contains(g.Mine.Id) && f.Members.Count(id => g.W.House(id) != null && id != f.LeaderHouseId) >= 2 && g.W.House(f.LeaderHouseId) != null)
+            .OrderBy(f => f.Id, StringComparer.Ordinal).First();
+        var leader = g.W.House(bench.LeaderHouseId)!; var censure = g.Senate.Add(g.W, leader.Id, "censure", g.Mine.Id);
+        AllFor(g, censure); leans?.Invoke(g, censure, bench);
+        g.Senate.Tick(g.W); Only(g, censure);   // the session that hears it writes the docket's flags, once its motions are moved
+        return (g, leader, bench, censure);
+    }
+
+    [Fact]
+    public void AcrossTheAisle_ComesWhileTheMotionIsBeforeTheSenate_AndEveryHouseOfTheBenchLeansAsItsLeaderVotes_SaveOneWithAReasonOfItsOwn()
+    {
+        House? stands = null;
+        var (g, leader, bench, censure) = Aisle((g, m, b) =>
+        {
+            stands = b.Members.Where(id => id != b.LeaderHouseId).Select(id => g.W.House(id)!).OrderBy(h => h.Id, StringComparer.Ordinal).First();
+            g.W.Relationship(g.HeadOf(stands).Id, g.Me.Id).Disposition = 40; Leans(g, m, stands, -1);   // it stands with your house, and that is a reason of its own
+        });
+        Assert.True(g.W.HasFlag(SenateSystem.AgainstMeFlag)); var report = ReportOf(g, "across_the_aisle"); Answer(g, report, "face_them");
+        foreach (var id in bench.Members.Where(id => id != leader.Id)) Assert.Equal(FactionSystem.Discipline, By(g, censure, g.W.House(id)!, $"it follows {leader.Name}, who leads {bench.Name}"));
+        Assert.Equal(-2, By(g, censure, stands!, "it stands with"));
+        var stances = bench.Members.ToDictionary(id => id, id => g.Senate.Stance(g.W, censure, id)); Session(g);
+        foreach (var id in bench.Members) Assert.Equal(stances[id], censure.Votes[id]);   // as the whip count showed them
+        Assert.Equal(1, censure.Votes[leader.Id]); Assert.Equal(-1, censure.Votes[stands!.Id]);
+    }
+
+    [Fact]
+    public void AcrossTheAisle_IsNotAMotionForYourHouse_NorOneTheCountWouldThrowOut()
+    {
+        var g = Start(); var bench = g.W.Factions.First(f => !f.Members.Contains(g.Mine.Id) && g.W.House(f.LeaderHouseId) != null); var leader = g.W.House(bench.LeaderHouseId)!;
+        var recognition = g.Senate.Add(g.W, leader.Id, "recognition", g.Mine.Id); AllFor(g, recognition); g.Senate.Tick(g.W); Only(g, recognition);
+        Assert.False(g.W.HasFlag(SenateSystem.AgainstMeFlag));   // a motion that names your house for its good is not one against it
+        var h = Start(); var hb = h.W.Factions.First(f => !f.Members.Contains(h.Mine.Id) && h.W.House(f.LeaderHouseId) != null);
+        var censure = h.Senate.Add(h.W, hb.LeaderHouseId, "censure", h.Mine.Id); foreach (var x in Others(h).Where(x => x.Id != hb.LeaderHouseId)) Leans(h, censure, x, -2);
+        h.Senate.Tick(h.W); Only(h, censure);
+        Assert.False(h.W.HasFlag(SenateSystem.AgainstMeFlag));   // the count as it stands throws it out: the arithmetic is not against you
+    }
+
+    [Fact]
+    public void AcrossTheAisle_SplitTheBench_ItsLeastHouseThatWouldVoteForIt_VotesAgainst_HoweverHardItLeansFor_AcrossASaveAndALoad()
+    {
+        var (g0, leader0, bench0, censure0) = Aisle((g, m, b) => { foreach (var id in b.Members.Where(id => id != b.LeaderHouseId)) Leans(g, m, g.W.House(id)!, 6); });
+        var weakest0 = bench0.Members.Where(id => id != leader0.Id).OrderBy(id => g0.Senate.Weight(g0.W, id)).ThenBy(id => g0.Senate.Lean(g0.W, censure0, id)).ThenBy(id => id, StringComparer.Ordinal).Select(id => g0.W.House(id)!).First();
+        Assert.True(g0.W.HasFlag(VoteMarks.SplittableFlag)); Assert.Contains(VoteMarks.WeakestChar, g0.HeadOf(weakest0).Flags);
+        g0.Me.Skills["intrigue"] = 3; g0.W.PoolsFor(g0.Me.Id).Agents = Math.Max(1, g0.W.PoolsFor(g0.Me.Id).Agents); int agents = g0.W.PoolsFor(g0.Me.Id).Agents;
+        var (forBefore, againstBefore) = g0.Senate.Tally(g0.W, censure0); int wt = g0.Senate.Weight(g0.W, weakest0.Id);
+        g0.W.News.Clear(); Choose(g0, ReportOf(g0, "across_the_aisle"), "split_the_bench");
+        Assert.Equal(agents - 1, g0.W.PoolsFor(g0.Me.Id).Agents); Assert.Equal(-1, censure0.Votes[weakest0.Id]);
+        Assert.True(g0.Told($"{weakest0.Name}, the least of {bench0.Name}'s houses, has been found what it wanted: it votes against the motion against your house"));
+        Assert.Equal((forBefore - wt, againstBefore + wt), g0.Senate.Tally(g0.W, censure0));   // by morning the whip count had changed
+        var g = Reload(g0); var censure = g.W.Motions.First(m => m.Id == censure0.Id); Assert.True(g.Senate.Lean(g.W, censure, weakest0.Id) > 0);   // it still leans for it, and votes against
+        Session(g);
+        Assert.Equal(-1, censure.Votes[weakest0.Id]); Assert.Equal(AgainstWeight(g, censure), censure.AgainstWeight);
+    }
+
+    [Fact]
+    public void AcrossTheAisle_SplitTheBench_IsClosedWithItsReason_WhenNoHouseOfTheBenchWouldVoteForIt()
+    {
+        var (g, _, bench, censure) = Aisle((g, m, b) => { foreach (var id in b.Members.Where(id => id != b.LeaderHouseId)) Leans(g, m, g.W.House(id)!, -1); });
+        Assert.True(g.W.HasFlag(SenateSystem.AgainstMeFlag)); Assert.False(g.W.HasFlag(VoteMarks.SplittableFlag)); g.Me.Skills["intrigue"] = 3;
+        var f = ReportOf(g, "across_the_aisle"); var engine = new EventEngine(Content, WorldBuilder.RngFor(g.W)); Assert.False(engine.IsChoiceAvailable(f, g.W, "split_the_bench"));
+        var why = ChoiceStakes.Unmet(f.Def.Choice("split_the_bench")!, new EvalContext(g.W, f.Binding, WorldBuilder.RngFor(g.W), Content));
+        Assert.Contains("needs a house of that bench, not its leader, that would vote for the motion", why);
     }
 }

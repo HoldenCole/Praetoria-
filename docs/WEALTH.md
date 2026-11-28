@@ -434,6 +434,10 @@ count, forecast, tally and count alike; docs/events/votes.md, "Promises"):
   judged; and an orrery is not sent to a house the giver's motion strikes at.
 - **The reports that give or ask a favour** (*A Favour Repaid*, *The Whip*, *A Friend at Another Table*, *The Debt
   Called*) make a real favour owed, one way or the other, and are closed while a favour stands between the two houses.
+  So do *The Growing Bloc* (the bench group, 2026-11-28: a senator of a house with no favour standing with yours, who thinks
+  best of you, comes over, and their house owes yours a vote) and *A Client Asks* (the client whose suit you pay for: the first
+  of your clients by name with no favour standing); the engine chooses the house, by regard and then by name, with no draw of
+  the shared RNG.
 - **A vote bought is a pledge paid for** (2026-11-28; `VotePledge.Paid`, `VoteMarks.Sell`). A vote sold in a report (*A Vote
   for a Vote*'s price, the whip's purse, *A Bought Vote Called In*) is declared for the buyer's motion, you are told what
   breaking it costs, and the count judges it with the pledge's numbers (+3 given, -15 not, eight years remembered); kept,

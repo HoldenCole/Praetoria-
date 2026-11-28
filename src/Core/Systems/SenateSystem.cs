@@ -97,6 +97,7 @@ public sealed class SenateSystem
         {
             int ls = LeaderStance(w, m, f);
             Add(ls * FactionSystem.Discipline, "it follows " + (w.House(f.LeaderHouseId)?.Name ?? "its leader") + ", who leads " + f.Name); Add(m.Lobby.GetValueOrDefault(f.LeaderHouseId) / 2, "its leader has been lobbied");
+            Add(ls * FactionSystem.Followed(w, f, out var closer), closer);   // the leader's table: the player's bench follows the player's vote the more closely at the next count (docs/events/votes.md, "Promises")
         }
         Add(DealingsSystem.CowedLean(w, _motions.Def(m.Kind), m, houseId, lean, out var feared), "it is afraid of " + feared);   // a house that has been threatened stays away (docs/WEALTH.md, "Dealings between houses")
         Add(ForeignGoldSystem.Lean(w, m, houseId, lean, out var gold), gold);   // gold from beyond the Reach, taken or shown to the chamber (docs/BEYOND.md, "Foreign gold in the Senate")
@@ -189,6 +190,8 @@ public sealed class SenateSystem
             if (def.Interest is "commission" or "recognition" or "peace") Add(sway, "it depends on " + tn);
             else if (def.Interest is "censure" or "embargo" or "breakup") Add(-sway, "it depends on " + tn);
         }
+        Add(YourWay(w, m, def, h, out var yourWay), yourWay);   // a client of yours, your patron, a fellow client: the way you vote, on every division (docs/REPUBLIC.md stage 3)
+        Add(FactionSystem.RemembersWhip(w, m, houseId, out var remembers), remembers);   // a bench the player voted against at the last count remembers it at this one: its leader too, so its members follow what it is for, in the forecast as at the count
         switch (def.Interest)
         {
             case "censure":
@@ -300,6 +303,21 @@ public sealed class SenateSystem
         Add((int)(hash % 3) - 1, "its own temper on the day");
         Add(m.Lobby.GetValueOrDefault(houseId), "it has been lobbied"); Add(bought ? m.Bought.GetValueOrDefault(houseId) : 0, "its vote has been paid for");
         return lean;
+    }
+
+    /// <summary>The player's clients, the player's patron and its other clients lean the way the player has voted, on every motion the
+    /// player's house does not move (that is the sway above, toward what it moves) and that is not one of the kinds aimed at it where
+    /// sway is counted already, nor one that names the voter itself: by two for a client or the patron, one for a fellow client
+    /// (<see cref="OrderSystem.Patronage"/>; content/text/orders.json, a_client_at_the_door and under_protection). Only a vote the
+    /// player has cast, or given their word on, is a way to lean: a house with no vote yet is no way at all, and at the count the
+    /// player's house, if it has not voted, is counted after every other (Resolve), so the forecast and the count agree.</summary>
+    public int YourWay(World w, Motion m, MotionDef def, House voter, out string because)
+    {
+        because = ""; string? mine = w.Protagonist?.HouseId; if (mine == null || voter.Id == mine || m.ProposerHouseId == mine || m.TargetId == voter.Id) return 0;
+        if (def.Target == "house" && m.TargetId == mine && def.Interest is "commission" or "recognition" or "peace" or "censure" or "embargo" or "breakup") return 0;
+        if (!m.Votes.TryGetValue(mine, out int cast) || cast == 0 || w.House(mine) is not { } you) return 0;
+        int by = Math.Min(2, OrderSystem.Patronage(voter, you, out var tie)); if (by == 0) return 0;
+        because = $"it leans the way you vote: {tie}"; return by * cast;
     }
 
     /// <summary>How a house leans on a peace with a nation (docs/BEYOND.md, "Whose war"). The Factors want their trade back and the Sword
@@ -428,12 +446,14 @@ public sealed class SenateSystem
         // last turn's news is cleared before this turn's is written — the offices' and the benches' too, since resolving a motion sets theirs
         foreach (var f in TurnFlags.Concat(OfficeSystem.TurnFlags).Concat(FactionSystem.TurnFlags).Concat(ElectionSystem.TurnFlags).Concat(NationSystem.SenateTurnFlags)) w.WorldFlags.Remove(f);
         VoteMarks.ClearSession(w);   // and the people in it: who voted with the player, who took its purse (docs/events/votes.md)
+        VoteMarks.StandLapses(w, mine);   // the player's word to the bench's leader to vote at the next vote, if the bench or its leader has changed
         VoteMarks.Bargains(w, mine);   // a vote given for a vote in last year's reports is a favour owed, before the count (docs/events/votes.md); made at the choice, this is a backstop
         WealthSystem.Answered(w);   // a gift said to buy nothing, or sent back, before the count of the giver's motion judges the vote (docs/WEALTH.md)
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn)) (m.ForecastFor, m.ForecastAgainst) = Tally(w, m);   // where it stood before the chair spoke
         ElectionSystem.RivalVetoes(w, _offices, this);   // the consuls strike what strikes at them, before the vote
         LadderSystem.ChairActs(w, this);   // the Speaker orders the docket and the presiding consul speaks from the chair (docs/LADDER.md, "The chair")
         foreach (var m in Docket(w).Where(m => m.ProposedTurn < w.Turn).ToList()) Resolve(w, m, mine);
+        FactionSystem.SessionDone(w);   // the bench fed or whipped was for this count; a vote against the bench at it is remembered at the next
         OfficeSystem.Tick(w, _offices);
         if (LadderSystem.Due(w, _offices)) LadderSystem.Hold(w, _offices, id => Weight(w, id));   // every fifth year the magistrates below the consulship (docs/LADDER.md), before the consuls
         if (ElectionSystem.Due(w)) ElectionSystem.Hold(w, _offices, id => Weight(w, id));   // every tenth turn the consuls are elected (docs/REPUBLIC.md)
@@ -475,7 +495,10 @@ public sealed class SenateSystem
         // A house that owes the player's house a favour votes for its motion whatever it leans (docs/WEALTH.md, "A favour owed is a vote"):
         // noted with whether it would have of its own accord, since only a vote the favour bought spends it
         var owed = new Dictionary<string, bool>();
-        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => FactionSystem.Of(w, h.Id)?.LeaderHouseId == h.Id ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
+        // The player's house, if the player has not voted, is counted after every other house: its clients and its patron lean the way
+        // the player votes (YourWay), and a vote the player did not cast is no way to lean, at the count as in the forecast
+        bool undeclared = mine != null && !m.Votes.ContainsKey(mine);
+        foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id)).OrderBy(h => undeclared && h.Id == mine ? 1 : 0).ThenBy(h => FactionSystem.Of(w, h.Id)?.LeaderHouseId == h.Id ? 0 : 1).ThenBy(h => h.Id, StringComparer.Ordinal).ToList())
         {
             if (m.Votes.ContainsKey(h.Id)) continue;
             int lean = Math.Sign(Lean(w, m, h.Id));
@@ -827,8 +850,16 @@ public sealed class SenateSystem
         // the colleague who divided the consulship's business with the player has moved: striking it breaks the division, and the player is told so before
         if (ElectionSystem.Divided(w, m) is { } colleague)
             w.Tell("warn", $"{colleague.Name}, your colleague in the consulship, has moved a motion. You divided the consulship's business between you: strike it with the veto, or speak against it from the chair, and the division is broken, they think {-ElectionSystem.DivisionBroken:+0;-0} of you, and they are free to strike yours.", "senate:chamber", colleague.HouseId);
+        // the player's word to the bench's leader that the house will vote at the next vote: the reminder, when a motion it would cover is moved
+        if (VoteMarks.StandsOn(w, m) is { } leader) w.Tell("warn", $"{ProposerName(w, m)} has moved a motion. " + VoteMarks.StandSays(w, leader), "senate:chamber", leader.HouseId);
         return m;
     }
+
+    /// <summary>A bench's leader has moved against the player's house: across_the_aisle reads it.</summary>
+    public const string AgainstMeFlag = "faction_against_me";
+    /// <summary>A motion that strikes at the house (a censure, an embargo, a break-up, a recall or a reconquest of it), moved by another
+    /// house that leads a bench.</summary>
+    public bool BenchAgainst(World w, Motion m, string houseId) => m.Open && m.ProposerHouseId != houseId && WealthSystem.StrikesAt(m, houseId, _motions.Def(m.Kind)) && FactionSystem.Leads(w, m.ProposerHouseId);
 
     private void WriteFlags(World w, string? mine)
     {
@@ -840,6 +871,10 @@ public sealed class SenateSystem
         if (open.Any(m => _motions.Def(m.Kind)?.Law == true)) w.WorldFlags.Add("act_open");
         foreach (var e in open.Select(PetitionEstate).Where(e => e != null)) { w.WorldFlags.Add("petition_open"); w.WorldFlags.Add("petition_open:" + e); }
         if (open.Any(m => m.TargetId == mine && _motions.Def(m.Kind) is { } d && d.Target == "house" && (d.LegitimacyTarget < 0 || d.EmbargoTurns > 0))) w.WorldFlags.Add("motion_against_me");
+        // a motion that strikes at the player's house, moved by a bench's leader, that the count as it stands would carry (across_the_aisle):
+        // written here, once the session's motions are moved, so that it is news while the motion is before the Senate
+        w.WorldFlags.Remove(AgainstMeFlag);
+        if (open.Any(m => BenchAgainst(w, m, mine) && Tally(w, m) is var (f, a) && f > a)) w.WorldFlags.Add(AgainstMeFlag);
         if (Embargoed(w, mine)) w.WorldFlags.Add("embargoed");
     }
 }
