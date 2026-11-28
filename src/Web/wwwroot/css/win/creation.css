@@ -362,7 +362,7 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
 .face-pick .face { position: relative; }
 .face-pick .face.on { box-shadow: 0 0 0 2px var(--brass-hi), 0 0 10px rgba(246,226,160,.4); }
 /* the points meter: the rating, a gap, the track, the budget (4.10) */
-.ws-power { display: inline-flex; align-items: center; gap: .5333rem; }
+.ws-power, .ui-facts > .ws-power { display: inline-flex; align-items: center; gap: .5333rem; }   /* over the facts' inline-block, so the parts keep their gaps */
 .ws-power .ws-bar { flex: none; width: 8rem; margin: 0 .1333rem 0 .4rem; }
 
 /* the world picker in the map's look, full width, the account of a world under it; the list below flows in the body */
@@ -436,6 +436,8 @@ label.fr-line:has(input[type=number]) { grid-template-columns: 16rem 7rem auto; 
 .face-pick .chip.dice { justify-content: flex-start; border: 0; box-shadow: none; }
 .face-pick .chip.dice .icon { width: 6.4rem; height: 8rem; padding: 2.1333rem 1.6rem; box-sizing: border-box; background: radial-gradient(circle at 50% 40%, #222a3b, #0b0e15); box-shadow: inset 0 1px 3px #000, 0 0 0 1px rgba(165,129,58,.45); }
 .face-pick .chip.dice.on .icon { box-shadow: inset 0 1px 3px #000, 0 0 0 2px var(--brass-hi); }
+/* the ring of the chosen face is on its plate alone: the button itself stretches to the row (the dice' caption) and must not show */
+.face-pick .face { align-self: start; } .face-pick .face.on { box-shadow: none; filter: none; }
 .face-life figure img { width: 6.4rem; height: 8rem; }
 
 /* the start plates are sized by the height of the screen as well as its width, so their names and their era and hardness lines stand

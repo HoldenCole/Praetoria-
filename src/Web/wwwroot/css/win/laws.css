@@ -404,3 +404,24 @@ select.lw-sel option { background: #12161f; color: var(--ink); }
 .lw-lad .lw-mks { column-gap: .1333rem; width: 3.0667rem; padding-right: .4667rem; }
 .lw-lad .lw-pc, .lw-lad .lw-in { width: 2.2667rem; padding-left: .3333rem; }
 .lw-lad .lw-pl { padding-left: .5333rem; padding-right: .4rem; gap: .3333rem; }
+/* ---- a column too narrow for a plate's name beside its marks and its cost (the Laws window at 1366 wide or at a larger text, a world's
+   local law): the name has the plate's first line to itself and the marks and the cost the line under, so no name is cut short ---- */
+@container lw (max-width: 46rem) {
+  .lw-row { grid-template-rows: auto auto; }
+  .lw-lad { height: auto; align-items: stretch; padding-top: 2px; padding-bottom: 2px; }
+  .lw-lad > .lw-cell, .lw-lad .lw-cell > .lw-tipwrap { height: auto; align-items: stretch; }
+  .lw-lad .lw-pl { height: auto; min-height: 2.9333rem; flex-wrap: wrap; align-content: center; row-gap: .2rem; padding-top: .2667rem; padding-bottom: .2667rem; }
+  .lw-lad .lw-pl:not(.on) .lw-pn { flex: 1 0 100%; }
+  .lw-lad .lw-pl.on .lw-pn { flex: 1 0 auto; }   /* the plate in force keeps its name whole: its marks and years go under it when they must */
+  .lw-lad .lw-pl .lw-mks, .lw-lad .lw-pl .lw-mks:empty { margin-left: 0; }
+  .lw-lad .lw-pl .lw-mks + .lw-pc, .lw-lad .lw-pl .lw-mks + .lw-in { margin-left: auto; }
+}
+@container llb (max-width: 52rem) {
+  .local-laws.lw-local .lw-lad { height: auto; align-items: stretch; padding-top: 2px; padding-bottom: 2px; }
+  .local-laws.lw-local .lw-lad > .lw-cell, .local-laws.lw-local .lw-lad .lw-cell > .lw-tipwrap { height: auto; align-items: stretch; }
+  .local-laws.lw-local .lw-lad .lw-pl { height: auto; min-height: 2.9333rem; flex-wrap: wrap; align-content: center; row-gap: .2rem; padding-top: .2667rem; padding-bottom: .2667rem; }
+  .local-laws.lw-local .lw-lad .lw-pl:not(.on) .lw-pn { flex: 1 0 100%; }
+  .local-laws.lw-local .lw-lad .lw-pl.on .lw-pn { flex: 1 0 auto; }
+  .local-laws.lw-local .lw-lad .lw-pl .lw-mks, .local-laws.lw-local .lw-lad .lw-pl .lw-mks:empty { margin-left: 0; }
+  .local-laws.lw-local .lw-lad .lw-pl .lw-mks + .lw-pc, .local-laws.lw-local .lw-lad .lw-pl .lw-mks + .lw-in { margin-left: auto; }
+}

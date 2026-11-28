@@ -331,3 +331,5 @@ div.hs-buy { display: block; margin: 0; }   /* the WealthPanel's buy row only: t
 .hs-stores .ui-table th.hs-buycol, .hs-stores .ui-table td.hs-buycol { display: table-cell; text-align: right; width: 1%; vertical-align: middle; }
 .hs-stores .hs-good { display: inline-flex; align-items: center; gap: .5333rem; } .hs-stores .hs-good .hs-strat { margin-left: 0; }
 .hs-stores .hs-strat { margin-left: .4rem; vertical-align: baseline; }
+/* the allowance row: its name ("What the house gives its own") runs onto a second line beside the three plates rather than be cut short at 1366 */
+.hs-allow-row .ui-row-nm { white-space: normal; overflow: visible; }

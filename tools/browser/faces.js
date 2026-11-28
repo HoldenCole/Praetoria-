@@ -15,7 +15,10 @@ const want = process.argv[2] || 'African'; const out = process.env.PRAETORIA_SHO
   await click('.scenario.custom'); await page.waitForSelector('.workshop'); await click('.workshop .ui-tab', 'The face'); await page.waitForTimeout(400);
   const names = await page.evaluate(() => [...document.querySelectorAll('.workshop .chips .chip')].map(e => e.innerText.trim()));
   check(names.includes(want), 'no ancestry called ' + want + ' is offered (' + names.slice(0, 8).join(', ') + ')');
-  check(!(await page.$('.face-pick')), 'faces are offered before an ancestry is chosen');
+  // before an ancestry is chosen the picker offers one face for each ancestry (choosing one chooses its ancestry), never the faces of one
+  const before = await page.evaluate(() => ({ own: document.querySelectorAll('.face-pick .face:not([data-ancestry])').length, by: new Set([...document.querySelectorAll('.face-pick .face[data-ancestry]')].map(e => e.dataset.ancestry)).size }));
+  check(before.own === 0, 'the faces of one ancestry are offered before an ancestry is chosen (' + before.own + ')');
+  check(before.by >= 2, 'the picker does not offer a face for each ancestry (' + before.by + ' of ' + (names.length - 1) + ')');
   await click('.workshop .chips .chip', want); await page.waitForTimeout(500);
   const faces = await page.evaluate(() => document.querySelectorAll('.face-pick .face').length); check(faces >= 2, 'fewer than two faces to choose from for ' + want + ' (' + faces + ')');
   await page.evaluate(() => { const f = document.querySelectorAll('.face-pick .face'); if (f.length) f[Math.min(1, f.length - 1)].click(); }); await page.waitForTimeout(600);

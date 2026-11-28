@@ -20,7 +20,9 @@ require('fs').mkdirSync(shots, { recursive: true });
   const tab = async name => { await page.waitForTimeout(300); await page.evaluate(n => { const t = [...document.querySelectorAll('.ex-tabs .rung, .screen.window .ui-tab')].find(e => e.innerText.toLowerCase().includes(n.toLowerCase())); if (t) t.click(); }, name); };
   const closeWindows = async () => { for (let i = 0; i < 8; i++) { const had = await page.evaluate(() => { const c = document.querySelector('.win-close') || document.querySelector('.overlay .btn.primary'); if (c) c.click(); return !!c; }); if (!had) break; await page.waitForTimeout(150); } };
   const turnNo = () => page.evaluate(() => { const d = document.querySelector('[data-turn]'); if (d) return parseInt(d.dataset.turn, 10); const m = document.body.innerText.match(/Turn (\d+)/); return m ? parseInt(m[1], 10) : -1; });
-  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; await page.waitForTimeout(50); } await closeWindows(); };
+  // the treasury this script draws on can end the year short, and End Year then asks first (ConfirmBox): it ends the year anyway
+  let short = 0;
+  const endTurn = async () => { await closeWindows(); const before = await turnNo(); await page.evaluate(() => { const b = document.querySelector('button.endturn'); if (b) b.click(); }); for (let i = 0; i < 800; i++) { if (await turnNo().catch(() => -1) > before) break; if (await page.evaluate(() => { const y = document.querySelector('.confirm-box [data-confirm="yes"]'); if (y) y.click(); return !!y; })) short++; await page.waitForTimeout(50); } await closeWindows(); };
   const press = text => page.evaluate(t => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => !e.disabled && e.innerText.trim().toLowerCase().startsWith(t.toLowerCase())); if (b) b.click(); return b ? b.innerText.replace(/\s+/g, ' ').slice(0, 50) : ''; }, text);
   const head = () => page.evaluate(() => ((document.querySelector('.panel.wealth [data-purse-head]') || document.querySelector('.panel.wealth h3') || {}).innerText || 'NO PANEL').replace(/\s+/g, ' '));
   await closeWindows(); await rail('House'); await tab('Purse'); await page.waitForTimeout(700);
@@ -38,7 +40,7 @@ require('fs').mkdirSync(shots, { recursive: true });
   console.log('estate: ' + (await press('Shared out') || 'could not')); await page.waitForTimeout(300);
   console.log('now: ' + await head()); await page.locator('.screen.window').screenshot({ path: shots + '/wealth-begin.png', timeout: 180000 });
   for (let y = 0; y < years; y++) { await endTurn(); await rail('House'); await tab('Purse'); await page.waitForTimeout(300); }
-  console.log('after ' + years + ' years: ' + await head());
+  console.log('after ' + years + ' years (turn ' + await turnNo() + (short ? ', ' + short + ' of them ended short when asked' : '') + '): ' + await head());
   // the treasury of a poor start does not hold a shrine at once: try again with the years' income
   for (let i = 0; i < 6; i++) { await press('take 5'); await page.waitForTimeout(300); }
   console.log('made to order, later: ' + (await press('A shrine') || 'could not: ' + await page.evaluate(() => { const b = [...document.querySelectorAll('.panel.wealth button')].find(e => e.innerText.trim().startsWith('A shrine')); return b ? b.title : 'no button'; }))); await page.waitForTimeout(400);

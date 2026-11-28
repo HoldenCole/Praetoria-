@@ -34,7 +34,7 @@
                 <div class="suit-who"><span class="dy-blk-nm">@c.Name</span> <span class="dy-blk-sub">@c.Age · shows a bent for @EducationSystem.GroupName(bent)@(c.Flags.Contains(HouseholdSystem.Ward) ? " · your ward" : "")</span>
                     <div class="dy-blk-sub">Has learned: @Best(c). This year: @lesson.skill, <b class="ui-up">+@lesson.points</b> point@(lesson.points == 1 ? "" : "s") toward the next step (@c.Learning.GetValueOrDefault(lesson.skill) of @EducationSystem.Need(c.Skill(lesson.skill)) so far).</div>
                 </div>
-                @if (lesson.against) { <div class="dy-blk-sub ui-down">Set against their bent: they learn a third as fast, and hold it against you a little more each year.</div> }
+                @if (lesson.against) { <div class="dy-blk-sub"><b class="ui-down">Set against their bent</b>: they learn a third as fast, and hold it against you a little more each year.</div> }
                 @if (c.Id != pid)
                 {
                     var raised = EducationSystem.Raised(w, c, w.Protagonist!); int thinks = w.GetRelationship(c.Id, pid)?.Disposition ?? 0; int sum = raised.Sum(x => x.by);
