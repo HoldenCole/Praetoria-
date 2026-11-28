@@ -306,7 +306,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} reminded {kin.name}, kindly, that a magistrate of this house is still of this house. {kin.name} had hoped to be allowed a week of being simply a magistrate."
+              "text": "{self.name} reminded {kin.name}, kindly, that a magistrate of this house is still of this house. {kin.first} had hoped to be allowed a week of being simply a magistrate."
             }
           ]
         },
@@ -464,7 +464,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} it would not happen twice. {kin.name} said they would hold {self.name} to that, and went away somewhat less angry than they had come."
+              "text": "{self.name} told {kin.name} it would not happen twice. {kin.first} said {kin.he} would hold {self.first} to that, and went away somewhat less angry than {kin.he} had come."
             }
           ]
         },
@@ -484,7 +484,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} that a magistrate who needs carrying is no magistrate. It may be true. {kin.name} did not thank {self.name} for it."
+              "text": "{self.name} told {kin.name} that a magistrate who needs carrying is no magistrate. It may be true. {kin.first} did not thank {self.him} for it."
             }
           ]
         },
@@ -504,7 +504,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} paid what the canvass had cost {kin.name}, and a little over. It did not make {kin.name} a magistrate. It did make the quarrel shorter."
+              "text": "{self.name} paid what the canvass had cost {kin.name}, and a little over. It did not make {kin.first} a magistrate. It did make the quarrel shorter."
             }
           ],
           "requires": [
@@ -602,7 +602,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said aloud what everyone says in private: that there is not a magistrate in the Reach who has not done the same. It won {self.name} some friends among those who have. It did the magistrates no good."
+              "text": "{self.name} said aloud what everyone says in private: that there is not a magistrate in the Reach who has not done the same. It won {self.him} some friends among those who have. It did the magistrates no good."
             }
           ]
         }
@@ -658,7 +658,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} walked into the Senate at {kin.name}'s side the day after. It cost the house something, and {kin.name} will not forget who was there."
+              "text": "{self.name} walked into the Senate at {kin.name}'s side the day after. It cost the house something, and {kin.first} will not forget who was there."
             }
           ]
         },
@@ -703,7 +703,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} had the money returned, without a word said in public. {kin.name} was not asked whether they wished it."
+              "text": "{self.name} had the money returned, without a word said in public. {kin.name} was not asked whether {kin.he} wished it."
             }
           ],
           "requires": [
@@ -1111,7 +1111,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did not say that the house had arranged it. {self.name} did not say that it had not. The region drew its own conclusion."
+              "text": "{self.name} did not say that the house had arranged it. {self.He} did not say that it had not. The region drew its own conclusion."
             }
           ]
         },
@@ -1344,7 +1344,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} rose in the Senate and called for the accounts of every sitting magistrate to be laid open. Nobody dared be seen to speak against it, and the squares heard who had asked. A good many senators have not spoken to {self.name} since."
+              "text": "{self.name} rose in the Senate and called for the accounts of every sitting magistrate to be laid open. Nobody dared be seen to speak against it, and the squares heard who had asked. A good many senators have not spoken to {self.him} since."
             }
           ],
           "requires": [
@@ -1570,7 +1570,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} that the step had been earned and that the house had had no hand in it. It was true, and {kin.name} had needed to hear the second part."
+              "text": "{self.name} told {kin.name} that the step had been earned and that the house had had no hand in it. It was true, and {kin.first} had needed to hear the second part."
             }
           ]
         },
@@ -1590,7 +1590,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} wrote a civil line to the one who had spoken for {kin.name}. It is useful to be known to such people. {kin.name} would rather the head of the house had stayed out of it."
+              "text": "{self.name} wrote a civil line to the one who had spoken for {kin.name}. It is useful to be known to such people. {kin.first} would rather the head of the house had stayed out of it."
             }
           ]
         },
@@ -1676,7 +1676,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} sent a private word to the convicted man's family: the charge was against what was done, not against the name. They did not answer. They did not have to."
+              "text": "{self.name} sent a private word to the family of the convicted magistrate: the charge was against what was done, not against the name. They did not answer. They did not have to."
             }
           ],
           "requires": [
@@ -1719,7 +1719,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said that a court had heard it and that was the end of the matter. Nobody believed {self.name} thought so, and everybody noted that it had been said."
+              "text": "{self.name} said that a court had heard it and that was the end of the matter. Nobody believed {self.he} thought so, and everybody noted that it had been said."
             }
           ]
         },
@@ -1742,7 +1742,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said, where it would be repeated, what a verdict from that bench was worth and to whom it had been worth it. It was true. Saying it did the courts no good and {self.name} some."
+              "text": "{self.name} said, where it would be repeated, what a verdict from that bench was worth and to whom it had been worth it. It was true. Saying it did the courts no good and {self.him} some."
             }
           ]
         },
@@ -2072,7 +2072,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} reminded {kin.name} which name they carried, and that a patron's quarrels are not the house's. {kin.name} said they knew. They had not needed telling."
+              "text": "{self.name} reminded {kin.name} which name {kin.he} carried, and that a patron's quarrels are not the house's. {kin.first} said {kin.he} knew. {kin.He} had not needed telling."
             }
           ]
         },
@@ -2175,7 +2175,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kin.name} to go back and mend it, whoever was in the wrong. {kin.name} went. It was not mended, and they had been made to ask."
+              "text": "{self.name} told {kin.name} to go back and mend it, whoever was in the wrong. {kin.first} went. It was not mended, and {kin.he} had been made to ask."
             }
           ]
         },
@@ -2274,7 +2274,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked {kin.name} to write home about what was said in the new place. {kin.name} wrote. The letters were careful, and useful, and a little cooler than before."
+              "text": "{self.name} asked {kin.name} to write home about what was said in the new place. {kin.first} wrote. The letters were careful, and useful, and a little cooler than before."
             }
           ]
         },
@@ -2288,7 +2288,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} let {kin.name} go without a word of advice. They were rising by somebody else's hand, and doing it well enough."
+              "text": "{self.name} let {kin.name} go without a word of advice. {kin.He} was rising by somebody else's hand, and doing it well enough."
             }
           ]
         }

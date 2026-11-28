@@ -23,7 +23,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name}'s motion was thrown out and {self.name} thanked the chamber for its attention. The benches found the grace suspicious and liked it anyway."
+              "text": "{self.name}'s motion was thrown out and {self.he} thanked the chamber for its attention. The benches found the grace suspicious and liked it anyway."
             }
           ]
         },
@@ -47,7 +47,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name}'s motion fell, and {self.name} wrote down every name that fell it. The list is in the desk. The desk is known."
+              "text": "{self.name}'s motion fell, and {self.he} wrote down every name that fell it. The list is in the desk. The desk is known."
             }
           ]
         },
@@ -519,7 +519,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} accepted the factors' gift. Six hundred credits, and a question about whose {era:senator|lord} {self.name} is."
+              "text": "{self.name} accepted the factors' gift. Six hundred credits, and a question about whose {era:senator|lord} {self.he} is."
             }
           ]
         },
@@ -599,7 +599,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} dined with the old blood and heard who was whose cousin. The commons heard where {self.name} dined."
+              "text": "{self.name} dined with the old blood and heard who was whose cousin. The commons heard where {self.he} dined."
             }
           ]
         },
@@ -998,7 +998,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} commuted the sentence. The magistrates spoke of consistency; the mothers spoke of {self.name}."
+              "text": "{self.name} commuted the sentence. The magistrates spoke of consistency; the mothers spoke of {self.him}."
             }
           ]
         },
@@ -1087,7 +1087,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} looked away from what the marque captains took. Three hundred credits; the factors stopped looking at {self.name}."
+              "text": "{self.name} looked away from what the marque captains took. Three hundred credits; the factors stopped looking at {self.him}."
             }
           ]
         }

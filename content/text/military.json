@@ -13,7 +13,7 @@
     {
       "id": "the_front_or_the_flag",
       "title": "The Front or the Flag",
-      "body": "{self.name}'s first command asks a question every officer answers once: where will you stand when the shooting starts? On the flagship's bridge, where the crews can see you, or at the plot table, where you can see the battle.",
+      "body": "Your first command asks a question every officer answers once: where will you stand when the shooting starts? On the flagship's bridge, where the crews can see you, or at the plot table, where you can see the battle.",
       "choices": {
         "the_front": "Lead from the front.",
         "the_flag": "Command from the flag. Needs the rank of Commander.",
@@ -23,7 +23,7 @@
     {
       "id": "the_mention_in_dispatches",
       "title": "Mentioned in Dispatches",
-      "body": "{self.house}'s fleet has won with {self.name} on the bridge, and the dispatch is being written. A dispatch is a small thing that decides careers. {self.name} is asked what it should say.",
+      "body": "{self.house}'s fleet has won with you on the bridge, and the dispatch is being written. A dispatch is a small thing that decides careers. You are asked what it should say.",
       "choices": {
         "accept_the_promotion": "Let the dispatch speak for you. A promotion.",
         "share_the_credit": "Put the captains' names before your own.",
@@ -53,7 +53,7 @@
     {
       "id": "the_achilles_name",
       "title": "The Achilles Name",
-      "body": "Three victories with {self.name} on the bridge, and the Reach has started to say the name the way it says Achilles. The crews chant it. The Senate's clerks write it down. Names like that are not given back.",
+      "body": "Three victories with you on the bridge, and the Reach has started to say your name the way it says Achilles. The crews chant it. The Senate's clerks write it down. Names like that are not given back.",
       "choices": {
         "wear_it": "Wear it.",
         "refuse_it": "Refuse it in public.",
@@ -133,7 +133,7 @@
     {
       "id": "the_generals_sway",
       "title": "The General's Sway",
-      "body": "The fleet loves {self.name}; the Senate knows the fleet loves {self.name}; and there is a war on. Men have become more than consuls with less. Both the wardroom and the chamber are watching which way {self.name} leans.",
+      "body": "The fleet loves you; the Senate knows the fleet loves you; and there is a war on. Others have become more than consuls with less. Both the wardroom and the chamber are watching which way you lean.",
       "choices": {
         "court_the_senate": "Go to the Senate as a soldier asking leave (1 influence).",
         "court_the_fleet": "Spend the season with the fleet.",

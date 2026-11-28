@@ -3,7 +3,7 @@
     {
       "id": "the_motion_thrown_out",
       "title": "The Motion Thrown Out",
-      "body": "{self.house}'s motion has been thrown out by the Senate. The clerk reads the tally without expression; the benches that beat it are already talking about something else. {self.name} has the evening to decide what kind of loser to be.",
+      "body": "{self.house}'s motion has been thrown out by the Senate. The clerk reads the tally without expression; the benches that beat it are already talking about something else. You have the evening to decide what kind of loser to be.",
       "choices": {
         "take_it_well": "Thank the chamber for its attention.",
         "note_who_voted": "Write down every name that voted it down.",
@@ -13,7 +13,7 @@
     {
       "id": "the_act_falls",
       "title": "The Act Falls",
-      "body": "An Act of the Senate has been thrown out, and the estates that wanted it are reading the tally in every square of {self.house}'s worlds. They will remember who spoke for it and who did not; they are less clear on what {self.name} did.",
+      "body": "An Act of the Senate has been thrown out, and the estates that wanted it are reading the tally in every square of {self.house}'s worlds. They will remember who spoke for it and who did not; they are less clear on what you did.",
       "choices": {
         "console_the_estates": "Tell the estates it will come again (1 influence).",
         "let_it_lie": "Say nothing."
@@ -32,7 +32,7 @@
     {
       "id": "the_speakers_gavel",
       "title": "The Speaker's Gavel",
-      "body": "The gavel is {self.name}'s this session and the docket is a list in {self.name}'s hand. Three houses have asked, with varying subtlety, where their business falls on it.",
+      "body": "The gavel is yours this session and the docket is a list in your hand. Three houses have asked, with varying subtlety, where their business falls on it.",
       "choices": {
         "order_of_the_day": "Set the order of the day to suit the house (1 influence).",
         "favour_a_friend": "Do a friend a favour from the chair.",
@@ -62,7 +62,7 @@
     {
       "id": "the_officers_toast",
       "title": "The Officers' Toast",
-      "body": "The officers of {self.house}'s fleet have asked {self.name} to the wardroom to drink the house's health. They will also, inevitably, mention hulls.",
+      "body": "The officers of {self.house}'s fleet have asked you to the wardroom to drink the house's health. They will also, inevitably, mention hulls.",
       "choices": {
         "raise_the_cup": "Drink the toast standing.",
         "promise_hulls": "Promise the wardroom new hulls, and mean it (500 credits).",
@@ -82,7 +82,7 @@
     {
       "id": "the_old_bloods_invitation",
       "title": "The Old Blood's Invitation",
-      "body": "The old families of {self.house}'s worlds have asked {self.name} to a dinner where the silver is older than the house. It is an honour. It is also, the commons will say, a side.",
+      "body": "The old families of {self.house}'s worlds have asked you to a dinner where the silver is older than the house. It is an honour. It is also, the commons will say, a side.",
       "choices": {
         "attend": "Dine with the old blood.",
         "decline": "Decline."
@@ -101,7 +101,7 @@
     {
       "id": "the_runaway",
       "title": "The Runaway",
-      "body": "Under {self.house}'s bonded-labour law a dozen quarry hands have broken their bonds and gone into the hills. The quarry master wants riders. The villages want {self.name} to find something better to do.",
+      "body": "Under {self.house}'s bonded-labour law a dozen quarry hands have broken their bonds and gone into the hills. The quarry master wants riders. The villages want you to find something better to do.",
       "choices": {
         "hunt_them": "Send riders after them.",
         "let_them_go": "Let them go.",
@@ -120,7 +120,7 @@
     {
       "id": "the_open_hall",
       "title": "The Open Hall",
-      "body": "{self.house} keeps an open hall, and this morning it is full to the doors: a boundary, a dowry, a well, a dog. Every one of them wants {self.name} and no one else.",
+      "body": "{self.house} keeps an open hall, and this morning it is full to the doors: a boundary, a dowry, a well, a dog. Every one of them wants you and no one else.",
       "choices": {
         "the_long_queue": "Sit until the last petitioner.",
         "cut_it_short": "Close the hall at noon."
@@ -129,7 +129,7 @@
     {
       "id": "the_ballot_box",
       "title": "The Ballot Box",
-      "body": "Under {self.house}'s open ballot a town has elected its council, and the wrong people have won. The returning officer is loyal and has asked, delicately, how loyal {self.name} wants him to be.",
+      "body": "Under {self.house}'s open ballot a town has elected its council, and the wrong people have won. The returning officer is loyal and has asked, delicately, how loyal you want the count to be.",
       "choices": {
         "certify_the_result": "Certify the result as it fell.",
         "lean_on_the_count": "Lean on the count."
@@ -138,7 +138,7 @@
     {
       "id": "the_iron_law_bites",
       "title": "The Iron Law Bites",
-      "body": "Under {self.house}'s iron law three granary thieves have been sentenced to hang, and the sentence is {self.name}'s to confirm. The magistrates want consistency. The square wants mercy. Both are watching.",
+      "body": "Under {self.house}'s iron law three granary thieves have been sentenced to hang, and the sentence is yours to confirm. The magistrates want consistency. The square wants mercy. Both are watching.",
       "choices": {
         "hang_them": "Let the law take its course.",
         "commute": "Commute the sentence.",
@@ -228,7 +228,7 @@
     {
       "id": "the_portrait",
       "title": "The Portrait",
-      "body": "A painter of some reputation has offered to take {self.name}'s likeness for the hall. Four hundred credits and three afternoons. The hall, the painter observes, has a gap.",
+      "body": "A painter of some reputation has offered to take your likeness for the hall. Four hundred credits and three afternoons. The hall, the painter observes, has a gap.",
       "choices": {
         "sit_for_it": "Sit for it (400 credits).",
         "refuse": "Refuse. The gap can wait."
@@ -246,7 +246,7 @@
     {
       "id": "the_old_retainer",
       "title": "The Old Retainer",
-      "body": "The steward's steward, who has served {self.house} since before {self.name} was born, has asked to be let go. He has a cottage in mind. He has also, he mentions, a friend at the capital who owes him a favour.",
+      "body": "The steward's steward, who has served {self.house} since before you were born, has asked to be let go. He has a cottage in mind. He has also, he mentions, a friend at the capital who owes him a favour.",
       "choices": {
         "a_pension": "Pension him (300 credits).",
         "a_last_task": "Give him one last task: the letter to the capital."

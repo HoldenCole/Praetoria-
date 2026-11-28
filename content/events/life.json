@@ -49,7 +49,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} did as the physicians said, for once, and let the wound close properly. Things got done without {self.name}, which was a lesson of its own."
+              "text": "{self.name} did as the physicians said, for once, and let the wound close properly. Things got done without {self.him}, which was a lesson of its own."
             }
           ]
         },
@@ -187,7 +187,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked {friend.name} what was being said in {friend.house}. {friend.name} told the truth, as always, including the parts {self.name} would rather not have heard."
+              "text": "{self.name} asked {friend.name} what was being said in {friend.house}. {friend.first} told the truth, as always, including the parts {self.first} would rather not have heard."
             }
           ]
         },
@@ -472,7 +472,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked {elder.name} what {elder.name} would have done. The answer was long, and two-thirds of it was right."
+              "text": "{self.name} asked {elder.name} what {elder.he} would have done. The answer was long, and two-thirds of it was right."
             }
           ]
         },
@@ -492,7 +492,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} thanked {elder.name} for the thought and decided the matter alone. {elder.name} said nothing more that evening."
+              "text": "{self.name} thanked {elder.name} for the thought and decided the matter alone. {elder.first} said nothing more that evening."
             }
           ]
         },
@@ -582,7 +582,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked {kin.name} what had been said in that room. {kin.name} told some of it. {self.name} now knows a little more about the house than the house had meant."
+              "text": "{self.name} asked {kin.name} what had been said in that room. {kin.first} told some of it. {self.first} now knows a little more about the house than the house had meant."
             }
           ]
         },
