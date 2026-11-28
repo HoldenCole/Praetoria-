@@ -78,6 +78,7 @@ else
     var m = G.Court(); var alerts = Alerts.For(G.World!, G.Content!, m, G.Turn!.Progression);
     var unanswered = m.Briefing.Count(b => !b.Resolved);
     bool front = _openReport != null || _succession != null || _primer || _saves || _settings || (_brief && G.World is { InAcademy: false, IsDynastyDead: false }) || G.ProfileId != null || _passingOut;
+    front |= _cards.Count > 0;   // the year's moments stand in front too: the toasts' clock waits for them
     @* The game shell (docs/VISUAL_SYSTEM.md 3): the map is the screen. Everything else sits at its edges: the top bar, the rail of
        sockets down the left with the house's standard at its foot, one window docked beside it, the alerts row and the toasts over
        the free map, the outliner on the right and the console in the bottom-right corner with End Year on its rim. *@

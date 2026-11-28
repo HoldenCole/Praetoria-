@@ -93,7 +93,6 @@ public static class YearMoments
             int weight = spouse ? SpouseDies : d.Heir ? HeirDies : child ? ChildDies : parent || elder ? ParentDies : sibling || blood ? SiblingDies : 0;
             if (weight == 0) continue;   // a cousin, a niece, one married into a son's family: a line in the year in brief
             string tie = Tie(w, head, c), how = Gendered(d.How, c);
-            if (tie.Length == 0 && blood) tie = "of your blood";
             string title = spouse ? $"Your {(F(c) ? "wife" : "husband")} is dead"
                 : child && d.Heir ? $"Your {(F(c) ? "daughter" : "son")} and heir is dead"
                 : d.Heir ? "Your heir is dead"
@@ -300,10 +299,13 @@ public static class YearMoments
 
     // ---------------- words and faces ----------------
 
-    /// <summary>How somebody stands to the head, in a card's words: "you", "your wife", "your son"; "" when nothing ties them. A
-    /// husband or wife who died this year is still named so, though the marriage's record has gone with them.</summary>
+    /// <summary>How somebody stands to the head, in a card's words: "you", "your wife", "your son"; "of your blood" for kin a start
+    /// wrote down only by a bond of blood (a brother with no parents on the record); "" when nothing ties them. A husband or wife who
+    /// died this year is still named so, though the marriage's record has gone with them.</summary>
     public static string Tie(World w, Character head, Character c) =>
-        c.Id == head.Id ? "you" : Wed(w, head, c) ? (F(c) ? "your wife" : "your husband") : Kinship.Of(w, head, c);
+        c.Id == head.Id ? "you" : Wed(w, head, c) ? (F(c) ? "your wife" : "your husband")
+        : Kinship.Of(w, head, c) is { Length: > 0 } kin ? kin
+        : w.GetRelationship(head.Id, c.Id)?.Bond == BondType.Blood ? "of your blood" : "";
 
     private static IReadOnlyList<MomentFace> Lead(Character? c, string says) => c == null ? Array.Empty<MomentFace>() : new[] { new MomentFace(c.Id, says) };
     /// <summary>The family around the one a card is about: up to four, each once, never the one it is about, each with their tie to you.</summary>

@@ -53,7 +53,7 @@
     {
       "id": "a_death_in_the_house",
       "title": "A Death in the House",
-      "body": "{dead.name} is dead, and the house must bury its own. What was said at the graveside is written below, and in the book. How it is done is for {self.name} to decide, and everyone who was there will remember it.",
+      "body": "{dead.name} is dead, and the house must bury its own. What was said at the graveside is written below, and in the book. How it is done is yours to decide, and everyone who was there will remember it.",
       "choices": {
         "a_funeral_the_city_sees": "A funeral the city will see.",
         "the_family_only": "The family only.",
