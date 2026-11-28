@@ -65,12 +65,21 @@ public static class ContentValidator
     /// the Imperium's half of an {era:...|...} token.</summary>
     private static void CheckWords(List<ContentIssue> issues, string where, string text, bool imperiumOnly)
     {
+        string severity = HeldElsewhere.Contains(where.Split('.')[0]) ? "warning" : "error";
         foreach (var named in NameRx.Matches(text).GroupBy(m => m.Groups[1].Value).Where(g => g.Count() > 1))
-            issues.Add(new("error", where, $"names {{{named.Key}.name}} {named.Count()} times: say the full name once, then {{{named.Key}.first}} or a pronoun such as {{{named.Key}.he}}."));
+            issues.Add(new(severity, where, $"names {{{named.Key}.name}} {named.Count()} times: say the full name once, then {{{named.Key}.first}} or a pronoun such as {{{named.Key}.he}}."));
         // both halves of an {era:...} token are read for every slip but the county, which only the Republic's reading may not carry
-        foreach (var slip in Slips(text, countyAllowed: true)) issues.Add(new("error", where, slip + "."));
-        if (!imperiumOnly && County(EraRx.Replace(text, "$1")) is { } county) issues.Add(new("error", where, county + "."));
+        foreach (var slip in Slips(text, countyAllowed: true)) issues.Add(new(severity, where, slip + "."));
+        if (!imperiumOnly && County(EraRx.Replace(text, "$1")) is { } county) issues.Add(new(severity, where, county + "."));
     }
+
+    /// <summary>Reports whose prose another piece of work was rewriting while these checks were written (2026-11-28). Their slips are
+    /// warned of, not refused, until that work has landed; then each comes off this list and is held to the rule.</summary>
+    private static readonly HashSet<string> HeldElsewhere = new(StringComparer.Ordinal)
+    {
+        "not_seen_in_the_senate", "one_of_yours_buys_shares", "the_leaders_table", "the_field_promotion",
+        "the_wedding_remembered", "the_naming_of_a_child", "a_death_in_the_house"
+    };
 
     public static IReadOnlyList<ContentIssue> Validate(ContentDatabase db)
     {

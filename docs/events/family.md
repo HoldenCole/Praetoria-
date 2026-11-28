@@ -52,13 +52,13 @@ Read before writing: `life.json`, `household.json`, `found_family.json`, `courts
 2. **The one who was left behind** (two steps, and one into existing content). *Left Behind* may tell two of your blood to stand
    together (`stood_together` on both); when one of them fails or is thwarted, *Blood Stands by Blood* comes, with the other as
    the helper only if they think 5 or better of the fallen one (round 1: any two marked would do). Or it takes the side
-   of the one who has it, and the other is `slighted`, which *The Slighted Kinsman* (`succession.json`) already answers.
+   of the one who has it, and the other is `slighted`, which *A Slight in the Family* (`succession.json`) already answers.
 3. **The road they chose** (two steps). *A Life of Their Own* may say it is the wrong road (`doubted_by_the_head`). When that child
    has what they wanted, *You Were Wrong About Them*.
 4. **The one who kept the house** (three steps, and two into existing content). *While You Were Ill* may leave the house's work with
    one of your people (`kept_the_house`). When you are old and failing, *They Ask You to Stand Aside*: you may lay the house down
-   to them, promise a day (`promised_the_seat`), or refuse (`slighted`, to *The Slighted Kinsman*). A promise comes back as *The
-   Day You Named*, where breaking it leaves them `slighted` (to *The Slighted Kinsman*). It made them `defiant`, which the family's
+   to them, promise a day (`promised_the_seat`), or refuse (`slighted`, to *A Slight in the Family*). A promise comes back as *The
+   Day You Named*, where breaking it leaves them `slighted` (to *A Slight in the Family*). It made them `defiant`, which the family's
    own turn strikes out that same year from anyone whose regard is 0 or more, so the thread almost never reached a report (round 1).
 
 Nine of the sixteen are in a thread; seven stand alone.
@@ -72,7 +72,7 @@ weigh 12 to 40 (the anniversary least, as it comes back every ten years), the se
 one of your choices set, so they are eligible far less often), and the lasting states 6 to 20. All are situations; none is a
 set-piece.
 
-Deltas. The existing family reports move regard by 3 to 25 (*The Slighted Kinsman* -20, *Coming of Age* +15, *The Suit* -30),
+Deltas. The existing family reports move regard by 3 to 25 (*A Slight in the Family* -20, *Coming of Age* +15, *The Suit* -30),
 legitimacy by 1 to 3, credits by 3 to 25 (300 to 2,500 credits), stress by 2 to 12 and a marriage's warmth by 3 to 15. These keep
 within that: regard 2 to 15 (the hardest, -25, is a promise of the seat broken), legitimacy 1 to 2, credits 3 to 8 (300 to 800
 credits), stress 2 to 8, warmth 3 to 10, a skill by 1, one step in rank for someone else. Money in the files is hundreds
@@ -158,7 +158,7 @@ Director reads only those for the five-fold weight of fresh news.
   `has_what_they_wanted`, and an `other` of your blood and house aged 16 to 50, not of the winner's blood either way (so not their
   parent or child), who has not had what they wanted and has not had this report before. Repeatable; weight 25.
 - **Choices.**
-  - *Stand with {winner}*: the winner's regard +6, the other's -8, and the other is `slighted` (to *The Slighted Kinsman*).
+  - *Stand with {winner}*: the winner's regard +6, the other's -8, and the other is `slighted` (to *A Slight in the Family*).
   - *Something for {other}, from the house* (needs 500 credits): credits -5, the other's regard +8, the winner's -2.
   - *Tell them both to stand together*: each thinks 10 better of the other, each 2 worse of you, your stress +2; both marked
     `stood_together`. The chronicle says they said they would (round 2: "and they have", which is the next report's).
@@ -286,7 +286,7 @@ Director reads only those for the five-fold weight of fresh news.
     to lay the house down or to promise a day.
   - *Not while you live* (needs Proud, Ambitious or Arrogant): their regard -15, their stress +8, marked `slighted`.
   All four clear `kept_the_house`.
-- **Numbers.** +2 legitimacy is what `LifeSystem.Retire` gives the house; -15 as *The Slighted Kinsman*'s -20, a little less; -8 for
+- **Numbers.** +2 legitimacy is what `LifeSystem.Retire` gives the house; -15 as *A Slight in the Family*'s -20, a little less; -8 for
   a plain "not yet" is half of that, with no slight and no promise to keep.
 - **Nearest.** *The Abdication* is a set-piece about yielding to an heir by title. Here the family asks, and can be put off.
 
@@ -298,7 +298,7 @@ Director reads only those for the five-fold weight of fresh news.
 - **Choices.**
   - *Keep your word*: as laying the house down above.
   - *Ask for one more year*: their regard -6; the promise stands, and the report comes back more slowly, as reports read lately do.
-  - *Break it*: their regard -25, legitimacy -1, and they are `slighted` (to *The Slighted Kinsman*). Round 1: it set `defiant`,
+  - *Break it*: their regard -25, legitimacy -1, and they are `slighted` (to *A Slight in the Family*). Round 1: it set `defiant`,
     which `FamilySystem.Tick` strikes out at the end of the same year from anyone Loyal or whose regard is 0 or more, and this
     keeper's regard is usually still above 0 after the -25.
   Keeping or breaking clears `promised_the_seat`.

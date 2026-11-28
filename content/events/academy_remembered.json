@@ -167,7 +167,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said to {fallen.name} of {fallen.house}, before others, that the banner had been well kept and hard to take. It cost a little. {fallen.name} had waited years to hear it from that mouth."
+              "text": "{self.name} said to {fallen.name} of {fallen.house}, before others, that the banner had been well kept and hard to take. It cost a little. {fallen.first} had waited years to hear it from that mouth."
             }
           ]
         },
@@ -278,7 +278,7 @@
             },
             {
               "type": "log",
-              "text": "{comrade.name} of {comrade.house} came to {self.name} in a bad year and asked for nothing by name. {self.name} gave what was needed. They had held the last banner together, and that is a kind of kinship."
+              "text": "{comrade.name} of {comrade.house} came to {self.name} in a bad year and asked for nothing by name. {self.first} gave what was needed. They had held the last banner together, and that is a kind of kinship."
             }
           ]
         },
@@ -383,7 +383,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} said, where it would be repeated, that the board could as well have put {second.name} of {second.house} first. {second.name} has spent years proving exactly that, and was disarmed to hear it agreed."
+              "text": "{self.name} said, where it would be repeated, that the board could as well have put {second.name} of {second.house} first. {second.first} has spent years proving exactly that, and was disarmed to hear it agreed."
             }
           ]
         },
@@ -419,7 +419,7 @@
             },
             {
               "type": "log",
-              "text": "{second.name} of {second.house} has measured every year since against {self.name}'s. {self.name} made sure the measure still came out the same way."
+              "text": "{second.name} of {second.house} has measured every year since against {self.name}'s. {self.first} made sure the measure still came out the same way."
             }
           ]
         }
@@ -489,7 +489,7 @@
             },
             {
               "type": "log",
-              "text": "{captain.name} of {captain.house}, who held the last banner, sent round to the year for support, as one who expects it. {self.name} gave it. The year is still, in some sense, {captain.name}'s."
+              "text": "{captain.name} of {captain.house}, who held the last banner, sent round to the year for support, as one who expects it. {self.name} gave it. The year is still, in some sense, {captain.first}'s."
             }
           ]
         },
@@ -585,7 +585,7 @@
             },
             {
               "type": "log",
-              "text": "{senior.name} of {senior.house} looked up {self.name}'s place in the order of merit and said so. {self.name} spent the year making the figure look like a clerk's mistake. Nobody mentions it now."
+              "text": "{senior.name} of {senior.house} looked up {self.name}'s place in the order of merit and said so. {self.first} spent the year making the figure look like a clerk's mistake. Nobody mentions it now."
             }
           ]
         },
@@ -605,7 +605,7 @@
             },
             {
               "type": "log",
-              "text": "{senior.name} of {senior.house} had {self.name}'s place in the order of merit by heart. {self.name} agreed it was a poor year for the board's judgement, and the joke did for the moment."
+              "text": "{senior.name} of {senior.house} had {self.name}'s place in the order of merit by heart. {self.first} agreed it was a poor year for the board's judgement, and the joke did for the moment."
             }
           ]
         },
@@ -625,7 +625,7 @@
             },
             {
               "type": "log",
-              "text": "{senior.name} of {senior.house} brought up where {self.name} had passed out. {self.name} did not forget who had brought it up."
+              "text": "{senior.name} of {senior.house} brought up where {self.name} had passed out. {self.He} did not forget who had brought it up."
             }
           ]
         }

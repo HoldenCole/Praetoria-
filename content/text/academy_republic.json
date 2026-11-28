@@ -27,7 +27,7 @@
       "choices": {
         "join_it": "Join it.",
         "lead_it": "Join it, and end up running it.",
-        "decline_kindly": "Thank them, and keep your own timetable."
+        "decline_kindly": "Thank {friend.him}, and keep your own timetable."
       }
     },
     {
@@ -37,7 +37,7 @@
       "choices": {
         "answer_plainly": "Say it plainly.",
         "make_a_joke_of_it": "Make a joke of it.",
-        "ask_them_first": "Ask what theirs stands for, and listen."
+        "ask_them_first": "Ask what {other.house} stands for, and listen."
       }
     },
     {
@@ -46,7 +46,7 @@
       "body": "A friendly bout in the salle, buttons on the points, first to five. {rival.name} of {rival.house} is across the piste and half the year is along the wall pretending to stretch.",
       "choices": {
         "win_gracefully": "Fence to win, and offer a hand after.",
-        "lose_gracefully": "Fence fair; if they are better, say so.",
+        "lose_gracefully": "Fence fair; if {rival.he} is better, say so.",
         "demand_a_rematch": "If you lose, ask for another at once."
       }
     },
@@ -66,14 +66,14 @@
       "body": "The year's pinnace race, round the outer marker and home. Your boat and {rival.name}'s are level at the turn, and there is room to cut inside if you want it badly enough.",
       "choices": {
         "race_to_win": "Cut inside. It is within the rules.",
-        "race_fair_and_wide": "Give them room.",
+        "race_fair_and_wide": "Give {rival.him} room.",
         "cheer_from_the_bank": "You are not rowing this year. Watch from the gallery."
       }
     },
     {
       "id": "the_prank",
       "title": "The Chapel Roof",
-      "body": "A plan is going round the dormitory: every stick of furniture in {target.name}'s study, moved onto the chapel roof overnight and arranged exactly as it was. Nobody would be hurt. {target.name} of {target.house} would be furious. They need one more pair of hands for the desk.",
+      "body": "A plan is going round the dormitory: every stick of furniture in {target.name}'s study, moved onto the chapel roof overnight and arranged exactly as it was. Nobody would be hurt. {target.first} would be furious. The plotters need one more pair of hands for the desk.",
       "choices": {
         "join_in": "Carry the desk.",
         "talk_them_out_of_it": "Talk them out of it.",
@@ -106,7 +106,7 @@
       "title": "The War Game",
       "body": "The great table in the tactical hall: two fleets of brass counters, a field of lanes and chokepoints, umpires with rulers, and the whole year in the gallery. Your side against {rival.name}'s. The only things that can be lost here are marks and pride, and the year will remember who lost which.",
       "choices": {
-        "command_the_van": "Take the van and press where their line bends.",
+        "command_the_van": "Take the van and press where {rival.his} line bends.",
         "hold_the_reserve": "Ask for the reserve and wait.",
         "accept_the_umpires_ruling": "Play it straight, whatever the umpires rule."
       }
@@ -166,7 +166,7 @@
       "body": "Supper, and {friend.name} of {friend.house} across the table with a story about home.",
       "choices": {
         "trade_stories": "Trade one of your own.",
-        "listen": "Let them talk."
+        "listen": "Let {friend.him} talk."
       }
     }
   ]

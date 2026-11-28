@@ -790,7 +790,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {child.name}, home from fostering, that this house is theirs and only this one."
+              "text": "{self.name} told {child.name}, home from fostering, that this house is {child.hers} and only this one."
             }
           ]
         }
@@ -1060,7 +1060,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} left {winner.name} and {other.name} to settle it between them, and {other.name} thought the worse of {winner.name}."
+              "text": "{self.name} left {winner.name} and {other.name} to settle it between them, and {other.first} thought the worse of {winner.first}."
             }
           ]
         }
@@ -1602,7 +1602,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} put their own name to {spouse.name}'s promotion, and it is called favour."
+              "text": "{self.name} put {self.his} own name to {spouse.name}'s promotion, and it is called favour."
             }
           ]
         },
@@ -1622,7 +1622,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {spouse.name} it was for their own family to speak for them."
+              "text": "{self.name} told {spouse.name} it was for {spouse.his} own family to speak for {spouse.him}."
             }
           ]
         },
@@ -1652,7 +1652,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {spouse.name} the house needed them more than their service did."
+              "text": "{self.name} told {spouse.name} the house needed {spouse.him} more than {spouse.his} service did."
             }
           ]
         }
@@ -1959,7 +1959,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kid.name} it was the wrong road. {kid.name} has taken it all the same."
+              "text": "{self.name} told {kid.name} it was the wrong road. {kid.He} has taken it all the same."
             }
           ]
         }
@@ -2024,7 +2024,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {kid.name}, in so many words, that {self.name} had been wrong about them."
+              "text": "{self.name} said it to {kid.name} in so many words: I was wrong about you."
             }
           ]
         },
@@ -2169,7 +2169,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} thanked {keeper.name} for keeping the house, and left them at the work."
+              "text": "{self.name} thanked {keeper.name} for keeping the house, and left {keeper.him} at the work."
             }
           ]
         },
@@ -2195,7 +2195,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} asked {keeper.name} what they would change in the house, and changed it."
+              "text": "{self.name} asked {keeper.name} what {keeper.he} would change in the house, and changed it."
             }
           ]
         },
@@ -2476,7 +2476,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {keeper.name} they would have the seat when {self.name} was dead, and not before."
+              "text": "{self.name} told {keeper.name} {keeper.he} would have the seat when {self.first} was dead, and not before."
             }
           ]
         }
@@ -2640,7 +2640,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} kept their word, and laid the house down to {keeper.name}."
+              "text": "{self.name} kept {self.his} word, and laid the house down to {keeper.name}."
             },
             {
               "type": "succeed",
@@ -2809,7 +2809,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} kept {sibling.name} close after the reading, and asked their advice."
+              "text": "{self.name} kept {sibling.name} close after the reading, and asked {sibling.his} advice."
             }
           ]
         },
@@ -2882,7 +2882,7 @@
             },
             {
               "type": "log",
-              "text": "{self.name} told {sibling.name} that the house was one, and that it was {self.name}'s."
+              "text": "{self.name} told {sibling.name} that the house was one, and that it was {self.first}'s."
             }
           ]
         }

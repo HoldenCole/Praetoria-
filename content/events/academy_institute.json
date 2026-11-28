@@ -353,7 +353,7 @@
             },
             {
               "type": "log",
-              "text": "{offender.name} of {offender.house} had been stealing from the Standard's rations. {self.name} put them outside the gate in the snow. Another Standard took them in, and learned everything they knew."
+              "text": "{offender.name} of {offender.house} had been stealing from the Standard's rations. {self.name} put {offender.him} outside the gate in the snow. Another Standard took {offender.him} in, and learned everything {offender.he} knew."
             }
           ]
         }
