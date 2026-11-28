@@ -1,23 +1,18 @@
 @inject GameClient G
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 @{
     // on the title there is no saga yet: the primer speaks to the head of a house, so only the glossary and the lectures are offered
     var w = G.World; var p = w?.Protagonist; var house = p != null ? w!.House(p.HouseId) : null; var c = G.Content!;
     bool imperium = w?.IsImperium == true;
-    var cards = p == null || house == null ? Array.Empty<(string, string)>() : new[]
-    {
-        ("The house and you", $"You are {p.Name}, head of {house.Name}. The dynasty is what survives you: its title, its worlds, its fleet, its name. You are one life in it. When you die, you play the heir, and the heir starts their career from the bottom."),
-        ("The briefing", "Each turn your advisors bring reports: the cards on the desk. Some are decisions with choices that cost from your pools; some are news. Reading is free. Acting is not. Unanswered reports are set aside when the turn ends."),
-        ("The three pools", "Influence (plots, the Senate, favours), Treasury actions (builds, fleet orders, the market) and Agents (schemes, training). They refill a little each turn and cap at six. The strip at the top shows what you have left."),
-        ("Coin, hulls and the strategic three", "The ledger is in the House screen: worlds, ventures, claims, loans. Credits are the thing you run out of. Helium-3 fuels the fleet, rare earths build the heavy hulls, isotopes arm them, and not every world has them."),
-        ("The laws and the estates", "The Chancery holds the laws in your gift: as head of a house, holder of worlds, dominant in a region, chair, or an officer of the Reach. Six estates watch what you set and warm or sour; a loyal estate pays, a hostile one costs, and one hostile across the Reach will petition the Senate itself. Acts of the Senate bind every house."),
-        ("The climb", (imperium ? "Titles are a ladder: knight, baron, count, duke, archduke, and the throne." : "The Republic has no nobles. A house rises by what it holds and what it is trusted with: Citizen, Warden, Prefect, Legate, Proconsul, First Citizen. A person rises by rank, in the Navy, the Administration or the Courts.") + " Take a rung by force, by merit, or by marriage and claim. The Senate votes motions by weight; the War of the Reach is the storm every house is sailing toward. Survive it with the name intact."),
-        ("The keys", "Enter opens each report still waiting, one at a time, and then ends the year. With a report open it does nothing, and on the box that says what came of an answer it closes the box. Esc closes the window in front and goes back to the map. The windows on the left open by number in the order they are listed: 1 to 9, then 0, - and = for the last three; each one's name, shown when the pointer is on it, gives its key. ? opens this primer. On the map, drag to move and the wheel (or Page Up and Page Down) to zoom; the plates over the small map at the bottom right go to your seat and fit the whole Reach. Esc on the map opens the game menu."),
-        ("Three things to do first", "One: open the report at the top of the list on the right, read what each answer costs and gives, and answer it. Two: open House, then the ledger, and look at the last line: where the treasury will stand when the year ends. Three: click your own world on the map and raise one building. Then press End Year. A year passes, and the list on the right tells you what happened in it.")
-    };
+    var cards = p == null || house == null ? Array.Empty<Card>() : Cards(p, house, imperium);
+    var fy = G.FirstSteps();
 }
 @* The handbook (docs/PLAYTHROUGH.md, a first game): the primer, the glossary and the lectures, in a box in the window frame
    (docs/VISUAL_SYSTEM.md 4.1) with its three tabs under the head. *@
-<Box data-handbook="1" BoxClass="handbook" Glyph="open-book" Kicker="The handbook" Title="@(_tab == "primer" && cards.Length > 0 ? cards[_i].Item1 : _tab == "lectures" ? "The lectures" : "The glossary")" Width="min(50.6667rem, calc(100vw - 2rem))" OnClose="() => OnClose.InvokeAsync()">
+@* While the primer is read in a saga, each page that is about a part of the screen points at it: the rest is dimmed and that part ringed
+   (js/guide.js), and the box stands aside from it (docs/ACADEMY.md, "The first years"). *@
+<Box data-handbook="1" data-primer-page="@(_tab == "primer" && cards.Length > 0 ? _i + 1 : 0)" BoxClass="handbook" Class="@(_tab == "primer" && cards.Length > 0 ? "hb-point " + cards[_i].Side : "")" Glyph="open-book" Kicker="The handbook" Title="@(_tab == "primer" && cards.Length > 0 ? cards[_i].Title : _tab == "lectures" ? "The lectures" : "The glossary")" Width="min(50.6667rem, calc(100vw - 2rem))" OnClose="() => OnClose.InvokeAsync()">
     <Head>
         <div class="hb-tabs ui-tabs" role="tablist">
             @foreach (var (id, label, icon) in new[] { ("primer", "The primer", "scroll-quill"), ("glossary", "Glossary", "open-book"), ("lectures", "The lectures", "scroll-unfurled") }.Where(t => t.Item1 != "primer" || cards.Length > 0))
@@ -29,8 +24,24 @@
     <ChildContent>
         @if (_tab == "primer" && cards.Length > 0)
         {
+            var card = cards[_i];
             <div class="ui-kick hb-count">A primer · @(_i + 1) of @cards.Length</div>
-            <p class="epi-text">@cards[_i].Item2</p>
+            @if (card.Where.Length > 0) { <div class="hb-where" data-primer-points="@string.Join(", ", card.At)"><Icon Name="position-marker" Tone="brass" Size="16" />@card.Where</div> }
+            <p class="epi-text">@card.Text</p>
+            @if (card.Steps)
+            {
+                @* the three things to do first are the list on the right now, written for this start: what it holds, ticked as it stands *@
+                @if (fy != null)
+                {
+                    <ul class="hb-steps" data-primer-steps>
+                        @foreach (var st in fy.Steps) { <li><span class="fy-box">@if (st.Done) { <Icon Name="check" Tone="good" Size="13" /> }</span><span><b>@st.Title</b>@st.Text</span></li> }
+                    </ul>
+                }
+                else if (G.CanPinFirstSteps)
+                {
+                    <div class="row box-acts"><button class="btn" data-pin-first-steps title="Pin the first steps of this start at the top of the list on the right, for the first three years" @onclick="Pin"><Icon Name="flag-objective" Tone="ivory" Size="15" />Pin them to the list</button></div>
+                }
+            }
             <div class="row box-acts">
                 @if (_i > 0) { <button class="btn" @onclick="() => _i--">Back</button> }
                 @if (_i < cards.Length - 1) { <button class="btn primary" @onclick="() => _i++">Next</button> }
@@ -93,6 +104,51 @@
     [Parameter] public string Start { get; set; } = "primer";
     private int _i; private string _tab = "primer", _find = ""; private string? _pick;
     protected override void OnInitialized() => _tab = Start is "glossary" or "lectures" ? Start : "primer";
+
+    /// <summary>A page of the primer: its title and text, what part of the screen it points at (selectors, the first shown of each; their
+    /// union is lit) and how that is said, which way the box stands aside ("hb-low" below a part at the top, "hb-left" left of one at the
+    /// right), and whether it is the page of the first steps.</summary>
+    private sealed record Card(string Title, string Text, string[] At, string Where, string Side = "", bool Steps = false);
+    private Card[] Cards(Character p, House house, bool imperium)
+    {
+        var fy = G.FirstSteps(); var w = G.World!;
+        string steps = fy != null
+            ? $"The first things to do as head of {house.Name} are pinned at the top of the list on the right: {fy.Steps.Count} steps, written for this start. Each ticks itself off when you have done it, and Show me opens the window and lights the control that does it. The list stays until every step is done, you put it away, or year {fy.Years} ends."
+            : G.CanPinFirstSteps ? "The first things to do can be pinned at the top of the list on the right, written for this start. Each ticks itself off when you have done it, and Show me opens the window and lights the control that does it."
+            : "The first steps are for a saga's first three years. The glossary and the lectures are on the other two tabs.";
+        return new[]
+        {
+            new Card("The house and you", $"You are {p.Name}, head of {house.Name}. The dynasty is what survives you: its title, its worlds, its fleet, its name. You are one life in it. When you die, you play the heir, and the heir starts their career from the bottom.",
+                new[] { ".topbar .tb-ruler", ".topbar .tb-house" }, "Your portrait and your house, at the top left", "hb-low"),
+            new Card("The briefing", "Each year your advisors bring reports. They wait in the list on the right, and in your Office. Some are decisions with choices that cost from your pools; some are news. Reading is free. Acting is not. A report left unanswered is set aside when the year ends.",
+                new[] { ".outliner [data-ol=\"reports\"]" }, "The year's reports, in the list on the right", "hb-left"),
+            new Card("The three pools", "Influence (plots, the Senate, favours), treasury actions (builds, fleet orders, the market) and agents (schemes, training). They refill a little each year and hold 6 at most. The well at the top shows what you have left this year.",
+                new[] { ".topbar .tb-pools", ".topbar [data-pools]" }, "This year's pools, in the top bar", "hb-low"),
+            new Card("Coin, hulls and the strategic three", "The first well of the top bar is the treasury: credits, your own purse, materials, manpower, clout and exotics, each with what the year will add or take. Credits are the thing you run out of. Helium-3 fuels the fleet, rare earths build the heavy hulls, isotopes arm them, and not every world has them. House, then the ledger, has every line.",
+                new[] { ".topbar .well.tb-res:not(.strat)" }, "The treasury, in the top bar", "hb-low"),
+            new Card("The windows", "The buttons down the left open the windows: You, Dynasty and House; Worlds, Military and the Exchange; the Senate, the Laws and the Houses; the Chronicle and your Office. A pip on a button says something waits there. Each shows its name when the pointer is on it, and in your first years the name stands under it.",
+                new[] { ".gs-shell > .rail .rail-stack" }, "The windows, down the left"),
+            new Card("The laws and the estates", "The Laws hold the laws in your gift: as head of a house, holder of worlds, dominant in a region, chair, or an officer of the Reach. Six estates watch what you set and warm or sour; a loyal estate pays, a hostile one costs, and one hostile across the Reach will petition the Senate itself. Acts of the Senate bind every house.",
+                new[] { ".gs-shell .rail [data-rail=\"laws\"]" }, "The Laws, on the left"),
+            new Card("The climb", (imperium ? "Titles are a ladder: knight, baron, count, duke, archduke, and the throne." : "The Republic has no nobles. A house rises by what it holds and what it is trusted with: Citizen, Warden, Prefect, Legate, Proconsul, First Citizen. A person rises by rank, in the Navy, the Administration or the Courts.") + " Take a rung by force, by merit, or by marriage and claim. Your house's rank and its legitimacy stand under its name. The Senate votes motions by weight; the War of the Reach is the storm every house is sailing toward. Survive it with the name intact.",
+                new[] { ".topbar .tb-house" }, "Your house's rank and legitimacy, at the top left", "hb-low"),
+            new Card("The year and the keys", "End Year, at the bottom right, ends the year: the other houses act, the Senate votes, and the next year opens. Enter opens each report still waiting, one at a time, and then ends the year. Esc closes the window in front and goes back to the map. The windows on the left open by number in the order they are listed: 1 to 9, then 0, - and = for the last three. ? opens this primer. On the map, drag to move and the wheel (or Page Up and Page Down) to zoom; Esc on the map opens the game menu.",
+                new[] { ".endturn" }, "End Year, at the bottom right", "hb-left"),
+            new Card("Your first steps", steps, fy != null ? new[] { ".outliner [data-first-years]" } : Array.Empty<string>(), fy != null ? "Your first steps, at the top of the list on the right" : "", fy != null ? "hb-left" : "", true)
+        };
+    }
+    /// <summary>Point at the page's part of the screen, or at nothing on another tab.</summary>
+    protected override async Task OnAfterRenderAsync(bool first)
+    {
+        var w = G.World; var p = w?.Protagonist; var house = p != null ? w!.House(p.HouseId) : null;
+        string[] at = _tab == "primer" && p != null && house != null ? Cards(p, house, w!.IsImperium)[Math.Min(_i, 8)].At : Array.Empty<string>();
+        string key = string.Join("|", at);
+        if (key == _pointed) return; _pointed = key;
+        try { if (at.Length > 0) await JS.InvokeVoidAsync("praetoriaGuide.spot", (object)at); else await JS.InvokeVoidAsync("praetoriaGuide.unspot"); } catch { }
+    }
+    private string? _pointed;
+    private void Pin() { G.PinFirstSteps(); _pointed = null; }
+    public async ValueTask DisposeAsync() { try { await JS.InvokeVoidAsync("praetoriaGuide.unspot"); } catch { } }
     private async Task Open(string where) { await OnClose.InvokeAsync(); await OnGo.InvokeAsync(where); }
     private static string Place(string where) => where switch
     {

@@ -62,7 +62,7 @@ played in it; the page reads them before the game starts, so the title is alread
 | Text size | Small, Normal, Large, Larger: the root size is 13.5, 15, 16.5 or 18 pixels. Every size in the stylesheet is in `rem`, and so are the widths of the rail, the windows and the outliner, so the layout grows with the words. The map does not change. |
 | Enter ends the year | On by default. On, Enter first opens each unanswered report that can be answered, one at a time and once each, and with none left it ends the year (a click on End Year still sets the unanswered ones aside). With a report open it does nothing. While a box is open over the game (the question asked before something that cannot be taken back, or what came of an answer) no key reaches the game behind it: the question takes Esc for its "no" and wants a click for its "yes", and what came of an answer takes Enter or Esc. So do the cards that stand in front of a year (the seat passing, the year's moments: see "After End Year"): Enter or Esc closes each. Off, a year ends only by the End Year medallion. |
 | Number keys open windows | On by default, in the order of the rail. |
-| Show rail labels | Off by default. On, each socket of the rail carries its window's name under it (the name shows beside a socket on hover either way). Kept as `railLabels`. |
+| Show rail labels | On, each socket of the rail carries its window's name under it (the name shows beside a socket on hover either way). Until the player chooses, a first game shows them by themselves for its first three years and Options says "On for your first years"; every other game leaves them off. Kept as `railLabels` once chosen (`ClientSettings.RailLabelsChosen`; `GameClient.LabelsByThemselves`). |
 | The year in brief | Every year, or only when asked (the same choice the card itself offers). |
 
 The window also lists the keys. They cannot be changed to others; that is not built.
@@ -102,6 +102,41 @@ there are no cards. The cards are drawn from what the year recorded (the deaths,
 the wars' accounts, the sieges, the docket, and the house's rank as each year opened); `tests/YearMomentsTests.cs` holds
 them, and `tools/browser/moments.js` plays a start until a death and a birth have come and checks the order, the names and
 the faces in a browser.
+
+## The first years
+
+Built 2026-11-28 from the review against Steam (docs/STEAM_REVIEW.md 5): the tutorial on the real screen. What it is and what ticks each
+step is in docs/ACADEMY.md, "The first years"; this is how the client does it.
+
+- **A first game.** The page reads `praetoria.firstyears` and `praetoria.primer.seen` as it starts (`Index.razor`, `FirstYearsCheck`): a
+  browser with neither is a newcomer's, and so is one whose first game's list is still `on`. `GameClient.FirstGame` then begins the list
+  in a new saga (`Start`, `StartCustom`); a saga that opens at the Academy begins one whatever the browser has done, and the cadet's choice
+  of course decides it. The key turns `on` when a list first stands and `done` when one ends (every step done, put away, the third year
+  over, or a cadet who asked only to be briefed). The browser scripts that set `praetoria.primer.seen` to skip the primer therefore play as
+  before, with no list and no labels; `tools/browser/firststeps.js` sets nothing and plays as a newcomer.
+- **The list** is `FirstYears.razor`, the first section of the outliner, fed by `GameClient.FirstSteps()` (`FirstStepsProjection`, built
+  apart from the court's projection, so a window opened does not rebuild that). Hooks: `[data-first-years]` (with `data-done` and
+  `data-of`), a row per `[data-step]` with `data-step-done`, `[data-show-me]`, `[data-first-years-close]`, `[data-first-years-done]`.
+- **What was opened.** The docked window's host cascades its id as `Window`, and the shared `Tabs` part calls `GameClient.Saw(window)` and
+  `Saw(window + ":" + tab)` as it shows a tab; `GalaxyMap` calls `Saw("map")` when a world is picked. `Saw` is not an act of the game: it
+  changes nothing the rules read, and `GameClient.Undo` carries it, and the acts, over the year it loads again.
+- **Show me** opens the window through the shell's own way to a place (the outliner's `OnGo`), then asks `praetoriaGuide.ring(selectors)`
+  (`js/guide.js`) to light the controls the step names (`FirstYears.Selector`: a rail socket, a tab, the motion's vote, a world's Build,
+  the Exchange's order bar, the picked fleet's order bar, the first unanswered report). The ring is drawn in a layer of its own over the
+  page (z 45: over the top bar, under the boxes), looks for its control again each frame so one drawn later or drawn again is followed,
+  waits under a box or an event window, and goes out on a press of its control, on Escape, after twelve seconds, or when a step ticks.
+  `praetoriaGuide.lit()` says what is lit and whether the ring covers its control, for the scripts.
+- **The primer points** with `praetoriaGuide.spot(selectors)`: the union of the parts is left lit and ringed, the rest dimmed by the
+  spotlight's own shadow; the primer's veil gives up its dim and stands over the top bar (`.box-veil.hb-point`), and the box stands aside
+  from the part (`hb-low`, `hb-left`). `[data-primer-page]`, `[data-primer-points]`, `[data-primer-steps]`, `[data-pin-first-steps]`.
+- **Rail labels**: `FirstYearsCheck` gives the shell the labels' state as shown, the player's choice or the first game's own.
+- **The Academy**: a lecture folds to its few lines with **Read more** (`[data-lecture-summary]`, `[data-read-more]`,
+  `[data-lecture-full]`); a report card each term (`TermCard.razor`, `[data-term-card]`), at the head of This term, under So far, and
+  on the passing-out card with the line that the four terms go on as the list (`[data-first-years-told]`).
+
+`tools/browser/firststeps.js` plays The Old Lion and The New Man as a newcomer: the primer points page by page, every step is done through
+the real controls after its Show me has lit them, each must tick, the list survives a save and reload and being put away, and the labels
+answer to Options; `firststeps.js shots academy` plays The Academy's year and its lectures and cards. Pictures: `firststeps-*.png`.
 
 ## The map when the browser takes its graphics away
 
@@ -232,6 +267,8 @@ Reports open as event windows with the cast's portraits; the first visitor steps
 - `Components/AcademyScreen.razor` — **Academy** (shown while the protagonist is 22 or younger): the parade-ground set at
   dawn with the cohort in ranks, the instructor on the dais, the cohort houses' banners; panels for your record and
   standing, the cohort with dispositions, bonds and marks, and the year so far.
+- `Components/FirstYears.razor`: **the first years**, the first section of the outliner in a first game, its steps with
+  Show me (docs/ACADEMY.md, "The first years"); `Components/TermCard.razor`: an Academy term's report card.
 - `Components/PlanetsScreen.razor` — **Worlds**: the orrery set: under a star-pricked dome, a brass armillary sun at the
   heart and one arm per region, each region's worlds as turning textured globes on brass stalks (stations as rings,
   restless worlds under a red light, your worlds larger with a brighter halo); click a globe for its card (class, region,

@@ -1,0 +1,133 @@
+@inject GameClient G
+@inject IJSRuntime JS
+@implements IDisposable
+@* The first years (docs/ACADEMY.md, "The first years"; docs/VISUAL_SYSTEM.md 3.7): pinned at the top of the outliner in a first game. Its
+   head is the outliner's steel strip (a fold chevron, the objective flag, "First years", the count done, and a close that puts it away);
+   each step is a row with a check well, the step in a few words, a line under it that says where it is done (or why it cannot be yet,
+   in warn colour), and "Show me", which opens the window and lights the control with a pulsing ring (js/guide.js). A step done shows its
+   green tick and gives up its plate. When every step is done the list says so for a moment and folds away. With a window open, or on a
+   narrow screen, only the steps still to do are shown. A step carried from the Academy wears its term's numeral. *@
+@{
+    var fy = G.FirstSteps();
+    bool celebrate = fy is { AllDone: true } && _celebrating;
+}
+@if (fy != null && (!fy.AllDone || celebrate))
+{
+    <section class="ol-sec fy @(_open ? "" : "shut") @(celebrate ? "fy-all" : "") @(Folded ? "fy-folded" : "")" data-ol="firstyears" data-first-years data-done="@fy.DoneCount" data-of="@fy.Steps.Count" data-done-steps="@string.Join(",", fy.Steps.Where(x => x.Done).Select(x => x.Id))">
+        <div class="ol-head fy-head">
+            <button class="fy-fold" aria-expanded="@_open" title="@HeadTip(fy)" @onclick="() => _open = !_open">
+                <i class="chev"></i><Icon Name="flag-objective" Tone="brass" Size="16" /><span class="t">First years</span>
+            </button>
+            <span class="n @(fy.AllDone ? "good" : "")">@fy.DoneCount of @fy.Steps.Count</span>
+            <button class="fy-x" data-first-years-close title="@CloseTip" aria-label="Put the list away" @onclick="PutAway"><Icon Name="close" Tone="ivory" Size="11" /></button>
+        </div>
+        @if (_open)
+        {
+            @if (celebrate)
+            {
+                <div class="fy-done-all" data-first-years-done><Icon Name="laurels" Tone="brass" Size="22" /><span>Every first step is done. The rest of the Reach is yours to learn.</span></div>
+            }
+            else
+            {
+                @if (!Folded) { <div class="fy-lede">@Lede(fy)</div> }
+                @foreach (var s in fy.Steps)
+                {
+                    if (Folded && s.Done) continue;
+                    var step = s; bool fresh = _fresh.Contains(s.Id);
+                    <div class="fy-step @(s.Done ? "done" : "") @(s.NotYet != null ? "wait" : "") @(fresh ? "fresh" : "")" data-step="@s.Id" data-step-done="@(s.Done ? "1" : "0")" title="@StepTip(s)">
+                        <span class="fy-box" aria-hidden="true">@if (s.Done) { <Icon Name="check" Tone="good" Size="13" /> }</span>
+                        @if (s.Term > 0) { <span class="fy-term" aria-label="@TermLabel(s.Term)">@Roman(s.Term)</span> }
+                        <span class="nm"><span class="t">@s.Title</span>@if (!s.Done) { <span class="k @(s.NotYet != null ? "warn" : "")">@(s.NotYet != null ? s.Waits : Where(s.At))</span> }</span>
+                        @if (!s.Done) { <button class="ui-btn sm fy-show" data-show-me="@s.Id" title="@ShowTip(s)" @onclick="() => Show(step)"><Icon Name="position-marker" Tone="ivory" Size="13" />Show me</button> }
+                    </div>
+                }
+            }
+        }
+    </section>
+}
+@code {
+    [Parameter] public EventCallback<string> OnGo { get; set; }
+    /// <summary>A window is open or the screen is narrow: only the steps still to do are shown.</summary>
+    [Parameter] public bool Folded { get; set; }
+    private bool _open = true, _celebrating, _wasAll, _gone;
+    /// <summary>The steps seen done at the last look, and those that have just ticked (they glow for a moment).</summary>
+    private HashSet<string>? _known; private readonly HashSet<string> _fresh = new();
+    private const string CloseTip = "[close] Put the list away\nHelp in the game menu can pin it again while the first three years last.";
+
+    protected override void OnParametersSet() => Look();
+    /// <summary>What has ticked since the last look: those steps glow, any ring still lit goes out, and the last of them brings the list's
+    /// "every step is done" for a few seconds before it folds away.</summary>
+    private void Look()
+    {
+        var fy = G.FirstSteps();
+        if (fy == null) { _known = null; _wasAll = false; return; }
+        var done = fy.Steps.Where(s => s.Done).Select(s => s.Id).ToHashSet();
+        if (_known != null)
+        {
+            var news = done.Where(id => !_known.Contains(id)).ToList();
+            if (news.Count > 0) { foreach (var id in news) _fresh.Add(id); _ = Later(2200, () => _fresh.Clear()); _ = Clear(); }
+            if (fy.AllDone && !_wasAll) { _celebrating = true; _ = Later(7000, () => _celebrating = false); }
+        }
+        _known = done; _wasAll = fy.AllDone;
+    }
+    private async Task Later(int ms, Action then)
+    {
+        try { await Task.Delay(ms); if (_gone) return; then(); await InvokeAsync(StateHasChanged); } catch { }
+    }
+    private async Task Clear() { try { await JS.InvokeVoidAsync("praetoriaGuide.clear"); } catch { } }
+    private async Task PutAway() { await Clear(); G.PutAwayFirstSteps(); }
+
+    /// <summary>Show me: the window opens (the shell's own way to a place), and the control that does the step is lit by a pulsing ring
+    /// until it is pressed, the step ticks, or a few seconds pass.</summary>
+    private async Task Show(FirstStepLine s)
+    {
+        if (s.Show.Length > 0) await OnGo.InvokeAsync(s.Show);
+        try { await JS.InvokeVoidAsync("praetoriaGuide.ring", s.Ring.Select(Selector).Where(x => x.Length > 0).ToArray(), s.Id); } catch { }
+    }
+
+    /// <summary>What a ring's name lights on the screen: a rail socket, a tab of the open window, a stock of the top bar, the first unanswered report in the list,
+    /// the open motion's vote, a world's Build, the Exchange's order bar, a picked fleet's order bar, the fleet in the list, the holdings.</summary>
+    public static string Selector(string ring)
+    {
+        if (ring.StartsWith("rail:")) return ".gs-shell .rail [data-rail=\"" + ring[5..] + "\"]";
+        if (ring.StartsWith("tab:")) return ".gs-shell .screen.window [data-tab=\"" + ring[4..] + "\"]";
+        if (ring == "top:treasury") return ".topbar .well.tb-res:not(.strat)";   // the top bar's treasury: what the ledger accounts for
+        if (ring == "top:pools") return ".topbar .tb-pools, .topbar [data-pools]";
+        return ring switch
+        {
+            "report" => ".outliner [data-report]:not(.done)",
+            "vote" => ".screen.window [data-motion] .sn-vote",
+            "build" => ".screen.window .hs-world [data-can-begin]",
+            "goods" => ".screen.window [data-goods-table] .ui-order",
+            "order" => ".order-bar",
+            "fleet" => ".outliner [data-ol-fleet]",
+            "holdings" => ".outliner [data-ol=\"holdings\"]",
+            "checklist" => ".outliner [data-first-years]",
+            _ => ""
+        };
+    }
+    /// <summary>Where a step is done, in a few words that fit under it ("In House, the ledger", "On the map").</summary>
+    public static string Where(string at)
+    {
+        int i = at.IndexOf(':'); string w = i < 0 ? at : at[..i], tab = i < 0 ? "" : at[(i + 1)..];
+        if (w is "galaxy" or "fleet" or "map") return "On the map";
+        if (w == "exchange") return "On the Exchange";
+        return "In " + Place(w) + (w == "house" && tab == "ledger" ? ", the ledger" : "");
+    }
+    private static string Place(string w) => w switch
+    {
+        "office" => "the Office", "character" => "the You window", "dynasty" => "Dynasty", "house" => "House", "planets" => "Worlds", "military" => "Military",
+        "exchange" => "the Exchange", "senate" => "the Senate", "laws" => "the Laws", "houses" => "Houses", "chronicle" => "the Chronicle", "galaxy" or "fleet" or "map" => "the map",
+        _ => w
+    };
+    private static string Lede(FirstStepsModel fy) => fy.Academy ? "The Academy's four terms, on the real screen." : "For " + fy.HouseName + ", in year " + fy.Year + " of " + fy.Years + ".";
+    private static string HeadTip(FirstStepsModel fy) => "[flag-objective] Your first years\nThe first things to do as " + (fy.Academy ? "the Academy's four terms carry on" : "head of " + fy.HouseName)
+        + ", each ticked when it is done. The list stays until every step is done, you put it away, or year " + fy.Years + " ends. This is year " + fy.Year + ".";
+    private static string StepTip(FirstStepLine s) => "[" + (s.Done ? "check" : "flag-objective") + "] " + s.Title + (s.Done ? ": done" : "") + "\n" + s.Text
+        + (s.NotYet != null ? "\n" + s.NotYet : "") + (s.Term > 0 ? "\nCarried from the Academy's " + Ordinal(s.Term) + " term: " + s.TermSays + "." : "");
+    private static string ShowTip(FirstStepLine s) => "[position-marker] Show me\n" + (s.Show.Length == 0 ? "Light the button that opens " + Place(s.At.Split(':')[0]) + ", at the left." : s.Show.StartsWith("fleet") || s.Show == "galaxy" ? "Go to the map and light what to click." : "Open " + Place(s.Show.Split(':')[0]) + " and light what to press.");
+    private static string TermLabel(int n) => "Term " + n;
+    private static string Roman(int n) => n switch { 1 => "I", 2 => "II", 3 => "III", 4 => "IV", _ => n.ToString() };
+    private static string Ordinal(int n) => n switch { 1 => "first", 2 => "second", 3 => "third", 4 => "fourth", _ => n + "th" };
+    public void Dispose() => _gone = true;
+}

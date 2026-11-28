@@ -1,0 +1,35 @@
+@* A term's report card at the Academy (docs/ACADEMY.md, "The report card"; docs/VISUAL_SYSTEM.md 4.6, 4.7, 4.9): a framed plate with the
+   term as its kicker, the place in the order of merit large with how it moved (up in green, down in red, by shape as well: a chevron that
+   turns), then what moved it, a line each with its glyph and its figures, and the one tip on a strip with a brass rule. On This term it
+   reads the term just ended; So far keeps every card; the passing-out card shows the last. *@
+@{
+    var c = Card; bool up = c.PlaceTo < c.PlaceFrom, down = c.PlaceTo > c.PlaceFrom;
+}
+<div class="ac-card @(Last ? "last" : "") @(up ? "up" : down ? "down" : "")" data-term-card="@c.Term">
+    <div class="ac-card-hd">
+        <div class="ac-card-tt"><span class="ui-kick">Report card · @c.TermName</span>
+            <span class="ac-card-sub">Score @c.ScoreFrom to @c.ScoreTo</span></div>
+        <div class="ac-card-place" title="@PlaceTip(c)">
+            <Icon Name="trophy" Tone="@(c.PlaceTo <= 3 ? "brass" : "ivory")" Size="22" />
+            <b>@Praetoria.Core.Systems.AcademySystem.Ordinal(c.PlaceTo)</b><span class="of">of @c.Of</span>
+            <span class="mv @(up ? "ui-up" : down ? "ui-down" : "ui-dim")">@if (up || down) { <i class="arrow @(up ? "u" : "d")" aria-hidden="true"></i> }@Moved(c)</span>
+        </div>
+    </div>
+    <ul class="ac-card-why">
+        @foreach (var l in c.Moved) { <li data-line="@l.Kind"><Icon Name="@Glyph(l.Kind)" Tone="@(l.Kind == "banner" ? "ember" : "ivory")" Size="16" /><span>@l.Text</span></li> }
+    </ul>
+    @if (c.Tip.Length > 0) { <div class="ac-card-tip" data-tip><Icon Name="smart" Tone="brass" Size="18" /><span><b>@(Last ? "Remember" : "For next term")</b> @c.Tip</span></div> }
+</div>
+@code {
+    [Parameter, EditorRequired] public AcademyTermCard Card { get; set; } = default!;
+    /// <summary>The last term's card on the passing-out card: no "next term".</summary>
+    [Parameter] public bool Last { get; set; }
+    private static string Glyph(string kind) => kind switch
+    {
+        "read" => "open-book", "standing" => "laurels", "score" => "trophy", "year" => "three-friends", "passed" => "stairs-goal", "banner" => "flying-flag", _ => "scroll-quill"
+    };
+    private static string Moved(AcademyTermCard c) => c.PlaceTo < c.PlaceFrom ? "up from " + Praetoria.Core.Systems.AcademySystem.Ordinal(c.PlaceFrom)
+        : c.PlaceTo > c.PlaceFrom ? "down from " + Praetoria.Core.Systems.AcademySystem.Ordinal(c.PlaceFrom) : "as before";
+    private static string PlaceTip(AcademyTermCard c) => "[trophy] The order of merit\nYou stood " + Praetoria.Core.Systems.AcademySystem.Ordinal(c.PlaceFrom) + " as the term opened and "
+        + Praetoria.Core.Systems.AcademySystem.Ordinal(c.PlaceTo) + " of " + c.Of + " as it closed. Your score is your standing twice and every mark of the year; a classmate's is what they have earned.";
+}

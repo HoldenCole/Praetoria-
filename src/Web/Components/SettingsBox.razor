@@ -1,4 +1,5 @@
 @inject IJSRuntime JS
+@inject GameClient G
 @* Settings kept in this browser (docs/WEB_CLIENT.md, "Settings"; docs/PLAYTHROUGH.md, a first game: N47, N3). Opened from the top
    bar and from the title. What is here works; what the game does not have (sound) is said, not shown as a dead switch. *@
 @* Each option is one row (docs/VISUAL_SYSTEM.md 4.7): its glyph, its name, an "i" whose tooltip says what it does, and its plates at
@@ -22,8 +23,8 @@
             <div class="set-pick"><button class="opt inline set-sw @(_numberKeys ? "on" : "")" data-set-numbers aria-pressed="@_numberKeys" title="@(_numberKeys ? "On: press to turn it off" : "Off: press to turn it on")" @onclick="() => Set(nameof(_numberKeys), !_numberKeys)"><i></i>@(_numberKeys ? "On" : "Off")</button></div>
         </div>
         <div class="set-row">
-            <Icon Name="flying-flag" Tone="brass" Size="20" /><b>Show rail labels</b><span class="ui-info" title="The name of each window under its button at the left, for a new player. The name shows beside a button whenever the pointer is on it, either way." tabindex="0" aria-label="What it does">i</span>
-            <div class="set-pick"><button class="opt inline set-sw @(_railLabels ? "on" : "")" data-set-rail-labels aria-pressed="@_railLabels" title="@(_railLabels ? "On: press to turn it off" : "Off: press to turn it on")" @onclick="() => Set(nameof(_railLabels), !_railLabels)"><i></i>@(_railLabels ? "On" : "Off")</button></div>
+            <Icon Name="flying-flag" Tone="brass" Size="20" /><b>Show rail labels</b><span class="ui-info" title="The name of each window under its button at the left, for a new player. The name shows beside a button whenever the pointer is on it, either way. In a first game they are on by themselves for the first three years, until you choose here." tabindex="0" aria-label="What it does">i</span>
+            <div class="set-pick">@if (_railAuto) { <span class="set-auto" data-rail-labels-auto>On for your first years</span> }<button class="opt inline set-sw @(_railLabels ? "on" : "")" data-set-rail-labels aria-pressed="@_railLabels" title="@(_railLabels ? "On: press to turn it off" : "Off: press to turn it on")" @onclick="() => Set(nameof(_railLabels), !_railLabels)"><i></i>@(_railLabels ? "On" : "Off")</button></div>
         </div>
         <div class="set-row">
             <Icon Name="scroll-unfurled" Tone="brass" Size="20" /><b>The year in brief</b><span class="ui-info" title="A card as each year opens, saying what the last one did to the house." tabindex="0" aria-label="What it does">i</span>
@@ -48,6 +49,8 @@
     /// <summary>A setting changed: whoever reads the settings should read them again.</summary>
     [Parameter] public EventCallback OnChanged { get; set; }
     private string _text = "normal"; private bool _enterEnds = true, _numberKeys = true, _brief = true, _railLabels;
+    /// <summary>The rail's labels are on by themselves, a first game's first years, and the player has not chosen.</summary>
+    private bool _railAuto;
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,7 +59,8 @@
     private void Read(string json)
     {
         var s = Praetoria.Web.Services.ClientSettings.Parse(json);
-        _text = s.Text; _enterEnds = s.EnterEnds; _numberKeys = s.NumberKeys; _railLabels = s.RailLabels;
+        _text = s.Text; _enterEnds = s.EnterEnds; _numberKeys = s.NumberKeys; _railLabels = s.RailLabelsChosen ?? (G.Turn != null && G.LabelsByThemselves);
+        _railAuto = s.RailLabelsChosen == null && _railLabels;
     }
     private async Task Set(string field, object value)
     {

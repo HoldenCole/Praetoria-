@@ -9,8 +9,14 @@ public sealed record AcademySubjectLine(string Id, string Name, string Skill, st
 /// <summary>A cadet of the year on the order of merit (the protagonist among them).</summary>
 public sealed record AcademyCadetLine(string Id, string Name, string HouseId, string HouseName, string Accent, string HouseStyle, int Age, string Sex, int Score, string BestAt,
     int Disposition, string Bond, string? StandardName, string? StandardAccent, bool Alive, bool You, IReadOnlyList<string> Marks);
-/// <summary>A lesson as this run teaches it: the paragraphs for the register in force.</summary>
-public sealed record AcademyLessonCard(string Id, int Term, string Title, string Brief, IReadOnlyList<string> Paragraphs);
+/// <summary>A lesson as this run teaches it: the paragraphs for the register in force, and what they fold to (two or three sentences, with
+/// "Read more" for the rest: docs/ACADEMY.md, "The tutorial").</summary>
+public sealed record AcademyLessonCard(string Id, int Term, string Title, string Brief, IReadOnlyList<string> Paragraphs, string Summary = "");
+/// <summary>A term's report card as the screen shows it (docs/ACADEMY.md, "The report card"): the place before and after, what moved it,
+/// each a sentence with its figures, and one tip for the term to come.</summary>
+public sealed record AcademyTermCard(int Term, string TermName, int PlaceFrom, int PlaceTo, int Of, int ScoreFrom, int ScoreTo, IReadOnlyList<AcademyCardLine> Moved, string Tip);
+/// <summary>A line of a report card and what it is about: "read", "standing", "score", "year", "passed" or "banner".</summary>
+public sealed record AcademyCardLine(string Kind, string Text);
 /// <summary>A house that matters, as the orientation tells it.</summary>
 public sealed record AcademyHouseLine(string Id, string Name, string Accent, string Style, string HeadName, string HeadRank, string Party, string PartyAccent, int Weight, int Worlds, int Hulls, int Disposition, bool Chair, bool Yours);
 public sealed record AcademyFact(string Heading, string Text);
@@ -22,7 +28,11 @@ public sealed record AcademyModel(string SchoolName, string Register, string Blu
     string? InstructorId, string? InstructorName, string? InstructorNote, IReadOnlyList<AcademySubjectLine> Subjects, IReadOnlyList<AcademyCadetLine> Cohort,
     IReadOnlyList<AcademyLessonCard> Lessons, IReadOnlyList<AcademyFact> Politics, IReadOnlyList<AcademyHouseLine> Houses, IReadOnlyList<AcademyFact> YourHouse,
     IReadOnlyList<AcademyStandardLine> Standards, IReadOnlyList<AcademyServiceOption> Services, bool FinalTerm, bool Graduated, IReadOnlyList<string> Record,
-    IReadOnlyList<string> Friends, IReadOnlyList<string> Rivals, string ServiceName, string RankName);
+    IReadOnlyList<string> Friends, IReadOnlyList<string> Rivals, string ServiceName, string RankName, IReadOnlyList<AcademyTermCard>? Cards = null)
+{
+    /// <summary>The report cards, the first term's first.</summary>
+    public IReadOnlyList<AcademyTermCard> Reports => Cards ?? Array.Empty<AcademyTermCard>();
+}
 
 public static class AcademyProjection
 {
@@ -47,7 +57,8 @@ public static class AcademyProjection
         var cohort = a.Cohort.Select(id => w.Char(id)).Where(c => c != null).Select(c => Cadet(c!, false)).Append(Cadet(p, true))
             .OrderByDescending(c => c.Alive).ThenByDescending(c => c.Score).ThenBy(c => c.You ? 0 : 1).ThenBy(c => c.Id, StringComparer.Ordinal).ToList();
 
-        var lessons = cat.Lessons.OrderBy(l => l.Term).Select(l => new AcademyLessonCard(l.Id, l.Term, a.IsImperium && l.ImperiumTitle.Length > 0 ? l.ImperiumTitle : l.Title, a.IsImperium && l.ImperiumBrief.Length > 0 ? l.ImperiumBrief : l.Brief, a.IsImperium && l.ImperiumFull.Count > 0 ? l.ImperiumFull : l.Full)).ToList();
+        var lessons = cat.Lessons.OrderBy(l => l.Term).Select(l => new AcademyLessonCard(l.Id, l.Term, a.IsImperium && l.ImperiumTitle.Length > 0 ? l.ImperiumTitle : l.Title, a.IsImperium && l.ImperiumBrief.Length > 0 ? l.ImperiumBrief : l.Brief, a.IsImperium && l.ImperiumFull.Count > 0 ? l.ImperiumFull : l.Full,
+            cat.FirstYears.Lectures.TryGetValue(l.Id, out var folded) ? folded.For(a.IsImperium) : "")).ToList();
 
         // ---- the orientation: the state of the Reach as it stands the year the cadet enters ----
         var senate = tc.Senate; var chair = RegionSystem.CapitalHolder(w); var facts = new List<AcademyFact>();
@@ -114,6 +125,46 @@ public static class AcademyProjection
             instructor?.Id, instructor?.Name, instructor != null ? $"{content.Careers.RankName(instructor.CareerTrack, instructor.CareerRank, w.Era) ?? "officer"} of {ih?.Name}" : null,
             subjects, cohort, lessons, facts, great, yours, standards, services, a.Active && a.Term >= a.Terms, a.Graduated,
             w.History.Where(h => h.Turn == 0).Select(h => h.Text).Reverse().Take(14).ToList(), friends, rivals,
-            content.Careers.ById(p.CareerTrack)?.NameIn(w.Era) ?? p.CareerTrack, content.Careers.RankName(p.CareerTrack, p.CareerRank, w.Era) ?? "");
+            content.Careers.ById(p.CareerTrack)?.NameIn(w.Era) ?? p.CareerTrack, content.Careers.RankName(p.CareerTrack, p.CareerRank, w.Era) ?? "",
+            a.Reports.Select(r => Card(w, cat, reg, p, r)).ToList());
+    }
+
+    /// <summary>A term's report card in words (docs/ACADEMY.md, "The report card"): what was read and what it gave, how standing moved and what
+    /// that was worth (it counts twice, and never below nothing), the score, what the rest of the year gained, who passed whom, the banner
+    /// taken; and one tip, the first that fits: a banner lost, the last term, a subject that would give more, standing that did not rise,
+    /// a lead to hold, or the pace of the year.</summary>
+    public static AcademyTermCard Card(World w, AcademyCatalog cat, AcademyRegister reg, Character p, TermReport r)
+    {
+        var a = w.Academy!; var lines = new List<AcademyCardLine>(); var fy = cat.FirstYears;
+        string Std(string id, bool first = false) => cat.Standard(id)?.Name is { Length: > 0 } n ? (first ? char.ToUpperInvariant(n[0]) + n[1..] : n) : id;
+        if (cat.Subject(r.Subject) is { } read) lines.Add(new("read", $"You read {read.Name}: {Counted.Of(r.Marks, "mark")}."));
+        int worth = AcademySystem.StandingWeight * (Math.Max(0, r.StandingTo) - Math.Max(0, r.StandingFrom));
+        if (r.StandingTo != r.StandingFrom)
+            lines.Add(new("standing", $"Your standing {(r.StandingTo > r.StandingFrom ? "rose" : "fell")} from {Counted.Figure(r.StandingFrom)} to {Counted.Figure(r.StandingTo)}"
+                + (worth != 0 ? $": {Math.Abs(worth)} {(worth > 0 ? "more" : "fewer")} {(Math.Abs(worth) == 1 ? "mark" : "marks")} on your score, since standing counts twice." : ", and the order of merit does not count standing below nothing.")));
+        else lines.Add(new("standing", "Your standing did not move."));
+        lines.Add(new("score", $"Your score went from {r.ScoreFrom} to {r.ScoreTo}."));
+        int others = Math.Max(0, r.Of - 1);
+        if (others > 0) lines.Add(new("year", r.YearLow == r.YearHigh ? $"The other {Counted.Of(others, "cadet")} gained {r.YearLow} each."
+            : $"The other {Counted.Of(others, "cadet")} gained {r.YearLow} to {r.YearHigh} each, {r.YearMean} on average."));
+        if (r.PassedBy > 0 && r.Passed > 0) lines.Add(new("passed", $"{Counted.Of(r.PassedBy, "cadet")} passed you, and you passed {Counted.Of(r.Passed, "cadet")}."));
+        else if (r.PassedBy > 0) lines.Add(new("passed", $"{Counted.Of(r.PassedBy, "cadet")} passed you."));
+        else if (r.Passed > 0) lines.Add(new("passed", $"You passed {Counted.Of(r.Passed, "cadet")}."));
+        if (r.BannerLost.Length > 0)
+            lines.Add(new("banner", $"{Std(r.BannerTaker, true)} took the banner of {Std(r.BannerLost)}." + (r.BannerYours ? $" It was yours: you serve under {Std(r.BannerTaker)} now, and lost 2 standing with it." : "")));
+
+        // the one tip: the first of these that fits the term
+        string tip;
+        var best = cat.Subjects.Select(s => (s, m: AcademySystem.MarksFor(p, s))).OrderByDescending(x => x.m).ThenBy(x => x.s.Id, StringComparer.Ordinal).FirstOrDefault();
+        if (r.BannerYours) tip = fy.Tip("banner");
+        else if (r.Term >= a.Terms) tip = fy.Tip("last");
+        else if (best.s != null && best.m >= r.Marks + 2 && best.s.Id != r.Subject) tip = fy.Tip("marks").Replace("{subject}", best.s.Name).Replace("{marks}", Counted.Of(best.m, "mark"));
+        else if (r.StandingTo <= r.StandingFrom) tip = fy.Tip("standing");
+        else if (r.PlaceTo == 1) tip = fy.Tip("first");
+        else if (r.PlaceTo < r.PlaceFrom) tip = fy.Tip("rising");
+        else tip = fy.Tip("pace");
+        tip = tip.Replace("{low}", r.YearLow.ToString()).Replace("{high}", r.YearHigh.ToString());
+        int term = Math.Clamp(r.Term, 1, Math.Max(1, reg.Terms.Count));
+        return new AcademyTermCard(r.Term, term - 1 < reg.Terms.Count ? reg.Terms[term - 1] : $"Term {r.Term}", r.PlaceFrom, r.PlaceTo, r.Of, r.ScoreFrom, r.ScoreTo, lines, tip);
     }
 }

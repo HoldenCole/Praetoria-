@@ -12,6 +12,7 @@
     int filled = m.Advisors.Count(a => !a.Vacant);
 }
 <aside class="outliner @(Folded ? "folded" : "")">
+    <FirstYears OnGo="OnGo" Folded="Folded" />@* the first years, pinned at the top in a first game (docs/ACADEMY.md) *@
     @if (m.Briefing.Count > 0)
     {
         <section class="ol-sec @(Open("reports") ? "" : "shut")" data-ol="reports">

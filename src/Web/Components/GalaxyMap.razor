@@ -450,6 +450,7 @@
             // looking at a world is only looking (docs/PLAYTHROUGH.md 11): with a fleet picked the route and the odds are shown, and the
             // order is given by the button in the order bar, never by the click
             _systemId = id; _ = OnPicked.InvokeAsync();
+            G.Saw(FirstStepsSystem.MapPlace);   // a world picked on the map: the first years' "find your world" (docs/ACADEMY.md)
         }
         else if (kind == "enter") { Enter(id); _ = OnPicked.InvokeAsync(); return; }
         else if (kind == "leave") { Leave(); }

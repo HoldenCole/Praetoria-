@@ -33,7 +33,7 @@
         new("lectures", "Lectures", "open-book", full ? termLessons.Count.ToString() : "", Tip: "The lecture hall: this term's lectures and the ones before"),
         new("reach", "The Reach", "greek-temple", Tip: "The state of the Reach the year you enter, the houses that matter, and your house"),
         new("year", "The year", "three-friends", a.Cohort.Count.ToString(), Tip: imperium ? "The order of merit and the Standards: click a cadet" : "The order of merit: click a cadet"),
-        new("record", "So far", "scroll-unfurled", a.Record.Count > 0 ? a.Record.Count.ToString() : "", Tip: "The year so far, as it was written")
+        new("record", "So far", "scroll-unfurled", a.Record.Count > 0 ? a.Record.Count.ToString() : "", Tip: "Every term's report card, and the year so far as it was written")
     };
 }
 <div class="academy ac @(imperium ? "institute" : "")" style="--accent:@house.AccentColor" data-academy-tab="@_tab">
@@ -57,6 +57,13 @@
             @if (_tab == "term")
             {
                 <p class="ui-lede">@if (open > 0) { <text><b>@Counted.Matters(open)</b> @(open == 1 ? "waits" : "wait") for you at the door. </text> } else { <text>Nothing waits at the door. </text> }You are reading <b>@(reading?.Name ?? "nothing")</b> this term@(a.FinalTerm ? ", the last before the board commissions you." : $", with {Counted.Terms(termsLeft)} after it.")</p>
+                @if (a.Reports.LastOrDefault() is { } card && card.Term == a.Term - 1)
+                {
+                    <Section Title="Last term's report" Info="What moved your place in the order of merit last term, and a tip for this one. Every report is kept under So far." data-term-report="@card.Term">
+                        <Right><span>@card.TermName</span></Right>
+                        <ChildContent><TermCard Card="card" /></ChildContent>
+                    </Section>
+                }
                 <div class="ac-cols">
                 <div class="ac-col">
                 <Section Title="This term" Count="@m.Briefing.Count.ToString()" Info="Answer what comes, choose what to read, then end the term. A report left unanswered at the term's end is set aside."
@@ -124,7 +131,7 @@
             }
             else if (_tab == "lectures")
             {
-                <p class="ui-lede">@(full ? "Every lesson in full: this term's lectures open, the earlier ones folded." : "The short course, as you asked: one line a lecture; open any for the whole of it.")</p>
+                <p class="ui-lede">@(full ? "This term's lectures, each in a few lines: Read more gives the whole of it. The earlier ones are folded." : "The short course, as you asked: one line a lecture. Open any for a few lines, and Read more for the whole of it.")</p>
                 <Section Title="The lecture hall" Count="@a.Lessons.Count.ToString()" Info="The full course teaches how all of the Reach works, a little each term. The short course gives one line a lecture, for one who knows the Reach already.">
                     <Right>
                         <span class="ui-seg" role="radiogroup">
@@ -133,20 +140,16 @@
                         </span>
                     </Right>
                     <ChildContent>
+                    @* each lecture folds to two or three sentences, with "Read more" for the whole of it (docs/ACADEMY.md, "The tutorial") *@
                     @if (full)
                     {
-                        @foreach (var l in termLessons)
-                        {
-                            <details class="ac-lesson now" open><summary><Icon Name="chev" Tone="brass" Size="11" /><b>@l.Title</b><span class="k">this term's lecture</span></summary>
-                                <div class="ac-prose">@foreach (var para in l.Paragraphs) { <p>@para</p> }</div>
-                            </details>
-                        }
-                        @foreach (var l in earlier) { <details class="ac-lesson"><summary><Icon Name="chev" Tone="brass" Size="11" /><b>@l.Title</b><span class="k">term @l.Term</span></summary><div class="ac-prose">@foreach (var para in l.Paragraphs) { <p>@para</p> }</div></details> }
+                        @foreach (var l in termLessons) { @Lecture(l, true, "this term's lecture") }
+                        @foreach (var l in earlier) { @Lecture(l, false, "term " + l.Term) }
                         @if (later.Count > 0) { <p class="ac-note">Still to come: @string.Join(", ", later.Select(l => l.Title)).</p> }
                     }
                     else
                     {
-                        @foreach (var l in a.Lessons) { <details class="ac-lesson brief"><summary><Icon Name="chev" Tone="brass" Size="11" /><b>@l.Title</b><span class="k">@l.Brief</span></summary><div class="ac-prose">@foreach (var para in l.Paragraphs) { <p>@para</p> }</div></details> }
+                        @foreach (var l in a.Lessons) { @Lecture(l, false, l.Brief, "brief") }
                     }
                     </ChildContent>
                 </Section>
@@ -256,6 +259,12 @@
             }
             else
             {
+                @if (a.Reports.Count > 0)
+                {
+                    <Section Title="Report cards" Count="@a.Reports.Count.ToString()" Info="Each term's report: what moved your place in the order of merit, and one tip.">
+                        <ChildContent><div class="ac-cards">@foreach (var card in a.Reports.Reverse()) { <TermCard Card="card" /> }</div></ChildContent>
+                    </Section>
+                }
                 <Section Title="The year so far" Count="@a.Record.Count.ToString()" IsEmpty="@(a.Record.Count == 0)" EmptyLine="The first morning has not yet come." EmptyIcon="scroll-unfurled">
                     @foreach (var line in a.Record) { <div class="line ac-line">@line</div> }
                 </Section>
@@ -280,5 +289,21 @@
     private void SetTutorial(bool full) { bool now = G.World!.Academy!.Tutorial != "brief"; if (now != full) ToggleTutorial(); }
     private void ToggleTutorial() => G.Execute(new SetTutorialCommand(G.World!.ProtagonistId, G.World!.Academy!.Tutorial != "brief" ? "brief" : "full"));
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
+    /// <summary>The lectures opened past their fold ("Read more").</summary>
+    private readonly HashSet<string> _more = new();
+    private void More(string id) { if (!_more.Remove(id)) _more.Add(id); }
+    /// <summary>A lecture in the hall: its title and a note, the two or three sentences it folds to, and "Read more" for the whole of it.</summary>
+    private RenderFragment Lecture(AcademyLessonCard l, bool open, string note, string kind = "") => __builder =>
+    {
+        bool more = _more.Contains(l.Id); string id = l.Id;
+        <details class="ac-lesson @(open ? "now" : "") @kind" open="@open" data-lecture="@l.Id">
+            <summary><Icon Name="chev" Tone="brass" Size="11" /><b>@l.Title</b><span class="k">@note</span></summary>
+            <div class="ac-prose">
+                <p class="ac-fold" data-lecture-summary>@(l.Summary.Length > 0 ? l.Summary : l.Brief)</p>
+                @if (more) { <div class="ac-full" data-lecture-full>@foreach (var para in l.Paragraphs) { <p>@para</p> }</div> }
+                <div class="ac-more-row"><Link Label="@(more ? "Read less" : "Read more")" Class="@(more ? "ac-more on" : "ac-more")" Tip="@(more ? "Fold the lecture back to its few lines" : "The whole of the lecture, as it was given")" data-read-more="@id" OnClick="() => More(id)" /></div>
+            </div>
+        </details>
+    };
     private static string Signed(int n) => (n > 0 ? "+" : "") + Counted.Figure(n);
 }

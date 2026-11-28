@@ -284,6 +284,7 @@ in the bright ivory ramp with a soft light, so it reads at 1x. Hover: a 1px bras
 beside the socket with what waits there ("Senate · 4 waiting"), no delay. Active: a brass plate (`#f3dd9a`, `#c9a24a`,
 `#8f6c2a`) with the glyph in `#1d1506` and a 3px brass tab on the window's side. The window's own header kicker repeats
 the name. An option in Settings, "Show rail labels", adds 12px labels under the sockets for new players.
+A first game shows the labels by themselves for its first three years until the player chooses (docs/WEB_CLIENT.md, "Settings").
 
 **Pips** count what waits: a round brass pip for a decision, a notched ember diamond for danger, so the two differ in
 shape and not only in colour. Order of the rail follows `RoleTheme.Priority`; a register changes only the order, the
@@ -315,6 +316,9 @@ rows with their own 80% dark backing. Report rows: a 54 by 34 crop of the event'
 in Plex 600 14px, an italic Plex 13px state line ("Answer by the year's end", "Lapses at the year's end"), and a brass
 wax seal while it is unanswered. Fleet rows carry the fleet token, holding rows a small lit globe. Empty sections are
 hidden. With a window open only Reports stays open and the rest fold to their heads. It stops above the console.
+In a first game the first years' list is pinned above Reports: the same head strip, a row a step with a check well and "Show me",
+which lights its control with a pulsing brass ring; with a window open it keeps only the steps left to do, a line each (docs/ACADEMY.md,
+"The first years").
 
 ### 3.8 Console
 318 by 232 in the bottom-right corner: brushed steel inside the medium frame. Along its top a row of 30px tool plates:

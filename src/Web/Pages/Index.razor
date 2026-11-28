@@ -120,6 +120,7 @@ else
                 <div class="dw-body">
                     <header class="win-bar"><span class="ui-medal sm"><Icon Name="@glyph" Tone="brass" Size="18" /></span><h2>@label</h2></header>
                     <div class="win-body">
+                    <CascadingValue Name="Window" Value="@_screen">@* the first years are told which window and tab are open (Tabs.razor) *@
                     @switch (_screen)
                     {
                         case "character": <CharacterScreen Model="m" OnGo="Go" Tab="@_tab" TabStamp="_tabStamp" /> break;
@@ -134,6 +135,7 @@ else
                         case "chronicle": <ChronicleScreen Tab="@_tab" TabStamp="_tabStamp" /> break;
                         default: <OfficeScreen Model="m" OnOpenReport="OpenReport" OnGo="Go" /> break;
                     }
+                    </CascadingValue>
                     </div>
                 </div>
                 <i class="dw-frame" aria-hidden="true"></i>
@@ -223,6 +225,8 @@ else
                     <p class="epi-text">@G.World!.Protagonist!.Name passes out of @grad.SchoolName @(grad.Place == 1 ? "first of the year" : grad.Place <= Math.Max(1, grad.Of / 3) ? "with honours" : "in the body of the year") and is commissioned @grad.RankName in @grad.ServiceName.</p>
                     @if (grad.Friends.Count > 0) { <p class="epi-text">Friends made: @string.Join(", ", grad.Friends).</p> }
                     @if (grad.Rivals.Count > 0) { <p class="epi-text">And those who will remember you otherwise: @string.Join(", ", grad.Rivals).</p> }
+                    @if (grad.Reports.LastOrDefault() is { } lastTerm) { <TermCard Card="lastTerm" Last="true" /> }
+                    @if (G.FirstSteps() is { } firstSteps) { <p class="epi-text" data-first-years-told>The four terms go on with you: @Counted.Of(firstSteps.Steps.Count, "first step") @Counted.Are(firstSteps.Steps.Count) pinned at the top of the list on the right, two for each term, each ticked when it is done.</p> }
                     <p class="epi-text">The gates open. From here a turn is a year, the house is yours to run, and everything the lectures described is real.</p>
                 </ChildContent>
                 <Foot><button class="btn primary" @onclick="() => _passingOut = false">To the desk</button></Foot>
@@ -311,6 +315,7 @@ else
         if (_mini.Id != null && _mini.Id != _miniId) { _miniId = _mini.Id; try { await JS.InvokeVoidAsync("praetoriaShell.watch", _self, _mini); } catch { } }
         if (_perfRender != 0) { Console.WriteLine($"PERF render after the turn: {System.Diagnostics.Stopwatch.GetElapsedTime(_perfRender).TotalMilliseconds:F0} ms"); _perfRender = 0; }
         if (G.Turn != null) await CheckPrimer();
+        await FirstYearsCheck();
         if (first) { _self = DotNetObjectReference.Create(this); try { await JS.InvokeVoidAsync("praetoria.keys", _self); } catch { } }
         try { await JS.InvokeVoidAsync("praetoriaFx.paint"); await JS.InvokeVoidAsync("praetoriaBust.paint"); } catch { }
     }
@@ -536,4 +541,36 @@ else
     private async Task SaveAndLeave() { await Autosave(); Leave(); await ReadSaves(); }
     private void Leave() { _epilogueDismissed = false; _screen = "office"; _openReport = null; _succession = null; _lastProtagonist = null; _passingOut = false; _primerChecked = false; G.Abandon(); }
     public void Dispose() { G.Changed -= OnChanged; _self?.Dispose(); }
+}
+
+@code {
+    // ---- the first years (docs/ACADEMY.md, "The first years"; docs/WEB_CLIENT.md, "The first years") ----
+    // Whether this browser's first game is still to come or under way is kept as praetoria.firstyears: "on" while a first game's list
+    // stands, "done" once one has ended (every step done, put away, or its third year over). A browser that has neither, and has not seen
+    // the primer, is a newcomer's. The rail's labels show by themselves in a first game's first years, unless chosen in Options.
+    private bool _firstRead; private string _firstYears = "";
+    private async Task FirstYearsCheck()
+    {
+        if (!_firstRead)
+        {
+            _firstRead = true;
+            try
+            {
+                _firstYears = await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.firstyears") ?? "";
+                bool primerSeen = !string.IsNullOrEmpty(await JS.InvokeAsync<string?>("localStorage.getItem", "praetoria.primer.seen"));
+                G.FirstGame = _firstYears == "on" || (_firstYears.Length == 0 && !primerSeen);
+            }
+            catch { }
+        }
+        if (G.World is { InAcademy: false, FirstSteps: not null } w && G.Content is { } c)
+        {
+            var cat = c.Academy.FirstYears; string now = _firstYears;
+            if (!FirstStepsSystem.Active(w)) now = "done";   // a cadet who asked only to be briefed knows the Reach
+            else if (now.Length == 0) now = "on";
+            if (now == "on" && (w.FirstSteps.Dismissed || w.Turn > cat.Years || FirstStepsSystem.AllDone(w, cat))) now = "done";
+            if (now != _firstYears) { _firstYears = now; G.FirstGame = now == "on"; try { await JS.InvokeVoidAsync("localStorage.setItem", "praetoria.firstyears", now); } catch { } }
+        }
+        var shown = _set.WithLabels(G.Turn != null && G.LabelsByThemselves);
+        if (shown != _set) { _set = shown; StateHasChanged(); }
+    }
 }

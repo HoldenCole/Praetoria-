@@ -23,6 +23,8 @@ public sealed class AcademyCatalog
     public IReadOnlyList<AcademyStandard> Standards { get; init; } = Array.Empty<AcademyStandard>();
     public IReadOnlyList<AcademyLesson> Lessons { get; init; } = Array.Empty<AcademyLesson>();
     public IReadOnlyList<AcademyTerm> Glossary { get; init; } = Array.Empty<AcademyTerm>();
+    /// <summary>The first years and the folded lectures (content/academy/first_years.json; docs/ACADEMY.md, "The first years").</summary>
+    public FirstYearsCatalog FirstYears { get; init; } = FirstYearsCatalog.Empty;
     /// <summary>The glossary's terms that match what was typed, in the order they are written; all of them for nothing typed. A word in the term counts before a word in the meaning.</summary>
     public IReadOnlyList<AcademyTerm> Find(string typed)
     {
@@ -58,6 +60,7 @@ public sealed class AcademyCatalog
             Standards = Arr("standards").Select(el => new AcademyStandard(ConditionParser.Str(el, "id"), ConditionParser.Str(el, "name"), ConditionParser.OptStr(el, "accent", "#C9D1DC"), ConditionParser.OptStr(el, "motto", ""))).ToList(),
             Lessons = Arr("lessons").Select(el => new AcademyLesson(ConditionParser.Str(el, "id"), ConditionParser.Int(el, "term", 1), ConditionParser.Str(el, "title"), ConditionParser.OptStr(el, "brief", ""), Strings(el, "full"), Strings(el, "imperiumFull"), ConditionParser.OptStr(el, "imperiumTitle", ""), ConditionParser.OptStr(el, "imperiumBrief", ""))).ToList(),
             Glossary = Arr("glossary").Select(el => new AcademyTerm(ConditionParser.Str(el, "id"), ConditionParser.OptStr(el, "group", ""), ConditionParser.Str(el, "term"), ConditionParser.Str(el, "means"), ConditionParser.OptStr(el, "where", ""))).ToList(),
+            FirstYears = FirstYearsCatalog.LoadFromDirectory(contentRoot),
         };
     }
 }

@@ -24,4 +24,13 @@
     [Parameter] public bool Sticky { get; set; }
     [Parameter] public string StickyTop { get; set; } = "0";
     private List<Tab> Shown => Items.Where(t => !t.Hidden).Take(6).ToList();
+    [Inject] private GameClient G { get; set; } = default!;
+    /// <summary>The docked window these tabs stand in (the shell cascades its id): the first years are told which window and tab are open
+    /// (docs/ACADEMY.md, "The first years"), so a step such as "Read the House ledger" ticks when the ledger is shown.</summary>
+    [CascadingParameter(Name = "Window")] public string? Window { get; set; }
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrEmpty(Window) || Active.Length == 0) return;
+        G.Saw(Window); G.Saw(Window + ":" + Active);
+    }
 }

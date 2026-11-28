@@ -143,6 +143,7 @@ public sealed class GameClient
         if (!creation.IsEmpty) CharacterCreation.Apply(world, content, creation);
         ScenarioId = scenarioId; Seed = seed;
         MoneySettings.Begin(world);
+        if (FirstGame || world.InAcademy) FirstStepsSystem.Begin(world, content.Academy.FirstYears, scenarioId);   // the first years (docs/ACADEMY.md)
         Turn = new TurnController(world, content);
         Turn.SyncRng();
         _base = null; _done.Clear();
@@ -172,6 +173,7 @@ public sealed class GameClient
         CharacterWorkshop.Apply(world, content, spec);
         ScenarioId = "a character of your own"; Seed = seed;
         MoneySettings.Begin(world);
+        if (FirstGame || world.InAcademy) FirstStepsSystem.Begin(world, content.Academy.FirstYears, "custom");   // the first years (docs/ACADEMY.md)
         Turn = new TurnController(world, content);
         CharacterWorkshop.Finish(Turn, spec);
         Turn.SyncRng();
@@ -214,12 +216,13 @@ public sealed class GameClient
     {
         if (!CanUndo) return;
         string json = _base!, scenario = ScenarioId, what = _done[^1].what; ulong seed = Seed;
-        var keep = _done.Take(_done.Count - 1).ToList();
+        var keep = _done.Take(_done.Count - 1).ToList(); var learnt = World?.FirstSteps;
         LoadJson(json);
         _base = json;
         bool whole = true;
         foreach (var step in keep) { Changing(); bool ok = step.again(); Turn!.SyncRng(); if (ok) _done.Add(step); else whole = false; }
         ScenarioId = scenario; Seed = seed; ActedThisYear = _done.Count > 0 || ActedThisYear; Told = null;
+        if (World != null) FirstStepsSystem.Carry(learnt, World);   // the act is taken back; having found where it is done is not
         what = Plain(what);
         LastNotice = whole ? "Taken back: " + what + "." : "Taken back: " + what + ". Something done before it could not be done again and is undone too.";
         Settled(); Notify();
@@ -320,8 +323,8 @@ public sealed class GameClient
     // ask (Senate weights, law tables) are memoised (ReadCache). Every method here that changes the world calls Changing() first
     // and Settled() after; nothing else in the client may change it.
     private CourtModel? _court; private AcademyModel? _academy; private bool _academyBuilt; private Goal? _goal; private bool _goalBuilt;
-    private void Changing() { ReadCache.Close(); _court = null; _academy = null; _academyBuilt = false; _goal = null; _goalBuilt = false; }
-    private void Settled() { _court = null; _academy = null; _academyBuilt = false; _goal = null; _goalBuilt = false; if (Turn != null) ReadCache.Open(); }
+    private void Changing() { ReadCache.Close(); _court = null; _academy = null; _academyBuilt = false; _stepsBuilt = false; _goal = null; _goalBuilt = false; }
+    private void Settled() { _court = null; _academy = null; _academyBuilt = false; _stepsBuilt = false; _goal = null; _goalBuilt = false; if (Turn != null) ReadCache.Open(); }
     /// <summary>The goal under the top bar (docs/GOALS.md), built once for each state of the world.</summary>
     public Goal? Goal()
     {
@@ -343,6 +346,45 @@ public sealed class GameClient
         if (!_academyBuilt) { _academy = AcademyProjection.Build(Turn, Content!); _academyBuilt = true; }
         return _academy;
     }
+
+    // ---- the first years (docs/ACADEMY.md, "The first years") ----
+    /// <summary>This browser has not yet had its first game (the page reads it from what the browser keeps before a saga is begun): a saga
+    /// begun now carries the first years' list, and shows the rail's labels by themselves. A saga that opens at the Academy carries the list
+    /// whatever this says, for the cadet's choice of course decides it.</summary>
+    public bool FirstGame { get; set; }
+    private FirstStepsModel? _steps; private bool _stepsBuilt;
+    /// <summary>The first years' list as it stands, or null when it is not on the screen.</summary>
+    public FirstStepsModel? FirstSteps()
+    {
+        if (World == null || Content == null) return null;
+        if (!_stepsBuilt) { _steps = FirstStepsProjection.Build(World, Content); _stepsBuilt = true; }
+        return _steps;
+    }
+    /// <summary>The player has opened a window or a tab ("house:ledger"), or picked a world on the map ("map"): a step may tick. Not an act
+    /// of the game: nothing is changed that the rules read, and undo keeps it.</summary>
+    public void Saw(string place)
+    {
+        if (World == null || !FirstStepsSystem.Saw(World, place)) return;
+        _stepsBuilt = false; Notify();
+    }
+    /// <summary>The player puts the first years' list away.</summary>
+    public void PutAwayFirstSteps() { if (World == null) return; FirstStepsSystem.Dismiss(World); _stepsBuilt = false; Notify(); }
+    /// <summary>Whether the first years' list can be pinned now (the primer's last page): the saga's first three years are not over, and it
+    /// has no list on the screen (none was begun, or it was put away).</summary>
+    public bool CanPinFirstSteps => World is { InAcademy: false } w && Content != null && w.Turn <= Content.Academy.FirstYears.Years && FirstSteps() == null
+        && !(FirstStepsSystem.Active(w) && FirstStepsSystem.AllDone(w, Content.Academy.FirstYears));
+    /// <summary>Pin the first years' list: one put away comes back as it was; a saga with none is given its start's (a saga begun in this
+    /// session knows its start; a loaded one takes the list for a character of one's own, kept to what the house can do).</summary>
+    public void PinFirstSteps()
+    {
+        if (!CanPinFirstSteps) return;
+        var w = World!;
+        if (FirstStepsSystem.Active(w)) w.FirstSteps!.Dismissed = false;
+        else { var fs = FirstStepsSystem.Begin(w, Content!.Academy.FirstYears, Content.Academy.FirstYears.Starts.ContainsKey(ScenarioId) ? ScenarioId : "custom"); fs.Academy = false; }
+        _stepsBuilt = false; Notify();
+    }
+    /// <summary>Whether this saga shows the rail's labels by themselves (a first game, for its first years), unless the player has chosen.</summary>
+    public bool LabelsByThemselves => World != null && Content != null && FirstStepsSystem.Labels(World, Content.Academy.FirstYears);
 
     /// <summary>A save is the game as it stands now: in the middle of a year it holds what has been done this year and the year's
     /// reports with the answers given (<see cref="TurnController.SaveMidYear"/>), so loading it opens the same year where it was left.</summary>
