@@ -186,8 +186,60 @@ public sealed class DealingsSystem
     public void CallVote(World w, Character me, House theirs, string motionId)
     {
         var mine = w.House(me.HouseId)!; var m = w.Motions.First(x => x.Id == motionId); int side = SideOf(m, mine.Id);
-        w.WorldCounters.Remove(WealthSystem.FavourKey(theirs.Id, mine.Id)); m.Votes[theirs.Id] = side; Count(w, WealthSystem.FavoursCalledKey);
+        w.WorldCounters.Remove(WealthSystem.FavourKey(theirs.Id, mine.Id)); m.Votes[theirs.Id] = side; Count(w, WealthSystem.FavoursCalledKey); Remember(w, FavourKeptKind, theirs.Id, mine.Id);
         w.Log($"{me.Name} calls in what {theirs.Name} owes: it declares {(side > 0 ? "for" : "against")} the motion, and owes nothing more.");
+    }
+
+    /// <summary>The houses that owe the player's house a favour and could be called on a motion now before the Senate that strikes at
+    /// it (a censure, an embargo, a break-up, a recall or a reconquest of it; WealthSystem.StrikesAt), each with the first such motion
+    /// in the docket: not one it moved itself, not one it has declared against already (its vote is had without the favour), not while
+    /// the two houses are at war, and not a house that has left the Reach and its Senate. Read by the report's gate
+    /// (VoteMarks.FavoursToCallFlag) and by <see cref="CallInAgainst"/>.</summary>
+    public static List<(House house, Motion motion)> CallableAgainst(World w, string mine)
+    {
+        var list = new List<(House, Motion)>();
+        var against = SenateSystem.Docket(w).Where(m => WealthSystem.StrikesAt(m, mine)).ToList(); if (against.Count == 0) return list;
+        foreach (var h in WealthSystem.OweMe(w, mine).Where(h => h.Id != mine && !World.Outsider(h.Id) && PolitySystem.InReach(w, h.Id) && !w.AtWar(h.Id, mine)))
+            if (against.FirstOrDefault(m => m.ProposerHouseId != h.Id && !(m.Votes.TryGetValue(h.Id, out int cast) && cast < 0)) is { } m) list.Add((h, m));
+        return list;
+    }
+
+    /// <summary>The night spent calling in favours before a motion against the house (a_censure_on_the_docket/call_in_favours): every
+    /// house in <see cref="CallableAgainst"/> declares against the motion, as a favour called in on the house window does
+    /// (<see cref="CallVote"/>), and owes nothing more. The count keeps a declared vote, so each is cast whatever the house leans. The
+    /// player is told who, or that nobody could be called.</summary>
+    public static void CallInAgainst(World w, string mine)
+    {
+        var me = w.House(mine); if (me == null) return; var called = CallableAgainst(w, mine);
+        if (called.Count == 0) { w.Tell("info", "No house that owes yours a favour could be called on the motion against your house, so none was called in.", "senate:chamber"); return; }
+        foreach (var (h, m) in called)
+        {
+            w.WorldCounters.Remove(WealthSystem.FavourKey(h.Id, mine)); m.Votes[h.Id] = -1; Count(w, WealthSystem.FavoursCalledKey); Remember(w, FavourKeptKind, h.Id, mine);
+            w.Log($"{h.Name} declares against the motion of {w.House(m.ProposerHouseId)?.Name ?? "its mover"}, as it owed {me.Name} a favour.");
+        }
+        var names = called.Select(x => x.house.Name).ToList(); string who = names.Count == 1 ? names[0] : string.Join(", ", names.Take(names.Count - 1)) + " and " + names[^1];
+        w.Tell("good", $"{who} owed your house a favour, and {(names.Count == 1 ? "declares" : "declare")} against the motion against your house. The {(names.Count == 1 ? "favour is" : "favours are")} spent, and the count takes {(names.Count == 1 ? "that vote" : "those votes")} as declared.", "senate:chamber", called[0].house.Id);
+    }
+
+    /// <summary>A debt called in from someone of another house (the_favor_called/call_it_in), paid with their house's vote where the player
+    /// needs one: on the first motion now before the Senate that strikes at the player's house (against it), else the player's own (for
+    /// it), else one the player has declared on (as the player did), on which their house has not declared that way. Not their own
+    /// motion, nor one that strikes at their house; not between houses at war, nor from a house outside the Reach's Senate. The count
+    /// keeps a declared vote. The player is told which, or that no motion wanted it. Returns the motion, or null.</summary>
+    public static Motion? DebtPaid(World w, string mine, Character debtor, House theirs)
+    {
+        if (theirs.Id == mine || World.Outsider(theirs.Id) || !PolitySystem.InReach(w, theirs.Id)) return null;
+        if (w.AtWar(theirs.Id, mine)) { w.Tell("info", $"You are at war with {theirs.Name}, so {debtor.Name} pays what they owed in other ways: a house at war with yours gives you no vote.", "houses", theirs.Id); return null; }
+        int Side(Motion m) => WealthSystem.StrikesAt(m, mine) ? -1 : m.ProposerHouseId == mine ? 1 : m.Votes.GetValueOrDefault(mine);
+        var m = SenateSystem.Docket(w).Where(m => Side(m) != 0 && m.ProposerHouseId != theirs.Id && !WealthSystem.StrikesAt(m, theirs.Id) && m.Votes.GetValueOrDefault(theirs.Id) != Side(m))
+            .OrderBy(m => WealthSystem.StrikesAt(m, mine) ? 0 : m.ProposerHouseId == mine ? 1 : 2).FirstOrDefault();
+        if (m == null) { w.Tell("info", $"No motion before the Senate wants the vote of {theirs.Name} now, so {debtor.Name} pays what they owed in other ways.", "houses", theirs.Id); return null; }
+        int side = Side(m); m.Votes[theirs.Id] = side;
+        bool against = WealthSystem.StrikesAt(m, mine), own = m.ProposerHouseId == mine; string myName = w.House(mine)?.Name ?? "the house", mover = w.House(m.ProposerHouseId)?.Name ?? "another house";
+        string what = against ? "the motion against your house" : own ? "your motion" : $"the motion of {mover}";
+        w.Tell("good", $"{debtor.Name} pays what they owed you with the vote of {theirs.Name}: it declares {(side > 0 ? "for" : "against")} {what}, and the count takes it as declared.", "senate:chamber", theirs.Id);
+        w.Log($"{theirs.Name} declares {(side > 0 ? "for" : "against")} {(against ? $"the motion against {myName}" : own ? $"the motion of {myName}" : $"the motion of {mover}")}, as {debtor.Name} owed {myName}.");
+        return m;
     }
 
     /// <summary>Has that house called in, for coin, the favour this one owes it, and not yet been answered?</summary>
@@ -257,6 +309,10 @@ public sealed class DealingsSystem
         var mine = w.House(me.HouseId)!; var m = w.Motions.First(x => x.Id == motionId); int side = Wants(w, m, theirs);
         GiveWord(w, mine.Id, theirs.Id, m, side);
         w.Log($"{mine.Name} gives {theirs.Name} its word: it votes {(side > 0 ? "for" : "against")} the motion.");
+        // the reminder, as a word given in a report has it (VoteMarks.Word): the count is a year off, and the house page is not the Senate's
+        if (mine.Id == w.Protagonist?.HouseId)
+            w.Tell("warn", $"You gave {theirs.Name} your word: your vote on its motion is declared {(side > 0 ? "for" : "against")} it. Keep it at the count and {theirs.Name} owes you a favour, and its head thinks {Signed(PledgeKeptRegard)} of you; "
+                + $"change it and its head thinks {Signed(-PledgeBrokenRegard)} of you, and the house takes no pledge of yours for {Counted.Years(PledgeMemoryYears)}.", "senate:chamber", theirs.Id);
     }
     /// <summary>A word given on a vote: the pledge, judged at the count (<see cref="MotionCounted"/>), and the vote declared that way.
     /// Given here from the house's window, or in a report (a_vote_for_a_vote, VoteMarks.Bargains). <paramref name="paid"/>: a vote bought
@@ -536,7 +592,13 @@ public sealed class DealingsSystem
     {
         string? mine = w.Protagonist?.HouseId;
         w.Dealings.RemoveAll(d => w.Turn - d.Turn > RememberYears || w.House(d.FromHouseId) == null || w.House(d.ToHouseId) == null);
-        if (w.Dealings.Count > RememberMost) w.Dealings.RemoveRange(0, w.Dealings.Count - RememberMost);
+        // past the most kept, the oldest go first; but not a broken word on a vote younger than the years it bars another pledge for,
+        // since PledgeRefusal reads it (docs/WEALTH.md: "takes no pledge of yours for eight years")
+        if (w.Dealings.Count > RememberMost)
+        {
+            var drop = w.Dealings.Where(d => !(d.Kind == PledgeBrokenKind && w.Turn - d.Turn < PledgeMemoryYears)).Take(w.Dealings.Count - RememberMost).ToHashSet();
+            w.Dealings.RemoveAll(drop.Contains);
+        }
         // a pledge on a motion that never came to a count is void
         w.VotePledges.RemoveAll(p => w.Motions.FirstOrDefault(m => m.Id == p.MotionId) is not { Open: true });
         // a threat that has run its years is forgotten

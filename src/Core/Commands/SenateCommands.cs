@@ -107,7 +107,13 @@ public sealed class VoteCommand : ICommand
         return null;
     }
     public bool CanExecute(CommandContext ctx) => Refusal(ctx) == null;
-    public void Execute(CommandContext ctx) { var w = ctx.World; var actor = w.Char(ActorId)!; w.Motions.First(x => x.Id == _motionId).Votes[actor.HouseId] = _stance; }
+    public void Execute(CommandContext ctx)
+    {
+        var w = ctx.World; var actor = w.Char(ActorId)!; var m = w.Motions.First(x => x.Id == _motionId); m.Votes[actor.HouseId] = _stance;
+        // a vote the house has given its word on, or sold: the reminder before the count, at the moment it is changed (docs/events/votes.md, "Promises")
+        if (actor.HouseId == w.Protagonist?.HouseId && DealingsSystem.PledgeOn(w, actor.HouseId, m.Id) is { } p && p.Side != _stance && w.House(p.ToHouseId) is { } to)
+            w.Tell("warn", $"Your vote on this motion is {(p.Paid ? "bought by" : "pledged to")} {to.Name}, {(p.Side > 0 ? "for" : "against")} it. Leave it so at the count, or its head thinks {-DealingsSystem.PledgeBrokenRegard:+0;-0} of you, it is written down, and {to.Name} takes no word of yours on a vote for {Counted.Years(DealingsSystem.PledgeMemoryYears)}.", "houses", to.Id);
+    }
 }
 
 /// <summary>Whip a house on an open motion (GDD §9 influence "Senate maneuvers"): one influence to lean a house that does not dislike you,
@@ -126,6 +132,8 @@ public sealed class LobbyCommand : ICommand
         var target = w.House(_houseId); if (target == null || _houseId == house.Id || World.Outsider(_houseId)) return "no such house";
         if (_side == 0) return "for or against";
         if (m.Lobbied.Contains(house.Id + "→" + _houseId)) return "you have already had their ear";
+        // a declared vote is struck when the house is lobbied: one declared your way (a favour called in, a vote asked or a debt paid) would be lost by it
+        if (m.Votes.TryGetValue(_houseId, out int cast) && cast == _side) return $"it has declared {(cast > 0 ? "for" : "against")} it already";
         var head = Economy.HeadOf(w, target); if (head == null) return "no one to speak to";
         if (_bribe) { int price = SenateSystem.BribeCost(w, target, actor); return SenateSystem.BribeRefused(w, target, actor) ?? (house.Treasury.Credits >= price ? null : $"needs {Money.Credits(price)} (the house has {Money.Held(house.Treasury)})"); }
         if ((w.GetRelationship(head.Id, actor.Id)?.Disposition ?? 0) < -20) return $"{head.Name} will not hear you — try coin";
@@ -287,6 +295,7 @@ public sealed class StandForConsulCommand : ICommand
         if (!ElectionSystem.ConsulOffices(_offices).Any()) return "there is no consulship in this age";
         if (w.Era == "imperium") return "the Emperor holds every office";
         if (w.HasFlag(ElectionSystem.StandFlag(house.Id))) return "you already stand";
+        if (ElectionSystem.PledgedTo(w, house.Id) is { } pledged) return $"your seats are pledged to {w.House(pledged)?.Name ?? "another"}: take that back first";   // a pledge says they are counted for that nominee (ElectionSystem.PledgeSays)
         if (ElectionSystem.IsConsul(w, _offices, house.Id)) return "you hold the consulship";
         if (CaesarSystem.Enemy(w, house.Id)) return $"the house is an enemy of the Reach until year {w.Counter(CaesarSystem.EnemyKey(house.Id))}, and may not stand for consul";
         if (!ElectionSystem.Eligible(w, _offices, house.Id) && TriumphSystem.ConsulAway(w, _offices, house.Id) is { } away) return away;   // the one who would stand commands away from the capital, and nothing else bars the house

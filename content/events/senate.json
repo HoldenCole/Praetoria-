@@ -22,8 +22,9 @@
         { "id": "answer_in_the_chamber", "requires": [ { "type": "skill", "role": "self", "skill": "oratory", "op": "gte", "value": 2 } ],
           "effects": [ { "type": "adjustCounter", "key": "legitimacy", "delta": 2 }, { "type": "adjustResource", "resource": "influence", "delta": 1 },
             { "type": "log", "text": "{self.name} answered the motion from the floor, and the chamber went quiet to hear it. Whatever the vote, the Reach heard the house speak." } ] },
-        { "id": "call_in_favours", "cost": { "influence": 2 }, "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": -1 },
-            { "type": "log", "text": "{self.name} spent the night calling in favours. Three houses that owed the house something remembered it before the vote." } ] },
+        { "id": "call_in_favours", "cost": { "influence": 2 }, "requires": [ { "type": "worldFlag", "flag": "favours_to_call" } ],
+          "effects": [ { "type": "adjustCounter", "key": "goodwill", "delta": -1 }, { "type": "setWorldFlag", "flag": "calling_in_favours", "value": true },
+            { "type": "log", "text": "{self.name} spent the night before the vote calling in the favours owed to the house." } ] },
         { "id": "let_them_talk", "effects": [ { "type": "log", "text": "{self.name} let the motion stand unanswered. Contempt is also an argument." } ] }
       ]
     },

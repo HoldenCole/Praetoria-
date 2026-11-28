@@ -38,13 +38,15 @@ public static class ElectionSystem
     public static List<(string houseId, string? partyId)> Nominees(World w, OfficeCatalog offices, Func<string, int> weight)
     {
         var list = new List<(string, string?)>(); var mine = w.Protagonist?.HouseId;
+        bool mineStands = mine != null && w.HasFlag(StandFlag(mine)) && Eligible(w, offices, mine);
         foreach (var f in w.Factions.OrderBy(f => f.Id, StringComparer.Ordinal))
         {
             // the player's house, standing, is its bench's nominee only if the bench will have it (see BenchContest); otherwise the
-            // weightiest eligible member is, as when the player does not stand
-            bool mineHere = mine != null && f.Members.Contains(mine) && w.HasFlag(StandFlag(mine)) && Eligible(w, offices, mine);
+            // weightiest eligible member is, as when the player does not stand. A house that has pledged its seats to the player's,
+            // standing, does not stand against it, on its own bench or any other (AskAbove: "they are counted for you")
+            bool mineHere = mineStands && f.Members.Contains(mine!);
             string? pick = mineHere && BenchContest(w, offices, weight, f) is { won: true } ? mine
-                : f.Members.Where(h => Eligible(w, offices, h) && h != mine && !(mineHere && PledgedTo(w, h) == mine)).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
+                : f.Members.Where(h => Eligible(w, offices, h) && h != mine && !(mineStands && PledgedTo(w, h) == mine)).OrderByDescending(weight).ThenBy(h => h, StringComparer.Ordinal).FirstOrDefault();
             if (pick != null) list.Add((pick, f.Id));
         }
         if (mine != null && w.HasFlag(StandFlag(mine)) && Eligible(w, offices, mine) && !list.Any(x => x.Item1 == mine)) list.Add((mine, null));
@@ -178,6 +180,9 @@ public static class ElectionSystem
         {
             var parts = f[PledgePrefix.Length..].Split('>'); w.WorldFlags.Remove(f);
             if (parts.Length == 2 && winners.Any(x => x.Key == parts[1]) && w.House(parts[0]) != null && !nominees.Any(n => n.houseId == parts[0])) { WealthSystem.OweFor(w, parts[1], parts[0]); if (parts[0] == mine) w.Tell("good", $"{w.House(parts[1])?.Name} is elected with the seats you pledged, and owes your house a favour.", "senate"); }
+            // the one the player pledged to no longer stood at the count: the seats went as the bench or the patron had them, and the pledge lapsed
+            else if (parts.Length == 2 && parts[0] == mine && !nominees.Any(n => n.houseId == parts[1]) && w.House(parts[1]) is { } dropped)
+                w.Tell("info", $"{dropped.Name} was not standing when the consuls were elected, so the seats you pledged it went as your bench or your patron had them, and it owes you nothing for them.", "senate", dropped.Id);
         }
         foreach (var f in w.WorldFlags.Where(f => f.StartsWith("stands_for_consul:")).ToList()) w.WorldFlags.Remove(f);
         OrderSystem.SweepCanvass(w);

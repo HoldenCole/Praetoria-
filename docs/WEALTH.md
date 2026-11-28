@@ -439,6 +439,19 @@ count, forecast, tally and count alike; docs/events/votes.md, "Promises"):
   breaking it costs, and the count judges it with the pledge's numbers (+3 given, -15 not, eight years remembered); kept,
   it leaves no favour owed, since the coin was the price. A buyer cheated does not call in another vote. Struck before
   the count, or gone with a house that is no more, it is void, with a notice.
+- **A favour called in is a declared vote** (2026-11-28, the pledge group; docs/events/votes.md, "Promises"). On the house
+  window (`DealingsSystem.CallVote`), or on the night before a motion against your house (*A Motion Against the House*,
+  `DealingsSystem.CallInAgainst`), the house that owes it declares as you vote and owes nothing more, and the count takes
+  the vote as declared whatever the house leans. The night calls in every house that owes yours a favour and can be asked:
+  not the house that moved the motion, not one at war with yours, not one declared against it already; the report offers
+  the choice only while there is one. A whip or a bribe on a house declared your way is refused, since a lobby strikes a
+  declared vote. Each counts on the house page among the favours paid with a vote.
+- **A debt called in** (*The Favor Called*) is paid with the vote of the debtor's house where a motion before the Senate
+  needs it (`DealingsSystem.DebtPaid`): against one that strikes at your house, else for your own, else as you declared;
+  never their own motion or one that strikes at them, nor at war. With none, it is paid in other ways, and you are told.
+- **Your word on the house window** tells you at once what it binds you to, and again if you change that vote on the
+  Senate window. A broken word on a vote younger than eight years is never dropped from the record of dealings (the 300
+  newest are kept) to make room, since the eight years are read from it.
 
 ### A favour you owe
 

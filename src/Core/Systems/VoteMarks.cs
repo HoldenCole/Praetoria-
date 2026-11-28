@@ -46,6 +46,16 @@ public static class VoteMarks
     /// reports that buy or bargain for the player's vote on a house's motion read it (a_vote_for_a_vote, a_bought_vote_called_in,
     /// the_whip). Rewritten every session, with the docket.</summary>
     public const string VoteWantedChar = "wants_your_vote";
+    /// <summary>The night spent calling in favours before a motion against the house (a_censure_on_the_docket/call_in_favours): set by the
+    /// choice and read as it is made (<see cref="Bargains"/>). Every house that owes yours a favour and can be called on the motion
+    /// against your house declares against it, and its favour is spent (DealingsSystem.CallInAgainst).</summary>
+    public const string CallInFlag = "calling_in_favours";
+    /// <summary>The report's gate for that choice: some house owes yours a favour that could be called on a motion now before the Senate
+    /// that strikes at your house (DealingsSystem.CallableAgainst). Rewritten with the docket, and after every choice.</summary>
+    public const string FavoursToCallFlag = "favours_to_call";
+    /// <summary>A debt called in from someone of another house (the_favor_called/call_it_in): paid with their house's vote where you need
+    /// one, on a motion now before the Senate, as the choice is made (DealingsSystem.DebtPaid). The mark goes.</summary>
+    public const string DebtCalledChar = "debt_called_in";
 
     private static readonly string[] SessionChars = { VotedWithChar, VotedAgainstChar, NoticedChar, PurseOutChar, ActAgainstChar };
     private static readonly string[] SessionFlags = { AbstainedFlag, PurseOutFlag, ActAgainstFlag };
@@ -71,16 +81,27 @@ public static class VoteMarks
     /// marks go.</summary>
     public static void Bargains(World w, string? mine)
     {
-        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar) || c.Flags.Contains(VoteSoldChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
+        // favours called in on the motion against the house, before any bargain below makes a new one
+        if (w.WorldFlags.Remove(CallInFlag) && mine != null) DealingsSystem.CallInAgainst(w, mine);
+        foreach (var c in w.Characters.Values.Where(c => c.Flags.Contains(VoteOwedChar) || c.Flags.Contains(VotePromisedChar) || c.Flags.Contains(HouseOwesChar) || c.Flags.Contains(VoteSoldChar) || c.Flags.Contains(DebtCalledChar)).OrderBy(c => c.Id, StringComparer.Ordinal).ToList())
         {
-            bool both = c.Flags.Remove(VoteOwedChar), promised = c.Flags.Remove(VotePromisedChar), owes = c.Flags.Remove(HouseOwesChar), sold = c.Flags.Remove(VoteSoldChar);
+            bool both = c.Flags.Remove(VoteOwedChar), promised = c.Flags.Remove(VotePromisedChar), owes = c.Flags.Remove(HouseOwesChar), sold = c.Flags.Remove(VoteSoldChar), debt = c.Flags.Remove(DebtCalledChar);
             if (mine == null || c.HouseId == mine || w.House(c.HouseId) is not { } theirs || World.Outsider(c.HouseId)) continue;
+            if (debt) DealingsSystem.DebtPaid(w, mine, c, theirs);
+            if (!both && !sold && !promised && !owes) continue;
             if (both) Word(w, mine, theirs);
             if (sold) Sell(w, mine, theirs);
             if (promised) WealthSystem.OweFor(w, mine, theirs.Id);
             if (both || owes) WealthSystem.OweFor(w, theirs.Id, mine);
             foreach (var x in w.LivingCharacters().Where(x => x.HouseId == theirs.Id)) x.Flags.Add(BargainBarredChar);
         }
+        Callable(w, mine);
+    }
+
+    /// <summary>The gate of the night spent calling in favours (<see cref="FavoursToCallFlag"/>), as things stand now.</summary>
+    private static void Callable(World w, string? mine)
+    {
+        if (mine != null && DealingsSystem.CallableAgainst(w, mine).Count > 0) w.WorldFlags.Add(FavoursToCallFlag); else w.WorldFlags.Remove(FavoursToCallFlag);
     }
 
     /// <summary>The player's word on the motion of the house that gave its own: a pledge for it, the vote declared, and the player told
@@ -115,6 +136,7 @@ public static class VoteMarks
     {
         w.WorldFlags.Remove(MyMotionFlag);
         foreach (var c in w.Characters.Values) foreach (var f in DocketChars) c.Flags.Remove(f);
+        Callable(w, mine);
         if (mine == null) return;
         // who stands in a favour with the player's house, either way, or has had the player's word broken to it lately
         var standing = w.Houses.Values.Where(h => h.Id != mine && (WealthSystem.FavourOwed(w, h.Id, mine) || WealthSystem.FavourOwed(w, mine, h.Id)

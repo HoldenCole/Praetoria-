@@ -544,6 +544,7 @@ public static class CourtProjection
     private static SenateCard BuildSenate(World w, Character p, House house, SenateSystem senate, CommandContext ctx, FleetSystem? fleets = null)
     {
         using var perf_ = Perf.Time("proj:BuildSenate");
+        int Side(Motion m) => m.Votes.GetValueOrDefault(house.Id) >= 0 ? 1 : -1;   // the way the whip button leans a house: the player's own stance (SenateScreen)
         MotionCard Card(Motion m)
         {
             var def = senate.Motions.Def(m.Kind); var proposer = w.House(m.ProposerHouseId);
@@ -551,7 +552,7 @@ public static class CourtProjection
             var stances = new List<StanceLine>();
             foreach (var h in w.Houses.Values.Where(h => !World.Outsider(h.Id) && h.Id != house.Id).OrderByDescending(h => senate.Weight(w, h.Id)).ThenBy(h => h.Id, StringComparer.Ordinal))
                 stances.Add(new StanceLine(h.Id, h.Name, h.AccentColor, senate.Weight(w, h.Id), senate.Stance(w, m, h.Id), m.Votes.ContainsKey(h.Id) || senate.Owes(w, m, h.Id),
-                    m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1).Refusal(ctx) : "decided", m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, 1, bribe: true).Refusal(ctx) : "decided",
+                    m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, Side(m)).Refusal(ctx) : "decided", m.Open ? new LobbyCommand(p.Id, m.Id, h.Id, Side(m), bribe: true).Refusal(ctx) : "decided",
                     FactionSystem.Of(w, h.Id)?.Name, FactionSystem.Leads(w, h.Id)) { BribePrice = SenateSystem.BribeCost(w, h, p) });
             var (f, a) = m.Open ? senate.Tally(w, m) : (m.ForWeight, m.AgainstWeight);
             bool againstMe = m.TargetId == house.Id && def != null && (def.LegitimacyTarget < 0 || def.EmbargoTurns > 0);

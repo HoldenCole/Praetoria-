@@ -136,7 +136,9 @@ From the playthroughs (docs/PLAYTHROUGH.md, Medium, The Senate, P59 and P87).
 `ElectionSystem.Pledge`). `Tally` counts them for that nominee ahead of its patron and its bench. The nominee's head
 thinks 8 the better of the house; pledging away from its own bench's nominee costs 5 with that nominee; taking a pledge
 back costs 10 with the one it was given to. At the count a pledge kept to one who is elected is a favour owed
-(`WealthSystem.OweFor`). Only the player's house pledges; other houses vote as they did.
+(`WealthSystem.OweFor`). Only the player's house pledges; other houses vote as they did. (2026-11-28: a house may not stand
+while its seats are pledged; a nominee pledged to that is not standing at the count lapses the pledge, with a notice; and a
+house that has pledged its seats to the player's, standing, does not stand itself; see "Promises in the Senate".)
 
 **The nomination.** `ElectionSystem.BenchContest`: the player's house, having declared, is its bench's nominee only if
 the bench will have it. A leader who stands is the nominee. Otherwise each other member backs whichever of the two its
@@ -177,6 +179,16 @@ a promise:
   buys it (`wants_your_vote`, written with the docket: not one that strikes at the player's house, nor one the vote is
   pledged on already), so the whip whips for its own house's motion. A motion taken off the docket with a house that is no
   more voids a word given on it, with a notice (`HouseSystem` calls `DealingsSystem.Struck`).
+- **A favour called in is a declared vote** (the pledge group, 2026-11-28), on the house window or on the night before a
+  motion against the player's house (*A Motion Against the House*: every house that owes it a favour and can be asked
+  declares against it, `DealingsSystem.CallInAgainst`); a debt called in (*The Favor Called*) is paid with the debtor's
+  house's vote where a motion needs it (`DealingsSystem.DebtPaid`). The count keeps a declared vote; a whip or a bribe on
+  a house declared the player's way is refused, since a lobby strikes the declared vote.
+- **A pledge at the consular election** is counted for its nominee, and lapses with a notice if the nominee is not
+  standing at the count. A patron or bench leader who has pledged its seats to the player's house, standing, does not
+  stand itself, on its own bench or another (`ElectionSystem.Nominees`), so the seats the asking promised are counted
+  for the player; before, a patron on another bench that became its bench's weightiest eligible member stood, and kept
+  them. The player may not stand while their own seats are pledged.
 - **A bribe and a lobby** are what the window says: a purse adds 3 to the house's own lean (not its bench's), a lobby 2,
   and half the leader's lobbying to each member of its bench; a purse that comes out at the count (one in four) strikes the
   vote before the tally and costs the payer 3 legitimacy. Proved through the count in tests/VotePromisesTests.cs.

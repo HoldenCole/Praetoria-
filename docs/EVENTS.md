@@ -54,6 +54,10 @@ kind, in the pattern of the existing `Mark()` moments.
   The bought group (2026-11-28): `sold_your_vote` (*A Vote for a Vote*'s price, *A Bought Vote Called In*'s word, *The
   Whip*'s purse) makes a vote bought, declared for the buyer's motion and judged at its count (`VoteMarks.Sell`,
   `VotePledge.Paid`); `wants_your_vote` marks the houses whose motion your vote may be had on, read by those three reports.
+  The pledge group (2026-11-28): `calling_in_favours` (*A Motion Against the House*) has every house that owes yours a favour
+  declare against the motion against your house (`DealingsSystem.CallInAgainst`), open while `favours_to_call` stands;
+  `debt_called_in` (*The Favor Called*) pays the debt with the debtor's house's vote where a motion needs it
+  (`DealingsSystem.DebtPaid`).
 - **Family** (`DynastySystem`, `CourtshipSystem`, `HouseholdSystem`): `born_to_the_house`, `schooling_begins` (a child of six),
   `kin_came_of_age` (sixteen), `grandchild_of_the_head`; `in_law` on the head of your spouse's family; `wedding_remembered` every
   tenth year of your marriage; `left_unpaid` on someone who leaves the household unpaid. In review: `chose_own_road` on one who comes

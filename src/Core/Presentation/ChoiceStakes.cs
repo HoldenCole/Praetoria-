@@ -109,6 +109,7 @@ public static class ChoiceStakes
             case SphereCondition sp: return want ? $"needs standing {Op(sp.Op)} {sp.Value} with {sp.SphereKey.Replace('_', ' ')}" : "";
             case BlocCondition bl: return want == bl.Present ? "needs a seat with " + bl.Bloc.Replace('_', ' ') : "not for one of " + bl.Bloc.Replace('_', ' ');
             case CharFlagCondition cf when cf.Flag == Systems.VoteMarks.BargainBarredChar: return $"not while a favour stands between your house and {(ctx.Actor(cf.Role) is { } bound && ctx.World.House(bound.HouseId) is { } boundHouse ? boundHouse.Name : "theirs")}, either way (a house owes another one favour at a time), nor within {Systems.DealingsSystem.PledgeMemoryYears} years of your breaking your word on a vote to it";
+            case WorldFlagCondition wf when wf.Flag == Systems.VoteMarks.FavoursToCallFlag: return want == wf.Value ? "needs a house that owes yours a favour and can vote against the motion: not the house that moved it, nor one at war with yours" : "";
             default: return "";   // a flag, a counter, a turn: something that happened or did not, which the story has told
         }
     }
