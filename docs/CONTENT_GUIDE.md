@@ -22,7 +22,9 @@ v0.5.0, 2026-11-07 (see `docs/GAP_ANALYSIS.md` and `docs/RELEASE_0.5.md`).
 - **Data is the moddable surface.** Code provides *mechanisms* (the condition/effect verbs); data
   provides *instances* (the actual events). You can author the entire game in JSON without C#.
 - **Validation is a hard gate.** `dotnet run --project src/Tools -- validate` checks: every event has
-  text, every choice has text, no orphan text, and every `{role.field}` token references a real role.
+  text, every choice has text, no orphan text, every `{role.field}` token references a real role, and
+  the prose reads as written (§2, "What the check refuses": a person named twice in one line, "stress",
+  a county the Republic would read, "of age" as a death, American spelling).
   Errors fail CI. Run it after every batch.
 - **Determinism.** Selection is a single seeded weighted draw. Same seed + same content = same run,
   exactly. Your content never introduces randomness the engine can't reproduce.
@@ -144,12 +146,58 @@ File names don't matter to the engine (it loads every `*.json` in each dir); gro
 Only these resolve. Anything else is left intact **and flagged by the validator** (so typos are caught):
 | token | becomes |
 |---|---|
-| `{role.name}` | the character's name |
+| `{role.name}` | the character's full name ("Corvin Castellan") |
+| `{role.first}` | the given name ("Corvin"): the first word of the name |
 | `{role.house}` | the character's house name |
 | `{role.rank}` | the character's career rank (number) |
 | `{role.rankName}` | the rung's name from `/content/careers` ("Lieutenant"); falls back to the number |
+| `{role.title}` | the house's rung by the era's name ("Prefect" in the Republic, "Baron" under the Imperium) |
+| `{role.he}` `{role.him}` `{role.his}` `{role.hers}` `{role.himself}` | he, him, his, his, himself for a man; she, her, her, hers, herself for a woman. `his` stands before a noun ("{kin.his} claim"); `hers` stands alone ("it is {kin.hers}") |
+| `{role.He}` `{role.Him}` `{role.His}` `{role.Hers}` `{role.Himself}` | the same with a capital, to open a sentence |
+| `{role.rel}` | how the person stands to the player, from the family tree: "your son", "your daughter's husband", "your cousin", "your adopted daughter", with "and heir" when they are first in your line ("your son and heir"). One of your house or your blood with no nearer word is "your kinsman" or "your kinswoman"; one married into the house, "your kinsman by marriage". Someone who is no kin at all is named in full, so the sentence still says who |
+| `{role.Rel}` | the same with a capital, to open a sentence |
+| `{era:A\|B}` | A in the Republic, B under the Imperium (docs/TITLES.md) |
 
-`role` is `self` or any role you declared. Example: `{self.name}`, `{rival.house}`.
+`role` is `self` or any role you declared. Example: `{self.name}`, `{rival.house}`, `{kin.He} seeks`.
+
+A person whose sex was never set (only in hand-built test worlds; the game gives everyone one) takes the sex
+the name lists in `/content/names` give the name, and otherwise is said by name ("Corvin seeks", "Corvin's
+claim"), so the verb after the word still agrees.
+
+### How a person is said
+- **Name a person in full once, then by the given name or he and she.** "{self.name} said nothing on the
+  first morning, and watched everyone. By noon, {self.he} knew who would break." Where two people of the
+  same sex are in a sentence and a pronoun could be read as either, use `{role.first}`.
+- **A named person is he or she, with singular verbs, never they.** "They seek your recognition of their
+  claim" is "{kin.He} seeks your recognition of {kin.his} claim". A role that may be a man or a woman is
+  still one person.
+- **Unknown or unnamed people stay "they"**: the seller who will not give a name, the painter, the
+  houses, the crowd. Do not give a sex to someone the game has not given one.
+- **Introduce one of the player's family as family.** "{petitioner.Rel}, {petitioner.first}, comes
+  before you" reads "Your son and heir, Corvin, comes before you". Use `rel` only for a role bound so
+  that it is kin (a `bond` of blood or marriage, `inLine`, or of the house), since for anyone else it
+  gives the full name.
+- **A report speaks to the player as "you"** in its title, body and choices: "You are elected", never
+  "{self.name} is elected". **A chronicle line (a `log` effect) stays in the third person**: "{self.name}
+  took the seat, and {self.he} kept it." A chronicle line says "{self.house}", never "your house".
+- A title may carry tokens ("A Life of {kid.His} Own"); a title that says "Kinsman" or "Man" for a role
+  that may be a woman says something else.
+
+### What the check refuses
+`validate` (`ContentValidator`, run by CI) fails on each of these in every title, body, choice and `log`
+text, and, outside the events, in every string of prose in `/content` (`ContentValidator.ValidateFiles`:
+any string with a space in it, and every glossary `term`; `//` comments are not read). The same words are
+refused in the strings of the screens (`tests/ProseTests.cs` reads `src/Core/Presentation` and `src/Web`).
+| refused | why, and what to write |
+|---|---|
+| the same `{role.name}` twice in one string | the full name once, then `{role.first}` or a pronoun token |
+| "stress" | the stat is **Strain** on every screen, and so is the word |
+| "county", "counties" where the Republic would read it | a county is the Imperium's word: put it in the Imperium's half of an `{era:...\|...}` token (`{era:a legateship\|a county}`). An event gated to the Imperium (`era: imperium`) and a catalog field named for it (`imperiumBrief`) may say it plainly |
+| "of age" given as a death ("died at 78, of age") | "of old age" |
+| American spelling: favor, honor, color, center, defense, offense, labor, neighbor, harbor, rumor, armor, behavior, endeavor, valor, maneuver, gray, traveled, canceled, fulfill, the -ize and -yze verbs (recognize, organize, realize, apologize) | the game is written in British English: favour, honour, colour, centre, defence, manoeuvre, grey, recognise. Words spelled with z in Britain too (prize, seize, size, the assizes) pass |
+
+Reports another piece of work is rewriting at the moment (listed in `ContentValidator.HeldElsewhere`) are
+warned of rather than refused, until that work lands and they come off the list.
 
 ---
 
@@ -781,7 +829,10 @@ TITLES     landless knight baron count duke archduke emperor   (§13 ladder ids)
 OPS        eq neq lt lte gt gte   (== != < <= > >=)
 BONDS      none | blood | sworn | marriage
 TRAIT KIND nature | aptitude | any
-TOKENS     {role.name} {role.house} {role.rank} {role.rankName}   (role = self or a declared role)
+TOKENS     {role.name} {role.first} {role.house} {role.rank} {role.rankName} {role.title} {role.rel|Rel}
+           {role.he|him|his|hers|himself} {role.He|Him|His|Hers|Himself} {era:A|B}   (role = self or a declared role)
+WORDS      a name in full once, then first or he/she · a named person is never they · reports say you, logs say {self.name}
+REFUSED    a {role.name} twice in a string · stress (say strain) · county outside {era:..|county} · of age as a death · American spelling
 TRACKS     military | stewardship | law                 (ladders + rung names in /content/careers)
 CLAMPS     disposition −100..100 · stress 0..100 · bondStrength 0..100 · legitimacy ≥0 · Credits may be negative
 FLAGS      background:<id> char flag (set at creation)       regency · dynasty_adopted world flags

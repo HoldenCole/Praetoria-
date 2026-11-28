@@ -114,7 +114,7 @@
                 {
                     var rel = w.GetRelationship(pc.Id, pid);
                     <div class="hs-detail" data-household-focus="@pc.Id">
-                        <span>@(pc.NatureTraits.Count + pc.AptitudeTraits.Count > 0 ? string.Join(", ", pc.NatureTraits.Concat(pc.AptitudeTraits)) : "No traits of note")</span>
+                        <span>@(pc.NatureTraits.Count + pc.AptitudeTraits.Count > 0 ? string.Join(", ", pc.NatureTraits.Concat(pc.AptitudeTraits).Select(t => ProfileProjection.TraitName(c, t))) : "No traits of note")</span>
                         @if (pc.Ambition.Length > 0) { <span>Wants: <b>@pc.Ambition.Replace('_', ' ')</b></span> }
                         @if (pc.Id != pid) { <span class="@((rel?.Disposition ?? 0) < -20 ? "ui-down" : (rel?.Disposition ?? 0) > 20 ? "ui-up" : "")">@Fig(rel?.Disposition ?? 0) toward you</span> }
                         @if (c.Careers.RankName(pc.CareerTrack, pc.CareerRank, w.Era) is { } rn) { <span>@rn</span> }
