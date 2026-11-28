@@ -2,9 +2,10 @@
 @inject GameClient G
 @* The Military window (docs/VISUAL_SYSTEM.md 4 and 5.3: "fleets as rows with the fleet token and the admiral's face"). The bridge painting
    (a battle at war) with the eagle in its medallion, the navy's state in three facts and five figures on the plinth. Six tabs: Fleets (each
-   fleet one composed entry: its token, its state, its meters, its ships, the admiral's and the captain's faces, its orders as joined plates,
-   its actions as plates, and the rarer orders in a drawer opened one at a time), Near (the plot, what sails near, the navies, the dispatches),
-   Wars (every year of every war, and every battle), General (CaesarPanel), Service (ServicePanel) and Beyond (the nations past the rim).
+   fleet a row of its token, name, state, the admiral's face and its hulls, which opens for its meters, its ships, its captain, its orders as
+   joined plates, its actions as plates, and the rarer orders in a drawer opened one at a time), Near (the plot, what sails near, the navies,
+   the dispatches), Wars (every year of every war, and every battle), General (CaesarPanel), Service (ServicePanel) and Beyond (the nations
+   past the rim, each a row of its arms, name, temper, strength, regard and one order, which opens for the rest).
    What a figure means is in its tooltip; the rules are in each section's "i". Styles in css/win/military.css. *@
 @{
     var m = Model; var w = G.World!; var c = G.Content!; var pid = w.ProtagonistId; var p = w.Protagonist!; var house = w.House(p.HouseId)!; var fs = G.Turn!.Fleets;
@@ -20,8 +21,9 @@
     int maxStr = Math.Max(1, nations.Count == 0 ? 1 : nations.Max(n => Math.Max(n.Strength, n.FullStrength)));
     // the plot: every system on a flat chart, lanes, fronts, our supply, our fleets and the enemy's as reported
     var nodes = GalaxyProjection.Nodes(w); var lanes = GalaxyProjection.Lanes(w);
-    double minX = nodes.Count == 0 ? 0 : nodes.Min(n => n.X), maxX = nodes.Count == 0 ? 1 : nodes.Max(n => n.X), minY = nodes.Count == 0 ? 0 : nodes.Min(n => n.Y), maxY = nodes.Count == 0 ? 1 : nodes.Max(n => n.Y);
-    double PX(double x) => 24 + (maxX > minX ? (x - minX) / (maxX - minX) : .5) * 592; double PY(double y) => 24 + (maxY > minY ? (y - minY) / (maxY - minY) : .5) * 312;
+    /* the plot's scale and its height: it is fitted to the systems it draws (below), so no band of it is empty */
+    double pk = 1, pox = 40, poy = 40, px0 = 0, py0 = 0, vbH = 360; const double vbW = 640;
+    double PX(double x) => pox + (x - px0) * pk; double PY(double y) => poy + (y - py0) * pk;
     var byId = nodes.ToDictionary(n => n.SystemId); var enemies = w.EnemiesOf(house.Id).ToHashSet();
     bool Enemy(MapNode n) => n.OwnerHouseId != null && enemies.Contains(n.OwnerHouseId);
     string? campaign = FleetSystem.CampaignTarget(w, house.Id);
@@ -37,19 +39,13 @@
     while (queue.Count > 0) { var cur = queue.Dequeue(); var (d0, from0) = jumps[cur]; if (!adj.TryGetValue(cur, out var nb)) { continue; } foreach (var x in nb) { if (!jumps.ContainsKey(x)) { jumps[x] = (d0 + 1, from0); queue.Enqueue(x); } } }
     var focus = nodes.Where(n => jumps.TryGetValue(n.SystemId, out var jf) && jf.d <= 3).ToList(); if (focus.Count < 4) { focus = nodes.ToList(); }
     var inFocus = focus.Select(n => n.SystemId).ToHashSet();
-    // the plot fits what it shows (the systems within three jumps), keeping the map's proportions, so no band of it is empty
-    if (focus.Count > 0)
-    {
-        double fx0 = focus.Min(n => n.X), fx1 = focus.Max(n => n.X), fy0 = focus.Min(n => n.Y), fy1 = focus.Max(n => n.Y);
-        double sx = Math.Max(1, fx1 - fx0), sy = Math.Max(1, fy1 - fy0), k = Math.Min(560 / sx, 280 / sy);
-        double ox = 40 + (560 - sx * k) / 2, oy = 40 + (280 - sy * k) / 2;
-        minX = fx0 - (ox - 24) / k; maxX = minX + 592 / k; minY = fy0 - (oy - 24) / k; maxY = minY + 312 / k;
-    }
+    // the plot fits what it shows (the systems within three jumps), keeping the map's proportions: it is as wide as the window and
+    // as tall as the systems need, so no band of it is empty (a margin is kept for the names and the fleets' marks)
     if (focus.Count > 0)
     {
         double x0 = focus.Min(n => n.X), x1 = focus.Max(n => n.X), y0 = focus.Min(n => n.Y), y1 = focus.Max(n => n.Y); double dx = Math.Max(1e-6, x1 - x0), dy = Math.Max(1e-6, y1 - y0);
-        if (dx / dy > 592.0 / 312.0) { double want = dx * 312.0 / 592.0; y0 -= (want - dy) / 2; y1 += (want - dy) / 2; } else { double want = dy * 592.0 / 312.0; x0 -= (want - dx) / 2; x1 += (want - dx) / 2; }   // keep the map's shape
-        double padX = (x1 - x0) * 0.10, padY = (y1 - y0) * 0.12; minX = x0 - padX; maxX = x1 + padX; minY = y0 - padY; maxY = y1 + padY;
+        pk = Math.Min((vbW - 120) / dx, 300 / dy); double cw = dx * pk, ch = dy * pk;
+        vbH = Math.Clamp(ch + 104, 220, 400); px0 = x0; py0 = y0; pox = (vbW - cw) / 2; poy = (vbH - ch) / 2 + 4;
     }
     string Who(MapFleet f) => f.IsPlayer ? f.Name : f.OwnerHouseId == PirateSystem.HouseId ? "Raiders" : f.OwnerHouseName;
     bool Hostile(MapFleet f) => f.OwnerHouseId == PirateSystem.HouseId || enemies.Contains(f.OwnerHouseId);
@@ -239,32 +235,53 @@
             {
                 string nid = n.Id;
                 var nState = G.World!.Nation(n.Id); var nHouse = nState != null && nState.HouseId.Length > 0 ? G.World!.House(nState.HouseId) : null; var nHead = nHouse != null ? Economy.HeadOf(G.World!, nHouse) : null;
+                /* its orders: the one that matters most stands on the row (move for war; at war, move for peace), the rest in the open row */
+                var shown = n.Orders != null && n.OnMap && !n.Fallen ? n.Orders.Where(o => o.Refusal == null || o.Id is "own_war" && !n.AtWar && n.SubduedUntil == 0 || o.Id.StartsWith("terms_") && o.Refusal != "not your war" && o.Refusal != "not offered").ToList() : new List<Option>();
+                var terms = shown.Where(o => o.Id.StartsWith("terms_")).ToList(); var rest = shown.Where(o => !o.Id.StartsWith("terms_")).ToList();
+                bool warPlate = !n.AtWar && n.SubduedUntil == 0 && !n.Fallen; var lead = warPlate ? null : rest.FirstOrDefault(o => o.Id == "peace"); if (lead != null) { rest.Remove(lead); }
+                var (status, statusTone, statusTip) = n.Fallen ? ("No more", "", "It has fallen: it holds nothing and makes no war.") : n.AtWar ? ("At war", "bad", $"At war with the Reach since year {n.WarSince}.")
+                    : n.SubduedUntil > 0 ? ("Tributary", "good", $"It pays {Money.Show(n.Tribute)} a year until year {n.SubduedUntil}.") : n.RaidedLately ? ("Raiding", "warn", "Raiding the rim: it has fallen on worlds of the Reach lately.") : ("", "", "");
                 <div class="nation mil-nation @(n.AtWar ? "war" : n.SubduedUntil > 0 ? "tributary" : "") @(n.Fallen ? "fallen" : "")" data-nation="@n.Id">
-                    <div class="mn-top">
+                    <details class="mn-more">
+                    @* the row (docs/VISUAL_SYSTEM.md 4.7): its arms, its name and temper (and its state in one word), its strength, its regard for
+                       the Reach and one order; a click opens its ruler, march, seat and fleets, and its other orders *@
+                    <summary class="mn-row" title="@($"{n.Name}: its ruler, march{(n.OnMap && !n.Fallen ? ", seat and fleets" : "")}, and your other orders. Click to open.")">
                         @if (nHouse != null) { <span class="mn-arms" title="@($"The arms of {n.Name}")"><Sigil HouseId="@nHouse.Id" Accent="@nHouse.AccentColor" Size="34" /></span> }
                         else { <span class="mn-med"><Icon Name="@(n.AtWar ? "crossed-sabres" : n.SubduedUntil > 0 ? "laurels" : "flying-flag")" Tone="@(n.AtWar ? "ember" : n.SubduedUntil > 0 ? "good" : "ivory")" Size="22" /></span> }
                         <div class="mn-id">
-                            <div class="mn-nm"><b title="@n.Description">@n.Name</b>
-                                @if (n.Fallen) { <span class="mil-st">no more</span> } else if (n.OnMap) { <span class="mil-st good" title="This nation holds worlds on the map, beyond its march. Its fleets move by the lanes and fight by the ordinary rules; a war with it is every house's war.">on the map</span> }
-                                @if (n.AtWar) { <span class="mil-st bad">at war</span> } else if (n.SubduedUntil > 0) { <span class="mil-st good">pays @Money.Show(n.Tribute) a year until year @n.SubduedUntil</span> }
-                                @if (n.RaidedLately) { <span class="mil-st warn">raiding the rim</span> }@if (n.Wars > 0 && !n.AtWar) { <span class="mil-st">@Counted.Wars(n.Wars) fought</span> }
-                            </div>
-                            <div class="mn-sub">@n.Temper · holds @n.Holds</div>
+                            <div class="mn-nm"><b title="@n.Description">@n.Name</b></div>
+                            <div class="mn-sub">@Cap(n.Temper)@if (status.Length > 0) { <text> · </text><span class="mn-status @statusTone" title="@statusTip">@status</span> }</div>
                         </div>
-                        @if (nHead != null && n.Ruler.Length > 0) { <span class="mn-ruler" title="@($"{n.Ruler}, who rules it: {n.RulerNature} by nature")"><Portrait Id="@nHead.Id" Name="@nHead.Name" Sex="@nHead.Sex" Age="@nHead.Age" Accent="@nHouse!.AccentColor" Size="38" Height="46" /></span> }
-                        @if (!n.AtWar && n.SubduedUntil == 0 && !n.Fallen)
+                        <span class="mn-str" title="@($"[fleet] {n.Name}: {Counted.Hulls(n.Strength)}\nThe hulls it can put in the field{(n.FullStrength > n.Strength ? $", of {n.FullStrength} at full strength" : "")}. The strongest nation has {maxStr} at its full strength.")"><Icon Name="fleet" Tone="@(n.AtWar ? "ember" : "steel")" Size="16" /><b>@n.Strength</b><small>hulls</small></span>
+                        <Meter Kind="diverging" Value="@n.Disposition" Max="100" Text="@Signed(n.Disposition)" Class="mn-reg" ValueClass="@(n.Disposition <= -30 ? "ui-down" : n.Disposition >= 20 ? "ui-up" : "")" Tip="Their regard for the Reach, from −100 to +100. An aggressive or decaying nation raids the rim once its regard is at −20 or lower." />
+                        <span class="mn-act">
+                        @if (warPlate)
                         {
-                            <Plate Label="@n.War.Label" Small="true" Icon="vote" Locked="@(n.War.Refusal != null)" Disabled="@(n.War.Refusal != null)" ShowNeed="false" Need="@Cap(n.War.Refusal ?? "")" CostIcon="public-speaker" CostText="3"
+                            <Plate Label="@n.War.Label" Small="true" Icon="vote" Stop="true" Locked="@(n.War.Refusal != null)" Disabled="@(n.War.Refusal != null)" ShowNeed="false" Need="@Cap(n.War.Refusal ?? "")" CostIcon="public-speaker" CostText="3"
                                    Tip="@(n.War.Refusal == null ? "[vote] Move for war\nMove in the Senate that the Reach make war upon them. 3 influence." : "[vote] Move for war")" OnClick="() => MoveWar(nid)" />
                         }
-                    </div>
-                    <div class="mn-meters">
-                        <Meter Label="Strength" Value="@n.Strength" Max="@maxStr" Text="@($"{n.Strength} hulls")" Color="@(n.AtWar ? "#c4472f" : n.SubduedUntil > 0 ? "#8cc47e" : "#a9b4c4")" Tip="The hulls it can put in the field. The bar is against the strongest nation at its full strength." />
-                        <Meter Kind="diverging" Label="Regard" Value="@n.Disposition" Max="100" Text="@Signed(n.Disposition)" ValueClass="@(n.Disposition <= -30 ? "ui-down" : n.Disposition >= 20 ? "ui-up" : "")" Tip="Their regard for the Reach, from −100 to +100. An aggressive or decaying nation raids the rim once its regard is at −20 or lower." />
-                    </div>
-                    <details class="mn-more"><summary><Icon Name="chev" Size="11" Class="flat" />Its ruler, march@(n.OnMap && !n.Fallen ? ", seat and fleets" : "")</summary>
+                        else if (lead != null)
+                        {
+                            var lo = lead; var (lstate, lverb) = SplitOrder(lo.Label);
+                            <span class="mn-order" title="@(lstate.Length > 0 ? lstate : null)"><Plate Label="@ShortVerb(lo.Id, lverb)" Small="true" Stop="true" Icon="@OrderIcon(lo.Id)" Locked="@(lo.Refusal != null)" Disabled="@(lo.Refusal != null)" ShowNeed="false" Need="@Cap(lo.Refusal ?? "")" Tip="@($"[{OrderIcon(lo.Id)}] {lo.Label}\n{Cap(OrderHint(lo.Id))}")" OnClick="() => Order(nid, lo.Id)" /></span>
+                        }
+                        </span>
+                        <Icon Name="chev" Size="12" Class="flat mn-chev" />
+                    </summary>
+                    <div class="mn-open">
+                    @if (n.Ruler.Length > 0)
+                    {
+                        <div class="mn-ruled" title="The one who rules it leans on its regard for the Reach: the warlike sour it, the wary raid only in a real quarrel, the grasping raid for twice the cargo, the mild sweeten it. Rulers die and are followed, sometimes by the commander of the fleets. Every point of the commander's skill over four makes its fleets fight six in a hundred harder, and every point under, as much less; a commander who beats you learns from it, and one who is routed may be killed.">
+                            @if (nHead != null) { <span class="mn-ruler" title="@($"{n.Ruler}, who rules it: {n.RulerNature} by nature")"><Portrait Id="@nHead.Id" Name="@nHead.Name" Sex="@nHead.Sex" Age="@nHead.Age" Accent="@nHouse!.AccentColor" Size="40" Height="48" /></span> }
+                            <span class="mn-rt"><span class="k">Ruled by</span><span><b>@n.Ruler</b>, @n.RulerNature by nature · the fleets under <b>@n.Commander</b>, skill @n.CommanderSkill of 9</span></span>
+                        </div>
+                    }
                     <div class="mn-facts">
-                        @if (n.Ruler.Length > 0) { <span class="k">Ruled by</span><span class="v" title="The one who rules it leans on its regard for the Reach: the warlike sour it, the wary raid only in a real quarrel, the grasping raid for twice the cargo, the mild sweeten it. Rulers die and are followed, sometimes by the commander of the fleets. Every point of the commander's skill over four makes its fleets fight six in a hundred harder, and every point under, as much less; a commander who beats you learns from it, and one who is routed may be killed."><b>@n.Ruler</b>, @n.RulerNature by nature · the fleets under <b>@n.Commander</b>, skill @n.CommanderSkill of 9</span> }
+                        @if (n.OnMap && !n.Fallen) { <span class="k">Its space</span><span class="v" title="This nation holds worlds on the map, beyond its march. Its fleets move by the lanes and fight by the ordinary rules; a war with it is every house's war.">on the map, beyond its march</span> }
+                        @if (n.Holds.Length > 0) { <span class="k">Holds</span><span class="v">@n.Holds</span> }
+                        @if (n.SubduedUntil > 0) { <span class="k">Tribute</span><span class="v ui-up">pays @Money.Show(n.Tribute) a year until year @n.SubduedUntil</span> }
+                        @if (n.RaidedLately) { <span class="k warn">Of late</span><span class="v ui-warn-t">raiding the rim</span> }
+                        @if (n.Wars > 0 && !n.AtWar) { <span class="k">Its wars</span><span class="v">@Counted.Wars(n.Wars) fought</span> }
                         @if (n.Marches.Length > 0) { <span class="k">Its march</span><span class="v" title="Its raids come through these systems and fall on worlds within two lanes of them. A fleet of three hulls or more standing at the march turns a raid back before it lands. An expedition's voyage is the nation's depth beyond the march, and a year for every three lanes between the fleet and the march."><b>@n.Marches</b>@if (!n.OnMap) { <span class="ui-dim"> · @Counted.Years(n.Nearest) out from your nearest fleet</span> } · @if (n.Guard.Length > 0) { <span class="ui-up">held by @n.Guard</span> } else { <span class="ui-dim">unguarded</span> }</span> }
                         @if (n.OnMap && !n.Fallen)
                         {
@@ -278,33 +295,29 @@
                         }
                     </div>
                     @if (n.OnMap && !n.Fallen && n.Manner.Length > 0) { <p class="mn-manner">@n.Manner</p> }
-                    </details>
-                    @if (n.Orders != null && n.OnMap && !n.Fallen)
+                    @if (rest.Count > 0)
                     {
-                        var shown = n.Orders.Where(o => o.Refusal == null || o.Id is "own_war" && !n.AtWar && n.SubduedUntil == 0 || o.Id.StartsWith("terms_") && o.Refusal != "not your war" && o.Refusal != "not offered").ToList();
-                        var terms = shown.Where(o => o.Id.StartsWith("terms_")).ToList(); var rest = shown.Where(o => !o.Id.StartsWith("terms_")).ToList();
-                        @if (rest.Count > 0)
-                        {
-                            <div class="mn-orders">
-                                @foreach (var o in rest)
-                                {
-                                    var oo = o; var (state, verb) = SplitOrder(o.Label);
-                                    <span class="mn-order" title="@(state.Length > 0 ? state : null)">
-                                        <Plate Label="@ShortVerb(oo.Id, verb)" Small="true" Icon="@OrderIcon(o.Id)" Locked="@(oo.Refusal != null)" Disabled="@(oo.Refusal != null)" ShowNeed="false" Need="@Cap(oo.Refusal ?? "")" Tip="@($"[{OrderIcon(o.Id)}] {o.Label}\n{Cap(OrderHint(oo.Id))}")" OnClick="() => Order(nid, oo.Id)" /></span>
-                                }
-                            </div>
-                        }
-                        @if (terms.Count > 0)
-                        {
-                            <div class="mn-orders terms"><span class="mn-state">Make your own peace:</span>
-                                @foreach (var o in terms)
-                                {
-                                    var oo = o; var (_, verb) = SplitOrder(o.Label);
-                                    <Plate Label="@verb" Small="true" Icon="dove" Locked="@(oo.Refusal != null)" Disabled="@(oo.Refusal != null)" ShowNeed="false" Need="@Cap(oo.Refusal ?? "")" Tip="@($"[dove] {o.Label}\n{Cap(OrderHint(oo.Id))}")" OnClick="() => Order(nid, oo.Id)" />
-                                }
-                            </div>
-                        }
+                        <div class="mn-orders"><span class="mn-state">Your orders:</span>
+                            @foreach (var o in rest)
+                            {
+                                var oo = o; var (state, verb) = SplitOrder(o.Label);
+                                <span class="mn-order" title="@(state.Length > 0 ? state : null)">
+                                    <Plate Label="@ShortVerb(oo.Id, verb)" Small="true" Icon="@OrderIcon(o.Id)" Locked="@(oo.Refusal != null)" Disabled="@(oo.Refusal != null)" ShowNeed="false" Need="@Cap(oo.Refusal ?? "")" Tip="@($"[{OrderIcon(o.Id)}] {o.Label}\n{Cap(OrderHint(oo.Id))}")" OnClick="() => Order(nid, oo.Id)" /></span>
+                            }
+                        </div>
                     }
+                    @if (terms.Count > 0)
+                    {
+                        <div class="mn-orders terms"><span class="mn-state">Make your own peace:</span>
+                            @foreach (var o in terms)
+                            {
+                                var oo = o; var (_, verb) = SplitOrder(o.Label);
+                                <Plate Label="@verb" Small="true" Icon="dove" Locked="@(oo.Refusal != null)" Disabled="@(oo.Refusal != null)" ShowNeed="false" Need="@Cap(oo.Refusal ?? "")" Tip="@($"[dove] {o.Label}\n{Cap(OrderHint(oo.Id))}")" OnClick="() => Order(nid, oo.Id)" />
+                            }
+                        </div>
+                    }
+                    </div>
+                    </details>
                 </div>
             }
             </Section>
@@ -326,7 +339,9 @@
             <Right><span>@(focus.Count) systems</span></Right>
             <ChildContent>
             <div class="mil-plot">
-                <svg class="plot" viewBox="0 0 640 360" role="img" aria-label="the war plot">
+                @{ var plotFleets = mapFleets.Where(f => byId.ContainsKey(f.SystemId) && inFocus.Contains(f.SystemId)).OrderByDescending(f => f.IsPlayer).ThenByDescending(Hostile).ThenBy(f => f.FleetId, StringComparer.Ordinal).ToList();
+                   var plotNodes = nodes.Where(n => inFocus.Contains(n.SystemId)).ToList(); var (spots, plotLabels) = PlotLayout(plotNodes, plotFleets, byId, PX, PY, Enemy, vbW, vbH); }
+                <svg class="plot" viewBox="0 0 @F(vbW) @F(vbH)" role="img" aria-label="the war plot">
                     @foreach (var l in lanes)
                     {
                         if (!byId.TryGetValue(l.A, out var a) || !byId.TryGetValue(l.B, out var b)) { continue; }
@@ -335,25 +350,26 @@
                         bool ourLane = a.IsPlayerTerritory || b.IsPlayerTerritory;
                         <line x1="@F(PX(a.X))" y1="@F(PY(a.Y))" x2="@F(PX(b.X))" y2="@F(PY(b.Y))" class="lane @(front ? "front" : ourLane ? "ours" : "")" />
                     }
-                    @foreach (var n in nodes.Where(n => inFocus.Contains(n.SystemId)))
+                    @* a fleet stands beside its system, never on it or on another: a hairline ties its mark to the system it is at *@
+                    @foreach (var f in plotFleets) { var n = byId[f.SystemId]; var (fx, fy) = spots[f.FleetId]; <line x1="@F(PX(n.X))" y1="@F(PY(n.Y))" x2="@F(fx)" y2="@F(fy)" class="flead" /> }
+                    @foreach (var n in plotNodes)
                     {
                         bool mine = n.IsPlayerTerritory; bool enemy = Enemy(n);
                         @if (inSupply.Contains(n.SystemId)) { <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="24" class="supply" /> }
                         @if (campaign == n.SystemId) { <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="18" class="campaign" /> }
                         <circle cx="@F(PX(n.X))" cy="@F(PY(n.Y))" r="@(mine ? 9 : enemy || n.Capital ? 7 : n.OwnerHouseId != null ? 5 : 3.5)" class="node @(mine ? "mine" : "") @(enemy ? "enemy" : "") @(!mine && !enemy && !n.Capital ? "far" : "")" style="fill:@(n.OwnerHouseId != null ? n.AccentColor : "#3a4152")"><title>@n.Name@(n.OwnerHouseName != null ? $" · {n.OwnerHouseName}" : " · unclaimed")@(jumps.TryGetValue(n.SystemId, out var jn) && jn.d > 0 ? $" · {Counted.Jumps(jn.d)} from {jn.from}" : "")</title></circle>
                     }
-                    @foreach (var f in mapFleets.Where(f => byId.ContainsKey(f.SystemId) && inFocus.Contains(f.SystemId)))
+                    @foreach (var f in plotFleets)
                     {
-                        var n = byId[f.SystemId]; bool hostile = Hostile(f);
-                        double x = PX(n.X) + (f.IsPlayer ? -38 : 38), y = PY(n.Y) - 6;   /* beside the node and clear of its supply ring, never over it */
-                        <g class="fleet @(f.IsPlayer ? "mine" : hostile ? "enemy" : "other")" transform="translate(@F(x),@F(y))">
-                            <path d="M-9 8 L0 -11 L9 8 L0 3 Z" style="fill:@(hostile ? "#c4472f" : f.AccentColor)" /><rect x="-12" y="11" width="24" height="19" rx="1.5" class="flp" />@((MarkupString)$"<text y=\"26\" class=\"fl\">{f.Strength}</text>")
+                        bool hostile = Hostile(f); var (x, y) = spots[f.FleetId];   /* beside its system, clear of every system and every other fleet */
+                        <g class="fleet @(f.IsPlayer ? "mine" : hostile ? "enemy" : "other")" transform="translate(@F(x),@F(y))" style="--fc:@(hostile ? "#e0553f" : f.AccentColor)">
+                            <path d="M-9 6 L0 -13 L9 6 L0 1 Z" style="fill:@(hostile ? "#c4472f" : f.AccentColor)" /><rect x="-13" y="9" width="26" height="21" rx="1.5" class="flp" />@((MarkupString)$"<text y=\"25.5\" class=\"fl\">{f.Strength}</text>")
                             <title>@f.Name · @f.OwnerHouseName · @Counted.Hulls(f.Strength)@(f.IsPlayer ? "" : $" · confidence {f.Confidence}%")@(f.Moving ? $" · under way, {Counted.Jumps(f.Eta)}" : "")</title>
                         </g>
                     }
                     @* the names, most wanted first, each where it overlaps no other name and no fleet's mark; a name with no clear place is
                        left to its tooltip (docs/VISUAL_SYSTEM.md, rule 5: nothing is written over anything) *@
-                    @foreach (var (lx, ly, text, cls) in PlotLabels(nodes.Where(n => inFocus.Contains(n.SystemId)).ToList(), mapFleets.Where(f => byId.ContainsKey(f.SystemId) && inFocus.Contains(f.SystemId)).ToList(), byId, PX, PY, Enemy, Hostile, Who))
+                    @foreach (var (lx, ly, text, cls) in plotLabels)
                     {
                         @((MarkupString)$"<text x=\"{F(lx)}\" y=\"{F(ly)}\" class=\"{cls}\">{System.Net.WebUtility.HtmlEncode(text)}</text>")
                     }
@@ -368,7 +384,7 @@
         <Section Title="What is near" Count="@near.Count.ToString()" Info="Every fleet within three jumps of your worlds, hostile first, as your captains report it: a figure with ~ is a guess. To you is what its house's head thinks of you, from −100 to +100."
                  IsEmpty="@(near.Count == 0)" EmptyLine="Nothing sails within three jumps of your worlds. Your captains report other houses' fleets here as they come near." EmptyIcon="spyglass">
             <DataTable Class="mil-table near">
-                <Head><th>Whose</th><th>Hulls</th><th>At</th><th>From yours</th><th>To you</th></Head>
+                <Head><th>Whose</th><th>Hulls</th><th title="Where it lies: a world of yours, or how many jumps it is from the nearest of them (the whole of it in the tooltip)">At</th><th>To you</th></Head>
                 <ChildContent>
                 @foreach (var x in near.Take(8))
                 {
@@ -377,8 +393,7 @@
                     <tr class="@(x.hostile ? "hostile" : "")" title="@x.f.Name · confidence @(x.f.Confidence)%">
                         <td><span class="mt-nm">@if (!raider) { <Sigil HouseId="@x.f.OwnerHouseId" Accent="@x.f.AccentColor" Size="18" /> } else { <Icon Name="plain-dagger" Tone="ember" Size="17" /> }@(raider ? "Raiders" : x.f.OwnerHouseName)</span></td>
                         <td class="@(x.hostile && x.f.Strength > ours ? "ui-down" : "")" title="@(x.f.Strength > ours ? "more than yours" : x.f.Strength == ours ? "as many as yours" : "fewer than yours")">@(x.f.Confidence < 100 ? "~" : "")@x.f.Strength</td>
-                        <td>@(byId.TryGetValue(x.f.SystemId, out var at) ? at.Name : x.f.SystemId)@(x.f.Moving ? ", under way" : "")</td>
-                        <td>@Cap(JumpWord(x.j.d)) @x.j.from</td>
+                        <td title="@($"{Cap(JumpWord(x.j.d))} {x.j.from}{(x.f.Moving ? ", under way" : "")}")">@(byId.TryGetValue(x.f.SystemId, out var at) ? at.Name : x.f.SystemId)@(x.f.Moving ? ", under way" : "")<span class="mt-far">@(x.j.d == 0 ? "yours" : Counted.Jumps(x.j.d))</span></td>
                         <td class="@(x.hostile || regard <= -30 ? "ui-down" : regard >= 30 ? "ui-up" : "ui-dim")">@toYou</td>
                     </tr>
                 }
@@ -469,16 +484,26 @@
             {
                 var fleet = w.Fleets[f.Id]; var adm = f.AdmiralId != null ? w.Char(f.AdmiralId) : null; var capt = f.CaptainId != null ? w.Char(f.CaptainId) : null; string fid = f.Id;
                 string drawer = _drawer.GetValueOrDefault(f.Id, "");
-                <div class="mil-fleet @(f.Loyalty < 30 || f.Supply < 40 ? "warn" : "") @(fleet.LaidUp ? "laid" : "")" data-fleet="@f.Id">
-                    <div class="mf-top">
+                bool fOpen = FleetOpen(f, m.Fleets.Count);
+                string admSays = f.AdmiralName == null ? "" : (f.AdmiralStyle == "front" ? "leads from the front" : f.AdmiralStyle == "flag" ? "commands from the flag" : "leaves the line to the captains") + $" · cap {f.Cap}" + (f.Valour > 0 ? $" · valour {f.Valour}" : "");
+                <div class="mil-fleet @(f.Loyalty < 30 || f.Supply < 40 ? "warn" : "") @(fleet.LaidUp ? "laid" : "") @(fOpen ? "open" : "shut")" data-fleet="@f.Id">
+                    @* the row (docs/VISUAL_SYSTEM.md 4.7, 5.3): the fleet's token, its name and state, where it lies, the admiral's face and the
+                       hulls. A click opens it for its condition, its ships, its captain, how it fights, and its orders. *@
+                    <div class="mf-top" role="button" aria-expanded="@(fOpen ? "true" : "false")" title="@(fOpen ? "Fold it away" : "Open it: its condition, its ships, its captain, how it fights and its orders")" @onclick="() => ToggleFleet(f, m.Fleets.Count)">
                         @Token(m.HouseAccent, fleet.LaidUp)
                         <div class="mf-id">
                             <div class="mf-nm"><b>@f.Name</b><span class="mil-st @StatusTone(f)">@StatusOf(f)</span></div>
                             <div class="mf-sub">@f.Composition · @(f.Away.Length > 0 ? $"beyond the Reach, against {f.AwayName}, {AwayWord(f.AwayPhase)} ({f.AwayTurns})" : f.Moving ? $"bound for {f.Destination}, {Counted.Years(f.Eta)}" : "at " + f.Where)@(f.Office ? " · held by office" : "")</div>
                         </div>
+                        <span class="mf-adm" title="@(f.AdmiralName == null ? NoAdmiralSays(f) : $"Admiral {f.AdmiralName}: {admSays}")">
+                            @if (adm != null) { <Portrait Id="@adm.Id" Name="@adm.Name" Sex="@adm.Sex" Age="@adm.Age" Alive="@adm.Alive" Accent="@(w.House(adm.HouseId)?.AccentColor ?? m.HouseAccent)" Size="40" Height="48" Titled="false" /> } else { <Portrait Size="40" Height="48" EmptyGlyph="office-chair" Name="No admiral" /> }
+                            <span class="mw-t"><b>@(f.AdmiralName ?? "no admiral")</b><span class="k">Admiral</span></span>
+                        </span>
                         <span class="mf-fig" title="@($"[fleet] {Counted.Hulls(f.Strength)}\n{string.Join(", ", fs.Composition(fleet).Select(x => x.count + " " + x.cls.Name.ToLowerInvariant() + (x.count == 1 ? "" : "s")))}{(f.Veterancy > 0 ? $"\nVeterancy {f.Veterancy}" : "")}")"><b>@f.Strength</b><small>@(f.Strength == 1 ? "hull" : "hulls")</small></span>
+                        <Icon Name="chev" Size="12" Class="flat mf-chev" />
                     </div>
-                    <div class="mf-standing clamp" data-standing="@f.Id" title="@f.Standing">@f.Standing</div>
+                    <div class="mf-open">
+                    <div class="mf-standing" data-standing="@f.Id">@f.Standing</div>
                     @if (f.Away.Length > 0) { <div class="mil-office"><Icon Name="world" Tone="good" Size="18" /><span><b>Expedition.</b> @(f.ExpeditionWins == 1 ? "1 victory" : f.ExpeditionWins + " victories")@(f.Plunder > 0 ? $", {Money.Show(f.Plunder)} credits of plunder aboard" : ""); @(f.AwayPhase == "fighting" ? "fighting in their space" : f.AwayPhase == "home" ? "sailing home" : "outward bound").</span></div> }
                     <div class="mf-body">
                         <div class="mf-meters">
@@ -493,13 +518,12 @@
                         </div>
                     </div>
                     <div class="mf-people">
-                        <div class="mf-who">
-                            @if (adm != null) { <Portrait Id="@adm.Id" Name="@adm.Name" Sex="@adm.Sex" Age="@adm.Age" Alive="@adm.Alive" Accent="@(w.House(adm.HouseId)?.AccentColor ?? m.HouseAccent)" Size="46" Height="56" /> } else { <Portrait Size="46" Height="56" EmptyGlyph="office-chair" Name="No admiral" /> }
-                            <div class="mw-t"><span class="k">Admiral</span><b>@(f.AdmiralName ?? "no admiral")</b>
-                                @if (f.AdmiralName != null) { <span class="mw-sub">@(f.AdmiralStyle == "front" ? "leads from the front" : f.AdmiralStyle == "flag" ? "commands from the flag" : "leaves the line to the captains") · cap @f.Cap@(f.Valour > 0 ? $" · valour {f.Valour}" : "")@if (f.Achilles) { <span class="ui-warn-t"> · the Achilles</span> }</span> }</div>
+                        <div class="mf-who mf-admline">
+                            <span class="k">Admiral</span>
+                            <span class="mw-sub">@if (f.AdmiralName != null) { <b>@f.AdmiralName</b> <text>@admSays</text>@if (f.Achilles) { <span class="ui-warn-t"> · the Achilles</span> } } else { <text>@NoAdmiralSays(f)</text> }</span>
                         </div>
                         <div class="mf-who" title="@CaptainHelp">
-                            @if (capt != null) { <Portrait Id="@capt.Id" Name="@capt.Name" Sex="@capt.Sex" Age="@capt.Age" Alive="@capt.Alive" Accent="@(w.House(capt.HouseId)?.AccentColor ?? m.HouseAccent)" Size="46" Height="56" /> } else { <Portrait Size="46" Height="56" EmptyGlyph="checked-shield" Name="No captain" /> }
+                            @if (capt != null) { <Portrait Id="@capt.Id" Name="@capt.Name" Sex="@capt.Sex" Age="@capt.Age" Alive="@capt.Alive" Accent="@(w.House(capt.HouseId)?.AccentColor ?? m.HouseAccent)" Size="40" Height="48" /> } else { <Portrait Size="40" Height="48" EmptyGlyph="checked-shield" Name="No captain" /> }
                             <div class="mw-t"><span class="k">Captain</span><b data-captain="@f.Id">@(f.CaptainName ?? "no captain")</b>@if (f.CaptainName != null) { <span class="mw-sub">@f.CaptainSays</span> }</div>
                         </div>
                     </div>
@@ -518,8 +542,10 @@
                             <Plate Label="@(back == 0 ? "Strike out the order" : "Call it back")" Small="true" Icon="anticlockwise-rotation" CostIcon="@(back == 0 ? "" : "hourglass")" CostText="@(back == 0 ? "" : back + " yr")" Locked="@(why != null)" Disabled="@(why != null)" ShowNeed="false" Need="@Cap(why ?? "")" data-recall="@f.Id"
                                    Tip="@(back == 0 ? "[anticlockwise-rotation] Strike out the order\nThe order was given this year: it is struck out and the fleet stays" : $"[anticlockwise-rotation] Call it back\nIt has sailed {Counted.Years(back)}: it takes as long to come back")" OnClick="() => G.Execute(rc)" />
                         }
-                        <Plate Label="Refit" Small="true" Icon="gears" CostIcon="materials" CostText="@((RefitFleetCommand.MaterialsPerHull * f.Strength).ToString())" Locked="@(f.Refit.Refusal != null)" Disabled="@(f.Refit.Refusal != null)" ShowNeed="true" Need="@Cap(f.Refit.Refusal ?? "")"
+                        @{ bool fullReady = f.Refit.Refusal == "already at full readiness"; }
+                        <Plate Label="Refit" Small="true" Icon="gears" CostIcon="materials" CostText="@((RefitFleetCommand.MaterialsPerHull * f.Strength).ToString())" Locked="@(f.Refit.Refusal != null)" Disabled="@(f.Refit.Refusal != null)" ShowNeed="@(!fullReady)" Need="@Cap(f.Refit.Refusal ?? "")"
                                Tip="@($"[gears] Refit {f.Name}\n{RefitFleetCommand.MaterialsPerHull * f.Strength} materials, and readiness is back to 100 at once.")" OnClick="() => G.Execute(new RefitFleetCommand(pid, fid))" />
+                        @if (fullReady) { <span class="mf-note" title="Refit brings readiness back to 100 at once: there is nothing to bring back">at full readiness</span> }
                         @* the one plate for the rest of the fleet's orders (4.7): drill, lay up, and the drawers (rename, admiral, captain,
                            hulls, hire out, merge) in a menu in the medium frame *@
                         <span class="mf-menu-wrap">
@@ -647,6 +673,7 @@
                             }
                         </div>
                     }
+                    </div>
                 </div>
             }
             </ChildContent>
@@ -718,6 +745,11 @@
     private readonly Dictionary<string, string> _drawer = new();
     private void Toggle(string fleetId, string what) { if (_drawer.GetValueOrDefault(fleetId) == what) _drawer.Remove(fleetId); else _drawer[fleetId] = what; _ordersFor = null; }   // the menu closes on what it opened, so it does not stand over the drawer
     private void Pick(string key) => _view = key;
+    /* a fleet's row opens for its condition, people and orders: one that is in trouble (loyalty under 30, supply under 40) stands
+       open until it is folded, the rest are folded until opened */
+    private readonly Dictionary<string, bool> _fleetOpen = new();
+    private bool FleetOpen(FleetLine f, int count) => _fleetOpen.TryGetValue(f.Id, out var o) ? o : f.Loyalty < 30 || f.Supply < 40;
+    private void ToggleFleet(FleetLine f, int count) { _fleetOpen[f.Id] = !FleetOpen(f, count); if (!_fleetOpen[f.Id] && _ordersFor == f.Id) _ordersFor = null; }
     /// <summary>The fleet whose Orders menu is open.</summary>
     private string? _ordersFor;
     private void SendCaptain(string fleetId, bool on) { if (on) { _withCap.Add(fleetId); } else { _withCap.Remove(fleetId); } }
@@ -755,39 +787,54 @@
     private static string Cap(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
     private static string Signed(int n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.Abs(n);
     public static string Minus(string s) => System.Text.RegularExpressions.Regex.Replace(s, @"(?<![\w−-])-(?=\d)", "−");
-    /// <summary>Where the plot's names go: your worlds, enemies' and the capital first, then your fleets and hostile ones, then the rest;
-    /// each above its mark, or below it, where it crosses no name placed before and no fleet's mark, or not at all.</summary>
-    private static List<(double x, double y, string text, string cls)> PlotLabels(List<MapNode> ns, List<MapFleet> fl, Dictionary<string, MapNode> byId, Func<double, double> px, Func<double, double> py,
-        Func<MapNode, bool> enemy, Func<MapFleet, bool> hostile, Func<MapFleet, string> who)
+    /// <summary>The plot's layout, in one pass so nothing is written over anything (docs/VISUAL_SYSTEM.md, rule 5): the names of your
+    /// worlds, of enemies' and of the capital first, each above its mark, below it or beside it; then each fleet's mark beside its system
+    /// (left for yours, right for others, then above, below and further out), clear of every system, every name placed and every other
+    /// fleet; then the other names where there is room. A name with no clear place is left to its system's tooltip.</summary>
+    private static (Dictionary<string, (double x, double y)> spots, List<(double x, double y, string text, string cls)> labels) PlotLayout(List<MapNode> ns, List<MapFleet> fl,
+        Dictionary<string, MapNode> byId, Func<double, double> px, Func<double, double> py, Func<MapNode, bool> enemy, double vbW, double vbH)
     {
-        var taken = new List<(double x0, double y0, double x1, double y1)>(); var outp = new List<(double, double, string, string)>();
-        foreach (var f in fl) { var n = byId[f.SystemId]; double x = px(n.X) + (f.IsPlayer ? -17 : 17), y = py(n.Y) + 15; taken.Add((x - 10, y - 11, x + 10, y + 26)); }
+        var taken = new List<(double x0, double y0, double x1, double y1)>(); var labels = new List<(double, double, string, string)>(); var spots = new Dictionary<string, (double x, double y)>();
         foreach (var n in ns) { double cx = px(n.X), cy = py(n.Y), r = (n.IsPlayerTerritory ? 9 : 7) + 3; taken.Add((cx - r, cy - r, cx + r, cy + r)); }   // no name over a star
-        bool Free((double x0, double y0, double x1, double y1) r) => r.x0 >= 2 && r.x1 <= 638 && r.y0 >= 2 && r.y1 <= 358 && !taken.Any(t => r.x0 < t.x1 && r.x1 > t.x0 && r.y0 < t.y1 && r.y1 > t.y0);
-        bool Place(double cx, double above, double below, string text, string cls, double size)
+        bool Free((double x0, double y0, double x1, double y1) r) => r.x0 >= 2 && r.x1 <= vbW - 2 && r.y0 >= 2 && r.y1 <= vbH - 2 && !taken.Any(t => r.x0 < t.x1 && r.x1 > t.x0 && r.y0 < t.y1 && r.y1 > t.y0);
+        void Place(double cx, double cy, double r, string text, string cls, double size)
         {
-            double w = text.Length * size * .56 + 4, side = (below - above) / 2 - size / 2;   // the mark's half height, near enough
-            foreach (var (x, by) in new[] { (cx, above), (cx, below), (cx + side + 6 + w / 2, (above + below) / 2 + size / 3), (cx - side - 6 - w / 2, (above + below) / 2 + size / 3) })
+            double w = text.Length * size * .56 + 4, mid = cy + size / 3;
+            foreach (var (x, by) in new[] { (cx, cy - r - 5), (cx, cy + r + size + 1), (cx + r + 6 + w / 2, mid), (cx - r - 6 - w / 2, mid),
+                                            (cx + r + 2 + w / 2, cy - r - 3), (cx - r - 2 - w / 2, cy - r - 3), (cx + r + 2 + w / 2, cy + r + size - 1), (cx - r - 2 - w / 2, cy + r + size - 1) })
             {
-                var r = (x - w / 2, by - size + 1, x + w / 2, by + 3);
-                if (Free(r)) { taken.Add(r); outp.Add((x, by, text, cls)); return true; }
+                var box = (x - w / 2, by - size + 1, x + w / 2, by + 3);
+                if (Free(box)) { taken.Add(box); labels.Add((x, by, text, cls)); return; }
             }
-            return false;
         }
         int Rank(MapNode n) => n.IsPlayerTerritory ? 0 : enemy(n) ? 1 : n.Capital ? 2 : n.OwnerHouseId != null ? 3 : 4;
         foreach (var n in ns.OrderBy(Rank).ThenBy(n => n.SystemId, StringComparer.Ordinal).Where(n => Rank(n) <= 2))
         {
-            bool mine = n.IsPlayerTerritory; double cx = px(n.X), cy = py(n.Y), r = mine ? 9 : 7;
-            Place(cx, cy - r - 5, cy + r + 15, n.Name + (n.Capital && !mine ? " · the capital" : ""), "nlabel " + (mine ? "mine" : enemy(n) ? "enemy" : ""), mine ? 14 : 12.5);
+            bool mine = n.IsPlayerTerritory;
+            Place(px(n.X), py(n.Y), mine ? 9 : 7, n.Name + (n.Capital && !mine ? " · the capital" : ""), "nlabel " + (mine ? "mine" : enemy(n) ? "enemy" : ""), mine ? 16 : 14.5);
         }
-        // a fleet's name is in its chevron's tooltip: on the plot it is its number plate alone (docs/VISUAL_SYSTEM.md 7.3)
-        foreach (var n in ns.Where(n => Rank(n) > 2).OrderBy(Rank).ThenBy(n => n.SystemId, StringComparer.Ordinal))
+        // a fleet's name is in its chevron's tooltip: on the plot it is its mark and number plate alone (docs/VISUAL_SYSTEM.md 7.3)
+        foreach (var f in fl)
         {
-            double cx = px(n.X), cy = py(n.Y), r = n.OwnerHouseId != null ? 5 : 3.5;
-            Place(cx, cy - r - 5, cy + r + 14, n.Name, "nlabel far", 12);
+            var n = byId[f.SystemId]; double cx = px(n.X), cy = py(n.Y); double side = f.IsPlayer ? -1 : 1;
+            (double x, double y) pick = (cx + 32 * side, cy - 12); bool found = false;
+            foreach (double rad in new[] { 1.0, 1.5, 2.1, 2.8 })
+            {
+                foreach (var (dx, dy) in new[] { (32 * side, -12.0), (-32 * side, -12.0), (32 * side, -40.0), (-32 * side, -40.0), (0.0, -58.0), (0.0, 22.0), (32 * side, 18.0), (-32 * side, 18.0) })
+                {
+                    double tx = cx + dx * rad, ty = cy + dy * (rad == 1.0 ? 1 : .6 + rad * .4);
+                    if (Free(FleetBox(tx, ty))) { pick = (tx, ty); found = true; break; }
+                }
+                if (found) break;
+            }
+            spots[f.FleetId] = pick; taken.Add(FleetBox(pick.x, pick.y));
         }
-        return outp;
+        foreach (var n in ns.Where(n => Rank(n) > 2).OrderBy(Rank).ThenBy(n => n.SystemId, StringComparer.Ordinal))
+            Place(px(n.X), py(n.Y), n.OwnerHouseId != null ? 5 : 3.5, n.Name, "nlabel far", 14);
+        return (spots, labels);
     }
+    /// <summary>A fleet's mark on the plot (its chevron and number plate) around its anchor point.</summary>
+    private static (double x0, double y0, double x1, double y1) FleetBox(double x, double y) => (x - 14, y - 14, x + 14, y + 31);
     /// <summary>A lede with its figures in bold roman lining numerals (docs/VISUAL_SYSTEM.md 4.5).</summary>
     public static MarkupString Bold(string s) => new(System.Text.RegularExpressions.Regex.Replace(System.Net.WebUtility.HtmlEncode(Minus(s)), @"(?<![\w&#])([+−-]?\d[\d,.]*)(?![\w;])", "<b>$1</b>"));
     private void MoveWar(string nationId) => G.Execute(new ProposeMotionCommand(G.World!.ProtagonistId, "foreign_war", nationId, G.Turn!.Senate));
@@ -827,6 +874,8 @@
             case "client": G.Execute(new PeacePostureCommand(me, !G.World!.HasFlag(NationSystem.PlayerClientsFlag))); break;
         }
     }
+    /// <summary>Who fights a fleet that has no admiral: its captain, or nobody, and then it fights at 85 in a hundred (FleetSystem.AdmiralFactor).</summary>
+    private static string NoAdmiralSays(FleetLine f) => f.CaptainName != null ? $"No admiral: its captain, {f.CaptainName}, commands." : "No admiral and no captain: it fights at 85 in a hundred.";
     private static string AwayWord(string phase) => phase switch { "fighting" => "fighting", "home" => "homeward", _ => "outward" };
     private static string StanceHelp(string s) => s switch { "press" => "The charge: +15% power, more losses; beats the skirmish, beaten by the line", "skirmish" => "Harass and evade: −10% power, far fewer losses; beats the line, beaten by the press", "boarding" => "The press with prize crews: on victory, 2 manpower take a hull per four the enemy lost", _ => "The line: steady; beats the press, beaten by the skirmish" };
     private static string StyleHelp(string s) => s switch { "front" => "+10% to this fleet, the crews' love, a point of valour a victory, and twice the risk of dying with the line", "flag" => "Every fleet of the house +3% per point of tactics; never lost with the line; needs the rank of Commander", _ => "The captains fight the ships" };

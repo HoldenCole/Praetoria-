@@ -33,8 +33,8 @@
             Tip: $"[threat] Restless in the Reach\n{restless} of {peopled.Count} peopled worlds{(unruly != null && unruly.Unrest > 0 ? $". The worst region is {unruly.Name}" : "")}."),
         new("flag-objective", unclaimed.ToString(), "Unclaimed", "ivory",
             Tip: $"[flag-objective] Unclaimed systems\n{(unclaimed == 0 ? "Every system has a master." : "Systems with no master: to be settled or taken.")}{(sites.Count > 0 ? $" {sites.Count} lie within reach of a colony of yours." : "")}"),
-        new("helium3", withDeposits.ToString(), "With deposits", "steel", Delta: oursDeposits > 0 ? oursDeposits + " yours" : "",
-            Tip: $"[helium3] Deposits\nHelium-3, rare earths and isotopes lie under {Counted.Systems(withDeposits)}; {oursDeposits} of them are yours. What you lack, you buy.")
+        new("helium3", withDeposits.ToString(), "With deposits", "steel",
+            Tip: $"[helium3] Deposits\nHelium-3, rare earths and isotopes lie under {Counted.Systems(withDeposits)}; {(oursDeposits == 0 ? "none of them is yours" : oursDeposits == 1 ? "one of them is yours" : oursDeposits + " of them are yours")}. What you lack, you buy.")
     };
     var tabs = new List<Tabs.Tab>
     {
@@ -68,14 +68,18 @@
                     int mineHere = r.SystemIds.Count(id => nodes[id].IsPlayerTerritory); string rid = r.Id;
                     int rt = w.Counter(LadderSystem.RegionTrustKey(r.Id)) != 0 ? LadderSystem.RegionTrust(w, r.Id) : -1;
                     <div class="wl-region @(r.FreeMarch || r.StateName != null ? "free" : "")" style="--rc:@r.AccentColor" data-region="@r.Id" title="@($"[region] {r.Name}\n{r.Description}\nClick for its worlds")" @onclick='() => { _region = rid; _tab = "worlds"; }'>
-                        <span class="wr-sw" aria-hidden="true"><Icon Name="region" Tone="brass" Size="18" /></span>
+                        @* its picture: the arms of the house that dominates it, on the region's own colour (no house: the region's glyph) *@
+                        @{ var domH = r.DominantHouseId != null ? w.House(r.DominantHouseId) : null; }
+                        <span class="wr-sw @(domH != null ? "arms" : "")" title="@(domH != null ? domH.Name + " dominates it" : "No house dominates it")">@if (domH != null) { <Sigil HouseId="@domH.Id" Accent="@domH.AccentColor" Size="30" /> } else { <Icon Name="region" Tone="ivory" Size="18" /> }</span>
                         <div class="wr-id">
                             <div class="wr-nm"><b>@r.Name</b>@if (mineHere > 0) { <span class="wl-st mine" title="Worlds of yours in it">@mineHere yours</span> }@if (r.FreeMarch) { <span class="wl-st warn">free march</span> }@if (r.StateName != null) { <span class="wl-st warn">@r.StateName@(r.StateAtWar ? ", fighting for it" : "")</span> }</div>
                             <div class="wr-sub">@Cap(r.Culture) · @Counted.Systems(r.SystemIds.Count) · @(r.DominantHouseName != null ? r.DominantHouseName + " dominates" : "no house dominates")</div>
                         </div>
                         <div class="wr-meters">
-                            @if (r.Unrest > 0) { <Meter Label="Unrest" Value="@r.Unrest" Text="@r.Unrest.ToString()" Color="@(r.Unrest >= 50 ? "#c4472f" : "#c9a24a")" ValueClass="@(r.Unrest >= 50 ? "ui-down" : "")" Tip="[threat] Regional unrest, 0 to 100" /> }
-                            else { <span class="wr-calm" title="[dove] Regional unrest, 0 to 100"><Icon Name="dove" Tone="good" Size="14" />No unrest</span> }
+                            @* one fixed column: unrest always (an empty track at none), the magistrates beneath it only where they are judged, in
+                               the same place in every row *@
+                            <Meter Label="Unrest" Value="@r.Unrest" Text="@(r.Unrest == 0 ? "none" : r.Unrest.ToString())" Color="@(r.Unrest >= 50 ? "#c4472f" : "#c9a24a")" ValueClass="@(r.Unrest >= 50 ? "ui-down" : r.Unrest == 0 ? "ui-dim" : "")" Tip="@(r.Unrest == 0 ? "[dove] No unrest\nRegional unrest, 0 to 100" : "[threat] Regional unrest, 0 to 100")" />
+                            @if (rt < 0) { <span class="wr-none" aria-hidden="true"></span> }
                             @if (rt >= 0) { <Meter Label="Magistrates" Value="@rt" Target="@LadderSystem.TrustLow" Text="@rt.ToString()" Color="@(rt < LadderSystem.TrustLow ? "#c4472f" : "#8cc47e")" Tip="@($"[scales] What this region thinks of the magistrates\nAgainst the Reach's {LadderSystem.Trust(w)}. Under {LadderSystem.TrustLow} (the tick) it holds a little less closely to the Reach each year; at {LadderSystem.TrustHigh} or more, a little closer.")" /> }
                         </div>
                         <Icon Name="chev" Size="12" Class="flat wr-chev" />

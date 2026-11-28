@@ -213,7 +213,7 @@
                             <div class="sn-vote">
                                 <span class="ui-seg" role="radiogroup" aria-label="Your vote">
                                     @foreach (var (stance, label) in new[] { (1, "Vote for"), (-1, "Vote against"), (0, "Abstain") })
-                                    { bool isOn = declared && myVote == stance, leans = !declared && myLean == stance; <button class="@(isOn ? "on" : leans ? "leans" : "")" role="radio" aria-checked="@(isOn ? "true" : "false")" title="@(VoteTip(stance) + (leans ? "\nLeft alone, your house votes this way: it is how it leans, not yet declared." : ""))" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))">@label</button> }
+                                    { bool isOn = declared && myVote == stance, leans = !declared && myLean == stance; <button class="@(isOn ? "on" : leans ? "leans" : "")" role="radio" aria-checked="@(isOn ? "true" : "false")" title="@(VoteTip(stance) + (leans ? "\nLeft alone, your house votes this way: it is how it leans, not yet declared." : ""))" @onclick="() => G.Execute(new VoteCommand(pid, mo.Id, stance))"><span class="sn-vl">@label</span>@if (leans) { <small class="sn-leancap">leans</small> }</button> }
                                 </span>
                                 <span class="sn-myvote @(declared ? "ui-up" : "")" data-myvote="@(declared ? myVote : 9)">@(declared ? $"You have declared {(myVote > 0 ? "for it" : myVote < 0 ? "against it" : "that you abstain")}. You may change it until the year ends." : $"You have not declared. Left alone, your house votes as it leans: {(myLean > 0 ? "for" : myLean < 0 ? "against" : "it abstains")}.")</span>
                             </div>
@@ -330,7 +330,7 @@
                     var prk = pr.KindId; bool picked = _pickMotion == prk; var mdef = senate.Motions.Def(pr.KindId); string does = mdef != null ? CourtProjection.MotionDoes(mdef) : "";
                     string fare = ForecastSays(pr) ?? "";
                     <div class="proposal sn-ent sn-mrow @(picked ? "open" : "")" data-proposal="@pr.KindId">
-                        <Row Name="@pr.KindName" SubText="@(does.Length > 0 ? does : pr.Description)" Wrap="true" On="@picked" Tip="@(pr.Description + (fare.Length > 0 ? "\n" + fare : "") + "\nA motion is voted at the end of the year after it is moved.")" OnClick="() => _pickMotion = picked ? null : prk">
+                        <Row Name="@pr.KindName" SubText="@(does.Length > 0 ? does : pr.Description)" Wrap="true" On="@picked" Class="sn-mr" Tip="@((does.Length > 0 && does != pr.Description ? does + "\n" : "") + pr.Description + (fare.Length > 0 ? "\n" + fare : "") + "\nA motion is voted at the end of the year after it is moved.")" OnClick="() => _pickMotion = picked ? null : prk">
                             <Picture><span class="ui-medal sn-medal"><Icon Name="@KindIcon(pr.KindId)" Tone="@(picked ? "brass" : "ivory")" Size="22" /></span></Picture>
                             <Action>
                                 @if (pr.TargetType == "none" && !pr.NeedsLaw) { <Plate Label="Move it" Small="true" Icon="scroll-quill" Stop="true" Locked="@(pr.Refusal != null)" Disabled="@(pr.Refusal != null)" Need="@(pr.Refusal != null ? Cap(pr.Refusal) : "")" ShowNeed="false" Tip="@(pr.Refusal ?? "Put it before the chamber")" CostIcon="public-speaker" CostText="@pr.Influence.ToString()" OnClick="() => MoveNone(prk)" /> }

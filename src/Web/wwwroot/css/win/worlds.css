@@ -102,14 +102,21 @@
 .wl-region:hover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--brass); }
 .wr-sw { position: relative; justify-self: center; width: 2.4rem; height: 2.4rem; display: grid; place-items: center; border-radius: 50%;
   background: radial-gradient(circle at 45% 35%, #2a2418, #0d0b08 75%); box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(201,162,74,.55), 0 2px 4px #000; }
+/* a region's picture: the arms of the house that dominates it in a recessed square well, the region's colour as a band beneath */
+.wr-sw.arms { border-radius: 2px; width: 2.6667rem; height: 2.6667rem; background: radial-gradient(circle at 50% 40%, #222a3b, #0b0e15 78%);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.9), inset 0 0 0 1px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px rgba(165,129,58,.28); }
+.wr-sw.arms::after { bottom: -.4rem; }
 .wr-sw::after { content: ""; position: absolute; left: .2667rem; right: .2667rem; bottom: -.4667rem; height: .2667rem; border-radius: 1px; background: color-mix(in srgb, var(--rc) 82%, #1b1e26); box-shadow: 0 0 0 1px #000; }
-.wr-calm { display: inline-flex; align-items: center; gap: .3333rem; font: 500 .8667rem/1 var(--f-ui); color: var(--ink-mute); cursor: help; }
 .wl-st.mine { color: var(--brass-hi); border-color: rgba(201,162,74,.5); }
 .wr-id { min-width: 0; }
 .wr-nm { display: flex; align-items: center; flex-wrap: wrap; row-gap: .2rem; } .wr-nm b { font: 600 1rem/1.2 var(--f-ui); color: var(--ink); }
 .wr-sub { margin-top: 2px; font: 400 .9333rem/1.3 var(--f-ui); color: var(--ink-dim); }
-.wr-meters { display: flex; flex-direction: column; gap: .2667rem; } .wr-meters .ui-meter { grid-template-columns: 5.0667rem 1fr 2.4rem; cursor: help; }
-@container wl (max-width: 46rem) { .wl-region { grid-template-columns: 3.6rem minmax(0, 1fr) .8rem; } .wr-meters { grid-column: 2 / 3; } }
+/* one fixed figure column: the unrest meter in the first slot of every row, the magistrates' meter in the second or an empty slot, so
+   every meter starts at the same height and every row is as tall as the next */
+.wr-meters { display: grid; grid-template-rows: 1.3333rem 1.3333rem; row-gap: .3333rem; align-content: center; } .wr-meters .ui-meter { grid-template-columns: 5.0667rem 1fr 2.4rem; cursor: help; }
+.wr-none { display: block; height: 1.3333rem; }
+@container wl (max-width: 46rem) { .wl-region { grid-template-columns: 3.6rem minmax(0, 1fr) .8rem; } .wr-meters { grid-column: 2 / 3; grid-template-rows: none; max-width: 24rem; }
+  .wr-none { display: none; } }
 
 /* ---- the great cities and the colony sites ---- */
 .wl-city, .wl-site { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr) auto; align-items: center; column-gap: .9333rem; min-height: 3.8667rem; padding: .5333rem var(--g-r) .5333rem var(--g-l);

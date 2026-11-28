@@ -36,14 +36,22 @@
     // mourning: a death in the house this year or last puts the funeral painting at the head
     bool mourning = w.History.Any(h => h.Turn >= w.Turn - 1 && Own(h) && h.Text.Contains(" dies"));
 
+    // five figures that move from the first year (VISUAL_SYSTEM.md 4.3): what is written, of your house, what the Senate carried; then
+    // wars, battles and fallen houses once there are any (until then they are said in the first figure's tooltip), and the dead
+    int deaths = w.History.Count(h => h.Text.Contains(" dies")), ownDeaths = w.History.Count(h => Own(h) && h.Text.Contains(" dies"));
+    var zeros = new List<string>(); if (wars == 0) zeros.Add("no war declared"); if (battles == 0) zeros.Add("no battle fought"); if (fallen == 0) zeros.Add("no house fallen");
     var figures = new List<WindowHeader.Figure>
     {
-        new("scroll-quill", w.History.Count.ToString(), "Written", "ivory", Tip: $"[scroll-quill] Written\n{w.History.Count} entries over {Counted.Years(w.Turn)}, about {w.History.Count / Math.Max(1, w.Turn)} a year.\n{ownAll} of them of your house ({(w.History.Count > 0 ? 100 * ownAll / w.History.Count : 0)}%)."),
-        new("war", wars.ToString(), "Wars declared", w.Wars.Count > 0 ? "ember" : "ivory", Tip: $"[war] Wars declared\n{(w.Wars.Count == 0 ? "None being fought now." : $"{w.Wars.Count} being fought now.")}"),
-        new("crossed-sabres", battles.ToString(), "Battles", "ivory", Tip: $"[crossed-sabres] Battles\n{(battles == 0 ? "None fought yet." : $"Your house won {won} of the {battles} fought.")}"),
-        new("greek-temple", motions.ToString(), "Senate carried", "ivory", Tip: $"[greek-temple] The Senate carried\n{motions} motions, {w.Counter("acts_passed")} of them Acts. {Counted.Laws(w.Counter("laws_enacted"))} changed by houses."),
-        new("flying-flag", fallen.ToString(), "Houses fallen", fallen > 0 ? "ember" : "ivory", Tip: $"[flying-flag] Houses fallen\n{standing} still stand.")
+        new("scroll-quill", w.History.Count.ToString(), "Written", "ivory", Tip: $"[scroll-quill] Written\n{w.History.Count} entries over {Counted.Years(w.Turn)}, about {w.History.Count / Math.Max(1, w.Turn)} a year.\n{ownAll} of them of your house ({(w.History.Count > 0 ? 100 * ownAll / w.History.Count : 0)}%)." + (zeros.Count > 0 ? $"\nSo far {string.Join(", ", zeros)}." : "") + $"\n{standing} houses still stand."),
+        new("castle", ownAll.ToString(), "Of your house", "brass", Tip: $"[castle] Of your house\n{ownAll} of the {w.History.Count} entries name your house: the Your house tab reads them."),
+        new("greek-temple", motions.ToString(), "Senate carried", "ivory", Tip: $"[greek-temple] The Senate carried\n{motions} motions, {w.Counter("acts_passed")} of them Acts. {Counted.Laws(w.Counter("laws_enacted"))} changed by houses.")
     };
+    var more = new List<WindowHeader.Figure>();
+    if (wars > 0) more.Add(new("war", wars.ToString(), "Wars declared", w.Wars.Count > 0 ? "ember" : "ivory", Tip: $"[war] Wars declared\n{(w.Wars.Count == 0 ? "None being fought now." : $"{w.Wars.Count} being fought now.")}"));
+    if (battles > 0) more.Add(new("crossed-sabres", battles.ToString(), "Battles", "ivory", Tip: $"[crossed-sabres] Battles\nYour house won {won} of the {battles} fought."));
+    if (fallen > 0) more.Add(new("flying-flag", fallen.ToString(), "Houses fallen", "ember", Tip: $"[flying-flag] Houses fallen\n{standing} still stand."));
+    more.Add(new("candle-light", deaths.ToString(), deaths == 1 ? "Death" : "Deaths", "ivory", Tip: $"[candle-light] Deaths written\n{deaths} in the Reach, {ownDeaths} of them of your house."));
+    figures.AddRange(more.Take(2));
     var tabs = new List<Tabs.Tab>
     {
         new("now", "This year", "hourglass", thisYear.Count > 0 ? thisYear.Count.ToString() : "", Tip: $"What was written in year {lastYear}: the news of the year, kept"),
@@ -124,7 +132,7 @@
                         {
                             var k = KindOf(h.Text); var who = WhoIn(w, h.Text); var hs = who == null ? HouseIn(w, h.Text) : null;
                             <div class="chron-line cr-row @(Own(h) ? "own" : "") @(h.EventId != null ? "event" : "")" data-kind="@k">
-                                @if (who != null) { <span class="cr-pic chip" title="@KindName(k)"><Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Alive="@who.Alive" Accent="@(w.House(who.HouseId)?.AccentColor ?? "#888")" Size="30" Height="30" /></span> }
+                                @if (who != null) { <span class="cr-pic face" title="@KindName(k)"><Portrait Id="@who.Id" Name="@who.Name" Sex="@who.Sex" Age="@who.Age" Alive="@who.Alive" Accent="@(w.House(who.HouseId)?.AccentColor ?? "#888")" Size="40" Height="48" /></span> }
                                 else if (hs != null) { <span class="cr-pic arms" title="@hs.Name"><Sigil HouseId="@hs.Id" Accent="@hs.AccentColor" Size="24" /></span> }
                                 else { <span class="cr-pic cr-ic" title="@KindName(k)"><Icon Name="@KindIcon(k)" Tone="@(KindTone(k) == "steel" ? "ivory" : KindTone(k))" Size="17" /></span> }
                                 <span class="cr-t">@h.Text</span>
